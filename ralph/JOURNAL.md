@@ -103,4 +103,20 @@ Format per entry:
   gate). These cover gaps the prior const-policy tests missed.
 - Verify: `python -m pytest -q` -> 15 passed (~12s); `python -m ruff check .`
   -> All checks passed.
+- Commit: cf33f64.
+
+## 2026-06-27 — hunt: logschema Parquet writer + run scripts (no bug)
+- Found: NO bug. Suspected StepWriter._flush would crash because pa.array infers
+  float64/int64/list<double> that mismatch the float32/int32/list<float32>
+  schema - DISPROVEN: pyarrow's record_batch(arrays, schema=...) casts them.
+  Verified empty default lists, multi-batch buffering, activation schema, and
+  manifest JSON round-trip all work. Ran the 3 remaining run scripts
+  (full/surprise/nonlinear): all exit 0 and reproduce FINDINGS qualitatively, so
+  all 7 run scripts now execute end-to-end.
+- Fix:   added tests/test_logschema.py (4 tests: StepWriter row/type round-trip,
+  incomplete-record rejection, manifest round-trip, record template coverage).
+  Recorded the run-scripts no-main-guard footgun as a deferred P3 (churn for no
+  current bug).
+- Verify: `python -m pytest -q` -> 19 passed; `python -m ruff check .` -> All
+  checks passed.
 - Commit: this run.
