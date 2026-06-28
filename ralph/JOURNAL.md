@@ -143,4 +143,26 @@ Format per entry:
 - Verify: `python -m pytest -q` -> 33 passed (2 new compute_gae oracle tests RED
   before, GREEN after); `python -m ruff check .` -> All checks passed;
   `python experiment_b2.py` smoke runs end-to-end on CUDA, exit 0.
+- Commit: 679fee6.
+
+## 2026-06-28 — RunningNorm Welford normalizer test gap (no bug)
+- Found: top open backlog item - the Welford observation normalizer
+  (`experiment_b2.RunningNorm`) was untested. NO bug. The parallel-variance update
+  is the standard Chan et al. merge tracking population variance directly
+  (`var = (var*n_A + bv*n_B + delta^2*n_A*n_B/total)/total`), and the
+  `count=1e-4, var=1` init is the deliberate Stable-Baselines3 epsilon prior that
+  avoids a first-update divide-by-zero.
+- Evidence: streamed 5000 samples (heterogeneous per-dim scale) in random 1..16
+  batches -> running mean matches numpy batch mean to 2.0e-7, var to 1.5e-6
+  absolute; single-sample stream vs one big batch agree to ~1e-14 (merge is
+  associative); freeze() leaves mean/var/count bit-unchanged under a later
+  large-shift update; normalized output is ~N(0,1). The only deviation is the
+  prior's O(1e-4/(var*N)) bias on tiny-variance dims (~2% rel at var~1e-6) - by
+  design, not drift.
+- Fix:   added 4 characterization tests to tests/test_experiment_b2.py
+  (streaming==numpy stats with atol on mean / rtol+atol on var, batch-size
+  independence, freeze() no-op incl. returns-self, normalize-to-unit-std). These
+  lock in the contract the frozen probe relies on.
+- Verify: `python -m pytest -q` -> 37 passed (was 33; +4 new); `python -m ruff
+  check .` -> All checks passed.
 - Commit: this run.

@@ -83,6 +83,66 @@ def test_leakage_audit_passes_when_balanced():
     assert leakage_audit_b2(auth, surr)["clean"] is True
 
 
+def test_running_norm_matches_numpy_batch_stats():
+    """Streamed in random-sized batches, the Welford running mean/var must match
+    numpy's batch statistics over the whole stream. This is the contract the probe
+    relies on: the frozen normalizer must reflect the true training-data moments.
+    Tolerances are well above the observed float64 roundoff (~2e-7 mean, ~1e-6 var)
+    but far below the O(var) error any wrong merge formula would produce."""
+    rng = np.random.default_rng(0)
+    dim = 4
+    data = rng.normal(loc=[1.0, -3.0, 10.0, 0.0], scale=[0.5, 2.0, 5.0, 1.0],
+                      size=(5000, dim))
+    n = RunningNorm(dim)
+    i = 0
+    while i < len(data):                       # random batch sizes 1..16
+        b = int(rng.integers(1, 17))
+        n.update(data[i:i + b]); i += b
+    assert np.allclose(n.mean, data.mean(0), atol=1e-5)
+    assert np.allclose(n.var, data.var(0), rtol=1e-3, atol=1e-4)
+
+
+def test_running_norm_batch_size_independent():
+    """The parallel-variance merge is associative: feeding samples one-by-one must
+    give the same mean/var as feeding them as a single batch (to float64 roundoff)."""
+    rng = np.random.default_rng(1)
+    data = rng.normal(size=(200, 4))
+    one_by_one = RunningNorm(4)
+    for row in data:
+        one_by_one.update(row)
+    single_batch = RunningNorm(4)
+    single_batch.update(data)
+    assert np.allclose(one_by_one.mean, single_batch.mean, atol=1e-10)
+    assert np.allclose(one_by_one.var, single_batch.var, atol=1e-10)
+
+
+def test_running_norm_freeze_halts_updates():
+    """freeze() must stop all updates so the probe sees the SAME normalization the
+    agent trained with - a later (e.g. surrogate-branch) update must be a no-op."""
+    rng = np.random.default_rng(2)
+    n = RunningNorm(4)
+    n.update(rng.normal(size=(500, 4)))
+    frozen = n.freeze()
+    assert frozen is n                          # returns self for chaining
+    snapshot = (n.mean.copy(), n.var.copy(), n.count)
+    n.update(rng.normal(loc=100.0, size=(50, 4)))   # would shift moments if applied
+    assert np.array_equal(n.mean, snapshot[0])
+    assert np.array_equal(n.var, snapshot[1])
+    assert n.count == snapshot[2]
+
+
+def test_running_norm_normalizes_to_zero_mean_unit_std():
+    """Applying the frozen normalizer to its own training data yields ~zero-mean,
+    ~unit-std features - the standardization the downstream readout expects."""
+    rng = np.random.default_rng(3)
+    data = rng.normal(loc=[5.0, -2.0], scale=[3.0, 0.5], size=(4000, 2))
+    n = RunningNorm(2)
+    n.update(data)
+    z = n.freeze()(data)
+    assert np.abs(z.mean(0)).max() < 1e-3
+    assert np.abs(z.std(0) - 1.0).max() < 1e-2
+
+
 def _ref_gae(rewards, values, gamma, lam, bootstrap):
     """Independent textbook GAE for ONE unpadded episode (the reference oracle)."""
     adv = np.zeros(len(rewards), np.float64)
