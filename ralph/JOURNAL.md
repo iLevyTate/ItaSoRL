@@ -48,4 +48,16 @@ Format per entry:
   recorded under BACKLOG "Questions / needs a human" with both options.
 - Verify: `python -m py_compile run_expA.py run_expA_l2.py` OK; diff shows only
   the dead import lines + the f-string prefix changed (runtime unchanged).
+- Commit: d1184af.
+
+## 2026-06-27 — green the ruff CI gate (style-preserving, human-approved)
+- Found: CI `python` job red at the ruff step (53 remaining stylistic errors);
+  resolving it was a style-policy decision. Human chose option A (keep the
+  compact style, configure the tool).
+- Fix:   added `ruff.toml` ignoring the stylistic E rules (E401/E701/E702/E731/
+  E741) while keeping all F + E9 bug-catchers; removed the `ruff format --check`
+  step from ci.yml (the formatter cannot preserve the one-line style). Put the
+  config in ruff.toml, NOT pyproject.toml, to avoid tripping CI's `pip install
+  -e .` and release.yml's `python -m build` (no packaging metadata exists).
+- Verify: `python -m ruff check .` -> "All checks passed!".
 - Commit: this run.

@@ -43,8 +43,11 @@ jobs:
       - name: Lint (ruff)
         run: |
           if ls **/*.py >/dev/null 2>&1 || ls *.py >/dev/null 2>&1; then
+            # Lint rules are configured in ruff.toml to match the repo's compact
+            # style. `ruff format --check` is intentionally NOT run: the project's
+            # deliberate one-line/semicolon style is incompatible with ruff's
+            # formatter, which offers no opt-out for it.
             ruff check .
-            ruff format --check .
           else
             echo "No Python files yet — skipping ruff."
           fi
