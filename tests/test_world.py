@@ -27,6 +27,16 @@ def _const_policy(obs):
     return CONST_ACTION
 
 
+def _reactive_policy(obs):
+    # Obs-dependent: exposes any state field dropped by get_state/set_state,
+    # because the branches would diverge once the policy reacts to it.
+    a = np.zeros(5, dtype=np.float32)
+    a[0] = 0.5 + 0.4 * np.tanh(obs[0])  # thrust <- first ray distance
+    a[1] = float(np.tanh(obs[132]))     # turn   <- velocity x (intero)
+    a[2] = float(obs[4] > 0.0)          # eat    <- radial velocity
+    return a
+
+
 def _make_world():
     w = PatchOfEarthV0()
     w.ray_steps = 4  # light raymarch keeps the tests fast
@@ -95,6 +105,40 @@ def test_matched_pair_L0_is_bit_identical():
     for a, s in zip(pe.authentic, pe.surrogate):
         np.testing.assert_array_equal(a.obs, s.obs)
         assert a.reward == s.reward
+
+
+def test_matched_pair_L0_identical_under_reactive_policy():
+    # Stronger than the constant-policy case: a reactive policy would surface an
+    # incomplete snapshot the moment it reacts to the affected observation.
+    pe = matched_pair_rollout(
+        make_world=_make_world,
+        make_surrogate=L0Identity,
+        seeds=_seeds(),
+        policy=_reactive_policy,
+        prefix_steps=20,
+        branch_steps=40,
+        pair_id=0,
+        rng=np.random.default_rng(0),
+    )
+    for a, s in zip(pe.authentic, pe.surrogate):
+        np.testing.assert_array_equal(a.obs, s.obs)
+        assert a.reward == s.reward
+
+
+def test_L1_surrogate_preserves_obs_format():
+    # spec sec. 9: the surrogate obs must match the authentic format (dtype,
+    # shape, format hash) so detection rides the discretization signal, not an
+    # implementation artifact like float32-vs-float64.
+    auth = _make_world()
+    auth.reset(_seeds())
+    authentic_obs = auth.observe()
+    base = _make_world()
+    base.reset(_seeds())
+    surr = L1Discretize(base, delta=1.0 / 32)
+    surrogate_obs = surr.observe()
+    assert surrogate_obs.dtype == authentic_obs.dtype
+    assert surrogate_obs.shape == authentic_obs.shape
+    assert surr.obs_spec.identity_hash() == auth.obs_spec.identity_hash()
 
 
 def test_matched_pair_L1_only_quantizes_observation():

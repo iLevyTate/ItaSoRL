@@ -85,4 +85,22 @@ Format per entry:
   both modes, open-loop ignores future obs).
 - Verify: `python -m pytest -q` -> 10 passed in ~2.6s; `python -m ruff check .`
   -> All checks passed.
+- Commit: 9cc085c.
+
+## 2026-06-27 — deep correctness pass (world dynamics + oracles)
+- Found: NO new bug. Reviewed terrain gradient + slope/gravity coupling, drag
+  AR(1) stability, thermoregulation bounds, the L1 and L2 oracle math, and RNG
+  determinism in get_state/set_state. One suspicion - L1Discretize emitting
+  float64 and breaking the float32 obs contract - was DISPROVEN empirically:
+  numpy treats the Python-float delta as a weak scalar, so float32/float stays
+  float32 (holds under numpy 1.x value-based casting and 2.0 NEP 50).
+- Evidence: snapshot/restore is bit-exact even under an obs-dependent policy over
+  60 steps (max diff 0.0); run_expA.py validates L0 oracle 0.509 (chance), L1
+  @delta=0.06 AUROC 1.000, ceiling falls to chance as delta->sigma, leakage gate
+  PASS clean / FAIL on contamination.
+- Fix:   converted the verified invariants into 5 regression tests (reactive-
+  policy L0 identity, L1 obs-format/dtype identity, Experiment A oracle + leakage
+  gate). These cover gaps the prior const-policy tests missed.
+- Verify: `python -m pytest -q` -> 15 passed (~12s); `python -m ruff check .`
+  -> All checks passed.
 - Commit: this run.
