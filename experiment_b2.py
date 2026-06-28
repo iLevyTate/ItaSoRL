@@ -215,13 +215,17 @@ def compute_gae(reward, value, mask, terminated, gamma, lam):
                        value.gather(1, last_idx.unsqueeze(1)).squeeze(1))
     gae = torch.zeros(B, device=reward.device)
     next_v = boot
+    # next_mask = mask of step t+1 (0 at the final valid step). It gates the GAE
+    # accumulator so the carry resets at the episode boundary; using the CURRENT step's
+    # mask instead would leak the padded-step delta into the last valid step's advantage.
+    next_mask = torch.zeros(B, device=reward.device)
     for t in reversed(range(T)):
         m = mask[:, t]
-        nonterm = m  # within episode; beyond episode m=0 so contributions vanish
-        delta = reward[:, t] + gamma * next_v * nonterm - value[:, t]
-        gae = delta + gamma * lam * nonterm * gae
+        delta = reward[:, t] + gamma * next_v - value[:, t]
+        gae = delta + gamma * lam * next_mask * gae
         adv[:, t] = gae * m
         next_v = torch.where(m > 0.5, value[:, t], next_v)
+        next_mask = m
     ret = adv + value
     return adv, ret
 

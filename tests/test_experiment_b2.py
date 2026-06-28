@@ -19,6 +19,7 @@ from agent_ac import RecurrentActorCritic  # noqa: E402
 from experiment_b2 import (  # noqa: E402
     RunningNorm,
     collect_pool,
+    compute_gae,
     leakage_audit_b2,
     matched_pair_recurrent_rollout,
 )
@@ -80,6 +81,50 @@ def test_leakage_audit_passes_when_balanced():
     auth = [_ep(0, float(rng.random())) for _ in range(12)]
     surr = [_ep(1, float(rng.random())) for _ in range(12)]  # same reward dist for both
     assert leakage_audit_b2(auth, surr)["clean"] is True
+
+
+def _ref_gae(rewards, values, gamma, lam, bootstrap):
+    """Independent textbook GAE for ONE unpadded episode (the reference oracle)."""
+    adv = np.zeros(len(rewards), np.float64)
+    gae, next_v = 0.0, bootstrap
+    for t in reversed(range(len(rewards))):
+        delta = rewards[t] + gamma * next_v - values[t]
+        gae = delta + gamma * lam * gae
+        adv[t] = gae
+        next_v = values[t]
+    return adv
+
+
+def test_compute_gae_no_padding_leakage():
+    """A terminated episode shorter than Tmax must get the SAME advantages as the
+    textbook per-episode GAE: the value at the padded slot must NOT leak into the
+    last valid step via the GAE accumulator (the mask-leakage guard)."""
+    gamma, lam = 0.99, 0.95
+    # ep0: length 2, terminated (bootstrap 0); ep1: length 3, terminated. Tmax=3.
+    reward = torch.tensor([[1.0, 2.0, 0.0], [1.0, 1.0, 1.0]])
+    value = torch.tensor([[0.5, 0.3, 0.7], [0.2, 0.2, 0.2]])  # value[0,2]=0.7 is the padded slot
+    mask = torch.tensor([[1.0, 1.0, 0.0], [1.0, 1.0, 1.0]])
+    terminated = torch.tensor([1.0, 1.0])
+    adv, ret = compute_gae(reward, value, mask, terminated, gamma, lam)
+    ref0 = _ref_gae([1.0, 2.0], [0.5, 0.3], gamma, lam, bootstrap=0.0)
+    ref1 = _ref_gae([1.0, 1.0, 1.0], [0.2, 0.2, 0.2], gamma, lam, bootstrap=0.0)
+    assert np.allclose(adv[0, :2].numpy(), ref0, atol=1e-6)
+    assert np.allclose(adv[1, :3].numpy(), ref1, atol=1e-6)
+    assert adv[0, 2].item() == 0.0                                # padded step zeroed
+    assert np.allclose(ret.numpy(), (adv + value).numpy())        # ret = adv + value
+
+
+def test_compute_gae_truncation_bootstraps_last_value():
+    """A truncated (not terminated) short episode bootstraps from its last in-episode
+    value - not from the padded slot - when forming the final advantage."""
+    gamma, lam = 0.99, 0.95
+    reward = torch.tensor([[1.0, 2.0, 0.0], [1.0, 1.0, 1.0]])
+    value = torch.tensor([[0.5, 0.3, 0.7], [0.2, 0.2, 0.2]])
+    mask = torch.tensor([[1.0, 1.0, 0.0], [1.0, 1.0, 1.0]])
+    terminated = torch.tensor([0.0, 1.0])                         # ep0 TRUNCATED
+    adv, _ = compute_gae(reward, value, mask, terminated, gamma, lam)
+    ref0 = _ref_gae([1.0, 2.0], [0.5, 0.3], gamma, lam, bootstrap=0.3)  # last in-ep value
+    assert np.allclose(adv[0, :2].numpy(), ref0, atol=1e-6)
 
 
 def test_tost_equivalence_has_teeth():

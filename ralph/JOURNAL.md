@@ -120,3 +120,27 @@ Format per entry:
 - Verify: `python -m pytest -q` -> 19 passed; `python -m ruff check .` -> All
   checks passed.
 - Commit: this run.
+
+## 2026-06-28 — compute_gae mask leakage (real correctness bug, A2C advantages)
+- Found: top open backlog item asked to test `experiment_b2.compute_gae` and hunt
+  for mask leakage. Found a REAL bug, not just a gap. The GAE accumulator gated
+  its carry with the CURRENT step's mask (`gae = delta + gamma*lam*m*gae`). The
+  correct GAE recursion needs the NEXT step's mask there (reset the carry across
+  the episode boundary). For any episode shorter than Tmax, the loop visits the
+  padded steps first (m=0, so `gae` becomes that step's delta = -V(pad)), then at
+  the last valid step (m=1) multiplies that garbage in: the last in-episode
+  advantage (and value target) gained a spurious `-gamma*lam*V(pad)` term.
+  Full-length episodes (no padding) were correct, which hid the bug. Under the
+  harsh B-v2 metabolism most episodes die early, so most episodes were affected.
+- Reproduced: oracle test vs an independent textbook per-episode GAE on a 2-episode
+  batch (ep0 len 2 padded to Tmax 3 with value[0,2]=0.7). Buggy last-step adv =
+  1.0417 (terminated) / 1.3386 (truncated) vs oracle 1.7 / 1.997 - exactly the
+  predicted -gamma*lam*0.7 leak.
+- Fix: carry `next_mask` (mask of t+1, init 0) and gate the accumulator with it;
+  dropped the now-redundant `nonterm` factor on the bootstrap in `delta` (next_v
+  already stays at `boot` across padding, so the bootstrap was already correct and
+  is unchanged). Shapes / return signature / truncation semantics all preserved.
+- Verify: `python -m pytest -q` -> 33 passed (2 new compute_gae oracle tests RED
+  before, GREEN after); `python -m ruff check .` -> All checks passed;
+  `python experiment_b2.py` smoke runs end-to-end on CUDA, exit 0.
+- Commit: this run.
