@@ -258,11 +258,12 @@ inducing it (if possible) requires something more deliberate.
 
 ## 7. Next steps (prioritized by likelihood of changing the result)
 
-1. **Survival reward coupled to the dynamics.** If staying alive requires
-   exploiting drag (e.g., locomotion cost depends on it), representing it becomes
-   *instrumentally necessary*, the real Dreamer-style version of the claim. The
-   probe harness already accepts the actor-critic unchanged. This is the strongest
-   lever and the largest build.
+1. **Survival reward coupled to the dynamics.** *Attempted — see §9 (Experiment
+   B-v2).* Coupling the readout to survival did **not** lift incidental encoding
+   above the pre-registered threshold; the detectability-vs-encoding gap persists.
+   If staying alive requires exploiting drag (e.g., locomotion cost depends on it),
+   representing it becomes *instrumentally necessary*, the real Dreamer-style version
+   of the claim. The probe harness accepted the actor-critic unchanged.
 2. **Strengthen the multi-step objective further.** The open-loop objective was
    confirmed to engage yet still did not induce encoding (§3.4); remaining variants
    worth trying are weighting the dynamics-relevant observation dimensions and
@@ -273,6 +274,66 @@ inducing it (if possible) requires something more deliberate.
    target.
 4. **Scale.** More episodes / seeds / epochs. (A nonlinear probe has already been
    checked (§3.4) and also finds nothing, so probe class is not the bottleneck.)
+
+---
+
+## 9. Experiment B-v2 — does survival pressure induce incidental encoding?
+
+Experiment B's null was conjectured to follow from *readout, not reward*: what the
+objective does not require, the agent does not represent. B-v2 tests the strongest
+lever from §7.1 — it makes the agent **act to stay alive in a world whose dynamics
+drift**, so coping with the drifting drag (and thus modelling it) becomes
+instrumentally useful. World identity is still never in the observation or the
+reward; only the probe ever sees it. Pre-registered before the run
+(`../PREREGISTRATION.md`). Three agents share the identical recurrent trunk and the
+identical readout, differing only in objective: `untrained` (mechanical floor),
+`predictor` (Experiment B's next-step prediction on this trunk), and `survival`
+(recurrent A2C + GAE, potential-based food shaping, harsh metabolism so a non-forager
+starves in ≈ 50 steps).
+
+**Primary readout — pooled (Experiment B frame).** Persistent world-identity
+direction across independent authentic (drift 0) vs surrogate (drift d) episodes;
+≈ 0.50 means no incidental encoding. Mean ± std over 3 seeds:
+
+| agent | drift = 0.0 (control) | drift = 0.45 (test) |
+|-------|----------------------|---------------------|
+| untrained | 0.460 ± 0.036 | 0.444 ± 0.027 |
+| predictor | 0.493 ± 0.079 | 0.485 ± 0.053 |
+| **survival** | 0.538 ± 0.016 | **0.581 ± 0.035** |
+
+Gates (all pre-registered): **engagement** passed in 100 % of seeds (the trained
+agent out-survives random and scripted on both return and lifetime); **positive
+control** (speed probe) 0.83–0.97; **leakage audit** (reward / length / lifetime)
+clean in every cell; **L0 equivalence** for the survival agent — point estimate
+0.538 sits inside the ±0.05 band but TOST is not significant at n = 3 (p = 0.19),
+i.e. underpowered rather than a clean pass.
+
+**Result — the negative holds; a faint sub-threshold hint remains.**
+
+- The `predictor` agent reproduces Experiment B's null *on this trunk* (flat at
+  ≈ 0.49, |dev| ≈ 0.01) — an internal validation that the apparatus and the trunk
+  carry no spurious signal.
+- The `survival` agent's pooled target (0.581 at drift 0.45) is the largest of the
+  three and shows the steepest drift slope (0.538 → 0.581), **but it falls far short
+  of the pre-registered SESOI of 0.65** (an oracle reads the same artifact at ≈ 0.99),
+  and its error bars overlap the untrained floor. Much of its ≈ 0.05 elevation is a
+  drift-independent *representational-richness* offset (it is already 0.538 at drift
+  0), not encoding of world identity.
+- **Verdict (pre-registered decision matrix): the strong hypothesis is not
+  supported.** *Detectability ≫ incidental encoding* survives the move to survival
+  pressure: an agent whose life depends on the drifting dynamics still does not encode
+  *which world it is in* in any decodably persistent way. The small, drift-sensitive
+  lift unique to the survival agent is suggestive but sub-threshold.
+
+**Caveats.** n = 3 seeds (the TOST is underpowered); a single architecture, world
+family, and L2 only; 300 A2C updates (the forager is engaged but not expert); and the
+*reactive-vs-representational* ambiguity is unresolved — the agent may exploit *felt*
+drag reactively without classifying the world. A common-garden / held-out
+fixed-dynamics probe and higher power (more seeds, longer training, L3) are the
+natural follow-ups. The secondary matched-pair readout is reported in
+`expB2_results.json` but is demoted: with bit-identical L0 branches its
+cross-validated AUROC is a biased estimate of chance, so it indexes *detectability*,
+not persistent encoding.
 
 ---
 
@@ -290,6 +351,7 @@ All experiments are deterministic given their seeds. Dependencies: `numpy`,
 | B, k-step | `run_expB_kstep.py` | open-loop horizons 0/8/16 |
 | B, engagement + delta | `run_expB_gap.py` | open-loop MSE vs baselines; delta-rollout objective |
 | B, nonlinear probe | `run_expB_nonlinear.py` | random-forest probe on the recurrent states |
+| B-v2, survival-coupled | `run_expB2.py` | A2C+GAE agent, harsh metabolism, drift [0,0.45], 3 seeds, 300 updates (`--quick` for a fast pass) |
 
 Core modules: `world.py` (protocol + ladder + matched-pair harness),
 `patch_of_earth.py` (the world, incl. L1/L2 hooks), `logschema.py` (logging
