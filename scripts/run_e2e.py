@@ -5,10 +5,10 @@ Records every step under results/runs/<timestamp>/ (logs, metrics JSON, figures,
 SUMMARY.md, bundle.zip).
 
 Usage (from repo root):
-    python run_e2e.py              # full suite + recorded results
-    python run_e2e.py --quick      # all experiments; B-v2 at reduced scale
-    python run_e2e.py --results-dir results/runs/my_run
-    python run_e2e.py --no-zip     # skip zip bundle
+    python scripts/run_e2e.py              # full suite + recorded results
+    python scripts/run_e2e.py --quick      # all experiments; B-v2 at reduced scale
+    python scripts/run_e2e.py --results-dir results/runs/my_run
+    python scripts/run_e2e.py --no-zip     # skip zip bundle
 """
 
 from __future__ import annotations
@@ -18,25 +18,32 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = Path(__file__).resolve().parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-from results_io import RunRecorder  # noqa: E402
+from itasorl.results_io import RunRecorder  # noqa: E402
+
+
+def _script(name: str) -> str:
+    return str(SCRIPTS / name)
 
 
 def experiment_steps(*, quick: bool, b2_out: Path) -> list[tuple[str, list[str], list[str] | None]]:
     py = sys.executable
-    b2 = [py, "run_expB2.py", "--out-dir", str(b2_out)]
+    b2 = [py, _script("run_expB2.py"), "--out-dir", str(b2_out)]
     if quick:
         b2.append("--quick")
     return [
-        ("expA_l1", [py, "run_expA.py"], None),
-        ("expA_l2", [py, "run_expA_l2.py"], None),
-        ("expB_smoke", [py, "experiment_b.py"], None),
-        ("expB_full", [py, "run_expB_full.py"], None),
-        ("expB_surprise", [py, "run_expB_surprise.py"], None),
-        ("expB_kstep", [py, "run_expB_kstep.py"], None),
-        ("expB_gap", [py, "run_expB_gap.py"], None),
-        ("expB_nonlinear", [py, "run_expB_nonlinear.py"], None),
+        ("expA_l1", [py, _script("run_expA.py")], None),
+        ("expA_l2", [py, _script("run_expA_l2.py")], None),
+        ("expB_smoke", [py, "-m", "itasorl.experiment_b"], None),
+        ("expB_full", [py, _script("run_expB_full.py")], None),
+        ("expB_surprise", [py, _script("run_expB_surprise.py")], None),
+        ("expB_kstep", [py, _script("run_expB_kstep.py")], None),
+        ("expB_gap", [py, _script("run_expB_gap.py")], None),
+        ("expB_nonlinear", [py, _script("run_expB_nonlinear.py")], None),
         ("expB2", b2, None),
     ]
 
@@ -91,7 +98,7 @@ def main() -> None:
     t0 = time.perf_counter()
 
     if args.only != "experiments" and "pytest" not in skip:
-        recorder.run_step("pytest", [sys.executable, "-m", "pytest", "-q"])
+        recorder.run_step("pytest", [sys.executable, "-m", "pytest", "-q"], cwd=ROOT)
 
     if args.only != "pytest":
         for name, cmd, extra in experiment_steps(quick=args.quick, b2_out=b2_out):
@@ -99,7 +106,7 @@ def main() -> None:
                 print(f"\n--- skip {name} ---", flush=True)
                 recorder.manifest["steps"][name] = {"status": "skipped"}
                 continue
-            recorder.run_step(name, cmd, extra_artifacts=extra)
+            recorder.run_step(name, cmd, cwd=ROOT, extra_artifacts=extra)
 
     run_dir = recorder.finalize(total_sec=time.perf_counter() - t0, make_zip=not args.no_zip)
     print(f"Read outcomes: {run_dir / 'SUMMARY.md'}", flush=True)

@@ -1,9 +1,11 @@
+import _bootstrap  # noqa: F401
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GroupKFold
 from sklearn.metrics import roc_auc_score
-from world import WorldParams
-from experiment_b import collect_episodes, train_world_model, states_torch, episode_features
+from itasorl.world import WorldParams
+from itasorl.experiment_b import collect_episodes, train_world_model, states_torch, episode_features
 
 PARAMS = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 T, RAY, POOL, SUB, EPOCHS, HIDDEN = 24, 5, 150, 110, 15, 96

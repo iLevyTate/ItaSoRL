@@ -15,23 +15,23 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from agent_ac import RecurrentActorCritic  # noqa: E402
-from experiment_b2 import (  # noqa: E402
+from itasorl.agent_ac import RecurrentActorCritic  # noqa: E402
+from itasorl.experiment_b2 import (  # noqa: E402
     RunningNorm,
     collect_pool,
     compute_gae,
     leakage_audit_b2,
     matched_pair_recurrent_rollout,
 )
-from stats import equivalence_test  # noqa: E402
-from world import WorldParams  # noqa: E402
+from itasorl.stats import equivalence_test  # noqa: E402
+from itasorl.world import WorldParams  # noqa: E402
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 RS = 4
 
 
 def _agent_norm():
-    from patch_of_earth import PatchOfEarthV0
+    from itasorl.patch_of_earth import PatchOfEarthV0
     w = PatchOfEarthV0(P)
     od, ad = w.obs_spec.size, w.action_spec.size
     torch.manual_seed(0)

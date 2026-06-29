@@ -285,7 +285,7 @@ lever from §7.1 — it makes the agent **act to stay alive in a world whose dyn
 drift**, so coping with the drifting drag (and thus modelling it) becomes
 instrumentally useful. World identity is still never in the observation or the
 reward; only the probe ever sees it. Pre-registered before the run
-(`../PREREGISTRATION.md`). Three agents share the identical recurrent trunk and the
+(`docs/PREREGISTRATION.md`). Three agents share the identical recurrent trunk and the
 identical readout, differing only in objective: `untrained` (mechanical floor),
 `predictor` (Experiment B's next-step prediction on this trunk), and `survival`
 (recurrent A2C + GAE, potential-based food shaping, harsh metabolism so a non-forager
@@ -302,7 +302,7 @@ direction across independent authentic (drift 0) vs surrogate (drift d) episodes
 | **survival** | 0.514 ± 0.052 | **0.595 ± 0.014** |
 
 (Numbers are from the corrected run — see the GAE-bug deviation in
-`../PREREGISTRATION.md` §12. The first run was trained with a buggy advantage estimator
+`docs/PREREGISTRATION.md` §12. The first run was trained with a buggy advantage estimator
 that affected only the survival arm; the conclusion is unchanged.)
 
 Gates (all pre-registered): **engagement** passed in 100 % of seeds (trained true
@@ -351,17 +351,15 @@ All experiments are deterministic given their seeds. Dependencies: `numpy`,
 
 | Experiment | Script | Key config |
 |------------|--------|------------|
-| A, L1 | `run_expA.py` | default world, fixed policy, sensor σ = 0.01, 100 pairs, Δ headline 0.06 |
-| A, L2 | `run_expA_l2.py` | tamed config (k=4, gravity 0), 120 pairs, meas σ = 2×10⁻⁴, drift headline 0.30 |
-| B, recurrent-state | `run_expB_full.py` | k_land=1.5, gravity 0.4, ≈110 ep/class, 3 seeds, drift sweep + control |
-| B, surprise | `run_expB_surprise.py` | authentic-only model, surprise probe |
-| B, k-step | `run_expB_kstep.py` | open-loop horizons 0/8/16 |
-| B, engagement + delta | `run_expB_gap.py` | open-loop MSE vs baselines; delta-rollout objective |
-| B, nonlinear probe | `run_expB_nonlinear.py` | random-forest probe on the recurrent states |
-| B-v2, survival-coupled | `run_expB2.py` | A2C+GAE agent, harsh metabolism, drift [0,0.45], 3 seeds, 300 updates (`--quick` for a fast pass) |
+| A, L1 | `scripts/run_expA.py` | default world, fixed policy, sensor σ = 0.01, 100 pairs, Δ headline 0.06 |
+| A, L2 | `scripts/run_expA_l2.py` | tamed config (k=4, gravity 0), 120 pairs, meas σ = 2×10⁻⁴, drift headline 0.30 |
+| B, recurrent-state | `scripts/run_expB_full.py` | k_land=1.5, gravity 0.4, ≈110 ep/class, 3 seeds, drift sweep + control |
+| B, surprise | `scripts/run_expB_surprise.py` | authentic-only model, surprise probe |
+| B, k-step | `scripts/run_expB_kstep.py` | open-loop horizons 0/8/16 |
+| B, engagement + delta | `scripts/run_expB_gap.py` | open-loop MSE vs baselines; delta-rollout objective |
+| B, nonlinear probe | `scripts/run_expB_nonlinear.py` | random-forest probe on the recurrent states |
+| B-v2, survival-coupled | `scripts/run_expB2.py` | A2C+GAE agent, harsh metabolism, drift [0,0.45], 3 seeds, 300 updates (`--quick` for a fast pass) |
 
-Core modules: `world.py` (protocol + ladder + matched-pair harness),
-`patch_of_earth.py` (the world, incl. L1/L2 hooks), `logschema.py` (logging
-schema), `experiment_a.py` / `experiment_a_l2.py` (oracles), `agent.py` (the
-recurrent world model), `experiment_b.py` (the probe harness). See `../README.md`
+Core modules live under `itasorl/` (`world.py`, `patch_of_earth.py`, `agent.py`,
+`experiment_a.py` / `experiment_b.py` / `experiment_b2.py`). See `README.md`
 for the full manifest and run commands.

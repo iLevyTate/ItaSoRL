@@ -1,6 +1,8 @@
+import _bootstrap  # noqa: F401
+
 import numpy as np, torch
-from world import WorldParams
-from experiment_b import (collect_episodes, train_world_model, states_torch,
+from itasorl.world import WorldParams
+from itasorl.experiment_b import (collect_episodes, train_world_model, states_torch,
                           episode_features, probe_auroc, _stack)
 
 PARAMS = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)

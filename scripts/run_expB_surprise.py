@@ -1,9 +1,11 @@
+import _bootstrap  # noqa: F401
+
 import numpy as np, matplotlib
 matplotlib.use("Agg"); import matplotlib.pyplot as plt
 import torch
-from world import WorldParams
-from experiment_b import collect_episodes, train_world_model, _stack
-from experiment_a import grouped_auroc, continuous_dims
+from itasorl.world import WorldParams
+from itasorl.experiment_b import collect_episodes, train_world_model, _stack
+from itasorl.experiment_a import grouped_auroc, continuous_dims
 
 PARAMS = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 STEPS, RAY, POOL, SUB, EPOCHS, HIDDEN = 28, 5, 150, 110, 15, 96

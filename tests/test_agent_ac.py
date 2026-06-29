@@ -11,7 +11,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from agent_ac import RecurrentActorCritic  # noqa: E402
+from itasorl.agent_ac import RecurrentActorCritic  # noqa: E402
 
 OBS, ACT, B, T = 12, 5, 4, 7
 

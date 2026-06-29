@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 RUNS_ROOT = ROOT / "results" / "runs"
 
 # Repo-relative paths produced by reproduction scripts.

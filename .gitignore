@@ -186,3 +186,11 @@ temp.md
 # Recorded e2e run output (logs, figures, bundle.zip)
 results/runs/
 results/LATEST_RUN.txt
+
+# Local run logs and ad-hoc B-v2 outputs at repo root
+expB2_run*.log
+/expB2_*.json
+/expB2_*.png
+
+# Ad-hoc n=10 / launcher logs (committed artifacts live under artifacts/expB2/)
+artifacts/expB2/logs/

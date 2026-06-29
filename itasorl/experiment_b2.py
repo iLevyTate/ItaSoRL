@@ -28,10 +28,10 @@ from __future__ import annotations
 import numpy as np
 import torch
 
-from agent_ac import RecurrentActorCritic
-from experiment_b import episode_features, probe_auroc, scripted_policy
-from patch_of_earth import PatchOfEarthV0
-from world import SeedBundle, WorldParams
+from .agent_ac import RecurrentActorCritic
+from .experiment_b import episode_features, probe_auroc, scripted_policy
+from .patch_of_earth import PatchOfEarthV0
+from .world import SeedBundle, WorldParams
 
 
 def default_device() -> str:

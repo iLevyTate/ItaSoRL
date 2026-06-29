@@ -1,7 +1,9 @@
+import _bootstrap  # noqa: F401
+
 import numpy as np, matplotlib
 matplotlib.use("Agg"); import matplotlib.pyplot as plt
-from world import WorldParams
-from experiment_b import (collect_episodes, train_world_model, states_torch,
+from itasorl.world import WorldParams
+from itasorl.experiment_b import (collect_episodes, train_world_model, states_torch,
                           episode_features, probe_auroc)
 
 PARAMS = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)

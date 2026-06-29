@@ -1,7 +1,9 @@
+import _bootstrap  # noqa: F401
+
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from experiment_a import generate_clean, run_experiment_a
+from itasorl.experiment_a import generate_clean, run_experiment_a
 
 SIGMA = 0.01
 print("Generating clean trajectories (agent-free, fixed policy) ...")

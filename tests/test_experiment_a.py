@@ -8,7 +8,7 @@ Deterministic - run_experiment_a and generate_clean use fixed seeds.
 
 import pytest
 
-from experiment_a import generate_clean, run_experiment_a
+from itasorl.experiment_a import generate_clean, run_experiment_a
 
 pytest.importorskip("sklearn")
 

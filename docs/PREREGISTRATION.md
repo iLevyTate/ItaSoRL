@@ -100,7 +100,9 @@ drifts `[0.0, 0.45]`; seeds `[0,1,2]`; updates `300`; `n_eps=16`; `max_steps=80`
 
 Mean ± std over seeds. Primary contrast: survival vs predictor vs untrained pooled
 target across drift. L0 equivalence by TOST. Report every gate. Figure: |target−0.5|
-vs drift per agent (`expB2_survival.png`); raw metrics in `expB2_results.json`.
+vs drift per agent (`expB2_survival.png` in the run output dir, default repo root or `--out-dir`);
+raw metrics in `expB2_results.json`. Published confirmatory copies live in
+`artifacts/expB2/`.
 
 ## 11. Key interpretive caveat
 
