@@ -18,7 +18,7 @@ import copy
 
 import numpy as np
 
-from world import (
+from .world import (
     DEFAULT_ACTION_SPEC,
     DEFAULT_OBS_SPEC,
     ObsSpec,

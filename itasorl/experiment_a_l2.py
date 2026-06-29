@@ -16,9 +16,9 @@ from __future__ import annotations
 
 import numpy as np
 
-from experiment_a import grouped_auroc, leak_length, leak_meta, leak_reward
-from patch_of_earth import PatchOfEarthV0
-from world import SeedBundle, WorldParams
+from .experiment_a import grouped_auroc, leak_length, leak_meta, leak_reward
+from .patch_of_earth import PatchOfEarthV0
+from .world import SeedBundle, WorldParams
 
 L2_PARAMS = dict(k_land=4.0, k_water=4.0, gravity=0.0, dt=0.05)
 L2_POLICY = np.array([0.2, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)  # forward thrust, no turn, no foraging

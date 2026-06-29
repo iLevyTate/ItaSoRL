@@ -1,6 +1,8 @@
+import _bootstrap  # noqa: F401
+
 import matplotlib
 matplotlib.use("Agg"); import matplotlib.pyplot as plt
-from experiment_a_l2 import generate_l2_pairs, run_experiment_a_l2
+from itasorl.experiment_a_l2 import generate_l2_pairs, run_experiment_a_l2
 
 SIG, NP, BR = 2e-4, 120, 40
 def show(tag, eps, contaminate=0.0):

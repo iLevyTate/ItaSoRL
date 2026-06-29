@@ -13,17 +13,19 @@ Two readouts per agent:
              independent episodes; ~0.5 = no incidental encoding. The headline.
     SECONDARY matched-pair        - detectability of the artifact in the agent state.
 
-Gates (pre-registered, see PREREGISTRATION.md) before the survival target counts:
+Gates (pre-registered, see docs/PREREGISTRATION.md) before the survival target counts:
     engagement   - trained return > random AND scripted (else "uninformative")
     L0 control   - drift=0 pooled target equivalent to 0.5 (TOST)
     positive ctrl- speed probe high
     leakage      - reward/length/lifetime ~0.5
 
-Usage:  python run_expB2.py            # full run (CUDA if available)
-        python run_expB2.py --quick    # fast sanity pass
+Usage:  python scripts/run_expB2.py            # full run (CUDA if available)
+        python scripts/run_expB2.py --quick    # fast sanity pass
 """
 
 from __future__ import annotations
+
+import _bootstrap  # noqa: F401
 
 import argparse
 import json
@@ -35,7 +37,7 @@ import numpy as np
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-from experiment_b2 import (  # noqa: E402
+from itasorl.experiment_b2 import (  # noqa: E402
     default_device,
     engagement_metric,
     pooled_readout,
@@ -44,8 +46,8 @@ from experiment_b2 import (  # noqa: E402
     train_predictor_only,
     untrained_agent,
 )
-from stats import equivalence_test  # noqa: E402
-from world import WorldParams  # noqa: E402
+from itasorl.stats import equivalence_test  # noqa: E402
+from itasorl.world import WorldParams  # noqa: E402
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 

@@ -21,10 +21,10 @@ from __future__ import annotations
 
 import numpy as np
 
-from agent import TORCH, Reservoir
-from experiment_a import grouped_auroc
-from patch_of_earth import PatchOfEarthV0
-from world import SeedBundle, WorldParams
+from .agent import TORCH, Reservoir
+from .experiment_a import grouped_auroc
+from .patch_of_earth import PatchOfEarthV0
+from .world import SeedBundle, WorldParams
 
 
 def scripted_policy(rng) -> np.ndarray:
@@ -67,7 +67,7 @@ def train_world_model(eps, epochs: int = 8, lr: float = 1e-3, embed: int = 64,
     the observation change rather than the absolute next observation.
     """
     import torch
-    from agent import RecurrentWorldModel
+    from .agent import RecurrentWorldModel
     torch.manual_seed(seed)
     obs_np, act_np = _stack(eps)
     obs, act = torch.tensor(obs_np), torch.tensor(act_np)

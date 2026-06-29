@@ -13,7 +13,7 @@ torch = pytest.importorskip("torch")
 
 
 def _model_and_data(seed=0, batch=3, steps=7, obs_dim=5, act_dim=2, hidden=16):
-    from agent import RecurrentWorldModel
+    from itasorl.agent import RecurrentWorldModel
 
     torch.manual_seed(seed)
     model = RecurrentWorldModel(obs_dim, act_dim, embed=8, hidden=hidden)

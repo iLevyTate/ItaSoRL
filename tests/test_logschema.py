@@ -13,7 +13,7 @@ import tempfile
 
 import pytest
 
-from logschema import (
+from itasorl.logschema import (
     STEP_COLUMNS,
     RunManifest,
     StepWriter,

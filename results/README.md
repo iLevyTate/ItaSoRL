@@ -1,6 +1,6 @@
 # ITASORL recorded runs
 
-End-to-end runs via `python run_e2e.py` write a timestamped folder here:
+End-to-end runs via `python scripts/run_e2e.py` write a timestamped folder here:
 
 ```
 results/runs/YYYYMMDD_HHMMSS/

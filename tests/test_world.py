@@ -8,8 +8,8 @@ authentic *only* by the documented observation quantization.
 
 import numpy as np
 
-from patch_of_earth import PatchOfEarthV0, first_config_obs_spec
-from world import (
+from itasorl.patch_of_earth import PatchOfEarthV0, first_config_obs_spec
+from itasorl.world import (
     DEFAULT_OBS_SPEC,
     L0Identity,
     L1Discretize,

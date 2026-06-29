@@ -106,21 +106,31 @@ objective-engagement and nonlinear-probe checks. See
 .
 |-- README.md                   this file: the map
 |-- LICENSE
+|-- requirements.txt            runtime dependencies
+|-- requirements-dev.txt        pytest + dev tooling
+|-- itasorl/                    core library (world, agents, experiments)
+|   |-- world.py                World protocol, surrogate ladder, matched-pair harness
+|   |-- patch_of_earth.py       PatchOfEarthV0 concrete world, incl. L1/L2 hooks
+|   |-- agent.py                recurrent world model (RSSM-lite)
+|   |-- agent_ac.py             survival actor-critic (Experiment B-v2)
+|   |-- experiment_a.py         agent-free L1 detectability oracle
+|   |-- experiment_b.py         incidental-detection harness
+|   |-- experiment_b2.py        survival-coupled B-v2 pipeline
+|   `-- results_io.py           end-to-end run recording
+|-- scripts/                    deterministic reproduction runners
+|   |-- run_e2e.py              pytest + all experiments (recorded)
+|   |-- run_expA.py ...         Experiment A/B runners
+|   `-- run_expB2.py            Experiment B-v2 (GPU if available)
 |-- docs/
-|   |-- ITASORL.md              research plan: question, hypotheses, experiments, ladder, statistics
-|   |-- ITASORL_world_spec.md   world specification: "A Patch of Earth" v0
-|   |-- FINDINGS.md             empirical results (where the numbers live)
+|   |-- ITASORL.md              research plan
+|   |-- FINDINGS.md             empirical results
+|   |-- PREREGISTRATION.md      B-v2 pre-registration
 |   `-- figures/                result figures (.png)
-|-- world.py                    World protocol, ObsSpec, surrogate-ladder wrappers, matched-pair harness
-|-- patch_of_earth.py           PatchOfEarthV0 concrete world, incl. L1/L2 hooks
-|-- logschema.py                step/activation logging schema + writer
-|-- agent.py                    recurrent world model (RSSM-lite, PyTorch) + numpy reservoir fallback
-|-- experiment_a.py             agent-free L1 detectability oracle + leakage-audit battery
-|-- experiment_a_l2.py          L2 detectability oracle (rollout-residual)
-|-- experiment_b.py             incidental-detection harness: collect, train, probe
-|-- run_expA.py ... run_expB_*.py   deterministic reproduction scripts
+|-- artifacts/expB2/            published B-v2 JSON/PNG (committed)
+|-- results/runs/               ephemeral e2e bundles (gitignored)
+|-- notebooks/colab_gpu.ipynb   Colab end-to-end runner
 |-- tests/                      pytest regression suite
-`-- ralph/                      autonomous-loop tooling + journal
+`-- ralph/                      autonomous-loop tooling
 ```
 
 ### Documents
@@ -154,19 +164,21 @@ Reproduce the experiments (each is deterministic given its seeds; run from the r
 root so figures land in `docs/figures/`):
 
 ```bash
-python run_expA.py          # Experiment A, L1: control / detection / contamination / calibration
-python run_expA_l2.py       # Experiment A, L2: same, for rollout drift
-python run_expB_full.py     # Experiment B: recurrent-state probe, drift sweep + control + selectivity
-python run_expB_surprise.py # Experiment B: prediction-error (surprise) channel
-python run_expB_kstep.py    # Experiment B: longer-horizon (open-loop) objective
-python run_expB_gap.py      # Experiment B: objective-engagement diagnostic + delta-rollout objective
-python run_expB_nonlinear.py# Experiment B: nonlinear (random-forest) probe robustness check
+python scripts/run_e2e.py --quick   # full battery + recorded results (recommended)
+python scripts/run_expA.py          # Experiment A, L1
+python scripts/run_expA_l2.py       # Experiment A, L2
+python scripts/run_expB_full.py     # Experiment B: recurrent-state probe
+python scripts/run_expB_surprise.py # Experiment B: prediction-error channel
+python scripts/run_expB_kstep.py    # Experiment B: open-loop horizons
+python scripts/run_expB_gap.py      # Experiment B: engagement + delta objective
+python scripts/run_expB_nonlinear.py# Experiment B: nonlinear probe check
+python scripts/run_expB2.py         # Experiment B-v2: survival-coupled
 ```
 
 A quick smoke test of the Experiment B pipeline:
 
 ```bash
-python experiment_b.py
+python -m itasorl.experiment_b
 ```
 
 Run the test suite:

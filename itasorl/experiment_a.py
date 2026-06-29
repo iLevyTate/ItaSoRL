@@ -20,8 +20,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from patch_of_earth import PatchOfEarthV0, first_config_obs_spec
-from world import SeedBundle
+from .patch_of_earth import PatchOfEarthV0, first_config_obs_spec
+from .world import SeedBundle
 
 CONST_POLICY = np.array([0.5, 0.15, 1.0, 0.0, 0.0], dtype=np.float32)  # fixed, obs-independent
 
