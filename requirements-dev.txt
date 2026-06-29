@@ -1,0 +1,4 @@
+# Dev / CI / Colab tooling (runtime deps are in requirements.txt).
+-r requirements.txt
+pytest>=7.0
+ruff>=0.4
