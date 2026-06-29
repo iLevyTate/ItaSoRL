@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 
 import matplotlib
 import numpy as np
@@ -65,6 +66,8 @@ def cfg():
     ap.add_argument("--mp_pairs", type=int, default=60)
     ap.add_argument("--mp_prefix", type=int, default=20)
     ap.add_argument("--mp_branch", type=int, default=24)
+    ap.add_argument("--out-dir", type=str, default=".",
+                    help="Directory for expB2_results.json and expB2_survival.png")
     a = ap.parse_args()
     if a.quick:
         a.drifts, a.seeds, a.updates, a.n_eps, a.max_steps = [0.0, 0.45], [0, 1], 60, 8, 40
@@ -146,9 +149,9 @@ def main():
           f"{abs(surv_t.mean()-0.5):.3f}  predictor |dev|={abs(pred_t.mean()-0.5):.3f}  "
           f"untrained |dev|={abs(untr_t.mean()-0.5):.3f}")
 
-    with open("expB2_results.json", "w") as f:
+    with open(os.path.join(a.out_dir, "expB2_results.json"), "w") as f:
         json.dump({str(d): {g: res[d][g] for g in AG} for d in a.drifts}, f, indent=2, default=float)
-    print("saved expB2_results.json")
+    print(f"saved {os.path.join(a.out_dir, 'expB2_results.json')}")
 
     # ---- figure: primary pooled |target-0.5| vs drift, per agent ----
     plt.figure(figsize=(7.6, 4.6))
@@ -162,8 +165,10 @@ def main():
     plt.ylabel("|pooled target AUROC - 0.5|   (incidental encoding)")
     plt.title("ITASORL Experiment B-v2 - does survival pressure induce incidental encoding?")
     plt.legend(); plt.grid(alpha=0.3); plt.tight_layout()
-    plt.savefig("expB2_survival.png", dpi=130)
-    print("saved expB2_survival.png")
+    os.makedirs(a.out_dir, exist_ok=True)
+    fig_path = os.path.join(a.out_dir, "expB2_survival.png")
+    plt.savefig(fig_path, dpi=130)
+    print(f"saved {fig_path}")
 
 
 if __name__ == "__main__":
