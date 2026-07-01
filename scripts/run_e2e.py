@@ -13,6 +13,7 @@ Usage (from repo root):
     python scripts/run_e2e.py --results-dir results/runs/my_run
     python scripts/run_e2e.py --resume     # continue latest interrupted run
     python scripts/run_e2e.py --resume fullruns/06292026_143022
+    python scripts/run_e2e.py --only expb2 --b2-drift-mode regime --b2-dump-states runs/bv3
     python scripts/run_e2e.py --no-zip     # skip zip bundle
 """
 
@@ -64,8 +65,8 @@ def parse_args() -> argparse.Namespace:
                     help="Skip steps: pytest, expA_l1, expA_l2, expB_smoke, expB_full, "
                          "expB_surprise, expB_kstep, expB_gap, expB_nonlinear, expB2, "
                          "or aliases: pytest, experiments, expA, expB.")
-    ap.add_argument("--only", choices=("pytest", "experiments"),
-                    help="Run only pytest or only the experiment scripts.")
+    ap.add_argument("--only", choices=("pytest", "experiments", "expb2"),
+                    help="Run only pytest, all experiment scripts, or only expB2.")
     ap.add_argument("--results-dir", type=Path, default=None,
                     help="Directory for this run's recorded output (default: fullruns/<MMDDYYYY>/).")
     ap.add_argument(
@@ -169,11 +170,14 @@ def main() -> None:
 
     t0 = time.perf_counter()
 
-    if args.only != "experiments" and "pytest" not in skip:
+    if args.only not in ("experiments", "expb2") and "pytest" not in skip:
         if recorder.step_is_done("pytest"):
             print("\n--- resume skip pytest (already ok) ---", flush=True)
         else:
             recorder.run_step("pytest", [sys.executable, "-m", "pytest", "-q"], cwd=ROOT)
+
+    if args.only == "expb2":  # run B-v2 alone: mark every other experiment step skipped
+        skip |= {s for s, _, _ in experiment_steps(quick=quick, b2_out=b2_out) if s != "expB2"}
 
     if args.only != "pytest":
         b2_extra = build_b2_extra(args)
