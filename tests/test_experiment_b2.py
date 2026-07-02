@@ -323,3 +323,53 @@ def test_regime_offset_in_expected_band():
 def test_regime_mode_authentic_is_unperturbed():
     """drift_sigma=0 must reproduce the exact authentic world in regime mode too (L0)."""
     assert np.allclose(_drift_trace("regime", 0.0), 0.0)
+
+
+def test_matched_pair_L2_diverges_regime_mode(monkeypatch):
+    """Regime mode: the surrogate branch must carry its per-episode drag offset past the
+    snapshot restore, so matched-pair branches genuinely diverge. Regression for the
+    B-v3 degeneracy where set_state clobbered the reset-drawn offset with the prefix's
+    0.0 and mp_target collapsed to exactly 0.5 in every cell (fullruns/07022026)."""
+    import itasorl.experiment_b2 as b2
+    monkeypatch.setattr(b2, "DRIFT_MODE", "regime")
+    agent, norm = _agent_norm()
+    auth, surr = matched_pair_recurrent_rollout(agent, norm, P, 0.5, n_pairs=3, prefix_steps=4,
+                                                branch_steps=6, ray_steps=RS, device="cpu")
+    assert len(auth) >= 1
+    assert any(not np.allclose(a["H"], s["H"]) for a, s in zip(auth, surr)), \
+        "regime-mode matched-pair branches are identical - the drag offset was lost"
+
+
+def test_matched_pair_L0_bit_identical_regime_mode(monkeypatch):
+    """Regime mode keystone control: with drift OFF the branches must remain identical
+    to the bit, exactly as in ar1 mode - the fix must not manufacture signal at L0."""
+    import itasorl.experiment_b2 as b2
+    monkeypatch.setattr(b2, "DRIFT_MODE", "regime")
+    agent, norm = _agent_norm()
+    auth, surr = matched_pair_recurrent_rollout(agent, norm, P, 0.0, n_pairs=3, prefix_steps=4,
+                                                branch_steps=6, ray_steps=RS, device="cpu")
+    assert len(auth) >= 1
+    for a, s in zip(auth, surr):
+        assert np.array_equal(a["H"], s["H"]), "L0 branches diverged under regime mode"
+
+
+def test_summary_parses_strongest_drift_cell():
+    """The run summary must report the strongest (test) drift cell, not the drift-0
+    control. Regression for the 07022026 headline that said 'at chance' (0.52, the
+    L0 control) for a run whose test-drift survival target was 0.633."""
+    from itasorl.results_io import parse_step_metrics
+    log = (
+        "drift=0.00 block\n"
+        "survival   PRIMARY pool target = 0.520+/-0.040   speed(+ctrl) = 0.961\n"
+        "predictor  PRIMARY pool target = 0.537+/-0.070   speed(+ctrl) = 0.903\n"
+        "drift=0.45 block\n"
+        "survival   PRIMARY pool target = 0.633+/-0.057   speed(+ctrl) = 0.959\n"
+        "predictor  PRIMARY pool target = 0.536+/-0.059   speed(+ctrl) = 0.911\n"
+        "At strongest drift=0.45: survival pooled target |dev|=0.133\n"
+    )
+    m = parse_step_metrics("expB2", log)
+    assert m["survival_pool_target_mean"] == 0.633
+    assert m["survival_pool_target_std"] == 0.057
+    assert m["predictor_pool_target_mean"] == 0.536
+    assert m["organism_encodes_world"] == "weak"
+    assert m["survival_deviation_from_chance"] == 0.133
