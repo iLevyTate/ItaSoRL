@@ -258,7 +258,7 @@ inducing it (if possible) requires something more deliberate.
 
 ## 7. Next steps (prioritized by likelihood of changing the result)
 
-1. **Survival reward coupled to the dynamics.** *Attempted — see §9 (Experiment
+1. **Survival reward coupled to the dynamics.** *Attempted, see §9 (Experiment
    B-v2).* Coupling the readout to survival did **not** lift incidental encoding
    above the pre-registered threshold; the detectability-vs-encoding gap persists.
    If staying alive requires exploiting drag (e.g., locomotion cost depends on it),
@@ -277,11 +277,11 @@ inducing it (if possible) requires something more deliberate.
 
 ---
 
-## 9. Experiment B-v2 — does survival pressure induce incidental encoding?
+## 9. Experiment B-v2: does survival pressure induce incidental encoding?
 
 Experiment B's null was conjectured to follow from *readout, not reward*: what the
 objective does not require, the agent does not represent. B-v2 tests the strongest
-lever from §7.1 — it makes the agent **act to stay alive in a world whose dynamics
+lever from §7.1: it makes the agent **act to stay alive in a world whose dynamics
 drift**, so coping with the drifting drag (and thus modelling it) becomes
 instrumentally useful. World identity is still never in the observation or the
 reward; only the probe ever sees it. Pre-registered before the run
@@ -291,9 +291,12 @@ identical readout, differing only in objective: `untrained` (mechanical floor),
 (recurrent A2C + GAE, potential-based food shaping, harsh metabolism so a non-forager
 starves in ≈ 50 steps).
 
-**Primary readout — pooled (Experiment B frame).** Persistent world-identity
+**Primary readout, pooled (Experiment B frame).** Persistent world-identity
 direction across independent authentic (drift 0) vs surrogate (drift d) episodes;
-≈ 0.50 means no incidental encoding. Mean ± std over 3 seeds:
+≈ 0.50 means no incidental encoding. Mean ± std over 3 seeds, 300 A2C updates.
+
+*Initial confirmatory run* (pre-rigor-hardening codebase; archived in
+`artifacts/expB2/expB2_results_confirmatory_n3.json`):
 
 | agent | drift = 0.0 (control) | drift = 0.45 (test) |
 |-------|----------------------|---------------------|
@@ -301,43 +304,52 @@ direction across independent authentic (drift 0) vs surrogate (drift d) episodes
 | predictor | 0.493 ± 0.079 | 0.485 ± 0.053 |
 | **survival** | 0.514 ± 0.052 | **0.595 ± 0.014** |
 
-(Numbers are from the corrected run — see the GAE-bug deviation in
+*Independent end-to-end replication* (`fullruns/06302026`, commit `4c16be6`, Tesla T4,
+237 min wall time; canonical artifact `artifacts/expB2/expB2_results.json`):
+
+| agent | drift = 0.0 (control) | drift = 0.45 (test) |
+|-------|----------------------|---------------------|
+| untrained | 0.468 ± 0.057 | 0.476 ± 0.041 |
+| predictor | 0.537 ± 0.070 | 0.510 ± 0.027 |
+| **survival** | 0.520 ± 0.040 | **0.523 ± 0.045** |
+
+Per-seed survival @ drift 0.45 in the replication: **0.586, 0.495, 0.488** (90 % CI
+[0.490, 0.556]). The replication confirms the negative verdict but **does not reproduce**
+the initial run's tight 0.595 mean; cross-seed variance is much wider and the pooled
+target sits closer to chance.
+
+(The initial confirmatory numbers are from the corrected run; see the GAE-bug deviation in
 `docs/PREREGISTRATION.md` §12. The first run was trained with a buggy advantage estimator
-that affected only the survival arm; the conclusion is unchanged.)
+that affected only the survival arm; the conclusion is unchanged in both runs.)
 
-Gates (all pre-registered): **engagement** passed in 100 % of seeds (trained true
-return beats random and scripted by ≫ the 0.15 margin: ≈ −0.2 to −0.5 vs random −1.0);
-**positive control** (speed probe) 0.83–0.97; **leakage audit** (reward / length /
-lifetime) clean in every cell; **L0 equivalence** for the survival agent — point
-estimate 0.514 now sits comfortably inside the ±0.05 band, though TOST is still not
-significant at n = 3 (p = 0.22), i.e. underpowered rather than a clean pass.
+Gates (replication run, all pre-registered): **engagement** passed in 100 % of seeds;
+**positive control** (speed probe) ≈ 0.84-0.96; **leakage audit** clean in every cell;
+**manipulation check** passed (drift-trained policies lose return under eval@0.45;
+artifact survival-relevant); **L0 equivalence** for the survival agent: point estimate
+0.520, TOST inconclusive at n = 3 (p = 0.20), ROPE inconclusive (P(in ROPE) = 0.85).
 
-**Result — the negative holds, with a small but cleaner drift-specific trace.**
+**Result: the negative holds; effect size is smaller and noisier than the initial run.**
 
-- The `predictor` agent reproduces Experiment B's null *on this trunk* (flat at
-  ≈ 0.49, |dev| ≈ 0.01) — an internal validation that the apparatus and the trunk
-  carry no spurious signal.
-- The `survival` agent now starts **at chance** at drift 0 (0.514, |dev| ≈ 0.01 —
-  the buggy run's ≈ 0.04 offset was a training artifact) and rises to **0.595 ± 0.014
-  at drift 0.45**: the steepest drift slope of the three, clearly above both the
-  `predictor` (0.485) and `untrained` (0.444) agents, with tight error bars. So unlike
-  the prediction-only agent, survival pressure does leave a *small, drift-specific*
-  trace. **But it falls far short of the pre-registered SESOI of 0.65** (an oracle reads
-  the same artifact at ≈ 0.99).
+- The `predictor` agent reproduces Experiment B's null *on this trunk* (≈ 0.51 at
+  drift 0.45, |dev| ≈ 0.01 in the replication), an internal validation that the
+  apparatus and the trunk carry no spurious signal.
+- The `survival` agent sits **at chance** at drift 0 (0.520 in the replication) and
+  reaches **0.523 ± 0.045 at drift 0.45**, a small drift-specific lift (per-seed
+  range 0.488-0.586) that is **well below the pre-registered SESOI of 0.65** (an
+  oracle reads the same artifact at ≈ 0.99). Drag-ceiling probes read ≈ 0.75 while
+  identity-target probes read ≈ 0.52: the state tracks *dynamics*, not persistent
+  *world identity*.
 - **Verdict (pre-registered decision matrix): the strong hypothesis is not
   supported.** *Detectability ≫ incidental encoding* survives the move to survival
-  pressure: an agent whose life depends on the drifting dynamics gains only a faint
-  statistical trace of its world's nature (≈ 0.60), not a decodable representation of
-  *which world it is in*. The trace is now cleaner than the buggy run (a real
-  drift-driven slope off a chance baseline, not a constant offset) and motivates a
-  higher-powered follow-up rather than supporting a positive claim.
+  pressure and an independent 4-hour full-scale replication. Treat the initial 0.595
+  figure as one lab estimate, not a settled effect size; the replication is the
+  authoritative full-scale result at the registered config (300 updates, 3 seeds).
 
-**Caveats.** n = 3 seeds (the TOST is underpowered); a single architecture, world
-family, and L2 only; 300 A2C updates (the forager is engaged but not expert); and the
-*reactive-vs-representational* ambiguity is unresolved — the agent may exploit *felt*
-drag reactively without classifying the world. A common-garden / held-out
-fixed-dynamics probe and higher power (more seeds, longer training, L3) are the
-natural follow-ups. The secondary matched-pair readout is reported in
+**Caveats.** n = 3 seeds (TOST/ROPE underpowered); initial vs replication differ in
+code version (rigor-hardening PR #8 added manipulation check, drag ceiling, CIs) and
+hardware (L4 lab vs T4 Colab); a single architecture, world family, and L2 only; 300
+A2C updates (the forager is engaged but not expert); and the *reactive-vs-representational*
+ambiguity is unresolved. The secondary matched-pair readout is reported in
 `expB2_results.json` but is demoted: with bit-identical L0 branches its
 cross-validated AUROC is a biased estimate of chance, so it indexes *detectability*,
 not persistent encoding.
@@ -359,6 +371,7 @@ All experiments are deterministic given their seeds. Dependencies: `numpy`,
 | B, engagement + delta | `scripts/run_expB_gap.py` | open-loop MSE vs baselines; delta-rollout objective |
 | B, nonlinear probe | `scripts/run_expB_nonlinear.py` | random-forest probe on the recurrent states |
 | B-v2, survival-coupled | `scripts/run_expB2.py` | A2C+GAE agent, harsh metabolism, drift [0,0.45], 3 seeds, 300 updates (`--quick` for a fast pass) |
+| B-v2, compare runs | `scripts/compare_expB2_artifacts.py` | Side-by-side survival @ drift 0.45 vs canonical / lab JSON (no GPU) |
 
 Core modules live under `itasorl/` (`world.py`, `patch_of_earth.py`, `agent.py`,
 `experiment_a.py` / `experiment_b.py` / `experiment_b2.py`). See `README.md`
