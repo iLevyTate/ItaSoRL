@@ -9,10 +9,12 @@ test/contract gap · **P3** footgun/cleanup.
 
 ## Open
 <!-- Ralph adds discovered issues here, highest severity first. -->
-P2 | experiment_b2.py + agent_ac.py | CUDA/CPU parity + determinism: the matched-pair L0 readout must be bit-identical and the pooled readout deterministic given seeds on BOTH devices. Add a device-parametrized test (skip `cuda` when unavailable) asserting identical h_t / probe AUROC across a repeat run. This guards the keystone confound control on GPU.
+P2 | experiment_b2.py + agent_ac.py | CUDA/CPU parity + determinism: the matched-pair L0 readout must be bit-identical and the pooled readout deterministic given seeds on BOTH devices. Add a device-parametrized test (skip `cuda` when unavailable) asserting identical h_t / probe AUROC across a repeat run. This guards the keystone confound control on GPU. **Also addresses replication gap (06302026 vs confirmatory n=3).** See `ralph/NEXT_STEPS.md` Tier 1.
 P2 | experiment_b2.py:pooled_readout/collect_pool | Drop-on-early-death can silently shrink the pools under the harsh B-v2 metabolism; verify `collect_pool` only returns full-length survivors and that the `too_few_survivors` guard fires (returns NaN, not a crash) when survivors < 5. Add a test.
+P2 | scripts/ or tests/ | Add artifact comparison helper: load `artifacts/expB2/expB2_results.json` vs `expB2_results_confirmatory_n3.json`, print per-seed survival @ drift 0.45 side-by-side. No GPU. See `ralph/NEXT_STEPS.md` Tier 1.
 P3 | agent_ac.py:to_env_action | Confirm the squashed env action stays within the world's action ranges (thrust in [0,1], turn in [-1,1], binaries in {0,1}) for EXTREME raw latents (e.g. +/-50), not just typical samples. Add an extreme-value test.
 P3 | run_expA.py, run_expA_l2.py, run_expB_*.py | Run scripts have no `if __name__ == "__main__"` guard - importing one executes the whole (multi-minute) experiment. Harmless as scripts but a footgun and blocks importing them in tests. Deferred: wrapping 7 files in main() is churn for no current bug. Optional cleanup.
+P3 | docs/FINDINGS.md §7 | Item 1 still reads like an open lever; §9 replication (0.523) closes the positive claim. Tighten wording so §7 reflects strengthened negative. See `ralph/NEXT_STEPS.md` Tier 2.
 
 ## In progress
 <!-- The item currently being worked, if any. -->
@@ -31,4 +33,7 @@ P0 | experiment_b.py + agent.py | `run_expB_gap.py` & `run_expB_kstep.py` crashe
 
 ## Questions / needs a human
 <!-- Ambiguous or product-decision items Ralph should NOT decide alone. -->
-<!-- (none open) -->
+- **Local seed-0 B-v2 diagnostic** (300 updates): compare lab GPU vs Colab T4 for seed 0 survival @ drift 0.45 (0.586). Command: `python scripts/run_expB2.py --seeds 0 --out-dir results/replicate-seed0-diagnostic`. ~1 hr GPU. Approve before Ralph or human runs.
+- **n=10 B-v2 extension**: `bash scripts/run_expB2_n10.sh`; needs free RAM (4 GB+) and CUDA. Approve before running.
+- **Held-out / common-garden probe design** for reactive-vs-representational ambiguity; write spec here before Ralph implements.
+- **L3 generative fingerprint scope**; write spec before scaffold work.
