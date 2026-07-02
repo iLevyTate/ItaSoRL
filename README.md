@@ -135,7 +135,7 @@ objective-engagement and nonlinear-probe checks. See
 |-- results/LATEST_RUN.txt      pointer to latest fullruns folder
 |-- notebooks/colab_gpu.ipynb   Colab end-to-end runner
 |-- tests/                      pytest regression suite
-`-- ralph/                      autonomous-loop tooling
+`-- ralph/                      autonomous research + bug-fix loop (Claude Code)
 ```
 
 ### Documents

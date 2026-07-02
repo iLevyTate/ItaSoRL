@@ -1,20 +1,24 @@
-# Ralph — Senior-Dev Bug-Hunting Loop
+# Ralph - Senior Developer + Research Loop
 
 A [Ralph Wiggum loop](https://awesomeclaude.ai/ralph-wiggum): feed Claude Code
 the same prompt over and over in a **fresh context each time** and let it
 iterate toward a goal. Progress accumulates in **files and git history**, not in
 the model's context window.
 
-This loop runs Claude as a **senior developer** whose single job is to find real
-bugs, gaps, and issues — and fix them, one atomic, tested commit at a time.
+Each iteration the agent **re-reads current experiment results**, then either fixes
+one bug or advances one **ready** research/next-step item (tests, tooling, docs).
+Long GPU sweeps require human approval.
 
 ## What's here
 
 | File | Purpose |
 |------|---------|
-| `PROMPT.md` | The senior-dev persona, priorities, per-run procedure, and stop signal. This is the brain. |
+| `PROMPT.md` | Persona, priorities, per-run procedure, and stop signal. The brain. |
 | `ralph.sh` | The loop. Calls Claude with `PROMPT.md`, stops on completion / stall / max-iterations. |
-| `BACKLOG.md` | Discovered issues. Ralph reads this first and works the top item. |
+| `EXPERIMENT_STATUS.md` | Living snapshot of latest `fullruns/`, canonical artifacts, open questions. |
+| `NEXT_STEPS.md` | Prioritized research queue (`[ready]` / `[blocked]` / `[done]`). |
+| `COLAB.md` | Colab playbook: RUN_PROFILE presets, resume, post-run compare. |
+| `BACKLOG.md` | Bugs and gaps. Ralph reads this for P0-P3 work. |
 | `JOURNAL.md` | Append-only record of what each run did. |
 | `logs/` | Per-iteration stdout, timestamped. |
 
@@ -44,9 +48,9 @@ DRY_RUN=1 ./ralph/ralph.sh    # print the command without calling Claude
 ### How it stops
 
 The loop exits on the first of:
-1. **Completion** — the agent prints `RALPH_COMPLETE` (nothing left to fix).
-2. **Stall** — `STALL_LIMIT` iterations in a row produce no new commit.
-3. **Cap** — `MAX_ITERATIONS` reached.
+1. **Completion** - the agent prints `RALPH_COMPLETE` (no actionable bugs or `[ready]` research items).
+2. **Stall** - `STALL_LIMIT` iterations in a row produce no new commit.
+3. **Cap** - `MAX_ITERATIONS` reached.
 
 Stop it yourself any time with **Ctrl-C**; committed work is already safe in git.
 
@@ -60,7 +64,7 @@ for i in $(seq 1 20); do
 done
 ```
 
-The wrapper script is preferred — it adds the completion sentinel, stall
+The wrapper script is preferred - it adds the completion sentinel, stall
 detection, the `main`-branch guard, and per-iteration logs.
 
 ## Safety notes

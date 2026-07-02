@@ -22,14 +22,21 @@ fullruns/MMDDYYYY/
 
 **Latest run path** is also written to `results/LATEST_RUN.txt`.
 
+**Canonical B-v2 metrics** (full scale, 300 updates, 3 seeds) live in
+`artifacts/expB2/expB2_results.json`, promoted from `fullruns/06302026` (Colab,
+2026-06-30). Narrative and comparison vs the initial lab run: `docs/FINDINGS.md` §9.
+The prior lab confirmatory JSON is archived as `expB2_results_confirmatory_n3.json`.
+
 **Watch a run in progress** (second terminal):
 
 ```bash
 python scripts/watch_run.py --follow
 ```
 
-On Google Colab (see `notebooks/colab_gpu.ipynb`):
+On Google Colab (see `notebooks/colab_gpu.ipynb`, playbook `ralph/COLAB.md`):
 
+- Set **`RUN_PROFILE`** in the config cell (`quick`, `full`, `b2_seed0`, `b2_only`, `experiments_no_b2`).
 - Runs use **local disk** (`fullruns/` under the repo). Do not set `--results-dir` to Drive (FUSE I/O is slow and often fails).
 - `ITASORL_DRIVE_SYNC` mirrors `combined.log`, `status.json`, `manifest.json`, and per-step outputs to Drive after each step.
 - If Colab disconnects, set `RESUME_RUN_DIR` in the notebook to the mirrored Drive folder and run with `--resume` (the notebook copies Drive to local first).
+- After the run: `python scripts/compare_expB2_artifacts.py --run fullruns/MMDDYYYY` (also in the notebook summary cell).

@@ -166,3 +166,15 @@ Format per entry:
 - Verify: `python -m pytest -q` -> 37 passed (was 33; +4 new); `python -m ruff
   check .` -> All checks passed.
 - Commit: this run.
+
+## 2026-07-01 — Ralph pivot: experiment status + research queue
+- Found: Colab full run (`fullruns/06302026`) analyzed; canonical B-v2 artifact
+  promoted; FINDINGS §9 updated. Ralph was bug-only and had no read of current
+  results or prioritized next steps.
+- Fix:   added `ralph/EXPERIMENT_STATUS.md` (results snapshot), `ralph/NEXT_STEPS.md`
+  (tiered action queue with human gates for long GPU runs), rewrote `PROMPT.md`
+  to orient on status + next steps each run (bugs still P0/P1 first), extended
+  `BACKLOG.md` with replication tooling + doc items and human-gated questions.
+- Verify: files are self-consistent with `docs/FINDINGS.md` §9 and
+  `artifacts/expB2/README.md` promotion record.
+- Commit: (this session)
