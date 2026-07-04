@@ -37,6 +37,6 @@ On Google Colab (see `notebooks/colab_gpu.ipynb`, playbook `ralph/COLAB.md`):
 
 - Set **`RUN_PROFILE`** in the config cell (`quick`, `full`, `b2_seed0`, `b2_only`, `experiments_no_b2`).
 - Runs use **local disk** (`fullruns/` under the repo). Do not set `--results-dir` to Drive (FUSE I/O is slow and often fails).
-- `ITASORL_DRIVE_SYNC` mirrors `combined.log`, `status.json`, `manifest.json`, and per-step outputs to Drive after each step.
+- `ITASORL_DRIVE_SYNC` mirrors `combined.log`, `status.json`, and `manifest.json` continuously, per-step outputs after each step, and `artifacts/` (expB2 checkpoint cells, dumped states) incrementally every `ITASORL_CKPT_SYNC_SEC` seconds (default 300). Mirror failures never stop the run; syncing warns once, retries, and reports recovery.
 - If Colab disconnects, set `RESUME_RUN_DIR` in the notebook to the mirrored Drive folder and run with `--resume` (the notebook copies Drive to local first).
 - After the run: `python scripts/compare_expB2_artifacts.py --run fullruns/MMDDYYYY` (also in the notebook summary cell).

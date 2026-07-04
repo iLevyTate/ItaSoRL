@@ -264,6 +264,7 @@ class RunRecorder:
     _status_last_write: float = field(default=0.0, repr=False)
     _mirror_dir: Path | None = field(default=None, repr=False)
     _mirror_degraded: bool = field(default=False, repr=False)
+    _ckpt_last_sync: float = field(default_factory=time.perf_counter, repr=False)
 
     @classmethod
     def _mirror_from_env(cls) -> Path | None:
@@ -382,6 +383,7 @@ class RunRecorder:
         }
         self._status_path().write_text(json.dumps(payload, indent=2), encoding="utf-8")
         self._sync_mirror()
+        self._sync_ckpt_mirror()
 
     def _sync_mirror(self, *, full: bool = False) -> None:
         if self._mirror_dir is None:
@@ -417,6 +419,32 @@ class RunRecorder:
                 src_dir = self.run_dir / sub
                 if src_dir.is_dir():
                     shutil.copytree(src_dir, dest_root / sub, dirs_exist_ok=True)
+
+    def _sync_ckpt_mirror(self) -> None:
+        """Timed incremental mirror of artifacts/ (checkpoint cells, dumped
+        states) so a mid-step VM loss costs at most one interval of work."""
+        if self._mirror_dir is None:
+            return
+        interval = float(os.environ.get("ITASORL_CKPT_SYNC_SEC", "300"))
+        now = time.perf_counter()
+        if (now - self._ckpt_last_sync) < interval:
+            return
+        self._ckpt_last_sync = now
+        self._mirror_attempt(self._sync_ckpt_files)
+
+    def _sync_ckpt_files(self) -> None:
+        src_root = self.run_dir / "artifacts"
+        if not src_root.is_dir():
+            return
+        dest_root = self._mirror_dir / self.run_dir.name / "artifacts"
+        for src in src_root.rglob("*"):
+            if not src.is_file():
+                continue
+            dest = dest_root / src.relative_to(src_root)
+            if dest.is_file() and dest.stat().st_mtime >= src.stat().st_mtime:
+                continue  # copy2 preserves mtime, so equal means already synced
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
 
     def note_step(self, name: str, *, status: str) -> None:
         """Record a skipped or external step in manifest + status."""
