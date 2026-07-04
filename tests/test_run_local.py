@@ -13,13 +13,39 @@ import run_local  # noqa: E402
 
 RUN_DIR = Path("fullruns") / "01011999"
 
+NB_PATH = ROOT / "notebooks" / "colab_gpu.ipynb"
+
+
+def _notebook_config_source() -> str:
+    import json
+    nb = json.loads(NB_PATH.read_text(encoding="utf-8"))
+    for cell in nb["cells"]:
+        src = "".join(cell.get("source", []))
+        if "_PROFILES" in src and "RUN_PROFILE" in src:
+            return src
+    raise AssertionError("config cell with _PROFILES not found in colab_gpu.ipynb")
+
+
 NOTEBOOK_PROFILES = {"quick", "full", "bv3_regime", "bv3_regime_n10",
                      "bv2_ceiling", "bv3_ceiling", "b2_only", "b2_seed0",
                      "experiments_no_b2"}
 
 
 def test_profiles_match_notebook_table():
+    import re
+    src = _notebook_config_source()
+    table_keys = re.findall(r'^\s*"([a-z0-9_]+)":\s*dict\(', src, flags=re.M)
+    assert table_keys == list(run_local.PROFILES)
     assert set(run_local.PROFILES) == NOTEBOOK_PROFILES
+
+
+def test_notebook_dropdown_matches_profiles():
+    import re
+    src = _notebook_config_source()
+    m = re.search(r'RUN_PROFILE\s*=\s*"[^"]*"\s*#\s*@param\s*\[([^\]]*)\]', src)
+    assert m, "RUN_PROFILE form dropdown (# @param [...]) missing from config cell"
+    dropdown = re.findall(r'"([^"]+)"', m.group(1))
+    assert dropdown == list(run_local.PROFILES)
 
 
 @pytest.mark.parametrize("name", sorted(NOTEBOOK_PROFILES))

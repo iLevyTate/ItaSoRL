@@ -263,6 +263,8 @@ class RunRecorder:
     _run_started: float = field(default=0.0, repr=False)
     _status_last_write: float = field(default=0.0, repr=False)
     _mirror_dir: Path | None = field(default=None, repr=False)
+    _mirror_degraded: bool = field(default=False, repr=False)
+    _ckpt_last_sync: float = field(default_factory=time.perf_counter, repr=False)
 
     @classmethod
     def _mirror_from_env(cls) -> Path | None:
@@ -381,10 +383,31 @@ class RunRecorder:
         }
         self._status_path().write_text(json.dumps(payload, indent=2), encoding="utf-8")
         self._sync_mirror()
+        self._sync_ckpt_mirror()
 
     def _sync_mirror(self, *, full: bool = False) -> None:
         if self._mirror_dir is None:
             return
+        self._mirror_attempt(lambda: self._sync_mirror_files(full=full))
+
+    def _mirror_attempt(self, fn) -> None:
+        """Mirror I/O must never kill the run: degrade loudly, retry next call."""
+        try:
+            fn()
+        except OSError as exc:
+            if not self._mirror_degraded:
+                print(
+                    f"\nWARNING: Drive mirror unreachable ({exc}); the run "
+                    "continues on local disk and mirroring keeps retrying.",
+                    flush=True,
+                )
+            self._mirror_degraded = True
+            return
+        if self._mirror_degraded:
+            print("\nDrive mirror recovered; syncing resumed.", flush=True)
+        self._mirror_degraded = False
+
+    def _sync_mirror_files(self, *, full: bool) -> None:
         dest_root = self._mirror_dir / self.run_dir.name
         dest_root.mkdir(parents=True, exist_ok=True)
         for name in ("combined.log", "status.json", "manifest.json", "SUMMARY.md", "bundle.zip"):
@@ -396,6 +419,43 @@ class RunRecorder:
                 src_dir = self.run_dir / sub
                 if src_dir.is_dir():
                     shutil.copytree(src_dir, dest_root / sub, dirs_exist_ok=True)
+
+    def _sync_ckpt_mirror(self) -> None:
+        """Timed incremental mirror of artifacts/ (checkpoint cells, dumped
+        states) so a mid-step VM loss costs at most one interval of work.
+        The interval timer advances even when a sync attempt fails, so
+        worst-case data at risk is about two intervals."""
+        if self._mirror_dir is None:
+            return
+        raw = os.environ.get("ITASORL_CKPT_SYNC_SEC", "300")
+        try:
+            interval = float(raw)
+        except ValueError:
+            print(f"WARNING: bad ITASORL_CKPT_SYNC_SEC={raw!r}; using 300.", flush=True)
+            interval = 300.0
+        now = time.perf_counter()
+        if (now - self._ckpt_last_sync) < interval:
+            return
+        self._ckpt_last_sync = now
+        self._mirror_attempt(self._sync_ckpt_files)
+
+    def _sync_ckpt_files(self) -> None:
+        src_root = self.run_dir / "artifacts"
+        if not src_root.is_dir():
+            return
+        dest_root = self._mirror_dir / self.run_dir.name / "artifacts"
+        for src in src_root.rglob("*"):
+            if not src.is_file() or src.suffix == ".part":
+                continue
+            dest = dest_root / src.relative_to(src_root)
+            # Tolerance window: DriveFS may truncate mtimes, and a torn copy
+            # must never be frozen by an inflated destination timestamp.
+            if dest.is_file() and dest.stat().st_mtime >= src.stat().st_mtime - 2.0:
+                continue
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            tmp = dest.with_name(dest.name + ".part")
+            shutil.copy2(src, tmp)
+            os.replace(tmp, dest)
 
     def note_step(self, name: str, *, status: str) -> None:
         """Record a skipped or external step in manifest + status."""
@@ -509,13 +569,6 @@ class RunRecorder:
         LATEST_RUN_PTR.parent.mkdir(parents=True, exist_ok=True)
         LATEST_RUN_PTR.write_text(str(self.run_dir.resolve()), encoding="utf-8")
         self._sync_mirror(full=True)
-        if self._mirror_dir is not None:
-            dest_root = self._mirror_dir / self.run_dir.name
-            dest_root.mkdir(parents=True, exist_ok=True)
-            for name in ("SUMMARY.md", "bundle.zip"):
-                src = self.run_dir / name
-                if src.is_file():
-                    shutil.copy2(src, dest_root / name)
 
         print(f"\n{'=' * 72}", flush=True)
         print(f"Results recorded -> {self.run_dir}", flush=True)
