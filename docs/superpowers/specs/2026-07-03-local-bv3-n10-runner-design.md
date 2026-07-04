@@ -75,29 +75,47 @@ in run_expB2.py stays active. Result: `python scripts/run_e2e.py --resume`
 works end-to-end and produces the standard `fullruns/MMDDYYYY/` layout. The
 same path benefits Colab runs whose run dir is mirrored to Drive.
 
-### 4. Local launcher (scripts/run_bv3_n10_local.sh)
+### 4. Local launcher (scripts/run_local.py)
 
-Git Bash script modeled on `run_expB2_n10.sh`:
+Python launcher `scripts/run_local.py`, profile-driven like the Colab
+notebook's config cell. Usage:
 
-1. CUDA check: fail loudly if torch cannot see a GPU.
-2. Free-RAM guard via powershell.exe (reuse existing pattern, MIN_FREE_GB
-   default 4).
-3. Fresh start: compute `RUN_DIR=fullruns/$(date +%m%d%Y)` and invoke:
-   `python scripts/run_e2e.py --only expb2 --b2-drift-mode regime
-   --b2-seeds 0 1 2 3 4 5 6 7 8 9 --b2-updates 300
-   --results-dir "$RUN_DIR" --b2-dump-states "$RUN_DIR/states"`
-   States live inside the run dir, so the whole run is one folder.
-4. Resume: `bash scripts/run_bv3_n10_local.sh --resume` resolves the run dir
-   from run_e2e's latest-run pointer file (exact constant read from
-   run_e2e.py at implementation time) and invokes
-   `run_e2e.py --resume "$RUN_DIR" --b2-dump-states "$RUN_DIR/states"`,
-   keeping the states path stable across sessions.
+    python scripts/run_local.py bv3_regime_n10          # fresh start
+    python scripts/run_local.py bv3_regime_n10 --resume # continue
+    python scripts/run_local.py --list                  # show profiles
 
-Usage: start with `bash scripts/run_bv3_n10_local.sh`; after any
-interruption, rerun with `--resume`. Worst-case loss is one cell.
-A second fresh start on the same day targets the same RUN_DIR and is
-stopped by the fresh-run guard (section 2); use `--resume` or remove the
-day's folder first.
+Behavior:
+
+1. Profile table: a `PROFILES` dict with the same keys and entries as the
+   notebook's `_PROFILES` (quick, full, bv3_regime, bv3_regime_n10,
+   bv2_ceiling, bv3_ceiling, b2_only, b2_seed0, experiments_no_b2). The
+   notebook cannot import repo code before it clones the repo, so the two
+   tables are intentionally duplicated; each carries a comment pointing at
+   the other ("keep in sync").
+2. Profile-to-flags mapping: run_mode quick -> `--quick`; only ->
+   `--only expb2`; skip_steps -> `--skip ...`; b2_seeds -> `--b2-seeds ...`;
+   b2_updates -> `--b2-updates ...`; drift_mode -> `--b2-drift-mode ...`;
+   sysid_aux -> `--b2-sysid-aux`; dump_states -> `--b2-dump-states
+   <RUN_DIR>/states`. Implemented as a pure function returning the argv list
+   so it is unit-testable.
+3. CUDA check: fail loudly if torch cannot see a GPU (skippable with
+   `--allow-cpu` for deliberate CPU runs).
+4. Free-RAM guard: refuse to start below MIN_FREE_GB (default 4) free system
+   RAM, Windows-aware (same intent as run_expB2_n10.sh, implemented in
+   Python).
+5. Fresh start: `RUN_DIR = fullruns/<MMDDYYYY>` and invoke run_e2e.py with
+   `--results-dir RUN_DIR` plus the mapped profile flags. States live inside
+   the run dir, so the whole run is one folder.
+6. Resume: resolve RUN_DIR from run_e2e's latest-run pointer file (exact
+   constant read from run_e2e.py at implementation time) and invoke
+   `run_e2e.py --resume RUN_DIR` with the same profile flags, keeping the
+   states path stable across sessions. The profile argument is still
+   required on resume; passing a different profile than the original run is
+   caught by the run_expB2.py fingerprint gate, not by the launcher.
+
+Worst-case loss on interruption is one cell. A second fresh start on the
+same day targets the same RUN_DIR and is stopped by the fresh-run guard
+(section 2); use `--resume` or remove the day's folder first.
 
 ### 5. Testing
 
@@ -111,6 +129,9 @@ Pure-function tests, no training and no GPU:
 - canonical ordering: rebuilt results lists are ordered by (drift, seed)
   regardless of cell completion order.
 - run_e2e plumbing: `build_b2_extra` emits `--resume` only in resume mode.
+- launcher mapping: each PROFILES entry produces the expected run_e2e argv
+  (pure function, parametrized over all profiles); `--list` output includes
+  every profile.
 
 CI hygiene: `ruff check .` clean before any push (F541 trap).
 
@@ -129,3 +150,5 @@ until the user asks. The user launches the run themselves.
 3. A fresh run pointed at a dir with stale cells aborts instead of silently
    skipping.
 4. Tests pass on Python 3.10-3.12 locally; ruff clean.
+5. Every notebook RUN_PROFILE can be launched locally by name via
+   `python scripts/run_local.py <profile>`, including `--resume`.
