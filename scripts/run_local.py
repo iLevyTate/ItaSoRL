@@ -18,23 +18,27 @@ from __future__ import annotations
 
 import _bootstrap  # noqa: F401
 
+import argparse
+import subprocess
 import sys
 from pathlib import Path
+
+from itasorl.results_io import default_run_dir, read_latest_run_dir  # noqa: E402
 
 SCRIPTS = Path(__file__).resolve().parent
 
 # Keep in sync with _PROFILES in notebooks/colab_gpu.ipynb. The notebook cannot
 # import repo code before it clones the repo, so the table is duplicated there.
 PROFILES = {
-    "quick":             dict(run_mode="quick", only=None,    skip_steps=[],        b2_seeds=None, b2_updates=None, drift_mode=None,     sysid_aux=False, dump_states=True),   # noqa: E501
-    "full":              dict(run_mode="full",  only=None,    skip_steps=[],        b2_seeds=None, b2_updates=None, drift_mode=None,     sysid_aux=False, dump_states=True),   # noqa: E501
-    "bv3_regime":        dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=None, b2_updates=300,  drift_mode="regime", sysid_aux=False, dump_states=True),   # noqa: E501
-    "bv3_regime_n10":    dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=list(range(10)), b2_updates=300, drift_mode="regime", sysid_aux=False, dump_states=True),  # noqa: E501
-    "bv2_ceiling":       dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=None, b2_updates=300,  drift_mode=None,     sysid_aux=True,  dump_states=True),   # noqa: E501
-    "bv3_ceiling":       dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=None, b2_updates=300,  drift_mode="regime", sysid_aux=True,  dump_states=True),   # noqa: E501
-    "b2_only":           dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=None, b2_updates=300,  drift_mode=None,     sysid_aux=False, dump_states=True),   # noqa: E501
-    "b2_seed0":          dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=[0],  b2_updates=300,  drift_mode=None,     sysid_aux=False, dump_states=True),   # noqa: E501
-    "experiments_no_b2": dict(run_mode="full",  only=None,    skip_steps=["expB2"], b2_seeds=None, b2_updates=None, drift_mode=None,     sysid_aux=False, dump_states=False),  # noqa: E501
+    "quick":             dict(run_mode="quick", only=None,    skip_steps=[],        b2_seeds=None, b2_updates=None, drift_mode=None,     sysid_aux=False, dump_states=True),
+    "full":              dict(run_mode="full",  only=None,    skip_steps=[],        b2_seeds=None, b2_updates=None, drift_mode=None,     sysid_aux=False, dump_states=True),
+    "bv3_regime":        dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=None, b2_updates=300,  drift_mode="regime", sysid_aux=False, dump_states=True),
+    "bv3_regime_n10":    dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=list(range(10)), b2_updates=300, drift_mode="regime", sysid_aux=False, dump_states=True),
+    "bv2_ceiling":       dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=None, b2_updates=300,  drift_mode=None,     sysid_aux=True,  dump_states=True),
+    "bv3_ceiling":       dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=None, b2_updates=300,  drift_mode="regime", sysid_aux=True,  dump_states=True),
+    "b2_only":           dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=None, b2_updates=300,  drift_mode=None,     sysid_aux=False, dump_states=True),
+    "b2_seed0":          dict(run_mode="full",  only="expb2", skip_steps=[],        b2_seeds=[0],  b2_updates=300,  drift_mode=None,     sysid_aux=False, dump_states=True),
+    "experiments_no_b2": dict(run_mode="full",  only=None,    skip_steps=["expB2"], b2_seeds=None, b2_updates=None, drift_mode=None,     sysid_aux=False, dump_states=False),
 }
 
 
@@ -47,6 +51,8 @@ def build_cmd(profile: dict, run_dir: Path, *, resume: bool) -> list[str]:
         cmd += ["--results-dir", str(run_dir)]
     if profile["run_mode"] == "quick":
         cmd += ["--quick"]
+    elif profile["run_mode"] != "full":
+        raise ValueError(f"unknown run_mode {profile['run_mode']!r}")
     if profile["only"]:
         cmd += ["--only", profile["only"]]
     for step in profile["skip_steps"]:
@@ -62,3 +68,117 @@ def build_cmd(profile: dict, run_dir: Path, *, resume: bool) -> list[str]:
     if profile["dump_states"]:
         cmd += ["--b2-dump-states", str(Path(run_dir) / "states")]
     return cmd
+
+
+PROFILE_FILE = "local_profile.txt"
+
+
+def check_cuda(allow_cpu: bool) -> None:
+    import torch
+
+    if torch.cuda.is_available():
+        print(f"GPU: {torch.cuda.get_device_name(0)}", flush=True)
+        return
+    if allow_cpu:
+        print("WARNING: no CUDA GPU visible to torch; continuing on CPU "
+              "(--allow-cpu).", flush=True)
+        return
+    raise SystemExit("No CUDA GPU visible to torch. Fix the driver/torch "
+                     "install, or pass --allow-cpu for a deliberate CPU run.")
+
+
+def free_ram_gb() -> float | None:
+    if sys.platform == "win32":
+        try:
+            out = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-Command",
+                 "[int]((Get-CimInstance Win32_OperatingSystem)"
+                 ".FreePhysicalMemory/1024)"],
+                capture_output=True, text=True, check=True).stdout
+            return int("".join(ch for ch in out if ch.isdigit())) / 1024.0
+        except Exception:
+            return None
+    try:
+        with open("/proc/meminfo", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("MemAvailable:"):
+                    return int(line.split()[1]) / (1024.0 * 1024.0)
+    except OSError:
+        pass
+    return None
+
+
+def check_ram(min_free_gb: float) -> None:
+    free = free_ram_gb()
+    if free is None:
+        print("WARNING: could not determine free RAM; continuing.", flush=True)
+        return
+    if free < min_free_gb:
+        raise SystemExit(
+            f"Only {free:.1f} GB system RAM free (< {min_free_gb:.0f} GB "
+            "needed; episode buffers live in RAM). Free memory first, e.g. "
+            "stop the ralph loop.")
+    print(f"Free RAM: {free:.1f} GB -- OK", flush=True)
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(
+        description="Run a Colab RUN_PROFILE locally with resume support.")
+    ap.add_argument("profile", nargs="?", choices=sorted(PROFILES),
+                    help="run profile (see --list)")
+    ap.add_argument("--resume", action="store_true",
+                    help="continue the latest interrupted run")
+    ap.add_argument("--list", action="store_true",
+                    help="list profiles and exit")
+    ap.add_argument("--allow-cpu", action="store_true",
+                    help="run even without a CUDA GPU")
+    ap.add_argument("--min-free-gb", type=float, default=4.0,
+                    help="free system RAM required to start (default 4)")
+    a = ap.parse_args()
+
+    if a.list:
+        for name, p in PROFILES.items():
+            bits = [p["run_mode"]]
+            if p["only"]:
+                bits.append(f"only={p['only']}")
+            if p["b2_seeds"] is not None:
+                bits.append(f"seeds={len(p['b2_seeds'])}")
+            if p["drift_mode"]:
+                bits.append(f"drift_mode={p['drift_mode']}")
+            if p["sysid_aux"]:
+                bits.append("sysid_aux")
+            if p["skip_steps"]:
+                bits.append(f"skip={','.join(p['skip_steps'])}")
+            print(f"{name:18s} {' '.join(bits)}")
+        return
+    if not a.profile:
+        ap.error("profile is required (or use --list)")
+
+    if a.resume:
+        run_dir = read_latest_run_dir()
+        if run_dir is None:
+            raise SystemExit("--resume: no latest-run pointer found; "
+                             "start a fresh run first.")
+        run_dir = Path(run_dir)
+        profile_file = run_dir / PROFILE_FILE
+        if profile_file.is_file():
+            recorded = profile_file.read_text(encoding="utf-8").strip()
+            if recorded != a.profile:
+                print(f"WARNING: resuming run recorded as profile "
+                      f"'{recorded}' with profile '{a.profile}'. The expB2 "
+                      "config fingerprint is the real gate; proceeding.",
+                      flush=True)
+    else:
+        run_dir = Path(default_run_dir())
+        run_dir.mkdir(parents=True, exist_ok=True)
+        (run_dir / PROFILE_FILE).write_text(a.profile + "\n", encoding="utf-8")
+
+    check_cuda(a.allow_cpu)
+    check_ram(a.min_free_gb)
+    cmd = build_cmd(PROFILES[a.profile], run_dir, resume=a.resume)
+    print("Launching: " + " ".join(cmd), flush=True)
+    raise SystemExit(subprocess.run(cmd).returncode)
+
+
+if __name__ == "__main__":
+    main()
