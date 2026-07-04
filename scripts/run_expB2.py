@@ -99,6 +99,10 @@ def cfg():
     ap.add_argument("--workers", type=int, default=1, help="parallel worker processes over cells")
     ap.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto",
                     help="auto = cuda when --workers 1, else cpu (avoids GPU contention; CPU-bound anyway)")
+    ap.add_argument("--resume", action="store_true",
+                    help="continue an interrupted run: load matching cell "
+                         "checkpoints from <out-dir>/cells and run only the "
+                         "missing (drift, seed) cells")
     a = ap.parse_args()
     if a.quick:
         a.drifts, a.seeds, a.updates, a.n_eps, a.max_steps = [0.0, 0.45], [0, 1], 60, 8, 40
@@ -122,7 +126,8 @@ def cell_file(cells_dir, drift: float, seed: int) -> Path:
 def git_commit_short() -> str:
     try:
         out = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
-                             capture_output=True, text=True, check=True)
+                             capture_output=True, text=True, check=True,
+                             cwd=Path(__file__).resolve().parent)
         return out.stdout.strip()
     except Exception:
         return "unknown"
@@ -134,7 +139,7 @@ def write_cell_file(cells_dir, fingerprint: str, commit: str, cell: dict) -> Pat
     cells_dir.mkdir(parents=True, exist_ok=True)
     path = cell_file(cells_dir, cell["drift"], cell["seed"])
     tmp = path.with_name(path.name + ".tmp")
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump({"fingerprint": fingerprint, "git_commit": commit,
                    "cell": cell}, f, indent=2, default=float)
     os.replace(tmp, path)
@@ -151,7 +156,7 @@ def load_cell_files(cells_dir, fingerprint: str) -> dict:
     commit = git_commit_short()
     for path in sorted(cells_dir.glob("cell_d*_s*.json")):
         try:
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 payload = json.load(f)
             fp, cell = payload["fingerprint"], payload["cell"]
         except Exception as exc:
@@ -267,6 +272,18 @@ def print_cell(cell: dict) -> None:
               f"leak_clean={mp['leakage_clean']}(dev={mp['leakage_max_dev']:.3f})", flush=True)
 
 
+def fresh_results(drifts) -> dict:
+    return {d: {g: {"pool_target": [], "pool_target_lo": [], "pool_target_hi": [],
+                    "pool_target_var": [], "pool_target_full": [],
+                    "pool_selectivity": [], "pool_selectivity_var": [],
+                    "pool_selectivity_full": [],
+                    "pool_speed": [], "pool_shuffled": [],
+                    "pool_anchor_energy": [], "pool_anchor_food": [],
+                    "pool_ceiling_drag": [],
+                    "mp_target": [], "mp_leak_clean": [], "xeval_return": []}
+                for g in AG} for d in drifts}
+
+
 def main():
     a = cfg()
     dev = "cpu" if (a.device == "auto" and a.workers > 1) else (
@@ -293,12 +310,7 @@ def main():
               "NOT readout-not-reward). Its target is a capacity ceiling, not H_B2 evidence. ***")
     print()
     # results[drift][agent][metric] = list over seeds
-    res = {d: {g: {"pool_target": [], "pool_target_lo": [], "pool_target_hi": [],
-                   "pool_target_var": [], "pool_target_full": [],
-                   "pool_selectivity": [], "pool_selectivity_var": [], "pool_selectivity_full": [],
-                   "pool_speed": [], "pool_shuffled": [],
-                   "pool_anchor_energy": [], "pool_anchor_food": [], "pool_ceiling_drag": [],
-                   "mp_target": [], "mp_leak_clean": [], "xeval_return": []} for g in AG} for d in a.drifts}
+    res = fresh_results(a.drifts)
     eng_log = {d: [] for d in a.drifts}
 
     def checkpoint():
@@ -313,6 +325,25 @@ def main():
                                        "sysid_aux", "sysid_coef", "drift_mode")}
     base.update(drifts=a.drifts, device=dev)
     tasks = [{**base, "drift": d, "seed": s} for d in a.drifts for s in a.seeds]
+    cells_dir = Path(a.out_dir) / "cells"
+    fingerprint = config_fingerprint(base)
+    commit = git_commit_short()
+    if a.resume:
+        resumed = load_cell_files(cells_dir, fingerprint)
+    else:
+        resumed = {}
+        if cells_dir.is_dir() and any(cells_dir.glob("cell_d*_s*.json")):
+            raise SystemExit(
+                f"{cells_dir} already contains checkpointed cells. Pass "
+                "--resume to continue that run, or use a fresh --out-dir.")
+    all_cells = dict(resumed)
+    for (d, s) in sorted(resumed):
+        print(f"resumed from checkpoint: drift={d:.2f} seed={s}", flush=True)
+        record_cell(res, eng_log, resumed[(d, s)])
+    if resumed:
+        print(f"Resume: {len(resumed)} cell(s) loaded from {cells_dir}, "
+              f"{len(tasks) - len(resumed)} to run.", flush=True)
+    tasks = [t for t in tasks if (t["drift"], t["seed"]) not in resumed]
     done = 0
     if a.workers > 1:
         import multiprocessing as mp
@@ -320,6 +351,8 @@ def main():
         with ctx.Pool(a.workers) as pool:
             for cell in pool.imap_unordered(run_cell, tasks):
                 record_cell(res, eng_log, cell)
+                all_cells[(cell["drift"], cell["seed"])] = cell
+                write_cell_file(cells_dir, fingerprint, commit, cell)
                 print_cell(cell)
                 done += 1
                 print(f"   [{done}/{len(tasks)} cells done]", flush=True)
@@ -328,9 +361,19 @@ def main():
         for task in tasks:
             cell = run_cell(task)
             record_cell(res, eng_log, cell)
+            all_cells[(cell["drift"], cell["seed"])] = cell
+            write_cell_file(cells_dir, fingerprint, commit, cell)
             print_cell(cell)
             done += 1
             checkpoint()
+
+    # Canonical rebuild: list positions ordered by (drift, seed), independent of
+    # completion order (imap_unordered) and of resume interleaving.
+    res = fresh_results(a.drifts)
+    eng_log = {d: [] for d in a.drifts}
+    for key in sorted(all_cells):
+        record_cell(res, eng_log, all_cells[key])
+    checkpoint()
 
     # ---- summary table ----
     print("\n================  SUMMARY (mean +/- std over seeds)  ================")

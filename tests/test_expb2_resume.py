@@ -1,5 +1,6 @@
 """Cell-level checkpoint/resume for run_expB2.py (no training, no GPU)."""
 
+import json
 import math
 import sys
 from pathlib import Path
@@ -81,3 +82,68 @@ def test_load_rejects_corrupt_file(tmp_path):
 def test_load_missing_dir_returns_empty(tmp_path):
     fp = run_expB2.config_fingerprint(dict(BASE))
     assert run_expB2.load_cell_files(tmp_path / "nope", fp) == {}
+
+
+def _run_main(tmp_path, monkeypatch, extra=(), cell_fn=None):
+    """Run run_expB2.main() with a stubbed run_cell (no training, seconds not hours).
+    --quick gives drifts [0.0, 0.45] x seeds [0, 1] = 4 cells."""
+    monkeypatch.setattr(run_expB2, "run_cell",
+                        cell_fn or (lambda t: make_cell(t["drift"], t["seed"])))
+    argv = ["run_expB2.py", "--quick", "--out-dir", str(tmp_path), *extra]
+    monkeypatch.setattr(sys, "argv", argv)
+    run_expB2.main()
+
+
+def test_fresh_run_writes_cell_files_and_results(tmp_path, monkeypatch):
+    _run_main(tmp_path, monkeypatch)
+    cells = sorted(p.name for p in (tmp_path / "cells").glob("*.json"))
+    assert cells == ["cell_d0.00_s0.json", "cell_d0.00_s1.json",
+                     "cell_d0.45_s0.json", "cell_d0.45_s1.json"]
+    assert (tmp_path / "expB2_results.json").is_file()
+
+
+def test_fresh_run_refuses_stale_cells(tmp_path, monkeypatch):
+    _run_main(tmp_path, monkeypatch)
+    with pytest.raises(SystemExit):
+        _run_main(tmp_path, monkeypatch)  # no --resume
+
+
+def test_resume_skips_completed_cells(tmp_path, monkeypatch):
+    _run_main(tmp_path, monkeypatch)
+
+    def boom(task):
+        raise AssertionError("run_cell must not be called on full resume")
+
+    _run_main(tmp_path, monkeypatch, extra=["--resume"], cell_fn=boom)
+
+
+def test_resume_runs_only_missing_cells(tmp_path, monkeypatch):
+    _run_main(tmp_path, monkeypatch)
+    (tmp_path / "cells" / "cell_d0.45_s1.json").unlink()
+    ran = []
+
+    def spy(task):
+        ran.append((task["drift"], task["seed"]))
+        return make_cell(task["drift"], task["seed"])
+
+    _run_main(tmp_path, monkeypatch, extra=["--resume"], cell_fn=spy)
+    assert ran == [(0.45, 1)]
+
+
+def test_results_are_seed_ordered_after_resume(tmp_path, monkeypatch):
+    _run_main(tmp_path, monkeypatch)
+    # remove seed 0 so on resume seed 0 completes AFTER resumed seed 1
+    (tmp_path / "cells" / "cell_d0.45_s0.json").unlink()
+    _run_main(tmp_path, monkeypatch, extra=["--resume"])
+    res = json.loads((tmp_path / "expB2_results.json").read_text())
+    got = res["0.45"]["survival"]["pool_target"]
+    want = [make_cell(0.45, s)["agents"]["survival"]["pool"]["target"]
+            for s in (0, 1)]
+    assert got == pytest.approx(want)
+
+
+def test_resume_rejects_different_config(tmp_path, monkeypatch):
+    _run_main(tmp_path, monkeypatch)
+    with pytest.raises(SystemExit):
+        _run_main(tmp_path, monkeypatch,
+                  extra=["--resume", "--shaping_coef", "2.0"])
