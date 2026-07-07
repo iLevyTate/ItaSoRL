@@ -178,3 +178,21 @@ Format per entry:
 - Verify: files are self-consistent with `docs/FINDINGS.md` §9 and
   `artifacts/expB2/README.md` promotion record.
 - Commit: (this session)
+
+## 2026-07-07 - B-v3 regime n=10 power extension (H_B3 not met)
+- Found: the pre-registered n=10 power extension (profile `bv3_regime_n10`,
+  `fullruns/07062026`, RTX 4050, 337 min, commit 820849f) completed. Survival identity
+  probe **0.610 +/- 0.047** @ drift 0.45, 90% CI [0.585, 0.634] (per-seed 0.669, 0.514,
+  0.594, 0.642, 0.611, 0.586, 0.615, 0.638, 0.558, 0.677; 2/10 cross 0.65). Beats
+  untrained 0.500 and predictor 0.513 by >0.05 but misses the 0.65 SESOI; volatility
+  readout 0.535/0.611 also below. L0 equivalent to chance (TOST p=0.010, ROPE 0.999);
+  manipulation check passed; identity target 0.610 > drag-tracking ceiling 0.487.
+  Verdict: **H_B3 NOT met**, intermediate zone; the n=10 CI excludes 0.65 so the
+  adjudication is decisive. Resolves the open Power (n=10) question.
+- Verify: `python scripts/compare_expB2_artifacts.py --run fullruns/07062026` -> this run
+  0.610 +/- 0.047 (drag ceiling 0.487) vs canonical Colab 0.523 and initial lab 0.595;
+  all FAIL vs 0.65. Numbers match `fullruns/07062026/SUMMARY.md`.
+- Next: report the pre-registered sysid-aux capacity ceiling (profile `bv3_ceiling`,
+  ~3.7 hr; PREREG_Bv3 sec.10) to test whether 0.65 is reachable by this trunk.
+  Human-gated GPU run; command prepared, not launched.
+- Commit: docs-only (`ralph/EXPERIMENT_STATUS.md` + this entry); `fullruns/` is gitignored.
