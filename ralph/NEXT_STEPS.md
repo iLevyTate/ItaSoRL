@@ -11,7 +11,7 @@ Mark status: `[ready]` Ralph can implement · `[blocked]` needs human · `[done]
 
 | Status | Item | Rationale |
 |--------|------|-----------|
-| `[ready]` | **CUDA/CPU + cross-run determinism test** for B-v2 pooled readout (seed 0, `--quick` scale first). Compare two back-to-back runs on same device; document drift. | Explains 0.595 vs 0.523 without a 4 hr sweep. Already on BACKLOG as P2. |
+| `[done]` | **CUDA/CPU + cross-run determinism test** (2026-07-08): `tests/test_experiment_b2.py::test_matched_pair_L0_bit_identical_on_device` + `test_readout_states_deterministic_across_runs`, parametrized over CPU + CUDA (CUDA skipped in CI). Within-device same-seed states are bit-identical on both devices; cross-device equality deliberately not asserted (FP reduction order differs). | Localizes 0.595 vs 0.523 to device/seed/code, not our readout, without a 4 hr sweep. Was BACKLOG P2. |
 | `[done]` | **Script** `scripts/compare_expB2_artifacts.py` + Colab compare cell. | Run after Colab/local B-v2. |
 | `[blocked]` | Local seed-0 full-scale re-run (300 updates) on lab GPU vs Colab T4 seed 0 (0.586). | Colab: `RUN_PROFILE = "b2_seed0"` in `notebooks/colab_gpu.ipynb`. |
 

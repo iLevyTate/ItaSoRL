@@ -28,6 +28,8 @@ from itasorl.world import WorldParams  # noqa: E402
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 RS = 4
+# Every device the box exposes: CPU always, CUDA only when present (skipped in CI).
+DEVICES = ["cpu"] + (["cuda"] if torch.cuda.is_available() else [])
 
 
 def _agent_norm():
@@ -351,6 +353,38 @@ def test_matched_pair_L0_bit_identical_regime_mode(monkeypatch):
     assert len(auth) >= 1
     for a, s in zip(auth, surr):
         assert np.array_equal(a["H"], s["H"]), "L0 branches diverged under regime mode"
+
+
+@pytest.mark.parametrize("device", DEVICES)
+def test_matched_pair_L0_bit_identical_on_device(device):
+    """The keystone L0 confound control must hold on EVERY device, not just CPU.
+    A GPU kernel that broke branch bit-identity would silently manufacture a
+    world-identity signal on GPU runs only - a confound that could masquerade as
+    a positive result. Guards the CUDA path used by every `fullruns/` GPU run."""
+    agent, norm = _agent_norm()
+    agent = agent.to(device)
+    auth, surr = matched_pair_recurrent_rollout(agent, norm, P, 0.0, n_pairs=3, prefix_steps=4,
+                                                branch_steps=6, ray_steps=RS, device=device)
+    assert len(auth) >= 1
+    for a, s in zip(auth, surr):
+        assert np.array_equal(a["H"], s["H"]), f"L0 branches diverged on {device}"
+
+
+@pytest.mark.parametrize("device", DEVICES)
+def test_readout_states_deterministic_across_runs(device):
+    """Same device + same seeds => bit-identical recurrent states across a repeat
+    run, so every downstream probe AUROC is identical by construction. This is the
+    invariant the replication gap (lab 0.595 vs Colab 0.523) is measured against:
+    within a device the pipeline is deterministic, so any surviving cross-run drift
+    is attributable to device / seed / code differences, not our readout. Cross-DEVICE
+    equality is deliberately NOT asserted (CPU vs CUDA float reductions differ)."""
+    agent, norm = _agent_norm()
+    agent = agent.to(device)
+    H1, s1 = collect_pool(agent, norm, P, 0.45, 6, 6, device, 4242, RS)
+    H2, s2 = collect_pool(agent, norm, P, 0.45, 6, 6, device, 4242, RS)
+    assert H1.shape[0] >= 1, "no survivors - determinism check is vacuous"
+    assert np.array_equal(H1, H2), f"recurrent states not reproducible on {device}"
+    assert np.array_equal(s1, s2), f"speeds not reproducible on {device}"
 
 
 def test_summary_parses_strongest_drift_cell():

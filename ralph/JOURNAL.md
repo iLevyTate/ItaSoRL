@@ -224,3 +224,28 @@ Format per entry:
   running:true, no bundle.zip); science complete (manifest expB2 ok, exit 0).
 - Commit: this session (`itasorl/results_io.py`, `tests/test_results_io_ceiling.py`,
   `ralph/EXPERIMENT_STATUS.md`, `ralph/BACKLOG.md`, this entry); `fullruns/` is gitignored.
+
+## 2026-07-08 - CUDA/CPU parity + cross-run determinism test (replication-gap guard)
+- Found: highest-priority [ready] item (NEXT_STEPS Tier 1 / BACKLOG P2). The keystone
+  matched-pair L0 confound control and the pooled readout were only ever tested on CPU,
+  yet every `fullruns/` run is on GPU and the top open question is the 0.595 (lab) vs
+  0.523 (Colab) replication gap. No test pinned down what SHOULD be device-invariant.
+- Fix: added two device-parametrized tests in `tests/test_experiment_b2.py`
+  (DEVICES = cpu + cuda-if-present, so CI skips cuda): (1)
+  `test_matched_pair_L0_bit_identical_on_device` - the L0 auth==surrogate branch
+  bit-identity holds on the GPU path too (a broken GPU kernel would fabricate a
+  world-identity signal only on GPU); (2) `test_readout_states_deterministic_across_runs`
+  - same device + same seeds yields bit-identical `collect_pool` recurrent states across a
+  repeat run, so every downstream probe AUROC is identical by construction. Cross-DEVICE
+  equality is deliberately NOT asserted (CPU vs CUDA float reduction order differs); that
+  FP nondeterminism is itself a plausible contributor to the replication gap, so the test
+  localizes the gap to device/seed/code rather than our readout.
+- Verify: pre-flight scratch confirmed 6/6 and 8/8 survivors and bit-identical repeat
+  runs on BOTH cpu and cuda (RTX 4050), plus matched-pair L0 bit-identity on both.
+  `python -m pytest -q` -> 135 passed (was 131; +4 = 2 tests x 2 devices);
+  `python -m ruff check .` -> All checks passed.
+- Next: unchanged - L3 generative-fingerprint scope spec awaits human sign-off (BACKLOG
+  Questions, Tier-3 gate). Remaining in-loop [ready] items: collect_pool early-death guard
+  test (P2), extreme-latent action-bounds test (P3), FINDINGS sec.7 wording (P3).
+- Commit: this session (`tests/test_experiment_b2.py`, `ralph/NEXT_STEPS.md`,
+  `ralph/BACKLOG.md`, this entry).
