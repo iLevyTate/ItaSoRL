@@ -48,16 +48,20 @@ class GMotion:
 
     def __init__(self, net, norm):
         import torch
-        self._torch = torch
-        self._net = net.to("cpu")            # inference net (no dropout/BN -> no eval mode needed)
+        # Extract the MLP weights to numpy so per-step world inference needs NO torch call -
+        # a torch forward per world step is a severe bottleneck in a full surrogate rollout.
+        lin = [m for m in net.to("cpu").modules() if isinstance(m, torch.nn.Linear)]
+        self._W = [m.weight.detach().numpy().astype(np.float32) for m in lin]
+        self._b = [m.bias.detach().numpy().astype(np.float32) for m in lin]
         self._xm, self._xs, self._ym, self._ys = norm  # numpy normalization stats
 
     def __call__(self, vel, a, drag=None) -> np.ndarray:
-        x = np.array([vel[0], vel[1], a[0], a[1]], np.float32)
-        xn = (x - self._xm) / self._xs
-        with self._torch.no_grad():
-            yn = self._net(self._torch.from_numpy(xn)).numpy()
-        return (yn * self._ys + self._ym).astype(float)
+        h = (np.array([vel[0], vel[1], a[0], a[1]], np.float32) - self._xm) / self._xs
+        for i, (W, b) in enumerate(zip(self._W, self._b)):
+            h = h @ W.T + b
+            if i < len(self._W) - 1:
+                h = np.maximum(h, 0.0)                 # ReLU on hidden layers only (matches nn.ReLU)
+        return (h * self._ys + self._ym).astype(float)
 
 
 def train_g_motion(*, hidden: int = 8, n_eps: int = 250, steps: int = 40, epochs: int = 300,
