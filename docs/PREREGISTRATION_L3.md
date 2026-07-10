@@ -228,6 +228,21 @@ Rigor carried from the B-v3 audit (2026-07-10):
   Section 4 Stage 1 is superseded by this entry; the section-7 oracle gate now runs against the
   dynamics-level surrogate, with capacity re-validated as the difficulty knob before any
   organism run.
+- **2026-07-10, GATE 0 MET (dynamics-level oracle calibration, GPU).** Built the dynamics-level
+  construction: `G_motion` (learned velocity law, `(vel,a)->vel_next`, drag withheld) via
+  `itasorl/surrogate_l3.py`, the `l3` world hook, and the L2-style residual oracle
+  (`itasorl/experiment_a_l3.py`, matched pairs, exact per-step authentic law from the logged
+  transitions). Capacity is a clean MONOTONE difficulty knob; the section-7 [0.85, 0.95] band is
+  reachable. **Frozen gate-0 configuration:** sensor-noise floor **sigma=0.05**, capacity
+  **hidden=8** -> oracle AUROC **0.890** (centered in-band; hidden=4 -> 0.940 also in-band;
+  hidden>=16 -> <0.75). Leakage: MECHANICAL channels (length, metadata) clean at 0.5; `reward`
+  legitimately leaks (~0.86 at hidden=4; different dynamics -> different movement cost ->
+  different reward, the documented dynamics-rung consequence, docs/FINDINGS.md section 2.2). The
+  residual oracle uses ONLY the velocity residual, so it does not exploit reward - BUT the reward
+  coupling is a readout-not-reward CONSIDERATION for the organism run: the B-v2/B-v3 leakage
+  audit + matched-pair equal-length truncation must be re-checked at the frozen difficulty
+  (smaller dynamics error at hidden=8 should shrink the reward leak vs hidden=4). Gate 0 is met;
+  the organism run may proceed with these controls reported.
 
 ## 13. How to run (milestones, in order)
 
