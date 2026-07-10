@@ -92,8 +92,12 @@ def cfg():
     ap.add_argument("--reach", type=float, default=None, help="override eat reach radius")
     # B-v3 coupling: "ar1" = the pre-registered volatility surrogate; "regime" = a per-episode
     # CONSTANT drag offset (identifiable + policy-relevant), the "make it work as intended" arm.
-    ap.add_argument("--drift-mode", choices=("ar1", "regime"), default="ar1",
-                    help="surrogate coupling mode for B-v2/B-v3 (default ar1)")
+    ap.add_argument("--drift-mode", choices=("ar1", "regime", "l3"), default="ar1",
+                    help="surrogate coupling mode: ar1 (B-v2), regime (B-v3), or l3 "
+                         "(learned-dynamics surrogate; default ar1)")
+    ap.add_argument("--l3-hidden", type=int, default=8,
+                    help="G_motion capacity for --drift-mode l3 (frozen gate-0 value 8; "
+                         "see docs/PREREGISTRATION_L3.md sec.12)")
     # Speedup: the run is CPU-bound (serial physics, tiny nets), and (drift,seed) cells are
     # independent. --workers N runs N cells at once across CPU cores. Set N ~ vCPU count.
     ap.add_argument("--workers", type=int, default=1, help="parallel worker processes over cells")
@@ -204,6 +208,8 @@ def run_cell(task: dict) -> dict:
         b2.SURVIVAL_FOOD["reach"] = k["reach"]
     if k.get("drift_mode"):
         b2.DRIFT_MODE = k["drift_mode"]
+    if k.get("drift_mode") == "l3" and b2._L3_GMOTION is None:  # train G_motion once per worker
+        b2.setup_l3_surrogate(hidden=k.get("l3_hidden", 8), device=dev, seed=0)
 
     agents = {"untrained": untrained_agent(P, d, k["ray_steps"], k["hidden"], 64, True, dev, seed=s),
               "predictor": train_predictor_only(d, P, n_eps=k["n_eps"], updates=k["updates"],
@@ -305,6 +311,11 @@ def main():
     if a.drift_mode == "regime":
         print("  drift_mode=regime: surrogate = per-episode CONSTANT drag offset "
               "(B-v3 identifiable + policy-relevant coupling; see docs/PREREGISTRATION_Bv3.md)")
+    if a.drift_mode == "l3":
+        print(f"  drift_mode=l3: surrogate = LEARNED velocity law G_motion (hidden={a.l3_hidden}), "
+              "the dynamics-level L3 rung; obs come from the REAL sensor model so only the "
+              "learned dynamics differ (see docs/PREREGISTRATION_L3.md sec.4/sec.12)")
+        b2.setup_l3_surrogate(hidden=a.l3_hidden, device=dev, seed=0)  # train + install once (workers=1)
     if a.sysid_aux:
         print("  *** SYSID-AUX ON: survival trunk is supervised on drag (CEILING control, "
               "NOT readout-not-reward). Its target is a capacity ceiling, not H_B2 evidence. ***")
@@ -322,7 +333,7 @@ def main():
     base = {k: getattr(a, k) for k in ("updates", "n_eps", "max_steps", "hidden", "ray_steps",
                                        "shaping_coef", "pool_n", "pool_steps", "mp_pairs", "mp_prefix",
                                        "mp_branch", "basal_e", "n_pellets", "reach", "dump_states",
-                                       "sysid_aux", "sysid_coef", "drift_mode")}
+                                       "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden")}
     base.update(drifts=a.drifts, device=dev)
     tasks = [{**base, "drift": d, "seed": s} for d in a.drifts for s in a.seeds]
     cells_dir = Path(a.out_dir) / "cells"
