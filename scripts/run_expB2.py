@@ -98,6 +98,9 @@ def cfg():
     ap.add_argument("--l3-hidden", type=int, default=8,
                     help="G_motion capacity for --drift-mode l3 (frozen gate-0 value 8; "
                          "see docs/PREREGISTRATION_L3.md sec.12)")
+    ap.add_argument("--l3-seed", type=int, default=0,
+                    help="G_motion training seed for --drift-mode l3 (frozen headline value 0; "
+                         "varied only by the held-out fingerprint probe, run_l3_holdout.py)")
     # Speedup: the run is CPU-bound (serial physics, tiny nets), and (drift,seed) cells are
     # independent. --workers N runs N cells at once across CPU cores. Set N ~ vCPU count.
     ap.add_argument("--workers", type=int, default=1, help="parallel worker processes over cells")
@@ -209,7 +212,8 @@ def run_cell(task: dict) -> dict:
     if k.get("drift_mode"):
         b2.DRIFT_MODE = k["drift_mode"]
     if k.get("drift_mode") == "l3" and b2._L3_GMOTION is None:  # train G_motion once per worker
-        b2.setup_l3_surrogate(hidden=k.get("l3_hidden", 8), device=dev, seed=0, params=P)  # THIS world
+        b2.setup_l3_surrogate(hidden=k.get("l3_hidden", 8), device=dev,
+                              seed=k.get("l3_seed", 0), params=P)  # THIS world
 
     agents = {"untrained": untrained_agent(P, d, k["ray_steps"], k["hidden"], 64, True, dev, seed=s),
               "predictor": train_predictor_only(d, P, n_eps=k["n_eps"], updates=k["updates"],
@@ -326,7 +330,7 @@ def main():
         print(f"  drift_mode=l3: surrogate = LEARNED velocity law G_motion (hidden={a.l3_hidden}), "
               "the dynamics-level L3 rung; obs come from the REAL sensor model so only the "
               "learned dynamics differ (see docs/PREREGISTRATION_L3.md sec.4/sec.12)")
-        b2.setup_l3_surrogate(hidden=a.l3_hidden, device=dev, seed=0, params=P)  # train on THIS world
+        b2.setup_l3_surrogate(hidden=a.l3_hidden, device=dev, seed=a.l3_seed, params=P)  # train on THIS world
     if a.sysid_aux:
         print("  *** SYSID-AUX ON: survival trunk is supervised on drag (CEILING control, "
               "NOT readout-not-reward). Its target is a capacity ceiling, not H_B2 evidence. ***")
@@ -344,7 +348,7 @@ def main():
     base = {k: getattr(a, k) for k in ("updates", "n_eps", "max_steps", "hidden", "ray_steps",
                                        "shaping_coef", "pool_n", "pool_steps", "mp_pairs", "mp_prefix",
                                        "mp_branch", "basal_e", "n_pellets", "reach", "dump_states",
-                                       "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden")}
+                                       "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden", "l3_seed")}
     base.update(drifts=a.drifts, device=dev)
     tasks = [{**base, "drift": d, "seed": s} for d in a.drifts for s in a.seeds]
     cells_dir = Path(a.out_dir) / "cells"

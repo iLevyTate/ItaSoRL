@@ -139,6 +139,24 @@ def probe_auroc(X: np.ndarray, y: np.ndarray) -> float:
     return grouped_auroc(X, y, groups=np.arange(len(y)))  # episodes independent
 
 
+def probe_transfer_auroc(Xtr: np.ndarray, ytr: np.ndarray,
+                         Xte: np.ndarray, yte: np.ndarray) -> float:
+    """Train-on-one-pool, score-on-another AUROC for the held-out fingerprint probe.
+    Mirrors `grouped_auroc`'s estimator exactly (StandardScaler + LogisticRegression,
+    scaler fit on TRAIN only) but with no CV: the train and test pools are disjoint by
+    construction (different worlds / seed bases), so the test score is a pure function
+    of (Xtr, ytr, Xte) - test labels enter only through the AUROC itself."""
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import roc_auc_score
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    if len(np.unique(yte)) < 2 or len(np.unique(ytr)) < 2:
+        return float("nan")
+    clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))
+    clf.fit(Xtr, ytr)
+    return float(roc_auc_score(yte, clf.predict_proba(Xte)[:, 1]))
+
+
 def run_experiment_b(n: int = 30, steps: int = 30, drift_sigma: float = 0.4, epochs: int = 8,
                      hidden: int = 128, params: WorldParams | None = None, seed: int = 0,
                      backend: str | None = None) -> dict:

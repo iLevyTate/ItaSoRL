@@ -72,14 +72,23 @@ DRIFT_MODE = "ar1"
 _L3_GMOTION = None
 
 
-def setup_l3_surrogate(**train_kwargs) -> None:
+def setup_l3_surrogate(**train_kwargs):
     """Train the shared L3 velocity net (`itasorl.surrogate_l3.train_g_motion`) once and
     install it, so every subsequent `make_world(..., drift_sigma>0)` in `l3` mode gets it.
     `hidden` (capacity) is the calibration difficulty knob; pass `device="cuda"` to train
-    on GPU."""
-    global _L3_GMOTION
+    on GPU. Returns the trained `GMotion` so callers (e.g. the held-out fingerprint probe)
+    can keep a handle and later swap nets via `install_l3_surrogate`."""
     from .surrogate_l3 import train_g_motion
-    _L3_GMOTION = train_g_motion(**train_kwargs)
+    g = train_g_motion(**train_kwargs)
+    install_l3_surrogate(g)
+    return g
+
+
+def install_l3_surrogate(g) -> None:
+    """Install an already-trained `GMotion` (or None to clear) as the shared L3 net.
+    Every subsequent surrogate `make_world` uses it; authentic worlds never do."""
+    global _L3_GMOTION
+    _L3_GMOTION = g
 
 
 def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int) -> PatchOfEarthV0:

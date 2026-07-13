@@ -157,6 +157,34 @@ def mean_ci(values, level: float = 0.90, n_boot: int = 10000,
     return (float(x.mean()), float(np.percentile(means, 100 * a)), float(np.percentile(means, 100 * (1 - a))))
 
 
+def _erfinv(y: float) -> float:
+    """Inverse error function (Winitzki approximation); only used when scipy is absent."""
+    a = 0.147
+    ln = math.log(1.0 - y * y)
+    term = 2.0 / (math.pi * a) + ln / 2.0
+    return math.copysign(math.sqrt(math.sqrt(term * term - ln / a) - term), y)
+
+
+def mean_ci_t(values, level: float = 0.90) -> tuple[float, float, float]:
+    """Student-t CI of the across-seed mean. The percentile bootstrap under-covers near a
+    decision boundary at n <= 10 (see PREREGISTRATION_L3.md sec. 10), so clears/misses
+    adjudications use this interval, with both reported. Returns (mean, lo, hi)."""
+    x = np.asarray(values, dtype=float).ravel()
+    n = x.size
+    if n == 0:
+        return (float("nan"), float("nan"), float("nan"))
+    if n == 1:
+        return (float(x[0]), float(x[0]), float(x[0]))
+    m = float(x.mean())
+    se = float(x.std(ddof=1)) / math.sqrt(n)
+    a = (1.0 - level) / 2.0
+    if _HAVE_SCIPY:
+        tcrit = float(_student_t.ppf(1.0 - a, n - 1))
+    else:  # normal approximation, same fallback policy as _t_sf
+        tcrit = float(math.sqrt(2.0) * _erfinv(1.0 - 2.0 * a))
+    return (m, m - tcrit * se, m + tcrit * se)
+
+
 @dataclass
 class RopeResult:
     mean: float
