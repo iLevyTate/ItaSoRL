@@ -422,6 +422,45 @@ Rigor carried from the B-v3 audit (2026-07-10):
   volatility readout target_var 0.706 / target_full 0.763 (above the 0.65 bar, consistent with the
   volatility-encoding observation on earlier rungs). STILL OWED: the held-out/common-garden probe
   (a world-signal that transfers to an UNSEEN fingerprint), now the last open post-hoc item.
+- **2026-07-14 - HELD-OUT FINGERPRINT + COMMON-GARDEN RUN (LAST OWED ITEM CLOSED): THE SURVIVAL
+  WORLD-SIGNAL GENERALIZES TO AN UNSEEN FINGERPRINT (0.773, CI CLEARS EVERY BAR) BUT DOES NOT
+  PERSIST ONCE THE DYNAMICS ARE EQUALIZED (0.557 < 0.65 -> REACTIVE per the frozen rule).** Design
+  and decision rules were frozen in advance
+  (`docs/superpowers/specs/2026-07-14-l3-heldout-common-garden-probe-design.md`): one n=10 run
+  (`fullruns/l3_h8_heldout`, RTX 4050) training against the hidden=8 surrogate with hidden=7 as the
+  HELD-OUT fingerprint, plus a common-garden channel (20-step prefix in authentic vs h8-surrogate
+  world, then an identical authentic 24-step tail; probe reads tail-only states), plus
+  `--save-agents` (all 60 trained arms persisted, so no future channel requires a retrain).
+  DETERMINISM: the run reproduces the published hidden=8 table EXACTLY for the third time -
+  survival pooled 0.752 [0.704, 0.797] with identical per-seed values, predictor 0.573, untrained
+  0.488, L0 0.517 (TOST/ROPE accept), reward-leak clean 10/10, engagement 10/10, and the behavior
+  audit on the fresh dumps returns resid_trace 0.726 [0.685, 0.765] identically
+  (`artifacts/expB2/behavior_audit_l3_h8_heldout.json`). TRANSFER RESULT at drift 0.45: survival
+  transfer_target = **0.773** (90% CI [0.728, 0.815], 9/10 seeds >= 0.65) against the untrained
+  mechanical transfer floor **0.569** [0.542, 0.596] and predictor 0.633 - the frozen rule
+  (>= 0.65 AND > untrained + 0.05) is MET, and the CI lower bound (0.728) additionally clears
+  predictor + 0.05 (0.683). The probe direction learned on the subtle hidden=8 artifact reads the
+  never-seen, qualitatively coarser hidden=7 artifact at 0.77: the survival world-signal is
+  fingerprint-GENERAL, which removes the "the probe just reads THIS artifact" escape hatch left by
+  the 2026-07-14 two-capacity entry. COMMON-GARDEN RESULT: survival cg_tail = **0.557** [0.500,
+  0.611] (1/10 seeds >= 0.65), decaying to 0.492 on the last-8-step window; untrained 0.377,
+  predictor 0.409. The frozen rule is NOT met (misses the 0.65 bar) -> adjudicated **REACTIVE
+  TRACKING**, an informative negative that resolves the reactive-vs-representational ambiguity
+  (FINDINGS.md sec.7.2 item 2) toward reactive. Honest notes: (1) survival does clear the
+  untrained floor + 0.05 by a wide margin (0.557 vs 0.427) with positive decay structure, so a
+  modest carried trace exists - but it fails the pre-registered persistence bar and decays along
+  the tail, exactly the signature of moment-to-moment tracking with short memory; (2) the drift-0
+  common-garden column is DEGENERATE by construction (bit-identical prefix twins make the CV probe
+  memorize contradictory duplicates; AUROC 0.01-0.26, the same artifact class as mp_target ~0.12
+  at L0) and is not read; (3) the untrained cg floor at drift 0.45 sits below chance (0.377), so
+  the frozen rule's untrained + 0.05 clause was conservative here and adjudication rests on the
+  absolute bar, as pre-specified. COMBINED HONEST HEADLINE for L3, all owed items now closed: under
+  survival pressure the recurrent state carries a reward-clean, survivorship-clean,
+  behavior-independent (~0.73), fingerprint-GENERAL (0.77 on an unseen artifact) world-signal -
+  but common-garden equalization shows it behaves as ongoing reactive tracking of the felt
+  dynamics, not a persistent world-identity representation. Tooling note:
+  `audit_behavior_mediation.py` now skips the heldout sibling dumps (`*_h7transfer.npz`, `*_cg.npz`)
+  it does not understand.
 
 ## 13. How to run (milestones, in order)
 
