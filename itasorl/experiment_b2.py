@@ -70,6 +70,9 @@ DRIFT_MODE = "ar1"
 # surrogate world (drift_sigma>0) when DRIFT_MODE=="l3". Authentic worlds (drift_sigma=0)
 # never receive it, so they stay byte-identical to authentic. None until setup runs.
 _L3_GMOTION = None
+# Held-out L3 fingerprint (spec 2026-07-14): a SECOND trained G, never seen by any
+# agent during training, used only by transfer_readout. None until setup runs.
+_L3_GMOTION_HELDOUT = None
 
 
 def setup_l3_surrogate(**train_kwargs) -> None:
@@ -80,6 +83,14 @@ def setup_l3_surrogate(**train_kwargs) -> None:
     global _L3_GMOTION
     from .surrogate_l3 import train_g_motion
     _L3_GMOTION = train_g_motion(**train_kwargs)
+
+
+def setup_l3_heldout_surrogate(**train_kwargs) -> None:
+    """Train the held-out G (different capacity, same frozen recipe) and store it for
+    transfer_readout. Does NOT touch the training surrogate _L3_GMOTION."""
+    global _L3_GMOTION_HELDOUT
+    from .surrogate_l3 import train_g_motion
+    _L3_GMOTION_HELDOUT = train_g_motion(**train_kwargs)
 
 
 def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int) -> PatchOfEarthV0:
@@ -700,7 +711,7 @@ def _auroc_with_ci(X, y, seed: int = 0) -> tuple[float, float, float]:
 
 
 def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray_steps=5,
-                   device=None, seed=0, dump_path=None, leak_margin=0.1) -> dict:
+                   device=None, seed=0, dump_path=None, leak_margin=0.1, return_pools=False) -> dict:
     """Experiment-B-style probe: decode world identity across independent episodes.
     Reports the headline `target` (LEVEL features) with a bootstrap CI, plus two
     additive readouts that probe a VOLATILITY signature - `target_var` (dispersion
@@ -729,15 +740,16 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
                             bts=bts, drift_sigma=np.float64(drift_sigma), steps=np.int64(steps))
     nan = float("nan")
     if len(Ha) < 5 or len(Hs) < 5:
-        return {"target": nan, "target_lo": nan, "target_hi": nan,
-                "target_var": nan, "target_var_lo": nan, "target_var_hi": nan,
-                "target_full": nan, "target_full_lo": nan, "target_full_hi": nan,
-                "shuffled": nan, "shuffled_var": nan, "shuffled_full": nan,
-                "selectivity": nan, "selectivity_var": nan, "selectivity_full": nan,
-                "speed": nan, "anchor_energy": nan, "anchor_food": nan, "ceiling_drag": nan,
-                "pool_reward_leak": nan, "pool_leak_clean": False, "pool_leak_max_dev": nan,
-                "pool_n_eps": n_eps, "deaths_auth": n_eps - len(Ha), "deaths_surr": n_eps - len(Hs),
-                "n": len(Ha) + len(Hs), "too_few_survivors": True}
+        out = {"target": nan, "target_lo": nan, "target_hi": nan,
+               "target_var": nan, "target_var_lo": nan, "target_var_hi": nan,
+               "target_full": nan, "target_full_lo": nan, "target_full_hi": nan,
+               "shuffled": nan, "shuffled_var": nan, "shuffled_full": nan,
+               "selectivity": nan, "selectivity_var": nan, "selectivity_full": nan,
+               "speed": nan, "anchor_energy": nan, "anchor_food": nan, "ceiling_drag": nan,
+               "pool_reward_leak": nan, "pool_leak_clean": False, "pool_leak_max_dev": nan,
+               "pool_n_eps": n_eps, "deaths_auth": n_eps - len(Ha), "deaths_surr": n_eps - len(Hs),
+               "n": len(Ha) + len(Hs), "too_few_survivors": True}
+        return (out, (Ha, Hs)) if return_pools else out
     H = np.concatenate([Ha, Hs])
     X = episode_features(H)                          # reuse Exp B's feature builder verbatim
     Xv = episode_features_var(H)                     # dispersion (volatility signature)
@@ -775,7 +787,7 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
     auth_eps = [{"label": 0, "reward_sum": float(r), "length": steps, "lifetime": steps} for r in rwa]
     surr_eps = [{"label": 1, "reward_sum": float(r), "length": steps, "lifetime": steps} for r in rws]
     pool_leak = leakage_audit_b2(auth_eps, surr_eps, margin=leak_margin)
-    return {
+    out = {
         "target": tgt, "target_lo": t_lo, "target_hi": t_hi,
         "target_var": tgt_v, "target_var_lo": tv_lo, "target_var_hi": tv_hi,
         "target_full": tgt_f, "target_full_lo": tf_lo, "target_full_hi": tf_hi,
@@ -791,6 +803,52 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
         "pool_n_eps": n_eps, "deaths_auth": n_eps - len(Ha), "deaths_surr": n_eps - len(Hs),
         "n": len(y), "n_auth": len(Ha), "n_surr": len(Hs), "too_few_survivors": False,
     }
+    return (out, (Ha, Hs)) if return_pools else out
+
+
+def transfer_readout(agent, norm, params, drift_sigma, Ha_train, Hs_train, *,
+                     n_eps=110, steps=24, ray_steps=5, device=None, seed=0,
+                     dump_path=None) -> dict:
+    """Unseen-fingerprint transfer channel (spec 2026-07-14). Fits the standard
+    linear probe on the TRAINED-fingerprint pools (Ha_train vs Hs_train, i.e. the
+    exact pools pooled_readout probed), then scores it FROZEN on a fresh authentic
+    pool vs a pool collected under the HELD-OUT surrogate _L3_GMOTION_HELDOUT.
+    Fresh authentic pool: the probe must never be tested on authentic episodes it
+    trained on. Restores the training surrogate in a finally block so the global
+    can never leak into later evals."""
+    global _L3_GMOTION
+    if _L3_GMOTION_HELDOUT is None:
+        raise RuntimeError("transfer_readout: call setup_l3_heldout_surrogate() first")
+    device = device or default_device()
+    saved = _L3_GMOTION
+    try:
+        _L3_GMOTION = _L3_GMOTION_HELDOUT
+        Ha2, _ = collect_pool(agent, norm, params, 0.0, n_eps, steps, device, 860_000, ray_steps)
+        H7, _ = collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, 870_000, ray_steps)
+    finally:
+        _L3_GMOTION = saved
+    if dump_path is not None:
+        d = os.path.dirname(dump_path)
+        if d:
+            os.makedirs(d, exist_ok=True)
+        np.savez_compressed(dump_path, Ha2=Ha2, H7=H7,
+                            drift_sigma=np.float64(drift_sigma), steps=np.int64(steps))
+    nan = float("nan")
+    out = {"transfer_n_auth": int(len(Ha2)), "transfer_n_surr": int(len(H7)),
+           "transfer_deaths_auth": int(n_eps - len(Ha2)),
+           "transfer_deaths_surr": int(n_eps - len(H7)),
+           "transfer_target": nan, "transfer_lo": nan, "transfer_hi": nan}
+    if len(Ha_train) < 5 or len(Hs_train) < 5 or len(Ha2) < 5 or len(H7) < 5:
+        return out
+    Xtr = episode_features(np.concatenate([Ha_train, Hs_train]))
+    ytr = np.concatenate([np.zeros(len(Ha_train)), np.ones(len(Hs_train))]).astype(int)
+    Xte = episode_features(np.concatenate([Ha2, H7]))
+    yte = np.concatenate([np.zeros(len(Ha2)), np.ones(len(H7))]).astype(int)
+    auc, yv, pv = transfer_probe(Xtr, ytr, Xte, yte, return_scores=True)
+    out["transfer_target"] = auc
+    if pv.size:
+        out["transfer_lo"], out["transfer_hi"] = auroc_ci(yv, pv, seed=seed)
+    return out
 
 
 def readout(agent, norm, params, drift_sigma, *, n_pairs=60, prefix_steps=20, branch_steps=24,
