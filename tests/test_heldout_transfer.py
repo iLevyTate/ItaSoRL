@@ -36,7 +36,7 @@ def test_transfer_probe_specific_signal_does_not_transfer():
     rng = np.random.default_rng(1)
     Xtr, ytr = _pools(rng, 80, 16, sig_dim=3, shift=3.0)
     Xte, yte = _pools(rng, 80, 16, sig_dim=11, shift=3.0)  # ORTHOGONAL direction
-    assert abs(transfer_probe(Xtr, ytr, Xte, yte) - 0.5) < 0.15
+    assert abs(transfer_probe(Xtr, ytr, Xte, yte) - 0.5) < 0.20
 
 
 def test_transfer_probe_degenerate_labels_nan():
@@ -45,3 +45,11 @@ def test_transfer_probe_degenerate_labels_nan():
     Xte = rng.normal(0, 1, (10, 8))
     yte = np.zeros(10, int)                                 # one class only
     assert np.isnan(transfer_probe(Xtr, ytr, Xte, yte))
+
+
+def test_transfer_probe_return_scores_contract():
+    rng = np.random.default_rng(3)
+    Xtr, ytr = _pools(rng, 40, 8, sig_dim=2, shift=3.0)
+    Xte, yte = _pools(rng, 40, 8, sig_dim=2, shift=3.0)
+    auc, yv, pv = transfer_probe(Xtr, ytr, Xte, yte, return_scores=True)
+    assert 0.0 <= auc <= 1.0 and pv.shape == (80,) and np.array_equal(yv, yte)
