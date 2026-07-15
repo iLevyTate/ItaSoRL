@@ -8,6 +8,8 @@ CPU only: fullruns/ is read-only and the GPU may be busy with a live run.
 """
 from __future__ import annotations
 
+import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -128,3 +130,80 @@ def build_scene(meta, grid_n, height, wet, ra, rs, step_ms=STEP_MS):
         "trajectory too short: the world is on screen through beat 5"
     assert len(scene["trajs"]["surr"]) * step_ms >= LAST_WORLD_MS
     return scene
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--agents",
+                    default=str((WT_ROOT / ".." / ".." / "fullruns" / "l3_h8_heldout"
+                                 / "agents").resolve()),
+                    help="READ-ONLY dir of saved bundles (main checkout)")
+    ap.add_argument("--bundle", default="agent_d0.45_s0_survival.pt")
+    ap.add_argument("--drift", type=float, default=0.45)
+    ap.add_argument("--l3-hidden", type=int, default=8)
+    ap.add_argument("--steps", type=int, default=900)
+    ap.add_argument("--grid", type=int, default=160)
+    ap.add_argument("--seed-base", type=int, default=424_242)
+    ap.add_argument("--max-candidates", type=int, default=30)
+    ap.add_argument("--out", default=str(WT_ROOT / "viz" / "data" / "scene.json"))
+    a = ap.parse_args(argv)
+
+    import torch
+    torch.set_num_threads(2)  # a GPU training run may be live on this machine
+    import itasorl.experiment_b2 as b2
+    from itasorl.experiment_b2 import _seeds, load_agent_bundle, make_world
+
+    beats = json.loads((WT_ROOT / "viz" / "player" / "beats.json").read_text(encoding="utf-8"))
+    audit = WT_ROOT / "artifacts" / "expB2" / "behavior_audit_l3_h8_traces.json"
+    cells = json.loads(audit.read_text(encoding="utf-8"))["cells"]
+    findings = (WT_ROOT / "docs" / "FINDINGS.md").read_text(encoding="utf-8")
+    numbers = verify_numbers(beats, cells, findings)
+    print("numbers verified against artifacts: " + str(numbers), flush=True)
+
+    b2.DRIFT_MODE = "l3"
+    print("training L3 surrogate on cpu (hidden="
+          + f"{a.l3_hidden}, frozen recipe seed=0)...", flush=True)
+    b2.setup_l3_surrogate(hidden=a.l3_hidden, device="cpu", seed=0, params=P)
+
+    agent, norm = load_agent_bundle(str(Path(a.agents) / a.bundle), device="cpu")
+
+    ra = rs = None
+    base = a.seed_base
+    for i in range(a.max_candidates):
+        base = a.seed_base + 1000 * i
+        seeds = _seeds(base)
+        wa = make_world(P, 0.0, RAY_STEPS)
+        wa.reset(seeds)
+        ws = make_world(P, a.drift, RAY_STEPS)
+        ws.reset(seeds)
+        ra = rollout(agent, norm, wa, a.steps)
+        rs = rollout(agent, norm, ws, a.steps)
+        ok = (ra is not None and rs is not None
+              and in_split_window(ra["pts"]) and in_split_window(rs["pts"]))
+        print("candidate seed base " + f"{base}: " + ("selected" if ok else "rejected"),
+              flush=True)
+        if ok:
+            break
+    else:
+        raise SystemExit("no candidate stayed alive 900 steps inside the split-beat "
+                         "frame; raise --max-candidates")
+
+    height, wet = sample_fields(wa, a.grid)
+    e5 = [p[3] for p in ra["pts"][550:750]]  # beat 5 window on the auth trajectory
+    meta = {"source": "collect.py",
+            "bundle": a.bundle,
+            "agents_dir": str(Path(a.agents).resolve()),
+            "drift": a.drift, "l3_hidden": a.l3_hidden,
+            "surrogate_refit_device": "cpu",
+            "seed_base": base, "steps": a.steps,
+            "energy_range_beat5": [round(min(e5), 3), round(max(e5), 3)],
+            "numbers_verified": numbers}
+    scene = build_scene(meta, a.grid, height, wet, ra, rs)
+    out = Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(scene, separators=(",", ":")), encoding="utf-8")
+    print("wrote " + str(out) + f" ({out.stat().st_size / 1e6:.1f} MB), seed_base={base}")
+
+
+if __name__ == "__main__":
+    main()
