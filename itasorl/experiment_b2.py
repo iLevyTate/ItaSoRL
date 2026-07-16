@@ -813,10 +813,11 @@ def transfer_readout(agent, norm, params, drift_sigma, Ha_train, Hs_train, *,
     """Unseen-fingerprint transfer channel (spec 2026-07-14). Fits the standard
     linear probe on the TRAINED-fingerprint pools (Ha_train vs Hs_train, i.e. the
     exact pools pooled_readout probed), then scores it FROZEN on a fresh authentic
-    pool vs a pool collected under the HELD-OUT surrogate _L3_GMOTION_HELDOUT.
-    Fresh authentic pool: the probe must never be tested on authentic episodes it
-    trained on. Restores the training surrogate in a finally block so the global
-    can never leak into later evals."""
+    pool vs a pool collected under the resolved held-out surrogate (the `heldout=`
+    argument, or _L3_GMOTION_HELDOUT if none was passed). Fresh authentic pool:
+    the probe must never be tested on authentic episodes it trained on. Restores
+    the training surrogate in a finally block so the global can never leak into
+    later evals."""
     global _L3_GMOTION
     heldout = heldout if heldout is not None else _L3_GMOTION_HELDOUT
     if heldout is None:
