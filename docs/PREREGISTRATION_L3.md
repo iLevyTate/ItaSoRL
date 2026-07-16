@@ -451,7 +451,48 @@ Rigor carried from the B-v3 audit (2026-07-10):
   the currently-felt dynamics, not a persistent stored world-identity representation. This is an
   informative negative for the representational reading (spec: "not a gate failure"), and it resolves
   the long-standing reactive-vs-representational ambiguity (section-11 caveats) toward reactive. This
-  was the last owed post-hoc item; the L3 arc is complete.
+  was the last owed post-hoc item; the L3 arc is complete. Provenance addendum (2026-07-16): the
+  behavior audit re-run on this bundle's fresh `--save-agents` dumps reproduces resid_trace 0.726
+  (90% CI [0.685, 0.765], 9/10 seeds) identically; per-seed values committed as
+  `artifacts/expB2/behavior_audit_l3_h8_heldout.json`. Tooling: `audit_behavior_mediation.py` skips
+  the heldout sibling dumps (`*_h7transfer.npz`, `*_cg.npz`) it does not parse.
+
+- **2026-07-14 - REVERSE-TRANSFER RUN ANNOUNCED (frozen BEFORE launch).** The spec's staged
+  follow-up condition is met (forward transfer positive), so the reverse direction runs next:
+  train at hidden=7, hold out the SUBTLER hidden=8 fingerprint
+  (`fullruns/l3_h7_heldout`, n=10, frozen protocol, `--save-agents`, trace dumps). Decision
+  rules are IDENTICAL in form to the forward spec and frozen here: transfer - survival
+  transfer_target >= 0.65 AND > untrained transfer + 0.05 -> the world-signal generalizes to a
+  subtler unseen fingerprint (the stricter version of the 0.773 claim); common garden - same
+  form, second data point on persistence at the coarser training artifact. INTERPRETATION
+  LIMIT, stated in advance: at hidden=7 the survival-vs-predictor dissociation did not hold
+  (two-capacity entry above), so this run reads the survival arm against the untrained floor
+  only and cannot support any survival-SPECIFICITY claim. Determinism expectation: the
+  standard-probe half must reproduce the `fullruns/l3_h7_traces` table exactly (survival 0.737
+  [0.688, 0.780]); any deviation invalidates the run. Result to be recorded here when complete.
+
+- **2026-07-16 - REVERSE-TRANSFER RUN RECORDED (completed 2026-07-15): THE COARSE-TRAINED
+  DIRECTION READS THE SUBTLER UNSEEN FINGERPRINT ONLY PARTIALLY - THE FROZEN RULE FAILS
+  (INFORMATIVE NEGATIVE); HELD-OUT TRANSFER IS DIRECTION-DEPENDENT.** Executes the 2026-07-14
+  freeze above (`fullruns/l3_h7_heldout`, n=10, `--save-agents`; per-seed summary committed as
+  `artifacts/expB2/heldout_l3_h7_reverse_summary.json`). DETERMINISM GATE PASSES: the
+  standard-probe half reproduces the `fullruns/l3_h7_traces` table exactly - survival pooled
+  target 0.737 (boot 90% CI [0.688, 0.780]), L0 0.517 (TOST p=0.010 / ROPE accept equivalence),
+  reward-leak 0.567 clean 10/10, engagement 10/10, 0 deaths per pool - so the run is valid per
+  the freeze. TRANSFER (train hidden=7, hold out the subtler hidden=8): survival
+  `transfer_target` = **0.638** (t 90% CI [0.600, 0.676], 4/10 seeds >= 0.65) vs untrained
+  mechanical floor **0.525** and predictor 0.603. The frozen rule (>= 0.65 AND > untrained +
+  0.05 = 0.575) FAILS on the absolute bar; the floor-margin clause alone passes (+0.063).
+  Adjudicated NEGATIVE per the frozen rule. COMMON GARDEN: survival `cg_tail_target` = **0.598**
+  (t 90% CI [0.547, 0.649], 4/10 seeds >= 0.65), decaying to 0.489 on the last-8 window;
+  predictor 0.504, untrained 0.456. Rule FAILS -> REACTIVE, a second independent data point
+  matching the forward run. READING (frozen rules applied; the freeze's interpretation limit
+  honored - no survival-specificity claim at hidden=7, and predictor transfer 0.603 indeed sits
+  near survival 0.638): held-out transfer is DIRECTION-DEPENDENT. Fit on the subtle hidden=8
+  fingerprint the direction reads coarser unseen artifacts (same-recipe 0.773, cross-recipe
+  0.684); fit on the coarse hidden=7 fingerprint it reads the subtler one only partially (0.638,
+  above the floor but below the bar). The published "fingerprint-GENERAL" wording is qualified
+  accordingly in FINDINGS 10.6 and README.
 
 - **2026-07-16 - RESEARCH-INTEGRITY AUDIT: FREEZE-TIMING NOTE FOR THE HIDDEN=7 SELECTION.** A
   commit-level audit of this log found: the capacity-fallback RULE was frozen in the original
