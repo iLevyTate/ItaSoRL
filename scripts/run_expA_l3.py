@@ -110,12 +110,14 @@ def main():
             leaks.append(float(pool["pool_reward_leak"]))
         floor = float(np.mean(floors))
         floor_ok = abs(floor - 0.5) < FLOOR_TOL
-        row = {"family": a.family, knob: val, "oracle_auroc": oracle, "in_band": in_band,
+        row = {knob: val, "oracle_auroc": oracle, "in_band": in_band,
                "mech_leak_pass": bool(oa["leakage_pass"]),
                "oracle_reward_leak": float(oa["reward_leak"]),
                "floor": floor, "floor_per_seed": floors, "floor_ok": floor_ok,
                "pool_reward_leak_per_seed": leaks,
                "passes_gate0": bool(in_band and oa["leakage_pass"] and floor_ok)}
+        if a.family != "mlp":
+            row = {"family": a.family, **row}
         rows.append(row)
         print(f"  {knob}={val}: oracle={oracle:.3f} in_band={in_band} "
               f"mech_leak_pass={row['mech_leak_pass']} "
