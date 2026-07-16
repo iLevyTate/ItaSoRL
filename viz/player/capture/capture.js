@@ -65,7 +65,14 @@ function writeChunk(stream, buf) {
 
   if (MODE === "proof") {
     fs.mkdirSync("proof", { recursive: true });
-    const times = [5000, 17000, 32000, 47000, 65000, 80000].filter((t) => t < duration);
+    // One frame late in each beat (90% through), after gauge sweeps have
+    // settled on their final displayed values; a mid-sweep frame can show a
+    // transient number that contradicts the science (e.g. 0.97 during the
+    // 0.99 -> 0.50 sweep).
+    const beats = JSON.parse(fs.readFileSync("../beats.json", "utf8")).beats;
+    const times = beats
+      .map((b) => Math.round(b.t0 + 0.9 * (b.t1 - b.t0)))
+      .filter((t) => t < duration);
     for (const t of times) {
       await page.evaluate((tt) => window.__seek(tt), t);
       await page.screenshot({ path: `proof/frame_${String(t).padStart(6, "0")}.png` });
