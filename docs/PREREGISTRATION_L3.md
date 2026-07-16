@@ -332,6 +332,207 @@ Rigor carried from the B-v3 audit (2026-07-10):
   richer per-timestep behavior control to tighten the behavior-independent estimate; (b) the pre-registered
   hidden=4 second-capacity replication (section 11); (c) the held-out/common-garden probe (a world-signal
   that transfers to an UNSEEN fingerprint is much harder to dismiss as behavior).
+- **2026-07-12 - BEHAVIOR AUDIT MADE REPRODUCIBLE (code, no new runs).** The ad hoc mediation audit above
+  is now canonical committed code (`itasorl/behavior_audit.py` + `scripts/audit_behavior_mediation.py`,
+  in-fold controls, control properties unit-tested on synthetic ground truth). Re-run on the same dumps it
+  reproduces the published survival d=0.45 figures exactly: target 0.752, behavior-only 0.689 linear /
+  0.705 nonlinear (prose said 0.704; random-forest seed wiggle), controlled 0.676 linear / 0.659 quadratic
+  (artifact: `artifacts/expB2/behavior_audit_l3_n10.json`). The dump now also persists PER-TIMESTEP
+  behavior traces (`bta`/`bts`), and the script runs the strictly stronger per-timestep control when
+  traces are present, with a decision rule fixed in advance
+  (`docs/superpowers/specs/2026-07-12-l3-behavior-audit-design.md`): survival per-timestep-controlled
+  mean >= 0.65 strengthens the claim; [0.60, 0.65) weakens it to a below-bar trace; < 0.60 means largely
+  behavior-mediated. Owed items (a) and (b) reduce to two human-launched runs
+  (`scripts/README.md`, "L3 owed runs"): hidden=8 with traces (headline capacity) and hidden=4 n=10.
+- **2026-07-13 - PER-TIMESTEP BEHAVIOR CONTROL: CLAIM STRENGTHENED (hidden=8 re-run with traces).** Re-ran
+  the frozen hidden=8 n=10 protocol with trace-extended dumps (`fullruns/l3_h8_traces`, RTX 4050). The
+  pipeline is deterministic end-to-end: every published figure reproduced exactly (survival target 0.752
+  [0.704, 0.797]; behavior-only 0.689/0.705; per-episode controlled 0.676/0.659; L0 mean 0.517, ROPE
+  equivalence accepted; reward-leak clean 10/10; 0 deaths, all pools 110/110). The pre-registered decision
+  rule then evaluated the strictly stronger per-timestep control: survival resid_trace = **0.726** (90% CI
+  [0.685, 0.765], 9/10 seeds >= 0.65; quadratic variant 0.721 [0.678, 0.760]) -> >= 0.65, STRENGTHENS, and
+  unlike the per-episode estimate the CI EXCLUDES the 0.65 bar. Honesty checks on real data: the untrained
+  agent's resid_trace is 0.498 (exact chance) even though untrained BEHAVIOR alone decodes the world at
+  0.645, so the control neither manufactures nor spares signal; predictor resid_trace 0.574 (the
+  survival-only dissociation is preserved under the control). Two notable structural facts: (1) the full
+  behavior trace alone decodes the world at 0.803, BETTER than the state probe itself - behavior is highly
+  world-discriminative; (2) the per-episode-mean control had been OVER-removing (0.676), exactly the
+  attenuation the synthetic tests predicted, while the surgical per-timestep control leaves ~0.73. The
+  honest headline improves to: reward- and survivorship-controlled, nonlinear-robust, with a
+  behavior-independent world-signal of **~0.73** whose CI clears the pre-registered bar. Caveats: the
+  residualization is linear/quadratic over phi = [b_t, b_(t-1), cummean(b)]; a full-history or nonlinear
+  control could in principle remove more. Artifact: `artifacts/expB2/behavior_audit_l3_h8_traces.json`.
+  STILL OWED: the hidden=4 second-capacity replication (section 11) and the held-out/common-garden probe.
+- **2026-07-13 - HIDDEN=4 RUN UNINFORMATIVE (gate failure); GATE 0 RE-VALIDATED PER CAPACITY AND THE
+  SECOND CAPACITY RE-FROZEN AT HIDDEN=7.** The owed hidden=4 n=10 run (`fullruns/l3_h4_traces`, RTX
+  4050) completed and FAILS its gates at drift 0.45: untrained mechanical floor **0.891** (not
+  chance), pooled reward-leak 0.637 with the clean gate passing in **0/10 seeds**, engagement
+  passing in only **30% of seeds** (the drift-trained policy barely recovers: train@0.45 eval@0.45
+  return -1.069, vs -0.219 at hidden=8). Per the section-8 decision matrix the run is
+  **UNINFORMATIVE** (gate-0 / engagement failure), NOT a negative; the L0 control (0.517, TOST and
+  ROPE both accept equivalence) confirms the apparatus itself is fine. ROOT CAUSE: hidden=4's
+  in-band status (oracle 0.940) was frozen from the 2026-07-10 calibration made on the WRONG world
+  at sigma=0.05, BEFORE the world-params fix; the post-fix re-calibration froze gate 0 only at
+  hidden=8 and swept the untrained floor over capacities 8-32, so hidden=4 was never re-validated
+  on world `P` (its reward leak was itself anticipated in the gate-0 entry above). FIX: gate 0 is
+  now a committed, runnable check (`scripts/run_expA_l3.py`) validating BOTH halves per capacity on
+  world `P` at the frozen sigma=0.02 - the residual oracle (band [0.85, 0.95], mechanical leakage)
+  AND the organism-side untrained floor (|target - 0.5| < 0.1 at drift 0.45, arm built exactly as
+  `run_expB2` builds it) - with a hidden=8 regression check and a selection rule frozen in advance:
+  the smallest in-band capacity below 8 with a clean floor (section-9 fallback (a), bisection
+  between the bracketing capacities 4 and 8). RECALIBRATION RESULT
+  (`fullruns/l3_gate0_recal/calibration.json`): hidden=8 regression EXACT (oracle 0.928, floor
+  0.482); hidden=4 oracle 0.932 in-band but floor **0.896** (independently reproducing the organism
+  run's 0.891 from 3 seeds); hidden=5 oracle 0.972 (OUT of band); hidden=6 oracle 0.946 in-band but
+  floor 0.647; **hidden=7 oracle 0.922 in-band, mechanical leakage clean, floor 0.566** -> second
+  capacity RE-FROZEN at **hidden=7**. Honest note: the hidden=7 floor (0.566) is elevated relative
+  to hidden=8 (0.482) though within the frozen tolerance; the SESOI already requires survival >
+  untrained + 0.05, so the elevated floor is priced into adjudication. The hidden=7 n=10 organism
+  run with trace dumps is running (`fullruns/l3_h7_traces`); its result and the per-timestep
+  behavior audit will be recorded here when complete.
+- **2026-07-14 - SECOND-CAPACITY REPLICATION AT HIDDEN=7 (n=10): THE BEHAVIOR-INDEPENDENT SURVIVAL
+  SIGNAL REPLICATES (~0.72, CI clears the bar) BUT THE SURVIVAL-VS-PREDICTOR DISSOCIATION DOES NOT -
+  THE FULL "ENCODING INDUCED" VERDICT IS ARTIFACT-CONDITIONAL.** The re-frozen hidden=7 n=10 run
+  (`fullruns/l3_h7_traces`, RTX 4050, frozen protocol, trace dumps) completed with ALL gates passing:
+  engagement 10/10 seeds at drift 0.45 (pooled train@0.45 eval@0.45 return -0.734, a partial recovery
+  sitting between hidden=8's -0.219 and hidden=4's failing -1.069; the per-seed engagement criterion
+  passes in every seed), L0 control 0.517 (TOST p=0.010 and ROPE P=0.999 both accept equivalence),
+  speed positive control 0.959, pooled reward-leak 0.567 clean in 10/10 seeds, 0 deaths in every pool
+  (110/110 both worlds, all seeds), and the untrained mechanical floor pooled at **0.586** (dev 0.086,
+  inside the frozen <0.1 tolerance and matching the recalibration's 0.566, though per-seed it is
+  violated in s3 0.732 and s9 0.683 with s6 0.605 marginal). PRIMARY at drift 0.45: survival pooled
+  target **0.737**, 90% CI [0.688, 0.780], 8/10 seeds >= 0.65 (per-seed
+  0.540/0.748/0.820/0.799/0.696/0.623/0.749/0.768/0.770/0.852) - above the 0.65 bar and clearing
+  untrained (0.586) by +0.151, BUT **predictor reads 0.714** [0.687, 0.740], so survival leads the
+  predictor by only +0.023 and the section-8 requirement (> predictor + 0.05) is NOT met: the clean
+  hidden=8 dissociation (survival 0.752 vs predictor 0.573) does not replicate at hidden=7. BEHAVIOR
+  AUDIT (`artifacts/expB2/behavior_audit_l3_h7_traces.json`, frozen decision rule): survival
+  resid_trace = **0.722** (90% CI [0.678, 0.763], 8/10 seeds >= 0.65; quadratic 0.704) -> >= 0.65
+  with the CI excluding the bar, an almost exact replication of hidden=8's 0.726 - the
+  behavior-independent survival world-signal is STABLE across the two in-band artifacts. The
+  dissociation is not: predictor resid_trace 0.691 (vs 0.574 at hidden=8) and untrained resid_trace
+  0.579 (vs 0.498 = exact chance at hidden=8). READING (per the section-11 two-capacity clause): the
+  hidden=7 artifact is qualitatively coarser - mechanically leakier (untrained floor 0.586/resid
+  0.579) and far more behaviorally salient (the behavior trace alone decodes the world at 0.762-0.796
+  in ALL arms, including untrained, vs 0.645 untrained at hidden=8) - so at this capacity every
+  trained agent picks the fingerprint up and the survival-SPECIFIC part of the claim is conditional
+  on the subtler hidden=8 artifact. The cross-capacity finding that survives both runs is: a
+  reward-clean, survivorship-clean, behavior-independent world-signal of ~0.72 in the survival
+  agent's state at both frozen capacities. Secondary notes: matched-pair survival mp_target 0.814;
+  volatility readout target_var 0.706 / target_full 0.763 (above the 0.65 bar, consistent with the
+  volatility-encoding observation on earlier rungs). LAST OWED ITEM, the held-out/common-garden probe
+  (a world-signal that transfers to an UNSEEN fingerprint), is now run and recorded in the entry below.
+- **2026-07-14 - HELD-OUT FINGERPRINT + COMMON-GARDEN PROBE (n=10): THE WORLD-SIGNAL GENERALIZES TO AN
+  UNSEEN SAME-RECIPE FINGERPRINT (TRANSFER POSITIVE) BUT DOES NOT SURVIVE A COMMON-GARDEN CONTROL
+  (REACTIVE, NOT A PERSISTENT REPRESENTATION).** Two readout-only evaluation channels on one frozen
+  hidden=8 training run (`fullruns/l3_h8_heldout`, RTX 4050, frozen protocol, spec
+  `docs/superpowers/specs/2026-07-14-l3-heldout-common-garden-probe-design.md`); no change to training,
+  the surrogate family, or the pre-registered headline probe. GATES REPRODUCED (third independent
+  determinism check): survival pooled target **0.752** (90% CI [0.704, 0.797]), byte-matching the
+  published hidden=8 headline; L0 control 0.517 (TOST p=0.010, ROPE P=0.999 both accept equivalence);
+  pooled reward-leak 0.541 clean in 10/10 seeds; 0 deaths in every pool (110/110 both worlds, all
+  seeds). CHANNEL 1, UNSEEN-FINGERPRINT TRANSFER: the world-identity direction fit against the trained
+  hidden=8 fingerprint, frozen, then scored on a FRESH authentic pool vs the held-out hidden=7
+  fingerprint the agent never trained against. Survival `transfer_target` = **0.773** (90% CI
+  [0.722, 0.824], 9/10 seeds >= 0.65), predictor 0.633 (3/10), untrained mechanical floor 0.569
+  (0/10). Frozen decision rule (survival >= 0.65 AND > untrained + 0.05 = 0.619) PASSES on both
+  clauses -> GENERALIZES beyond the single trained fingerprint instance. Scope caveat, stated in the
+  spec and honored here: hidden=7 is the SAME surrogate recipe at a different capacity, not a
+  different surrogate family; cross-recipe transfer is out of scope for this run. CHANNEL 2, COMMON
+  GARDEN: 20-step prefix in either the authentic or the hidden=8 surrogate world, then both groups
+  continue under IDENTICAL authentic dynamics for a 24-step tail; the probe reads tail-only state,
+  labels = prefix world, GroupKFold. Survival `cg_tail_target` = **0.557** (90% CI [0.492, 0.622],
+  1/10 seeds >= 0.65), predictor 0.409, untrained 0.377. Frozen decision rule (survival >= 0.65 AND >
+  untrained + 0.05) FAILS on the first clause. DECAY CHECK on the last 8 tail steps: survival
+  `cg_latetail_target` = **0.492** (90% CI [0.431, 0.553]), at chance -> the prefix-world signal
+  washes out along the shared tail. READING (frozen rules applied): the L3 world-signal is NOT an
+  overfit to the one artifact instance `G_0` (transfer generalizes), but once the felt dynamics are
+  made identical it does not persist in tail-only state - so the signal reads as REACTIVE tracking of
+  the currently-felt dynamics, not a persistent stored world-identity representation. This is an
+  informative negative for the representational reading (spec: "not a gate failure"), and it resolves
+  the long-standing reactive-vs-representational ambiguity (section-11 caveats) toward reactive. This
+  was the last owed post-hoc item; the L3 arc is complete. Provenance addendum (2026-07-16): the
+  behavior audit re-run on this bundle's fresh `--save-agents` dumps reproduces resid_trace 0.726
+  (90% CI [0.685, 0.765], 9/10 seeds) identically; per-seed values committed as
+  `artifacts/expB2/behavior_audit_l3_h8_heldout.json`. Tooling: `audit_behavior_mediation.py` skips
+  the heldout sibling dumps (`*_h7transfer.npz`, `*_cg.npz`) it does not parse.
+
+- **2026-07-14 - REVERSE-TRANSFER RUN ANNOUNCED (frozen BEFORE launch).** The spec's staged
+  follow-up condition is met (forward transfer positive), so the reverse direction runs next:
+  train at hidden=7, hold out the SUBTLER hidden=8 fingerprint
+  (`fullruns/l3_h7_heldout`, n=10, frozen protocol, `--save-agents`, trace dumps). Decision
+  rules are IDENTICAL in form to the forward spec and frozen here: transfer - survival
+  transfer_target >= 0.65 AND > untrained transfer + 0.05 -> the world-signal generalizes to a
+  subtler unseen fingerprint (the stricter version of the 0.773 claim); common garden - same
+  form, second data point on persistence at the coarser training artifact. INTERPRETATION
+  LIMIT, stated in advance: at hidden=7 the survival-vs-predictor dissociation did not hold
+  (two-capacity entry above), so this run reads the survival arm against the untrained floor
+  only and cannot support any survival-SPECIFICITY claim. Determinism expectation: the
+  standard-probe half must reproduce the `fullruns/l3_h7_traces` table exactly (survival 0.737
+  [0.688, 0.780]); any deviation invalidates the run. Result to be recorded here when complete.
+
+- **2026-07-16 - REVERSE-TRANSFER RUN RECORDED (completed 2026-07-15): THE COARSE-TRAINED
+  DIRECTION READS THE SUBTLER UNSEEN FINGERPRINT ONLY PARTIALLY - THE FROZEN RULE FAILS
+  (INFORMATIVE NEGATIVE); HELD-OUT TRANSFER IS DIRECTION-DEPENDENT.** Executes the 2026-07-14
+  freeze above (`fullruns/l3_h7_heldout`, n=10, `--save-agents`; per-seed summary committed as
+  `artifacts/expB2/heldout_l3_h7_reverse_summary.json`). DETERMINISM GATE PASSES: the
+  standard-probe half reproduces the `fullruns/l3_h7_traces` table exactly - survival pooled
+  target 0.737 (boot 90% CI [0.688, 0.780]), L0 0.517 (TOST p=0.010 / ROPE accept equivalence),
+  reward-leak 0.567 clean 10/10, engagement 10/10, 0 deaths per pool - so the run is valid per
+  the freeze. TRANSFER (train hidden=7, hold out the subtler hidden=8): survival
+  `transfer_target` = **0.638** (t 90% CI [0.600, 0.676], 4/10 seeds >= 0.65) vs untrained
+  mechanical floor **0.525** and predictor 0.603. The frozen rule (>= 0.65 AND > untrained +
+  0.05 = 0.575) FAILS on the absolute bar; the floor-margin clause alone passes (+0.063).
+  Adjudicated NEGATIVE per the frozen rule. COMMON GARDEN: survival `cg_tail_target` = **0.598**
+  (t 90% CI [0.547, 0.649], 4/10 seeds >= 0.65), decaying to 0.489 on the last-8 window;
+  predictor 0.504, untrained 0.456. Rule FAILS -> REACTIVE, a second independent data point
+  matching the forward run. READING (frozen rules applied; the freeze's interpretation limit
+  honored - no survival-specificity claim at hidden=7, and predictor transfer 0.603 indeed sits
+  near survival 0.638): held-out transfer is DIRECTION-DEPENDENT. Fit on the subtle hidden=8
+  fingerprint the direction reads coarser unseen artifacts (same-recipe 0.773, cross-recipe
+  0.684); fit on the coarse hidden=7 fingerprint it reads the subtler one only partially (0.638,
+  above the floor but below the bar). The published "fingerprint-GENERAL" wording is qualified
+  accordingly in FINDINGS 10.6 and README.
+
+- **2026-07-16 - RESEARCH-INTEGRITY AUDIT: FREEZE-TIMING NOTE FOR THE HIDDEN=7 SELECTION.** A
+  commit-level audit of this log found: the capacity-fallback RULE was frozen in the original
+  pre-registration commit (`0217263`, 2026-07-10), strictly before the hidden=4 gate failure it was
+  later applied to. The specific "RE-FROZEN at hidden=7" statement, however, landed in the same
+  commit as the hidden=7 n=10 result artifact (`85229c2`, 2026-07-14), so the capacity selection and
+  its result are commit-simultaneous rather than sequential. The honest reading: hidden=7 was selected
+  by a rule frozen before the failure, but the selection itself has no committed timestamp preceding
+  the run. The per-timestep behavior-control spec has clean sequential timing (spec `1b5985e`
+  2026-07-12, results `bf8a74e` 2026-07-13). Every published number was re-verified against committed
+  per-seed artifacts by `scripts/audit_stats_recheck.py` (117 checks, all passing); all 15 cited arXiv
+  IDs were resolved against arxiv.org with matching titles and authors. See `docs/AUDIT_2026-07.md`.
+
+- **2026-07-16 - CROSS-RECIPE TRANSFER PROBE (n=10, readout-only): THE WORLD-SIGNAL READS A
+  DIFFERENT SURROGATE FAMILY (RULE PASSES); THE CONSTANT-DRAG FAMILY IS UNCALIBRATABLE AND DROPPED.**
+  Executes the pre-registered spec `docs/superpowers/specs/2026-07-15-l3-crossrecipe-transfer-probe-design.md`
+  (frozen before any run; PR #51) against the SAVED `fullruns/l3_h8_heldout` agents; no training
+  anywhere. Committed artifact: `artifacts/l3_crossrecipe/summary.json`. GATE-0 CALIBRATION: the
+  `G_rff` family's round-1 D sweep {8..128} stepped over the band (0.975 at D=64, 0.624 at D=128);
+  the pre-registered bisection fallback landed **D=80** in-band (oracle 0.887, leakage pass,
+  untrained floor 0.538). The `G_cd` family has an EMPTY calibration window: by the eps where its
+  oracle reaches the band (eps=3.2: 0.854; eps=6.4: 0.907) the untrained mechanical floor exceeds
+  0.6 (0.859, 0.913) - a drag-coefficient bias large enough to detect is felt so grossly that any
+  recurrent state separates the worlds. DROPPED per the pre-stated rule (recorded, no transfer
+  claim, no penalty to the primary). Both cd calibration double-runs produced byte-identical JSONs.
+  INTEGRITY GATE (fourth determinism check): all 60 reloaded agents regenerated their standard
+  pools bit-identically against the saved dumps and the drift-0.45 pooled survival mean reproduced
+  the published **0.752** exactly. CHANNEL (PRIMARY, `G_rff` D=80): survival `transfer_rff_target`
+  = **0.684** (boot 90% CI [0.657, 0.710]; t 90% CI [0.654, 0.715], lower bound above the bar;
+  7/10 seeds >= 0.65, per-seed min 0.584), predictor 0.574 [0.554, 0.593] (0/10), untrained
+  mechanical floor 0.548 [0.538, 0.557] (0/10). Frozen rule (survival >= 0.65 AND > untrained +
+  0.05 = 0.598) PASSES on both clauses, machine-checked in the runner aggregate (`rff_rule_pass`
+  true, margin +0.034). READING: the world-identity direction fit against the trained MLP
+  fingerprint reads a different-recipe fingerprint (cosine-basis ridge texture) the agent never
+  lived with, survival-specifically; attenuated versus same-recipe transfer (0.773 -> 0.684), as
+  expected for a farther family. Scope, stated honestly: the reactive interpretation of the
+  common-garden entry above is UNCHANGED - this extends the generality of the reactive world-signal
+  across surrogate recipes, it does not revisit persistence. The cd drop is itself informative:
+  coefficient-bias artifacts cannot be made subtle-but-detectable in world P, independently
+  motivating the learned-texture construction of the L3 rung.
 
 ## 13. How to run (milestones, in order)
 

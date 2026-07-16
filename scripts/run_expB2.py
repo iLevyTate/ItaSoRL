@@ -79,6 +79,15 @@ def cfg():
     ap.add_argument("--dump-states", type=str, default=None,
                     help="Directory to persist raw recurrent states (.npz per agent/cell) so "
                          "probes can be recomputed offline with scripts/reanalyze_expB2_states.py")
+    ap.add_argument("--heldout-evals", action="store_true",
+                    help="L3 only: add the unseen-fingerprint transfer + common-garden "
+                         "eval channels per cell (spec 2026-07-14)")
+    ap.add_argument("--heldout-hidden", type=int, default=7,
+                    help="G_motion capacity of the HELD-OUT fingerprint (frozen: 7)")
+    ap.add_argument("--cg-prefix", type=int, default=20, help="common-garden prefix steps")
+    ap.add_argument("--cg-steps", type=int, default=24, help="common-garden tail steps")
+    ap.add_argument("--save-agents", action="store_true",
+                    help="persist each trained arm to <out-dir>/agents/ (a few MB each)")
     # Positive-control CEILING (NOT readout-not-reward): supervise the survival trunk's h_t
     # onto the drag-drift so we can measure whether it CAN linearly encode world identity.
     ap.add_argument("--sysid-aux", action="store_true",
@@ -112,15 +121,52 @@ def cfg():
         a.drifts, a.seeds, a.updates, a.n_eps, a.max_steps = [0.0, 0.45], [0, 1], 60, 8, 40
         a.hidden, a.ray_steps, a.pool_n, a.pool_steps = 64, 4, 40, 16
         a.mp_pairs, a.mp_prefix, a.mp_branch = 25, 12, 16
+    if a.heldout_evals and a.drift_mode != "l3":
+        raise SystemExit("--heldout-evals requires --drift-mode l3")
+    if a.quick and a.heldout_evals:
+        a.cg_prefix, a.cg_steps = 8, 12
     return a
 
 
 def config_fingerprint(base: dict) -> str:
     """Hash of the science-relevant config. Cells from different configs never mix;
     dump_states is a path, not science, so it is excluded."""
-    fp = {k: v for k, v in base.items() if k != "dump_states"}
+    fp = {k: v for k, v in base.items() if k not in ("dump_states", "save_agents", "out_dir")}
     payload = json.dumps(fp, sort_keys=True, default=float)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
+def decide_h_b2(surv, pred, untr, bar: float = 0.65, sesoi: float = 0.05):
+    """Pre-registered primary verdict with a survivorship-precondition guard.
+
+    A non-finite pooled target means that seed's pool had too few survivors
+    (`too_few_survivors` in pooled_readout) - a broken precondition, not a
+    negative result - so any NaN forces the UNINFORMATIVE zone instead of
+    silently reading as "NOT met".
+
+    Returns (h_b2, zone, n_bad, finite survival values).
+    """
+    arrs = {"survival": np.asarray(surv, float),
+            "predictor": np.asarray(pred, float),
+            "untrained": np.asarray(untr, float)}
+    n_bad = sum(int(np.count_nonzero(~np.isfinite(x))) for x in arrs.values())
+    fin = {k: x[np.isfinite(x)] for k, x in arrs.items()}
+    if n_bad or any(x.size == 0 for x in fin.values()):
+        zone = (f"UNINFORMATIVE -> survivorship precondition failed in {n_bad} "
+                "decision cell(s) (too_few_survivors); adjudicate per the "
+                "pre-registered decision matrix before reading this as a result")
+        return False, zone, n_bad, fin["survival"]
+    s = fin["survival"].mean()
+    beats = (s >= fin["predictor"].mean() + sesoi
+             and s >= fin["untrained"].mean() + sesoi)
+    if s >= bar and beats:
+        return True, "MET  -> encoding induced (conditional on gates)", 0, fin["survival"]
+    if beats:
+        zone = ("NOT met  -> intermediate zone: beats both baselines by >= 0.05 but misses "
+                "the 0.65 bar; adjudicate with the pre-registered n=10 power extension")
+    else:
+        zone = "NOT met  -> strengthened negative (state readable, identity not encoded)"
+    return False, zone, 0, fin["survival"]
 
 
 def cell_file(cells_dir, drift: float, seed: int) -> Path:
@@ -180,14 +226,36 @@ def load_cell_files(cells_dir, fingerprint: str) -> dict:
 
 
 def evaluate_agent(agent, norm, drift, a, dev, seed, agent_name=""):
-    dump_path = None
+    dump_path = tdump = cdump = None
     if getattr(a, "dump_states", None):
-        dump_path = os.path.join(a.dump_states, f"states_d{drift:.2f}_s{seed}_{agent_name}.npz")
-    pool = pooled_readout(agent, norm, P, drift, n_eps=a.pool_n, steps=a.pool_steps,
-                          ray_steps=a.ray_steps, device=dev, seed=seed, dump_path=dump_path)
+        stem = os.path.join(a.dump_states, f"states_d{drift:.2f}_s{seed}_{agent_name}")
+        dump_path = stem + ".npz"
+        tdump, cdump = stem + "_h7transfer.npz", stem + "_cg.npz"
+    heldout = getattr(a, "heldout_evals", False)
+    pr = pooled_readout(agent, norm, P, drift, n_eps=a.pool_n, steps=a.pool_steps,
+                        ray_steps=a.ray_steps, device=dev, seed=seed, dump_path=dump_path,
+                        return_pools=heldout)
+    if heldout:
+        pool, pools = pr    # pooled_readout returns (metrics, (Ha, Hs)) with return_pools=True
+    else:
+        pool, pools = pr, None
     mp = readout(agent, norm, P, drift, n_pairs=a.mp_pairs, prefix_steps=a.mp_prefix,
                  branch_steps=a.mp_branch, ray_steps=a.ray_steps, device=dev, seed=seed)
-    return pool, mp
+    ho = None
+    if heldout:
+        from itasorl.experiment_b2 import cg_probe, common_garden_rollout, transfer_readout
+        Ha, Hs = pools
+        ho = transfer_readout(agent, norm, P, drift, Ha, Hs, n_eps=a.pool_n,
+                              steps=a.pool_steps, ray_steps=a.ray_steps, device=dev,
+                              seed=seed, dump_path=tdump)
+        at, st = common_garden_rollout(agent, norm, P, drift, n_pairs=a.pool_n,
+                                       prefix_steps=a.cg_prefix, tail_steps=a.cg_steps,
+                                       ray_steps=a.ray_steps, device=dev)
+        ho.update(cg_probe(at, st, seed=seed))
+        if cdump:
+            np.savez_compressed(cdump, auth=np.stack(at) if at else np.zeros((0, a.cg_steps, a.hidden), np.float32),
+                                surr=np.stack(st) if st else np.zeros((0, a.cg_steps, a.hidden), np.float32))
+    return pool, mp, ho
 
 
 def run_cell(task: dict) -> dict:
@@ -210,6 +278,8 @@ def run_cell(task: dict) -> dict:
         b2.DRIFT_MODE = k["drift_mode"]
     if k.get("drift_mode") == "l3" and b2._L3_GMOTION is None:  # train G_motion once per worker
         b2.setup_l3_surrogate(hidden=k.get("l3_hidden", 8), device=dev, seed=0, params=P)  # THIS world
+    if k.get("heldout_evals") and b2._L3_GMOTION_HELDOUT is None:  # once per worker
+        b2.setup_l3_heldout_surrogate(hidden=k["heldout_hidden"], device=dev, seed=0, params=P)
 
     agents = {"untrained": untrained_agent(P, d, k["ray_steps"], k["hidden"], 64, True, dev, seed=s),
               "predictor": train_predictor_only(d, P, n_eps=k["n_eps"], updates=k["updates"],
@@ -221,6 +291,11 @@ def run_cell(task: dict) -> dict:
                                    sysid_aux=k.get("sysid_aux", False),
                                    sysid_coef=k.get("sysid_coef", 1.0))
     agents["survival"] = (sa, sn)
+    if k.get("save_agents"):
+        from itasorl.experiment_b2 import save_agent_bundle
+        for g, (ag, nm) in agents.items():
+            save_agent_bundle(os.path.join(k["out_dir"], "agents",
+                                           f"agent_d{d:.2f}_s{s}_{g}.pt"), ag, nm)
     eng = engagement_metric(sa, sn, P, d, n_eps=64, max_steps=k["max_steps"],
                             ray_steps=k["ray_steps"], device=dev)
     xev = {f"{ed:.2f}": survival_return(sa, sn, P, ed, max_steps=k["max_steps"],
@@ -228,8 +303,10 @@ def run_cell(task: dict) -> dict:
     a_ns = argparse.Namespace(**k)               # evaluate_agent reads attrs off a namespace
     out = {"drift": d, "seed": s, "eng": eng, "xeval": xev, "agents": {}}
     for g in AG:
-        pool, mp = evaluate_agent(agents[g][0], agents[g][1], d, a_ns, dev, s, g)
+        pool, mp, ho = evaluate_agent(agents[g][0], agents[g][1], d, a_ns, dev, s, g)
         out["agents"][g] = {"pool": pool, "mp": mp}
+        if ho is not None:
+            out["agents"][g]["heldout"] = ho
     return out
 
 
@@ -258,6 +335,10 @@ def record_cell(res: dict, eng_log: dict, cell: dict) -> None:
         res[d][g]["pool_deaths_surr"].append(pool.get("deaths_surr"))
         res[d][g]["mp_target"].append(mp["target"])
         res[d][g]["mp_leak_clean"].append(bool(mp["leakage_clean"]))
+        ho = cell["agents"][g].get("heldout")
+        if ho is not None:
+            for kk in ("transfer_target", "cg_tail_target", "cg_latetail_target", "cg_n_pairs"):
+                res[d][g].setdefault(kk, []).append(ho.get(kk))
 
 
 def print_cell(cell: dict) -> None:
@@ -285,6 +366,14 @@ def print_cell(cell: dict) -> None:
               f"survivors(auth={pool.get('n_auth', '?')} surr={pool.get('n_surr', '?')} "
               f"/{pool.get('pool_n_eps', '?')}  deaths auth={pool.get('deaths_auth', '?')} "
               f"surr={pool.get('deaths_surr', '?')})", flush=True)
+        ho = cell["agents"][g].get("heldout")
+        if ho is not None:
+            print(f"   {'':10s} heldout: transfer={ho['transfer_target']:.3f} "
+                  f"[{ho.get('transfer_lo', float('nan')):.3f},{ho.get('transfer_hi', float('nan')):.3f}] "
+                  f"(n={ho['transfer_n_auth']}+{ho['transfer_n_surr']})  "
+                  f"cg_tail={ho['cg_tail_target']:.3f} "
+                  f"[{ho['cg_tail_lo']:.3f},{ho['cg_tail_hi']:.3f}]  "
+                  f"cg_late={ho['cg_latetail_target']:.3f} (pairs={ho['cg_n_pairs']})", flush=True)
 
 
 def fresh_results(drifts) -> dict:
@@ -327,6 +416,10 @@ def main():
               "the dynamics-level L3 rung; obs come from the REAL sensor model so only the "
               "learned dynamics differ (see docs/PREREGISTRATION_L3.md sec.4/sec.12)")
         b2.setup_l3_surrogate(hidden=a.l3_hidden, device=dev, seed=0, params=P)  # train on THIS world
+        if a.heldout_evals:
+            print(f"  heldout evals ON: transfer fingerprint G(hidden={a.heldout_hidden}), "
+                  f"common garden prefix={a.cg_prefix} tail={a.cg_steps}")
+            b2.setup_l3_heldout_surrogate(hidden=a.heldout_hidden, device=dev, seed=0, params=P)
     if a.sysid_aux:
         print("  *** SYSID-AUX ON: survival trunk is supervised on drag (CEILING control, "
               "NOT readout-not-reward). Its target is a capacity ceiling, not H_B2 evidence. ***")
@@ -345,7 +438,10 @@ def main():
                                        "shaping_coef", "pool_n", "pool_steps", "mp_pairs", "mp_prefix",
                                        "mp_branch", "basal_e", "n_pellets", "reach", "dump_states",
                                        "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden")}
-    base.update(drifts=a.drifts, device=dev)
+    base.update(drifts=a.drifts, device=dev, out_dir=a.out_dir, save_agents=a.save_agents)
+    if a.heldout_evals:
+        base.update(heldout_evals=True, heldout_hidden=a.heldout_hidden,
+                    cg_prefix=a.cg_prefix, cg_steps=a.cg_steps)
     tasks = [{**base, "drift": d, "seed": s} for d in a.drifts for s in a.seeds]
     cells_dir = Path(a.out_dir) / "cells"
     fingerprint = config_fingerprint(base)
@@ -461,7 +557,12 @@ def main():
 
     # ---- L0 equivalence gate on the survival agent (drift=0 must be at chance) ----
     if 0.0 in a.drifts:
-        l0 = res[0.0]["survival"]["pool_target"]
+        l0_raw = np.asarray(res[0.0]["survival"]["pool_target"], float)
+        l0 = l0_raw[np.isfinite(l0_raw)]
+        n_l0_bad = int(l0_raw.size - l0.size)
+        if n_l0_bad:
+            print(f"\nWARNING: {n_l0_bad}/{l0_raw.size} L0 cells non-finite "
+                  "(too_few_survivors) - L0 gate is UNINFORMATIVE, not passing")
         eq = equivalence_test(l0, h0=0.5, margin=0.05)
         rp = rope_test(l0, rope=(0.45, 0.55))
         print("\nL0 control (survival pooled target @ drift=0):")
@@ -473,9 +574,20 @@ def main():
 
     # ---- decision readout on the strongest drift ----
     dmax = max(a.drifts)
-    surv_t = np.array(res[dmax]["survival"]["pool_target"])
-    pred_t = np.array(res[dmax]["predictor"]["pool_target"])
-    untr_t = np.array(res[dmax]["untrained"]["pool_target"])
+    h_b2, zone, n_bad, surv_t = decide_h_b2(
+        res[dmax]["survival"]["pool_target"],
+        res[dmax]["predictor"]["pool_target"],
+        res[dmax]["untrained"]["pool_target"])
+    if n_bad:
+        print(f"\nWARNING: {n_bad} decision cell(s) non-finite (too_few_survivors) "
+              f"at drift={dmax:.2f}; stats below use finite seeds only")
+    pred_t = np.asarray(res[dmax]["predictor"]["pool_target"], float)
+    pred_t = pred_t[np.isfinite(pred_t)]
+    untr_t = np.asarray(res[dmax]["untrained"]["pool_target"], float)
+    untr_t = untr_t[np.isfinite(untr_t)]
+    # keep the display prints warning-free even if a whole arm was non-finite
+    surv_t, pred_t, untr_t = (x if x.size else np.array([float("nan")])
+                              for x in (surv_t, pred_t, untr_t))
     _, sm_lo, sm_hi = mean_ci(surv_t, level=0.90)
     surv_ceil = np.nanmean(np.array(res[dmax]["survival"]["pool_anchor_energy"], float))
     surv_ceil_drag = np.nanmean(np.array(res[dmax]["survival"]["pool_ceiling_drag"], float))
@@ -497,28 +609,38 @@ def main():
     print(f"  survivorship: mean deaths/pool auth={surv_da:.1f} surr={surv_ds:.1f} "
           f"(of {a.pool_n}) -> {'no asymmetry' if max(surv_da, surv_ds) < 0.05 * a.pool_n else 'CHECK asymmetry'}")
     # Pre-registered primary: survival >= 0.65 AND beats predictor and untrained by >= 0.05.
-    # Three zones per PREREGISTRATION_Bv3.md section 8: a result that clears both baseline
-    # margins but misses the 0.65 bar is NOT a strengthened negative - it is the
-    # underpowered intermediate zone the prereg adjudicates with the n=10 power extension.
-    beats_baselines = (surv_t.mean() >= pred_t.mean() + 0.05
-                       and surv_t.mean() >= untr_t.mean() + 0.05)
-    h_b2 = surv_t.mean() >= 0.65 and beats_baselines
-    if h_b2:
-        zone = "MET  -> encoding induced (conditional on gates)"
-    elif beats_baselines:
-        zone = ("NOT met  -> intermediate zone: beats both baselines by >= 0.05 but misses "
-                "the 0.65 bar; adjudicate with the pre-registered n=10 power extension")
-    else:
-        zone = "NOT met  -> strengthened negative (state readable, identity not encoded)"
+    # Three zones per PREREGISTRATION_Bv3.md section 8 (plus the UNINFORMATIVE zone when a
+    # non-finite cell shows the survivorship precondition failed); see decide_h_b2 above.
     print(f"  primary H_B2 (survival-induced encoding) {zone}")
     # Secondary: does the world-identity signal live in a VOLATILITY signature the LEVEL
     # probe throws away? target_var/full crossing 0.65 while the level target stays ~0.5
     # means the null was partly an operationalization artifact, not absent encoding.
-    surv_tv = np.nanmean(np.array(res[dmax]["survival"]["pool_target_var"], float))
-    surv_tf = np.nanmean(np.array(res[dmax]["survival"]["pool_target_full"], float))
+    def _finite_mean(vals) -> float:
+        x = np.asarray(vals, float)
+        return float(x[np.isfinite(x)].mean()) if np.isfinite(x).any() else float("nan")
+    surv_tv = _finite_mean(res[dmax]["survival"]["pool_target_var"])
+    surv_tf = _finite_mean(res[dmax]["survival"]["pool_target_full"])
     vol_hit = max(surv_tv, surv_tf) >= 0.65
     print(f"  volatility check: survival target_var={surv_tv:.3f} target_full={surv_tf:.3f} "
           f"(bar 0.65) -> {'VOLATILITY-ENCODED (level probe was mis-specified)' if vol_hit else 'no volatility encoding either'}")
+
+    if res[dmax]["survival"].get("transfer_target"):
+        print("\nHeld-out channels at strongest drift (frozen rules, spec 2026-07-14):")
+        for g in AG:
+            tt = np.nanmean(np.array(res[dmax][g]["transfer_target"], float))
+            ct = np.nanmean(np.array(res[dmax][g]["cg_tail_target"], float))
+            cl = np.nanmean(np.array(res[dmax][g]["cg_latetail_target"], float))
+            print(f"  {g:10s} transfer={tt:.3f}  cg_tail={ct:.3f}  cg_late={cl:.3f}")
+        s_tt = np.nanmean(np.array(res[dmax]["survival"]["transfer_target"], float))
+        u_tt = np.nanmean(np.array(res[dmax]["untrained"]["transfer_target"], float))
+        s_cg = np.nanmean(np.array(res[dmax]["survival"]["cg_tail_target"], float))
+        u_cg = np.nanmean(np.array(res[dmax]["untrained"]["cg_tail_target"], float))
+        t_ok = s_tt >= 0.65 and s_tt >= u_tt + 0.05
+        c_ok = s_cg >= 0.65 and s_cg >= u_cg + 0.05
+        print(f"  transfer rule (surv>=0.65 AND >untrained+0.05): "
+              f"{'GENERALIZES beyond the trained fingerprint' if t_ok else 'fingerprint-specific (informative negative)'}")
+        print(f"  common-garden rule (surv>=0.65 AND >untrained+0.05): "
+              f"{'PERSISTENT world identity' if c_ok else 'reactive tracking (informative negative)'}")
 
     checkpoint()
     print(f"saved {results_path}")
