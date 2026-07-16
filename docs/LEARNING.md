@@ -506,10 +506,15 @@ behavior-independent world signal of about 0.72 in the survival creature's state
 - There are 10 seeds; the hidden=7 untrained floor is elevated (0.586 in the
   actual run, matching the 0.566 seen in the gate-0 recalibration sweep; within
   the pooled tolerance, but violated in 2 or 3 individual seeds).
-- Still owed: the held-out, common-garden probe, which tests whether the world
-  signal transfers to a fingerprint the creature has never seen (design and plan
-  committed 2026-07-14 in `docs/superpowers/`). After that, L4 and Experiment C
-  remain entirely open.
+- The held-out and cross-recipe probes are now done. The world signal transfers
+  to a fingerprint the creature has never seen (0.773, rule passes) and even to a
+  forger built on a different recipe (0.684, rule passes). But a frozen reverse
+  test, training on the coarse fingerprint and reading the subtle one, fails the
+  bar (0.638): transfer runs from subtle training artifacts, not both ways. And a
+  common-garden control settles what the signal is: reactive tracking of the
+  dynamics the creature currently feels, not a stored memory of which world it
+  came from (0.557, below the bar; the trace decays to chance). L4 and
+  Experiment C remain entirely open.
 
 Where results live: `docs/FINDINGS.md` (the narrative), `docs/PREREGISTRATION_L3.md`
 section 12 (the dated lab log), `artifacts/expB2/*.json` (the committed numbers),
