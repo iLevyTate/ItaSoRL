@@ -11,7 +11,7 @@ pre-registered:
 2. TRANSFER: per drift-0.45 cell per arm per gate-passing family, score the
    frozen probe (fit on the regenerated standard pools) on a fresh authentic
    pool vs the family pool. Frozen seed bases: rff 880_000/890_000,
-   cd 900_000/910_000 (distinct from every original base).
+   cd 940_000/950_000 (distinct from every original base).
 
 No training anywhere. run_expB2.py is not imported.
 
@@ -45,7 +45,7 @@ from itasorl.world import WorldParams
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)   # frozen organism world
 PUBLISHED_TARGET = 0.752                                 # drift-0.45 survival mean
-SEED_BASES = {"rff": (880_000, 890_000), "cd": (900_000, 910_000)}
+SEED_BASES = {"rff": (880_000, 890_000), "cd": (940_000, 950_000)}
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 
 

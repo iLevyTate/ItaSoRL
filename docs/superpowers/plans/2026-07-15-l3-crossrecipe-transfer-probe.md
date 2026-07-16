@@ -29,7 +29,7 @@ The engineer should trust these; they were read from the working tree.
 - `itasorl/experiment_b2.py:530` `transfer_probe(Xtr, ytr, Xte, yte, return_scores=False)`; `itasorl/experiment_b.py:109` `episode_features(H)` = `[mean over steps ++ final step]`.
 - `itasorl/experiment_b2.py:78` `setup_l3_surrogate(**train_kwargs)` installs the module global `_L3_GMOTION`; `make_world` attaches it when `DRIFT_MODE == "l3"` and `drift_sigma > 0`.
 - `scripts/run_expA_l3.py` frozen constants: `SIGMA_MEAS = 0.02`, `BAND = (0.85, 0.95)`, `FLOOR_TOL = 0.10`, `DRIFT = 0.45`; per candidate it runs `generate_l3_pairs(g, n_pairs, branch, seed0=3000, params=P)` then `run_experiment_a_l3(eps, sigma_meas=SIGMA_MEAS, seed=0)`, then the untrained floor via `b2._L3_GMOTION = g` + `untrained_agent(P, DRIFT, ray_steps=5, hidden=96, embed=64, world_model=True, device=dev, seed=s)` + `pooled_readout(...)` for seeds `[0, 1, 2]`.
-- Seed bases already used by the original run (must NOT be reused for new pools): 800_000, 850_000, 860_000, 870_000, 930_000, 555_000. New bases frozen by this plan: RFF fresh-auth `880_000`, RFF surrogate `890_000`, CD fresh-auth `900_000`, CD surrogate `910_000`.
+- Seed bases already used by the original run (must NOT be reused for new pools): 800_000, 850_000, 860_000, 870_000, 930_000, 555_000, 900_000 (engagement_metric default), 920_000 (speed-control default). New bases frozen by this plan: RFF fresh-auth `880_000`, RFF surrogate `890_000`, CD fresh-auth `940_000`, CD surrogate `950_000`. (The CD pair was originally drafted as 900_000/910_000; final review caught the 900_000 collision with engagement_metric before any run, and the pair was moved to 940_000/950_000 pre-run.)
 - Torch note: `module.train(False)` is exactly equivalent to torch eval mode;
   this plan uses `train(False)` throughout.
 
@@ -662,7 +662,7 @@ pre-registered:
 2. TRANSFER: per drift-0.45 cell per arm per gate-passing family, score the
    frozen probe (fit on the regenerated standard pools) on a fresh authentic
    pool vs the family pool. Frozen seed bases: rff 880_000/890_000,
-   cd 900_000/910_000 (distinct from every original base).
+   cd 940_000/950_000 (distinct from every original base).
 
 No training anywhere. run_expB2.py is not imported.
 
