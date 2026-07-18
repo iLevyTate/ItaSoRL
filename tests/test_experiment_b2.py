@@ -151,6 +151,34 @@ def test_pooled_readout_too_few_survivors_guard(monkeypatch):
     assert out["pool_leak_clean"] is False   # cannot certify clean with too few survivors
 
 
+def test_collector_flags_max_steps_alive_as_truncated_not_terminated():
+    """An episode that reaches max_steps alive is TRUNCATED: its `terminated` flag
+    must be falsy (compute_gae then bootstraps from the last value instead of 0, and
+    _survival_by_world's death rate counts real deaths only). With the stock B-v2
+    metabolism an agent easily survives 5 steps, so every episode here truncates."""
+    from itasorl.experiment_b2 import collect_episodes_ac
+    agent, norm = _agent_norm()
+    b = collect_episodes_ac(agent, norm, P, 0.0, 4, 5, "cpu", 777, RS,
+                            deterministic=True, update_norm=False)
+    assert (b["lengths"] == 5).all(), "expected every episode to reach max_steps alive"
+    assert torch.all(b["terminated"] == 0.0), \
+        "episodes truncated at max_steps were flagged terminated"
+
+
+def test_collector_flags_death_as_terminated(monkeypatch):
+    """An episode where the agent dies before max_steps must be flagged terminated
+    (and end early). A lethal metabolism makes every agent starve on step 1."""
+    import itasorl.experiment_b2 as b2
+    from itasorl.experiment_b2 import collect_episodes_ac
+    monkeypatch.setattr(b2, "SURVIVAL_METAB",
+                        {"E0": 0.05, "basal_E": 4.0, "Hyd0": 8.0, "basal_Hyd": 0.005})
+    agent, norm = _agent_norm()
+    b = collect_episodes_ac(agent, norm, P, 0.0, 4, 30, "cpu", 777, RS,
+                            deterministic=True, update_norm=False)
+    assert (b["lengths"] < 30).all(), "expected every episode to die before max_steps"
+    assert torch.all(b["terminated"] == 1.0), "a death was not flagged terminated"
+
+
 def _ep(label, rsum):
     return {"H": np.zeros((3, 8), np.float32), "label": label, "speed": 0.0,
             "reward_sum": rsum, "length": 3, "lifetime": 1}

@@ -82,6 +82,27 @@ def test_mixed_world_fitness_threads_food_override_default_byte_identical():
     assert not np.array_equal(f_omit, f_dense), "override must actually reach the rollout"
 
 
+def test_mixed_world_fitness_threads_world_params():
+    """`mixed_world_fitness` must pass `params` all the way down to the rollout
+    worlds (the same seam contract as `food_override`): params=None is byte-identical
+    to omission, and a genuinely different physics (k_land/gravity) must change the
+    fitness vector for the same policies and seeds - proving the WorldParams is not
+    silently dropped at either collect_episodes_ac call."""
+    from itasorl.experiment_c import mixed_world_fitness
+    from itasorl.world import WorldParams
+
+    pop = _world_pop(3)
+    kw = dict(drift_sigma=0.02, n_eps_per_world=2, max_steps=6, seed_base=313_000)
+    f_omit = mixed_world_fitness(pop, **kw)
+    f_none = mixed_world_fitness(pop, params=None, **kw)
+    assert np.array_equal(f_omit, f_none), "params=None must equal omission to the bit"
+
+    P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
+    f_p = mixed_world_fitness(pop, params=P, **kw)
+    assert not np.array_equal(f_omit, f_p), \
+        "a non-default WorldParams must change the world the fitness episodes run in"
+
+
 def test_mixed_world_fitness_scores_agents_independently():
     """Permuting the population permutes the fitness identically - each policy is
     scored on the same worlds with no cross-agent state leakage."""
