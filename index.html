@@ -8,7 +8,7 @@
     body { background: #e8e5f1; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
     /* Status pill stays invisible unless unpacking takes noticeably long,
        so fast loads never flash it. */
-    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; opacity: 0; animation: __bundler_reveal .3s ease .8s forwards; }
+    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; opacity: 0; animation: __bundler_reveal .3s ease 1.2s forwards; }
     @keyframes __bundler_reveal { to { opacity: 1; } }
   </style>
 </head>
@@ -158,6 +158,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // createElement so they execute, awaiting onload for src scripts to
     // preserve ordering (React before ReactDOM before Babel before text/babel).
     const doc = new DOMParser().parseFromString(template, 'text/html');
+    // Solid same-color shield carried into the new document. It covers the
+    // swap repaint, React hydration, the web-font swap, and the scrollbar
+    // appearing — each of which otherwise reads as a flicker — and fades out
+    // only once the app has mounted and fonts have settled.
+    const shield = doc.createElement('div');
+    shield.id = '__bundler_shield';
+    shield.style.cssText = 'position:fixed;inset:0;background:#e8e5f1;z-index:2147483647;pointer-events:none;opacity:1;transition:opacity .3s ease';
+    doc.body.appendChild(shield);
     document.documentElement.replaceWith(doc.documentElement);
     const dead = Array.from(document.scripts);
     for (const old of dead) {
@@ -185,6 +193,34 @@ document.addEventListener('DOMContentLoaded', async function() {
   } catch (err) {
     setStatus('Error unpacking: ' + err.message);
     console.error('Bundle unpack error:', err);
+  } finally {
+    // Fade the shield out once #dc-root has content and fonts are ready.
+    // Also runs on the error path (with a 4s cap) so a failed boot is never
+    // hidden behind the shield.
+    (function dropShield() {
+      const el = document.getElementById('__bundler_shield');
+      if (!el) return;
+      const t0 = performance.now();
+      const mounted = function() {
+        const root = document.getElementById('dc-root');
+        return (root && root.childElementCount > 0) || performance.now() - t0 > 4000;
+      };
+      const fade = function() {
+        requestAnimationFrame(function() {
+          el.style.opacity = '0';
+          setTimeout(function() { el.remove(); }, 500);
+        });
+      };
+      (function wait() {
+        if (!mounted()) { requestAnimationFrame(wait); return; }
+        // One extra frame so freshly-mounted text kicks off its font loads
+        // before we consult document.fonts.ready.
+        requestAnimationFrame(function() {
+          const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+          Promise.race([fonts, new Promise(function(r) { setTimeout(r, 1500); })]).then(fade);
+        });
+      })();
+    })();
   }
 });
 
