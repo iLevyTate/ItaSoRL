@@ -88,7 +88,7 @@ def test_collect_pool_traces_match_anchor_means():
     out = collect_pool(agent, norm, P, 0.45, 5, 6, "cpu", 222, RS, return_anchors=True)
     H, spd, energy, food, drag, reward, traces = out
     k, steps = H.shape[0], H.shape[1]
-    assert traces.shape == (k, steps, 4)
+    assert traces.shape == (k, steps, 7)
     np.testing.assert_allclose(traces[:, :, 0].mean(1), spd, rtol=1e-5, atol=1e-6)
     np.testing.assert_allclose(traces[:, :, 1].mean(1), energy, rtol=1e-5, atol=1e-6)
     np.testing.assert_allclose(traces[:, :, 2].mean(1), food, rtol=1e-5, atol=1e-6)
@@ -96,15 +96,16 @@ def test_collect_pool_traces_match_anchor_means():
 
 
 def test_pooled_readout_dump_contains_traces(tmp_path):
-    """--dump-states must persist bta/bts (k, steps, 4) so the per-timestep
-    behavior control can run offline on new dumps."""
+    """--dump-states must persist bta/bts (k, steps, 7) so the per-timestep
+    behavior control (including the position/heading channels added 2026-07-18)
+    can run offline on new dumps."""
     agent, norm = _agent_norm()
     p = tmp_path / "dump.npz"
     pooled_readout(agent, norm, P, 0.45, n_eps=6, steps=5, ray_steps=RS,
                    device="cpu", dump_path=str(p))
     with np.load(p) as z:
-        assert z["bta"].shape[1:] == (5, 4)
-        assert z["bts"].shape[1:] == (5, 4)
+        assert z["bta"].shape[1:] == (5, 7)
+        assert z["bts"].shape[1:] == (5, 7)
         assert z["bta"].shape[0] == z["Ha"].shape[0]
         assert z["bts"].shape[0] == z["Hs"].shape[0]
 
@@ -148,6 +149,34 @@ def test_pooled_readout_too_few_survivors_guard(monkeypatch):
                 "selectivity", "speed", "anchor_energy", "ceiling_drag", "pool_reward_leak"):
         assert np.isnan(out[key]), f"{key} must be NaN when the pool is too small"
     assert out["pool_leak_clean"] is False   # cannot certify clean with too few survivors
+
+
+def test_collector_flags_max_steps_alive_as_truncated_not_terminated():
+    """An episode that reaches max_steps alive is TRUNCATED: its `terminated` flag
+    must be falsy (compute_gae then bootstraps from the last value instead of 0, and
+    _survival_by_world's death rate counts real deaths only). With the stock B-v2
+    metabolism an agent easily survives 5 steps, so every episode here truncates."""
+    from itasorl.experiment_b2 import collect_episodes_ac
+    agent, norm = _agent_norm()
+    b = collect_episodes_ac(agent, norm, P, 0.0, 4, 5, "cpu", 777, RS,
+                            deterministic=True, update_norm=False)
+    assert (b["lengths"] == 5).all(), "expected every episode to reach max_steps alive"
+    assert torch.all(b["terminated"] == 0.0), \
+        "episodes truncated at max_steps were flagged terminated"
+
+
+def test_collector_flags_death_as_terminated(monkeypatch):
+    """An episode where the agent dies before max_steps must be flagged terminated
+    (and end early). A lethal metabolism makes every agent starve on step 1."""
+    import itasorl.experiment_b2 as b2
+    from itasorl.experiment_b2 import collect_episodes_ac
+    monkeypatch.setattr(b2, "SURVIVAL_METAB",
+                        {"E0": 0.05, "basal_E": 4.0, "Hyd0": 8.0, "basal_Hyd": 0.005})
+    agent, norm = _agent_norm()
+    b = collect_episodes_ac(agent, norm, P, 0.0, 4, 30, "cpu", 777, RS,
+                            deterministic=True, update_norm=False)
+    assert (b["lengths"] < 30).all(), "expected every episode to die before max_steps"
+    assert torch.all(b["terminated"] == 1.0), "a death was not flagged terminated"
 
 
 def _ep(label, rsum):

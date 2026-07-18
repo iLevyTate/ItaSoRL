@@ -87,6 +87,107 @@ def test_get_set_state_roundtrip_is_exact():
     assert a.terminated == b.terminated
 
 
+def _forager_world():
+    """Dense, easy-to-reach food so a random-action rollout genuinely EATS: pellets
+    deplete, energy climbs, and the ecology RNG advances - the state a lazy snapshot
+    would return stale."""
+    w = PatchOfEarthV0()
+    w.ray_steps = 4
+    w.n_pellets = 40
+    w.reach = 0.5
+    return w
+
+
+def _random_actions(n: int, seed: int = 3) -> list[np.ndarray]:
+    rng = np.random.default_rng(seed)
+    return [np.array([rng.uniform(0.2, 1.0), rng.uniform(-1.0, 1.0), 1.0,
+                      float(rng.random() < 0.5), 0.0], np.float32) for _ in range(n)]
+
+
+def test_get_set_state_roundtrip_after_state_exercising_rollout():
+    """Stronger than the 5-step constant-action roundtrip: run a seeded random-action
+    rollout that actually eats (pellet_amt partially depleted, energy shifted) before
+    snapshotting, then continue vs restore-and-continue for many steps. Any field
+    get_state returns fresh/stale (e.g. pellet_amt reset to ones) breaks bit-identity
+    the moment a pellet depletes and respawns on one branch only."""
+    acts = _random_actions(12 + 25)
+
+    live = _forager_world()
+    live.reset(_seeds())
+    for a in acts[:12]:
+        live.step(a)
+    snap = live.get_state()
+    # Guard that the scenario really exercised the state: eating has begun, so the
+    # snapshot's pellet ledger and energy must differ from their reset values. This
+    # also catches a get_state that returns a FRESH pellet_amt outright.
+    assert not np.all(snap["pellet_amt"] == 1.0), "no pellet was touched - vacuous roundtrip"
+    assert snap["E"] != live.E0
+    assert snap["alive"]
+
+    restored = _forager_world()
+    restored.reset(_seeds())
+    restored.set_state(snap)
+
+    for i, a in enumerate(acts[12:]):
+        r_live = live.step(a)
+        r_rest = restored.step(a)
+        np.testing.assert_array_equal(r_live.obs, r_rest.obs,
+                                      err_msg=f"obs diverged at continuation step {i}")
+        assert r_live.reward == r_rest.reward, f"reward diverged at continuation step {i}"
+        assert r_live.terminated == r_rest.terminated
+
+
+# --- ecology invariants (intake cap + one-shot death penalty) ----------------
+
+EAT_ONLY = np.array([0.0, 0.0, 1.0, 0.0, 0.0], dtype=np.float32)
+
+
+def test_eating_at_energy_cap_gains_nothing_and_depletes_nothing():
+    """Intake is capped by remaining energy capacity: at E == Emax an eat action on a
+    reachable pellet consumes NOTHING - zero intake, no pellet depletion, and the
+    reward stays purely homeostatic (the metabolic cost, no positive food term). A
+    below-cap control on the identical world proves the setup genuinely eats, so the
+    cap case is not passing vacuously."""
+    w = _forager_world()
+    w.reset(_seeds())
+    w.pos = w.pellets[0].copy()          # stand on a pellet
+    w.E = w.Emax                          # sated to the cap
+    before = w.pellet_amt.copy()
+    r = w.step(EAT_ONLY)
+    assert r.info["intake"] == 0.0, "intake at the cap must be zero"
+    assert np.array_equal(w.pellet_amt, before), "pellet depleted for free at the cap"
+    assert r.reward < 0.0, "reward must stay homeostatic (cost only), no free food reward"
+    assert w.E <= w.Emax
+
+    ctrl = _forager_world()
+    ctrl.reset(_seeds())
+    ctrl.pos = ctrl.pellets[0].copy()
+    ctrl.E = ctrl.Emax - 1.0              # room to eat: same setup must gain for real
+    r2 = ctrl.step(EAT_ONLY)
+    assert r2.info["intake"] > 0.0
+    assert ctrl.pellet_amt[0] < 1.0       # pellet genuinely depleted below the cap
+    assert r2.reward > 0.0                # intake dominates the metabolic cost
+
+
+def test_death_penalty_applied_exactly_once_on_the_transition():
+    """The -1.0 death penalty lands on the death TRANSITION only. A misbehaving
+    caller that keeps stepping the dead world must see plain homeostatic rewards
+    (here ~ -cost*dt ~ -0.2), never the penalty again."""
+    w = _make_world()
+    w.reset(_seeds())
+    w.E = 0.05                            # nearly starved ...
+    w.basal_E = 4.0                       # ... with a drain that kills this step
+    r1 = w.step(EAT_ONLY * 0.0)
+    assert r1.terminated is True
+    assert w.alive is False
+    assert r1.reward < -0.9, "death transition must carry the -1.0 penalty"
+
+    for _ in range(3):                    # step PAST termination (misbehaving caller)
+        r = w.step(EAT_ONLY * 0.0)
+        assert r.terminated is True       # stays dead
+        assert r.reward > -0.9, "the -1.0 penalty reappeared after the death transition"
+
+
 # --- matched-pair confound control (spec sec. 11) ---------------------------
 
 def test_matched_pair_L0_is_bit_identical():
