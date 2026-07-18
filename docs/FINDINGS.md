@@ -761,8 +761,11 @@ conditional on the subtler hidden = 8 artifact.
 > historical (invalidated) record; the current verdict is 10.6.1. The TRANSFER
 > channel (0.773 forward / 0.638 reverse / 0.684 cross-recipe) was never affected:
 > it uses the frozen-fit train/test estimator with no CV grouping. The
-> matched-pair mp_target numbers are fold-safe by accident (pair counts 60/25,
-> multiples of 5, and that path drops no pairs) and stand.
+> matched-pair mp_target numbers are EXPECTED to be fold-safe (pair counts
+> 60/25 co-locate twins under the sklearn version in use, and that path drops
+> no pairs), but twin co-location under singleton groups is an
+> argsort-tie-breaking accident that varies across sklearn versions — so the mp
+> numbers should be confirmed (not assumed) alongside the cg re-score.
 
 Done (n = 10, frozen spec 2026-07-14; per-seed summary committed as
 `artifacts/expB2/heldout_l3_h8_summary.json`, extracted from the
