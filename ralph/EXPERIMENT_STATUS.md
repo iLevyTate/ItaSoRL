@@ -152,10 +152,13 @@ Narrative: `docs/FINDINGS.md` §7 (next steps), §9 (B-v2).
    `G_motion`, `l3` world hook) was built, oracle-gated (AUROC in [0.85, 0.95]), and run at
    two calibrated capacities (hidden=8, hidden=7) at n=10; survival pooled 0.752 with a
    behavior-independent ~0.73. FINDINGS §10, PREREGISTRATION_L3 §12. Remaining open science:
-   H2 substrate-grounding ablations, H3 / Experiment C (first milestone-3 pilot ran; its
-   recorded null is INVALIDATED by two since-fixed measurement bugs, FINDINGS §13.C - the
-   pre-registered re-run on fixed code is pending, `docs/PREREGISTRATION_C.md`), and
-   Ladder L4 (adversarial; stub).
+   H2 substrate-grounding ablations, H3 / Experiment C (RESOLVED NEGATIVE: the milestone-3
+   pilot's first null was INVALIDATED by two since-fixed measurement bugs, FINDINGS §13.C,
+   but the re-run on fixed code landed as a validated null, FINDINGS §13.D; §14's
+   post-invalidation amendments were dispositioned NO-LAUNCH on 2026-07-20 - a bias-guarded
+   gate-1 sweep shows geometry cannot clear the exploitability margin, so re-opening Exp C
+   needs a §8 richer-controller redesign, `docs/PREREGISTRATION_C.md`), and Ladder L4
+   (adversarial; stub).
 
 ---
 
