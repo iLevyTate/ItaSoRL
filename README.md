@@ -11,6 +11,7 @@ seams, with detection **read out, not rewarded**.*
 
 **New to the project?** Start with the nine-page illustrated series - the same walkthrough in two voices, every number read from the committed artifacts:
 
+- [**The 90-second film (MP4)**](https://github.com/iLevyTate/ItaSoRL/releases/download/film-v1/itasorl_v1.mp4) - the whole idea in a minute and a half, rendered from real recorded agent runs.
 - [**Plain-English series (PDF)**](docs/itasorl-series-plain-english.pdf) - the story: the question, the world, the trick, what we found.
 - [**Research edition (PDF)**](docs/itasorl-series-research.pdf) - the same pages in research terms: design, control battery, pre-registered results, open questions.
 
