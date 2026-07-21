@@ -6,7 +6,7 @@ authors:
   - family-names: "Tate"
     given-names: "Levy"
     orcid: "https://orcid.org/0009-0009-1337-0709"
-repository-code: "https://github.com/iLevyTate/ITASORL"
+repository-code: "https://github.com/iLevyTate/ItaSoRL"
 license: MIT
 version: 1.0.0
 abstract: >-
@@ -16,7 +16,17 @@ abstract: >-
   artifacts (L2) are readily detectable by a privileged oracle but are not
   encoded by the agent (robust negative); a learned-dynamics fingerprint
   surrogate (L3) is incidentally encoded by survival-trained agents, with a
-  behavior-independent component that clears the pre-registered bar.
+  behavior-independent component that clears the pre-registered bar
+  (survival-specificity holds at the subtler of two tested fingerprints). A
+  cross-recipe probe shows the signal generalizes across surrogate families
+  (it also reads a random-Fourier-features law fit on the same data); a
+  same-recipe held-out probe adds capacity-variant robustness in one direction
+  only (subtle-to-coarse passes, the frozen reverse fails). A
+  common-garden control, re-scored with a corrected estimator, passes the frozen
+  rule on both directions (forward 0.666, reverse 0.684), so the signal carries a
+  modest persistent stored world-identity component the policy also expresses
+  reactively, not purely reactive tracking of the felt dynamics
+  (see FINDINGS section 10.6.1).
 keywords:
   - artificial-life
   - reinforcement-learning

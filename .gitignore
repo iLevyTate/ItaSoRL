@@ -211,3 +211,9 @@ artifacts/expB2/logs/
 
 # Rendered film output: byte-reproducible from viz/ code + scene.json (verified deterministic).
 viz/out/
+
+# Local working documents and tooling: keep out of the public repo.
+docs/PAPER_DRAFT*.md
+paper/
+ralph/
+docs/superpowers/

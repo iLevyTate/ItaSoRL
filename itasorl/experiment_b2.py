@@ -93,10 +93,13 @@ def setup_l3_heldout_surrogate(**train_kwargs) -> None:
     _L3_GMOTION_HELDOUT = train_g_motion(**train_kwargs)
 
 
-def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int) -> PatchOfEarthV0:
+def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int,
+               food_override: dict | None = None) -> PatchOfEarthV0:
     w = PatchOfEarthV0(params or WorldParams(), drift_sigma=drift_sigma, drift_mode=DRIFT_MODE)
     w.ray_steps = ray_steps
-    for k, v in {**SURVIVAL_METAB, **SURVIVAL_FOOD}.items():  # override before reset()
+    # food_override is an ADDITIVE merge (control-arm world-invariant layout); None ->
+    # byte-identical to the frozen SURVIVAL_FOOD layout every other experiment depends on.
+    for k, v in {**SURVIVAL_METAB, **SURVIVAL_FOOD, **(food_override or {})}.items():
         setattr(w, k, v)
     if DRIFT_MODE == "l3" and drift_sigma > 0.0 and _L3_GMOTION is not None:
         w._g_motion = _L3_GMOTION  # surrogate (drift_sigma>0) uses learned dynamics; authentic does not
@@ -156,14 +159,15 @@ class RunningNorm:
 def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, drift_sigma,
                         n_eps: int, max_steps: int, device: str, seed_base: int,
                         ray_steps: int = 5, deterministic: bool = False, update_norm: bool = True,
-                        shaping_coef: float = 0.0, gamma: float = 0.99):
+                        shaping_coef: float = 0.0, gamma: float = 0.99,
+                        food_override: dict | None = None):
     """Run n_eps parallel envs to death/max_steps. Returns padded torch tensors on
     `device` for the A2C update plus per-episode scalars. h0 is zero per episode.
 
     shaping_coef>0 adds potential-based food-approach shaping to the TRAINING reward
     (optimal-policy-preserving); `ret`/lengths still report the TRUE task outcome."""
     A = agent.act_dim
-    envs = [make_world(params, drift_sigma, ray_steps) for _ in range(n_eps)]
+    envs = [make_world(params, drift_sigma, ray_steps, food_override) for _ in range(n_eps)]
     obs = np.stack([e.reset(_seeds(seed_base + i)).obs for i, e in enumerate(envs)]).astype(np.float64)
     active = np.ones(n_eps, bool)
     h = agent.initial_state(n_eps, device)
@@ -499,26 +503,36 @@ def probe_world_identity(auth_eps: list, surr_eps: list, seed: int = 0) -> dict:
     X = np.stack([_episode_feature(e["H"]) for e in eps])
     y = np.array([e["label"] for e in eps])
     spd = np.array([e["speed"] for e in eps])
+    # The two members of pair i share seed, prefix, and branch state, so they are NOT
+    # independent episodes: give them one group id so GroupKFold never splits a pair
+    # across folds. (Split twins let the probe read the train twin's label off the
+    # near-identical test twin, biasing AUROC toward 0 whenever the pair count is not
+    # a multiple of n_splits.)
+    g = np.concatenate([np.arange(len(auth_eps)), np.arange(len(surr_eps))])
     rng = np.random.default_rng(seed)
     return {
-        "target": probe_auroc(X, y),                                   # H4: decode world identity
-        "shuffled": probe_auroc(X, rng.permutation(y)),                # negative control
-        "speed": probe_auroc(X, (spd > np.median(spd)).astype(int)),   # positive control
+        "target": grouped_auroc(X, y, g),                                   # H4: decode world identity
+        "shuffled": grouped_auroc(X, rng.permutation(y), g),                # negative control
+        "speed": grouped_auroc(X, (spd > np.median(spd)).astype(int), g),   # positive control
         "n": len(eps),
     }
 
 
-def leakage_audit_b2(auth_eps: list, surr_eps: list, margin: float = 0.1) -> dict:
+def leakage_audit_b2(auth_eps: list, surr_eps: list, margin: float = 0.1,
+                     groups: np.ndarray | None = None) -> dict:
     """Confound battery: world identity must NOT be decodable from reward/length/lifetime.
     A clean target probe with these near 0.5 proves it reads the artifact, not 'I lived
-    longer'. `margin` is the tolerated |AUROC-0.5|; the run uses a tighter 0.05 (see
-    readout), the default stays 0.1 for tiny-n smoke/tests."""
+    longer'. `margin` is the tolerated |AUROC-0.5|; the run gate is this default 0.1
+    (see readout's docstring for why tighter would false-alarm on the matched-pair path).
+    `groups`: pass a shared pair id per pair member when the episodes are matched pairs
+    (see probe_world_identity); default treats episodes as independent."""
     eps = auth_eps + surr_eps
     y = np.array([e["label"] for e in eps])
+    g = groups if groups is not None else np.arange(len(eps))
 
     def channel(key):
         v = np.array([e[key] for e in eps], np.float64).reshape(-1, 1)
-        return probe_auroc(v, y)
+        return grouped_auroc(v, y, g)
 
     audit = {k: channel(k) for k in ("reward_sum", "length", "lifetime")}
     audit["max_abs_dev"] = max(abs(a - 0.5) for a in audit.values())
@@ -667,7 +681,7 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
         h = agent.initial_state(1, device)
         prev = torch.zeros(1, agent.act_dim, device=device)
         obs = w.observe().astype(np.float64)
-        Hrow, sp, en, fd, dg, died = [], [], [], [], [], False
+        Hrow, sp, en, fd, dg, px, py, hd, died = [], [], [], [], [], [], [], [], False
         rw = 0.0
         for _ in range(steps):
             obs_t = torch.as_tensor(norm(obs)[None], dtype=torch.float32, device=device)
@@ -678,6 +692,9 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             en.append(float(w.E / w.Emax))
             fd.append(-_food_potential(w))           # >=0 distance to nearest pellet
             dg.append(float(w._drift_w))             # instantaneous drag-drift state (0 in authentic)
+            px.append(float(w.pos[0]))               # absolute position: diverges across worlds
+            py.append(float(w.pos[1]))               # under differing velocity laws, so it must be
+            hd.append(float(w.heading))              # available to the mediation control
             rw += float(r.reward)                     # summed homeostatic reward (never detection)
             obs = r.obs.astype(np.float64)
             prev = env_act
@@ -691,19 +708,23 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             food.append(float(np.mean(fd)))
             drag.append(float(np.mean(dg)))
             reward.append(rw)
-            traces.append(np.stack([sp, en, fd, dg], axis=1).astype(np.float32))
+            traces.append(np.stack([sp, en, fd, dg, px, py, hd], axis=1).astype(np.float32))
     H = np.stack(Hs) if Hs else np.zeros((0, steps, agent.hidden), np.float32)
     if return_anchors:
-        Bt = np.stack(traces) if traces else np.zeros((0, steps, 4), np.float32)
+        Bt = np.stack(traces) if traces else np.zeros((0, steps, 7), np.float32)
         return (H, np.asarray(spd), np.asarray(energy), np.asarray(food),
                 np.asarray(drag), np.asarray(reward), Bt)
     return H, np.asarray(spd)
 
 
-def _auroc_with_ci(X, y, seed: int = 0) -> tuple[float, float, float]:
+def _auroc_with_ci(X, y, seed: int = 0, groups: np.ndarray | None = None) -> tuple[float, float, float]:
     """5-fold grouped CV AUROC plus a stratified-bootstrap 95% CI from its out-of-fold
-    predictions (no model refit)."""
-    auc, yv, pv = grouped_auroc(X, y, np.arange(len(y)), return_oof=True)
+    predictions (no model refit). `groups` defaults to one group per row (independent
+    episodes); matched-pair callers pass a shared pair id for the two members so
+    GroupKFold never splits a pair across folds."""
+    if groups is None:
+        groups = np.arange(len(y))
+    auc, yv, pv = grouped_auroc(X, y, groups, return_oof=True)
     if yv.size == 0:
         return auc, float("nan"), float("nan")
     lo, hi = auroc_ci(yv, pv, seed=seed)
@@ -765,10 +786,20 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
     # One shared label permutation across feature sets so selectivity gaps reflect
     # feature-set overfitting bias, not permutation noise. selectivity = target - shuffled
     # is the estimand that survives the L0>0.5 probe-bias offset seen in some seeds.
-    y_perm = rng.permutation(y)
-    shuf = probe_auroc(X, y_perm)
-    shuf_v = probe_auroc(Xv, y_perm)
-    shuf_f = probe_auroc(Xf, y_perm)
+    # Averaged over several label permutations: a single draw of the CV-AUROC
+    # null has sd ~0.04 at these pool sizes, which previously leaked straight
+    # into per-seed selectivity (2026-07-18 audit; selectivity is a secondary
+    # readout, the pre-registered decision uses the raw target).
+    n_perm = 8
+    shuf_draws, shuf_v_draws, shuf_f_draws = [], [], []
+    for _ in range(n_perm):
+        y_perm = rng.permutation(y)
+        shuf_draws.append(probe_auroc(X, y_perm))
+        shuf_v_draws.append(probe_auroc(Xv, y_perm))
+        shuf_f_draws.append(probe_auroc(Xf, y_perm))
+    shuf = float(np.mean(shuf_draws))
+    shuf_v = float(np.mean(shuf_v_draws))
+    shuf_f = float(np.mean(shuf_f_draws))
     # Drag-tracking ceiling: decode high- vs low-drift-drag episodes from h_t WITHIN the
     # surrogate pool only (all surrogate, so this is NOT the world label). High here +
     # chance target = the interesting null (the state tracks the dynamics moment-to-moment
@@ -808,26 +839,29 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
 
 def transfer_readout(agent, norm, params, drift_sigma, Ha_train, Hs_train, *,
                      n_eps=110, steps=24, ray_steps=5, device=None, seed=0,
-                     dump_path=None) -> dict:
+                     dump_path=None, heldout=None, seed_base_auth=860_000,
+                     seed_base_surr=870_000) -> dict:
     """Unseen-fingerprint transfer channel (spec 2026-07-14). Fits the standard
     linear probe on the TRAINED-fingerprint pools (Ha_train vs Hs_train, i.e. the
     exact pools pooled_readout probed), then scores it FROZEN on a fresh authentic
-    pool vs a pool collected under the HELD-OUT surrogate _L3_GMOTION_HELDOUT.
-    Fresh authentic pool: the probe must never be tested on authentic episodes it
-    trained on. Restores the training surrogate in a finally block so the global
-    can never leak into later evals."""
+    pool vs a pool collected under the resolved held-out surrogate (the `heldout=`
+    argument, or _L3_GMOTION_HELDOUT if none was passed). Fresh authentic pool:
+    the probe must never be tested on authentic episodes it trained on. Restores
+    the training surrogate in a finally block so the global can never leak into
+    later evals."""
     global _L3_GMOTION
-    if _L3_GMOTION_HELDOUT is None:
-        raise RuntimeError("transfer_readout: call setup_l3_heldout_surrogate() first")
+    heldout = heldout if heldout is not None else _L3_GMOTION_HELDOUT
+    if heldout is None:
+        raise RuntimeError("transfer_readout: pass heldout= or call setup_l3_heldout_surrogate() first")
     device = device or default_device()
     saved = _L3_GMOTION
     try:
-        _L3_GMOTION = _L3_GMOTION_HELDOUT
+        _L3_GMOTION = heldout
         # auth pool deliberately collected inside the swap: authentic worlds never
         # attach a G (make_world guards drift_sigma>0), and keeping both collections
         # here keeps swap/restore in one place - do not "simplify" it out.
-        Ha2, _ = collect_pool(agent, norm, params, 0.0, n_eps, steps, device, 860_000, ray_steps)
-        H7, _ = collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, 870_000, ray_steps)
+        Ha2, _ = collect_pool(agent, norm, params, 0.0, n_eps, steps, device, seed_base_auth, ray_steps)
+        H7, _ = collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_base_surr, ray_steps)
     finally:
         _L3_GMOTION = saved
     if dump_path is not None:
@@ -856,19 +890,26 @@ def transfer_readout(agent, norm, params, drift_sigma, Ha_train, Hs_train, *,
 
 def common_garden_rollout(agent, norm, params, drift_sigma, *, n_pairs=110,
                           prefix_steps=20, tail_steps=24, ray_steps=5,
-                          device=None, seed_base=930_000) -> tuple[list, list]:
+                          device=None, seed_base=930_000, return_stats: bool = False):
     """Common-garden channel (spec 2026-07-14): PAIRED episodes from identical
     seeds run their prefix in the authentic vs the surrogate world, then BOTH
     continue under authentic dynamics (fresh authentic world restored from each
     prefix's final snapshot, drift_w forced to 0). Returns (auth_tails,
     surr_tails): lists of (tail_steps, hidden) arrays, tail-only states. A pair
     is dropped if EITHER member dies in prefix or tail (symmetric, so
-    survivorship cannot create asymmetry)."""
+    survivorship cannot create asymmetry).
+
+    return_stats=True additionally returns (auth_stats, surr_stats): per
+    surviving pair, dicts with label / tail mean speed / tail reward_sum /
+    length / lifetime - the inputs the Experiment-C gate battery needs
+    (leakage_audit_b2 and the speed positive control) without a second rollout."""
     device = device or default_device()
     auth_tails, surr_tails = [], []
+    auth_stats, surr_stats = [], []
     for p in range(n_pairs):
         seeds = _seeds(seed_base + p)
         pair = []
+        stats = []
         for dsig in (0.0, drift_sigma):
             w = make_world(params, dsig, ray_steps)
             w.reset(seeds)
@@ -887,6 +928,7 @@ def common_garden_rollout(agent, norm, params, drift_sigma, *, n_pairs=110,
                     break
             if died:
                 pair.append(None)
+                stats.append(None)
                 continue
             tail = make_world(params, 0.0, ray_steps)   # common garden: authentic dynamics
             # reset only populates tail._rng for the key filter below;
@@ -897,11 +939,20 @@ def common_garden_rollout(agent, norm, params, drift_sigma, *, n_pairs=110,
             # can restore only the RNG slots that exist in the tail world
             snap["rng"] = {k: v for k, v in snap["rng"].items() if k in tail._rng}
             tail.set_state({**snap, "drift_w": 0.0})
-            Ht, _, _, alive = _run_branch(agent, norm, tail, h, prev, tail_steps, device)
-            pair.append(Ht if (alive and len(Ht) == tail_steps) else None)
+            Ht, spd_t, rew_t, alive = _run_branch(agent, norm, tail, h, prev, tail_steps, device)
+            ok = alive and len(Ht) == tail_steps
+            pair.append(Ht if ok else None)
+            stats.append({"label": 0 if len(stats) == 0 else 1,
+                          "speed": float(np.mean(spd_t)) if spd_t else 0.0,
+                          "reward_sum": float(np.sum(rew_t)) if rew_t else 0.0,
+                          "length": int(len(Ht)), "lifetime": int(ok)} if ok else None)
         if pair[0] is not None and pair[1] is not None:
             auth_tails.append(pair[0])
             surr_tails.append(pair[1])
+            auth_stats.append(stats[0])
+            surr_stats.append(stats[1])
+    if return_stats:
+        return auth_tails, surr_tails, auth_stats, surr_stats
     return auth_tails, surr_tails
 
 
@@ -916,12 +967,15 @@ def cg_probe(auth_tails: list, surr_tails: list, *, late_k: int = 8, seed: int =
     if n < 5:
         return out
     y = np.concatenate([np.zeros(n), np.ones(n)]).astype(int)
+    # Matched pairs share the prefix world state: same group id for both members so
+    # GroupKFold keeps each pair in one fold (see probe_world_identity).
+    g = np.concatenate([np.arange(n), np.arange(n)])
     X = np.stack([_episode_feature(H) for H in auth_tails + surr_tails])
     k = min(late_k, auth_tails[0].shape[0])
     Xl = np.stack([_episode_feature(H[-k:]) for H in auth_tails + surr_tails])
-    tgt, lo, hi = _auroc_with_ci(X, y, seed=seed)
+    tgt, lo, hi = _auroc_with_ci(X, y, seed=seed, groups=g)
     out.update(cg_tail_target=tgt, cg_tail_lo=lo, cg_tail_hi=hi,
-               cg_latetail_target=probe_auroc(Xl, y))
+               cg_latetail_target=grouped_auroc(Xl, y, g))
     return out
 
 
@@ -965,7 +1019,8 @@ def readout(agent, norm, params, drift_sigma, *, n_pairs=60, prefix_steps=20, br
                                           prefix_steps=prefix_steps, branch_steps=branch_steps,
                                           ray_steps=ray_steps, device=device, seed_base=seed_base)
     pr = probe_world_identity(a, s, seed=seed)
-    lk = leakage_audit_b2(a, s, margin=leak_margin)
+    g = np.concatenate([np.arange(len(a)), np.arange(len(s))])
+    lk = leakage_audit_b2(a, s, margin=leak_margin, groups=g)
     return {**pr, "leakage_clean": lk["clean"], "leakage_max_dev": lk["max_abs_dev"],
             "leakage": lk, "n_pairs": len(a)}
 

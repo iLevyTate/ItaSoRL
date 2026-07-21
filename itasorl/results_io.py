@@ -13,6 +13,7 @@ Set ``ITASORL_DRIVE_SYNC`` to a directory path to mirror live logs there
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
@@ -179,6 +180,16 @@ def parse_step_metrics(name: str, log: str) -> dict[str, Any]:
         mse = re.search(r"open-loop MSE=([\d.]+)", log)
         if mse:
             m["open_loop_mse"] = float(mse.group(1))
+        # the engagement claim needs its baselines on the record too - the
+        # 2026-07-18 audit found FINDINGS 3.4 quoting baseline values no
+        # committed artifact carried because this parser dropped them
+        base = re.search(r"mean-predictor=([\d.]+)\s+persistence=([\d.]+)", log)
+        if base:
+            m["open_loop_mean_predictor_mse"] = float(base.group(1))
+            m["open_loop_persistence_mse"] = float(base.group(2))
+        ratio = re.search(r"engagement \(zero-delta/model MSE\)=([\d.]+)x", log)
+        if ratio:
+            m["delta_engagement_ratio"] = float(ratio.group(1))
         rows = re.findall(r"drift=([\d.]+):\s+target AUROC=([\d.]+)±([\d.]+)", log)
         m["delta_objective"] = [
             {"drift": float(d), "target_mean": float(t), "organism_encodes_world": _encodes(float(t))}
@@ -205,10 +216,15 @@ def parse_step_metrics(name: str, log: str) -> dict[str, Any]:
         # LAST match is the strongest (test) drift - the cell the headline verdict and
         # the "At strongest drift" |dev| line refer to. re.search would return the
         # drift-0 control cell and understate the result.
+        # "nan" must be matchable: if the strongest-drift row printed nan (a seed with
+        # too few survivors) and the pattern only accepted digits, the last match would
+        # silently be a WEAKER-drift (or drift-0 control) cell - the exact
+        # mis-attribution the last-match design exists to prevent.
+        num = r"(nan|[\d.]+)"
         surv = re.findall(
-            r"survival\s+PRIMARY pool target = ([\d.]+)\+/-([\d.]+)", log,
+            rf"survival\s+PRIMARY pool target = {num}\+/-{num}", log,
         )
-        pred = re.findall(r"predictor\s+PRIMARY pool target = ([\d.]+)\+/-", log)
+        pred = re.findall(rf"predictor\s+PRIMARY pool target = {num}\+/-", log)
         if surv:
             m["survival_pool_target_mean"] = float(surv[-1][0])
             m["survival_pool_target_std"] = float(surv[-1][1])
@@ -224,8 +240,10 @@ def parse_step_metrics(name: str, log: str) -> dict[str, Any]:
 
 
 def _encodes(auroc: float | None, threshold: float = 0.60) -> str | None:
-    """Plain verdict for organism world-identity probe AUROC."""
-    if auroc is None:
+    """Plain verdict for organism world-identity probe AUROC. None (no verdict) for
+    a missing or non-finite value - NaN must not fall through the comparisons below
+    to a spurious "weak"."""
+    if auroc is None or not math.isfinite(auroc):
         return None
     dev = abs(auroc - 0.5)
     if dev < 0.05:
@@ -258,12 +276,18 @@ def _load_expb2_json(path: Path) -> dict[str, Any] | None:
     for drift, agents in raw.items():
         out[drift] = {}
         for agent, metrics in agents.items():
-            pt = metrics.get("pool_target", [])
+            # A seed with too few survivors writes NaN into pool_target; average the
+            # FINITE seeds (mirroring run_expB2's np.isfinite filtering) instead of
+            # letting one NaN poison the mean and force the verdict to "weak".
+            pt = [x for x in metrics.get("pool_target", []) if math.isfinite(x)]
+            n_raw = len(metrics.get("pool_target", []))
             if pt:
                 mean = sum(pt) / len(pt)
                 out[drift][agent] = {
                     "pool_target_mean": mean,
                     "pool_target_std": (sum((x - mean) ** 2 for x in pt) / len(pt)) ** 0.5,
+                    "pool_target_n_finite": len(pt),
+                    "pool_target_n_seeds": n_raw,
                     "organism_encodes_world": _encodes(mean, threshold=0.65),
                 }
     return out
@@ -335,7 +359,14 @@ class RunRecorder:
         rec.manifest = manifest
         manifest.setdefault("steps", {})
         manifest["resumed_at_utc"] = datetime.now(timezone.utc).isoformat()
-        manifest["git_commit"] = _git_head()
+        # Provenance: never overwrite the original run's commit - a resume
+        # across a code change would otherwise attribute earlier steps' outputs
+        # to the later commit (2026-07-18 audit fix). The original commit stays
+        # in git_commit; every resume appends to git_commit_history.
+        head = _git_head()
+        hist = manifest.setdefault("git_commit_history", [manifest.get("git_commit")])
+        if head != hist[-1]:
+            hist.append(head)
         manifest["environment"] = _device_info()
         rec._write_manifest()
         done = [n for n, s in manifest["steps"].items() if s.get("status") == "ok"]
@@ -624,14 +655,14 @@ def build_summary(manifest: dict[str, Any], run_dir: Path) -> str:
         "## What this run tested",
         "",
         "Can a from-scratch **organism** tell authentic vs surrogate worlds (L2 drift),",
-        "read out from its internal state — never trained or rewarded for world identity?",
+        "read out from its internal state - never trained or rewarded for world identity?",
         "",
         "| AUROC | Meaning |",
         "|-------|---------|",
         "| ~0.50 | No incidental encoding (coin flip) |",
-        "| 0.55–0.65 | Weak trace |",
+        "| 0.55-0.65 | Weak trace |",
         "| ≥ 0.65 | Pre-registered encoding threshold (B-v2) |",
-        "| ~0.99 | Outside oracle (Experiment A) — trivially detectable |",
+        "| ~0.99 | Outside oracle (Experiment A) - trivially detectable |",
         "",
         "## Step status",
         "",
@@ -691,7 +722,7 @@ def _section(lines: list[str], steps: dict, name: str, fn, run_dir: Path) -> Non
 
 
 def _summarize_expA_l1(lines: list[str], m: dict) -> None:
-    lines.append("*Outside observer (no organism) — L1 quantization:*")
+    lines.append("*Outside observer (no organism) - L1 quantization:*")
     lines.append("")
     for cell in m.get("cells", []):
         lines.append(f"- **{cell['label']}**: oracle AUROC **{cell['oracle_auroc']:.3f}** "
@@ -699,14 +730,14 @@ def _summarize_expA_l1(lines: list[str], m: dict) -> None:
 
 
 def _summarize_expA_l2(lines: list[str], m: dict) -> None:
-    lines.append("*Outside observer (no organism) — L2 rollout drift:*")
+    lines.append("*Outside observer (no organism) - L2 rollout drift:*")
     lines.append("")
     for cell in m.get("cells", []):
         lines.append(f"- **{cell['label']}**: oracle AUROC **{cell['oracle_auroc']:.3f}**")
 
 
 def _summarize_expB_full(lines: list[str], m: dict) -> None:
-    lines.append("*Organism (prediction-only agent) — recurrent-state probe:*")
+    lines.append("*Organism (prediction-only agent) - recurrent-state probe:*")
     lines.append("")
     for row in m.get("drift_sweep", []):
         verdict = row.get("organism_encodes_world", "?")
@@ -717,7 +748,7 @@ def _summarize_expB_full(lines: list[str], m: dict) -> None:
 
 
 def _summarize_expB_surprise(lines: list[str], m: dict) -> None:
-    lines.append("*Organism — prediction-error (surprise) channel:*")
+    lines.append("*Organism - prediction-error (surprise) channel:*")
     lines.append("")
     for row in m.get("drift_sweep", []):
         lines.append(
@@ -759,7 +790,7 @@ def _headline(steps: dict, run_dir: Path) -> str:
         if mp.is_file():
             m = json.loads(mp.read_text(encoding="utf-8"))
             surv = m.get("survival_pool_target_mean")
-            if surv is not None:
+            if surv is not None and math.isfinite(surv):
                 if _b2_used_sysid_aux(run_dir):
                     parts.append(
                         "Sysid-aux **CEILING** run: with the survival trunk supervised "
@@ -782,10 +813,28 @@ def _headline(steps: dict, run_dir: Path) -> str:
                     )
     bf = steps.get("expB_full")
     if bf and bf.get("status") == "ok":
-        parts.append(
-            "Prediction-only training (Experiment B) keeps world-identity probes "
-            "**near chance** across L2 drift levels."
-        )
+        # The near-chance claim must come from the MEASURED sweep, not from the step
+        # merely exiting 0 - otherwise the headline can contradict its own detail
+        # section when a run finds real encoding.
+        sweep: list[dict] = []
+        if bf.get("metrics"):
+            mp = run_dir / bf["metrics"]
+            if mp.is_file():
+                sweep = json.loads(mp.read_text(encoding="utf-8")).get("drift_sweep", [])
+        verdicts = {row.get("organism_encodes_world") for row in sweep}
+        if sweep and verdicts == {"no"}:
+            parts.append(
+                "Prediction-only training (Experiment B) keeps world-identity probes "
+                "**near chance** across L2 drift levels."
+            )
+        elif sweep:
+            top = max(sweep, key=lambda r: (r.get("target_mean") or 0.0))
+            parts.append(
+                "Prediction-only training (Experiment B) shows world-identity probe "
+                f"signal (target AUROC ≈ {top.get('target_mean', float('nan')):.2f} at "
+                f"drift {top.get('drift', float('nan')):g}) - inspect the Experiment B "
+                "section before citing the null."
+            )
     if not parts:
-        return "Run completed — inspect per-step metrics in `steps/*.json` and logs."
+        return "Run completed - inspect per-step metrics in `steps/*.json` and logs."
     return " ".join(parts)
