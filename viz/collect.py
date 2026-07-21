@@ -225,7 +225,7 @@ def main(argv=None):
     e5 = [p[3] for p in ra["pts"][b5_lo:b5_hi]]  # beat 5 (survival) energy span
     meta = {"source": "collect.py",
             "bundle": a.bundle,
-            "agents_dir": str(Path(a.agents).resolve()),
+            "agents_dir": Path(a.agents).as_posix(),
             "drift": a.drift, "l3_hidden": a.l3_hidden,
             "surrogate_refit_device": "cpu",
             "seed_base": base, "steps": a.steps,
