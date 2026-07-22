@@ -24,6 +24,91 @@ const easeOut = (p) => 1 - Math.pow(1 - p, 3);
 
 function ramp(t, a, b) { return b <= a ? 1 : clamp01((t - a) / (b - a)); }
 
+// -------------------------------------------------- teaching-motion sims
+// Deterministic, seeded, fully precomputed (render(t) is seeked non-monotonically
+// during capture, so no per-frame accumulation - we sample these arrays with the
+// existing posAt interpolation). Rows are [u, v, heading, energy] like a recorded
+// trajectory, so they drop into posAt / drawPatch / drawTrail / drawFan unchanged.
+
+// Two worlds, SAME start and the SAME steering plan (a fixed schedule of shared
+// waypoints both aim at each step). The ONE isolated variable is GRIP (drag): the
+// REAL world has firm traction and hugs the plan; the COPY is slippery, so it keeps
+// its momentum, slides past every corner and overshoots - the same intent, a body
+// that will not stop. That slide is the physical change the film is about, and it is
+// the only thing different. sameStart ramps the copy's grip down over the first few
+// steps so an onion-skin overlay begins pixel-identical, then it slides away.
+function buildMomentumSim(seed, drift, sameStart) {
+  const N = 220;
+  const DR = 0.30;                                        // real: firm grip
+  const DC = lerp(DR, 0.10, clamp01((drift || 0.45) / 0.45)); // copy: slippery
+  const aMag = 0.0062;                                    // same steering effort
+  const r = mulberry32(seed >>> 0);
+  const ph = r() * 6.28;                                  // seeded curve phase
+  const run = (isCopy) => {
+    const pts = [];
+    let x = 0.40, y = 0.58, vx = 0.004, vy = 0.002, energy = 0.85;
+    for (let k = 0; k < N; k++) {
+      // ONE shared steering command each step: a gently curving heading both
+      // intend to follow. The only difference is grip, so the slippery copy keeps
+      // its momentum, sails ahead and drifts wide on every curve - the gap GROWS,
+      // and it grows because of traction alone.
+      const ang = 0.5 + 1.05 * Math.sin(k * 0.032 + ph);
+      const grip = isCopy
+        ? (sameStart ? lerp(DR, DC, clamp01((k - 6) / 10)) : DC)
+        : DR;
+      vx = (1 - grip) * vx + Math.cos(ang) * aMag;
+      vy = (1 - grip) * vy + Math.sin(ang) * aMag;
+      x += vx; y += vy;
+      if (x < 0.12 || x > 0.88) { vx *= -0.7; x = Math.max(0.12, Math.min(0.88, x)); }
+      if (y < 0.12 || y > 0.88) { vy *= -0.7; y = Math.max(0.12, Math.min(0.88, y)); }
+      energy = Math.max(0.2, Math.min(1, energy + (mulberry32(seed + k)() - 0.5) * 0.01));
+      pts.push([x, y, Math.atan2(vy, vx), energy]);
+    }
+    return pts;
+  };
+  return { simReal: run(false), simCopy: run(true) };
+}
+
+// Active foraging under the COPY's floaty momentum. Early on the creature aims
+// straight at the food and its wrong momentum OVERSHOOTS (sails past, energy
+// drains); as `lead` ramps 0->1 (tied to the gauge sweep) it learns to brake and
+// aim short, and starts CATCHING (energy recovers). Never stops, never edge-pins.
+// pelletFrames match the scene.pellets_t shape so drawEats pops "+1" on a catch.
+function buildForageSim(seed, drift, stepMs, learn) {
+  const N = 220, drag = 0.24;
+  const err0 = (drift || 0.45) * 0.05;
+  const r = mulberry32(seed >>> 0);
+  const spawns = [];
+  for (let i = 0; i < 24; i++) spawns.push([0.22 + 0.56 * r(), 0.22 + 0.56 * r()]);
+  let si = 0, target = spawns[0];
+  let x = 0.5, y = 0.5, vx = 0.0, vy = 0.0, energy = 0.58;
+  const traj = [], frames = [];
+  for (let k = 0; k < N; k++) {
+    const L = easeInOut(clamp01((k * stepMs - learn[0]) / Math.max(1, learn[1] - learn[0])));
+    let dx = target[0] - x, dy = target[1] - y;
+    const dd = Math.hypot(dx, dy) || 1;
+    const brake = L * clamp01((0.16 - dd) / 0.16);   // learned + close -> aim short
+    const aMag = 0.013 * (1 - 0.72 * brake);
+    // COPY momentum error (a hair off, floaty)
+    const c = Math.cos(err0), s = Math.sin(err0);
+    const nvx = vx * c - vy * s, nvy = vx * s + vy * c;
+    vx = nvx * (1 + 0.18 * err0); vy = nvy * (1 + 0.18 * err0);
+    vx = (1 - drag) * vx + (dx / dd) * aMag;
+    vy = (1 - drag) * vy + (dy / dd) * aMag;
+    x += vx; y += vy;
+    if (x < 0.10 || x > 0.90) { vx *= -0.8; x = Math.max(0.10, Math.min(0.90, x)); }
+    if (y < 0.10 || y > 0.90) { vy *= -0.8; y = Math.max(0.10, Math.min(0.90, y)); }
+    if (Math.hypot(target[0] - x, target[1] - y) < 0.05) {   // catch
+      energy = Math.min(1, energy + 0.19);
+      si += 1; target = spawns[si % spawns.length];
+    }
+    energy = Math.max(0.24, energy - 0.0075);                 // passive drain
+    traj.push([x, y, Math.atan2(vy, vx), energy]);
+    frames.push([target.slice()]);
+  }
+  return { traj, pelletFrames: frames };
+}
+
 // Headline text uses ((...)) to mark the one gradient phrase per beat.
 // Built with DOM nodes (no innerHTML) so content stays inert.
 function setHeadline(el, text) {
@@ -278,8 +363,12 @@ function shadowEllipse(ctx, x, y, r) {
 function drawCreature(ctx, creature, stage, x, y, t, sc) {
   const f = creature.byStage[Math.max(0, Math.min(creature.byStage.length - 1, stage))];
   const ax = f.anchor.x - f.x, ay = f.anchor.y - f.y;
-  const bob = Math.round(Math.sin((2 * Math.PI * t) / 3200)) * sc;
-  shadowEllipse(ctx, x, y, f.w * sc * 0.28);
+  // Lively hop: one bounce ~0.72s that lifts a few px, and the shadow tightens
+  // as it rises - so the creature reads as actively hopping, not sliding. Pure
+  // function of t (safe under non-monotonic capture seeks).
+  const hop = Math.sin(((t % 720) / 720) * Math.PI);   // 0 -> 1 -> 0
+  const bob = -Math.round(hop * 4) * sc;
+  shadowEllipse(ctx, x, y, f.w * sc * 0.28 * (1 - 0.4 * hop));
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(
@@ -593,6 +682,17 @@ class Player {
     const mode = beat.world ? beat.world.mode : "none";
     if (mode === "none") return;
 
+    // Lazily build + cache the teaching-motion sims (deterministic, so building
+    // once and sampling is safe under non-monotonic capture seeks).
+    const drift = this.scene.meta ? this.scene.meta.drift : 0.45;
+    if ((mode === "diverge" || (mode === "split" && beat.world.sim)) && !this.sim) {
+      this.sim = buildMomentumSim(0x5EED, drift, true);
+    }
+    if (mode === "forage" && !this.forage) {
+      const sw = beat.gauge ? beat.gauge.sweep : [4000, 14000];
+      this.forage = buildForageSim(0xF06D, drift, this.scene.step_ms || 100, sw);
+    }
+
     const tl = t - beat.t0;
     // worldT0 lets a beat replay a chosen window of the recorded run (film
     // time keeps flowing; world time starts at worldT0). The survival beat
@@ -605,10 +705,18 @@ class Player {
     // Follow-camera. One target: creature centred. Two targets (split): the
     // SAME window frames both worlds so the panels show the same place, and
     // the camera zooms out just enough to keep both creatures in their strip.
-    const camFor = (targets) => {
+    const camFor = (targets, opts) => {
       let cx = 0, cy = 0;
       for (const q of targets) { cx += q[0]; cy += q[1]; }
       cx /= targets.length; cy /= targets.length;
+      // Loose follow (stateless): pull the frame only partway toward the
+      // creature from a fixed anchor, so it visibly roams the frame instead of
+      // sitting dead-centre while the world scrolls under it. follow=1 is the
+      // old tight lock; lower = looser. Pure function of t.
+      if (opts && opts.follow != null && opts.follow < 1 && opts.anchor) {
+        cx = opts.anchor[0] + (cx - opts.anchor[0]) * opts.follow;
+        cy = opts.anchor[1] + (cy - opts.anchor[1]) * opts.follow;
+      }
       let sw = 960 / zoom;
       if (targets.length > 1) {
         const dx = Math.abs(targets[0][0] - targets[1][0]);
@@ -647,9 +755,17 @@ class Player {
       };
     };
     const posOf = (traj) => posAt(traj, wt);
+    // Resolve a trajectory key: the teaching sims for the new keys, recorded data
+    // for auth/surr (so creature/scan/nocare stay byte-identical).
+    const trajFor = (key) => {
+      if (key === "simReal") return this.sim.simReal;
+      if (key === "simCopy") return this.sim.simCopy;
+      if (key === "forageTraj") return this.forage.traj;
+      return this.scene.trajs[key];
+    };
 
     const drawPatch = (vx, vw, key, cam, pos, ghost) => {
-      const traj = this.scene.trajs[key];
+      const traj = trajFor(key);
       const idx = pos.idx;
       const { sx, sy, sw } = cam;
       const dx0 = vx - (960 - vw) / 2;
@@ -682,7 +798,8 @@ class Player {
       if (glitch) drawGlitch(ctx, glitch, view, worldScale, t);
       const fanMode = beat.world.fan;
       const alert = fanMode === "alert" && !!glitch;
-      const pt = this.scene.pellets_t ? this.scene.pellets_t[key] : null;
+      const pt = key === "forageTraj" ? this.forage.pelletFrames
+        : (this.scene.pellets_t ? this.scene.pellets_t[key] : null);
       const pellets = pt ? pt[Math.min(pt.length - 1, idx)] : this.scene.pellets;
       const sense = fanMode ? { u: pos.u, v: pos.v, heading: pos.heading } : null;
       drawCoins(ctx, pellets, view, worldScale, t, sense);
@@ -709,7 +826,7 @@ class Player {
         const hx = (du - dv) * ISO.TW, hy = (du + dv) * ISO.TH;
         const hl = Math.hypot(hx, hy) || 1;
         label(cp[0] + (hx / hl) * 150 * worldScale, cp[1] + (hy / hl) * 150 * worldScale,
-          "WHAT IT SENSES", calloutAlpha(tl, 2200, 5600));
+          "ITS SENSES", calloutAlpha(tl, 2200, 5600));
         // coin chosen once (nearest at the window's start), so no switching
         const selWt = (beat.world.worldT0 != null ? beat.world.worldT0 : beat.t0) + 6400;
         const selIdx = Math.min(traj.length - 1, Math.floor(selWt / stepMs));
@@ -725,13 +842,19 @@ class Player {
           label(s[0], s[1] - 18 * worldScale, "FOOD", calloutAlpha(tl, 6400, 9300));
         }
       } else if (beat.id === "trick" && ghost && ghost.label) {
+        // REAL panel: mark where the copy has slid to. Fixed side (-1) so the tag
+        // does not flip left/right as the ghost crosses the panel midline.
         const gs2 = map(ghost.scr[0], ghost.scr[1]);
-        label(gs2[0], gs2[1] - 14, ghost.label, calloutAlpha(tl, 2200, 6200));
+        label(gs2[0], gs2[1] - 14, ghost.label, calloutAlpha(tl, 2200, 6200), -1);
+      } else if (beat.id === "trick" && vx > 0) {
+        // COPY panel: name the one changed rule (grip). Stable placement inside the
+        // panel so it never clips the divider while the copy slides around below it.
+        label(vx + 118, 132, "SLIDES TOO FAR", calloutAlpha(tl, 3000, 8600), 1);
       } else if (beat.id === "nocare") {
         const gl = glitchAt(0, 1, 1900);
         if (gl) {
           const s = view.pt(gl.u, gl.v);
-          label(s[0], s[1] - 12, "THE COPY'S FLAW",
+          label(s[0], s[1] - 12, "THE FAKE, GLITCHING",
             Math.min(1, gl.phase / 300, (1900 - gl.phase) / 400));
         }
         label(cp[0], cp[1] - 66 * worldScale, "IT DOESN'T REACT",
@@ -754,68 +877,83 @@ class Player {
 
     if (mode === "single") {
       const pos = posOf(this.scene.trajs.auth);
-      drawPatch(0, 960, "auth", camFor([pos.scr]), pos, null);
+      // Loose follow lets the recorded creature visibly cross the frame (its real
+      // path covers real ground; a tight camera hid that motion). Anchor = its
+      // position at the window start, held fixed for the beat.
+      const camOpts = beat.world.follow != null
+        ? { follow: beat.world.follow,
+            anchor: posAt(this.scene.trajs.auth,
+              beat.world.worldT0 != null ? beat.world.worldT0 : beat.t0).scr }
+        : null;
+      drawPatch(0, 960, "auth", camFor([pos.scr], camOpts), pos, null);
       if (beat.world.energy) this.paintEnergy(t, wt, beat);
     } else if (mode === "split") {
-      const pa = posOf(this.scene.trajs.auth);
-      const pr = posOf(this.scene.trajs.surr);
+      // With world.sim, both panels are driven by the momentum sim: same start,
+      // same push, so they begin pixel-identical and the copy drifts away.
+      const kL = beat.world.sim ? "simReal" : "auth";
+      const kR = beat.world.sim ? "simCopy" : "surr";
+      const pa = posOf(trajFor(kL));
+      const pr = posOf(trajFor(kR));
       const cam = camFor([pa.scr, pr.scr]);
-      drawPatch(0, 477, "auth", cam, pa,
-        { scr: pr.scr, color: "rgba(224,82,110,ALPHA)", label: "ITS TWIN IN THE COPY" });
+      drawPatch(0, 477, kL, cam, pa,
+        { scr: pr.scr, color: "rgba(224,82,110,ALPHA)",
+          label: beat.world.sim ? "COPY IS HERE" : "ITS TWIN IN THE COPY" });
       ctx.fillStyle = "#E8E5F1";
       ctx.fillRect(477, 0, 6, 960);
-      drawPatch(483, 477, "surr", cam, pr, { scr: pa.scr, color: "rgba(38,166,140,ALPHA)" });
+      drawPatch(483, 477, kR, cam, pr, { scr: pa.scr, color: "rgba(38,166,140,ALPHA)" });
       if (tl < 1400) drawMaterialize(ctx, 483, 477, tl);
-    } else if (mode === "physics") {
-      // Explainer: a frozen recorded moment. The teal arrow is the creature's
-      // actual next-step direction under true physics (recorded heading); the
-      // rose dashed arrow is the imitation's answer, rotated a hair to make
-      // the compounding-error idea visible. Diagram, labelled as such.
-      const traj = this.scene.trajs.auth;
-      const p = traj[84];
-      const [cx, cy] = this.iso.surfaceAt(p[0], p[1]);
-      const sw2 = 960 / 1.15;
-      const sx2 = Math.max(0, Math.min(this.iso.w - sw2, cx - sw2 / 2));
-      const sy2 = Math.max(0, Math.min(this.iso.h - sw2, cy - sw2 / 2));
-      ctx.drawImage(this.terrain, sx2, sy2, sw2, sw2, 0, 0, 960, 960);
-      const mapP = (tx, ty) => [((tx - sx2) / sw2) * 960, ((ty - sy2) / sw2) * 960];
-      const cp = mapP(cx, cy);
-      drawCreature(ctx, this.creature, beat.world.stage || 0, cp[0], cp[1], t, 5);
-      const q = this.iso.surfaceAt(
-        Math.max(0, Math.min(1, p[0] + Math.cos(p[2]) * 0.08)),
-        Math.max(0, Math.min(1, p[1] + Math.sin(p[2]) * 0.08)));
-      const qp = mapP(q[0], q[1]);
-      const ang = Math.atan2(qp[1] - cp[1], qp[0] - cp[0]);
-      const ext = easeOut(ramp(tl, 700, 2000));
-      const arrow = (a2, color, dash) => {
-        if (ext <= 0) return null;
-        const x0 = cp[0] + Math.cos(a2) * 62, y0 = cp[1] + Math.sin(a2) * 46;
-        const ex = cp[0] + Math.cos(a2) * (62 + 180 * ext);
-        const ey = cp[1] + Math.sin(a2) * (46 + 150 * ext);
-        ctx.save();
-        ctx.strokeStyle = color; ctx.fillStyle = color;
-        ctx.lineWidth = 5;
-        if (dash) ctx.setLineDash([11, 9]);
-        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(ex, ey); ctx.stroke();
-        ctx.setLineDash([]);
-        const ha = Math.atan2(ey - y0, ex - x0);
-        ctx.beginPath();
-        ctx.moveTo(ex + Math.cos(ha) * 17, ey + Math.sin(ha) * 17);
-        ctx.lineTo(ex + Math.cos(ha + 2.5) * 13, ey + Math.sin(ha + 2.5) * 13);
-        ctx.lineTo(ex + Math.cos(ha - 2.5) * 13, ey + Math.sin(ha - 2.5) * 13);
-        ctx.closePath(); ctx.fill();
-        ctx.restore();
-        return [ex, ey];
-      };
-      const tip1 = arrow(ang, "rgba(38,166,140,0.95)", false);
-      const tip2 = arrow(ang + 0.45, "rgba(224,82,110,0.95)", true);
-      if (tip1) {
-        drawCallout(ctx, tip1[0], tip1[1], "TRUE PHYSICS: ITS NEXT STEP",
-          tip1[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 2100, 5400));
+    } else if (mode === "diverge") {
+      // GREEN = what really happens next (the solid creature). RED = the copy's
+      // guess (a ghost ring that starts on top and drifts a hair further off every
+      // step). This matches the caption's green/red mapping and the film's red =
+      // "the copy got it wrong" language (see the observer beat). Camera holds the
+      // REAL creature, so the red guess visibly walks away instead of the world
+      // just zooming out around a fixed gap.
+      const real = posOf(trajFor("simReal"));
+      const copy = posOf(trajFor("simCopy"));
+      const cam = camFor([real.scr]);
+      drawPatch(0, 960, "simReal", cam, real,
+        { scr: copy.scr, color: "rgba(224,82,110,ALPHA)" });
+      // Anchor tags to the SMOOTH interpolated screen point (same one the sprite
+      // uses), not surfaceAt(u,v) - that snaps to the nearest tile centre, so a
+      // tag pinned to it hops one grid cell at a time and reads as a glitch.
+      const m0 = (tx, ty) => [((tx - cam.sx) / cam.sw) * 960, ((ty - cam.sy) / cam.sw) * 960];
+      const rs = m0(real.scr[0], real.scr[1]);
+      const cs = m0(copy.scr[0], copy.scr[1]);
+      const gap = Math.hypot(rs[0] - cs[0], rs[1] - cs[1]);
+      // One tag at a time: SAME START -> name the green -> name the red -> drift.
+      // The green/real label sits above the creature and points away from the red
+      // ghost, so the two never overlap once they separate.
+      const realSide = cs[0] < rs[0] ? [46, -34] : [-46, -34];
+      drawCallout(ctx, rs[0], rs[1] - 66, "SAME START", [-46, -34],
+        calloutAlpha(tl, 400, 2400));
+      drawCallout(ctx, rs[0], rs[1] - 66, "REAL: WHAT HAPPENS", realSide,
+        calloutAlpha(tl, 2600, 5000));
+      if (gap > 34) {
+        drawCallout(ctx, cs[0], cs[1] + 26, "THE COPY'S GUESS",
+          cs[0] < rs[0] ? [-46, 30] : [46, 30], calloutAlpha(tl, 5200, 9600));
       }
-      if (tip2) {
-        drawCallout(ctx, tip2[0], tip2[1], "THE IMITATION: A HAIR OFF",
-          tip2[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 5800, 9400));
+      if (gap > 60) {
+        const dft = Math.hypot(real.u - copy.u, real.v - copy.v);
+        drawCallout(ctx, (rs[0] + cs[0]) / 2, (rs[1] + cs[1]) / 2 - 30,
+          "DRIFT +" + dft.toFixed(2), [40, -24], calloutAlpha(tl, 5600, 9600));
+      }
+    } else if (mode === "forage") {
+      // Active hunt under the copy's floaty momentum: overshoot-and-miss early
+      // (energy drains), then it learns to lead and catches (energy recovers).
+      const pos = posOf(trajFor("forageTraj"));
+      const cam = camFor([pos.scr]);
+      drawPatch(0, 960, "forageTraj", cam, pos, null);
+      const sw = beat.gauge ? beat.gauge.sweep : [4000, 14000];
+      const Lf = easeInOut(ramp(tl, sw[0], sw[1]));
+      const m0 = (tx, ty) => [((tx - cam.sx) / cam.sw) * 960, ((ty - cam.sy) / cam.sw) * 960];
+      const cs = m0(pos.scr[0], pos.scr[1]);   // smooth anchor (see diverge note)
+      if (Lf < 0.5) {
+        drawCallout(ctx, cs[0], cs[1] - 64, "IT OVERSHOOTS", [46, -34],
+          calloutAlpha(tl, 4200, sw[1] * 0.5));
+      } else {
+        drawCallout(ctx, cs[0], cs[1] - 64, "NOW IT LEADS", [46, -34],
+          calloutAlpha(tl, sw[1] * 0.55, sw[1] + 4200));
       }
     } else if (mode === "scan") {
       // Faded copy world with a scanner band sweeping it; anomaly flags pop
@@ -878,12 +1016,12 @@ class Player {
       }
       // Name the path first, then the first mismatch the scanner catches.
       const midP = this.scanPath[Math.floor(this.scanPath.length / 2)];
-      drawCallout(ctx, midP[0], midP[1], "ITS RECORDED PATH",
+      drawCallout(ctx, midP[0], midP[1], "THE PATH IT WALKED",
         midP[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 1300, 3200));
       let fmin = null;
       for (const f of this.scanFlags) if (!fmin || f[0] < fmin[0]) fmin = f;
       if (fmin && xBand > fmin[0] + 46) {
-        drawCallout(ctx, fmin[0], fmin[1], "MISMATCH FOUND",
+        drawCallout(ctx, fmin[0], fmin[1], "A WRONG STEP, CAUGHT",
           fmin[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 3600, 7200));
       }
     }
