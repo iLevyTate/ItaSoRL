@@ -14,9 +14,9 @@
       "t1": 10000,
       "world": { "mode": "single", "zoom": [1.0, 1.05], "stage": 0, "fan": "calm" },
       "caption": {
-        "kicker": "A PATCH OF EARTH",
-        "headline": "Raise a creature ((from nothing.))",
-        "subline": "No labels. No instructions. It senses, moves, eats, and learns to predict what happens next."
+        "kicker": "MEET THE CREATURE",
+        "headline": "Born knowing ((nothing at all.))",
+        "subline": "No rules, no lessons. It just lives here: eating, moving, and guessing what happens next. The little lines are its senses, feeling the world around it."
       }
     },
     {
@@ -25,9 +25,9 @@
       "t1": 25000,
       "world": { "mode": "split", "zoom": [1.0, 1.03], "stage": 1 },
       "caption": {
-        "kicker": "THE TRICK",
-        "headline": "Sometimes its world is real. Sometimes it is a ((flawed copy.))",
-        "subline": "Same land, same food. But the copy's physics is a tiny neural net imitating the real rules - every step of motion lands a hair off. Can you tell? By eye, neither can we."
+        "kicker": "THE SECRET SWITCH",
+        "headline": "Sometimes we swap in a ((fake copy.))",
+        "subline": "Same ground, same food. But in the copy, things move a tiny bit wrong, like a game with floaty physics. One of these is real, one is fake. Can you tell? Neither can we."
       }
     },
     {
@@ -36,9 +36,9 @@
       "t1": 35000,
       "world": { "mode": "physics", "stage": 1 },
       "caption": {
-        "kicker": "WHAT ACTUALLY CHANGED",
-        "headline": "The world runs on rules. The copy runs on a ((guess.))",
-        "subline": "A physics engine is the world's rulebook: take this moment, compute the next. The copy's rulebook is a tiny neural net trained by watching the real one. Close - but never exact. A hair off, every single step."
+        "kicker": "WHAT IS ACTUALLY DIFFERENT",
+        "headline": "The real world has rules. The copy just ((guesses.))",
+        "subline": "Green is what really happens next. Red is the copy's best guess. Close, but never exact, and a hair off every single step."
       }
     },
     {
@@ -46,11 +46,11 @@
       "t0": 35000,
       "t1": 45000,
       "world": { "mode": "scan", "zoom": [1.0, 1.0] },
-      "gauge": { "label": "the outside observer - can it spot the copy?", "from": 0.5, "to": 0.99, "display": "0.99", "sweep": [1000, 5000] },
+      "gauge": { "label": "can an outsider spot the fake?", "from": 0.5, "to": 0.99, "display": "0.99", "sweep": [1000, 5000] },
       "caption": {
-        "kicker": "THE OUTSIDE OBSERVER",
-        "headline": "From outside, the copy is ((obvious.))",
-        "subline": "An observer replays the creature's raw motion and checks each step against the true physics. Every flag is a step that bent the wrong way. It catches the fake almost every time."
+        "kicker": "A WATCHER FROM OUTSIDE",
+        "headline": "From outside, the fake is ((easy to catch.))",
+        "subline": "A watcher who knows the real rules replays every move and checks it. Each flag is one step the copy got wrong. It catches the fake almost every time."
       }
     },
     {
@@ -58,11 +58,11 @@
       "t0": 45000,
       "t1": 60000,
       "world": { "mode": "single", "zoom": [1.02, 1.06], "stage": 2, "fan": "calm", "glitch": true, "worldT0": 35000 },
-      "gauge": { "label": "the creature's mind - does it know?", "from": 0.99, "to": 0.5, "display": "0.50", "sweep": [1200, 5200] },
+      "gauge": { "label": "does the creature's own mind know?", "from": 0.99, "to": 0.5, "display": "0.50", "sweep": [1200, 5200] },
       "caption": {
-        "kicker": "THE CREATURE'S MIND",
-        "headline": "The creature ((never notices.))",
-        "subline": "We read its internal state - and never reward it for anything. The difference leaves no trace. Detectable is not learned."
+        "kicker": "NOW LOOK INSIDE ITS MIND",
+        "headline": "But the creature itself ((never notices.))",
+        "subline": "We scan its brain and read its thoughts. Does it know its world is fake? No. Its mind is a coin flip. It never had a reason to care, so it never learned."
       }
     },
     {
@@ -70,11 +70,11 @@
       "t0": 60000,
       "t1": 80000,
       "world": { "mode": "single", "zoom": [1.0, 1.08], "energy": true, "stage": 3, "fan": "alert", "glitch": true, "worldT0": 50000 },
-      "gauge": { "label": "the creature's mind - does it know?", "from": 0.5, "to": 0.73, "display": "0.73", "sweep": [4000, 14000] },
+      "gauge": { "label": "does its mind know NOW?", "from": 0.5, "to": 0.73, "display": "0.73", "sweep": [4000, 14000] },
       "caption": {
-        "kicker": "SURVIVAL PRESSURE",
-        "headline": "Until its life ((depends on it.))",
-        "subline": "Make the copy something it must cope with to eat, and the difference shows up in its head - unasked, unrewarded, a side effect of surviving."
+        "kicker": "UNLESS ITS LIFE DEPENDS ON IT",
+        "headline": "Now make the fake ((cost it dinner.))",
+        "subline": "This time the copy's wrong physics makes food harder to catch. Telling real from fake now keeps it alive, so it learns to tell, all on its own. We never asked. We never rewarded it."
       }
     },
     {
@@ -83,9 +83,9 @@
       "t1": 90000,
       "world": { "mode": "none" },
       "endcard": {
-        "headline": "Detectable is not learned. Survival changes that.",
+        "headline": "Being catchable is not the same as knowing. Survival is what teaches a mind to notice.",
         "url": "ilevytate.github.io/ITASORL",
-        "foot": "AUROC, n = 10 seeds, pre-specified 0.65 bar. Readout, not reward."
+        "foot": "Real runs, 10 each. 0.50 = coin flip, 1.00 = always right. Read out, never rewarded."
       }
     }
   ]

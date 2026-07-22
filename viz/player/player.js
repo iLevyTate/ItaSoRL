@@ -709,7 +709,7 @@ class Player {
         const hx = (du - dv) * ISO.TW, hy = (du + dv) * ISO.TH;
         const hl = Math.hypot(hx, hy) || 1;
         label(cp[0] + (hx / hl) * 150 * worldScale, cp[1] + (hy / hl) * 150 * worldScale,
-          "WHAT IT SENSES", calloutAlpha(tl, 2200, 5600));
+          "ITS SENSES", calloutAlpha(tl, 2200, 5600));
         // coin chosen once (nearest at the window's start), so no switching
         const selWt = (beat.world.worldT0 != null ? beat.world.worldT0 : beat.t0) + 6400;
         const selIdx = Math.min(traj.length - 1, Math.floor(selWt / stepMs));
@@ -731,7 +731,7 @@ class Player {
         const gl = glitchAt(0, 1, 1900);
         if (gl) {
           const s = view.pt(gl.u, gl.v);
-          label(s[0], s[1] - 12, "THE COPY'S FLAW",
+          label(s[0], s[1] - 12, "THE FAKE, GLITCHING",
             Math.min(1, gl.phase / 300, (1900 - gl.phase) / 400));
         }
         label(cp[0], cp[1] - 66 * worldScale, "IT DOESN'T REACT",
@@ -810,11 +810,11 @@ class Player {
       const tip1 = arrow(ang, "rgba(38,166,140,0.95)", false);
       const tip2 = arrow(ang + 0.45, "rgba(224,82,110,0.95)", true);
       if (tip1) {
-        drawCallout(ctx, tip1[0], tip1[1], "TRUE PHYSICS: ITS NEXT STEP",
+        drawCallout(ctx, tip1[0], tip1[1], "REAL: WHAT REALLY HAPPENS",
           tip1[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 2100, 5400));
       }
       if (tip2) {
-        drawCallout(ctx, tip2[0], tip2[1], "THE IMITATION: A HAIR OFF",
+        drawCallout(ctx, tip2[0], tip2[1], "THE COPY'S GUESS, A HAIR OFF",
           tip2[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 5800, 9400));
       }
     } else if (mode === "scan") {
@@ -878,12 +878,12 @@ class Player {
       }
       // Name the path first, then the first mismatch the scanner catches.
       const midP = this.scanPath[Math.floor(this.scanPath.length / 2)];
-      drawCallout(ctx, midP[0], midP[1], "ITS RECORDED PATH",
+      drawCallout(ctx, midP[0], midP[1], "THE PATH IT WALKED",
         midP[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 1300, 3200));
       let fmin = null;
       for (const f of this.scanFlags) if (!fmin || f[0] < fmin[0]) fmin = f;
       if (fmin && xBand > fmin[0] + 46) {
-        drawCallout(ctx, fmin[0], fmin[1], "MISMATCH FOUND",
+        drawCallout(ctx, fmin[0], fmin[1], "A WRONG STEP, CAUGHT",
           fmin[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 3600, 7200));
       }
     }
