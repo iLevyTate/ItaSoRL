@@ -12,7 +12,7 @@
       "id": "creature",
       "t0": 0,
       "t1": 10000,
-      "world": { "mode": "single", "zoom": [1.0, 1.05], "stage": 0, "fan": "calm" },
+      "world": { "mode": "single", "zoom": [1.02, 1.0], "follow": 0.4, "stage": 0, "fan": "calm" },
       "caption": {
         "kicker": "MEET THE CREATURE",
         "headline": "Born knowing ((nothing at all.))",
@@ -57,7 +57,7 @@
       "id": "nocare",
       "t0": 45000,
       "t1": 60000,
-      "world": { "mode": "single", "zoom": [1.02, 1.06], "stage": 2, "fan": "calm", "glitch": true, "worldT0": 35000 },
+      "world": { "mode": "single", "zoom": [1.04, 1.0], "follow": 0.45, "stage": 2, "fan": "calm", "glitch": true, "worldT0": 35000 },
       "gauge": { "label": "does the creature's own mind know?", "from": 0.99, "to": 0.5, "display": "0.50", "sweep": [1200, 5200] },
       "caption": {
         "kicker": "NOW LOOK INSIDE ITS MIND",

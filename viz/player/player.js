@@ -368,8 +368,12 @@ function shadowEllipse(ctx, x, y, r) {
 function drawCreature(ctx, creature, stage, x, y, t, sc) {
   const f = creature.byStage[Math.max(0, Math.min(creature.byStage.length - 1, stage))];
   const ax = f.anchor.x - f.x, ay = f.anchor.y - f.y;
-  const bob = Math.round(Math.sin((2 * Math.PI * t) / 3200)) * sc;
-  shadowEllipse(ctx, x, y, f.w * sc * 0.28);
+  // Lively hop: one bounce ~0.72s that lifts a few px, and the shadow tightens
+  // as it rises - so the creature reads as actively hopping, not sliding. Pure
+  // function of t (safe under non-monotonic capture seeks).
+  const hop = Math.sin(((t % 720) / 720) * Math.PI);   // 0 -> 1 -> 0
+  const bob = -Math.round(hop * 4) * sc;
+  shadowEllipse(ctx, x, y, f.w * sc * 0.28 * (1 - 0.4 * hop));
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(
@@ -706,10 +710,18 @@ class Player {
     // Follow-camera. One target: creature centred. Two targets (split): the
     // SAME window frames both worlds so the panels show the same place, and
     // the camera zooms out just enough to keep both creatures in their strip.
-    const camFor = (targets) => {
+    const camFor = (targets, opts) => {
       let cx = 0, cy = 0;
       for (const q of targets) { cx += q[0]; cy += q[1]; }
       cx /= targets.length; cy /= targets.length;
+      // Loose follow (stateless): pull the frame only partway toward the
+      // creature from a fixed anchor, so it visibly roams the frame instead of
+      // sitting dead-centre while the world scrolls under it. follow=1 is the
+      // old tight lock; lower = looser. Pure function of t.
+      if (opts && opts.follow != null && opts.follow < 1 && opts.anchor) {
+        cx = opts.anchor[0] + (cx - opts.anchor[0]) * opts.follow;
+        cy = opts.anchor[1] + (cy - opts.anchor[1]) * opts.follow;
+      }
       let sw = 960 / zoom;
       if (targets.length > 1) {
         const dx = Math.abs(targets[0][0] - targets[1][0]);
@@ -867,7 +879,15 @@ class Player {
 
     if (mode === "single") {
       const pos = posOf(this.scene.trajs.auth);
-      drawPatch(0, 960, "auth", camFor([pos.scr]), pos, null);
+      // Loose follow lets the recorded creature visibly cross the frame (its real
+      // path covers real ground; a tight camera hid that motion). Anchor = its
+      // position at the window start, held fixed for the beat.
+      const camOpts = beat.world.follow != null
+        ? { follow: beat.world.follow,
+            anchor: posAt(this.scene.trajs.auth,
+              beat.world.worldT0 != null ? beat.world.worldT0 : beat.t0).scr }
+        : null;
+      drawPatch(0, 960, "auth", camFor([pos.scr], camOpts), pos, null);
       if (beat.world.energy) this.paintEnergy(t, wt, beat);
     } else if (mode === "split") {
       // With world.sim, both panels are driven by the momentum sim: same start,
