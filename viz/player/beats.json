@@ -23,7 +23,7 @@
       "id": "trick",
       "t0": 10000,
       "t1": 25000,
-      "world": { "mode": "split", "zoom": [1.0, 1.03], "stage": 1 },
+      "world": { "mode": "split", "sim": true, "worldT0": 0, "zoom": [1.0, 1.03], "stage": 1 },
       "caption": {
         "kicker": "THE SECRET SWITCH",
         "headline": "Sometimes we swap in a ((fake copy.))",
@@ -34,7 +34,7 @@
       "id": "physics",
       "t0": 25000,
       "t1": 35000,
-      "world": { "mode": "physics", "stage": 1 },
+      "world": { "mode": "diverge", "worldT0": 0, "zoom": [1.15, 1.5], "stage": 1 },
       "caption": {
         "kicker": "WHAT IS ACTUALLY DIFFERENT",
         "headline": "The real world has rules. The copy just ((guesses.))",
@@ -69,7 +69,7 @@
       "id": "survival",
       "t0": 60000,
       "t1": 80000,
-      "world": { "mode": "single", "zoom": [1.0, 1.08], "energy": true, "stage": 3, "fan": "alert", "glitch": true, "worldT0": 50000 },
+      "world": { "mode": "forage", "zoom": [1.0, 1.08], "energy": true, "stage": 3, "fan": "calm", "worldT0": 0 },
       "gauge": { "label": "does its mind know NOW?", "from": 0.5, "to": 0.73, "display": "0.73", "sweep": [4000, 14000] },
       "caption": {
         "kicker": "UNLESS ITS LIFE DEPENDS ON IT",

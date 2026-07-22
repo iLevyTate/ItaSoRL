@@ -67,7 +67,7 @@ def main() -> int:
         ('scene = await loadJSON("../data/scene.json");', "scene = window.__SCENE;"),
         ('const meta = await loadJSON("blob-frames.json");', "const meta = window.__CREATURE;"),
         ("img.src = meta.image;", "img.src = window.__SPRITE;"),
-        ('if (params.get("play") === "1") {', "if (true) {"),
+        ('if (params.get("play") === "1") {', "if (!params.has(\"t\")) {"),
     ]
     for a, b in repl:
         if a not in js:
