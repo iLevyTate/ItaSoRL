@@ -1272,6 +1272,63 @@ async function loadCreature() {
   return { img, byStage };
 }
 
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+// In-browser transport: the film autoplays on a loop with play/pause, a
+// scrubber and keyboard control (space, arrow keys). The capture rig instead
+// drives frames externally through window.__seek - its first call switches to
+// capture mode (loop stopped, controls hidden) so encoded frames stay
+// deterministic and chrome-free, exactly as before the transport existed.
+function makeTransport(player, duration) {
+  const btn = $("ctl-play"), scrub = $("ctl-scrub"), clock = $("ctl-time");
+  scrub.max = String(duration - 1);
+  let playing = false, tCur = 0, raf = 0;
+
+  const draw = (t) => {
+    tCur = ((t % duration) + duration) % duration;
+    player.render(tCur);
+    scrub.value = String(Math.floor(tCur));
+    clock.textContent = `${fmtTime(tCur)} / ${fmtTime(duration)}`;
+  };
+  const pause = () => {
+    playing = false;
+    cancelAnimationFrame(raf);
+    btn.textContent = "\u25B6";           // play triangle
+    btn.setAttribute("aria-label", "Play");
+  };
+  const play = () => {
+    if (playing) return;
+    playing = true;
+    btn.textContent = "\u2016";           // pause bars
+    btn.setAttribute("aria-label", "Pause");
+    const from = tCur;
+    let start = null;
+    const loop = (ts) => {
+      if (!playing) return;
+      if (start === null) start = ts;
+      draw(from + (ts - start));
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+  };
+  const toggle = () => (playing ? pause() : play());
+  const seekBy = (dt) => { pause(); draw(tCur + dt); };
+
+  btn.addEventListener("click", toggle);
+  $("stage").addEventListener("click", toggle);
+  scrub.addEventListener("input", () => { pause(); draw(parseFloat(scrub.value)); });
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Space") { e.preventDefault(); toggle(); }
+    else if (e.code === "ArrowLeft") seekBy(-5000);
+    else if (e.code === "ArrowRight") seekBy(5000);
+  });
+
+  return { draw, play, pause };
+}
+
 async function main() {
   fitStage();
   window.addEventListener("resize", fitStage);
@@ -1288,24 +1345,19 @@ async function main() {
   const creature = await loadCreature();
   await document.fonts.ready;
   const player = new Player(beats, scene, creature);
+  const transport = makeTransport(player, beats.duration_ms);
 
-  window.__seek = (t) => { player.render(t); return true; };
+  window.__seek = (t) => {
+    transport.pause();
+    $("controls").style.display = "none";   // capture frames stay chrome-free
+    player.render(t);
+    return true;
+  };
   window.__duration = beats.duration_ms;
   window.__sceneSource = scene.meta ? scene.meta.source : "unknown";
 
-  const t0 = parseFloat(params.get("t") || "0");
-  player.render(t0);
-
-  if (params.get("play") === "1") {
-    let start = null;
-    const loop = (ts) => {
-      if (start === null) start = ts - t0;
-      const t = ts - start;
-      player.render(t % beats.duration_ms);
-      requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-  }
+  transport.draw(parseFloat(params.get("t") || "0"));
+  if (params.get("play") !== "0") transport.play();
   window.__ready = true;
 }
 
