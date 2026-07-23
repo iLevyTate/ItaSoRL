@@ -556,6 +556,42 @@ function drawGhost(ctx, gs, cp, scale, t, color) {
   ctx.restore();
 }
 
+// Mind catching a glitch. When the creature's own read-out flags the fake's
+// wrong-physics moment, a violet mark pops right on the glitch (violet = the
+// mind, matching the gauge's "reading from the creature's mind"). A MISS just
+// fizzles grey - the glitch slipped past unnoticed. This replaces the old idle
+// orbiting halo: now the probe visibly does something, and what it does is catch
+// glitches. Pure function of t, safe under capture seeks.
+function drawMindCatch(ctx, x, y, scale, phase, caught) {
+  const pop = clamp01(phase / 130);
+  const fade = 1 - clamp01((phase - 260) / 340);
+  const a = pop * fade;
+  if (a <= 0) return;
+  ctx.save();
+  if (caught) {
+    const R = (12 + 30 * (1 - fade)) * scale;              // ring snaps shut on it
+    ctx.strokeStyle = `rgba(122,94,186,${(0.85 * a).toFixed(3)})`;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.arc(x, y, R, 0, 2 * Math.PI); ctx.stroke();
+    ctx.fillStyle = `rgba(122,94,186,${a.toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(x, y, 5.5 * scale, 0, 2 * Math.PI); ctx.fill();
+    ctx.strokeStyle = `rgba(251,250,255,${a.toFixed(3)})`;   // white check tick
+    ctx.lineWidth = 2.2; ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x - 3.4 * scale, y);
+    ctx.lineTo(x - 0.7 * scale, y + 2.8 * scale);
+    ctx.lineTo(x + 3.6 * scale, y - 3.0 * scale);
+    ctx.stroke();
+  } else {
+    const R = (10 + 18 * (1 - fade)) * scale;               // faint miss, fizzles
+    ctx.setLineDash([4, 5]);
+    ctx.strokeStyle = `rgba(150,142,170,${(0.5 * a).toFixed(3)})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, R, 0, 2 * Math.PI); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 // Game-style energy pill above the creature (survival beat). The level is the
 // recorded per-step energy, so the on-screen drain is the real starvation arc.
 function drawEnergyPill(ctx, x, y, e, scale, t) {
@@ -808,6 +844,24 @@ class Player {
       const cp = map(pos.scr[0], pos.scr[1]);
       if (fanMode) drawFan(ctx, view, cp, pos.u, pos.v, pos.heading, t, worldScale, alert);
       drawCreature(ctx, this.creature, beat.world.stage || 0, cp[0], cp[1], t, sc);
+      // Mind-probe: show the mind CATCHING the fake's glitches, not an idle halo.
+      // Catch chance = how far the gauge sits above coin-flip, so the flags the
+      // viewer sees ARE the number: nocare (50%) barely catches - it doesn't
+      // react; survival climbs 50% -> 73%, so it misses early then starts catching.
+      if (beat.world.probe && glitch) {
+        const gg = beat.gauge;
+        const evTl = GLITCH_START + glitch.seed * GLITCH_EVERY;
+        const gv = gg ? lerp(gg.from, gg.to, easeInOut(ramp(evTl, gg.sweep[0], gg.sweep[1]))) : 0.5;
+        const pCatch = clamp01((gv - 0.5) / 0.3);          // detection skill above chance
+        const caught = mulberry32(glitch.seed * 104729 + 7)() < pCatch;
+        const gc = view.pt(glitch.u, glitch.v);
+        drawMindCatch(ctx, gc[0], gc[1], worldScale, glitch.phase, caught);
+        if (caught) {
+          const ca = Math.min(1, glitch.phase / 130) * (1 - clamp01((glitch.phase - 280) / 320));
+          drawCallout(ctx, gc[0], gc[1] - 20 * worldScale, "CAUGHT",
+            gc[0] < 480 ? [40, -26] : [-40, -26], ca);
+        }
+      }
       if (beat.world.energy) drawEnergyPill(ctx, cp[0], cp[1], pos.energy, worldScale, t);
       if (ghost) drawGhost(ctx, map(ghost.scr[0], ghost.scr[1]), cp, worldScale, t, ghost.color);
       if (alert) drawAlertPing(ctx, cp[0], cp[1], worldScale, glitch.age);
@@ -841,15 +895,20 @@ class Player {
           const s = view.pt(best[0], best[1]);
           label(s[0], s[1] - 18 * worldScale, "FOOD", calloutAlpha(tl, 6400, 9300));
         }
-      } else if (beat.id === "trick" && ghost && ghost.label) {
+      } else if (beat.id === "trick" && vx === 0) {
+        // Question beat: establish fairness only. No labels give the answer
+        // away - the viewer gets to actually try before the reveal beat.
+        label(cp[0], cp[1] - 60 * worldScale, "SAME START, SAME PLAN",
+          calloutAlpha(tl, 1800, 4600), -1);
+      } else if (beat.id === "reveal" && ghost && ghost.label) {
         // REAL panel: mark where the copy has slid to. Fixed side (-1) so the tag
         // does not flip left/right as the ghost crosses the panel midline.
         const gs2 = map(ghost.scr[0], ghost.scr[1]);
-        label(gs2[0], gs2[1] - 14, ghost.label, calloutAlpha(tl, 2200, 6200), -1);
-      } else if (beat.id === "trick" && vx > 0) {
+        label(gs2[0], gs2[1] - 14, ghost.label, calloutAlpha(tl, 900, 4200), -1);
+      } else if (beat.id === "reveal" && vx > 0) {
         // COPY panel: name the one changed rule (grip). Stable placement inside the
         // panel so it never clips the divider while the copy slides around below it.
-        label(vx + 118, 132, "SLIDES TOO FAR", calloutAlpha(tl, 3000, 8600), 1);
+        label(vx + 118, 132, "SLIDES TOO FAR", calloutAlpha(tl, 1700, 5400), 1);
       } else if (beat.id === "nocare") {
         const gl = glitchAt(0, 1, 1900);
         if (gl) {
@@ -897,11 +956,11 @@ class Player {
       const cam = camFor([pa.scr, pr.scr]);
       drawPatch(0, 477, kL, cam, pa,
         { scr: pr.scr, color: "rgba(224,82,110,ALPHA)",
-          label: beat.world.sim ? "COPY IS HERE" : "ITS TWIN IN THE COPY" });
+          label: beat.id === "reveal" ? "COPY IS HERE" : null });
       ctx.fillStyle = "#E8E5F1";
       ctx.fillRect(477, 0, 6, 960);
       drawPatch(483, 477, kR, cam, pr, { scr: pa.scr, color: "rgba(38,166,140,ALPHA)" });
-      if (tl < 1400) drawMaterialize(ctx, 483, 477, tl);
+      if (tl < 1400 && beat.world.wipe !== false) drawMaterialize(ctx, 483, 477, tl);
     } else if (mode === "diverge") {
       // GREEN = what really happens next (the solid creature). RED = the copy's
       // guess (a ghost ring that starts on top and drifts a hair further off every
@@ -1075,22 +1134,77 @@ class Player {
     if (g) {
       const el = $("gauge");
       el.style.opacity = vis.toFixed(3);
-      $("gauge-label").textContent = g.label;
+      // The source tag ("READING FROM - ...") tells the viewer WHAT the meter is
+      // wired to, so the same instrument reading a different source (outside
+      // watcher vs. the creature's mind) never reads as the score "falling".
+      $("gauge-source").textContent = g.source ? "READING FROM - " + g.source : "";
+      $("gauge-source").style.color = g.accent || "";
+      $("gauge-label").textContent = g.label || "";
       const tl = t - beat.t0;
       const p = easeInOut(ramp(tl, g.sweep[0], g.sweep[1]));
-      const v = lerp(g.from, g.to, p);
-      const pct = clamp01((v - 0.45) / (1.0 - 0.45));
-      $("gauge-fill").style.width = (pct * 100).toFixed(2) + "%";
-      $("gauge-value").textContent = p >= 1 ? g.display : v.toFixed(2);
-      const barPct = clamp01((0.65 - 0.45) / (1.0 - 0.45));
-      $("gauge-tick").style.left = "calc(" + (barPct * 100).toFixed(2) + "% - 1px)";
-      $("caption").style.top = "1208px";
+      let v = lerp(g.from, g.to, p);
+      let settled = p >= 1;
+      // Coin-flip wobble (nocare): a static bar reads as a broken meter. The
+      // needle flickers a couple of points either side of 50% - showing chance
+      // instead of claiming it - then locks onto 50% before the beat ends.
+      if (g.wobble) {
+        const dur = beat.t1 - beat.t0;
+        const amp = 0.02
+          * ramp(tl, g.sweep[0], g.sweep[0] + 900)
+          * (1 - ramp(tl, dur - 2800, dur - 1400));
+        if (amp > 0.0005) {
+          v = clamp01(v + amp * (0.6 * Math.sin(tl / 230) + 0.4 * Math.sin(tl / 97)));
+          settled = false;
+        }
+      }
+      // Track spans the full 0-100% so "50% = coin flip" is a HALF-FULL bar on
+      // the marked mid-line - what a lay viewer expects - not an empty bar that
+      // contradicts the number beside it.
+      const barAt = (x) => clamp01(x);
+      $("gauge-fill").style.width = (barAt(v) * 100).toFixed(2) + "%";
+      const unit = g.unit || "score";
+      $("gauge-value").textContent = settled
+        ? g.display
+        : (unit === "pct" ? Math.round(v * 100) + "%" : v.toFixed(2));
+      // Pinned reference: where the outside watcher landed, held on the mind
+      // beats so the live needle reads against it instead of appearing to fall.
+      const ref = g.reference;
+      const refEl = $("gauge-ref");
+      const refLbl = $("gauge-ref-label");
+      if (ref) {
+        const rp = (barAt(ref.value) * 100).toFixed(2);
+        refEl.style.left = "calc(" + rp + "% - 1.5px)";
+        refEl.style.opacity = vis.toFixed(3);
+        refLbl.textContent = ref.label + " " + Math.round(ref.value * 100) + "%";
+        refLbl.style.left = rp + "%";
+        refLbl.style.opacity = vis.toFixed(3);
+      } else {
+        refEl.style.opacity = "0";
+        refLbl.style.opacity = "0";
+      }
+      $("caption").style.top = "1214px";
     } else {
       $("gauge").style.opacity = "0";
+      $("gauge-ref").style.opacity = "0";
+      $("gauge-ref-label").style.opacity = "0";
       $("caption").style.top = "1108px";
     }
 
+    // Split-panel chips are beat-driven: the question beat shows neutral
+    // "WORLD A / WORLD B" so "can you tell?" is a genuine question; the reveal
+    // beat names them (REAL WORLD / FAKE COPY) and colors the underlines.
     const chips = beat.world && beat.world.mode === "split" ? vis : 0;
+    const cc = beat.chips;
+    if (cc) {
+      const setChip = (el, pair) => {
+        el.querySelector(".chip-label").textContent = pair[0];
+        el.querySelector(".chip-sub").textContent = pair[1];
+      };
+      setChip($("chip-a"), cc.a);
+      setChip($("chip-b"), cc.b);
+      $("chip-a").classList.toggle("chip-real", !!cc.colors);
+      $("chip-b").classList.toggle("chip-copy", !!cc.colors);
+    }
     $("chip-a").style.opacity = (chips * 0.95).toFixed(3);
     $("chip-b").style.opacity = (chips * 0.95).toFixed(3);
 
@@ -1099,6 +1213,25 @@ class Player {
 
     if (beat.endcard) {
       $("end-headline").textContent = beat.endcard.headline;
+      // One-glance recap of the arc (99% -> 50% -> 73%). Built once with DOM
+      // nodes (no innerHTML) so content stays inert; idempotent under re-seeks.
+      const recapEl = $("end-recap");
+      if (beat.endcard.recap && !recapEl.dataset.built) {
+        recapEl.replaceChildren();
+        for (const r of beat.endcard.recap) {
+          const chip = document.createElement("div");
+          chip.className = "recap-chip";
+          const pct = document.createElement("div");
+          pct.className = "recap-pct";
+          pct.textContent = r.pct;
+          const lab = document.createElement("div");
+          lab.className = "recap-label";
+          lab.textContent = r.label;
+          chip.append(pct, lab);
+          recapEl.appendChild(chip);
+        }
+        recapEl.dataset.built = "1";
+      }
       $("end-url").textContent = beat.endcard.url;
       $("end-foot").textContent = beat.endcard.foot;
       $("endcard").style.opacity = inP.toFixed(3);
