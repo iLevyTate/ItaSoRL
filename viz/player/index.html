@@ -48,6 +48,15 @@
       <div id="end-foot"></div>
     </div>
   </div>
+
+  <!-- Transport bar: browser viewing only. The capture rig hides it via
+       window.__seek so it never appears in encoded film frames. -->
+  <div id="controls">
+    <button id="ctl-play" aria-label="Pause">&#x2016;</button>
+    <input id="ctl-scrub" type="range" min="0" max="89999" step="100" value="0" aria-label="Seek">
+    <div id="ctl-time">0:00 / 1:30</div>
+  </div>
+
   <script src="player.js"></script>
 </body>
 </html>
