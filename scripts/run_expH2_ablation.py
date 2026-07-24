@@ -46,7 +46,8 @@ from itasorl.surrogate_l3 import GradedGMotion
 from itasorl.world import WorldParams
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)   # frozen organism world
-PUBLISHED_TARGET = 0.752                                 # drift-0.45 survival mean at alpha=1
+PUBLISHED_TARGET_H8 = 0.752                              # drift-0.45 survival mean at alpha=1, hidden=8
+PUBLISHED_TARGET_H7 = 0.737                              # drift-0.45 survival mean at alpha=1, hidden=7
 DRIFT = 0.45                                             # the headline evaluation cell
 ALPHAS = (0.0, 0.1, 0.25, 0.5, 0.75, 1.0)               # FROZEN grid (spec section 9)
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
@@ -80,6 +81,8 @@ def cfg():
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--arms", nargs="+", default=["survival", "untrained", "predictor"],
                     choices=("survival", "untrained", "predictor"))
+    ap.add_argument("--hidden", type=int, default=8,
+                    help="GMotion capacity of the saved agents (8 or 7); default 8")
     ap.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     ap.add_argument("--n-eps", type=int, default=110)
     ap.add_argument("--steps", type=int, default=24)
@@ -90,6 +93,9 @@ def cfg():
 
 def main():
     a = cfg()
+    if a.hidden not in (7, 8):
+        raise SystemExit("--hidden must be 7 or 8")
+    published_target = PUBLISHED_TARGET_H7 if a.hidden == 7 else PUBLISHED_TARGET_H8
     dev = default_device() if a.device == "auto" else a.device
     if a.device == "cuda" and dev != "cuda":
         raise SystemExit("--device cuda requested but CUDA unavailable")
@@ -98,12 +104,13 @@ def main():
     n_eps, steps = (12, 8) if a.quick else (a.n_eps, a.steps)
     alphas = (0.0, 1.0) if a.quick else ALPHAS
 
-    # The base surrogate MUST be the bit-identical hidden=8 GMotion so alpha=1 reproduces
-    # the saved dumps. setup installs it into b2._L3_GMOTION; capture it, then per alpha
-    # overwrite the hook with the graded blend around this same base net.
-    setup_l3_surrogate(hidden=8, seed=0, params=P, device=dev)
+    # The base surrogate MUST be the bit-identical hidden=<capacity> GMotion so alpha=1
+    # reproduces the saved dumps. setup installs it into b2._L3_GMOTION; capture it, then
+    # per alpha overwrite the hook with the graded blend around this same base net.
+    setup_l3_surrogate(hidden=a.hidden, seed=0, params=P, device=dev)
     g_base = b2._L3_GMOTION
-    print(f"device={dev}  arms={a.arms}  alphas={alphas}  n_eps={n_eps} steps={steps} quick={a.quick}")
+    print(f"device={dev}  arms={a.arms}  hidden={a.hidden}  alphas={alphas}  "
+          f"n_eps={n_eps} steps={steps} quick={a.quick}")
 
     cells = sorted(f for f in os.listdir(a.agents_dir) if AGENT_RE.search(f))
     cells = [c for c in cells if parse_agent_filename(c)[0] == DRIFT
@@ -115,7 +122,7 @@ def main():
 
     rows = []
     integrity = {"checked": False, "pools_bit_match": None, "survival_mean_alpha1": None,
-                 "published_target": PUBLISHED_TARGET}
+                 "published_target": published_target}
     # Validate the determinism gate FIRST (alpha=1 == plain hidden=8 GMotion) so a bad
     # injection aborts in one pass, before the expensive sweep. Then the remaining alphas.
     alphas_ordered = ([1.0] + [x for x in alphas if x != 1.0]) if 1.0 in alphas else list(alphas)
@@ -151,10 +158,10 @@ def main():
             mean_a1 = round(float(np.mean(done)), 3) if done else None
             integrity.update({"checked": True, "pools_bit_match": bit_match_all,
                               "survival_mean_alpha1": mean_a1})
-            if mean_a1 != PUBLISHED_TARGET:
+            if mean_a1 != published_target:
                 raise SystemExit(f"INTEGRITY GATE FAILED: alpha=1 survival mean {mean_a1} "
-                                 f"!= published {PUBLISHED_TARGET}. Aborting before the sweep.")
-            print(f"integrity gate PASSED: alpha=1 survival mean {mean_a1} == {PUBLISHED_TARGET} "
+                                 f"!= published {published_target}. Aborting before the sweep.")
+            print(f"integrity gate PASSED: alpha=1 survival mean {mean_a1} == {published_target} "
                   f"(determinism check #5)")
 
     # ---- aggregate ----------------------------------------------------------

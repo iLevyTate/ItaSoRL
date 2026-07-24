@@ -571,6 +571,32 @@ Rigor carried from the B-v3 audit (2026-07-10):
   `artifacts/expB2/heldout_l3_h7_reverse_mp_rescore.json`. The transfer channel's exemption
   in the 2026-07-18 entry stands (frozen-fit train/test, no CV grouping).
 
+- **2026-07-23 - H2 TEXTURE-KNOCKOUT: STRUCTURE + DOSE-RESPONSE ABLATIONS (n=10,
+  readout-only): H2 CONFIRMED IN TEXTURE-SPECIFIC FORM at hidden=8 and hidden=7.**
+  Executes the frozen spec
+  `docs/specs/2026-07-22-h2-substrate-grounding-ablations-design.md` (PR #99)
+  against the saved `fullruns/l3_h8_heldout` and `fullruns/l3_h7_heldout` agents;
+  no training. GATE-0 CALIBRATION: `G_gn` (Gaussian-jitter velocity law) freezes at
+  `sigma_v=0.01` with oracle AUROC **0.865** (band pass), leakage pass, and
+  untrained floor **0.448** (within tolerance). The same-recipe MLP capacity
+  ladder {h16, h32, h64} is calibrated sub-band with clean floors and leakage:
+  oracle AUROCs **0.788, 0.656, 0.603**. INTEGRITY GATE (sixth determinism
+  check at hidden=8, seventh at hidden=7): all 60 reloaded agents per capacity
+  regenerated their standard pools bit-identically and the drift-0.45 pooled
+  survival means reproduced the published **0.752** (hidden=8) and **0.737**
+  (hidden=7) exactly. CHANNEL 1 (structure knockout, PRIMARY): at hidden=8
+  survival `transfer_gn_target` = **0.539** (0/10 seeds >= 0.65), predictor 0.556,
+  untrained floor 0.542; at hidden=7 survival **0.510**, predictor 0.539,
+  untrained floor 0.520. The frozen positive rule fails both clauses at both
+  capacities, so the direction does NOT read matched-band unstructured jitter.
+  CHANNEL 2 (dose-response, SECONDARY): at hidden=8 survival transfer means
+  **h16 0.701, h32 0.622, h64 0.541** (seeds >= 0.65: 8/10, 3/10, 0/10); at
+  hidden=7 **h16 0.574, h32 0.516, h64 0.513** (1/10, 0/10, 0/10). VERDICT: H2
+  is supported in texture-specific form across both in-band capacities; the
+  world-signal loads on the learned structure of the substrate velocity-law
+  surrogate, not on generic dynamics perturbation. The survival-specificity claim
+  remains conditional on the subtler hidden=8 artifact (section 10.5).
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
