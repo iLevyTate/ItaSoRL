@@ -588,6 +588,22 @@ Rigor carried from the B-v3 audit (2026-07-10):
   readable in every mask condition, so the chance collapse is not a dead-probe
   artifact. Local artifact: `fullruns/l3_h8_obs_localization/aggregate.json`.
 
+- **2026-07-24 - A2 OBSERVATION-CHANNEL LOCALIZATION (n=10, readout-only):
+  HIDDEN=7 SIGNAL IS ROBUST TO SINGLE-CHANNEL MASKING.** Executes
+  `scripts/run_l3_obs_localization.py` with `--hidden 7` against the saved
+  `fullruns/l3_h7_heldout` agents; no training. The frozen agent's observations
+  are channel-masked before the running norm and new drift-0.45 pools are
+  collected under the hidden=7 fingerprint. Baseline (no mask) survival mean
+  **0.737** reproduces the headline. Masking **vision** (120/146 dims) leaves the
+  signal at **0.764** (9/10 seeds >= 0.65). Masking **interoception** (14/146
+  dims) leaves it at **0.742** (8/10). Masking **all** observations collapses it
+  to **0.500**. Unlike hidden=8, where vision masking causes a clear drop, the
+  hidden=7 signal is robust to single-channel lesion: the coarser surrogate's
+  artifacts propagate into both visual and interoceptive streams. The probe's
+  positive controls (speed, energy, food) remain readable in every mask condition,
+  so the chance collapse is not a dead-probe artifact. Local artifact:
+  `fullruns/l3_h7_obs_localization/aggregate.json`.
+
 - **2026-07-23 - H2 TEXTURE-KNOCKOUT: STRUCTURE + DOSE-RESPONSE ABLATIONS (n=10,
   readout-only): H2 CONFIRMED IN TEXTURE-SPECIFIC FORM at hidden=8 and hidden=7.**
   Executes the frozen spec

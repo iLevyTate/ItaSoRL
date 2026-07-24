@@ -1496,15 +1496,18 @@ specificity part remains conditional on the subtler hidden=8 artifact (section
 
 ## 14.6 A2 observation-channel localization
 
-**Status: COMPLETE for the L3 rung at hidden=8.** Design and runner:
-`scripts/run_l3_obs_localization.py`. Local artifact:
-`fullruns/l3_h8_obs_localization/aggregate.json`.
+**Status: COMPLETE for the L3 rung at hidden=8 and hidden=7.** Design and runner:
+`scripts/run_l3_obs_localization.py`. Local artifacts:
+`fullruns/l3_h8_obs_localization/aggregate.json` and
+`fullruns/l3_h7_obs_localization/aggregate.json`.
 
 This probe asks *which* observation channels carry the world-identity signal in
 the survival agent's recurrent state. The agent is frozen; the only change is a
 channel-wise zero mask applied to the raw observation before its running norm. New
-pools are collected under the hidden=8 fingerprint at drift 0.45, and a fresh
+pools are collected under the learned fingerprint at drift 0.45, and a fresh
 pooled_readout is run on each masked condition.
+
+**Hidden=8.**
 
 | Mask | Zeroed dims | survival mean | predictor mean | untrained mean |
 |---|---|---|---|---|
@@ -1513,22 +1516,35 @@ pooled_readout is run on each masked condition.
 | intero | 14 / 146 | **0.756** (8/10) | 0.562 | 0.506 |
 | all | 146 / 146 | **0.500** (0/10) | 0.500 | 0.500 |
 
-**Reading.** Masking the entire observation collapses the signal to chance (0.500),
-which is a sanity check that the readout is not decoding from unmasked behavior
-correlates. Masking **interoception** (velocity, heading, energy, etc.) leaves the
-signal essentially unchanged, so the world-identity representation is not
-primarily driven by the dynamics-relevant proprioceptive channels. Masking **vision**
-(raycasts, including their radial-velocity components) causes a modest but clear
-drop from 0.753 to 0.686. This suggests the world-identity signal is carried by
-the visual stream and/or the behavior it shapes, not by explicit interoceptive
-velocity feedback. It is consistent with the behavior-mediation result (section
-10.4): the agent's state tracks what it *does* differently in the two worlds, and
-vision is the main input that shapes that differentiated behavior.
+**Hidden=7.**
+
+| Mask | Zeroed dims | survival mean | predictor mean | untrained mean |
+|---|---|---|---|---|
+| none | 0 / 146 | **0.737** (8/10) | 0.714 | 0.586 |
+| vision | 120 / 146 | **0.764** (9/10) | 0.674 | 0.724 |
+| intero | 14 / 146 | **0.742** (8/10) | 0.639 | 0.646 |
+| all | 146 / 146 | **0.500** (0/10) | 0.500 | 0.500 |
+
+**Reading.** Masking the entire observation collapses the signal to chance (0.500)
+in both capacities, which is a sanity check that the readout is not decoding from
+unmasked behavior correlates. At **hidden=8**, masking **interoception** (velocity,
+heading, energy, etc.) leaves the signal essentially unchanged, while masking
+**vision** causes a modest but clear drop from 0.753 to 0.686. This suggests the
+world-identity signal is carried by the visual stream and/or the behavior it
+shapes, not by explicit interoceptive velocity feedback.
+
+At **hidden=7**, the pattern is different: neither vision nor interoception masking
+collapses the survival signal (0.737 -> 0.764 with vision masked, 0.737 -> 0.742
+with intero masked). The signal is robust to single-channel lesion and only falls to
+chance when all observations are masked. The coarser hidden=7 surrogate produces
+dynamics artifacts that propagate into both visual and interoceptive streams, so the
+world-identity readout does not depend on a single channel. Both results are
+consistent with the substrate-grounding hypothesis: the signal rides on the channels
+that carry the surrogate's specific artifacts.
 
 **Scope.** One mask type is applied uniformly across all timesteps. It does not
 distinguish "the recurrent state passively mirrors a visually present world cue"
 from "the recurrent state stores a behavior plan shaped by vision"; finer lesion
 studies (e.g., masking only radial-velocity channels, or only reflectance/distance)
-would be needed to separate those. The run is at hidden=8 only; a hidden=7
-replication would test whether the same channel dependence holds at the coarser
-artifact.
+would be needed to separate those. Hidden=7 and hidden=8 replications are now both
+complete.
