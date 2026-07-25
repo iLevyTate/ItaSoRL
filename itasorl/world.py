@@ -310,6 +310,11 @@ class SurrogateWrapper:
         self.obs_spec = base.obs_spec
         self.action_spec = base.action_spec
 
+    def __getattr__(self, name: str):
+        # Forward PatchOfEarthV0 attributes (vel, E, _drift_w, ...) needed by
+        # collect_pool / engagement metrics. Only reached for missing attrs.
+        return getattr(self.base, name)
+
     def reset(self, seeds: SeedBundle) -> StepResult:
         return self._post(self.base.reset(seeds))
 

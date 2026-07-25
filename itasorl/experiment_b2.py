@@ -66,6 +66,18 @@ LIFE_TOL = 2.0
 # (a trained G_motion replaces the velocity law). Patched in place by run_expB2.py
 # --drift-mode (parent AND each spawned worker), mirroring the SURVIVAL_* scarcity overrides.
 DRIFT_MODE = "ar1"
+# L1 discretization (world_spec sec. 10): grid spacing delta and sensor-noise sigma applied
+# to observations when drift_mode=="l1". Set by run_expB2.py --l1-delta / --sensor-sigma.
+L1_DELTA = 1.0 / 64
+SENSOR_SIGMA = 0.0
+
+
+def format_drift(d: float) -> str:
+    """Filename-safe drift tag that round-trips through float() for L1 sub-0.01 deltas."""
+    s2 = f"{float(d):.2f}"
+    if abs(float(s2) - float(d)) < 1e-9:
+        return s2
+    return f"{float(d):.4f}"
 # The frozen L3 velocity net, trained ONCE via setup_l3_surrogate() and shared across every
 # surrogate world (drift_sigma>0) when DRIFT_MODE=="l3". Authentic worlds (drift_sigma=0)
 # never receive it, so they stay byte-identical to authentic. None until setup runs.
@@ -95,7 +107,8 @@ def setup_l3_heldout_surrogate(**train_kwargs) -> None:
 
 def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int,
                food_override: dict | None = None) -> PatchOfEarthV0:
-    w = PatchOfEarthV0(params or WorldParams(), drift_sigma=drift_sigma, drift_mode=DRIFT_MODE)
+    w = PatchOfEarthV0(params or WorldParams(), drift_sigma=drift_sigma, drift_mode=DRIFT_MODE,
+                       l1_delta=L1_DELTA, sensor_sigma=SENSOR_SIGMA)
     w.ray_steps = ray_steps
     # food_override is an ADDITIVE merge (control-arm world-invariant layout); None ->
     # byte-identical to the frozen SURVIVAL_FOOD layout every other experiment depends on.

@@ -1,0 +1,262 @@
+{
+  "sensor_sigma": 0.01,
+  "deltas_sweep": [
+    {
+      "delta": 0.06,
+      "sigma": 0.01,
+      "oracle_auroc": 1.0,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.05,
+      "sigma": 0.01,
+      "oracle_auroc": 1.0,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.04,
+      "sigma": 0.01,
+      "oracle_auroc": 1.0,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.03,
+      "sigma": 0.01,
+      "oracle_auroc": 1.0,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.025,
+      "sigma": 0.01,
+      "oracle_auroc": 0.970375,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.02,
+      "sigma": 0.01,
+      "oracle_auroc": 0.6916249999999999,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.015,
+      "sigma": 0.01,
+      "oracle_auroc": 0.5066249999999999,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.022,
+      "sigma": 0.01,
+      "oracle_auroc": 0.820875,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.023,
+      "sigma": 0.01,
+      "oracle_auroc": 0.872875,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.024,
+      "sigma": 0.01,
+      "oracle_auroc": 0.93675,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.026,
+      "sigma": 0.01,
+      "oracle_auroc": 0.9961249999999999,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.027,
+      "sigma": 0.01,
+      "oracle_auroc": 0.9976249999999999,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.028,
+      "sigma": 0.01,
+      "oracle_auroc": 1.0,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.029,
+      "sigma": 0.01,
+      "oracle_auroc": 1.0,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    }
+  ],
+  "fine_sweep": [
+    {
+      "delta": 0.022,
+      "sigma": 0.01,
+      "oracle_auroc": 0.820875,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.023,
+      "sigma": 0.01,
+      "oracle_auroc": 0.872875,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.024,
+      "sigma": 0.01,
+      "oracle_auroc": 0.93675,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.025,
+      "sigma": 0.01,
+      "oracle_auroc": 0.970375,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.026,
+      "sigma": 0.01,
+      "oracle_auroc": 0.9961249999999999,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.027,
+      "sigma": 0.01,
+      "oracle_auroc": 0.9976249999999999,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.028,
+      "sigma": 0.01,
+      "oracle_auroc": 1.0,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.029,
+      "sigma": 0.01,
+      "oracle_auroc": 1.0,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.03,
+      "sigma": 0.01,
+      "oracle_auroc": 1.0,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    }
+  ],
+  "chosen_delta": 0.023,
+  "chosen_auroc": 0.872875
+}

@@ -399,7 +399,11 @@ inducing it (if possible) requires something more deliberate.
   co-decays with oracle detectability (h16 0.701, h32 0.622, h64 0.541). Together
   these establish that detection loads on the learned *texture* of the substrate
   artifact, not on generic dynamics perturbation. The survival-specificity part
-  remains conditional on the subtler hidden=8 artifact (section 10.5).
+  remains conditional on the subtler hidden=8 artifact (section 10.5). The same
+  H2 battery on the L1 discretization rung (section 14.7) finds **no incidental
+  encoding** at the matched in-band grid (survival 0.533), so L1 does not
+  reproduce the L3 positive; H2 at L1 is therefore a strengthened negative for
+  organism encoding of an oracle-detectable observation artifact.
 - **H3 (emergence under selection).** RESOLVED NEGATIVE. The first pilot's
   recorded null was **invalidated** (section 13.C): the run executed on pre-fix
   code carrying two since-fixed measurement defects (the fitness/panel legs ran
@@ -1441,9 +1445,9 @@ reading of the common-garden control (section 10.6.1: the signal is a modest
 persistent component the policy also expresses reactively while the dynamics bite)
 is unchanged; A1 neutralizes the felt dynamics divergence, so a collapse is fully
 consistent with it. A2 observation-channel localization is now resolved in
-section 14.6. The remaining deferred follow-on is A3: the same H2 substrate-
-grounding test through a different substrate primitive (for example the L1
-discretization rung), which needs a fresh training run.
+section 14.6. A3 (same H2 battery on the L1 discretization rung) is now
+resolved in section 14.7: organism encoding is negative at the matched in-band
+grid, so L1 does not reproduce the L3 positive.
 
 ## 14.5 H2 texture-knockout: structure + dose-response ablations
 
@@ -1548,3 +1552,55 @@ from "the recurrent state stores a behavior plan shaped by vision"; finer lesion
 studies (e.g., masking only radial-velocity channels, or only reflectance/distance)
 would be needed to separate those. Hidden=7 and hidden=8 replications are now both
 complete.
+
+## 14.7 A3 L1: H2 substrate-grounding on the discretization rung
+
+**Status: COMPLETE — organism encoding NEGATIVE at the matched in-band L1 grid.**
+Design and runners: `scripts/run_expA_l1.py`, `scripts/run_expA_l1_noise.py`,
+`scripts/run_expB2.py --drift-mode l1`, `scripts/run_l1_h2_ablations.py`,
+`scripts/run_l3_obs_localization.py --drift-mode l1`. Local artifacts:
+`fullruns/l1_calib.json`, `fullruns/l1_noise_calib.json`,
+`fullruns/l1_heldout/`, `fullruns/l1_h2_ablations/`,
+`fullruns/l1_obs_localization/`.
+
+This extends the L3 H2 battery to a different substrate primitive: observation-
+level quantization (grid spacing Δ) with a matched sensor-noise floor
+(σ_sensor = 0.01). Gate 0 freezes Δ = **0.023** (oracle AUROC **0.873**, leakage
+clean). The unstructured comparator is iid observation noise at σ_o = **0.01**
+(oracle AUROC **0.873**, leakage clean) — matched-band detectability with zero
+grid structure.
+
+**Organism result (n=10, three arms, B-v2 protocol).** At the headline grid,
+survival pooled target = **0.533** (90% CI [0.509, 0.556], 0/10 ≥ 0.65),
+predictor 0.489, untrained 0.494. L0 control accepts chance equivalence (ROPE
+p = 0.989). Engagement, leakage, and survivorship gates pass; ceilings (energy /
+food) remain readable. Primary H_B2 is **not met**: an oracle-detectable L1
+artifact leaves no decodable world-identity trace in the survival state. This
+parallels the L2 "detectability ≠ encoding" negative and contrasts with the L3
+positive.
+
+**A1 graded-seam (Δ ladder).** Integrity gate bit-matches saved pools and
+reproduces the headline survival mean **0.533**. Survival means across
+Δ ∈ {0, 0.25, 0.5, 0.75, 1.0} × headline stay near chance
+(0.522 / 0.519 / 0.528 / 0.547 / 0.533). There is no encoding signal to titrate;
+the flat curve is consistent with the organism null.
+
+**A2 noise knockout.** Frozen L1-probe transfer onto matched-band iid observation
+noise: survival **0.525**, untrained **0.509**, predictor **0.516**. The frozen
+positive rule fails both clauses (`H2_SUPPORTED` by the L3 decision table), but
+this is vacuous given the null primary encoding — there is no structured
+world-identity direction to mis-read onto noise.
+
+**A2 observation-channel localization.** Baseline (no mask) reproduces 0.533.
+Masking interoception stays at chance (~0.51). Masking all observations collapses
+to 0.500. Masking vision elevates survival to 0.696 **and untrained to 0.703**
+(non-specific lesion artifact, not a survival-encoded channel). With no baseline
+world-identity signal, channel localization does not identify a carrier.
+
+**Reading.** At the matched in-band L1 configuration, the organism does not
+incidentally encode the discretization artifact. H2 substrate-grounding is
+confirmed at L3 (learned dynamics texture) and does not extend to L1
+(observation quantization) because L1 never clears the encoding bar. The L1
+result strengthens the rung-specificity of the L3 positive: detectability of a
+substrate seam is not sufficient for incidental encoding; the seam's
+computational character matters.

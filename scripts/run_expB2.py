@@ -44,8 +44,10 @@ import matplotlib.pyplot as plt  # noqa: E402
 from itasorl.experiment_b2 import (  # noqa: E402
     default_device,
     engagement_metric,
+    format_drift,
     pooled_readout,
     readout,
+    save_agent_bundle,
     survival_return,
     train_actor_critic,
     train_predictor_only,
@@ -102,12 +104,19 @@ def cfg():
     ap.add_argument("--reach", type=float, default=None, help="override eat reach radius")
     # B-v3 coupling: "ar1" = the pre-registered volatility surrogate; "regime" = a per-episode
     # CONSTANT drag offset (identifiable + policy-relevant), the "make it work as intended" arm.
-    ap.add_argument("--drift-mode", choices=("ar1", "regime", "l3"), default="ar1",
-                    help="surrogate coupling mode: ar1 (B-v2), regime (B-v3), or l3 "
-                         "(learned-dynamics surrogate; default ar1)")
+    # "l1" = observation-level discretization (L1 rung; delta and sensor noise set below).
+    ap.add_argument("--drift-mode", choices=("ar1", "regime", "l3", "l1"), default="ar1",
+                    help="surrogate coupling mode: ar1 (B-v2), regime (B-v3), l3 "
+                         "(learned-dynamics surrogate), or l1 (observation discretization; "
+                         "default ar1)")
     ap.add_argument("--l3-hidden", type=int, default=8,
                     help="G_motion capacity for --drift-mode l3 (frozen gate-0 value 8; "
                          "see docs/PREREGISTRATION_L3.md sec.12)")
+    ap.add_argument("--l1-delta", type=float, default=1.0 / 64,
+                    help="L1 grid spacing for --drift-mode l1 (default 1/64)")
+    ap.add_argument("--sensor-sigma", type=float, default=0.01,
+                    help="L1 observation sensor noise sigma for --drift-mode l1 "
+                         "(default 0.01; set to 0 for deterministic observations)")
     # Speedup: the run is CPU-bound (serial physics, tiny nets), and (drift,seed) cells are
     # independent. --workers N runs N cells at once across CPU cores. Set N ~ vCPU count.
     ap.add_argument("--workers", type=int, default=1, help="parallel worker processes over cells")
@@ -122,10 +131,18 @@ def cfg():
         a.drifts, a.seeds, a.updates, a.n_eps, a.max_steps = [0.0, 0.45], [0, 1], 60, 8, 40
         a.hidden, a.ray_steps, a.pool_n, a.pool_steps = 64, 4, 40, 16
         a.mp_pairs, a.mp_prefix, a.mp_branch = 25, 12, 16
+        if a.drift_mode == "l1":
+            a.drifts = [0.0, a.l1_delta]
     if a.heldout_evals and a.drift_mode != "l3":
         raise SystemExit("--heldout-evals requires --drift-mode l3")
     if a.quick and a.heldout_evals:
         a.cg_prefix, a.cg_steps = 8, 12
+    if a.drift_mode == "l1":
+        nonzero = [d for d in a.drifts if d != 0.0]
+        if len(nonzero) != 1 or abs(nonzero[0] - a.l1_delta) > 1e-9:
+            raise SystemExit(
+                f"--drift-mode l1 requires exactly one non-zero --drifts value "
+                f"equal to --l1-delta ({a.l1_delta}); got {a.drifts}")
     return a
 
 
@@ -191,7 +208,7 @@ def decide_h_b2(surv, pred, untr, bar: float = 0.65, sesoi: float = 0.05):
 
 
 def cell_file(cells_dir, drift: float, seed: int) -> Path:
-    return Path(cells_dir) / f"cell_d{drift:.2f}_s{seed}.json"
+    return Path(cells_dir) / f"cell_d{format_drift(drift)}_s{seed}.json"
 
 
 def git_commit_short() -> str:
@@ -249,7 +266,7 @@ def load_cell_files(cells_dir, fingerprint: str) -> dict:
 def evaluate_agent(agent, norm, drift, a, dev, seed, agent_name=""):
     dump_path = tdump = cdump = None
     if getattr(a, "dump_states", None):
-        stem = os.path.join(a.dump_states, f"states_d{drift:.2f}_s{seed}_{agent_name}")
+        stem = os.path.join(a.dump_states, f"states_d{format_drift(drift)}_s{seed}_{agent_name}")
         dump_path = stem + ".npz"
         tdump, cdump = stem + "_h7transfer.npz", stem + "_cg.npz"
     heldout = getattr(a, "heldout_evals", False)
@@ -297,6 +314,9 @@ def run_cell(task: dict) -> dict:
         b2.SURVIVAL_FOOD["reach"] = k["reach"]
     if k.get("drift_mode"):
         b2.DRIFT_MODE = k["drift_mode"]
+    if k.get("drift_mode") == "l1":
+        b2.L1_DELTA = k.get("l1_delta", 1.0 / 64)
+        b2.SENSOR_SIGMA = k.get("sensor_sigma", 0.01)
     if k.get("drift_mode") == "l3" and b2._L3_GMOTION is None:  # train G_motion once per worker
         b2.setup_l3_surrogate(hidden=k.get("l3_hidden", 8), device=dev, seed=0, params=P)  # THIS world
     if k.get("heldout_evals") and b2._L3_GMOTION_HELDOUT is None:  # once per worker
@@ -313,10 +333,9 @@ def run_cell(task: dict) -> dict:
                                    sysid_coef=k.get("sysid_coef", 1.0))
     agents["survival"] = (sa, sn)
     if k.get("save_agents"):
-        from itasorl.experiment_b2 import save_agent_bundle
         for g, (ag, nm) in agents.items():
             save_agent_bundle(os.path.join(k["out_dir"], "agents",
-                                           f"agent_d{d:.2f}_s{s}_{g}.pt"), ag, nm)
+                                           f"agent_d{format_drift(d)}_s{s}_{g}.pt"), ag, nm)
     eng = engagement_metric(sa, sn, P, d, n_eps=64, max_steps=k["max_steps"],
                             ray_steps=k["ray_steps"], device=dev)
     xev = {f"{ed:.2f}": survival_return(sa, sn, P, ed, max_steps=k["max_steps"],
@@ -424,6 +443,9 @@ def main():
     if a.reach is not None:
         b2.SURVIVAL_FOOD["reach"] = a.reach
     b2.DRIFT_MODE = a.drift_mode
+    if a.drift_mode == "l1":
+        b2.L1_DELTA = a.l1_delta
+        b2.SENSOR_SIGMA = a.sensor_sigma
     os.makedirs(a.out_dir, exist_ok=True)
     results_path = os.path.join(a.out_dir, "expB2_results.json")
     print(f"Experiment B-v2 full run  (device={dev}, drifts={a.drifts}, seeds={a.seeds}, "
@@ -441,6 +463,9 @@ def main():
             print(f"  heldout evals ON: transfer fingerprint G(hidden={a.heldout_hidden}), "
                   f"common garden prefix={a.cg_prefix} tail={a.cg_steps}")
             b2.setup_l3_heldout_surrogate(hidden=a.heldout_hidden, device=dev, seed=0, params=P)
+    if a.drift_mode == "l1":
+        print(f"  drift_mode=l1: surrogate = observation discretization "
+              f"(delta={a.l1_delta:.5f}, sensor_sigma={a.sensor_sigma:.4f})")
     if a.sysid_aux:
         print("  *** SYSID-AUX ON: survival trunk is supervised on drag (CEILING control, "
               "NOT readout-not-reward). Its target is a capacity ceiling, not H_B2 evidence. ***")
@@ -458,7 +483,8 @@ def main():
     base = {k: getattr(a, k) for k in ("updates", "n_eps", "max_steps", "hidden", "ray_steps",
                                        "shaping_coef", "pool_n", "pool_steps", "mp_pairs", "mp_prefix",
                                        "mp_branch", "basal_e", "n_pellets", "reach", "dump_states",
-                                       "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden")}
+                                       "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden",
+                                       "l1_delta", "sensor_sigma")}
     base.update(drifts=a.drifts, device=dev, out_dir=a.out_dir, save_agents=a.save_agents)
     if a.heldout_evals:
         base.update(heldout_evals=True, heldout_hidden=a.heldout_hidden,

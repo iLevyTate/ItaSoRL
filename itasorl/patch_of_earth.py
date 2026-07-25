@@ -43,7 +43,8 @@ def first_config_obs_spec() -> ObsSpec:
 
 class PatchOfEarthV0(PatchOfEarth):
     def __init__(self, params: WorldParams | None = None, n_rays: int = 24, n_pellets: int = 12,
-                 drift_sigma: float = 0.0, drift_mode: str = "ar1") -> None:
+                 drift_sigma: float = 0.0, drift_mode: str = "ar1",
+                 l1_delta: float = 1.0 / 64, sensor_sigma: float = 0.0) -> None:
         super().__init__(params or WorldParams(), obs_spec=first_config_obs_spec(), action_spec=DEFAULT_ACTION_SPEC)
         # L2 rollout drift (world_spec sec. 10): if drift_sigma>0, the drag coefficient
         # deviates from the authentic constant. Two modes:
@@ -55,6 +56,11 @@ class PatchOfEarthV0(PatchOfEarth):
         # drift_sigma=0 reproduces the exact authentic world in BOTH modes.
         self.drift_sigma = float(drift_sigma)
         self.drift_mode = str(drift_mode)
+        # L1 discretization (world_spec sec. 10): when drift_mode=="l1" and drift_sigma>0,
+        # observations are snapped to a grid of spacing l1_delta. A fixed sensor_sigma is
+        # applied in L1 mode so the grid is detectable but not trivially saturated.
+        self.l1_delta = float(l1_delta)
+        self.sensor_sigma = float(sensor_sigma)
         # regime band: per-episode offset ~ drift_sigma * U(regime_lo, regime_hi), so it is
         # centered on drift_sigma and bounded away from 0 (a clear, persistent regime shift).
         self.regime_lo, self.regime_hi = 0.5, 1.5
@@ -155,6 +161,8 @@ class PatchOfEarthV0(PatchOfEarth):
                 self._drift_w = float(np.clip(
                     self.drift_sigma * self._rng["drift"].uniform(self.regime_lo, self.regime_hi),
                     -0.8, 8.0))
+        if self.sensor_sigma > 0.0:  # dedicated observation-noise stream (L1)
+            self._rng["obs"] = np.random.default_rng(int(self._rng["world"].integers(0, 2**31)))
 
     # --- transition stages --------------------------------------------------
     def _integrate_motion(self, action: np.ndarray) -> None:
@@ -264,7 +272,13 @@ class PatchOfEarthV0(PatchOfEarth):
             ],
             dtype=np.float32,
         )
-        return self.obs_spec.assemble({"vision": vis.reshape(-1), "intero": intero})
+        obs = self.obs_spec.assemble({"vision": vis.reshape(-1), "intero": intero})
+        # L1 graded-seam: delta=0 means "no quantization" even when drift_sigma>0.
+        if self.drift_mode == "l1" and self.drift_sigma > 0.0 and self.l1_delta > 0.0:
+            obs = np.round(obs / self.l1_delta) * self.l1_delta
+        if self.sensor_sigma > 0.0:
+            obs = obs + self._rng["obs"].normal(0.0, self.sensor_sigma, size=obs.shape)
+        return obs
 
     def _homeostatic_reward(self) -> float:
         return float(self._reward)

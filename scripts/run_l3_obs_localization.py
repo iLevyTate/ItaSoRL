@@ -1,14 +1,21 @@
-"""L3 observation-channel localization (A2 ablation), READOUT-ONLY.
+"""Observation-channel localization (A2 ablation), READOUT-ONLY.
 
-Loads saved L3 agents and re-collects drift-0.45 pools with selected observation
-channels masked (zeroed before the agent's running norm). A fresh pooled_readout on
-the masked pools tells us which observation channels the world-identity signal
-rides on. No training.
+Loads saved L3 or L1 agents and re-collects headline-drift pools with selected
+observation channels masked (zeroed before the agent's running norm). A fresh
+pooled_readout on the masked pools tells us which observation channels the
+world-identity signal rides on. No training.
 
-Usage:
+Usage (L3):
     python scripts/run_l3_obs_localization.py \\
         --agents-dir fullruns/l3_h8_heldout/agents \\
         --out-dir fullruns/l3_h8_obs_localization \\
+        --masks vision intero all --device cuda
+
+Usage (L1):
+    python scripts/run_l3_obs_localization.py \\
+        --agents-dir fullruns/l1_heldout/agents \\
+        --out-dir fullruns/l1_obs_localization \\
+        --drift-mode l1 --l1-delta 0.023 --sensor-sigma 0.01 \\
         --masks vision intero all --device cuda
 """
 
@@ -67,7 +74,11 @@ def cfg():
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--masks", nargs="+", default=["none", "vision", "intero", "all"],
                     choices=("none", "vision", "intero", "smell", "all"))
+    ap.add_argument("--drift-mode", choices=("l1", "l3"), default="l3",
+                    help="rung: l3 (learned velocity law) or l1 (observation discretization)")
     ap.add_argument("--hidden", type=int, default=8)
+    ap.add_argument("--l1-delta", type=float, default=1.0 / 64)
+    ap.add_argument("--sensor-sigma", type=float, default=0.01)
     ap.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     ap.add_argument("--n-eps", type=int, default=110)
     ap.add_argument("--steps", type=int, default=24)
@@ -78,22 +89,30 @@ def cfg():
 
 def main():
     a = cfg()
-    if a.hidden not in (7, 8):
-        raise SystemExit("--hidden must be 7 or 8")
+    if a.drift_mode == "l3" and a.hidden not in (7, 8):
+        raise SystemExit("--hidden must be 7 or 8 for drift-mode l3")
     dev = default_device() if a.device == "auto" else a.device
     if a.device == "cuda" and dev != "cuda":
         raise SystemExit("--device cuda requested but CUDA unavailable")
     os.makedirs(a.out_dir, exist_ok=True)
-    b2.DRIFT_MODE = "l3"
-    setup_l3_surrogate(hidden=a.hidden, seed=0, params=P, device=dev)
+    b2.DRIFT_MODE = a.drift_mode
+    if a.drift_mode == "l3":
+        setup_l3_surrogate(hidden=a.hidden, seed=0, params=P, device=dev)
+    else:
+        b2.L1_DELTA = a.l1_delta
+        b2.SENSOR_SIGMA = a.sensor_sigma
     n_eps, steps = (12, 8) if a.quick else (a.n_eps, a.steps)
 
     cells = sorted(f for f in os.listdir(a.agents_dir) if AGENT_RE.search(f))
-    cells = [c for c in cells if parse_agent_filename(c)[0] == 0.45]
+    drifts = sorted(set(parse_agent_filename(c)[0] for c in cells if AGENT_RE.search(c)))
+    if len(drifts) != 2 or 0.0 not in drifts:
+        raise SystemExit(f"expected exactly two drifts (0.0 and headline) in {a.agents_dir}; got {drifts}")
+    headline = [d for d in drifts if d != 0.0][0]
+    cells = [c for c in cells if parse_agent_filename(c)[0] == headline]
     if a.quick:
         cells = [c for c in cells if "_s0_" in c]
     if not cells:
-        raise SystemExit(f"no drift-0.45 agents in {a.agents_dir}")
+        raise SystemExit(f"no drift-{headline} agents in {a.agents_dir}")
 
     # Load one agent to infer obs_dim
     _, _, arm0 = parse_agent_filename(cells[0])
@@ -127,7 +146,12 @@ def main():
                   f"food={out['anchor_food']:.3f}")
 
     # Aggregate per mask / arm
-    agg = {"masks": a.masks, "hidden": a.hidden, "obs_dim": obs_dim}
+    agg = {"masks": a.masks, "drift_mode": a.drift_mode, "obs_dim": obs_dim}
+    if a.drift_mode == "l3":
+        agg["hidden"] = a.hidden
+    else:
+        agg["l1_delta"] = a.l1_delta
+        agg["sensor_sigma"] = a.sensor_sigma
     for mask_type in a.masks:
         for arm in ("untrained", "predictor", "survival"):
             vals = [r["target"] for r in results if r["mask"] == mask_type and r["arm"] == arm]

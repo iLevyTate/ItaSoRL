@@ -604,6 +604,31 @@ Rigor carried from the B-v3 audit (2026-07-10):
   so the chance collapse is not a dead-probe artifact. Local artifact:
   `fullruns/l3_h7_obs_localization/aggregate.json`.
 
+- **2026-07-25 - A3 L1 H2 SUBSTRATE-GROUNDING BATTERY (n=10): ORGANISM ENCODING
+  NEGATIVE at matched in-band discretization.** Extends the L3 H2 battery to the
+  L1 observation-quantization rung. GATE 0: fine Δ sweep under B-v2 world params
+  freezes **Δ = 0.023** (oracle AUROC **0.873**, leakage clean;
+  `fullruns/l1_calib.json`). Noise comparator gate freezes **σ_o = 0.01**
+  (oracle AUROC **0.873**, leakage clean; variance/high-frequency oracle, not
+  the L1 grid residual; `fullruns/l1_noise_calib.json`). ORGANISM RUN: B-v2
+  protocol with `--drift-mode l1 --l1-delta 0.023 --sensor-sigma 0.01`, drifts
+  {0.0, 0.023}, seeds 0..9, three arms, `--save-agents` + state dumps
+  (`fullruns/l1_heldout`). Survival pooled target **0.533** (90% CI [0.509,
+  0.556], 0/10 ≥ 0.65); predictor 0.489; untrained 0.494. L0 ROPE accepts
+  chance; engagement/leakage/survivorship clean; ceilings alive. Primary H_B2
+  NOT met — oracle-detectable L1 leaves no incidental world-identity encoding.
+  A1 GRADED-SEAM: integrity gate bit-matches dumps and reproduces 0.533; Δ ladder
+  stays near chance (0.522 / 0.519 / 0.528 / 0.547 / 0.533). A2 NOISE KNOCKOUT:
+  transfer onto matched-band iid obs noise gives survival 0.525 / untrained
+  0.509 / predictor 0.516 (frozen rule fails both clauses). A2 CHANNEL
+  LOCALIZATION: baseline 0.533; intero mask ~0.51; all-mask 0.500; vision mask
+  elevates survival and untrained alike (~0.70) — non-specific lesion artifact
+  given the null baseline. READING: L1 does not reproduce the L3 positive; H2
+  substrate-grounding remains L3-specific. Detectability of an observation-level
+  seam is not sufficient for incidental encoding. Artifacts:
+  `fullruns/l1_heldout/`, `fullruns/l1_h2_ablations/`,
+  `fullruns/l1_obs_localization/`.
+
 - **2026-07-23 - H2 TEXTURE-KNOCKOUT: STRUCTURE + DOSE-RESPONSE ABLATIONS (n=10,
   readout-only): H2 CONFIRMED IN TEXTURE-SPECIFIC FORM at hidden=8 and hidden=7.**
   Executes the frozen spec
