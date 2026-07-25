@@ -43,7 +43,8 @@ from itasorl.surrogate_l3_families import make_g_gn
 from itasorl.world import WorldParams
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)   # frozen organism world
-PUBLISHED_TARGET = 0.752                                 # drift-0.45 survival mean
+PUBLISHED_TARGET_H8 = 0.752                              # drift-0.45 survival mean at hidden=8
+PUBLISHED_TARGET_H7 = 0.737                              # drift-0.45 survival mean at hidden=7
 LADDER_HIDDENS = (16, 32, 64)
 SEED_BASES = {
     "gn": (960_000, 970_000),
@@ -124,6 +125,8 @@ def cfg():
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--channels", nargs="+", choices=("gn", "ladder"),
                     default=["gn", "ladder"])
+    ap.add_argument("--hidden", type=int, default=8,
+                    help="GMotion capacity of the saved agents (7 or 8); default 8")
     ap.add_argument("--gn-json", default=None, help="gate-0 calibration JSON for gn")
     ap.add_argument("--ladder-json", default=None,
                     help="gate-0 calibration JSON for mlp hidden 16/32/64")
@@ -139,6 +142,8 @@ def cfg():
 
 def main():
     a = cfg()
+    if a.hidden not in (7, 8):
+        raise SystemExit("--hidden must be 7 or 8")
     if not a.quick and a.gn_sigma is not None:
         raise SystemExit("--gn-sigma is a smoke-only override; a full run must "
                          "take its knob from --gn-json")
@@ -148,10 +153,11 @@ def main():
     os.makedirs(a.out_dir, exist_ok=True)
     b2.DRIFT_MODE = "l3"
     n_eps, steps = (12, 8) if a.quick else (a.n_eps, a.steps)
+    published_target = PUBLISHED_TARGET_H7 if a.hidden == 7 else PUBLISHED_TARGET_H8
 
-    # Training surrogate must be the bit-identical hidden=8 GMotion so the
+    # Training surrogate must be the bit-identical hidden=<capacity> GMotion so the
     # regenerated pools can match the saved dumps.
-    setup_l3_surrogate(hidden=8, seed=0, params=P, device=dev)
+    setup_l3_surrogate(hidden=a.hidden, seed=0, params=P, device=dev)
 
     heldouts = {}          # tag -> callable g
     ladder_oracles = {}    # "h16" -> oracle_auroc
@@ -221,10 +227,10 @@ def main():
         print(f"  integrity ok: {name}  target={out['target']:.3f}")
     if not a.quick:
         mean_t = round(float(np.mean(survival_targets_045)), 3)
-        if mean_t != PUBLISHED_TARGET:
+        if mean_t != published_target:
             raise SystemExit(f"INTEGRITY GATE FAILED: drift-0.45 survival mean "
-                             f"{mean_t} != published {PUBLISHED_TARGET}")
-        print(f"integrity gate PASSED: survival mean {mean_t} == {PUBLISHED_TARGET} "
+                             f"{mean_t} != published {published_target}")
+        print(f"integrity gate PASSED: survival mean {mean_t} == {published_target} "
               f"(determinism check #5)")
 
     # ---- phase 2: ablation transfer ----------------------------------------
@@ -253,7 +259,7 @@ def main():
 
     # ---- aggregate ----------------------------------------------------------
     agg = {"quick": a.quick, "n_eps": n_eps, "steps": steps,
-           "published_target_check": None if a.quick else PUBLISHED_TARGET,
+           "published_target_check": None if a.quick else published_target,
            "gn_dropped_at_gate0": gn_dropped,
            "ladder_oracles": ladder_oracles}
     if "gn" in heldouts:

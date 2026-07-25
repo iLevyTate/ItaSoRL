@@ -66,6 +66,18 @@ LIFE_TOL = 2.0
 # (a trained G_motion replaces the velocity law). Patched in place by run_expB2.py
 # --drift-mode (parent AND each spawned worker), mirroring the SURVIVAL_* scarcity overrides.
 DRIFT_MODE = "ar1"
+# L1 discretization (world_spec sec. 10): grid spacing delta and sensor-noise sigma applied
+# to observations when drift_mode=="l1". Set by run_expB2.py --l1-delta / --sensor-sigma.
+L1_DELTA = 1.0 / 64
+SENSOR_SIGMA = 0.0
+
+
+def format_drift(d: float) -> str:
+    """Filename-safe drift tag that round-trips through float() for L1 sub-0.01 deltas."""
+    s2 = f"{float(d):.2f}"
+    if abs(float(s2) - float(d)) < 1e-9:
+        return s2
+    return f"{float(d):.4f}"
 # The frozen L3 velocity net, trained ONCE via setup_l3_surrogate() and shared across every
 # surrogate world (drift_sigma>0) when DRIFT_MODE=="l3". Authentic worlds (drift_sigma=0)
 # never receive it, so they stay byte-identical to authentic. None until setup runs.
@@ -95,7 +107,8 @@ def setup_l3_heldout_surrogate(**train_kwargs) -> None:
 
 def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int,
                food_override: dict | None = None) -> PatchOfEarthV0:
-    w = PatchOfEarthV0(params or WorldParams(), drift_sigma=drift_sigma, drift_mode=DRIFT_MODE)
+    w = PatchOfEarthV0(params or WorldParams(), drift_sigma=drift_sigma, drift_mode=DRIFT_MODE,
+                       l1_delta=L1_DELTA, sensor_sigma=SENSOR_SIGMA)
     w.ray_steps = ray_steps
     # food_override is an ADDITIVE merge (control-arm world-invariant layout); None ->
     # byte-identical to the frozen SURVIVAL_FOOD layout every other experiment depends on.
@@ -660,7 +673,7 @@ def train_predictor_only(drift_sigma, params=None, *, n_eps=16, updates=200, emb
 # length constant across pools, so length/lifetime cannot leak the label.
 # ---------------------------------------------------------------------------
 def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_base, ray_steps,
-                 return_anchors: bool = False):
+                 return_anchors: bool = False, obs_mask=None):
     """Collect up to n_eps episodes of EXACTLY `steps` length (drop early deaths) with
     the frozen deterministic agent. Returns H (k,steps,Hdim), speeds (k,).
 
@@ -673,7 +686,12 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
     headline probe must be shown NOT to be reading 'how much it ate' instead of identity.
     Also returns the PER-TIMESTEP behavior traces (k, steps, 4) - the same
     speed/energy/food/drag accumulators the anchor means are taken over - so the
-    behavior-mediation audit can run its per-timestep control offline."""
+    behavior-mediation audit can run its per-timestep control offline.
+
+    `obs_mask` is an optional float/bool array of length obs_dim applied to the raw
+    observation before normalization; used for observation-channel localization."""
+    if obs_mask is not None:
+        obs_mask = np.asarray(obs_mask, dtype=np.float64)
     Hs, spd, energy, food, drag, reward, traces = [], [], [], [], [], [], []
     for i in range(n_eps):
         w = make_world(params, drift_sigma, ray_steps)
@@ -681,6 +699,8 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
         h = agent.initial_state(1, device)
         prev = torch.zeros(1, agent.act_dim, device=device)
         obs = w.observe().astype(np.float64)
+        if obs_mask is not None:
+            obs = obs * obs_mask
         Hrow, sp, en, fd, dg, px, py, hd, died = [], [], [], [], [], [], [], [], False
         rw = 0.0
         for _ in range(steps):
@@ -697,6 +717,8 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             hd.append(float(w.heading))              # available to the mediation control
             rw += float(r.reward)                     # summed homeostatic reward (never detection)
             obs = r.obs.astype(np.float64)
+            if obs_mask is not None:
+                obs = obs * obs_mask
             prev = env_act
             if r.terminated:
                 died = True
@@ -732,7 +754,8 @@ def _auroc_with_ci(X, y, seed: int = 0, groups: np.ndarray | None = None) -> tup
 
 
 def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray_steps=5,
-                   device=None, seed=0, dump_path=None, leak_margin=0.1, return_pools=False) -> dict:
+                   device=None, seed=0, dump_path=None, leak_margin=0.1, return_pools=False,
+                   obs_mask=None) -> dict:
     """Experiment-B-style probe: decode world identity across independent episodes.
     Reports the headline `target` (LEVEL features) with a bootstrap CI, plus two
     additive readouts that probe a VOLATILITY signature - `target_var` (dispersion
@@ -748,10 +771,10 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
     device = device or default_device()
     Ha, spa, ena, fda, dra, rwa, bta = collect_pool(agent, norm, params, 0.0, n_eps, steps,
                                                     device, 800_000, ray_steps,
-                                                    return_anchors=True)
+                                                    return_anchors=True, obs_mask=obs_mask)
     Hs, sps, ens, fds, drs, rws, bts = collect_pool(agent, norm, params, drift_sigma, n_eps,
                                                     steps, device, 850_000, ray_steps,
-                                                    return_anchors=True)
+                                                    return_anchors=True, obs_mask=obs_mask)
     if dump_path is not None:
         d = os.path.dirname(dump_path)
         if d:

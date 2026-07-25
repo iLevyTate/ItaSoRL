@@ -131,9 +131,9 @@ against the nearest prior work is on record in [`docs/ITASORL.md`](docs/ITASORL.
 ### Hypotheses
 
 - **H1 (detectability)**: the surrogate is distinguishable from the authentic world by a privileged discriminator.
-- **H2 (substrate-grounding)**: the signal lives in substrate artifacts, confirmed via ablations.
-- **H3 (emergence under selection)**: representing the distinction emerges when survival depends on it.
-- **H4 (legibility / incidental encoding)**: a from-scratch agent encodes the distinction incidentally, without reward.
+- **H2 (substrate-grounding)**: the signal lives in substrate artifacts, confirmed via ablations — **confirmed at L3**; L1 organism encoding is negative at the matched in-band grid (FINDINGS §14–14.7).
+- **H3 (emergence under selection)**: representing the distinction emerges when survival depends on it — **resolved negative** (FINDINGS §13.D).
+- **H4 (legibility / incidental encoding)**: a from-scratch agent encodes the distinction incidentally, without reward — **positive at L3**, negative at L1/L2.
 
 ### Current status
 
@@ -145,17 +145,18 @@ against the nearest prior work is on record in [`docs/ITASORL.md`](docs/ITASORL.
 | Experiment A (detectability ceiling, agent-free), L1 | **done** |
 | Experiment A, L2 | **done** |
 | Experiment B (incidental detection), L2 arc | **done (robust negative result)** |
-| Experiment B, L3 (learned-dynamics) | **positive at n=10, replicated at a second capacity** - behavior-independent signal ~0.72 at both; transfer is direction-dependent but recipe-general; the re-scored common-garden control shows a modest persistent world-identity component (details in [Key result](#key-result) below and FINDINGS §10.6.1) |
-| Experiment C (emergence under selection) | first pilot run; recorded null **invalidated** by two since-fixed measurement bugs (FINDINGS §13.C) - pre-registered re-run on fixed code pending ([`docs/PREREGISTRATION_C.md`](docs/PREREGISTRATION_C.md)) |
+| Experiment B, L1 organism + H2 battery | **done (organism negative at in-band Δ=0.023: survival 0.533; FINDINGS §14.7)** |
+| Experiment B, L3 (learned-dynamics) | **positive at n=10, replicated at a second capacity** - behavior-independent signal ~0.72 at both; H2 texture-specific at L3; transfer is direction-dependent but recipe-general; the re-scored common-garden control shows a modest persistent world-identity component (details in [Key result](#key-result) below and FINDINGS §10.6.1 / §14) |
+| Experiment C (emergence under selection) | **validated null** on fixed-code re-run (FINDINGS §13.D); H3 resolves negative |
 | Ladder L4 (adversarially-hardened surrogate) | not started |
 
 ### Key result
 
-*For a hand-tuned dynamics artifact (L2), detectability does not imply incidental
-encoding.* An artifact an external oracle detects at AUROC ≈ 0.99 leaves essentially no
-decodable trace in a from-scratch agent's representation (≈ 0.5), across three readout
-channels and surviving objective-engagement, nonlinear-probe, scale (n=10), and
-capacity-ceiling checks.
+*For hand-authored substrate seams (L1 discretization, L2 rollout drift), detectability
+does not imply incidental encoding.* An L2 artifact an external oracle detects at
+AUROC ≈ 0.99 leaves essentially no decodable trace in a from-scratch agent's
+representation (≈ 0.5). An in-band L1 quantization grid (oracle AUROC 0.873) likewise
+leaves the survival state at **0.533** (n = 10; FINDINGS §14.7).
 
 *But the picture changes at L3.* When the surrogate is a **learned-dynamics fingerprint**
 (a small net replacing the velocity law) rather than a hand-tuned knob, the **survival**

@@ -571,6 +571,90 @@ Rigor carried from the B-v3 audit (2026-07-10):
   `artifacts/expB2/heldout_l3_h7_reverse_mp_rescore.json`. The transfer channel's exemption
   in the 2026-07-18 entry stands (frozen-fit train/test, no CV grouping).
 
+- **2026-07-24 - A2 OBSERVATION-CHANNEL LOCALIZATION (n=10, readout-only):
+  WORLD-IDENTITY SIGNAL IS VISUAL, NOT INTEROCEPTIVE at hidden=8.** Executes
+  `scripts/run_l3_obs_localization.py` against the saved
+  `fullruns/l3_h8_heldout` agents; no training. The frozen agent's observations
+  are channel-masked before the running norm and new drift-0.45 pools are
+  collected under the hidden=8 fingerprint. Baseline (no mask) survival mean
+  **0.753** reproduces the headline. Masking **vision** (120/146 dims) drops the
+  signal to **0.686** (7/10 seeds >= 0.65). Masking **interoception** (14/146
+  dims) leaves it at **0.756** (8/10). Masking **all** observations collapses it
+  to **0.500**. READING: the world-identity signal is carried by the visual
+  stream / visually-shaped behavior, not by the explicit velocity/energy
+  interoceptive channels. This is consistent with section 10.4's behavior-
+  mediation finding; it does not distinguish passive visual echo from a visually-
+  guided behavior plan. The probe's positive controls (speed, energy, food) remain
+  readable in every mask condition, so the chance collapse is not a dead-probe
+  artifact. Local artifact: `fullruns/l3_h8_obs_localization/aggregate.json`.
+
+- **2026-07-24 - A2 OBSERVATION-CHANNEL LOCALIZATION (n=10, readout-only):
+  HIDDEN=7 SIGNAL IS ROBUST TO SINGLE-CHANNEL MASKING.** Executes
+  `scripts/run_l3_obs_localization.py` with `--hidden 7` against the saved
+  `fullruns/l3_h7_heldout` agents; no training. The frozen agent's observations
+  are channel-masked before the running norm and new drift-0.45 pools are
+  collected under the hidden=7 fingerprint. Baseline (no mask) survival mean
+  **0.737** reproduces the headline. Masking **vision** (120/146 dims) leaves the
+  signal at **0.764** (9/10 seeds >= 0.65). Masking **interoception** (14/146
+  dims) leaves it at **0.742** (8/10). Masking **all** observations collapses it
+  to **0.500**. Unlike hidden=8, where vision masking causes a clear drop, the
+  hidden=7 signal is robust to single-channel lesion: the coarser surrogate's
+  artifacts propagate into both visual and interoceptive streams. The probe's
+  positive controls (speed, energy, food) remain readable in every mask condition,
+  so the chance collapse is not a dead-probe artifact. Local artifact:
+  `fullruns/l3_h7_obs_localization/aggregate.json`.
+
+- **2026-07-25 - A3 L1 H2 SUBSTRATE-GROUNDING BATTERY (n=10): ORGANISM ENCODING
+  NEGATIVE at matched in-band discretization.** Extends the L3 H2 battery to the
+  L1 observation-quantization rung. GATE 0: fine Δ sweep under B-v2 world params
+  freezes **Δ = 0.023** (oracle AUROC **0.873**, leakage clean;
+  `fullruns/l1_calib.json`). Noise comparator gate freezes **σ_o = 0.01**
+  (oracle AUROC **0.873**, leakage clean; variance/high-frequency oracle, not
+  the L1 grid residual; `fullruns/l1_noise_calib.json`). ORGANISM RUN: B-v2
+  protocol with `--drift-mode l1 --l1-delta 0.023 --sensor-sigma 0.01`, drifts
+  {0.0, 0.023}, seeds 0..9, three arms, `--save-agents` + state dumps
+  (`fullruns/l1_heldout`). Survival pooled target **0.533** (90% CI [0.509,
+  0.556], 0/10 ≥ 0.65); predictor 0.489; untrained 0.494. L0 ROPE accepts
+  chance; engagement/leakage/survivorship clean; ceilings alive. Primary H_B2
+  NOT met — oracle-detectable L1 leaves no incidental world-identity encoding.
+  A1 GRADED-SEAM: integrity gate bit-matches dumps and reproduces 0.533; Δ ladder
+  stays near chance (0.522 / 0.519 / 0.528 / 0.547 / 0.533). A2 NOISE KNOCKOUT:
+  transfer onto matched-band iid obs noise gives survival 0.525 / untrained
+  0.509 / predictor 0.516 (frozen rule fails both clauses). A2 CHANNEL
+  LOCALIZATION: baseline 0.533; intero mask ~0.51; all-mask 0.500; vision mask
+  elevates survival and untrained alike (~0.70) — non-specific lesion artifact
+  given the null baseline. READING: L1 does not reproduce the L3 positive; H2
+  substrate-grounding remains L3-specific. Detectability of an observation-level
+  seam is not sufficient for incidental encoding. Artifacts:
+  `fullruns/l1_heldout/`, `fullruns/l1_h2_ablations/`,
+  `fullruns/l1_obs_localization/`.
+
+- **2026-07-23 - H2 TEXTURE-KNOCKOUT: STRUCTURE + DOSE-RESPONSE ABLATIONS (n=10,
+  readout-only): H2 CONFIRMED IN TEXTURE-SPECIFIC FORM at hidden=8 and hidden=7.**
+  Executes the frozen spec
+  `docs/specs/2026-07-22-h2-substrate-grounding-ablations-design.md` (PR #99)
+  against the saved `fullruns/l3_h8_heldout` and `fullruns/l3_h7_heldout` agents;
+  no training. GATE-0 CALIBRATION: `G_gn` (Gaussian-jitter velocity law) freezes at
+  `sigma_v=0.01` with oracle AUROC **0.865** (band pass), leakage pass, and
+  untrained floor **0.448** (within tolerance). The same-recipe MLP capacity
+  ladder {h16, h32, h64} is calibrated sub-band with clean floors and leakage:
+  oracle AUROCs **0.788, 0.656, 0.603**. INTEGRITY GATE (sixth determinism
+  check at hidden=8, seventh at hidden=7): all 60 reloaded agents per capacity
+  regenerated their standard pools bit-identically and the drift-0.45 pooled
+  survival means reproduced the published **0.752** (hidden=8) and **0.737**
+  (hidden=7) exactly. CHANNEL 1 (structure knockout, PRIMARY): at hidden=8
+  survival `transfer_gn_target` = **0.539** (0/10 seeds >= 0.65), predictor 0.556,
+  untrained floor 0.542; at hidden=7 survival **0.510**, predictor 0.539,
+  untrained floor 0.520. The frozen positive rule fails both clauses at both
+  capacities, so the direction does NOT read matched-band unstructured jitter.
+  CHANNEL 2 (dose-response, SECONDARY): at hidden=8 survival transfer means
+  **h16 0.701, h32 0.622, h64 0.541** (seeds >= 0.65: 8/10, 3/10, 0/10); at
+  hidden=7 **h16 0.574, h32 0.516, h64 0.513** (1/10, 0/10, 0/10). VERDICT: H2
+  is supported in texture-specific form across both in-band capacities; the
+  world-signal loads on the learned structure of the substrate velocity-law
+  surrogate, not on generic dynamics perturbation. The survival-specificity claim
+  remains conditional on the subtler hidden=8 artifact (section 10.5).
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

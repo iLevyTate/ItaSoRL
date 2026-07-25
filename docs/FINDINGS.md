@@ -18,26 +18,20 @@ asked whether a from-scratch agent can tell that its world is a generative
 surrogate rather than the authentic base dynamics, using only substrate seams,
 with detection **read out, not rewarded**.
 
-**There are two headline results, one negative and one positive, and the contrast
-between them is the finding.**
+**There are two headline results, one negative family and one positive, and the
+contrast between them is the finding.**
 
-**At L2 (a hand-tuned dynamics artifact), detectability does not imply incidental
-encoding: a robust, well-controlled negative below the pre-registered bar.** A
-substrate artifact that an external, privileged oracle detects almost perfectly
-(AUROC ≈ 0.99, measured in Experiment A's tamed diagnostic configuration - no
-in-config oracle ceiling exists for the Experiment-B world, unlike L3's in-config
-gate) leaves essentially no decodable trace in a from-scratch agent's learned
-representation (AUROC ≈ 0.5), across three readout channels, surviving engagement
-and probe checks (linear *and* nonlinear). Under survival pressure at scale the
-picture is graded rather than flat: the survival-coupled variant reaches 0.610
-(90% CI [0.585, 0.634]) at n = 10 - below the 0.65 encoding bar, i.e. the
-pre-committed *intermediate zone*, but significantly above both same-trunk
-baselines (≈ +0.10 over predictor and untrained), so a small survival-specific
-L2 trace exists without clearing the bar. A supervised reference run that trains
-the trunk directly on the drift reaches a pooled 0.596 (90% CI [0.577, 0.616]) -
-a lower-bound positive control on what the pooled readout can express (its
-supervision only partially succeeded; matched-pair 0.702), not a proven
-architectural ceiling (sections 3, 4, 9).
+**At L1 and L2 (hand-authored substrate seams), detectability does not imply
+incidental encoding.** L2 is the long-standing negative: an external oracle
+detects a slowly drifting dynamics coefficient almost perfectly (AUROC ≈ 0.99 in
+Experiment A's tamed diagnostic configuration), yet a from-scratch agent's state
+stays near chance across readout channels (sections 3, 4, 9); under survival
+pressure the survival-coupled variant reaches 0.610 (below the 0.65 bar). L1
+now matches that moral on a different primitive (section 14.7): at a matched
+in-band observation-quantization grid (Δ = 0.023, oracle AUROC 0.873), the
+survival agent's pooled world-identity target is **0.533** (0/10 ≥ 0.65) —
+oracle-detectable, organism-null. The L1 H2 ablation battery is consistent with
+that null (flat Δ ladder, noise transfer at chance).
 
 **At L3 (a learned-dynamics fingerprint surrogate), survival-trained agents do
 incidentally encode world identity: a controlled, partly behavior-mediated
@@ -49,21 +43,20 @@ Reward leakage, survivorship, and nonlinear-probe controls pass; a strict
 per-timestep behavior control leaves a behavior-independent world-signal of
 **0.726** (90% CI [0.685, 0.765], 9/10 seeds above the bar; section 10; widening
 that control to also residualize absolute position and heading holds it at 0.723,
-section 10.4.1). A
-pre-registered replication at a second oracle-calibrated capacity (hidden = 7)
-splits the claim: the behavior-independent world-signal replicates almost exactly
-(**0.722**, CI clearing the bar), but the survival-vs-predictor dissociation was
-not demonstrated (survival 0.737 vs predictor 0.714; the paired difference +0.023
-misses the pre-registered +0.05 rule, and its 90% CI [-0.026, +0.071] includes
-both 0 and the SESOI - so absence of a dissociation at hidden = 7 is not
-established either, though the hidden-8-sized effect of +0.18 is excluded), so
-the survival-*specific* part of the claim is conditional on the subtler
-hidden = 8 artifact (section 10.5).
+section 10.4.1). H2 substrate-grounding is confirmed at L3 (sections 14–14.5):
+the signal collapses with the graded seam and does not read matched-band
+unstructured jitter. A pre-registered replication at a second oracle-calibrated
+capacity (hidden = 7) splits the claim: the behavior-independent world-signal
+replicates almost exactly (**0.722**, CI clearing the bar), but the
+survival-vs-predictor dissociation was not demonstrated (survival 0.737 vs
+predictor 0.714; the paired difference +0.023 misses the pre-registered +0.05
+rule), so the survival-*specific* part of the claim is conditional on the
+subtler hidden = 8 artifact (section 10.5).
 
-Together: an agent does not represent a detectable artifact *for free* (L2), but
-when the artifact is a generative fingerprint that survival pressure forces it to
-cope with, world-discriminative state emerges as a byproduct, read out and never
-rewarded (L3). A held-out probe (n = 10, section 10.6) sharpens what "emerges"
+Together: an agent does not represent a detectable artifact *for free* (L1/L2),
+but when the artifact is a generative fingerprint that survival pressure forces
+it to cope with, world-discriminative state emerges as a byproduct, read out and
+never rewarded (L3). A held-out probe (n = 10, section 10.6) sharpens what "emerges"
 means: the world-signal survives transfer to a *capacity variant* of the training
 fingerprint the agent never lived with (transfer 0.773 vs untrained 0.569,
 pre-registered rule passes) - though the two maps share the same recipe, seed,
@@ -105,7 +98,7 @@ substrate). Detection is measured against a **surrogate ladder**:
 | Rung | Nature of the artifact | Status |
 |------|------------------------|--------|
 | L0 | Identical re-implementation (control, must be at chance) | tested |
-| L1 | Observation discretization (a lattice / quantization tell) | tested |
+| L1 | Observation discretization (a lattice / quantization tell) | tested (organism negative at in-band Δ=0.023: survival 0.533; section 14.7) |
 | L2 | Rollout drift (a slowly drifting dynamics coefficient) | tested |
 | L3 | Learned world-model surrogate (a generative fingerprint) | tested (positive, n=10; reward/survivorship-controlled, behavior-independent component 0.726; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so the signal is a modest persistent world-identity component, not purely reactive (section 10.6.1); section 10) |
 | L4 | Adversarially-hardened surrogate | not started |
@@ -387,17 +380,23 @@ inducing it (if possible) requires something more deliberate.
   gate-calibrated random-Fourier-features law (0.684, rule passes), so the
   world-identity signal is recipe-general.
 - **H2 (substrate-grounding via ablations).** CONFIRMED for the L3 rung at
-  hidden=8 (section 14). A graded neutralization of the one substrate seam (the
-  learned velocity law, blended `(1-alpha)*authentic + alpha*G`) collapses the
-  incidentally-encoded survival world-signal monotonically to the chance floor as
-  the seam is removed: pooled target 0.752, 0.723, 0.683, 0.618, 0.538, 0.506
-  across alpha 1.00, 0.75, 0.50, 0.25, 0.10, 0.00 (Spearman rho 1.0), and at
-  alpha=0 the signal is equivalent to chance (ROPE accept, mean 0.506). The
-  untrained floor stays flat near chance (0.46 to 0.49) at every alpha, so the
-  collapse is specific to the learned signal, not an artifact of the graded world.
-  With the task-confound controls already banked (behavior, absolute position and
-  heading, reward, metadata; sections 10.4 and 10.4.1), detection loads on the
-  substrate artifact, which is what H2 asserts.
+  hidden=8 (sections 14 and 14.5). Section 14 (A1) shows a graded neutralization
+  of the one substrate seam (the learned velocity law, blended
+  `(1-alpha)*authentic + alpha*G`) collapses the survival world-signal
+  monotonically to the chance floor as the seam is removed: pooled target 0.752,
+  0.723, 0.683, 0.618, 0.538, 0.506 across alpha 1.00, 0.75, 0.50, 0.25, 0.10,
+  0.00 (Spearman rho 1.0), with alpha=0 equivalent to chance (ROPE accept, mean
+  0.506). Section 14.5 (A2) adds the structure-knockout + dose-response probe:
+  a matched-band unstructured Gaussian-jitter surrogate is read at chance by the
+  survival arm (0.539 vs untrained 0.542), while the same-recipe capacity ladder
+  co-decays with oracle detectability (h16 0.701, h32 0.622, h64 0.541). Together
+  these establish that detection loads on the learned *texture* of the substrate
+  artifact, not on generic dynamics perturbation. The survival-specificity part
+  remains conditional on the subtler hidden=8 artifact (section 10.5). The same
+  H2 battery on the L1 discretization rung (section 14.7) finds **no incidental
+  encoding** at the matched in-band grid (survival 0.533), so L1 does not
+  reproduce the L3 positive; H2 at L1 is therefore a strengthened negative for
+  organism encoding of an oracle-detectable observation artifact.
 - **H3 (emergence under selection).** RESOLVED NEGATIVE. The first pilot's
   recorded null was **invalidated** (section 13.C): the run executed on pre-fix
   code carrying two since-fixed measurement defects (the fitness/panel legs ran
@@ -1423,14 +1422,178 @@ is dose-controlled by, and collapses to chance without, the substrate velocity-l
 seam, specifically for the trained agent. H2 is confirmed for the L3 rung at
 hidden=8, conditional on that artifact.
 
+**Hidden=7 second-capacity replication.** The same A1 graded-seam sweep was rerun on
+the saved hidden=7 agents (`fullruns/l3_h7_heldout`, 10 seeds, drift 0.45). The
+integrity gate reproduces the hidden=7 published survival mean **0.737** exactly.
+The collapse is again strictly monotonic (Spearman rho 1.0): alpha=1.00 **0.737**,
+0.75 **0.725**, 0.50 **0.704**, 0.25 **0.650**, 0.10 **0.554**, 0.00 **0.472**.
+The L0 anchor at alpha=0 is near chance (mean 0.472, bootstrap HDI [0.445, 0.501],
+ROPE p=0.947). The graded-seam necessity result is robust across the two in-band
+capacities.
+
 **Scope and deferred follow-ons.** This is a necessity-plus-specificity result on
-one rung at one capacity; it does not speak to L1/L2 (different substrate
-primitives) or to H3 (resolved negative, section 13). The reactive reading of the
-common-garden control (section 10.6.1: the signal is a modest persistent component
-the policy also expresses reactively while the dynamics bite) is unchanged; A1
-neutralizes the felt dynamics divergence, so a collapse is fully consistent with
-it. Deferred in the spec: A2, an observation-channel localization that must re-run
-rollouts with masked observations (the probe reads recurrent state, not the
-observation, so it cannot be a post-hoc mask); A3, the same test through a
-different substrate primitive (for example the L1 discretization rung), which
-needs a fresh training run; and a hidden=7 second-capacity robustness check.
+the L3 rung at hidden=8 and hidden=7; it does not speak to L1/L2 (different
+substrate primitives) or to H3 (resolved negative, section 13). The reactive
+reading of the common-garden control (section 10.6.1: the signal is a modest
+persistent component the policy also expresses reactively while the dynamics bite)
+is unchanged; A1 neutralizes the felt dynamics divergence, so a collapse is fully
+consistent with it. A2 observation-channel localization is now resolved in
+section 14.6. A3 (same H2 battery on the L1 discretization rung) is now
+resolved in section 14.7: organism encoding is negative at the matched in-band
+grid, so L1 does not reproduce the L3 positive.
+
+## 14.5 H2 texture-knockout: structure + dose-response ablations
+
+**Status: CONFIRMED for the L3 rung at hidden=8 and hidden=7.** Design spec:
+`docs/specs/2026-07-22-h2-substrate-grounding-ablations-design.md`. Local artifacts:
+`fullruns/l3_h2_ablations/{gate0_gn.json,gate0_ladder.json,aggregate.json,cells.json}`
+(hidden=8) and `fullruns/l3_h7_h2_ablations/aggregate.json` (hidden=7).
+
+This probe adjudicates the surviving skeptic story after A1: the survival world-signal
+collapses with the seam, but does it read the *texture* of the learned
+approximation or any equally-detectable dynamics perturbation? It uses two
+readout-only channels against the saved agents.
+
+**Channel 1, structure knockout (PRIMARY).** A frozen world-identity direction,
+fit on the trained fingerprint, is scored on a gate-calibrated unstructured
+Gaussian-jitter surrogate (`G_gn`: authentic velocity law plus iid `N(0, sigma_v^2 I2)`
+noise). The noise is white, isotropic, and independent of `(vel, a)`; the only tell
+is the jitter's magnitude. Gate 0 at `sigma_v=0.01` yields oracle AUROC **0.865**
+(in-band), mechanical leakage pass, untrained floor **0.448** (within tolerance).
+This is matched-band detectability with zero learned structure.
+
+*Hidden=8 result:* survival `transfer_gn_target` = **0.539** (n=10, mean),
+untrained floor **0.542**, predictor **0.556**. The frozen positive rule fails both
+clauses; the structured-texture direction does NOT read the matched-magnitude
+unstructured perturbation. **H2 is supported in texture-specific form** at hidden=8.
+
+*Hidden=7 result:* survival `transfer_gn_target` = **0.510**, untrained floor
+**0.520**, predictor **0.539**. The positive rule also fails both clauses; the
+texture-specificity holds at the second capacity as well.
+
+**Channel 2, dose-response titration (SECONDARY).** Same frozen direction scored
+on same-recipe GMotion at hidden {16, 32, 64}; these capacities are intentionally
+sub-band (oracles 0.788, 0.656, 0.603) with clean floors and leakage. The survival
+reading co-decays monotonically with oracle detectability at hidden=8: **h16 0.701**
+(8/10 >= 0.65) → **h32 0.622** (3/10) → **h64 0.541** (0/10). At hidden=7 the
+reading is also below the bar: h16 0.574 (1/10), h32 0.516, h64 0.513. The
+primary channel already supports H2, so the promotion rule is not evaluated.
+
+**Integrity gate (determinism check #6 at hidden=8, #7 at hidden=7).** All 60
+reloaded agents per capacity regenerated the standard pools bit-identically, and
+the drift-0.45 survival means reproduced the published **0.752** (hidden=8) and
+**0.737** (hidden=7) exactly.
+
+**Verdict.** Combined with A1 and the banked task-confound controls, the texture-
+knockout confirms H2 for the L3 rung at both in-band capacities: the incidentally-
+encoded world-identity signal is driven by the learned structure of the substrate
+velocity-law surrogate, not by a task-level perturbation confound. The survival-
+specificity part remains conditional on the subtler hidden=8 artifact (section
+10.5).
+
+## 14.6 A2 observation-channel localization
+
+**Status: COMPLETE for the L3 rung at hidden=8 and hidden=7.** Design and runner:
+`scripts/run_l3_obs_localization.py`. Local artifacts:
+`fullruns/l3_h8_obs_localization/aggregate.json` and
+`fullruns/l3_h7_obs_localization/aggregate.json`.
+
+This probe asks *which* observation channels carry the world-identity signal in
+the survival agent's recurrent state. The agent is frozen; the only change is a
+channel-wise zero mask applied to the raw observation before its running norm. New
+pools are collected under the learned fingerprint at drift 0.45, and a fresh
+pooled_readout is run on each masked condition.
+
+**Hidden=8.**
+
+| Mask | Zeroed dims | survival mean | predictor mean | untrained mean |
+|---|---|---|---|---|
+| none | 0 / 146 | **0.753** (8/10 >= 0.65) | 0.573 | 0.488 |
+| vision | 120 / 146 | **0.686** (7/10) | 0.598 | 0.567 |
+| intero | 14 / 146 | **0.756** (8/10) | 0.562 | 0.506 |
+| all | 146 / 146 | **0.500** (0/10) | 0.500 | 0.500 |
+
+**Hidden=7.**
+
+| Mask | Zeroed dims | survival mean | predictor mean | untrained mean |
+|---|---|---|---|---|
+| none | 0 / 146 | **0.737** (8/10) | 0.714 | 0.586 |
+| vision | 120 / 146 | **0.764** (9/10) | 0.674 | 0.724 |
+| intero | 14 / 146 | **0.742** (8/10) | 0.639 | 0.646 |
+| all | 146 / 146 | **0.500** (0/10) | 0.500 | 0.500 |
+
+**Reading.** Masking the entire observation collapses the signal to chance (0.500)
+in both capacities, which is a sanity check that the readout is not decoding from
+unmasked behavior correlates. At **hidden=8**, masking **interoception** (velocity,
+heading, energy, etc.) leaves the signal essentially unchanged, while masking
+**vision** causes a modest but clear drop from 0.753 to 0.686. This suggests the
+world-identity signal is carried by the visual stream and/or the behavior it
+shapes, not by explicit interoceptive velocity feedback.
+
+At **hidden=7**, the pattern is different: neither vision nor interoception masking
+collapses the survival signal (0.737 -> 0.764 with vision masked, 0.737 -> 0.742
+with intero masked). The signal is robust to single-channel lesion and only falls to
+chance when all observations are masked. The coarser hidden=7 surrogate produces
+dynamics artifacts that propagate into both visual and interoceptive streams, so the
+world-identity readout does not depend on a single channel. Both results are
+consistent with the substrate-grounding hypothesis: the signal rides on the channels
+that carry the surrogate's specific artifacts.
+
+**Scope.** One mask type is applied uniformly across all timesteps. It does not
+distinguish "the recurrent state passively mirrors a visually present world cue"
+from "the recurrent state stores a behavior plan shaped by vision"; finer lesion
+studies (e.g., masking only radial-velocity channels, or only reflectance/distance)
+would be needed to separate those. Hidden=7 and hidden=8 replications are now both
+complete.
+
+## 14.7 A3 L1: H2 substrate-grounding on the discretization rung
+
+**Status: COMPLETE — organism encoding NEGATIVE at the matched in-band L1 grid.**
+Design and runners: `scripts/run_expA_l1.py`, `scripts/run_expA_l1_noise.py`,
+`scripts/run_expB2.py --drift-mode l1`, `scripts/run_l1_h2_ablations.py`,
+`scripts/run_l3_obs_localization.py --drift-mode l1`. Local artifacts:
+`fullruns/l1_calib.json`, `fullruns/l1_noise_calib.json`,
+`fullruns/l1_heldout/`, `fullruns/l1_h2_ablations/`,
+`fullruns/l1_obs_localization/`.
+
+This extends the L3 H2 battery to a different substrate primitive: observation-
+level quantization (grid spacing Δ) with a matched sensor-noise floor
+(σ_sensor = 0.01). Gate 0 freezes Δ = **0.023** (oracle AUROC **0.873**, leakage
+clean). The unstructured comparator is iid observation noise at σ_o = **0.01**
+(oracle AUROC **0.873**, leakage clean) — matched-band detectability with zero
+grid structure.
+
+**Organism result (n=10, three arms, B-v2 protocol).** At the headline grid,
+survival pooled target = **0.533** (90% CI [0.509, 0.556], 0/10 ≥ 0.65),
+predictor 0.489, untrained 0.494. L0 control accepts chance equivalence (ROPE
+p = 0.989). Engagement, leakage, and survivorship gates pass; ceilings (energy /
+food) remain readable. Primary H_B2 is **not met**: an oracle-detectable L1
+artifact leaves no decodable world-identity trace in the survival state. This
+parallels the L2 "detectability ≠ encoding" negative and contrasts with the L3
+positive.
+
+**A1 graded-seam (Δ ladder).** Integrity gate bit-matches saved pools and
+reproduces the headline survival mean **0.533**. Survival means across
+Δ ∈ {0, 0.25, 0.5, 0.75, 1.0} × headline stay near chance
+(0.522 / 0.519 / 0.528 / 0.547 / 0.533). There is no encoding signal to titrate;
+the flat curve is consistent with the organism null.
+
+**A2 noise knockout.** Frozen L1-probe transfer onto matched-band iid observation
+noise: survival **0.525**, untrained **0.509**, predictor **0.516**. The frozen
+positive rule fails both clauses (`H2_SUPPORTED` by the L3 decision table), but
+this is vacuous given the null primary encoding — there is no structured
+world-identity direction to mis-read onto noise.
+
+**A2 observation-channel localization.** Baseline (no mask) reproduces 0.533.
+Masking interoception stays at chance (~0.51). Masking all observations collapses
+to 0.500. Masking vision elevates survival to 0.696 **and untrained to 0.703**
+(non-specific lesion artifact, not a survival-encoded channel). With no baseline
+world-identity signal, channel localization does not identify a carrier.
+
+**Reading.** At the matched in-band L1 configuration, the organism does not
+incidentally encode the discretization artifact. H2 substrate-grounding is
+confirmed at L3 (learned dynamics texture) and does not extend to L1
+(observation quantization) because L1 never clears the encoding bar. The L1
+result strengthens the rung-specificity of the L3 positive: detectability of a
+substrate seam is not sufficient for incidental encoding; the seam's
+computational character matters.
