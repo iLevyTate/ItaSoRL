@@ -18,26 +18,20 @@ asked whether a from-scratch agent can tell that its world is a generative
 surrogate rather than the authentic base dynamics, using only substrate seams,
 with detection **read out, not rewarded**.
 
-**There are two headline results, one negative and one positive, and the contrast
-between them is the finding.**
+**There are two headline results, one negative family and one positive, and the
+contrast between them is the finding.**
 
-**At L2 (a hand-tuned dynamics artifact), detectability does not imply incidental
-encoding: a robust, well-controlled negative below the pre-registered bar.** A
-substrate artifact that an external, privileged oracle detects almost perfectly
-(AUROC ≈ 0.99, measured in Experiment A's tamed diagnostic configuration - no
-in-config oracle ceiling exists for the Experiment-B world, unlike L3's in-config
-gate) leaves essentially no decodable trace in a from-scratch agent's learned
-representation (AUROC ≈ 0.5), across three readout channels, surviving engagement
-and probe checks (linear *and* nonlinear). Under survival pressure at scale the
-picture is graded rather than flat: the survival-coupled variant reaches 0.610
-(90% CI [0.585, 0.634]) at n = 10 - below the 0.65 encoding bar, i.e. the
-pre-committed *intermediate zone*, but significantly above both same-trunk
-baselines (≈ +0.10 over predictor and untrained), so a small survival-specific
-L2 trace exists without clearing the bar. A supervised reference run that trains
-the trunk directly on the drift reaches a pooled 0.596 (90% CI [0.577, 0.616]) -
-a lower-bound positive control on what the pooled readout can express (its
-supervision only partially succeeded; matched-pair 0.702), not a proven
-architectural ceiling (sections 3, 4, 9).
+**At L1 and L2 (hand-authored substrate seams), detectability does not imply
+incidental encoding.** L2 is the long-standing negative: an external oracle
+detects a slowly drifting dynamics coefficient almost perfectly (AUROC ≈ 0.99 in
+Experiment A's tamed diagnostic configuration), yet a from-scratch agent's state
+stays near chance across readout channels (sections 3, 4, 9); under survival
+pressure the survival-coupled variant reaches 0.610 (below the 0.65 bar). L1
+now matches that moral on a different primitive (section 14.7): at a matched
+in-band observation-quantization grid (Δ = 0.023, oracle AUROC 0.873), the
+survival agent's pooled world-identity target is **0.533** (0/10 ≥ 0.65) —
+oracle-detectable, organism-null. The L1 H2 ablation battery is consistent with
+that null (flat Δ ladder, noise transfer at chance).
 
 **At L3 (a learned-dynamics fingerprint surrogate), survival-trained agents do
 incidentally encode world identity: a controlled, partly behavior-mediated
@@ -49,21 +43,20 @@ Reward leakage, survivorship, and nonlinear-probe controls pass; a strict
 per-timestep behavior control leaves a behavior-independent world-signal of
 **0.726** (90% CI [0.685, 0.765], 9/10 seeds above the bar; section 10; widening
 that control to also residualize absolute position and heading holds it at 0.723,
-section 10.4.1). A
-pre-registered replication at a second oracle-calibrated capacity (hidden = 7)
-splits the claim: the behavior-independent world-signal replicates almost exactly
-(**0.722**, CI clearing the bar), but the survival-vs-predictor dissociation was
-not demonstrated (survival 0.737 vs predictor 0.714; the paired difference +0.023
-misses the pre-registered +0.05 rule, and its 90% CI [-0.026, +0.071] includes
-both 0 and the SESOI - so absence of a dissociation at hidden = 7 is not
-established either, though the hidden-8-sized effect of +0.18 is excluded), so
-the survival-*specific* part of the claim is conditional on the subtler
-hidden = 8 artifact (section 10.5).
+section 10.4.1). H2 substrate-grounding is confirmed at L3 (sections 14–14.5):
+the signal collapses with the graded seam and does not read matched-band
+unstructured jitter. A pre-registered replication at a second oracle-calibrated
+capacity (hidden = 7) splits the claim: the behavior-independent world-signal
+replicates almost exactly (**0.722**, CI clearing the bar), but the
+survival-vs-predictor dissociation was not demonstrated (survival 0.737 vs
+predictor 0.714; the paired difference +0.023 misses the pre-registered +0.05
+rule), so the survival-*specific* part of the claim is conditional on the
+subtler hidden = 8 artifact (section 10.5).
 
-Together: an agent does not represent a detectable artifact *for free* (L2), but
-when the artifact is a generative fingerprint that survival pressure forces it to
-cope with, world-discriminative state emerges as a byproduct, read out and never
-rewarded (L3). A held-out probe (n = 10, section 10.6) sharpens what "emerges"
+Together: an agent does not represent a detectable artifact *for free* (L1/L2),
+but when the artifact is a generative fingerprint that survival pressure forces
+it to cope with, world-discriminative state emerges as a byproduct, read out and
+never rewarded (L3). A held-out probe (n = 10, section 10.6) sharpens what "emerges"
 means: the world-signal survives transfer to a *capacity variant* of the training
 fingerprint the agent never lived with (transfer 0.773 vs untrained 0.569,
 pre-registered rule passes) - though the two maps share the same recipe, seed,
@@ -105,7 +98,7 @@ substrate). Detection is measured against a **surrogate ladder**:
 | Rung | Nature of the artifact | Status |
 |------|------------------------|--------|
 | L0 | Identical re-implementation (control, must be at chance) | tested |
-| L1 | Observation discretization (a lattice / quantization tell) | tested |
+| L1 | Observation discretization (a lattice / quantization tell) | tested (organism negative at in-band Δ=0.023: survival 0.533; section 14.7) |
 | L2 | Rollout drift (a slowly drifting dynamics coefficient) | tested |
 | L3 | Learned world-model surrogate (a generative fingerprint) | tested (positive, n=10; reward/survivorship-controlled, behavior-independent component 0.726; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so the signal is a modest persistent world-identity component, not purely reactive (section 10.6.1); section 10) |
 | L4 | Adversarially-hardened surrogate | not started |
