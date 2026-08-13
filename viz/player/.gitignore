@@ -5,3 +5,8 @@ blob-spritesheet.html
 iso-proto.html
 pip-variations.html
 variations.html
+
+# Brain renderer scratch (capture deps + proof frames stay out of history).
+brain/node_modules/
+brain/proof/
+brain/viz/
