@@ -1,23 +1,30 @@
 # ITASORL
-## Emergent Simulation Detection in Artificial Life - Overview, Research Plan, and Methodological Design
+## Emergent Simulation Detection in Artificial Life: Overview, Research Plan, and Methodological Design
 
 *Working design document. Part I is the conceptual overview and research plan; Part II is the methodological hardening and implementation roadmap.*
 
 ---
 
-ITASORL is an artificial-life (ALife) system built to test a single sharp question: can a *tabula rasa* digital organism - trained only on lived experience, with no imported semantic knowledge - detect that its world is a generative surrogate rather than the authentic base dynamics of its computational substrate, using only the statistical and physical "seams" of that substrate? The detection must be **read out** of the agent's internal state rather than directly rewarded, and it must emerge **incidentally** under endogenous survival pressure rather than being engineered as an explicit objective.
+Can a blank-slate digital organism, trained only on what it lives, tell that its
+world is a generative copy rather than the authentic base dynamics, using only
+the seams of that substrate? Detection is **read out** of internal state. Never
+rewarded. If it shows up, it shows up as a side effect of staying alive.
 
-The project has a dual purpose: a defensible empirical contribution to machine learning, cognitive architectures, and artificial life; and a legible computational artifact in which an observer can watch an artificial organism functionally "doubt" the nature of its reality. The science is the spine; the awe layer is a demonstration of that science, not decoration.
-
-This document is in two parts. **Part I** is the overview and research plan - the core question and its operationalization, the prior-art landscape, the hypotheses, the experimental phases, and the surrogate ladder. **Part II** is the plan of action - a methodological audit of the design, a redesign organized around phase gates, a pre-registered statistical plan, the engineering architecture, and an implementation roadmap.
+The film and the site are how you watch that. This document is the plan. **Part I**
+is the question, prior work, hypotheses, experiments, and the surrogate ladder.
+**Part II** is gates, stats, engineering, and the implementation order.
 
 ---
 
-# Part I - Overview and Research Plan
+# Part I: Overview and Research Plan
 
 ## The core question and why it is testable
 
-The naive framing - *"does a digital organism know its world is real?"* - is untestable, because to a digital organism the computational substrate **is** the base reality; there is no deeper "real" to compare against. ITASORL therefore reframes the question relatively: can the agent distinguish the *authentic base dynamics* of its native environment from a *generative, lossy copy* of those dynamics, using only the artifacts inherent to the surrogate-generation process? This converts an untestable philosophical paradox into a falsifiable empirical measurement, and it is the core scientific move of the project.
+*"Does a digital organism know its world is real?"* is untestable. To that
+organism the computational substrate **is** the base. There is no deeper "real"
+to point at. The usable question is relative: can the agent tell *authentic base
+dynamics* from a *generative, lossy copy*, using only artifacts of how the copy
+was made? That is a measurement.
 
 Three invariants make the measurement meaningful and keep it from collapsing into something easier:
 
@@ -27,13 +34,21 @@ Three invariants make the measurement meaningful and keep it from collapsing int
 
 ## Project lineage
 
-ITASORL descends from earlier work on game worlds and Model Context Protocol (MCP) tooling, which pivoted toward a personalized ALife simulation: populations of agents with distinct genomes and neural architectures evolving over generations, with social behavior and flocking dynamics. Recognizing the diminishing returns of "novelty-by-accumulation" - where complexity is layered without interrogating fundamental paradigms - the project narrowed to a tightly constrained population of model-based agents with Dreamer-style internal world models, operating under mortality and homeostasis, pursuing endogenous survival goals inside a generative world-model environment while modeling both their physics and each other.
+ITASORL started as game-world and MCP tooling, then a personalized ALife sim:
+genomes, neural architectures, generations, flocking. Stacking more systems
+stopped paying. The build narrowed to model-based agents with Dreamer-style
+world models, mortality, and homeostasis, inside a generative environment.
 
-Among candidate novel cores - nested world-model convergence, emergent theory of mind, eco-evolution through a learned environment - substrate-driven simulation detection surfaced as the sharpest unexplored vector, and a prior-art kill-pass found the from-scratch, ground-truth-measured version of the experiment still open.
+Nested world-model convergence, theory of mind, and eco-evolution through a
+learned environment were still on the table. Substrate-driven simulation
+detection was the open one. A prior-art kill-pass left the from-scratch,
+ground-truth-measured version still unclaimed.
 
-## The literature white space
+## Adjacent work
 
-Simulation detection is pervasive in current discourse but fractured across five adjacent domains. Each owns a piece of the puzzle; none performs the integrated, emergent, epistemically isolated detection ITASORL targets.
+Simulation detection shows up in five neighboring fields. Each has a piece.
+None runs the from-scratch, ground-truth, unrewarded measurement this project
+is built for.
 
 ### 1. Generative social simulacra - and semantic contamination
 
@@ -61,9 +76,11 @@ To understand how an agent could discover the constraints of its substrate *from
 
 In applied architectures, model-based RL (MBRL) is the closest mechanical proxy: an agent learns a forward dynamics model and plans within it. The pervasive "sim-to-real" gap and the tendency of RL agents to "reward-hack" simulator bugs are well documented, and active inference frames anomalies as spikes in expected free energy that trigger epistemic foraging. But detecting an anomaly or exploiting a glitch is **not** detecting a simulation: a prediction-error spike only signals that the current model is inadequate, and exploiting a collision bug is localized reward optimization. "Objective mismatch" work shows that training a forward model and achieving good downstream control are different objectives. To cross from anomaly detection to simulation detection, the latent state must encode a *generalized, stable classification* between two environments (authentic vs. surrogate) that is legible and unlinked to reward.
 
-### The unoccupied white space
+### What this project owns
 
-ITASORL's structural advantage is that the project **owns the ground truth** and the agent starts with **zero imported knowledge** - a combination impossible in LLM evaluations (semantic contamination) or real-world robotics (uncontrollable base reality).
+The project **owns the ground truth**, and the agent starts with **zero imported
+knowledge**. LLM evaluations cannot do both (semantic contamination). Real robots
+cannot do both (you do not control base reality).
 
 | Domain | Contribution to simulation detection | Critical limitation for ALife application |
 |---|---|---|
@@ -164,11 +181,15 @@ The minimal result worth reporting is **Experiment B at L1 or L2**: a from-scrat
 
 ---
 
-# Part II - Methodological Design and Plan of Action
+# Part II: Methodological Design and Plan of Action
 
 ## How to read this part
 
-Part I states the vision. Part II is about making the three invariants - tabula rasa, readout-not-reward, substrate-grounding - *structurally impossible to violate*, and about tightening the inference chain so the result survives scrutiny. The project is unusually well-conceived for an ALife proposal, but it is not yet methodologically airtight; its success depends less on adding novelty than on hardening inference: formalize L0 equivalence, audit leakage pathways, use paired held-out evaluation, enforce probe selectivity, aggregate at the correct unit of inference, and separate emergence from ecological drift.
+Part I is the question. Part II is how you keep the three invariants (tabula
+rasa, readout-not-reward, substrate-grounding) from being quietly violated.
+Formalize L0 equivalence. Audit leakage. Pair held-out evaluation. Enforce
+probe selectivity. Aggregate at the right unit. Separate emergence from
+ecological drift.
 
 ## Audit frame: four kinds of validity
 
@@ -181,7 +202,7 @@ These map onto established standards: deep-RL reproducibility, RL reliability me
 
 ## Validity threats
 
-**Internal validity - byte-identical observations are necessary but not sufficient.** A capable agent could detect differences through unintended channels other than the intended artifact: reward timing, episode length, reset frequency, termination hazards, action-mask changes, initialization differences, logging cadence, simulator latency, wall-clock jitter, or PRNG leakage. The byte-identical `obs_spec`, wrapper-based surrogate generation, and deterministic controls help, but the engineering null must be audited across **all** observable and latent channels, not just tensor shapes and displayed observations. (Note that even with fixed seeds, full reproducibility is not guaranteed across hardware and library releases, which is itself a channel to audit.)
+**Internal validity - byte-identical observations are necessary but not sufficient.** A capable agent could detect differences through unintended channels other than the intended artifact: reward timing, episode length, reset frequency, termination hazards, action-mask changes, initialization differences, logging cadence, simulator latency, wall-clock jitter, or PRNG leakage. The byte-identical `obs_spec`, wrapper-based surrogate generation, and deterministic controls help, but the engineering null must be audited across **all** observable and latent channels, tensor shapes and displayed observations included. (Note that even with fixed seeds, full reproducibility is not guaranteed across hardware and library releases, which is itself a channel to audit.)
 
 **Construct validity - "simulation detection" is not yet operationalized tightly enough.** A positive readout could reflect generic anomaly detection, sensitivity to rollout error, discovery of a payoff asymmetry, cueing from reward statistics, or probe memorization rather than a stable latent "authentic vs. surrogate" category. Objective mismatch means better predictive accuracy need not imply the right latent abstraction; simple probe accuracy can exaggerate what a representation contains unless probe capacity and control tasks are used to measure selectivity. ITASORL needs a **multi-method** construct test, not one probe score. This caution is not hypothetical: recent work on LLM evaluation awareness finds that linear-probe "awareness" signals can track prompt *format* rather than genuine context (Devbunova, arXiv:2603.19426), the precise failure mode the leakage audit must exclude here.
 
@@ -503,6 +524,6 @@ A single agent in a bounded 2D arena (extends naturally to a small population fo
 
 ### Design implications
 
-- **Sequence the ladder by signal type, not just difficulty.** L1 is near-instantaneous (Signal A, short window); L2 is integrative (Signal B, long window). Target L1 first for the fastest clean signal, then L2.
+- **Sequence the ladder by signal type, not only by difficulty.** L1 is near-instantaneous (Signal A, short window); L2 is integrative (Signal B, long window). Target L1 first for the fastest clean signal, then L2.
 - **Experiment A needs no trained agent.** Both feature sets above can be computed from the *known* authentic dynamics, so the detectability ceiling and difficulty calibration come before any expensive training.
 - **The probe's unit of inference is the run/world,** with held-out seeds and held-out surrogate *parameters* (Δ for L1, σ for L2) in the test split - not the timestep.

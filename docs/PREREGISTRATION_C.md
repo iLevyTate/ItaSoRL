@@ -18,6 +18,9 @@ survivorship-clean, but it reads as REACTIVE tracking of the currently-felt dyna
 (the common-garden probe washed it out along a shared tail), and the
 survival-vs-predictor dissociation is conditional on the subtler in-band artifact
 (`docs/PREREGISTRATION_L3.md` section 12, 2026-07-14 entries).
+*Reader note, not an amendment: FINDINGS §10.6.1 later re-scored that common-garden
+tail. The original 0.557 "washed out" number used a biased estimator. The re-score
+is 0.666 / 0.684. The C design below is unchanged.*
 
 Experiment C changes the mechanism that could produce detection. Instead of
 within-life gradient learning, it applies **Darwinian selection across generations**:
@@ -327,7 +330,7 @@ but the re-run's write-up must use the amplification framing.
    cannot fail by construction at the default layout (see the 2026-07-18 note
    in `itasorl/experiment_c_gate1.py`); control-arm fitness-neutrality rests
    on `scripts/derisk_expC_control.py`, so gate 1 is read as
-   treatment-leg-only with the de-risk sensitivity cited. Moreover gate 1
+   treatment-leg-only with the de-risk sensitivity cited. Gate 1
    FAILS at the current frozen treatment geometry (gap 0.00228 < margin
    0.005). The corrected steepness sweep indicates reach 0.15 / horizon
    80-class layouts clear the margin. Ratify one of: (a) re-freeze the

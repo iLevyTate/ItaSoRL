@@ -62,7 +62,7 @@ separately-produced voiceover (preserved verbatim below so nothing is lost).
 The close states the thesis but never shows the journey. Add a compact
 scoreboard strip inside the end card, above the thesis line:
 
-`Outside watcher 99%  -  Its mind, idle 50%  -  Its mind, surviving 73%`
+`Outside watcher 99% - Its mind, idle 50% - Its mind, surviving 73%`
 
 ## Beat-by-beat copy (new on-screen text)
 

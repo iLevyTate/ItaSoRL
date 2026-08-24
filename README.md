@@ -1,74 +1,51 @@
 # ItaSoRL
 
-*A tabula-rasa artificial-life system that asks whether a from-scratch digital
-organism can tell that its world is a generative **surrogate** rather than the
-authentic base dynamics of its computational substrate, using only substrate
-seams, with detection **read out, not rewarded**.*
+I raised a small agent from nothing and asked whether it would notice it was
+living in a fake world. Nobody paid it to look. An outsider who knows the true
+rules catches the fake **99%** of the time. The agent's own mind sits at **50%**
+until the fake costs dinner. Then **73%**.
+
+The 90-second film is the one to watch. Voice and music are in. Nothing clipped
+out. [ilevytate.github.io/ItaSoRL](https://ilevytate.github.io/ItaSoRL/)
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/iLevyTate/ItaSoRL/blob/main/notebooks/colab_gpu.ipynb)
 
-> **Start at the website: [ilevytate.github.io/ItaSoRL](https://ilevytate.github.io/ItaSoRL/)** - the whole
-> finding on one page, including the 90-second film, the headline numbers
-> (99% / 50% / 73%), and links to everything below.
+**Google Colab (GPU):** [Open `notebooks/colab_gpu.ipynb` in Colab](https://colab.research.google.com/github/iLevyTate/ItaSoRL/blob/main/notebooks/colab_gpu.ipynb).
+Make your own copy first (`File -> Save a copy in Drive`). The first cell
+enforces that. Pick your own GPU runtime. Then run all cells: it clones the repo
+and runs `python scripts/run_e2e.py`.
 
-**Google Colab (GPU):** [Open `notebooks/colab_gpu.ipynb` in Colab](https://colab.research.google.com/github/iLevyTate/ItaSoRL/blob/main/notebooks/colab_gpu.ipynb). **Make your own copy first** (`File -> Save a copy in Drive`) so your run and outputs are saved - the notebook's first cell enforces this. Then enable a GPU runtime and run all cells (clones the repo and runs `python scripts/run_e2e.py`).
+Two illustrated walkthroughs, same numbers, from the committed artifacts:
 
-**New to the project?** Start with the nine-page illustrated series - the same walkthrough in two voices, every number read from the committed artifacts:
-
-- [**Plain-English series (PDF)**](docs/itasorl-series-plain-english.pdf) - the story: the question, the world, the trick, what we found.
-- [**Research edition (PDF)**](docs/itasorl-series-research.pdf) - the same pages in research terms: design, control battery, pre-registered results, open questions.
-
----
-
-## The theme in one line
-
-Drop a learning creature, built from nothing, into a world that is secretly either
-the real thing or a flawed copy of itself. Can the difference be noticed from the
-seams alone? And does the creature come to represent that difference *on its own*,
-without ever being paid to?
+- [**Plain-English series (PDF)**](docs/itasorl-series-plain-english.pdf)
+- [**Research edition (PDF)**](docs/itasorl-series-research.pdf)
 
 ---
 
-## In plain language
+## The question
 
-*(Read this part if you want the idea without the jargon.)*
+A creature starts with no labels and no instructions. It lives here. Sometimes
+the physics are the real program. Sometimes we swap in a copy with one rule
+wrong: how well the ground grips. Tiny seams. The kind a stand-in leaves.
 
-Imagine raising a digital creature inside a simulated world. The creature starts
-with no built-in knowledge, no labels, no instructions. It just lives there,
-senses its surroundings, and learns to predict what happens next.
+Two questions. Keep them apart.
 
-Now play a trick on it. Sometimes the world it lives in runs on the "true" physics
-of the computer underneath. Other times we swap in a slightly *fake* version: a
-copy that behaves almost the same, but carries tiny tell-tale flaws, the kind of
-seams you would only get from a stand-in rather than the real thing. Think of it
-as a very subtle "is this the Matrix?" test for a tiny mind.
+1. **Can anyone catch the copy?** An outsider who already knows the real rules
+   can. At L2 that outsider sits near **99%**.
+2. **Does the creature notice on its own?** We never reward spotting the fake.
+   We never mention the fake. We only read its mind afterward.
 
-We are chasing two separate questions, and keeping them strictly apart matters:
+At L1 and L2 the outsider sees it and the creature does not. Coin flip. Nothing
+in its day required it to care, so it did not represent the difference.
 
-1. **Can the fakeness even be detected?** If an all-seeing outside observer
-   inspects the world's behavior, can it spot the copy? (Short answer so far: yes,
-   almost perfectly.)
-2. **Does the creature notice on its own?** Here is the twist that makes this
-   research, not a gadget: we never reward the creature for spotting the fake. We
-   never even tell it the fake exists. We only ever *read out* whether the
-   knowledge ended up inside its head as a side effect of ordinary learning.
-
-**What we found is the interesting part.** The fakeness is trivially detectable
-from the outside, but the creature does not bother to learn it. An outside
-observer catches the copy nearly every time; the creature's own internal state
-barely registers it at all. Nothing in its day-to-day task *required* it to care
-about the difference, so it simply did not represent it.
-
-That gap, between what is *detectable* and what a mind *spontaneously encodes*, is
-the real object of study. It turns a vague headline ("can an organism notice its
-world is fake?") into a sharper, testable question: *under what conditions does a
-mind start to represent something it was never asked to care about?* The next phase
-(making survival depend on the difference) is built to answer exactly that.
+At L3 the fake is a learned-dynamics fingerprint, and survival is on the line.
+The survival agent's state then carries a behavior-independent world-signal of
+about **0.73**. Detectable was always there. Noticing shows up when dinner
+depends on it.
 
 ### Hasn't this been done before?
 
-No - and the difference is easy to state. Other projects have gotten close, but
-each one skipped the hard part:
+No. Other projects have gotten close. Each one skipped the hard part:
 
 1. **Chatbots that know when they're being tested.** Today's AI chatbots can often
    tell when they're being evaluated versus talking to a real person. But those AIs
@@ -90,25 +67,21 @@ each one skipped the hard part:
    We just let the creature live, then peek inside its memory afterward to see if
    the knowledge showed up *on its own*.
 
-And the real headline is the comparison nobody thought to make: what is plainly
-detectable in a world versus what a mind living in that world actually comes to
-know. In one sentence: *everyone before either told their AI to look for the fake,
-or used an AI that already knew what "fake" means - we raised a mind from nothing,
-hid the flaw in the physics, never mentioned it, and then checked whether the
-knowledge showed up anyway.* (The research-grade version of this comparison, with
-citations, is in [`docs/ITASORL.md`](docs/ITASORL.md).)
+Everyone before either told their AI to look for the fake, or used an AI that
+already knew what "fake" means. We hid the flaw in the physics, never mentioned
+it, and checked whether the knowledge showed up anyway. Citations:
+[`docs/ITASORL.md`](docs/ITASORL.md).
 
 ---
 
 ## For researchers
 
-Take an agent with no imported semantics, drop it into a controllable world, and
-make that world either an authentic simulation or a subtly-flawed surrogate of
-itself. Can the distinction be detected from the substrate's seams alone? And, the
-part that matters, does an agent encode that distinction *incidentally*, without
-ever being rewarded for it?
+Same two questions, in the terms the papers use. Can a privileged discriminator
+tell authentic base dynamics from a substrate-flawed surrogate? Does a
+from-scratch agent encode that distinction incidentally, with world identity
+read out after the fact and never rewarded?
 
-The project rests on three invariants:
+Three invariants. All required, or the measurement collapses:
 
 - **Tabula rasa**: no semantics are imported; the agent starts from nothing.
 - **Readout, not reward**: world identity is *probed*, never trained or rewarded.
@@ -117,23 +90,20 @@ The project rests on three invariants:
 Detection difficulty is dialed with a **surrogate ladder** (L0 identical control,
 L1 discretization, L2 rollout drift, L3 learned-model fingerprint, L4 adversarial).
 
-**What is new here.** Adjacent literatures each hold one piece: LLM evaluation
-awareness finds test-vs-deploy signals in pretrained (semantically contaminated)
-models; probing studies (AtariARI, Othello-GPT) read out incidental *within-world*
-variables of a single fixed world; agent-side mismatch detection (GalilAI, RAPT)
-makes noticing the change an explicit objective. To our knowledge, this is the first
-study to measure the **gap between external detectability and spontaneous internal
-encoding of simulator authenticity** - authentic base dynamics vs a learned surrogate -
-in tabula-rasa recurrent agents, with substrate-level artifacts as the only cue and
-world identity read out post-hoc, never rewarded. The axis-by-axis cross-reference
-against the nearest prior work is on record in [`docs/ITASORL.md`](docs/ITASORL.md).
+Prior work holds pieces. Evaluation-awareness papers read test-vs-deploy signals
+out of models that already know what a test is. Probing papers (AtariARI,
+Othello-GPT) read incidental facts *inside* one fixed world. Mismatch detectors
+(GalilAI, RAPT) are told to watch for the change. This project measures the gap
+between those two numbers: how catchable the fake is from the outside, versus
+whether a blank-slate agent encodes it unasked. Axis-by-axis comparison:
+[`docs/ITASORL.md`](docs/ITASORL.md).
 
 ### Hypotheses
 
 - **H1 (detectability)**: the surrogate is distinguishable from the authentic world by a privileged discriminator.
-- **H2 (substrate-grounding)**: the signal lives in substrate artifacts, confirmed via ablations — **confirmed at L3**; L1 organism encoding is negative at the matched in-band grid (FINDINGS §14–14.7).
-- **H3 (emergence under selection)**: representing the distinction emerges when survival depends on it — **resolved negative** (FINDINGS §13.D).
-- **H4 (legibility / incidental encoding)**: a from-scratch agent encodes the distinction incidentally, without reward — **positive at L3**, negative at L1/L2.
+- **H2 (substrate-grounding)**: the signal lives in substrate artifacts, confirmed via ablations - **confirmed at L3**; L1 organism encoding is negative at the matched in-band grid (FINDINGS §14-14.7).
+- **H3 (emergence under selection)**: representing the distinction emerges when survival depends on it - **resolved negative** (FINDINGS §13.D).
+- **H4 (legibility / incidental encoding)**: a from-scratch agent encodes the distinction incidentally, without reward - **positive at L3**, negative at L1/L2.
 
 ### Current status
 
@@ -152,79 +122,68 @@ against the nearest prior work is on record in [`docs/ITASORL.md`](docs/ITASORL.
 
 ### Key result
 
-*For hand-authored substrate seams (L1 discretization, L2 rollout drift), detectability
-does not imply incidental encoding.* An L2 artifact an external oracle detects at
-AUROC ≈ 0.99 leaves essentially no decodable trace in a from-scratch agent's
-representation (≈ 0.5). An in-band L1 quantization grid (oracle AUROC 0.873) likewise
+Hand-authored seams (L1 discretization, L2 rollout drift): catchable from the
+outside, not encoded inside. An L2 artifact an external oracle detects at AUROC
+≈ 0.99 leaves essentially no decodable trace in a from-scratch agent's
+representation (≈ 0.5). An in-band L1 quantization grid (oracle AUROC 0.873)
 leaves the survival state at **0.533** (n = 10; FINDINGS §14.7).
 
-*But the picture changes at L3.* When the surrogate is a **learned-dynamics fingerprint**
-(a small net replacing the velocity law) rather than a hand-tuned knob, the **survival**
-agent, and at this fingerprint only the survival agent, encodes it. At a difficulty where an untrained net is at
-chance (about 0.49, and still only 0.52 under a nonlinear probe) and a prediction-only agent
-is near chance (about 0.57), the survival probe reads **0.752** (n = 10, honest t-based 90% CI
-**[0.698, 0.807]**, which excludes the pre-registered 0.65 bar; 8 of 10 seeds clear it). The
-dissociation is robust: it is not reward-mediated (world is not decodable from summed reward,
-AUROC 0.541, clean 10 of 10 seeds), not survivorship-biased (0 early deaths, every pool
-110/110), not a linear-probe artifact (the untrained net stays near chance even nonlinearly),
-and the L0 authentic-vs-authentic control is at chance (0.517).
+L3 is where that sentence breaks. The surrogate is a **learned-dynamics
+fingerprint**: a small net replacing the velocity law, not a hand-tuned knob.
+At this fingerprint, and only here, the **survival** agent encodes it. Untrained
+sits at chance (about 0.49, still 0.52 under a nonlinear probe). Prediction-only
+sits near chance (about 0.57). Survival reads **0.752** (n = 10, t-based 90% CI
+**[0.698, 0.807]**, excludes the pre-registered 0.65 bar; 8 of 10 seeds clear
+it). World is not decodable from summed reward (AUROC 0.541, 10 of 10 seeds).
+Zero early deaths, every pool 110/110. L0 authentic-vs-authentic sits at 0.517.
 
-**And the signal is not just behavior.** The agent does move and forage differently in the two worlds - in fact the full
-behavior trace alone decodes the world at **0.803**, better than the state probe itself - so
-the obvious deflationary reading was that the probe reads behavior, not a representation. A
-pre-registered per-timestep control (dump every step's speed/energy/food/drag, residualize the
-recurrent state on the behavior trace in-fold, probe what is left) rejects that reading: the
-behavior-independent world-signal is **0.726** (t-based 90% CI **[0.679, 0.772]**, which
-excludes the 0.65 bar; the seed-level bootstrap interval [0.685, 0.765] agrees; 9 of 10 seeds
-clear it; quadratic variant 0.721). Strengthening that control to also residualize absolute
-position and heading (the covariate a differing velocity law could otherwise smuggle in) barely
-moves the signal, to **0.723** (t-based 90% CI [0.676, 0.769]; 8 of 10 seeds), closing the
-covariate gap in the headline's favor (FINDINGS §10.4.1). The control is honest on its own
-negative controls: the untrained agent's state reads exact chance (0.498) under the same
-control even though untrained *behavior* decodes 0.645, and the prediction-only agent stays
-near chance (0.574). (An earlier, cruder per-episode-mean control had under-estimated the
-signal at ~0.66 by over-removing - the attenuation our synthetic tests predicted.) The honest
-statement is: reward- and survivorship-controlled, robust to nonlinear probing, with a
-behavior-independent world-signal of about **0.73** that clears the pre-registered bar. This
-is the first place "detectable does not imply learned" reverses: a from-scratch agent, never
-rewarded for it, comes to carry world-discriminative state as a byproduct of surviving. The
-mediation audit is reproducible code (`scripts/audit_behavior_mediation.py`; artifacts in
-`artifacts/expB2/`).
+**The signal survives after behavior is removed.** The agent does move and
+forage differently in the two worlds. The full behavior trace alone decodes the
+world at **0.803**, better than the state probe. The cheap reading is that the
+probe is just reading behavior. A pre-registered per-timestep control dumps
+every step's speed, energy, food, and drag, residualizes the recurrent state
+on that trace in-fold, and probes what is left. What is left is **0.726**
+(t-based 90% CI **[0.679, 0.772]**, excludes the 0.65 bar; seed-level bootstrap
+[0.685, 0.765]; 9 of 10 seeds; quadratic variant 0.721). Adding absolute
+position and heading barely moves it, to **0.723** (t-based 90% CI [0.676,
+0.769]; 8 of 10 seeds). FINDINGS §10.4.1. Untrained state under the same
+control is chance (0.498) even though untrained *behavior* decodes 0.645.
+Prediction-only stays near chance (0.574). An earlier per-episode-mean control
+had under-estimated the signal at ~0.66 by over-removing, the attenuation the
+synthetic tests predicted. Code: `scripts/audit_behavior_mediation.py`.
+Artifacts: `artifacts/expB2/`.
 
-*A pre-registered replication at a second calibrated capacity sharpens the claim.* The second in-band fingerprint (hidden = 7, selected by a frozen fallback rule
-after hidden = 4 failed its gates) passes every gate and replicates the behavior-independent
-world-signal almost exactly: **0.722** (t-based 90% CI [0.672, 0.773]) vs 0.726 at hidden = 8. But
-that coarser artifact is one every trained agent picks up (predictor 0.714 vs survival 0.737,
-under the pre-registered +0.05 dissociation requirement), so the survival-*only* part of the
-claim is conditional on the subtler hidden = 8 artifact. What survives both capacities is a
-reward-clean, survivorship-clean, behavior-independent world-signal of about **0.72** in the
-survival agent's state.
+A second in-band fingerprint (hidden = 7, frozen fallback after hidden = 4
+failed its gates) replicates the behavior-independent world-signal: **0.722**
+(t-based 90% CI [0.672, 0.773]) vs 0.726 at hidden = 8. That coarser artifact
+is one every trained agent picks up (predictor 0.714 vs survival 0.737, misses
+the pre-registered +0.05 dissociation). Survival-*only* is therefore
+conditional on the subtler hidden = 8 artifact. What both capacities share is
+a reward-clean, survivorship-clean, behavior-independent world-signal of about
+**0.72**.
 
-*A held-out probe (n = 10, committed per-seed summary in
-`artifacts/expB2/heldout_l3_h8_summary.json`) then sharpens what that signal is.* It splits: the world-identity direction learned against the trained fingerprint
-still reads a held-out capacity variant of it (transfer **0.773** vs
-untrained floor 0.569; the pre-registered rule passes) - note the variant shares the training
-recipe, seed, and data, so this certifies robustness within one recipe (FINDINGS §10.6 scope
-note); the across-recipe generalization claim is carried by the cross-recipe probe below. A frozen reverse probe (train on the coarser fingerprint, read the subtler one;
-per-seed summary in `artifacts/expB2/heldout_l3_h7_reverse_summary.json`) fails its bar at
-**0.638**, so this transfer is direction-dependent: it generalizes from subtle training
-artifacts, not bidirectionally. And under a common-garden control that runs both groups through an identical tail after
-differing prefixes, tail-only state still recovers the prefix world above the frozen bar on both
-directions (**0.666** forward, **0.684** reverse; both clauses pass), though the last-8-step late
-tail decays toward chance (0.586/0.577). So the L3 world-signal is best read as a modest persistent
-stored world-identity component the survival policy also expresses reactively: it clears the
-common-garden bar but only just, and its late tail fades, so it is persistent-but-weak, not strongly
-stored. *(The original common-garden numbers, 0.557 below the bar, were scored with a since-fixed
-biased estimator and have now been re-scored, overturning the reactive reading; see FINDINGS §10.6.1.
-The transfer numbers were unaffected.)*
+A held-out probe (n = 10, `artifacts/expB2/heldout_l3_h8_summary.json`) splits
+the rest. The world-identity direction still reads a held-out capacity variant
+(transfer **0.773** vs untrained floor 0.569; the pre-registered rule passes).
+The variant shares the training recipe, seed, and data, so that is robustness
+inside one recipe (FINDINGS §10.6). A frozen reverse probe (train on the
+coarser fingerprint, read the subtler one;
+`artifacts/expB2/heldout_l3_h7_reverse_summary.json`) fails its bar at
+**0.638**. Transfer goes one way. Under a common-garden control (identical tail
+after differing prefixes), tail-only state still recovers the prefix world
+above the frozen bar on both directions (**0.666** forward, **0.684** reverse).
+The last-8-step late tail decays toward chance (0.586 / 0.577). Persistent, but
+weak. The original common-garden number, 0.557, used a since-fixed biased
+estimator and is overturned; FINDINGS §10.6.1. Transfer numbers were
+unaffected.
 
-A cross-recipe probe (n = 10, `artifacts/l3_crossrecipe/summary.json`) then extends the transfer half across
-surrogate *families*: the same direction reads a gate-calibrated random-Fourier-features ridge law
-the agent never lived with (**0.684** vs untrained floor 0.548; the pre-registered rule passes,
-machine-checked; a thin pass - the t-based 90% CI lower bound clears the bar by 0.004 and 7/10
-seeds sit above it), so the world-signal is recipe-general, not a signature of one
-function class. See
-[`docs/FINDINGS.md`](docs/FINDINGS.md) and [`docs/PREREGISTRATION_L3.md`](docs/PREREGISTRATION_L3.md).
+A cross-recipe probe (n = 10, `artifacts/l3_crossrecipe/summary.json`) then
+reads a gate-calibrated random-Fourier-features ridge law the agent never
+lived with (**0.684** vs untrained floor 0.548; rule passes, machine-checked).
+Thin: the t-based 90% CI lower bound clears the bar by 0.004, and 7 of 10
+seeds sit above it. Recipe-general, not one function class. Details:
+[`docs/FINDINGS.md`](docs/FINDINGS.md),
+[`docs/PREREGISTRATION_L3.md`](docs/PREREGISTRATION_L3.md).
 
 ---
 
@@ -282,7 +241,7 @@ function class. See
 
 - [`docs/itasorl-series-plain-english.pdf`](docs/itasorl-series-plain-english.pdf): the illustrated walkthrough in plain English - the friendliest entry point to the whole project.
 - [`docs/itasorl-series-research.pdf`](docs/itasorl-series-research.pdf): the same series in research terms - design, control battery, pre-registered results, open questions.
-- [`docs/ITASORL.md`](docs/ITASORL.md): the research plan, core question, literature white-space, hypotheses (H1 to H4), experiments (A/B/C), the surrogate ladder, validity audit, statistics, and engineering architecture.
+- [`docs/ITASORL.md`](docs/ITASORL.md): the research plan, core question, prior work, hypotheses (H1 to H4), experiments (A/B/C), the surrogate ladder, validity audit, statistics, and engineering architecture.
 - [`docs/ITASORL_world_spec.md`](docs/ITASORL_world_spec.md): the world specification, "A Patch of Earth" v0, the 2.5D representation, fields and forcing, dynamics, ecology, the ~146-dim observation, ladder attachment, and confound management.
 - [`docs/FINDINGS.md`](docs/FINDINGS.md): empirical results from the first build-and-test cycle.
 - [`docs/PAPER_OUTLINE.md`](docs/PAPER_OUTLINE.md): the writeup outline and a claims inventory linking every headline number to its committed artifact.
@@ -353,29 +312,10 @@ pytest -q
 
 ## What to read first
 
-1. `README.md` (this file): the map.
-2. [`docs/FINDINGS.md`](docs/FINDINGS.md): what we found and what it means.
-3. [`docs/ITASORL.md`](docs/ITASORL.md): the full research plan and rationale.
-4. [`docs/ITASORL_world_spec.md`](docs/ITASORL_world_spec.md): the world, in detail.
-
----
+[`docs/FINDINGS.md`](docs/FINDINGS.md) is the record. [`docs/ITASORL.md`](docs/ITASORL.md)
+is the plan. [`docs/ITASORL_world_spec.md`](docs/ITASORL_world_spec.md) is the world.
 
 ## Citing
 
-Citation metadata lives in [`CITATION.cff`](CITATION.cff); GitHub renders a
-"Cite this repository" button from it, or run `cffconvert -f bibtex` for BibTeX.
-
----
-
-## The one-paragraph takeaway
-
-The hard part of "can an organism notice its world is fake?" turned out not to be
-detectability: substrate artifacts are readily detectable by a privileged observer,
-with calibrated difficulty and a clean confound audit. The hard part is
-**incidental encoding**. A from-scratch agent trained only to predict its senses
-does not represent a dynamics artifact it is never asked to care about, even when
-that artifact is strongly present and trivially detectable from the outside. That
-gap, between what is detectable and what an agent spontaneously encodes, is the real
-object of study, and it turns the headline hypothesis into a sharper, conditional
-question that the next phase (survival-coupled reward, richer ladder rungs) is
-designed to answer.
+Citation metadata lives in [`CITATION.cff`](CITATION.cff). GitHub renders a
+"Cite this repository" button from it. `cffconvert -f bibtex` if you want BibTeX.

@@ -13,13 +13,10 @@ reading order; there is deliberately no section 8.)*
 
 ## TL;DR
 
-We built a tabula-rasa digital world with a controllable "surrogate ladder" and
-asked whether a from-scratch agent can tell that its world is a generative
-surrogate rather than the authentic base dynamics, using only substrate seams,
-with detection **read out, not rewarded**.
+A from-scratch agent, never paid to look, in a world that is either the real
+program or a substrate-flawed copy. Detection is read out afterward.
 
-**There are two headline results, one negative family and one positive, and the
-contrast between them is the finding.**
+Two headlines. The contrast is the finding.
 
 **At L1 and L2 (hand-authored substrate seams), detectability does not imply
 incidental encoding.** L2 is the long-standing negative: an external oracle
@@ -29,7 +26,7 @@ stays near chance across readout channels (sections 3, 4, 9); under survival
 pressure the survival-coupled variant reaches 0.610 (below the 0.65 bar). L1
 now matches that moral on a different primitive (section 14.7): at a matched
 in-band observation-quantization grid (Δ = 0.023, oracle AUROC 0.873), the
-survival agent's pooled world-identity target is **0.533** (0/10 ≥ 0.65) —
+survival agent's pooled world-identity target is **0.533** (0/10 ≥ 0.65):
 oracle-detectable, organism-null. The L1 H2 ablation battery is consistent with
 that null (flat Δ ladder, noise transfer at chance).
 
@@ -43,7 +40,7 @@ Reward leakage, survivorship, and nonlinear-probe controls pass; a strict
 per-timestep behavior control leaves a behavior-independent world-signal of
 **0.726** (90% CI [0.685, 0.765], 9/10 seeds above the bar; section 10; widening
 that control to also residualize absolute position and heading holds it at 0.723,
-section 10.4.1). H2 substrate-grounding is confirmed at L3 (sections 14–14.5):
+section 10.4.1). H2 substrate-grounding is confirmed at L3 (sections 14-14.5):
 the signal collapses with the graded seam and does not read matched-band
 unstructured jitter. A pre-registered replication at a second oracle-calibrated
 capacity (hidden = 7) splits the claim: the behavior-independent world-signal
@@ -53,38 +50,31 @@ predictor 0.714; the paired difference +0.023 misses the pre-registered +0.05
 rule), so the survival-*specific* part of the claim is conditional on the
 subtler hidden = 8 artifact (section 10.5).
 
-Together: an agent does not represent a detectable artifact *for free* (L1/L2),
-but when the artifact is a generative fingerprint that survival pressure forces
-it to cope with, world-discriminative state emerges as a byproduct, read out and
-never rewarded (L3). A held-out probe (n = 10, section 10.6) sharpens what "emerges"
-means: the world-signal survives transfer to a *capacity variant* of the training
+A held-out probe (n = 10, section 10.6) sharpens what "emerges" means. The
+world-signal survives transfer to a *capacity variant* of the training
 fingerprint the agent never lived with (transfer 0.773 vs untrained 0.569,
-pre-registered rule passes) - though the two maps share the same recipe, seed,
-and training data, so this channel certifies robustness within one recipe, not
-generalization to an independent fingerprint (see the 2026-07-18 scope note in
-section 10.6); a frozen
-reverse run did not demonstrate the reverse direction (0.638 - the point misses
-the 0.65 bar but its t-CI [0.600, 0.676] straddles it; the solid asymmetry
-statement is the forward-minus-reverse contrast of ~ +0.14, section 10.6); but under a
-common-garden control that equalizes the felt dynamics, the re-scored signal does
-persist above the frozen bar on both directions (survival tail 0.666 forward,
-0.684 reverse; section 10.6.1). The emergent state is best read as a **modest
-persistent stored world-identity component** that the survival policy also
-expresses reactively: it clears the common-garden bar but only just, and its late
-tail decays toward chance (0.586/0.577), so it is persistent-but-weak, not a
-strongly stored tag. *(The original common-garden numbers, 0.557 below the bar,
-were computed with the since-fixed biased estimator of section 13.C; the re-score
-of the saved tail dumps overturned that reading, see section 10.6.1. The transfer
-numbers were unaffected.)* The **generalization claim is carried by the
-cross-recipe probe** (n = 10, section 10.7): the same direction reads a
-*different surrogate family* (a random-Fourier-features ridge law; 0.684 vs
-untrained 0.548, pre-registered rule passes, machine-checked), so the
-world-signal is recipe-general, not a signature of one function class - a thin
-but genuine pass (t-based 90% CI lower bound 0.654 vs the 0.65 bar; 7/10 seeds
-above), fit on the same training data by design, so it certifies transfer across
-differently-biased approximations of the same law, not across independent data.
-The conditions under which incidental encoding emerges are exactly the object of
-study.
+pre-registered rule passes). The two maps share the same recipe, seed, and
+training data, so this channel certifies robustness within one recipe, not
+generalization to an independent fingerprint (2026-07-18 scope note in section
+10.6). A frozen reverse run did not demonstrate the reverse direction: 0.638
+misses the 0.65 bar, and its t-CI [0.600, 0.676] straddles it. The solid
+asymmetry statement is the forward-minus-reverse contrast of about +0.14
+(section 10.6). Under a common-garden control that equalizes the felt dynamics,
+the re-scored signal persists above the frozen bar on both directions
+(survival tail 0.666 forward, 0.684 reverse; section 10.6.1). Best read as a
+**modest persistent stored world-identity component** that the survival policy
+also expresses reactively. It clears the common-garden bar, but only just. The
+late tail decays toward chance (0.586/0.577). Persistent, but weak. *(The
+original common-garden numbers, 0.557 below the bar, used the since-fixed
+biased estimator of section 13.C. The re-score of the saved tail dumps
+overturned that reading; section 10.6.1. Transfer numbers were unaffected.)*
+The **generalization claim is carried by the cross-recipe probe** (n = 10,
+section 10.7): the same direction reads a *different surrogate family* (a
+random-Fourier-features ridge law; 0.684 vs untrained 0.548, pre-registered
+rule passes, machine-checked). Thin: t-based 90% CI lower bound 0.654 vs the
+0.65 bar; 7/10 seeds above. Fit on the same training data by design, so it
+certifies transfer across differently-biased approximations of the same law,
+not across independent data.
 
 ---
 
@@ -493,7 +483,7 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    machine-checked), survival-specifically. The secondary constant-drag family
    proved uncalibratable (empty gate-0 window) and was dropped per the pre-stated
    rule. The world-identity reading from item 2 carries over; its generality now
-   spans surrogate recipes, not just instances.
+   spans surrogate recipes, not only instances.
 4. **Remaining objective variants.** Weighting the dynamics-relevant observation
    dimensions and increasing capacity, though the capacity-ceiling result above makes a
    pooled-probe breakthrough from these unlikely at L2.
@@ -1009,7 +999,7 @@ clauses, machine-checked in the runner aggregate (`rff_rule_pass` true, margin
 +0.034).
 
 **Reading.** The world-identity direction generalizes across surrogate *recipes*,
-not just instances: it reads a cosine-basis ridge fingerprint it was never fit
+not only instances: it reads a cosine-basis ridge fingerprint it was never fit
 against, survival-specifically (the predictor and untrained arms clear no bar),
 attenuated relative to same-recipe transfer (0.773 -> 0.684) as expected for a
 farther family. The common-garden verdict of section 10.6 is a separate question:
@@ -1548,7 +1538,7 @@ complete.
 
 ## 14.7 A3 L1: H2 substrate-grounding on the discretization rung
 
-**Status: COMPLETE — organism encoding NEGATIVE at the matched in-band L1 grid.**
+**Status: COMPLETE - organism encoding NEGATIVE at the matched in-band L1 grid.**
 Design and runners: `scripts/run_expA_l1.py`, `scripts/run_expA_l1_noise.py`,
 `scripts/run_expB2.py --drift-mode l1`, `scripts/run_l1_h2_ablations.py`,
 `scripts/run_l3_obs_localization.py --drift-mode l1`. Local artifacts:
@@ -1560,7 +1550,7 @@ This extends the L3 H2 battery to a different substrate primitive: observation-
 level quantization (grid spacing Δ) with a matched sensor-noise floor
 (σ_sensor = 0.01). Gate 0 freezes Δ = **0.023** (oracle AUROC **0.873**, leakage
 clean). The unstructured comparator is iid observation noise at σ_o = **0.01**
-(oracle AUROC **0.873**, leakage clean) — matched-band detectability with zero
+(oracle AUROC **0.873**, leakage clean) - matched-band detectability with zero
 grid structure.
 
 **Organism result (n=10, three arms, B-v2 protocol).** At the headline grid,
@@ -1581,7 +1571,7 @@ the flat curve is consistent with the organism null.
 **A2 noise knockout.** Frozen L1-probe transfer onto matched-band iid observation
 noise: survival **0.525**, untrained **0.509**, predictor **0.516**. The frozen
 positive rule fails both clauses (`H2_SUPPORTED` by the L3 decision table), but
-this is vacuous given the null primary encoding — there is no structured
+this is vacuous given the null primary encoding - there is no structured
 world-identity direction to mis-read onto noise.
 
 **A2 observation-channel localization.** Baseline (no mask) reproduces 0.533.

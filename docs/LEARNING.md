@@ -1,15 +1,12 @@
 # ITASORL, In Plain Language
 
-*A learning document. It explains every term, acronym, experiment, and process in
-this project in ordinary English, then backs the ideas with the research they are
-built on (APA 7 references at the end). The aim is plain and readable, not
-childish: roughly an average adult reading level. Results quoted here are a
-snapshot as of 2026-07-14; the living sources are `docs/FINDINGS.md` and
-`docs/PREREGISTRATION_L3.md`.*
+This is the explainer. Every term, experiment, and process in ordinary English,
+then the research it sits on (APA 7 at the end). Written for an adult, not a
+child. Numbers here are a snapshot as of 2026-07-14. Living sources:
+`docs/FINDINGS.md` and `docs/PREREGISTRATION_L3.md`.
 
-How to read this: each idea gets an everyday comparison first (the intuition),
-then a precise sentence (the technical meaning). If you can move from the
-comparison to the precise version on your own, you understand the project.
+Each idea gets a comparison first, then a precise sentence. If you can walk from
+one to the other, you understand the project.
 
 ---
 
@@ -300,7 +297,7 @@ simple, so that if it succeeds, the information must be written plainly on the
 page. Precisely: a logistic-regression classifier trained on episode-level
 features of `h_t` (the average and final hidden state per episode), with grouped
 cross-validation. A **nonlinear probe** (a random forest) is a stronger reader,
-used to confirm that a negative result is not just the simple reader's weakness.
+used to confirm that a negative result is not the simple reader's weakness.
 Using a weak probe plus controls, rather than a powerful one, is a deliberate
 choice from the probing literature, where a strong probe can appear to "find"
 structure that is not really there (Hewitt & Liang, 2019).
@@ -369,7 +366,7 @@ Precisely (`itasorl/behavior_audit.py`, `scripts/audit_behavior_mediation.py`):
   and the pre-registered deciding version. In the result files it is called
   `resid_trace` (with `resid_trace_quad` for the version that also removes squared
   and interaction terms).
-- **Trace dumps**: keeping the full security-camera footage, not just the daily
+- **Trace dumps**: keeping the full security-camera footage, not only the daily
   summary. Precisely: per-timestep behavior traces saved alongside the states
   (`--dump-states`), so audits can be rerun later without retraining anything.
 
@@ -587,7 +584,7 @@ and `fullruns/` (the full bundles, ignored by git, with the latest pointer in
 | Linear probe | The deliberately simple reader: logistic regression on episode features of h_t | probes |
 | Matched pair | Identical twins split at noon into real and fake rooms from the same freeze frame | Experiment A, secondary readouts |
 | Mode collapse | The forger never draws the rare serial numbers: rare events vanish from the fake | L3 fingerprint |
-| Nonlinear probe | The stronger reader (a random forest); checks that a negative is not just probe weakness | `run_expB_nonlinear.py` |
+| Nonlinear probe | The stronger reader (a random forest); checks that a negative is not probe weakness | `run_expB_nonlinear.py` |
 | obs_spec | The identical envelope: the observation format is the same across all worlds | `world.py` |
 | Oracle | The privileged outside inspector of Experiment A | `experiment_a.py` |
 | Patch of Earth | The terrarium: a 2.5D deterministic dissipative world with about 146 senses | `patch_of_earth.py` |
