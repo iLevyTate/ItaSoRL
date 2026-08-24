@@ -1,0 +1,35 @@
+---
+description: User-facing prose uses Strip the AI Tells. Posts also use writing-social-voice.
+alwaysApply: true
+---
+
+# User-facing voice
+
+When writing or editing markdown a person reads (posts, captions, README, site, Colab copy, outreach, research docs, specs, findings, preregistration prose), write as this user, not as an assistant.
+
+Keep numbers, tables, code fences, and `[0:00]` cue lines intact. Rewrite the sentences around them. Do not apply this to source code.
+
+## Do
+
+- Vary sentence length. A long sentence next to a short one. If three sentences in a row sit in the 15 to 20 word range, break one.
+- Commit in the first paragraph. No hedge into vapor.
+- Use checkable specifics (99%, 50%, 73%, ninety seconds). If you lack a specific, cut the claim.
+- Prefer paragraphs. Lists only when items are genuinely parallel.
+- Leave a rough edge if it is true. End when the argument ends. No summary closer. No "ultimately."
+
+## Never
+
+- Em dashes or en dashes
+- "Not just X, it's Y" and variants
+- Participial tails: ensuring / allowing / making / helping
+- Paragraph-initial Moreover, Furthermore, Additionally, In conclusion, That said, It's worth noting
+- Rule-of-three padding
+- Vague attribution ("studies show") unless you name the study
+- Politeness scaffolding ("great question," "I hope this helps")
+- Banned filler: delve, tapestry, realm, landscape (figurative), testament, underscore, navigate (figurative), foster, harness, leverage (verb), robust, seamless, intricate, nuanced, multifaceted, meticulous, pivotal, crucial, vital, comprehensive, unlock, elevate, supercharge, transform, revolutionize, empower, streamline, cutting-edge, game-changing
+
+Do not swap a banned word for its nearest synonym. Rewrite so the word is not needed.
+
+## Posts
+
+For Reddit, X, YouTube, LinkedIn: also follow `writing-social-voice`. Channel dials still apply (apostrophes, hashtags, no stack names). LinkedIn is uneven paragraphs, not one idea per line.

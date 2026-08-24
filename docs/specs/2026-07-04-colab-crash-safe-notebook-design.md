@@ -20,7 +20,7 @@ make a disconnect expensive today:
    profiles the single expB2 step is essentially the whole run, so a mid-step
    disconnect loses every checkpoint on the ephemeral VM disk. Dumped
    recurrent states (`runs/<RUN_ID>/states`) are never mirrored at all.
-   Additionally, a dead Drive FUSE mount ("transport endpoint is not
+   A dead Drive FUSE mount ("transport endpoint is not
    connected", a known Colab failure) makes `shutil.copy2` raise inside the
    recorder, which would kill the run itself.
 

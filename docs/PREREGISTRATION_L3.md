@@ -616,13 +616,13 @@ Rigor carried from the B-v3 audit (2026-07-10):
   (`fullruns/l1_heldout`). Survival pooled target **0.533** (90% CI [0.509,
   0.556], 0/10 ≥ 0.65); predictor 0.489; untrained 0.494. L0 ROPE accepts
   chance; engagement/leakage/survivorship clean; ceilings alive. Primary H_B2
-  NOT met — oracle-detectable L1 leaves no incidental world-identity encoding.
+  NOT met - oracle-detectable L1 leaves no incidental world-identity encoding.
   A1 GRADED-SEAM: integrity gate bit-matches dumps and reproduces 0.533; Δ ladder
   stays near chance (0.522 / 0.519 / 0.528 / 0.547 / 0.533). A2 NOISE KNOCKOUT:
   transfer onto matched-band iid obs noise gives survival 0.525 / untrained
   0.509 / predictor 0.516 (frozen rule fails both clauses). A2 CHANNEL
   LOCALIZATION: baseline 0.533; intero mask ~0.51; all-mask 0.500; vision mask
-  elevates survival and untrained alike (~0.70) — non-specific lesion artifact
+  elevates survival and untrained alike (~0.70) - non-specific lesion artifact
   given the null baseline. READING: L1 does not reproduce the L3 positive; H2
   substrate-grounding remains L3-specific. Detectability of an observation-level
   seam is not sufficient for incidental encoding. Artifacts:

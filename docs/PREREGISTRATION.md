@@ -8,12 +8,11 @@ any later change is logged in §12.
 
 Experiment B trained an agent *only* to predict its sensory stream and asked whether
 world identity is incidentally decodable from its recurrent state. It is not
-(pooled target AUROC ≈ 0.50), despite a privileged oracle detecting the same L2
-artifact at ≈ 0.99 (Experiment A). FINDINGS conjectures: *what the objective does not
-require, the agent does not represent.* B-v2 changes exactly one thing - the agent now
-**acts to stay alive in a world whose dynamics drift** - and asks whether incidental
-encoding now emerges. Survival depends on coping with the drifting drag, so modelling
-the dynamics becomes instrumentally useful.
+(pooled target AUROC ≈ 0.50). A privileged oracle detects the same L2 artifact at
+≈ 0.99 (Experiment A). What the objective does not require, the agent does not
+represent. B-v2 changes one thing: the agent now **acts to stay alive in a world
+whose dynamics drift**. Survival depends on coping with the drifting drag, so
+modelling those dynamics is useful for dinner.
 
 ## 2. Hypothesis
 
