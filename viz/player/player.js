@@ -1339,16 +1339,18 @@ function makeTransport(player, duration) {
   return { draw, play, pause };
 }
 
-// Overlay gallery: the four companion loop clips from the main page's "More
-// ways to see it" strip, viewable without leaving the player. Opening pauses
-// the film; the clips only play while the overlay is up.
+// Overlay gallery: the companion loop clips from the main page's "More ways
+// to see it" strip plus the Two Minds film, viewable without leaving the
+// player. Opening pauses the film; the muted loops play only while the
+// overlay is up. Two Minds has controls and waits for a click.
 function wireGallery(pauseFilm) {
   const gal = $("gallery");
   const vids = Array.from(gal.querySelectorAll("video"));
+  const loops = vids.filter((v) => v.hasAttribute("loop"));
   const show = () => {
     pauseFilm();
     gal.style.display = "flex";
-    for (const v of vids) v.play().catch(() => {});
+    for (const v of loops) v.play().catch(() => {});
   };
   const hide = () => {
     gal.style.display = "none";

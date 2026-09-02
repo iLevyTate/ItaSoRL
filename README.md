@@ -8,6 +8,12 @@ until the fake costs dinner. Then **73%**.
 The 90-second film is the one to watch. Voice and music are in. Nothing clipped
 out. [ilevytate.github.io/ItaSoRL](https://ilevytate.github.io/ItaSoRL/)
 
+Two films play on that page. *Detectable All Along* is the 90-second story,
+released 24 August 2026 with the voice and music track. *Two Minds* goes inside
+the creature's head: one brain, two worlds, one flaw, every dot named after a
+real sensor, unit, or motor head, and the clue cells ringed from measured data.
+Provenance and rebuild commands for both: [`assets/film/README.md`](assets/film/README.md).
+
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/iLevyTate/ItaSoRL/blob/main/notebooks/colab_gpu.ipynb)
 
 **Google Colab (GPU):** [Open `notebooks/colab_gpu.ipynb` in Colab](https://colab.research.google.com/github/iLevyTate/ItaSoRL/blob/main/notebooks/colab_gpu.ipynb).
@@ -215,7 +221,18 @@ seeds sit above it. Recipe-general, not one function class. Details:
 |   |-- run_e2e.py              pytest + all experiments (recorded)
 |   |-- run_expA.py ...         Experiment A/B runners
 |   |-- run_expB2.py            Experiment B-v2 / L3 (GPU if available)
-|   `-- audit_behavior_mediation.py  behavior-mediation audit on dumped states
+|   |-- audit_behavior_mediation.py  behavior-mediation audit on dumped states
+|   |-- audit_stats_recheck.py  CI gate: every published number vs its committed artifact
+|   |-- build_index.py          renders index.html from index.template.html + artifacts
+|   `-- dump_brain_film_data.py per-unit world-signal for the Two Minds film
+|-- index.template.html         the site, hand-maintained; numbers are {{placeholders}}
+|-- index.html                  GENERATED from the template (do not edit by hand)
+|-- assets/film/                films the site serves + README with provenance
+|-- viz/                        film tooling: scene exporter, browser player, Two Minds renderer
+|   |-- collect.py              sim -> viz/data/scene.json
+|   |-- player/                 the 90-second film, live in the browser (beats.json, player.js)
+|   |-- player/brain/           Two Minds canvas renderer (brain.js, brain-data.js)
+|   `-- player/capture/         headless capture rigs -> MP4 (build-two-minds.ps1)
 |-- docs/
 |   |-- ITASORL.md              research plan
 |   |-- ITASORL_world_spec.md   world specification ("A Patch of Earth" v0)
@@ -248,6 +265,7 @@ seeds sit above it. Recipe-general, not one function class. Details:
 - [`docs/LEARNING.md`](docs/LEARNING.md): the running lab notebook (methods lessons, dead ends, decisions).
 - [`docs/PREREGISTRATION_L3.md`](docs/PREREGISTRATION_L3.md), [`PREREGISTRATION_Bv3.md`](docs/PREREGISTRATION_Bv3.md), [`PREREGISTRATION.md`](docs/PREREGISTRATION.md), [`PREREGISTRATION_C.md`](docs/PREREGISTRATION_C.md): pre-registrations (with deviation logs) for the B-v2, B-v3, L3, and (design-complete) C experiments.
 - [`docs/AUDIT_2026-07.md`](docs/AUDIT_2026-07.md): a skeptical research-integrity audit (numbers, statistics, pre-registration timing, citations).
+- [`assets/film/README.md`](assets/film/README.md): the two films, where each file came from, and the ffmpeg lines that rebuild the web encodes.
 
 ### Figures
 

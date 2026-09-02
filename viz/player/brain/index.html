@@ -5,7 +5,11 @@
 <title>ItaSoRL - Two Minds</title>
 <style>
   html, body { margin: 0; padding: 0; background: #0a0910; overflow: hidden; }
-  #stage { display: block; }
+  /* The canvas is a fixed 1920x1080 (or 1080x1920) pixel box. In a normal
+     browser it scales to fit the window, ratio kept; the capture rig sets the
+     viewport to the canvas size, so frames come out 1:1. */
+  body { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+  #stage { display: block; max-width: 100vw; max-height: 100vh; width: auto; height: auto; }
 </style>
 </head>
 <body>
