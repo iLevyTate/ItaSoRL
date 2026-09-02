@@ -80,7 +80,7 @@ def main() -> int:
             raise SystemExit(f"bundler: {name} contains a literal </script>; escape needed")
 
     html = (
-        "<title>ItaSoRL - detectable is not learned (preview)</title>\n"
+        "<title>ItaSoRL - Detectable All Along (preview)</title>\n"
         "<style>\n" + css + "\n"
         "html,body{margin:0;background:#e9e6f2;}\n"
         "</style>\n"

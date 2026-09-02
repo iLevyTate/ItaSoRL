@@ -367,6 +367,8 @@
     #readout > div > div{ grid-template-columns:1fr !important; gap:30px !important; }
     #novelty > div:nth-of-type(2){ grid-template-columns:1fr !important; }
     #film > div > div:first-child{ grid-template-columns:1fr !important; gap:36px !important; }
+    #film .film-two{ grid-template-columns:1fr !important; gap:36px !important; }
+    #film .film-two > div:first-child{ order:2; }
     section{ margin-bottom:90px !important; }
   }
   @media (max-width:720px){
@@ -413,7 +415,7 @@
         <a href="#readout" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.04em; color:#6b6588;">Readout</a>
         <a href="#findings" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.04em; color:#6b6588;">Findings</a>
         <a href="#novelty" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.04em; color:#6b6588;">Novelty</a>
-        <a href="#film" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.04em; color:#6b6588;">Film</a>
+        <a href="#film" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.04em; color:#6b6588;">Films</a>
         <a href="#about" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.04em; color:#6b6588;">About</a>
         <a href="https://github.com/iLevyTate/ItaSoRL" target="_blank" class="pill" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.02em; color:#fff; background:linear-gradient(135deg,#9079c8,#5f82c6); padding:10px 20px; border-radius:999px; box-shadow:5px 5px 12px #c8c3dd, -5px -5px 12px #fbfaff, inset 0 1px 0 rgba(255,255,255,0.35);">GitHub ↗</a>
       </div>
@@ -430,6 +432,7 @@
         <p style="font-size:18px; line-height:1.62; color:#5c5776; max-width:530px; margin:0 0 36px; text-wrap:pretty; animation:rise .7s ease-out .16s both;">ItaSoRL raises a digital organism from scratch inside a simulated world. Sometimes that world is authentic. Sometimes it is a subtly flawed copy. We never tell the organism, and never reward it for noticing: we read its internal state and ask when the difference gets encoded anyway.</p>
         <div style="display:flex; align-items:center; gap:16px; margin-bottom:40px; flex-wrap:wrap; animation:rise .7s ease-out .24s both;">
           <a href="#readout" class="pill" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#fff; background:linear-gradient(135deg,#9079c8,#5f82c6); padding:14px 26px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff, inset 0 1px 0 rgba(255,255,255,0.35);">See the readout →</a>
+          <a href="#film" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">Watch the film (90 s)</a>
           <a href="#research" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">What we study</a>
           <a href="docs/itasorl-series-plain-english.pdf" target="_blank" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">The story (PDF)</a>
           <a href="docs/itasorl-series-research.pdf" target="_blank" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">Research edition (PDF)</a>
@@ -444,7 +447,7 @@
         <div style="position:absolute; width:340px; height:340px; border-radius:50%; background:#e8e5f1; box-shadow:18px 18px 40px #c8c3dd, -18px -18px 40px #fbfaff;"></div>
         <div style="position:absolute; width:250px; height:250px; border-radius:50%; background:#e8e5f1; box-shadow:inset 10px 10px 22px #c8c3dd, inset -10px -10px 22px #fbfaff;"></div>
         <div style="position:absolute; width:412px; height:412px; animation:spin-slow 90s linear infinite;">
-          <svg sc-camel-view-box="0 0 412 412" style="display:block; width:100%; height:100%;"><circle cx="206" cy="206" r="203" fill="none" stroke="#a99cce" stroke-width="1" stroke-dasharray="2 9" opacity="0.7"></circle></svg>
+          <svg viewBox="0 0 412 412" style="display:block; width:100%; height:100%;"><circle cx="206" cy="206" r="203" fill="none" stroke="#a99cce" stroke-width="1" stroke-dasharray="2 9" opacity="0.7"></circle></svg>
         </div>
         <div style="position:absolute; width:412px; height:412px; animation:spin-slow 26s linear infinite;">
           <div style="position:absolute; top:-4px; left:50%; margin-left:-4px; width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg,#9079c8,#5f82c6); box-shadow:0 0 10px rgba(138,114,192,0.7);"></div>
@@ -651,12 +654,12 @@
     <!-- FILM -->
     <section id="film" data-screen-label="Film" style="margin-bottom:130px;">
       <div style="position:relative; border-radius:26px; background:#e8e5f1; padding:56px; box-shadow:14px 14px 32px #c8c3dd, -14px -14px 32px #fbfaff, inset 0 1px 0 rgba(255,255,255,0.7);">
-        <div style="position:relative; display:grid; grid-template-columns:1.05fr 0.95fr; gap:52px; align-items:center;">
+        <div style="position:relative; display:grid; grid-template-columns:1fr 1.15fr; gap:52px; align-items:center;">
           <div>
-            <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:#8a72c0; margin-bottom:22px;">06 &nbsp;/&nbsp; The film</div>
-            <h2 style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:38px; line-height:1.1; letter-spacing:-0.02em; margin:0 0 20px; color:#2a2547; text-wrap:balance;">The whole finding, in 90 seconds.</h2>
-            <p style="font-size:16px; line-height:1.65; color:#5c5776; margin:0 0 12px; max-width:460px; text-wrap:pretty;">A creature is born knowing nothing. We copy its world and change one rule of physics. An outside watcher catches the fake almost every time - but the creature's own mind stays at a coin flip, until telling real from fake decides whether it eats.</p>
-            <p style="font-size:15px; line-height:1.6; color:#6b6588; margin:0 0 28px; max-width:460px; text-wrap:pretty;">The fake was detectable all along. The creature only noticed when survival made it matter.</p>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:#8a72c0; margin-bottom:22px;">06 &nbsp;/&nbsp; The films</div>
+            <h2 style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:38px; line-height:1.1; letter-spacing:-0.02em; margin:0 0 20px; color:#2a2547; text-wrap:balance;">Detectable all along. The whole finding, in 90 seconds.</h2>
+            <p style="font-size:16px; line-height:1.65; color:#5c5776; margin:0 0 12px; max-width:460px; text-wrap:pretty;">A creature is born knowing nothing. We copy its world and change one rule of physics. An outside watcher catches the fake almost every time. The creature's own mind stays at a coin flip, until telling real from fake decides whether it eats.</p>
+            <p style="font-size:15px; line-height:1.6; color:#6b6588; margin:0 0 28px; max-width:460px; text-wrap:pretty;">Voice and music are in. This is the cut released on 24 August 2026. Turn the sound on.</p>
             <div style="display:flex; gap:14px; margin-bottom:18px;">
               <div style="flex:1; background:#e8e5f1; border-radius:14px; padding:16px 18px; box-shadow:inset 5px 5px 11px #c8c3dd, inset -5px -5px 11px #fbfaff;">
                 <div style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:26px; color:#2a2547; font-variant-numeric:tabular-nums;">99%</div>
@@ -673,13 +676,35 @@
             </div>
             <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#9a94b0; margin:0;">Real runs, 10 each. 50% = coin flip, 100% = always right. Read out, never rewarded.</p>
           </div>
-          <div style="justify-self:center;">
-            <video controls="controls" sc-camel-plays-inline="true" preload="metadata" poster="assets/film/detectable-not-learned-poster.jpg" style="display:block; width:100%; max-width:400px; aspect-ratio:4/5; border-radius:18px; background:#dedaeb; box-shadow:10px 10px 24px #c8c3dd, -10px -10px 24px #fbfaff;">
-              <source src="assets/film/detectable-not-learned-web.mp4" type="video/mp4">
+          <div>
+            <video controls="controls" playsinline="playsinline" preload="metadata" poster="assets/film/detectable-all-along-poster.jpg" style="display:block; width:100%; aspect-ratio:16/9; border-radius:18px; background:#dedaeb; box-shadow:10px 10px 24px #c8c3dd, -10px -10px 24px #fbfaff;">
+              <source src="assets/film/detectable-all-along-web.mp4" type="video/mp4">
             </video>
-            <div style="display:flex; gap:18px; justify-content:center; margin-top:14px;">
-              <a href="assets/film/detectable-not-learned-web.mp4" download="detectable-not-learned.mp4" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#6b6588;">download the film (mp4) ↓</a>
+            <div style="display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
+              <a href="assets/film/detectable-all-along-web.mp4" download="detectable-all-along.mp4" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#6b6588;">download the film (mp4, voice and music) ↓</a>
+              <a href="viz/player/" target="_blank" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#6b6588;">captions-only cut, live in the browser →</a>
             </div>
+          </div>
+        </div>
+
+        <!-- Two Minds -->
+        <div class="film-two" style="position:relative; margin-top:48px; padding-top:44px; border-top:1px solid rgba(138,114,192,0.18); display:grid; grid-template-columns:1.15fr 1fr; gap:52px; align-items:center;">
+          <div>
+            <video controls="controls" playsinline="playsinline" preload="metadata" poster="assets/film/two-minds-poster.jpg" style="display:block; width:100%; aspect-ratio:16/9; border-radius:18px; background:#0a0910; box-shadow:10px 10px 24px #c8c3dd, -10px -10px 24px #fbfaff;">
+              <source src="assets/film/two-minds-web.mp4" type="video/mp4">
+            </video>
+            <div style="display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
+              <a href="viz/player/brain/?sec=overview" target="_blank" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#6b6588;">open the live renderer →</a>
+              <a href="assets/film/clips/two-minds-tour.mp4" download="two-minds-tour.mp4" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#6b6588;">full-size tour (mp4) ↓</a>
+              <a href="assets/film/clips/two-minds-tour-vertical.mp4" download="two-minds-tour-vertical.mp4" class="navlink" style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#6b6588;">vertical cut ↓</a>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:#8a72c0; margin-bottom:22px;">Film two &nbsp;/&nbsp; Two Minds</div>
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:30px; line-height:1.12; letter-spacing:-0.02em; margin:0 0 18px; color:#2a2547; text-wrap:balance;">Same brain, two worlds, one flaw.</h3>
+            <p style="font-size:15.5px; line-height:1.65; color:#5c5776; margin:0 0 14px; max-width:460px; text-wrap:pretty;">Now go inside the creature's head. One brain lives in the real world and in the copy. Five chapters follow the clue from the senses, through the processing layer, into the memory spine, and out to the motor heads. The flaw enters at speed, the sense the broken velocity law corrupts. Teal rings settle on the memory cells that end up holding it.</p>
+            <p style="font-size:15px; line-height:1.62; color:#6b6588; margin:0 0 22px; max-width:460px; text-wrap:pretty;">Nothing on screen is decoration. Every dot carries its real name from the observation spec. The twelve memory cells are real recurrent units of one representative brain, the seed closest to the published 0.752 mean, and ring strength is that unit's measured world-signal from the saved held-out pools. On-screen numbers are the canonical ones: 0.488 floor, 0.65 bar, 0.752 survival, 93% watcher gate; vision masked 69%, every sense masked 50%.</p>
+            <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#9a94b0; margin:0;">58 s · five chapters · narration on screen, no audio track · rings placed from measured data</p>
           </div>
         </div>
 
@@ -691,25 +716,25 @@
           </div>
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:20px;">
             <figure style="margin:0;">
-              <video sc-camel-auto-play="true" loop="loop" muted="muted" sc-camel-plays-inline="true" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
+              <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
                 <source src="assets/film/loop-idle-clouds.mp4" type="video/mp4">
               </video>
               <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Idle mind - memories from the real and fake worlds sit in one mixed blob. It cannot tell.</figcaption>
             </figure>
             <figure style="margin:0;">
-              <video sc-camel-auto-play="true" loop="loop" muted="muted" sc-camel-plays-inline="true" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
+              <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
                 <source src="assets/film/loop-survival-clouds.mp4" type="video/mp4">
               </video>
               <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Surviving mind - the two worlds' memories drift into separate islands. It can tell.</figcaption>
             </figure>
             <figure style="margin:0;">
-              <video sc-camel-auto-play="true" loop="loop" muted="muted" sc-camel-plays-inline="true" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
+              <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
                 <source src="assets/film/loop-race.mp4" type="video/mp4">
               </video>
               <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Two brains train side by side - the detection score only climbs when the fake matters.</figcaption>
             </figure>
             <figure style="margin:0;">
-              <video sc-camel-auto-play="true" loop="loop" muted="muted" sc-camel-plays-inline="true" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
+              <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
                 <source src="assets/film/loop-brain-pair.mp4" type="video/mp4">
               </video>
               <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Inside the brain - teal rings mark the memory cells that hold the clue, present only under survival.</figcaption>
@@ -754,7 +779,7 @@
         <div>
           <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.16em; text-transform:uppercase; color:#9a94b0; margin-bottom:14px;">Lab</div>
           <div style="display:flex; flex-direction:column; gap:10px; font-family:'IBM Plex Mono',monospace; font-size:12.5px;">
-            <a href="#research">Research</a><a href="#readout">Readout</a><a href="#findings">Findings</a><a href="#novelty">Novelty</a><a href="#film">Film</a>
+            <a href="#research">Research</a><a href="#readout">Readout</a><a href="#findings">Findings</a><a href="#novelty">Novelty</a><a href="#film">Films</a>
           </div>
         </div>
         <div>

@@ -469,6 +469,12 @@ html, body {
   color: var(--secondary);
   margin-top: 10px;
 }
+#gallery-grid figcaption a {
+  color: var(--accent, #8a72c0);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(138, 114, 192, 0.35);
+}
+#gallery-grid figcaption a:hover { border-bottom-color: currentColor; }
 #gallery-foot {
   display: flex;
   justify-content: space-between;

@@ -1,5 +1,12 @@
 # Outreach video: voiceover script + music pacing
 
+Status (2026-09-02): delivered. The voiced master (`ItasorlOverview.mov`,
+DaVinci Resolve, 1920x1080, 24 fps, AAC stereo, 89.8 s) was released on
+2026-08-24 under the public title *Detectable All Along*. The site serves a
+720p web encode, `assets/film/detectable-all-along-web.mp4`; provenance and the
+ffmpeg lines are in `assets/film/README.md`. The script and pacing below are the
+ones that were recorded.
+
 Companion to `viz/out/detectable-not-learned.mp4` (90s, beats from
 `viz/player/beats.json`). The VO never reads on-screen text verbatim - captions
 carry the claims, the voice carries the story. Numbers spoken must match the

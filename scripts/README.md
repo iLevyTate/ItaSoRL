@@ -16,6 +16,22 @@ the same profile all live in `run_e2e.py`, so the notebook stays a thin shell.
 
 See the root `README.md` for the full list.
 
+## Site and film tooling
+
+```bash
+python scripts/build_index.py            # render index.html from index.template.html
+python scripts/build_index.py --check    # exit 1 if index.html is stale (CI runs this)
+python scripts/audit_stats_recheck.py    # every published number vs its committed artifact
+python scripts/dump_brain_film_data.py   # per-unit world-signal -> viz/player/brain/brain-data.js
+python scripts/render_brain_pair_tour.py # the earlier brain-pair tour and section loops
+```
+
+`dump_brain_film_data.py` reads the saved held-out state pools under
+`fullruns/l3_h8_heldout/states` (no model, no GPU) and picks the representative
+brain for the Two Minds film. The film itself is captured by
+`viz/player/capture/build-two-minds.ps1`; the web encodes the site serves are
+documented in `assets/film/README.md`.
+
 ## run_local.py
 
 Run any Colab notebook `RUN_PROFILE` locally with resume support.

@@ -23,3 +23,6 @@
 - Film clip deliverables live under `assets/film/clips/` (wide, vertical, and loop gif variants).
 - Interactive player and clip capture tooling live under `viz/player/`.
 - Reusable agent prompt for clip music lives at `artifacts/clip_audit/post-materials/suno-music-agent-prompt.md`.
+- The site's `index.html` is generated: edit `index.template.html`, then run `python scripts/build_index.py`. CI (`scripts/audit_stats_recheck.py`) fails if the rendered page is stale.
+- Film one is *Detectable All Along* (the 90 s story). Its voiced master, `ItasorlOverview.mov` (DaVinci Resolve export, 1920x1080, AAC), was released 2026-08-24 and lives on the owner's Google Drive, not in git. The site serves the 720p web encode `assets/film/detectable-all-along-web.mp4`; the captions-only cut plays live at `viz/player/`.
+- Film two is *Two Minds* (the labeled brain film). Renderer: `viz/player/brain/`; rebuild: `viz/player/capture/build-two-minds.ps1`; site encode: `assets/film/two-minds-web.mp4`. No voiced cut of Two Minds is committed; if one is produced, replace the web encode in place. Provenance for every film file: `assets/film/README.md`.
