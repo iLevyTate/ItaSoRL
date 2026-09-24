@@ -1,5 +1,7 @@
 # ItaSoRL
 
+<img width="2560" height="1280" alt="GitHub social preview 1280x640@2x" src="https://github.com/user-attachments/assets/e1af8c43-470d-4758-baef-7859619b24ac" />
+
 I raised a small agent from nothing and asked whether it would notice it was
 living in a fake world. Nobody paid it to look. An outsider who knows the true
 rules catches the fake **99%** of the time. The agent's own mind sits at **50%**
