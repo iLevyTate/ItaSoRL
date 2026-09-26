@@ -59,6 +59,9 @@ H8_FLOOR_REF = 0.483
 def cfg():
     ap = argparse.ArgumentParser()
     ap.add_argument("--hiddens", type=int, nargs="+", default=[4, 5, 6, 7, 8])
+    ap.add_argument("--g-seed", type=int, default=0,
+                    help="training seed of the mlp G_motion candidates (frozen 0; the second "
+                         "fingerprint instance spec uses 1)")
     ap.add_argument("--floor-seeds", type=int, nargs="+", default=[0, 1, 2])
     ap.add_argument("--n-pairs", type=int, default=60)
     ap.add_argument("--branch", type=int, default=30)
@@ -89,7 +92,7 @@ def main():
           f"pass if |target-0.5| < {FLOOR_TOL}")
     if a.family == "mlp":
         candidates = ((("hidden", h),
-                       train_g_motion(hidden=h, device=dev, seed=0, params=P))
+                       train_g_motion(hidden=h, device=dev, seed=a.g_seed, params=P))
                       for h in a.hiddens)
     else:
         from itasorl.surrogate_l3_families import gate0_candidates
@@ -142,7 +145,7 @@ def main():
 
     # Regression check: hidden=8 must reproduce the frozen gate-0 values (mlp only).
     regression_ok = None
-    if a.family == "mlp":
+    if a.family == "mlp" and a.g_seed == 0:   # the frozen refs are the seed-0 fingerprint
         h8 = next((r for r in rows if r.get("hidden") == 8), None)
         if h8 is not None:
             regression_ok = (abs(h8["oracle_auroc"] - H8_ORACLE_REF) < 0.05
@@ -176,7 +179,7 @@ def main():
         payload = {"world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
                    "sigma_meas": SIGMA_MEAS, "band": list(BAND),
                    "floor_tol": FLOOR_TOL, "drift": DRIFT,
-                   "floor_seeds": a.floor_seeds, "rows": rows,
+                   "floor_seeds": a.floor_seeds, "g_seed": a.g_seed, "rows": rows,
                    "regression_ok": regression_ok, "selected_hidden": selected}
         if a.family != "mlp":
             payload["selected"] = (None if selected is None

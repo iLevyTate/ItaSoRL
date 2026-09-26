@@ -655,6 +655,27 @@ Rigor carried from the B-v3 audit (2026-07-10):
   surrogate, not on generic dynamics perturbation. The survival-specificity claim
   remains conditional on the subtler hidden=8 artifact (section 10.5).
 
+- **2026-09-26 - SENSORY-ECHO CONTROL (n = 10, readout-only): THE BEHAVIOR-INDEPENDENT
+  WORLD-SIGNAL IS NOT A PASSIVE ECHO OF THE INPUTS (rule passes).** Executes the frozen
+  spec `docs/specs/2026-09-26-l3-sensory-echo-control-design.md` against the saved
+  `fullruns/l3_h8_heldout` agents (no training). PRE-RUN AMENDMENT, logged in the spec
+  before launch: the synthetic control-property tests showed the basis as first written
+  (`[x_t, x_{t-1}, cummean(x)]`) absorbs any persistent tag once the inputs carry the
+  label; the primary basis was frozen as the instantaneous `[x_t, x_{t-1}]`, the
+  integrated basis demoted to a secondary diagnostic. INTEGRITY GATE (determinism check
+  #8): all 60 regenerated pools bit-match the saved dumps; drift-0.45 survival target
+  reproduces **0.752** and the seven-channel behavior control reproduces **0.723**
+  exactly. RESULT at drift 0.45: survival `resid_obs` = **0.731** (t 90% CI
+  [0.690, 0.772]; boot [0.695, 0.765]; 8/10 seeds >= 0.65) vs untrained 0.534 and
+  predictor 0.542; the frozen rule (>= 0.65 AND > untrained + 0.05) PASSES on both
+  clauses, t-CI lower bound above the untrained mean. Secondary: `resid_obs_int` 0.758,
+  `resid_obs_beh` (sensory + behavior jointly) 0.670 [0.638, 0.702], `obs_trace_only`
+  0.709. Drift-0.00 floors near chance under every control. Committed artifact:
+  `artifacts/expB2/sensory_echo_l3_h8.json`; FINDINGS 10.4.2. The first full run
+  completed all 60 cells and then failed while printing the summary (a NumPy bool in the
+  JSON encoder); the aggregate was rebuilt from the saved `cells.json` with a
+  `--reaggregate` path added to the runner, no cell recomputed.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

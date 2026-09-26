@@ -673,7 +673,7 @@ def train_predictor_only(drift_sigma, params=None, *, n_eps=16, updates=200, emb
 # length constant across pools, so length/lifetime cannot leak the label.
 # ---------------------------------------------------------------------------
 def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_base, ray_steps,
-                 return_anchors: bool = False, obs_mask=None):
+                 return_anchors: bool = False, obs_mask=None, return_obs: bool = False):
     """Collect up to n_eps episodes of EXACTLY `steps` length (drop early deaths) with
     the frozen deterministic agent. Returns H (k,steps,Hdim), speeds (k,).
 
@@ -689,10 +689,16 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
     behavior-mediation audit can run its per-timestep control offline.
 
     `obs_mask` is an optional float/bool array of length obs_dim applied to the raw
-    observation before normalization; used for observation-channel localization."""
+    observation before normalization; used for observation-channel localization.
+
+    `return_obs=True` additionally returns the NORMALIZED observation trace
+    (k, steps, obs_dim), the exact per-step input the recurrent trunk received, as
+    the last element of the tuple. Used by the sensory-echo control
+    (docs/specs/2026-09-26-l3-sensory-echo-control-design.md); it changes no other
+    output."""
     if obs_mask is not None:
         obs_mask = np.asarray(obs_mask, dtype=np.float64)
-    Hs, spd, energy, food, drag, reward, traces = [], [], [], [], [], [], []
+    Hs, spd, energy, food, drag, reward, traces, obs_traces = [], [], [], [], [], [], [], []
     for i in range(n_eps):
         w = make_world(params, drift_sigma, ray_steps)
         w.reset(_seeds(seed_base + i))
@@ -702,11 +708,14 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
         if obs_mask is not None:
             obs = obs * obs_mask
         Hrow, sp, en, fd, dg, px, py, hd, died = [], [], [], [], [], [], [], [], False
+        Orow = []
         rw = 0.0
         for _ in range(steps):
-            obs_t = torch.as_tensor(norm(obs)[None], dtype=torch.float32, device=device)
+            x_in = norm(obs)
+            obs_t = torch.as_tensor(x_in[None], dtype=torch.float32, device=device)
             _, env_act, _, _, h = agent.act(obs_t, prev, h, deterministic=True)
             Hrow.append(h[0].detach().cpu().numpy())
+            Orow.append(np.asarray(x_in, np.float32))
             r = w.step(env_act[0].detach().cpu().numpy().astype(np.float32))
             sp.append(float(np.linalg.norm(w.vel)))
             en.append(float(w.E / w.Emax))
@@ -731,12 +740,19 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             drag.append(float(np.mean(dg)))
             reward.append(rw)
             traces.append(np.stack([sp, en, fd, dg, px, py, hd], axis=1).astype(np.float32))
+            obs_traces.append(np.stack(Orow).astype(np.float32))
     H = np.stack(Hs) if Hs else np.zeros((0, steps, agent.hidden), np.float32)
     if return_anchors:
         Bt = np.stack(traces) if traces else np.zeros((0, steps, 7), np.float32)
-        return (H, np.asarray(spd), np.asarray(energy), np.asarray(food),
-                np.asarray(drag), np.asarray(reward), Bt)
-    return H, np.asarray(spd)
+        out = (H, np.asarray(spd), np.asarray(energy), np.asarray(food),
+               np.asarray(drag), np.asarray(reward), Bt)
+    else:
+        out = (H, np.asarray(spd))
+    if return_obs:
+        obs_dim = int(norm.mean.shape[0]) if hasattr(norm, "mean") else 0
+        Ot = np.stack(obs_traces) if obs_traces else np.zeros((0, steps, obs_dim), np.float32)
+        out = out + (Ot,)
+    return out
 
 
 def _auroc_with_ci(X, y, seed: int = 0, groups: np.ndarray | None = None) -> tuple[float, float, float]:

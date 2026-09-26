@@ -40,7 +40,8 @@ Reward leakage, survivorship, and nonlinear-probe controls pass; a strict
 per-timestep behavior control leaves a behavior-independent world-signal of
 **0.726** (90% CI [0.685, 0.765], 9/10 seeds above the bar; section 10; widening
 that control to also residualize absolute position and heading holds it at 0.723,
-section 10.4.1). H2 substrate-grounding is confirmed at L3 (sections 14-14.5):
+section 10.4.1; a direct sensory-echo control that regresses the observation
+itself out of the state leaves 0.731, section 10.4.2). H2 substrate-grounding is confirmed at L3 (sections 14-14.5):
 the signal collapses with the graded seam and does not read matched-band
 unstructured jitter. A pre-registered replication at a second oracle-calibrated
 capacity (hidden = 7) splits the claim: the behavior-independent world-signal
@@ -437,7 +438,15 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    brackets the survival agent's 0.610, but it cannot establish a supremum.
    (Per-seed pooled targets for both n = 10 runs are committed
    in `artifacts/expB2/bv3_n10_summary.json` and
-   `artifacts/expB2/sysid_ceiling_n10_summary.json`.) The probe harness accepted the
+   `artifacts/expB2/sysid_ceiling_n10_summary.json`.) The B-v3 gate values,
+   promoted 2026-09-26 to `artifacts/expB2/bv3_n10_gates.json`: engagement
+   passes in 20/20 cells, the L0 control reads 0.517 (TOST p = 0.010), the
+   speed positive control is at least 0.784 in every cell, and the matched-pair
+   leakage audit is clean in 59/60 cells (drift 0.45, seed 6, survival arm:
+   reward-sum AUROC 0.393, deviation 0.107 against the 0.1 margin). That one
+   marginal miss sits on the demoted matched-pair channel; the pooled leakage
+   audit (PR #39) postdates this run and was not part of its battery. The
+   pooled verdict is unchanged. The probe harness accepted the
    actor-critic unchanged. (The
    pooled probe is read as Experiment-B-comparable, not confound-clean - it drops early
    deaths per world, a survivorship asymmetry the matched-pair channel is designed to
@@ -736,6 +745,66 @@ the signature of a genuine latent world representation rather than
 position-in-disguise. The 10.4 "behavior-independent ~0.73" reading stands with
 position and heading now inside the control basis (revised figure resid_trace
 0.723). This resolves the covariate-gap note above.
+
+### 10.4.2 Sensory-echo control (2026-09-26)
+
+Methods note 7 (section 11) left one scope limit on the behavior-mediation
+control: its basis is seven behavior scalars, not the ~146-dim observation, so
+"behavior-independent" did not mean "sensory-echo-independent". A state that
+passively mirrors world-dependent inputs would survive the behavior control.
+This probe tests it directly. Spec frozen before the run:
+`docs/specs/2026-09-26-l3-sensory-echo-control-design.md` (readout-only against
+the saved hidden = 8 agents; runner `scripts/audit_sensory_echo.py`; committed
+artifact `artifacts/expB2/sensory_echo_l3_h8.json`).
+
+**Design.** The pools are regenerated with the same seed bases as the headline
+readout, now also recording the normalized observation the trunk received at
+every step. The PRIMARY control `resid_obs` regresses the instantaneous input
+basis `[x_t, x_{t-1}]` (292 columns) out of every `h_t`, in-fold, and probes
+the residual. The integrated basis with `cummean(x)` added is reported as
+`resid_obs_int` (secondary): a pre-run amendment logged in the spec showed on
+synthetic ground truth that a cumulative-mean column absorbs any persistent
+tag, genuine or echoed, once the inputs separate the worlds. `resid_obs_beh`
+joins the instantaneous observation basis with the full seven-channel behavior
+basis (the strongest control the project has; reported, not adjudicated).
+
+**Integrity gate (determinism check #8).** All 60 regenerated pools bit-match
+the saved dumps at both drifts; the drift-0.45 survival target reproduces
+**0.752** and the seven-channel behavior control reproduces **0.723** (10.4.1).
+
+**Result (drift 0.45, n = 10, t-based 90% CI; seed bootstrap in the artifact).**
+
+| readout | survival | predictor | untrained |
+|---|---|---|---|
+| target | 0.752 [0.698, 0.807] (8/10) | 0.573 | 0.488 |
+| obs_trace_only (ceiling) | 0.709 [0.650, 0.769] | 0.559 | 0.543 |
+| resid_trace (behavior control) | 0.723 [0.676, 0.769] (8/10) | 0.565 | 0.512 |
+| **resid_obs (sensory control, PRIMARY)** | **0.731 [0.690, 0.772] (8/10)** | 0.542 | 0.534 |
+| resid_obs_int (integrated, secondary) | 0.758 [0.716, 0.800] (9/10) | 0.576 | 0.562 |
+| resid_obs_beh (sensory + behavior) | 0.670 [0.638, 0.702] (7/10) | 0.527 | 0.517 |
+
+The frozen rule PASSES on both clauses: 0.731 >= 0.65 and 0.731 > 0.534 + 0.05,
+with the t-CI lower bound (0.690) above the untrained mean. Every drift-0.00
+floor sits near chance under every control (survival 0.504, untrained 0.472
+for `resid_obs`), so the control manufactures nothing.
+
+**Reading.** The observation stream alone decodes the world at only 0.709,
+below the state probe (0.752): the surrogate's fingerprint is not loudly
+present in any single input. Removing what a linear echo of the current and
+previous input could account for leaves the survival world-signal essentially
+intact (0.731), while the untrained and predictor arms stay near chance under
+the identical control. The integrated variant reads higher still (0.758),
+which is what the amendment's ground truth predicts when the inputs separate
+the worlds only weakly per step. Under the joint sensory-plus-behavior control
+the signal is attenuated to 0.670 with a t-CI lower bound (0.638) just under
+the bar; that is the most conservative number the project has, and it is
+reported as such. Methods note 7 is closed in the headline's favor: the
+behavior-independent world-signal is not a passive echo of the inputs.
+
+**Scope.** One capacity (hidden = 8), linear residualization, one lag. A
+nonlinear or longer-history sensory control is not run (spec: no rescue in
+either direction). The joint-control attenuation is the honest upper bound on
+what linear input-plus-behavior mirroring could explain.
 
 ### 10.5 Second in-band capacity (replication across artifact type)
 
@@ -1063,7 +1132,10 @@ Stated once, plainly, with pointers into the code.
    predictor arms, which pass through the identical control - cleanly at
    hidden = 8 (untrained 0.498, predictor 0.574) but not at hidden = 7 (0.579 and
    0.691), which is part of why the survival-specific claim is stated as
-   artifact-conditional (10.5).
+   artifact-conditional (10.5). **Closed 2026-09-26 at hidden = 8 (10.4.2):** a
+   direct sensory control that regresses the instantaneous observation basis
+   out of `h_t` leaves the survival signal at 0.731 (rule passes); the joint
+   sensory-plus-behavior control leaves 0.670.
 
 ---
 
@@ -1437,7 +1509,11 @@ grid, so L1 does not reproduce the L3 positive.
 **Status: CONFIRMED for the L3 rung at hidden=8 and hidden=7.** Design spec:
 `docs/specs/2026-07-22-h2-substrate-grounding-ablations-design.md`. Local artifacts:
 `fullruns/l3_h2_ablations/{gate0_gn.json,gate0_ladder.json,aggregate.json,cells.json}`
-(hidden=8) and `fullruns/l3_h7_h2_ablations/aggregate.json` (hidden=7).
+(hidden=8) and `fullruns/l3_h7_h2_ablations/aggregate.json` (hidden=7). Committed
+artifacts (promoted 2026-09-26 by `scripts/promote_h2_batteries.py`, verified by
+`scripts/audit_stats_recheck.py`): `artifacts/expH2/texture_knockout_h8.json` and
+`artifacts/expH2/texture_knockout_h7.json` (per-seed transfers, gate-0 rows,
+integrity receipts).
 
 This probe adjudicates the surviving skeptic story after A1: the survival world-signal
 collapses with the seam, but does it read the *texture* of the learned
@@ -1486,7 +1562,11 @@ specificity part remains conditional on the subtler hidden=8 artifact (section
 **Status: COMPLETE for the L3 rung at hidden=8 and hidden=7.** Design and runner:
 `scripts/run_l3_obs_localization.py`. Local artifacts:
 `fullruns/l3_h8_obs_localization/aggregate.json` and
-`fullruns/l3_h7_obs_localization/aggregate.json`.
+`fullruns/l3_h7_obs_localization/aggregate.json`. Committed artifacts (promoted
+2026-09-26 by `scripts/promote_h2_batteries.py`, verified by
+`scripts/audit_stats_recheck.py`): `artifacts/expH2/obs_localization_h8.json` and
+`artifacts/expH2/obs_localization_h7.json` (per-seed, per-mask targets and the
+zeroed-dimension counts).
 
 This probe asks *which* observation channels carry the world-identity signal in
 the survival agent's recurrent state. The agent is frozen; the only change is a
@@ -1498,7 +1578,7 @@ pooled_readout is run on each masked condition.
 
 | Mask | Zeroed dims | survival mean | predictor mean | untrained mean |
 |---|---|---|---|---|
-| none | 0 / 146 | **0.753** (8/10 >= 0.65) | 0.573 | 0.488 |
+| none | 0 / 146 | **0.752** (8/10 >= 0.65) | 0.573 | 0.488 |
 | vision | 120 / 146 | **0.686** (7/10) | 0.598 | 0.567 |
 | intero | 14 / 146 | **0.756** (8/10) | 0.562 | 0.506 |
 | all | 146 / 146 | **0.500** (0/10) | 0.500 | 0.500 |
@@ -1516,7 +1596,9 @@ pooled_readout is run on each masked condition.
 in both capacities, which is a sanity check that the readout is not decoding from
 unmasked behavior correlates. At **hidden=8**, masking **interoception** (velocity,
 heading, energy, etc.) leaves the signal essentially unchanged, while masking
-**vision** causes a modest but clear drop from 0.753 to 0.686. This suggests the
+**vision** causes a modest but clear drop from 0.752 to 0.686 (the no-mask
+baseline is the headline 0.752 to full precision; an earlier draft rounded the
+4-dp aggregate 0.7525 up). This suggests the
 world-identity signal is carried by the visual stream and/or the behavior it
 shapes, not by explicit interoceptive velocity feedback.
 
@@ -1544,7 +1626,11 @@ Design and runners: `scripts/run_expA_l1.py`, `scripts/run_expA_l1_noise.py`,
 `scripts/run_l3_obs_localization.py --drift-mode l1`. Local artifacts:
 `fullruns/l1_calib.json`, `fullruns/l1_noise_calib.json`,
 `fullruns/l1_heldout/`, `fullruns/l1_h2_ablations/`,
-`fullruns/l1_obs_localization/`.
+`fullruns/l1_obs_localization/`. Committed artifacts (promoted 2026-09-26 by
+`scripts/promote_h2_batteries.py`, verified by `scripts/audit_stats_recheck.py`):
+`artifacts/expL1/organism_summary.json` (per-seed pools, engagement and gate
+values, gate-0 calibration rows), `artifacts/expL1/h2_ablations.json` (A1 delta
+ladder and A2 noise knockout), `artifacts/expL1/obs_localization.json`.
 
 This extends the L3 H2 battery to a different substrate primitive: observation-
 level quantization (grid spacing Δ) with a matched sensor-noise floor

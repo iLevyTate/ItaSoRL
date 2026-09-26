@@ -143,6 +143,23 @@ sysid-aux CEILING (PR #14) as the capacity reference.
   into `artifacts/expB2/bv3_n10_summary.json`; promoting them from the
   `fullruns/07062026` bundle is an open task before the B-v3 verdict is cited
   as gate-complete.
+- **2026-09-26: gates promoted.** The n = 10 run's gate values were promoted
+  from `fullruns/07062026` (commit `820849f`, fingerprint `356be26d94199878`)
+  to `artifacts/expB2/bv3_n10_gates.json` by `scripts/promote_bv3_gates.py`,
+  and `scripts/audit_stats_recheck.py` now re-verifies them. Values, per the
+  section 7 definitions: (1) engagement 20/20 cells engaged at both drifts;
+  (2) L0 control, drift-0 survival pooled target mean 0.517, TOST p = 0.010,
+  equivalent to chance (ROPE P(in [0.45, 0.55]) = 0.999, accept); (3) speed
+  positive control, minimum speed-probe AUROC across all 60 pools 0.784
+  (>= 0.75); (4) matched-pair leakage audit clean in 59 of 60 cells. The one
+  exception is drift 0.45, seed 6, survival arm: reward-sum AUROC 0.393,
+  max deviation 0.107 against the 0.1 margin (length and lifetime channels
+  exactly 0.5). So gates 1-3 pass in every cell and gate 4 passes in every
+  cell but one; the artifact records `leakage.pass = false` and
+  `all_pass = false` rather than rounding the exception away. The verdict is
+  unchanged: 0.610 is a below-bar null whichever way the single exception is
+  read, and the survival per-seed list in the gate artifact is byte-identical
+  to `bv3_n10_summary.json`.
 
 ## 13. How to run
 
