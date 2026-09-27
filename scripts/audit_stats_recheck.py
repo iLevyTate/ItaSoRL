@@ -961,6 +961,59 @@ def main() -> int:
                "### 10.4.2" in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
                                     encoding="utf-8").read())
 
+    # ---- FINDINGS 10.8 / 10.9: cloud reviewer-gap runs (promoted 2026-09-27) --
+    print("\n== FINDINGS 10.8: architecture baseline (no world-model auxiliary) ==")
+    ab = _load_art("expB2", "arch_baseline_l3_h8_nowm.json")
+    for arm, ref in (("survival", 0.601), ("predictor", 0.589), ("untrained", 0.529)):
+        blk = ab["arms"][ab["dmax"]][arm]["pool_target"]
+        check(f"10.8 {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.8 {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
+    sv = ab["arms"][ab["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(sv["per_seed"])
+    check("10.8 survival t90 lo (0.549)", lo, 0.549)
+    check("10.8 survival t90 hi (0.654)", hi, 0.654)
+    check_int("10.8 survival seeds >= 0.65 (1)", sv["n_ge_065"], 1)
+    check("10.8 survival resid_trace (0.646)", ab["behavior_audit"]["survival"]["resid_trace"]["mean"], 0.646)
+    check_true("10.8 all gates pass", ab["gates"]["l0_tost"]["equivalent"] and ab["gates"]["l0_rope"]["accept"]
+               and ab["gates"]["pool_leak_clean_all"] and ab["gates"]["untrained_floor_ok"]
+               and all(v["pass"] == v["n"] for v in ab["gates"]["engagement"].values()))
+    check_true("10.8 auxiliary-conditional cell: survival below bar, predictor margin not met",
+               (not ab["decision"]["pass_bar"]) and (not ab["decision"]["pass_margin_predictor"]))
+    print("\n== FINDINGS 10.9: second fingerprint instance (G seed 1, hidden 10) ==")
+    si = _load_art("expB2", "second_instance_l3_h10_gseed1.json")
+    check_int("10.9 gate 0 selected hidden (10)", int(si["gate0_calibration"]["selected_hidden"]), 10)
+    rows = {int(r["hidden"]): r for r in si["gate0_calibration"]["rows"]}
+    check("10.9 gate 0 hidden 8 oracle (0.928)", rows[8]["oracle_auroc"], 0.928)
+    check("10.9 gate 0 hidden 8 floor dirty (0.664)", rows[8]["floor"], 0.664)
+    check_true("10.9 gate 0 hidden 8 fails at seed 1", not rows[8]["passes_gate0"])
+    check("10.9 gate 0 hidden 10 oracle (0.893)", rows[10]["oracle_auroc"], 0.893)
+    check("10.9 gate 0 hidden 10 floor (0.484)", rows[10]["floor"], 0.484)
+    check_true("10.9 gate 0 hidden 10 passes", bool(rows[10]["passes_gate0"]))
+    for arm, ref in (("survival", 0.639), ("predictor", 0.534), ("untrained", 0.514)):
+        blk = si["arms"][si["dmax"]][arm]["pool_target"]
+        check(f"10.9 {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.9 {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
+    sv = si["arms"][si["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(sv["per_seed"])
+    check("10.9 survival t90 lo (0.610)", lo, 0.610)
+    check("10.9 survival t90 hi (0.669)", hi, 0.669)
+    check_int("10.9 survival seeds >= 0.65 (5)", sv["n_ge_065"], 5)
+    rt = si["behavior_audit"]["survival"]["resid_trace"]
+    check("10.9 survival resid_trace (0.658)", rt["mean"], 0.658)
+    lo, hi = t_ci(rt["per_seed"])
+    check("10.9 survival resid_trace t90 lo (0.625)", lo, 0.625)
+    check("10.9 survival resid_trace t90 hi (0.691)", hi, 0.691)
+    check_true("10.9 all gates pass", si["gates"]["l0_tost"]["equivalent"] and si["gates"]["l0_rope"]["accept"]
+               and si["gates"]["pool_leak_clean_all"] and si["gates"]["untrained_floor_ok"]
+               and all(v["pass"] == v["n"] for v in si["gates"]["engagement"].values()))
+    check_true("10.9 replication not claimed: bar missed, both margin clauses pass",
+               (not si["decision"]["pass_bar"]) and si["decision"]["pass_margin_predictor"]
+               and si["decision"]["pass_margin_untrained"])
+    for sec in ("### 10.8", "### 10.9"):
+        check_true(f"FINDINGS carries the {sec} subsection",
+                   sec in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
+                               encoding="utf-8").read())
+
     # ---- derived-doc resolution guard -----------------------------------
     # The reactive-vs-persistent reading was PROVISIONAL until the section 10.6
     # re-score; it is now RESOLVED (FINDINGS 10.6.1, 2026-07-19): the corrected

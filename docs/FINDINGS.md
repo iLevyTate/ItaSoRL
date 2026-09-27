@@ -51,6 +51,16 @@ predictor 0.714; the paired difference +0.023 misses the pre-registered +0.05
 rule), so the survival-*specific* part of the claim is conditional on the
 subtler hidden = 8 artifact (section 10.5).
 
+Two boundary checks run on 2026-09-27 narrow the positive (sections 10.8,
+10.9). Removing the survival agent's next-observation auxiliary loss drops the
+signal to **0.601** [0.549, 0.654], below the bar, so the encoding belongs to
+survival and prediction trained together on one trunk, not to survival alone
+(a pre-registered device control is running because that run was CPU-executed).
+An independently trained fingerprint (G seed 1, hidden 10 by the frozen
+fallback) reproduces the survival-specific dissociation (**0.639** against
+predictor 0.534 and untrained 0.514) at a magnitude below the bar, so
+replication of the absolute level is not claimed.
+
 A held-out probe (n = 10, section 10.6) sharpens what "emerges" means. The
 world-signal survives transfer to a *capacity variant* of the training
 fingerprint the agent never lived with (transfer 0.773 vs untrained 0.569,
@@ -369,7 +379,11 @@ inducing it (if possible) requires something more deliberate.
   felt dynamics (see section 10.6.1). The generalization evidence is the
   cross-recipe probe (section 10.7): the same direction reads a
   gate-calibrated random-Fourier-features law (0.684, rule passes), so the
-  world-identity signal is recipe-general.
+  world-identity signal is recipe-general. Two 2026-09-27 boundary checks
+  (10.8, 10.9) narrow the conditional support: the positive requires the
+  next-observation auxiliary alongside survival (0.601 without it), and an
+  independently trained fingerprint reproduces the survival-specific
+  dissociation at 0.639, below the bar.
 - **H2 (substrate-grounding via ablations).** CONFIRMED for the L3 rung at
   hidden=8 (sections 14 and 14.5). Section 14 (A1) shows a graded neutralization
   of the one substrate seam (the learned velocity law, blended
@@ -1081,6 +1095,137 @@ generalization claim. Scope: `G_rff` is fit on the same training data as
 
 ---
 
+### 10.8 Architecture baseline: the positive needs the world-model auxiliary (2026-09-27)
+
+Methods note 6 and the design document both named the missing external-validity
+check: every result rides on one trunk, and the survival arm carries a
+next-observation decoder as an auxiliary loss (`wm_coef = 1.0`). If the L3
+positive depends on that auxiliary, "the survival objective, uniquely" overclaims.
+Spec frozen before the run:
+`docs/specs/2026-09-26-l3-architecture-baseline-design.md`. Runner flag
+`scripts/run_expB2.py --no-world-model` (survival and untrained arms built with
+`world_model=False`; the predictor arm is the decoder objective and is unchanged).
+Committed artifacts: raw `artifacts/reviewer_gaps_runs/l3_h8_nowm/`, summary
+`artifacts/expB2/arch_baseline_l3_h8_nowm.json`.
+
+**Execution.** The run executed in a CPU cloud sandbox (4 vCPU, 3 workers, torch
+2.14+cpu, 4 h 06 min) because the local GPU machine was memory-starved; the
+published hidden = 8 run it is compared against was GPU-generated. That is the one
+nuisance factor the comparison does not control; the device control below
+addresses it.
+
+**Gates (all pass).** Engagement 20/20 cells; L0 control 0.514 (TOST p = 0.006,
+ROPE P = 0.9997, both accept); speed positive control at least 0.835 in every
+cell; pooled reward-leak clean in every cell; untrained floor at drift 0.45
+0.529 (within tolerance); 0 early deaths in every pool.
+
+**Result (drift 0.45, n = 10, t-based 90% CI; seed bootstrap in the artifact).**
+
+| agent (no auxiliary unless noted) | pooled target | t 90% CI | seeds >= 0.65 |
+|---|---|---|---|
+| untrained | 0.529 | [0.510, 0.549] | 0/10 |
+| predictor (unchanged objective) | 0.589 | [0.567, 0.610] | 0/10 |
+| **survival, no auxiliary** | **0.601** | **[0.549, 0.654]** | 1/10 |
+| survival with auxiliary (published, GPU, 10.2) | 0.752 | [0.698, 0.807] | 8/10 |
+
+Per-seed survival: 0.603, 0.619, 0.599, 0.617, 0.488, 0.488, 0.810, 0.619,
+0.626, 0.545. Behavior audit (`resid_trace`, seven-channel basis): survival
+**0.646** [0.593, 0.698] (6/10), predictor 0.592, untrained 0.548; the behavior
+trace alone decodes the world at 0.771.
+
+**Adjudication (frozen rule).** Survival 0.601 < 0.65, so the run lands in the
+spec's **auxiliary-conditional** cell: the L3 positive does not survive removal
+of the world-model auxiliary. The survival lead over the predictor is +0.013
+(under the 0.05 margin) and over the untrained floor +0.072. By the
+PREREGISTRATION_L3 section 8 matrix this is the intermediate zone (above the
+floor, below the bar), not a strengthened negative.
+
+**Reading.** Neither objective alone produces the positive. Prediction alone
+reads 0.573 (10.2); survival alone reads 0.601; survival with the next-observation
+auxiliary reads 0.752. The L3 world-identity encoding is a property of the two
+objectives trained together on one trunk: the auxiliary forces the state to carry
+predictive information about the sensory stream, and survival pressure under the
+flawed velocity law shapes that information into a world-identity direction. The
+published wording "encoded by the survival objective, uniquely" is narrowed
+accordingly: encoded by survival-trained agents carrying the next-observation
+auxiliary, and by neither objective alone.
+
+**Device control (pre-registered addendum, 2026-09-27, running).** The
+decoder-carrying protocol is being rerun unchanged on the same CPU sandbox
+(`scripts/reviewer_gaps/run_cloud_device_control.sh`). The frozen rule: if that
+run clears 0.65 with its t-CI excluding the bar and leads 0.601 by more than
+0.05, the auxiliary-conditional verdict stands; if it falls below 0.65, the
+verdict is withdrawn to "not established" pending a same-device comparison. The
+predictor arm, whose objective did not change, reads 0.589 here against 0.573
+published (intervals overlap), which is the available evidence that the device
+shift is small. This subsection is updated when the control lands.
+
+### 10.9 Second fingerprint instance: survival-specific, below the bar (2026-09-27)
+
+Methods note 4: `G` was a single frozen instance trained at seed 0. The held-out
+probes (10.6, 10.7) show the world-identity DIRECTION transfers to other
+fingerprints, but no agent had been trained against a second instance. Spec
+frozen before any run:
+`docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md`; flags
+`scripts/run_expA_l3.py --g-seed` and `scripts/run_expB2.py --l3-seed`.
+Committed artifacts: raw `artifacts/reviewer_gaps_runs/l3_gate0_seed1/` and
+`l3_h10_gseed1/`, summary `artifacts/expB2/second_instance_l3_h10_gseed1.json`.
+Executed in the same CPU cloud sandbox as 10.8 (gate 0 in 8 min, organism run
+3 h 59 min).
+
+**Gate 0 at G seed 1 (frozen fallback order 8, 7, 9, 10; selection appended to
+PREREGISTRATION_L3 section 12 by the chain before launch).**
+
+| hidden | oracle AUROC | in band | untrained floor | gate 0 |
+|---|---|---|---|---|
+| 8 | 0.928 | yes | 0.664 (dirty) | fail |
+| 7 | 0.957 | no | 0.640 (dirty) | fail |
+| 9 | 0.982 | no | 0.487 | fail |
+| **10** | **0.893** | yes | **0.484** | **PASS** |
+
+Two things about this table are themselves findings. The clean untrained floor at
+hidden = 8 is a property of the seed-0 instance, not of the capacity: the seed-1
+hidden-8 map is oracle-identical (0.928) but mechanically leaky (floor 0.664).
+And oracle detectability is not monotone in capacity at this seed (hidden 9 reads
+0.982). The selected instance is subtler to the oracle than the published one
+(0.893 against 0.928).
+
+**Gates (all pass).** Engagement 20/20; L0 control 0.529 (TOST p = 0.039, ROPE
+P = 0.983, both accept); speed at least 0.830; pooled reward-leak clean in every
+cell; untrained floor 0.514; 0 early deaths. (The secondary matched-pair leakage
+channel is clean in 7/10 untrained cells at drift 0.45; no rule reads it.)
+
+**Result (drift 0.45, n = 10, t-based 90% CI).**
+
+| agent | pooled target | t 90% CI | seeds >= 0.65 |
+|---|---|---|---|
+| untrained | 0.514 | [0.485, 0.542] | 0/10 |
+| predictor | 0.534 | [0.508, 0.560] | 0/10 |
+| **survival** | **0.639** | **[0.610, 0.669]** | 5/10 |
+
+Per-seed survival: 0.652, 0.556, 0.600, 0.657, 0.581, 0.626, 0.726, 0.679,
+0.676, 0.638. Behavior audit: survival `resid_trace` **0.658** [0.625, 0.691]
+(5/10), predictor 0.565, untrained 0.539; behavior trace alone 0.702.
+
+**Adjudication (frozen rule).** Replication is NOT claimed: the pooled target
+0.639 misses the 0.65 bar and its t-CI straddles it, and the behavior-controlled
+0.658 has a t-CI that also straddles the bar. The two margin clauses PASS with
+room: survival leads the predictor by +0.105 and the untrained floor by +0.126,
+and the t-CI [0.610, 0.669] excludes both baseline means. Zone: intermediate.
+
+**Reading.** On a fingerprint the agent never met at design time (different
+authentic rollouts, different initialization, different capacity), the
+survival-specific world-identity encoding reproduces in direction and in
+specificity, at a magnitude below the pre-registered bar. Read together with
+10.5, three instances are now on record: hidden 8 / seed 0 (magnitude above the
+bar, survival-specific), hidden 7 / seed 0 (magnitude above the bar, not
+survival-specific), hidden 10 / seed 1 (survival-specific, magnitude below the
+bar). The claim that survives all three is a survival-specific world-identity
+signal well above both baselines; the claim that clears the absolute bar is
+instance-conditional. The instance is subtler to the oracle, and the run is
+CPU-executed, so the magnitude gap to 0.752 has two candidate sources the design
+did not separate.
+
 ## 11. Methods notes and limitations
 
 Stated once, plainly, with pointers into the code.
@@ -1112,7 +1257,10 @@ Stated once, plainly, with pointers into the code.
    experiment tests encoding of one reproducible artifact, not artifact-general
    detection. Generality across fingerprint instances is exactly what the held-out
    probe (10.6) tests, and stability across artifact type is what the second
-   capacity (10.5) tests.
+   capacity (10.5) tests. **Updated 2026-09-27 (10.9):** an agent population
+   trained against an independently trained instance (seed 1, hidden 10)
+   reproduces the survival-specific dissociation at 0.639, below the bar; the
+   absolute level is instance-conditional.
 5. **CI methodology at the decision boundary.** The percentile bootstrap of a seed
    mean under-covers near the bar at n ≤ 10, so "clears / misses 0.65"
    adjudications use the t-based interval, with both reported
@@ -1121,7 +1269,10 @@ Stated once, plainly, with pointers into the code.
    GRU core, hidden = 96), one world family ("A Patch of Earth" v0), the frozen
    difficulty band (oracle AUROC in [0.85, 0.95]), and the specific objectives
    tested. They are existence and non-existence proofs within that scope, not
-   universal claims.
+   universal claims. **Updated 2026-09-27 (10.8):** the one architecture
+   baseline run (the same trunk without the next-observation auxiliary) reads
+   0.601, so the L3 positive is conditional on survival and prediction being
+   trained together; no other core or width has been tested.
 7. **The behavior-mediation control covers behavior, not the full sensory
    stream.** The residualization basis is the four per-timestep behavior scalars
    (speed/energy/food/drag) with lag and cumulative-mean expansions
