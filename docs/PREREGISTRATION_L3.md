@@ -676,6 +676,8 @@ Rigor carried from the B-v3 audit (2026-07-10):
   JSON encoder); the aggregate was rebuilt from the saved `cells.json` with a
   `--reaggregate` path added to the runner, no cell recomputed.
 
+- **2026-09-27 - SECOND FINGERPRINT INSTANCE, GATE 0 (G seed 1; spec `docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md`; recorded by the run chain mechanically BEFORE launch).** Calibration on world P at the frozen sigma=0.02: hidden=8: oracle 0.928 (in band True), mech leak pass, floor 0.664 (dirty) -> fail; hidden=7: oracle 0.957 (in band False), mech leak pass, floor 0.640 (dirty) -> fail; hidden=9: oracle 0.982 (in band False), mech leak pass, floor 0.487 (ok) -> fail; hidden=10: oracle 0.893 (in band True), mech leak pass, floor 0.484 (ok) -> PASS. Selected hidden=10 at G seed 1 (first passing candidate in the frozen order 8, 7, 9, 10). The organism run launches with this instance; its result is recorded in a later entry.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
