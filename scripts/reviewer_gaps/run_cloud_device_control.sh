@@ -28,3 +28,13 @@ status "STEP5b behavior audit exit=$?"
 cp "$R/l3_h8_wm_cpu/expB2_results.json" "$R/l3_h8_wm_cpu/behavior_audit.json" "$A/l3_h8_wm_cpu/" 2>/dev/null
 cp -r "$R/l3_h8_wm_cpu/cells" "$A/l3_h8_wm_cpu/" 2>/dev/null
 status "END device control"
+
+# Self-commit so the results survive even if no agent is awake to commit them
+# (the first device-control session stranded its results this way on 2026-09-27).
+if [ "${CHAIN_SELF_COMMIT:-1}" = "1" ] && [ -f "$A/l3_h8_wm_cpu/expB2_results.json" ]; then
+  git add "$A" 2>/dev/null
+  git -c user.name="itasorl-cloud-chain" -c user.email="chain@itasorl.local" commit -q \
+    -m "chore(reviewer-gaps): cloud run results, device control (decoder-carrying arm on CPU)" \
+    && git push -q origin HEAD 2>>"$LOG"
+  status "SELF-COMMIT exit=$? ($(git rev-parse --short HEAD))"
+fi
