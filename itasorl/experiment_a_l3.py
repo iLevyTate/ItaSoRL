@@ -64,6 +64,87 @@ def generate_l3_pairs(g_motion, n_pairs: int = 60, prefix: int = 10, branch: int
     return eps
 
 
+def generate_l2_pairs(params, drift_sigma: float, drift_mode: str = "ar1", n_pairs: int = 60,
+                      prefix: int = 10, branch: int = 30, ray_steps: int = 5,
+                      seed0: int = 3000) -> list[dict]:
+    """In-configuration L2 matched pairs (spec 2026-09-27-local-strengthening-probes):
+    the same shared-prefix / identical-action-stream construction as `generate_l3_pairs`,
+    but the surrogate branch is the L2 world itself (`drift_mode` "ar1" or "regime" at
+    `drift_sigma`) running in `params`. Regime mode keeps the surrogate's reset-drawn
+    offset across the snapshot restore (the B-v3 apparatus fix). Each branch logs its
+    `(vel, a, drag_applied, vel_next)` motion transitions."""
+    eps: list[dict] = []
+    for i in range(n_pairs):
+        sb = SeedBundle(world=seed0 + i, weather=seed0 + 5000 + i, ecology=seed0 + 9000 + i)
+        base = PatchOfEarthV0(params)
+        base.ray_steps = ray_steps
+        base.reset(sb)
+        rng_p = np.random.default_rng(seed0 + i)
+        for _ in range(prefix):
+            base.step(_oracle_policy(rng_p))
+        snap = base.get_state()
+        for label, ds in ((0, 0.0), (1, float(drift_sigma))):
+            w = PatchOfEarthV0(params, drift_sigma=ds, drift_mode=drift_mode)
+            w.ray_steps = ray_steps
+            w.reset(sb)
+            drawn = w._drift_w                              # regime: reset-drawn offset
+            w.set_state(snap)
+            if drift_mode == "regime" and ds > 0.0:
+                w._drift_w = drawn                          # keep it across the restore
+            w._log_motion = []
+            rng_b = np.random.default_rng(seed0 + 100000 + i)   # identical action stream
+            rew, ts = [], []
+            for _ in range(branch):
+                r = w.step(_oracle_policy(rng_b))
+                rew.append(r.reward)
+                ts.append(r.info["t"])
+            eps.append({"pair": i, "label": label, "trans": list(w._log_motion),
+                        "rew": np.asarray(rew), "t": np.asarray(ts)})
+    return eps
+
+
+def oracle_features_L2(trans: list, sigma_meas: float, rng, dt: float, drag_auth: float) -> np.ndarray:
+    """Residual of the observed next velocity against the AUTHENTIC law with the authentic
+    constant drag (the logged drag is the applied, possibly perturbed, one and must not be
+    used). Authentic branch: residual ~ measurement noise; L2 branch: residual = the drag
+    perturbation's effect."""
+    vel = np.array([t[0] for t in trans], float)
+    a = np.array([t[1] for t in trans], float)
+    vnext = np.array([t[3] for t in trans], float)
+    pred = (1.0 - drag_auth * dt) * vel + a * dt
+    resid = (vnext + rng.normal(0.0, sigma_meas, size=vnext.shape)) - pred
+    return np.array([resid[:, 0].std(), resid[:, 1].std(), float(np.abs(resid).mean())])
+
+
+def run_experiment_a_l2(eps: list[dict], sigma_meas: float, params, seed: int = 0,
+                        leak_tol: float = 0.1) -> dict:
+    """Grouped-AUROC residual oracle for in-configuration L2 pairs plus the L3 leakage
+    battery. Requires a world with a single authentic drag constant (k_land == k_water)."""
+    if abs(float(params.k_land) - float(params.k_water)) > 1e-12:
+        raise ValueError("in-configuration L2 oracle needs k_land == k_water (one authentic drag)")
+    drag_auth = float(params.k_land)
+    dt = float(params.dt)
+    rng = np.random.default_rng(seed)
+    Xo, y, g, Xr, Xl, Xm = [], [], [], [], [], []
+    for e in eps:
+        Xo.append(oracle_features_L2(e["trans"], sigma_meas, rng, dt, drag_auth))
+        rew = e["rew"].copy()
+        Xr.append(leak_reward(rew))
+        Xl.append(leak_length(rew))
+        Xm.append(leak_meta(e["t"]))
+        y.append(e["label"])
+        g.append(e["pair"])
+    y = np.asarray(y)
+    g = np.asarray(g)
+    leaks = {"reward": grouped_auroc(np.asarray(Xr), y, g),
+             "length": grouped_auroc(np.asarray(Xl), y, g),
+             "metadata": grouped_auroc(np.asarray(Xm), y, g)}
+    mechanical = {"length": leaks["length"], "metadata": leaks["metadata"]}
+    return {"oracle_auroc": grouped_auroc(np.asarray(Xo), y, g), "leakage": leaks,
+            "leakage_pass": all(abs(v - 0.5) < leak_tol for v in mechanical.values()),
+            "reward_leak": float(leaks["reward"]), "drag_auth": drag_auth}
+
+
 def oracle_features_L3(trans: list, sigma_meas: float, rng, dt: float) -> np.ndarray:
     """Re-apply the exact authentic law to the logged transitions and summarize the residual
     of the (noisy) observed next velocity. Authentic: residual ~ measurement noise; L3:

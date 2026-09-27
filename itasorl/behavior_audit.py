@@ -159,7 +159,8 @@ def _echo_phi(Ot: np.ndarray) -> np.ndarray:
 def sensory_residual_probe_auroc(H: np.ndarray, Ot: np.ndarray, y: np.ndarray,
                                  Bt: np.ndarray | None = None,
                                  groups: np.ndarray | None = None, n_splits: int = 5,
-                                 alpha: float = 1e-3, integrated: bool = False) -> float:
+                                 alpha: float = 1e-3, integrated: bool = False,
+                                 nonlinear: bool = False, seed: int = 0) -> float:
     """Per-timestep SENSORY control (spec 2026-09-26-l3-sensory-echo-control).
     Same fold structure as `trace_residual_probe_auroc`, but the regressor basis
     is built from the normalized OBSERVATION the trunk received: by default the
@@ -169,10 +170,14 @@ def sensory_residual_probe_auroc(H: np.ndarray, Ot: np.ndarray, y: np.ndarray,
     the label). `Bt` optionally joins the behavior trace basis. A ridge with a
     near-zero penalty replaces plain least squares because the basis is wide.
     What survives the primary control is state that is not a linear readout of
-    the current or previous input."""
+    the current or previous input. `nonlinear=True` swaps the ridge for a
+    one-hidden-layer MLP (64 ReLU units, L2 penalty 1e-3, Adam, 300 iterations)
+    fit in-fold, the nonlinear joint control of spec
+    2026-09-27-local-strengthening-probes."""
     from sklearn.linear_model import LogisticRegression, Ridge
     from sklearn.metrics import roc_auc_score
     from sklearn.model_selection import GroupKFold
+    from sklearn.neural_network import MLPRegressor
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
 
@@ -190,7 +195,17 @@ def sensory_residual_probe_auroc(H: np.ndarray, Ot: np.ndarray, y: np.ndarray,
         if len(np.unique(y[te])) < 2:
             continue
         tr_rows = np.isin(row_ep, tr)
-        reg = make_pipeline(StandardScaler(), Ridge(alpha=alpha))
+        if nonlinear:
+            # 300 Adam iterations is a frozen budget, not a convergence target; the
+            # optimizer's "not converged" warning is expected and silenced here.
+            import warnings
+            from sklearn.exceptions import ConvergenceWarning
+            warnings.simplefilter("ignore", ConvergenceWarning)
+            reg = make_pipeline(StandardScaler(),
+                                MLPRegressor(hidden_layer_sizes=(64,), alpha=1e-3, max_iter=300,
+                                             random_state=seed))
+        else:
+            reg = make_pipeline(StandardScaler(), Ridge(alpha=alpha))
         reg.fit(Phi[tr_rows], Hflat[tr_rows])
         R = (Hflat - reg.predict(Phi)).reshape(n, T, hid)
         F = episode_features(R)

@@ -59,7 +59,11 @@ survival and prediction trained together on one trunk, not to survival alone
 An independently trained fingerprint (G seed 1, hidden 10 by the frozen
 fallback) reproduces the survival-specific dissociation (**0.639** against
 predictor 0.534 and untrained 0.514) at a magnitude below the bar, so
-replication of the absolute level is not claimed.
+replication of the absolute level is not claimed. A matched-handicap oracle sweep (section 15)
+shows the L2 artifacts at the organism's drift are weaker to a handicapped
+oracle than L3's fingerprint (0.646 and 0.618 against 0.928 at the L3 gate's
+noise), so the clean "detectable but not encoded" contrast is L1 (0.873, not
+encoded) against L3, not L2 against L3.
 
 A held-out probe (n = 10, section 10.6) sharpens what "emerges" means. The
 world-signal survives transfer to a *capacity variant* of the training
@@ -314,7 +318,7 @@ the oracle number comes from Experiment A's tamed diagnostic configuration - its
 hard-coded physics constants cannot run on the Experiment-B world - so the contrast
 is oracle-in-diagnostic-config vs agent-in-foraging-config; no in-config L2 oracle
 ceiling was measured, unlike L3's in-config gate. The qualitative gap is not in
-doubt, but the two numbers are not a same-world comparison.)
+doubt, but the two numbers are not a same-world comparison.) **Resolved 2026-09-27 (section 15):** measured on P, the L2 oracle reads 1.000 at the tamed configuration's detector noise and 0.646 (ar1) / 0.618 (regime) at the L3 gate's sigma = 0.02, below L3's 0.928 on the same sweep; the cross-rung ordering in this section's headline is withdrawn in favour of the matched comparisons named there.
 
 Three things explain the gap:
 
@@ -361,7 +365,7 @@ inducing it (if possible) requires something more deliberate.
 
 - **H1 (detectability).** Supported at the substrate level: L1, L2, and L3 are all
   detectable by a privileged discriminator, with calibrated difficulty and a
-  validated leakage gate (Experiment A; the L3 oracle gate in section 10.1).
+  validated leakage gate (Experiment A; the L3 oracle gate in section 10.1). Section 15 (2026-09-27) scores the rungs on one detector handicap: at the L3 gate's noise the L2 artifacts at the organism's drift read below the band (0.646, 0.618) while L3 reads 0.928; the section-2 L2 ceiling was measured at a hundredfold smaller handicap.
 - **H4 (legibility / incidental encoding).** Conditionally supported. Not supported
   at L2 under any lever pulled (sections 3, 9): a hand-tuned dynamics artifact is
   not encoded even under survival pressure at scale. Supported at L3 (section 10):
@@ -1824,3 +1828,72 @@ confirmed at L3 (learned dynamics texture) and does not extend to L1
 result strengthens the rung-specificity of the L3 positive: detectability of a
 substrate seam is not sufficient for incidental encoding; the seam's
 computational character matters.
+
+---
+
+## 15. Matched-handicap oracle ceilings across rungs (2026-09-27)
+
+**Status: MEASURED; it qualifies the cross-rung comparison, it does not change
+any organism number.** Spec (probe A, with its dated extension):
+`docs/specs/2026-09-27-local-strengthening-probes-design.md`. Runner
+`scripts/run_expA_l2_inconfig.py`; committed artifact
+`artifacts/expA/l2_inconfig_oracle.json`.
+
+**Why.** Section 4's scope note admitted that the L2 ceiling (0.993, section 2)
+was measured in Experiment A's tamed diagnostic world while every L2 organism
+number lives in world P, and that no in-configuration L2 oracle existed. Fixing
+that exposed a second mismatch: the tamed L2 oracle used a detector-side
+velocity-noise floor of sigma = 2e-4, while the L3 gate (section 10.1) used
+sigma = 0.02, a hundredfold larger. The cross-rung statement "L2 is more
+detectable (0.99) than L3 (0.93), yet only L3 is encoded" therefore compared
+two oracles with different handicaps.
+
+**Design.** Matched pairs in world P exactly as the L3 gate builds them (60
+pairs, prefix 10, branch 30, identical action streams), with the surrogate
+branch being the L2 world itself at the organism's drift (ar1 0.45, the B-v2
+artifact; regime 0.45, the B-v3 artifact). The residual oracle applies the
+authentic law with P's authentic constant drag (1.5) and is scored across a
+sweep of detector noise; the L3 fingerprints at hidden 8 and 7 (G seed 0) are
+scored on the identical sweep. Mechanical leakage (length, metadata) is clean in
+every cell. The L0 anchor (drift 0, bit-identical branches) reads 0.475 averaged
+over eight noise-seed draws (range 0.394 to 0.581): chance.
+
+| detector noise sigma | 0.0002 | 0.001 | 0.005 | 0.01 | **0.02** | 0.05 |
+|---|---|---|---|---|---|---|
+| L2 ar1, drift 0.45 (B-v2 artifact) | 1.000 | 1.000 | 0.957 | 0.810 | **0.646** | 0.588 |
+| L2 regime, drift 0.45 (B-v3 artifact) | 1.000 | 1.000 | 0.854 | 0.703 | **0.618** | 0.586 |
+| L3 hidden 8, seed 0 (the headline fingerprint) | 1.000 | 1.000 | 1.000 | 0.997 | **0.928** | 0.674 |
+| L3 hidden 7, seed 0 | 1.000 | 1.000 | 1.000 | 0.985 | **0.922** | 0.671 |
+
+**Reading.** Three things follow, and they are stated in order of how much they
+change.
+
+1. The same-world L2 ceiling at the tamed configuration's own detector noise is
+   1.000, so section 2's 0.993 was not an artifact of the diagnostic world. The
+   section-4 scope note is retired.
+2. At every detector handicap the L3 fingerprint is at least as detectable as the
+   L2 drift, and at the handicap that defines the L3 band the L2 artifacts at
+   the organism's drift sit BELOW the band (0.646 and 0.618 against 0.928). The
+   L2 rung was never a matched comparison to L3: the L2 negative is a negative
+   on an artifact that a handicapped oracle finds weaker than L3's, not
+   stronger. The wording "L2 more detectable than L3, yet only L3 encoded" is
+   withdrawn.
+3. The claim that detectability is not sufficient for incidental encoding
+   survives on the matched comparisons the project does have: the L1 seam at
+   the in-band grid (oracle 0.873 at the organism's own sensor noise, section
+   14.7) is not encoded (survival 0.533), and the unstructured comparator G_gn
+   at 0.865 in the L3 band (section 14.5) is not read by the world-identity
+   direction (0.539). The L2 negative remains a negative against a noiseless
+   oracle (1.000) and against the agent's own interoception, which carries exact
+   velocity; but the graded curve above and the dose-response ladder of section
+   14.5 (h16 0.701 at oracle 0.788, h32 0.622 at 0.656, h64 0.541 at 0.603)
+   together say that, within the learned-fingerprint family, encoding tracks
+   handicapped-oracle detectability, and the L2 artifacts at drift 0.45 fall
+   where that curve predicts (0.52 to 0.61 at 0.62 to 0.65 detectability). The
+   "artifact character" reading of section 4 therefore rests on the structure
+   knockout of 14.5, not on the L2-versus-L3 ceiling comparison.
+
+**What this does not touch.** No organism number, gate, or pre-registered verdict
+changes. The B-v3 constant-drag family's uncalibratable window (section 10.7)
+is consistent with the curve: a coefficient artifact strong enough to reach the
+band at sigma = 0.02 is felt grossly by any recurrent state.

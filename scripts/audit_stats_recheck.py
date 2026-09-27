@@ -1014,6 +1014,24 @@ def main() -> int:
                    sec in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
                                encoding="utf-8").read())
 
+    # ---- FINDINGS 15: matched-handicap oracle ceilings (promoted 2026-09-27) --
+    print("\n== FINDINGS 15: matched-handicap oracle ceilings across rungs ==")
+    mh = _load_art("expA", "l2_inconfig_oracle.json")
+    cells = {(r["cell"], r["sigma_meas"]): r for r in mh["rows"]}
+    for cell, sig, ref in (("ar1", 0.02, 0.646), ("regime", 0.02, 0.618), ("ar1", 0.0002, 1.000),
+                           ("regime", 0.0002, 1.000), ("ar1", 0.01, 0.810), ("regime", 0.005, 0.854),
+                           ("l3_h8_seed0", 0.02, 0.928), ("l3_h7_seed0", 0.02, 0.922),
+                           ("l3_h8_seed0", 0.05, 0.674), ("ar1", 0.05, 0.588)):
+        check(f"15 {cell} @ sigma {sig} ({ref})", cells[(cell, sig)]["oracle_auroc"], ref)
+    check_true("15 mechanical leakage clean in every cell", all(r["leakage_pass"] for r in mh["rows"]))
+    check("15 L0 anchor mean over noise seeds (0.475)", mh["l0_anchor_noise_seeds"]["mean"], 0.475)
+    check_true("15 L3 at least as detectable as L2 ar1 at every sigma",
+               all(cells[("l3_h8_seed0", s)]["oracle_auroc"] >= cells[("ar1", s)]["oracle_auroc"] - 1e-9
+                   for s in (0.0002, 0.001, 0.005, 0.01, 0.02, 0.05)))
+    check_true("FINDINGS carries the section 15 subsection",
+               "## 15. Matched-handicap" in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
+                                                 encoding="utf-8").read())
+
     # ---- derived-doc resolution guard -----------------------------------
     # The reactive-vs-persistent reading was PROVISIONAL until the section 10.6
     # re-score; it is now RESOLVED (FINDINGS 10.6.1, 2026-07-19): the corrected
