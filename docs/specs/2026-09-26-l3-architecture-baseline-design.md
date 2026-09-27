@@ -89,3 +89,35 @@ strengthen / weaken / mediated zones as the 2026-07-12 spec.
 
 Other cores (LSTM), other widths, and Dreamer-style imagination. One baseline,
 one flag.
+
+## Addendum, 2026-09-27, frozen before the device-control run
+
+The baseline ran in a CPU cloud sandbox (4 cores, 3 workers, torch 2.14 CPU)
+because the local GPU machine was memory-starved, while the published
+decoder-carrying hidden = 8 run (0.752) was GPU-generated. The baseline read
+survival 0.601 (t 90% CI [0.549, 0.654]), predictor 0.589, untrained 0.529:
+the "auxiliary-conditional" cell of the decision rule. Before that verdict is
+written as final, the one nuisance factor that differs between the two runs
+must be closed. RL training is seed-sensitive, and CPU and GPU numerics are
+different seeds in effect; the predictor arm (0.589 here against 0.573
+published, intervals overlapping) suggests the device does not move the
+readout much, but the predictor is not the survival arm.
+
+**Device control (frozen):** rerun the published protocol unchanged
+(`--drift-mode l3 --l3-hidden 8`, world-model auxiliary ON, seeds 0..9,
+300 updates, `--dump-states`) on the same CPU sandbox with the same worker
+count, then the behavior audit. Decision rule, frozen here:
+
+- **Device is not the cause:** the CPU decoder-carrying survival target is
+  >= 0.65 with its t-CI excluding the bar (the published positive reproduces
+  on CPU up to seed noise), AND it exceeds the CPU no-auxiliary survival
+  target (0.601) by more than 0.05. The auxiliary-conditional verdict stands.
+- **Device confound:** the CPU decoder-carrying survival target falls below
+  0.65. The baseline comparison is then across an uncontrolled factor, the
+  auxiliary-conditional verdict is withdrawn to "not established", and both
+  arms must be rerun on one device before any wording changes.
+- **Intermediate:** the CPU decoder-carrying target clears 0.65 but leads the
+  no-auxiliary target by less than 0.05: the auxiliary's contribution is not
+  demonstrated on this device; report both numbers and claim neither.
+
+Run command (cloud): `bash scripts/reviewer_gaps/run_cloud_device_control.sh`.
