@@ -819,10 +819,30 @@ the bar; that is the most conservative number the project has, and it is
 reported as such. Methods note 7 is closed in the headline's favor: the
 behavior-independent world-signal is not a passive echo of the inputs.
 
-**Scope.** One capacity (hidden = 8), linear residualization, one lag. A
-nonlinear or longer-history sensory control is not run (spec: no rescue in
-either direction). The joint-control attenuation is the honest upper bound on
-what linear input-plus-behavior mirroring could explain.
+**Scope.** One capacity (hidden = 8), one lag. The joint-control attenuation is
+the upper bound on what linear input-plus-behavior mirroring could explain; the
+nonlinear addendum below bounds the nonlinear case.
+
+**Nonlinear joint control (2026-09-28; spec
+`docs/specs/2026-09-27-local-strengthening-probes-design.md`, probe B).** The
+same regenerated pools (integrity gate: 30/30 drift-0.45 cells bit-match, 0.752
+reproduced) with the in-fold regressor replaced by a one-hidden-layer MLP (64
+ReLU units, L2 penalty 1e-3, Adam, 300 iterations). Committed artifact
+`artifacts/expB2/sensory_echo_l3_h8_mlp.json`. Drift 0.45, n = 10, t-based 90% CI:
+
+| readout | survival | predictor | untrained |
+|---|---|---|---|
+| resid_obs_mlp (observation basis, MLP) | 0.653 [0.633, 0.674] (6/10) | 0.530 | 0.497 |
+| **resid_obs_beh_mlp (observation + behavior, MLP)** | **0.654 [0.621, 0.687] (6/10)** | 0.542 | 0.509 |
+
+The frozen rule PASSES at the mean (0.654 >= 0.65 and 0.654 > 0.509 + 0.05),
+with the t-CI lower bound (0.621) below the bar, so the honest statement is
+that the world-signal survives a nonlinear input-plus-behavior control at the
+bar, not comfortably above it. The linear joint control read 0.670; the MLP
+removes a further 0.016. Both baseline arms sit at chance under the identical
+control. Methods note 7's "linear only" limit is closed in the headline's
+favor: a nonlinear mirror of the current input and the behavior trace leaves
+roughly two thirds of the above-chance signal (0.154 of 0.252 AUROC units).
 
 ### 10.5 Second in-band capacity (replication across artifact type)
 
@@ -1131,6 +1151,7 @@ cell; pooled reward-leak clean in every cell; untrained floor at drift 0.45
 | predictor (unchanged objective) | 0.589 | [0.567, 0.610] | 0/10 |
 | **survival, no auxiliary** | **0.601** | **[0.549, 0.654]** | 1/10 |
 | survival with auxiliary (published, GPU, 10.2) | 0.752 | [0.698, 0.807] | 8/10 |
+| survival with auxiliary, same CPU sandbox (device control) | **0.730** | [0.668, 0.791] | 8/10 |
 
 Per-seed survival: 0.603, 0.619, 0.599, 0.617, 0.488, 0.488, 0.810, 0.619,
 0.626, 0.545. Behavior audit (`resid_trace`, seven-channel basis): survival
@@ -1154,15 +1175,24 @@ published wording "encoded by the survival objective, uniquely" is narrowed
 accordingly: encoded by survival-trained agents carrying the next-observation
 auxiliary, and by neither objective alone.
 
-**Device control (pre-registered addendum, 2026-09-27, running).** The
-decoder-carrying protocol is being rerun unchanged on the same CPU sandbox
-(`scripts/reviewer_gaps/run_cloud_device_control.sh`). The frozen rule: if that
-run clears 0.65 with its t-CI excluding the bar and leads 0.601 by more than
-0.05, the auxiliary-conditional verdict stands; if it falls below 0.65, the
-verdict is withdrawn to "not established" pending a same-device comparison. The
-predictor arm, whose objective did not change, reads 0.589 here against 0.573
-published (intervals overlap), which is the available evidence that the device
-shift is small. This subsection is updated when the control lands.
+**Device control (pre-registered addendum, 2026-09-27; landed 2026-09-28).** The
+decoder-carrying protocol was rerun unchanged on the same CPU sandbox
+(`scripts/reviewer_gaps/run_cloud_device_control.sh`; raw
+`artifacts/reviewer_gaps_runs/l3_h8_wm_cpu/`, summary
+`artifacts/expB2/device_control_l3_h8_wm_cpu.json`). All gates pass (engagement
+20/20, L0 0.529 TOST p = 0.039 / ROPE accept, speed >= 0.830, pooled leak clean,
+floor 0.523, 0 deaths). Survival with the auxiliary reads **0.730** (t 90% CI
+[0.668, 0.791]; boot [0.677, 0.782]; 8/10 seeds; per seed 0.666, 0.790, 0.700,
+0.733, 0.617, 0.537, 0.885, 0.721, 0.850, 0.798), predictor 0.589, untrained
+0.523; behavior-controlled survival 0.710 [0.656, 0.764] (7/10). The frozen rule
+resolves to **device is not the cause**: the CPU rerun clears the bar with its
+t-CI excluding it and leads the no-auxiliary CPU run (0.601) by +0.129, well over
+the 0.05 margin. The auxiliary-conditional verdict stands on a same-device
+comparison. Two consistency receipts: the predictor arm, whose objective is
+unchanged between the two CPU runs, reproduces 0.589 exactly, and the drift-0
+cells reproduce the second-instance run's (10.9) exactly, as they must on one
+device. The rerun is also a same-protocol reproduction of the headline on a
+second device (0.730 against 0.752 on GPU, intervals overlapping).
 
 ### 10.9 Second fingerprint instance: survival-specific, below the bar (2026-09-27)
 
@@ -1290,7 +1320,8 @@ Stated once, plainly, with pointers into the code.
    artifact-conditional (10.5). **Closed 2026-09-26 at hidden = 8 (10.4.2):** a
    direct sensory control that regresses the instantaneous observation basis
    out of `h_t` leaves the survival signal at 0.731 (rule passes); the joint
-   sensory-plus-behavior control leaves 0.670.
+   sensory-plus-behavior control leaves 0.670. **A nonlinear (MLP) joint control leaves 0.654 [0.621, 0.687],
+   rule passing at the mean (2026-09-28, 10.4.2 addendum).**
 
 ---
 

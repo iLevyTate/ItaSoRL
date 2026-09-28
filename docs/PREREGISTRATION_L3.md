@@ -710,6 +710,34 @@ Rigor carried from the B-v3 audit (2026-07-10):
   l3_gate0_seed1/`, `l3_h10_gseed1/`, `artifacts/expB2/second_instance_l3_h10_gseed1.json`;
   FINDINGS 10.9.
 
+- **2026-09-28 - DEVICE CONTROL FOR THE ARCHITECTURE BASELINE (CPU cloud sandbox; n = 10):
+  DEVICE IS NOT THE CAUSE; THE AUXILIARY-CONDITIONAL VERDICT STANDS.** Executes the dated
+  addendum in `docs/specs/2026-09-26-l3-architecture-baseline-design.md` (published
+  decoder-carrying hidden = 8 protocol, unchanged, on the same sandbox as the no-auxiliary
+  run). All gates pass (engagement 20/20, L0 0.529 TOST p = 0.039 / ROPE accept, speed >=
+  0.830, pooled leak clean 20/20, floor 0.523, 0 deaths). Drift 0.45: survival **0.730**
+  (t 90% CI [0.668, 0.791]; boot [0.677, 0.782]; 8/10 seeds >= 0.65), predictor 0.589
+  (reproducing the no-auxiliary run's predictor exactly), untrained 0.523;
+  behavior-controlled survival 0.710 [0.656, 0.764]. Frozen rule: clears 0.65 with the
+  t-CI excluding the bar AND leads the no-auxiliary 0.601 by +0.129 (> 0.05) -> verdict
+  stands. Also a same-protocol reproduction of the GPU headline (0.752) on a second device.
+  Committed: `artifacts/reviewer_gaps_runs/l3_h8_wm_cpu/`,
+  `artifacts/expB2/device_control_l3_h8_wm_cpu.json`; FINDINGS 10.8. Process note: the
+  first device-control session stranded its finished results (the cloud agent used a
+  wake-up that never fired); the rerun's chain script self-commits, and the rerun is the
+  reported one.
+
+- **2026-09-28 - NONLINEAR JOINT CONTROL (readout-only; n = 10): THE WORLD-SIGNAL SURVIVES
+  AN MLP INPUT-PLUS-BEHAVIOR CONTROL AT THE BAR.** Executes probe B of the frozen spec
+  `docs/specs/2026-09-27-local-strengthening-probes-design.md` on the regenerated hidden = 8
+  pools (integrity 30/30 bit-match, 0.752 reproduced). Survival `resid_obs_beh_mlp` =
+  **0.654** (t 90% CI [0.621, 0.687]; 6/10 seeds), `resid_obs_mlp` 0.653 [0.633, 0.674];
+  predictor 0.542 / 0.530, untrained 0.509 / 0.497. Frozen rule (>= 0.65 AND > untrained +
+  0.05) PASSES at the mean; the t-CI lower bound is below the bar, stated as such. Committed:
+  `artifacts/expB2/sensory_echo_l3_h8_mlp.json`; FINDINGS 10.4.2 addendum. Process note: the
+  first local attempt died at cell 8 on an out-of-memory error; the runner gained a
+  `--resume` path and the remaining cells were computed without recomputing the first seven.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

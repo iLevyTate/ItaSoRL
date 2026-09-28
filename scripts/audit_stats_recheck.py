@@ -1014,6 +1014,46 @@ def main() -> int:
                    sec in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
                                encoding="utf-8").read())
 
+    # ---- FINDINGS 10.8 device control + 10.4.2 nonlinear control (2026-09-28) --
+    print("\n== FINDINGS 10.8 device control (decoder-carrying arm on the CPU sandbox) ==")
+    dc = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")
+    for arm, ref in (("survival", 0.730), ("predictor", 0.589), ("untrained", 0.523)):
+        blk = dc["arms"][dc["dmax"]][arm]["pool_target"]
+        check(f"device control {arm} pooled target ({ref})", blk["mean"], ref)
+    sv = dc["arms"][dc["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(sv["per_seed"])
+    check("device control survival t90 lo (0.668)", lo, 0.668)
+    check("device control survival t90 hi (0.791)", hi, 0.791)
+    check_int("device control survival seeds >= 0.65 (8)", sv["n_ge_065"], 8)
+    check("device control survival resid_trace (0.710)", dc["behavior_audit"]["survival"]["resid_trace"]["mean"], 0.710)
+    check_true("device control all gates pass", dc["gates"]["l0_tost"]["equivalent"] and dc["gates"]["l0_rope"]["accept"]
+               and dc["gates"]["pool_leak_clean_all"] and dc["gates"]["untrained_floor_ok"]
+               and all(v["pass"] == v["n"] for v in dc["gates"]["engagement"].values()))
+    check_true("device control frozen rule: t-CI excludes the bar and leads no-auxiliary 0.601 by > 0.05",
+               dc["decision"]["t90_excludes_bar"] and (sv["mean"] - ab["decision"]["survival"]) > 0.05)
+    check_true("device control predictor reproduces the no-auxiliary run's predictor",
+               abs(dc["arms"][dc["dmax"]]["predictor"]["pool_target"]["mean"]
+                   - ab["arms"][ab["dmax"]]["predictor"]["pool_target"]["mean"]) < 1e-9)
+    print("\n== FINDINGS 10.4.2 addendum: nonlinear joint control ==")
+    nl = _load_art("expB2", "sensory_echo_l3_h8_mlp.json")
+    check_true("nonlinear control integrity: 30/30 bit-match, 0.752 reproduced",
+               nl["integrity"]["all_match"] is True and nl["integrity"]["target_reproduced"] is True
+               and len(nl["cells"]) == 30)
+    sv = nl["aggregate"]["d=0.45 survival"]
+    check("nonlinear survival resid_obs_beh_mlp (0.654)", sv["resid_obs_beh_mlp"]["mean"], 0.654)
+    lo, hi = t_ci(sv["resid_obs_beh_mlp"]["per_seed"])
+    check("nonlinear survival resid_obs_beh_mlp t90 lo (0.621)", lo, 0.621)
+    check("nonlinear survival resid_obs_beh_mlp t90 hi (0.687)", hi, 0.687)
+    check_int("nonlinear survival resid_obs_beh_mlp seeds >= 0.65 (6)", sv["resid_obs_beh_mlp"]["n_ge_065"], 6)
+    check("nonlinear survival resid_obs_mlp (0.653)", sv["resid_obs_mlp"]["mean"], 0.653)
+    check("nonlinear untrained resid_obs_beh_mlp (0.509)",
+          nl["aggregate"]["d=0.45 untrained"]["resid_obs_beh_mlp"]["mean"], 0.509)
+    check("nonlinear predictor resid_obs_beh_mlp (0.542)",
+          nl["aggregate"]["d=0.45 predictor"]["resid_obs_beh_mlp"]["mean"], 0.542)
+    check("nonlinear run reproduces the linear joint control (0.670)", sv["resid_obs_beh"]["mean"], 0.670)
+    check_true("nonlinear frozen rule passes at the mean",
+               bool(nl["decision_nonlinear"]["pass_bar"] and nl["decision_nonlinear"]["pass_margin"]))
+
     # ---- FINDINGS 15: matched-handicap oracle ceilings (promoted 2026-09-27) --
     print("\n== FINDINGS 15: matched-handicap oracle ceilings across rungs ==")
     mh = _load_art("expA", "l2_inconfig_oracle.json")
