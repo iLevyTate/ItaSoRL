@@ -1163,6 +1163,22 @@ def main() -> int:
                             ("docs/PAPER_OUTLINE.md", "H3 open pending re-run")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
 
+    # ---- derived-doc guard: sensory echo (10.4.2), H2 (14), Exp C (13.D) -------
+    # The site carried Experiment C as "next" for two months after 13.D closed it,
+    # and never mentioned the sensory-echo or graded-seam controls. Pin them.
+    print("\n== derived-doc guard (10.4.2 sensory echo, 14 H2, 13.D Exp C) ==")
+    for relpath, needle, label in [
+        ("index.html", "0.731", "index.html carries the sensory-echo control"),
+        ("index.html", "0.654", "index.html carries the nonlinear joint control"),
+        ("index.html", "0.506", "index.html carries the graded-seam collapse"),
+        ("index.html", "0.509", "index.html carries the Exp C final AUROC"),
+        ("index.html", "validated null", "index.html states the Exp C verdict"),
+    ]:
+        check_true(label, needle in _read(relpath))
+    for relpath, banned in [("index.html", "EXP C · next"),
+                            ("index.html", "no matter how loud the artifact")]:
+        check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
+
     # ---- FINDINGS methods note 2: engagement margin on committed cells --------
     print("\n== FINDINGS note 2: engagement-margin sweep on committed cells ==")
     import glob as _g2
