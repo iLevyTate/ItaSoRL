@@ -52,7 +52,8 @@ PUBLISHED = {8: 0.752, 7: 0.737}                         # drift-0.45 survival m
 BAR = 0.65
 MARGIN = 0.05
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
-METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh")
+METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh",
+           "resid_obs_mlp", "resid_obs_beh_mlp")
 
 
 def cfg():
@@ -72,6 +73,12 @@ def cfg():
     ap.add_argument("--quick", action="store_true", help="seed 0 only, tiny pools, no bit compare")
     ap.add_argument("--reaggregate", action="store_true",
                     help="skip collection; rebuild aggregate.json from the saved cells.json")
+    ap.add_argument("--nonlinear", action="store_true",
+                    help="also run the MLP residualizers resid_obs_mlp and resid_obs_beh_mlp "
+                         "(spec 2026-09-27-local-strengthening-probes, probe B)")
+    ap.add_argument("--save-traces", action="store_true",
+                    help="save the regenerated H, observation and behavior traces per cell "
+                         "as traces_d<drift>_s<seed>_<arm>.npz under --out-dir")
     return ap.parse_args()
 
 
@@ -95,7 +102,7 @@ def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_ep
             key = f"d={fmt_drift(d)} {arm}"
             agg[key] = {}
             for met in METRICS:
-                vals = [float(r[met]) for r in rows if np.isfinite(r[met])]
+                vals = [float(r[met]) for r in rows if met in r and np.isfinite(r[met])]
                 if not vals:
                     continue
                 mean, lo, hi = mean_ci(vals)
@@ -124,6 +131,18 @@ def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_ep
         else:
             rule["zone"] = "LARGELY SENSORY-MEDIATED"
         agg["decision"] = rule
+    if "resid_obs_beh_mlp" in surv and "resid_obs_beh_mlp" in untr:
+        s, u = surv["resid_obs_beh_mlp"]["mean"], untr["resid_obs_beh_mlp"]["mean"]
+        nl = {"survival_resid_obs_beh_mlp": s, "untrained_resid_obs_beh_mlp": u,
+              "survival_t90": surv["resid_obs_beh_mlp"]["t90"],
+              "pass_bar": bool(s >= BAR), "pass_margin": bool(s > u + MARGIN)}
+        if s >= BAR and s > u + MARGIN:
+            nl["zone"] = "SURVIVES the nonlinear joint control (rule passes)"
+        elif s >= 0.60:
+            nl["zone"] = "ATTENUATED under the nonlinear joint control"
+        else:
+            nl["zone"] = "LARGELY EXPLAINED by nonlinear mirroring of inputs and behavior"
+        agg["decision_nonlinear"] = nl
     return agg
 
 
@@ -184,6 +203,12 @@ def main() -> int:
                 "resid_obs": sensory_residual_probe_auroc(H, Ot, y),
                 "resid_obs_int": sensory_residual_probe_auroc(H, Ot, y, integrated=True),
                 "resid_obs_beh": sensory_residual_probe_auroc(H, Ot, y, Bt=Bt)}
+        if a.nonlinear:
+            cell["resid_obs_mlp"] = sensory_residual_probe_auroc(H, Ot, y, nonlinear=True)
+            cell["resid_obs_beh_mlp"] = sensory_residual_probe_auroc(H, Ot, y, Bt=Bt, nonlinear=True)
+        if a.save_traces:
+            np.savez_compressed(os.path.join(a.out_dir, f"traces_d{fmt_drift(drift)}_s{seed}_{arm}.npz"),
+                                Ha=Ha, Hs=Hs, Oa=Oa, Os=Os, bta=bta, bts=bts)
         cells.append(cell)
         print(f"  d={cell['drift']} s={seed} {arm:9s} target={cell['target']:.3f} "
               f"obs_only={cell['obs_trace_only']:.3f} resid_trace={cell['resid_trace']:.3f} "

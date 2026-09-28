@@ -1,0 +1,468 @@
+{
+ "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
+ "n_pairs": 60,
+ "prefix": 10,
+ "branch": 30,
+ "sigma_frozen": 0.02,
+ "spec": "docs/specs/2026-09-27-local-strengthening-probes-design.md",
+ "rows": [
+  {
+   "cell": "l0",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.0,
+   "sigma_meas": 0.0002,
+   "oracle_auroc": 0.5805555555555555,
+   "leakage": {
+    "reward": 0.5,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5
+  },
+  {
+   "cell": "l0",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.0,
+   "sigma_meas": 0.001,
+   "oracle_auroc": 0.5805555555555555,
+   "leakage": {
+    "reward": 0.5,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5
+  },
+  {
+   "cell": "l0",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.0,
+   "sigma_meas": 0.005,
+   "oracle_auroc": 0.5805555555555555,
+   "leakage": {
+    "reward": 0.5,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5
+  },
+  {
+   "cell": "l0",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.0,
+   "sigma_meas": 0.01,
+   "oracle_auroc": 0.5805555555555555,
+   "leakage": {
+    "reward": 0.5,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5
+  },
+  {
+   "cell": "l0",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.0,
+   "sigma_meas": 0.02,
+   "oracle_auroc": 0.5805555555555555,
+   "leakage": {
+    "reward": 0.5,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5
+  },
+  {
+   "cell": "l0",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.0,
+   "sigma_meas": 0.05,
+   "oracle_auroc": 0.5805555555555555,
+   "leakage": {
+    "reward": 0.5,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5
+  },
+  {
+   "cell": "ar1",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.0002,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.5652777777777779,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5652777777777779
+  },
+  {
+   "cell": "ar1",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.001,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.5652777777777779,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5652777777777779
+  },
+  {
+   "cell": "ar1",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.005,
+   "oracle_auroc": 0.9569444444444443,
+   "leakage": {
+    "reward": 0.5652777777777779,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5652777777777779
+  },
+  {
+   "cell": "ar1",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.01,
+   "oracle_auroc": 0.8097222222222221,
+   "leakage": {
+    "reward": 0.5652777777777779,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5652777777777779
+  },
+  {
+   "cell": "ar1",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.02,
+   "oracle_auroc": 0.6458333333333333,
+   "leakage": {
+    "reward": 0.5652777777777779,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5652777777777779
+  },
+  {
+   "cell": "ar1",
+   "drift_mode": "ar1",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.05,
+   "oracle_auroc": 0.5875,
+   "leakage": {
+    "reward": 0.5652777777777779,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5652777777777779
+  },
+  {
+   "cell": "regime",
+   "drift_mode": "regime",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.0002,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.6763888888888889,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.6763888888888889
+  },
+  {
+   "cell": "regime",
+   "drift_mode": "regime",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.001,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.6763888888888889,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.6763888888888889
+  },
+  {
+   "cell": "regime",
+   "drift_mode": "regime",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.005,
+   "oracle_auroc": 0.8541666666666666,
+   "leakage": {
+    "reward": 0.6763888888888889,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.6763888888888889
+  },
+  {
+   "cell": "regime",
+   "drift_mode": "regime",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.01,
+   "oracle_auroc": 0.7027777777777777,
+   "leakage": {
+    "reward": 0.6763888888888889,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.6763888888888889
+  },
+  {
+   "cell": "regime",
+   "drift_mode": "regime",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.02,
+   "oracle_auroc": 0.6180555555555556,
+   "leakage": {
+    "reward": 0.6763888888888889,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.6763888888888889
+  },
+  {
+   "cell": "regime",
+   "drift_mode": "regime",
+   "drift_sigma": 0.45,
+   "sigma_meas": 0.05,
+   "oracle_auroc": 0.586111111111111,
+   "leakage": {
+    "reward": 0.6763888888888889,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.6763888888888889
+  },
+  {
+   "cell": "l3_h8_seed0",
+   "drift_mode": "l3",
+   "hidden": 8,
+   "g_seed": 0,
+   "sigma_meas": 0.0002,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.5694444444444444,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5694444444444444
+  },
+  {
+   "cell": "l3_h8_seed0",
+   "drift_mode": "l3",
+   "hidden": 8,
+   "g_seed": 0,
+   "sigma_meas": 0.001,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.5694444444444444,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5694444444444444
+  },
+  {
+   "cell": "l3_h8_seed0",
+   "drift_mode": "l3",
+   "hidden": 8,
+   "g_seed": 0,
+   "sigma_meas": 0.005,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.5694444444444444,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5694444444444444
+  },
+  {
+   "cell": "l3_h8_seed0",
+   "drift_mode": "l3",
+   "hidden": 8,
+   "g_seed": 0,
+   "sigma_meas": 0.01,
+   "oracle_auroc": 0.9972222222222221,
+   "leakage": {
+    "reward": 0.5694444444444444,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5694444444444444
+  },
+  {
+   "cell": "l3_h8_seed0",
+   "drift_mode": "l3",
+   "hidden": 8,
+   "g_seed": 0,
+   "sigma_meas": 0.02,
+   "oracle_auroc": 0.9277777777777778,
+   "leakage": {
+    "reward": 0.5694444444444444,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5694444444444444
+  },
+  {
+   "cell": "l3_h8_seed0",
+   "drift_mode": "l3",
+   "hidden": 8,
+   "g_seed": 0,
+   "sigma_meas": 0.05,
+   "oracle_auroc": 0.6736111111111112,
+   "leakage": {
+    "reward": 0.5694444444444444,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.5694444444444444
+  },
+  {
+   "cell": "l3_h7_seed0",
+   "drift_mode": "l3",
+   "hidden": 7,
+   "g_seed": 0,
+   "sigma_meas": 0.0002,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.4208333333333333,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.4208333333333333
+  },
+  {
+   "cell": "l3_h7_seed0",
+   "drift_mode": "l3",
+   "hidden": 7,
+   "g_seed": 0,
+   "sigma_meas": 0.001,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.4208333333333333,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.4208333333333333
+  },
+  {
+   "cell": "l3_h7_seed0",
+   "drift_mode": "l3",
+   "hidden": 7,
+   "g_seed": 0,
+   "sigma_meas": 0.005,
+   "oracle_auroc": 1.0,
+   "leakage": {
+    "reward": 0.4208333333333333,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.4208333333333333
+  },
+  {
+   "cell": "l3_h7_seed0",
+   "drift_mode": "l3",
+   "hidden": 7,
+   "g_seed": 0,
+   "sigma_meas": 0.01,
+   "oracle_auroc": 0.9847222222222222,
+   "leakage": {
+    "reward": 0.4208333333333333,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.4208333333333333
+  },
+  {
+   "cell": "l3_h7_seed0",
+   "drift_mode": "l3",
+   "hidden": 7,
+   "g_seed": 0,
+   "sigma_meas": 0.02,
+   "oracle_auroc": 0.9222222222222222,
+   "leakage": {
+    "reward": 0.4208333333333333,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.4208333333333333
+  },
+  {
+   "cell": "l3_h7_seed0",
+   "drift_mode": "l3",
+   "hidden": 7,
+   "g_seed": 0,
+   "sigma_meas": 0.05,
+   "oracle_auroc": 0.6708333333333333,
+   "leakage": {
+    "reward": 0.4208333333333333,
+    "length": 0.5,
+    "metadata": 0.5
+   },
+   "leakage_pass": true,
+   "reward_leak": 0.4208333333333333
+  }
+ ],
+ "l0_anchor_noise_seeds": {
+  "seeds": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "oracle_auroc": [
+   0.5805555555555555,
+   0.4638888888888889,
+   0.475,
+   0.45138888888888895,
+   0.5694444444444444,
+   0.42361111111111105,
+   0.39444444444444443,
+   0.44305555555555554
+  ],
+  "mean": 0.47517361111111106
+ },
+ "source_run": "fullruns/l2_inconfig_oracle.json",
+ "git_commit_at_promotion": "3f36cc227c6f0a8d297c172fa875562a0f9f19ab",
+ "generated_by": "scripts/run_expA_l2_inconfig.py (promoted by hand-copy with provenance, 2026-09-27)"
+}
