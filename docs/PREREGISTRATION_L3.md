@@ -727,6 +727,19 @@ Rigor carried from the B-v3 audit (2026-07-10):
   `artifacts/reviewer_gaps_runs/l3_h8_wm_cpu/`,
   `artifacts/expB2/device_control_l3_h8_wm_cpu.json`; FINDINGS 10.8.
 
+- **2026-09-28 - NONLINEAR JOINT CONTROL (readout-only; n = 10; owner's GPU machine): THE
+  WORLD-SIGNAL SURVIVES AN MLP INPUT-PLUS-BEHAVIOR CONTROL AT THE BAR.** Executes probe B
+  of the frozen spec `docs/specs/2026-09-27-local-strengthening-probes-design.md` on the
+  regenerated hidden = 8 pools (integrity 30/30 bit-match, 0.752 reproduced; legacy
+  GroupKFold split of the owner's stack, FINDINGS methods note 8). Survival
+  `resid_obs_beh_mlp` = **0.654** (t 90% CI [0.621, 0.687]; 6/10 seeds), `resid_obs_mlp`
+  0.653 [0.633, 0.674]; predictor 0.542 / 0.530, untrained 0.509 / 0.497. Frozen rule
+  (>= 0.65 AND > untrained + 0.05) PASSES at the mean; the t-CI lower bound is below the
+  bar, stated as such. Committed: `artifacts/expB2/sensory_echo_l3_h8_mlp.json`; FINDINGS
+  10.4.2 addendum. Process note: the first local attempt died at cell 8 on an
+  out-of-memory error; the runner gained a `--resume` path and the remaining cells were
+  computed without recomputing the first seven.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

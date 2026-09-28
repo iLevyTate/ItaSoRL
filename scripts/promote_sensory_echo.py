@@ -18,7 +18,8 @@ import json
 import os
 import subprocess
 
-METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh")
+METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh",
+           "resid_obs_mlp", "resid_obs_beh_mlp")   # the last two only in --nonlinear runs
 
 
 def git_head() -> str:
@@ -50,9 +51,10 @@ def promote(run_dir: str, out_path: str, head: str | None = None) -> dict:
         "metrics": list(METRICS),
         "integrity": agg["integrity"],
         "decision": agg.get("decision"),
+        "decision_nonlinear": agg.get("decision_nonlinear"),
         "aggregate": keep,
         "cells": [{k: c[k] for k in ("drift", "seed", "agent", "n_auth", "n_surr",
-                                     "integrity_match", *METRICS)} for c in cells],
+                                     "integrity_match", *METRICS) if k in c} for c in cells],
     }
     d = os.path.dirname(out_path)
     if d:

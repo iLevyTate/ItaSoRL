@@ -1050,6 +1050,30 @@ def main() -> int:
                dc["arms"][dc["dmax"]]["predictor"]["pool_target"]["per_seed"]
                == ab["arms"][ab["dmax"]]["predictor"]["pool_target"]["per_seed"])
 
+    # ---- FINDINGS 10.4.2 addendum: nonlinear joint control (2026-09-28) ------
+    print("\n== FINDINGS 10.4.2 addendum: nonlinear joint control ==")
+    nl = _load_art("expB2", "sensory_echo_l3_h8_mlp.json")
+    check_true("nonlinear control integrity: 30/30 bit-match, 0.752 reproduced",
+               nl["integrity"]["all_match"] is True and nl["integrity"]["target_reproduced"] is True
+               and len(nl["cells"]) == 30)
+    sv = nl["aggregate"]["d=0.45 survival"]
+    check("nonlinear survival resid_obs_beh_mlp (0.654)", sv["resid_obs_beh_mlp"]["mean"], 0.654)
+    lo, hi = t_ci(sv["resid_obs_beh_mlp"]["per_seed"])
+    check("nonlinear survival resid_obs_beh_mlp t90 lo (0.621)", lo, 0.621)
+    check("nonlinear survival resid_obs_beh_mlp t90 hi (0.687)", hi, 0.687)
+    check_int("nonlinear survival resid_obs_beh_mlp seeds >= 0.65 (6)", sv["resid_obs_beh_mlp"]["n_ge_065"], 6)
+    check("nonlinear survival resid_obs_mlp (0.653)", sv["resid_obs_mlp"]["mean"], 0.653)
+    check("nonlinear untrained resid_obs_beh_mlp (0.509)",
+          nl["aggregate"]["d=0.45 untrained"]["resid_obs_beh_mlp"]["mean"], 0.509)
+    check("nonlinear predictor resid_obs_beh_mlp (0.542)",
+          nl["aggregate"]["d=0.45 predictor"]["resid_obs_beh_mlp"]["mean"], 0.542)
+    check("nonlinear run reproduces the linear joint control (0.670)", sv["resid_obs_beh"]["mean"], 0.670)
+    check_true("nonlinear frozen rule passes at the mean",
+               bool(nl["decision_nonlinear"]["pass_bar"] and nl["decision_nonlinear"]["pass_margin"]))
+    check_true("FINDINGS carries the nonlinear joint control addendum",
+               "**Nonlinear joint control (2026-09-28" in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
+                                                          encoding="utf-8").read())
+
     # ---- FINDINGS 15: matched-handicap oracle ceilings (promoted 2026-09-27) --
     print("\n== FINDINGS 15: matched-handicap oracle ceilings across rungs ==")
     mh = _load_art("expA", "l2_inconfig_oracle.json")

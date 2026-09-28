@@ -74,6 +74,8 @@ def cfg():
     ap.add_argument("--quick", action="store_true", help="seed 0 only, tiny pools, no bit compare")
     ap.add_argument("--reaggregate", action="store_true",
                     help="skip collection; rebuild aggregate.json from the saved cells.json")
+    ap.add_argument("--resume", action="store_true",
+                    help="skip cells already present in --out-dir/cells.json (after an interrupted run)")
     ap.add_argument("--nonlinear", action="store_true",
                     help="also run the MLP residualizers resid_obs_mlp and resid_obs_beh_mlp "
                          "(spec 2026-09-27-local-strengthening-probes, probe B)")
@@ -156,6 +158,12 @@ def main() -> int:
     os.makedirs(a.out_dir, exist_ok=True)
     cells, mismatches = [], []
     t0 = time.time()
+    done: set = set()
+    if a.resume and os.path.exists(os.path.join(a.out_dir, "cells.json")):
+        with open(os.path.join(a.out_dir, "cells.json"), encoding="utf-8") as fh:
+            cells = json.load(fh)
+        done = {(c["drift"], c["seed"], c["agent"]) for c in cells}
+        print(f"resuming: {len(done)} cells already in {a.out_dir}/cells.json")
     if a.reaggregate:
         with open(os.path.join(a.out_dir, "cells.json"), encoding="utf-8") as fh:
             cells = json.load(fh)
@@ -173,6 +181,8 @@ def main() -> int:
         m = AGENT_RE.search(name)
         drift, seed, arm = float(m.group(1)), int(m.group(2)), m.group(3)
         if arm not in a.arms or drift not in a.drifts or (a.quick and seed != 0):
+            continue
+        if (fmt_drift(drift), seed, arm) in done:
             continue
         agent, norm = load_agent_bundle(os.path.join(a.agents_dir, name), dev)
         Ha, _, _, _, _, _, bta, Oa = collect_pool(agent, norm, P, 0.0, n_eps, steps, dev, 800_000, 5,

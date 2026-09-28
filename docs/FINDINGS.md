@@ -821,10 +821,35 @@ the bar; that is the most conservative number the project has, and it is
 reported as such. Methods note 7 is closed in the headline's favor: the
 behavior-independent world-signal is not a passive echo of the inputs.
 
-**Scope.** One capacity (hidden = 8), linear residualization, one lag. A
-nonlinear or longer-history sensory control is not run (spec: no rescue in
-either direction). The joint-control attenuation is the honest upper bound on
-what linear input-plus-behavior mirroring could explain.
+**Scope.** One capacity (hidden = 8), one lag. The joint-control attenuation is
+the upper bound on what linear input-plus-behavior mirroring could explain; the
+nonlinear addendum below bounds the nonlinear case.
+
+**Nonlinear joint control (2026-09-28; spec
+`docs/specs/2026-09-27-local-strengthening-probes-design.md`, probe B).** The
+same regenerated pools (integrity gate: 30/30 drift-0.45 cells bit-match, 0.752
+reproduced) with the in-fold regressor replaced by a one-hidden-layer MLP (64
+ReLU units, L2 penalty 1e-3, Adam, 300 iterations), computed on the owner's GPU
+machine with the legacy GroupKFold split of that stack (methods note 8).
+Committed artifact `artifacts/expB2/sensory_echo_l3_h8_mlp.json`. Drift 0.45,
+n = 10, t-based 90% CI:
+
+| readout | survival | predictor | untrained |
+|---|---|---|---|
+| resid_obs_mlp (observation basis, MLP) | 0.653 [0.633, 0.674] (6/10) | 0.530 | 0.497 |
+| **resid_obs_beh_mlp (observation + behavior, MLP)** | **0.654 [0.621, 0.687] (6/10)** | 0.542 | 0.509 |
+
+The frozen rule PASSES at the mean (0.654 >= 0.65 and 0.654 > 0.509 + 0.05),
+with the t-CI lower bound (0.621) below the bar, so the honest statement is
+that the world-signal survives a nonlinear input-plus-behavior control at the
+bar, not comfortably above it. The linear joint control read 0.670; the MLP
+removes a further 0.016. Both baseline arms sit at chance under the identical
+control. Methods note 7's "linear only" limit is closed in the headline's
+favor: a nonlinear mirror of the current input and the behavior trace leaves
+roughly two thirds of the above-chance signal (0.154 of 0.252 AUROC units).
+Process note: the first local attempt died at cell 8 on an out-of-memory error;
+the runner gained a `--resume` path and the remaining cells were computed
+without recomputing the first seven.
 
 ### 10.5 Second in-band capacity (replication across artifact type)
 
@@ -1337,7 +1362,8 @@ Stated once, plainly, with pointers into the code.
    artifact-conditional (10.5). **Closed 2026-09-26 at hidden = 8 (10.4.2):** a
    direct sensory control that regresses the instantaneous observation basis
    out of `h_t` leaves the survival signal at 0.731 (rule passes); the joint
-   sensory-plus-behavior control leaves 0.670.
+   sensory-plus-behavior control leaves 0.670. **A nonlinear (MLP) joint control leaves 0.654 [0.621, 0.687],
+   rule passing at the mean (2026-09-28, 10.4.2 addendum).**
 8. **Cross-validation folds depended on the software stack (found 2026-09-28;
    re-score pending).** Every grouped probe splits episodes with a 5-fold
    GroupKFold, and scikit-learn before its stable sort ordered equal-sized groups
