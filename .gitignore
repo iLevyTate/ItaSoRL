@@ -212,18 +212,18 @@ artifacts/expB2/logs/
 # Rendered film output: byte-reproducible from viz/ code + scene.json (verified deterministic).
 viz/out/
 
-# Full-film cuts stay local. The remote carries the clip set under
-# assets/film/clips plus the 720p web encodes at the assets/film root; the 90s
-# silent masters render on demand from viz/ code + scene.json, and the 9:16 one
-# is 55 MB. Named individually on purpose: detectable-all-along-web.mp4 and
-# detectable-all-along-poster.jpg are tracked and must stay tracked.
+# Big film files stay local. The remote carries only what the site plays: the
+# 720p web encodes and posters at the assets/film root plus the small loop
+# mp4s. The clip set (assets/film/clips: 1080p and 9:16 masters, loop gifs)
+# and the 90s silent masters render on demand from viz/ code + scene.json via
+# viz/player/capture/build-two-minds.ps1 and build-detectable-vertical.ps1.
+/assets/film/clips/
 /assets/film/detectable-all-along-vertical.mp4
 /assets/film/detectable-all-along-poster-vertical.jpg
 /assets/film/detectable-all-along-wide.mp4
 
 # Clip audit scratch, proof frames, and creative working docs (VO scripts,
-# music prompts, design notes under post-materials): local only. The clips in
-# assets/film/clips are the deliverable; the process files stay off the remote.
+# music prompts, design notes under post-materials): local only.
 artifacts/clip_audit/
 viz/artifacts/
 
@@ -238,7 +238,3 @@ docs/superpowers/
 
 # Brainstorming visual-companion session files (mockups, server state): local only.
 .superpowers/
-
-# Textless (voice-over) Two Minds cut: the on-disk set predates the v3
-# renderer and is not referenced by the site. Local until re-rendered.
-/assets/film/clips/two-minds-*-textless*
