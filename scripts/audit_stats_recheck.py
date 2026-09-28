@@ -1014,6 +1014,42 @@ def main() -> int:
                    sec in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
                                encoding="utf-8").read())
 
+    # ---- FINDINGS 10.8 device control (promoted 2026-09-28) --------------------
+    print("\n== FINDINGS 10.8: device control (decoder-carrying arm on the CPU sandbox) ==")
+    dc = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")
+    for arm, ref in (("survival", 0.730), ("predictor", 0.589), ("untrained", 0.523)):
+        blk = dc["arms"][dc["dmax"]][arm]["pool_target"]
+        check(f"10.8 device control {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.8 device control {arm}: stored mean reproduces per-seed mean",
+              float(np.mean(blk["per_seed"])), blk["mean"])
+    sv = dc["arms"][dc["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(sv["per_seed"])
+    check("10.8 device control survival t90 lo (0.668)", lo, 0.668)
+    check("10.8 device control survival t90 hi (0.791)", hi, 0.791)
+    check_int("10.8 device control survival seeds >= 0.65 (8)", sv["n_ge_065"], 8)
+    rt = dc["behavior_audit"]["survival"]["resid_trace"]
+    check("10.8 device control survival resid_trace (0.710)", rt["mean"], 0.710)
+    lo, hi = t_ci(rt["per_seed"])
+    check("10.8 device control survival resid_trace t90 lo (0.656)", lo, 0.656)
+    check("10.8 device control survival resid_trace t90 hi (0.764)", hi, 0.764)
+    check_true("10.8 device control all gates pass",
+               dc["gates"]["l0_tost"]["equivalent"] and dc["gates"]["l0_rope"]["accept"]
+               and dc["gates"]["pool_leak_clean_all"] and dc["gates"]["untrained_floor_ok"]
+               and all(v["pass"] == v["n"] for v in dc["gates"]["engagement"].values()))
+    # the rule compares against the no-auxiliary run promoted above; recompute from both
+    nowm = ab["arms"][ab["dmax"]]["survival"]["pool_target"]["per_seed"]
+    wm = sv["per_seed"]
+    check("10.8 device control lead over no-auxiliary (+0.128)", float(np.mean(wm) - np.mean(nowm)), 0.128)
+    lo, hi = t_ci([a - b for a, b in zip(wm, nowm)])
+    check("10.8 device control paired lead t90 lo (+0.089)", lo, 0.089)
+    check("10.8 device control paired lead t90 hi (+0.168)", hi, 0.168)
+    check_true("10.8 device control rule: device not the cause",
+               dc["device_control"]["verdict"].startswith("DEVICE NOT THE CAUSE")
+               and dc["device_control"]["t90_excludes_bar"] and dc["device_control"]["pass_lead"])
+    check_true("10.8 device control predictor arm bit-identical to the no-auxiliary run",
+               dc["arms"][dc["dmax"]]["predictor"]["pool_target"]["per_seed"]
+               == ab["arms"][ab["dmax"]]["predictor"]["pool_target"]["per_seed"])
+
     # ---- FINDINGS 15: matched-handicap oracle ceilings (promoted 2026-09-27) --
     print("\n== FINDINGS 15: matched-handicap oracle ceilings across rungs ==")
     mh = _load_art("expA", "l2_inconfig_oracle.json")
