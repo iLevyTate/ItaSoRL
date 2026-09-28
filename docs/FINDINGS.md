@@ -54,8 +54,10 @@ subtler hidden = 8 artifact (section 10.5).
 Two boundary checks run on 2026-09-27 narrow the positive (sections 10.8,
 10.9). Removing the survival agent's next-observation auxiliary loss drops the
 signal to **0.601** [0.549, 0.654], below the bar, so the encoding belongs to
-survival and prediction trained together on one trunk, not to survival alone
-(a pre-registered device control is running because that run was CPU-executed).
+survival and prediction trained together on one trunk, not to survival alone.
+That run was CPU-executed, and the pre-registered device control on the same CPU
+sandbox reproduces the positive with the auxiliary (**0.730** [0.668, 0.791]), so the
+device does not explain the drop.
 An independently trained fingerprint (G seed 1, hidden 10 by the frozen
 fallback) reproduces the survival-specific dissociation (**0.639** against
 predictor 0.534 and untrained 0.514) at a magnitude below the bar, so
@@ -827,8 +829,10 @@ nonlinear addendum below bounds the nonlinear case.
 `docs/specs/2026-09-27-local-strengthening-probes-design.md`, probe B).** The
 same regenerated pools (integrity gate: 30/30 drift-0.45 cells bit-match, 0.752
 reproduced) with the in-fold regressor replaced by a one-hidden-layer MLP (64
-ReLU units, L2 penalty 1e-3, Adam, 300 iterations). Committed artifact
-`artifacts/expB2/sensory_echo_l3_h8_mlp.json`. Drift 0.45, n = 10, t-based 90% CI:
+ReLU units, L2 penalty 1e-3, Adam, 300 iterations), computed on the owner's GPU
+machine with the legacy GroupKFold split of that stack (methods note 8).
+Committed artifact `artifacts/expB2/sensory_echo_l3_h8_mlp.json`. Drift 0.45,
+n = 10, t-based 90% CI:
 
 | readout | survival | predictor | untrained |
 |---|---|---|---|
@@ -843,6 +847,9 @@ removes a further 0.016. Both baseline arms sit at chance under the identical
 control. Methods note 7's "linear only" limit is closed in the headline's
 favor: a nonlinear mirror of the current input and the behavior trace leaves
 roughly two thirds of the above-chance signal (0.154 of 0.252 AUROC units).
+Process note: the first local attempt died at cell 8 on an out-of-memory error;
+the runner gained a `--resume` path and the remaining cells were computed
+without recomputing the first seven.
 
 ### 10.5 Second in-band capacity (replication across artifact type)
 
@@ -1135,8 +1142,8 @@ Committed artifacts: raw `artifacts/reviewer_gaps_runs/l3_h8_nowm/`, summary
 **Execution.** The run executed in a CPU cloud sandbox (4 vCPU, 3 workers, torch
 2.14+cpu, 4 h 06 min) because the local GPU machine was memory-starved; the
 published hidden = 8 run it is compared against was GPU-generated. That is the one
-nuisance factor the comparison does not control; the device control below
-addresses it.
+nuisance factor the comparison against 0.752 does not control; the device control
+below closes it with a same-device comparison.
 
 **Gates (all pass).** Engagement 20/20 cells; L0 control 0.514 (TOST p = 0.006,
 ROPE P = 0.9997, both accept); speed positive control at least 0.835 in every
@@ -1151,7 +1158,6 @@ cell; pooled reward-leak clean in every cell; untrained floor at drift 0.45
 | predictor (unchanged objective) | 0.589 | [0.567, 0.610] | 0/10 |
 | **survival, no auxiliary** | **0.601** | **[0.549, 0.654]** | 1/10 |
 | survival with auxiliary (published, GPU, 10.2) | 0.752 | [0.698, 0.807] | 8/10 |
-| survival with auxiliary, same CPU sandbox (device control) | **0.730** | [0.668, 0.791] | 8/10 |
 
 Per-seed survival: 0.603, 0.619, 0.599, 0.617, 0.488, 0.488, 0.810, 0.619,
 0.626, 0.545. Behavior audit (`resid_trace`, seven-channel basis): survival
@@ -1175,24 +1181,48 @@ published wording "encoded by the survival objective, uniquely" is narrowed
 accordingly: encoded by survival-trained agents carrying the next-observation
 auxiliary, and by neither objective alone.
 
-**Device control (pre-registered addendum, 2026-09-27; landed 2026-09-28).** The
-decoder-carrying protocol was rerun unchanged on the same CPU sandbox
-(`scripts/reviewer_gaps/run_cloud_device_control.sh`; raw
+**Device control (pre-registered addendum, 2026-09-27; landed 2026-09-28): the
+verdict stands.** The published decoder-carrying protocol was rerun unchanged in the
+same CPU cloud environment (`scripts/reviewer_gaps/run_cloud_device_control.sh`,
+launched 2026-09-27 22:33 UTC, results self-committed 02:44 UTC in `f746469`). The
+frozen rule: if that run clears 0.65 with its t-CI excluding the bar and leads the
+no-auxiliary 0.601 by more than 0.05, the auxiliary-conditional verdict stands; if it
+falls below 0.65, the verdict is withdrawn to "not established". An earlier launch
+(17:06 UTC) committed no results. Committed artifacts: raw
 `artifacts/reviewer_gaps_runs/l3_h8_wm_cpu/`, summary
-`artifacts/expB2/device_control_l3_h8_wm_cpu.json`). All gates pass (engagement
-20/20, L0 0.529 TOST p = 0.039 / ROPE accept, speed >= 0.830, pooled leak clean,
-floor 0.523, 0 deaths). Survival with the auxiliary reads **0.730** (t 90% CI
-[0.668, 0.791]; boot [0.677, 0.782]; 8/10 seeds; per seed 0.666, 0.790, 0.700,
-0.733, 0.617, 0.537, 0.885, 0.721, 0.850, 0.798), predictor 0.589, untrained
-0.523; behavior-controlled survival 0.710 [0.656, 0.764] (7/10). The frozen rule
-resolves to **device is not the cause**: the CPU rerun clears the bar with its
-t-CI excluding it and leads the no-auxiliary CPU run (0.601) by +0.129, well over
-the 0.05 margin. The auxiliary-conditional verdict stands on a same-device
-comparison. Two consistency receipts: the predictor arm, whose objective is
-unchanged between the two CPU runs, reproduces 0.589 exactly, and the drift-0
-cells reproduce the second-instance run's (10.9) exactly, as they must on one
-device. The rerun is also a same-protocol reproduction of the headline on a
-second device (0.730 against 0.752 on GPU, intervals overlapping).
+`artifacts/expB2/device_control_l3_h8_wm_cpu.json` (the rule is evaluated in its
+`device_control` block).
+
+Gates all pass: engagement 20/20 cells; L0 control 0.529 (TOST p = 0.039, ROPE
+P = 0.983, both accept); speed positive control at least 0.830; pooled reward-leak
+clean in every cell; untrained floor at drift 0.45 0.523; 0 early deaths.
+
+| agent (same CPU sandbox) | pooled target | t 90% CI | seeds >= 0.65 |
+|---|---|---|---|
+| untrained | 0.523 | [0.491, 0.554] | 0/10 |
+| predictor | 0.589 | [0.567, 0.610] | 0/10 |
+| **survival with auxiliary (device control)** | **0.730** | **[0.668, 0.791]** | 8/10 |
+| survival, no auxiliary (above) | 0.601 | [0.549, 0.654] | 1/10 |
+
+Per-seed survival: 0.666, 0.790, 0.700, 0.733, 0.617, 0.537, 0.885, 0.721, 0.850,
+0.798. Behavior audit: survival `resid_trace` **0.710** [0.656, 0.764] (7/10),
+predictor 0.592, untrained 0.543; the behavior trace alone decodes the world at 0.817.
+
+**Adjudication (frozen addendum rule).** 0.730 clears the bar with its t-CI lower
+bound (0.668) above it, and leads the no-auxiliary 0.601 by +0.128; paired by seed
+the lead is +0.128 [+0.089, +0.168]. Rule cell: **device is not the cause.** The
+auxiliary-conditional verdict above stands, now as a same-device comparison.
+
+Three further readings. The predictor arm is bit-identical per seed to the
+no-auxiliary run's predictor arm, produced in a separate session, and the drift-0
+survival arm matches 10.9's drift-0 arm per seed (the fingerprint is not active at
+drift 0): the CPU pipeline is deterministic. The device shift on the identical
+protocol is small: 0.730 on CPU against 0.752 on GPU, and 0.710 against 0.723 for
+the behavior-controlled signal on the seven-channel basis (10.4.1). And the
+decoder-carrying agents also survive somewhat better on the same device
+(train@0.45 eval@0.45 return -0.355 against -0.474 without the auxiliary), so the
+design does not separate the auxiliary's direct effect on the state from an
+indirect effect through a stronger policy.
 
 ### 10.9 Second fingerprint instance: survival-specific, below the bar (2026-09-27)
 
@@ -1260,6 +1290,11 @@ instance-conditional. The instance is subtler to the oracle, and the run is
 CPU-executed, so the magnitude gap to 0.752 has two candidate sources the design
 did not separate.
 
+*Device-control note (2026-09-28).* On the published seed-0, hidden-8 protocol, CPU
+execution reads 0.730 against 0.752 on GPU (10.8). If the device shift is similar on
+this instance, the device accounts for about 0.02 of the 0.113 gap, and most of it
+sits with the instance, whose seed and capacity changed together.
+
 ## 11. Methods notes and limitations
 
 Stated once, plainly, with pointers into the code.
@@ -1275,7 +1310,14 @@ Stated once, plainly, with pointers into the code.
    (and `LIFE_TOL = 2.0`) were fixed during the B-v2 de-risk and carried forward
    unchanged (`itasorl/experiment_b2.py`); no sensitivity sweep has been run. A
    materially different margin could flip engagement-gate adjudications near the
-   boundary, though every headline run passed with room.
+   boundary, though every headline run passed with room. **Swept 2026-09-28 on the
+   committed cells** (`scripts/audit_engagement_margin.py`; the B-v3 n = 10 gate
+   values in `artifacts/expB2/bv3_n10_gates.json` and the three cloud runs of 10.8
+   and 10.9 in `artifacts/expB2/engagement_margin_cloud_runs.json`, 80 cells): every
+   cell passes at margins 0.05, 0.10, and 0.15. From 0.20 to 0.30 one cell fails,
+   the no-auxiliary run at drift 0.45, whose trained return clears the better
+   baseline by 0.182. The published GPU L3 cells are not committed, so this sweep
+   does not cover them.
 3. **One primary readout; everything else is a control or exploratory.** The
    pre-registered decision uses only the pooled LEVEL `target` against the 0.65 bar
    and the 0.05 SESOI. The volatility readouts (`target_var`, `target_full`),
@@ -1322,6 +1364,20 @@ Stated once, plainly, with pointers into the code.
    out of `h_t` leaves the survival signal at 0.731 (rule passes); the joint
    sensory-plus-behavior control leaves 0.670. **A nonlinear (MLP) joint control leaves 0.654 [0.621, 0.687],
    rule passing at the mean (2026-09-28, 10.4.2 addendum).**
+8. **Cross-validation folds depended on the software stack (found 2026-09-28;
+   re-score pending).** Every grouped probe splits episodes with a 5-fold
+   GroupKFold, and scikit-learn before its stable sort ordered equal-sized groups
+   with numpy's unstable sort, so fold membership depended on the numpy build and
+   the CPU. The published GPU runs were scored on the split (24,20), (22,22),
+   (21,23), (21,23), (22,22) for a 110 + 110 pool; the 2026-09 cloud runs (10.8,
+   10.9, the device control) on five balanced 22/22 folds. Both are valid
+   partitions, so this is noise, not bias: a simulation at AUROC near 0.73 puts the
+   shift at about 0.004 on a 10-seed mean. `itasorl/folds.py` now builds the
+   balanced partition in plain numpy on every stack (`ITASORL_FOLDS=legacy`
+   reproduces the old behavior), and the re-score of the published dumps under both
+   splits is specified in `docs/specs/2026-09-28-explicit-cv-folds.md`, to be
+   frozen before it runs. The published
+   numbers stand as the record until that re-score is reported here.
 
 ---
 

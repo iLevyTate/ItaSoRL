@@ -68,3 +68,33 @@ def test_promote_intermediate_zone(tmp_path):
     out = prg.promote(str(run), str(tmp_path / "y.json"), spec="spec.md", label="t", head="abc")
     assert out["decision"]["zone"].startswith("INTERMEDIATE")
     assert out["decision"]["pass_margin_predictor"] is False
+
+
+def test_device_control_verdicts(tmp_path):
+    nowm, _ = _bundle(tmp_path / "nowm", surv=0.60, pred=0.59)
+    # decoder-carrying run clears the bar with room and leads the no-auxiliary run
+    wm, _ = _bundle(tmp_path / "wm", surv=0.73, pred=0.59)
+    out = prg.promote(str(wm), str(tmp_path / "dc.json"), spec="spec.md", label="dc", head="abc",
+                      compare_run=str(nowm))
+    dc = out["device_control"]
+    assert dc["verdict"].startswith("DEVICE NOT THE CAUSE")
+    assert dc["lead"] == pytest.approx(0.13, abs=0.02)
+    assert dc["paired_lead_t90"][0] > 0.05
+    assert dc["predictor_arm_identical_to_comparison"] is True
+    # decoder-carrying run below the bar: the verdict is withdrawn
+    low, _ = _bundle(tmp_path / "low", surv=0.62, pred=0.59)
+    dc = prg.promote(str(low), str(tmp_path / "dc2.json"), spec="s", label="d", head="abc",
+                     compare_run=str(nowm))["device_control"]
+    assert dc["verdict"].startswith("DEVICE CONFOUND")
+    # clears the bar but leads by less than the margin
+    close, _ = _bundle(tmp_path / "close", surv=0.67, pred=0.59)
+    base, _ = _bundle(tmp_path / "base", surv=0.64, pred=0.59)
+    dc = prg.promote(str(close), str(tmp_path / "dc3.json"), spec="s", label="d", head="abc",
+                     compare_run=str(base))["device_control"]
+    assert dc["verdict"].startswith("INTERMEDIATE")
+
+
+def test_promote_without_comparison_has_no_device_block(tmp_path):
+    run, _ = _bundle(tmp_path)
+    out = prg.promote(str(run), str(tmp_path / "z.json"), spec="s", label="t", head="abc")
+    assert "device_control" not in out

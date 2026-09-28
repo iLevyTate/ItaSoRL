@@ -40,6 +40,7 @@ import time
 import numpy as np
 
 import itasorl.experiment_b2 as b2
+from itasorl import folds
 from itasorl.behavior_audit import (sensory_residual_probe_auroc,
                                     trace_residual_probe_auroc)
 from itasorl.experiment_b import episode_features, episode_features_full, probe_auroc
@@ -48,7 +49,7 @@ from itasorl.stats import mean_ci, t_ci90
 from itasorl.world import WorldParams
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)   # frozen organism world
-PUBLISHED = {8: 0.752, 7: 0.737}                         # drift-0.45 survival means
+# drift-0.45 survival reference per capacity: itasorl.folds, keyed by fold scheme
 BAR = 0.65
 MARGIN = 0.05
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
@@ -115,11 +116,13 @@ def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_ep
                                  "n_ge_065": int(sum(v >= BAR for v in vals))}
     surv = agg.get("d=0.45 survival", {})
     untr = agg.get("d=0.45 untrained", {})
-    if "target" in surv and not quick and hidden in PUBLISHED:
+    ref = folds.reference_survival_target(hidden, strict=False)
+    if "target" in surv and not quick:
         agg["integrity"]["survival_target_mean"] = round(surv["target"]["mean"], 3)
-        agg["integrity"]["published_target"] = PUBLISHED[hidden]
-        agg["integrity"]["target_reproduced"] = bool(
-            abs(surv["target"]["mean"] - PUBLISHED[hidden]) < 5e-4)
+        agg["integrity"]["fold_scheme"] = folds.current_scheme()
+        agg["integrity"]["published_target"] = ref
+        agg["integrity"]["target_reproduced"] = (None if ref is None else bool(
+            abs(surv["target"]["mean"] - ref) < 5e-4))
     if "resid_obs" in surv and "resid_obs" in untr:
         s, u = surv["resid_obs"]["mean"], untr["resid_obs"]["mean"]
         rule = {"survival_resid_obs": s, "untrained_resid_obs": u,

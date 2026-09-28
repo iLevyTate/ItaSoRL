@@ -54,9 +54,9 @@ def _fold_discipline_dataset(seed: int = 0, scale: float = 1000.0):
     """25 matched pairs, 2 features. Feature 0 is informative everywhere; feature 1
     is informative in four folds but carries huge ANTI-informative values in exactly
     one test fold (labels balanced there). Fold membership is looked up from the
-    deterministic GroupKFold split itself, so the outliers land in one fold by
+    deterministic itasorl.folds split itself, so the outliers land in one fold by
     construction, not by luck."""
-    from sklearn.model_selection import GroupKFold
+    from itasorl import folds
 
     rng = np.random.default_rng(seed)
     n_groups = 25
@@ -65,7 +65,7 @@ def _fold_discipline_dataset(seed: int = 0, scale: float = 1000.0):
     X = np.empty((len(y), 2))
     X[:, 0] = (2 * y - 1) + rng.normal(0.0, 0.3, len(y))
     X[:, 1] = (2 * y - 1) + rng.normal(0.0, 0.3, len(y))
-    te = list(GroupKFold(n_splits=5).split(X, y, g))[0][1]
+    te = list(folds.split(g, 5))[0][1]
     X[te, 1] = -(2 * y[te] - 1) * scale     # huge, anti-informative, one fold only
     return X, y, g
 
@@ -87,13 +87,13 @@ def test_grouped_auroc_scaler_never_sees_test_rows_structural(monkeypatch):
     """Structural pin: every StandardScaler fit inside grouped_auroc must receive
     exactly the corresponding TRAIN fold - never the full dataset - and its fitted
     mean_ must be that train fold's mean, not the full-data mean (grouped_auroc
-    visits folds in gkf.split order and no fold is skipped here, so the recorded
+    visits folds in itasorl.folds order and no fold is skipped here, so the recorded
     fits align 1:1 with the split)."""
-    from sklearn.model_selection import GroupKFold
+    from itasorl import folds
     from sklearn.preprocessing import StandardScaler
 
     X, y, g = _fold_discipline_dataset()
-    expected = [(len(tr), X[tr].mean(0)) for tr, _ in GroupKFold(n_splits=5).split(X, y, g)]
+    expected = [(len(tr), X[tr].mean(0)) for tr, _ in folds.split(g, 5)]
 
     seen = []
     orig_fit = StandardScaler.fit

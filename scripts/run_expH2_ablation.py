@@ -40,14 +40,15 @@ import re
 import numpy as np
 
 import itasorl.experiment_b2 as b2
+from itasorl import folds
 from itasorl.experiment_b2 import default_device, load_agent_bundle, pooled_readout, setup_l3_surrogate
 from itasorl.stats import rope_test, t_ci90
 from itasorl.surrogate_l3 import GradedGMotion
 from itasorl.world import WorldParams
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)   # frozen organism world
-PUBLISHED_TARGET_H8 = 0.752                              # drift-0.45 survival mean at alpha=1, hidden=8
-PUBLISHED_TARGET_H7 = 0.737                              # drift-0.45 survival mean at alpha=1, hidden=7
+# The alpha=1 (= published) drift-0.45 survival reference per capacity lives in
+# itasorl.folds, keyed by fold scheme (published GPU values under ITASORL_FOLDS=legacy).
 DRIFT = 0.45                                             # the headline evaluation cell
 ALPHAS = (0.0, 0.1, 0.25, 0.5, 0.75, 1.0)               # FROZEN grid (spec section 9)
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
@@ -95,7 +96,7 @@ def main():
     a = cfg()
     if a.hidden not in (7, 8):
         raise SystemExit("--hidden must be 7 or 8")
-    published_target = PUBLISHED_TARGET_H7 if a.hidden == 7 else PUBLISHED_TARGET_H8
+    published_target = None if a.quick else folds.reference_survival_target(a.hidden)
     dev = default_device() if a.device == "auto" else a.device
     if a.device == "cuda" and dev != "cuda":
         raise SystemExit("--device cuda requested but CUDA unavailable")

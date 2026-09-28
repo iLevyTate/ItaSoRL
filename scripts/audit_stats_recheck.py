@@ -1014,27 +1014,45 @@ def main() -> int:
                    sec in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
                                encoding="utf-8").read())
 
-    # ---- FINDINGS 10.8 device control + 10.4.2 nonlinear control (2026-09-28) --
-    print("\n== FINDINGS 10.8 device control (decoder-carrying arm on the CPU sandbox) ==")
+    # ---- FINDINGS 10.8 device control (promoted 2026-09-28) --------------------
+    print("\n== FINDINGS 10.8: device control (decoder-carrying arm on the CPU sandbox) ==")
     dc = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")
     for arm, ref in (("survival", 0.730), ("predictor", 0.589), ("untrained", 0.523)):
         blk = dc["arms"][dc["dmax"]][arm]["pool_target"]
-        check(f"device control {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.8 device control {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.8 device control {arm}: stored mean reproduces per-seed mean",
+              float(np.mean(blk["per_seed"])), blk["mean"])
     sv = dc["arms"][dc["dmax"]]["survival"]["pool_target"]
     lo, hi = t_ci(sv["per_seed"])
-    check("device control survival t90 lo (0.668)", lo, 0.668)
-    check("device control survival t90 hi (0.791)", hi, 0.791)
-    check_int("device control survival seeds >= 0.65 (8)", sv["n_ge_065"], 8)
-    check("device control survival resid_trace (0.710)", dc["behavior_audit"]["survival"]["resid_trace"]["mean"], 0.710)
-    check_true("device control all gates pass", dc["gates"]["l0_tost"]["equivalent"] and dc["gates"]["l0_rope"]["accept"]
+    check("10.8 device control survival t90 lo (0.668)", lo, 0.668)
+    check("10.8 device control survival t90 hi (0.791)", hi, 0.791)
+    check_int("10.8 device control survival seeds >= 0.65 (8)", sv["n_ge_065"], 8)
+    rt = dc["behavior_audit"]["survival"]["resid_trace"]
+    check("10.8 device control survival resid_trace (0.710)", rt["mean"], 0.710)
+    lo, hi = t_ci(rt["per_seed"])
+    check("10.8 device control survival resid_trace t90 lo (0.656)", lo, 0.656)
+    check("10.8 device control survival resid_trace t90 hi (0.764)", hi, 0.764)
+    check_true("10.8 device control all gates pass",
+               dc["gates"]["l0_tost"]["equivalent"] and dc["gates"]["l0_rope"]["accept"]
                and dc["gates"]["pool_leak_clean_all"] and dc["gates"]["untrained_floor_ok"]
                and all(v["pass"] == v["n"] for v in dc["gates"]["engagement"].values()))
-    check_true("device control frozen rule: t-CI excludes the bar and leads no-auxiliary 0.601 by > 0.05",
-               dc["decision"]["t90_excludes_bar"] and (sv["mean"] - ab["decision"]["survival"]) > 0.05)
-    check_true("device control predictor reproduces the no-auxiliary run's predictor",
-               abs(dc["arms"][dc["dmax"]]["predictor"]["pool_target"]["mean"]
-                   - ab["arms"][ab["dmax"]]["predictor"]["pool_target"]["mean"]) < 1e-9)
-    print("\n== FINDINGS 10.4.2 addendum: nonlinear joint control ==")
+    # the rule compares against the no-auxiliary run promoted above; recompute from both
+    nowm = ab["arms"][ab["dmax"]]["survival"]["pool_target"]["per_seed"]
+    wm = sv["per_seed"]
+    check("10.8 device control lead over no-auxiliary (+0.128)", float(np.mean(wm) - np.mean(nowm)), 0.128)
+    lo, hi = t_ci([a - b for a, b in zip(wm, nowm)])
+    check("10.8 device control paired lead t90 lo (+0.089)", lo, 0.089)
+    check("10.8 device control paired lead t90 hi (+0.168)", hi, 0.168)
+    check_true("10.8 device control rule: device not the cause",
+               dc["device_control"]["verdict"].startswith("DEVICE NOT THE CAUSE")
+               and dc["device_control"]["t90_excludes_bar"] and dc["device_control"]["pass_lead"])
+    check_true("10.8 device control predictor arm bit-identical to the no-auxiliary run",
+               dc["arms"][dc["dmax"]]["predictor"]["pool_target"]["per_seed"]
+               == ab["arms"][ab["dmax"]]["predictor"]["pool_target"]["per_seed"])
+
+    # ---- FINDINGS 10.4.2 addendum: nonlinear joint control (2026-09-28) ------
+    print("
+== FINDINGS 10.4.2 addendum: nonlinear joint control ==")
     nl = _load_art("expB2", "sensory_echo_l3_h8_mlp.json")
     check_true("nonlinear control integrity: 30/30 bit-match, 0.752 reproduced",
                nl["integrity"]["all_match"] is True and nl["integrity"]["target_reproduced"] is True
@@ -1053,6 +1071,9 @@ def main() -> int:
     check("nonlinear run reproduces the linear joint control (0.670)", sv["resid_obs_beh"]["mean"], 0.670)
     check_true("nonlinear frozen rule passes at the mean",
                bool(nl["decision_nonlinear"]["pass_bar"] and nl["decision_nonlinear"]["pass_margin"]))
+    check_true("FINDINGS carries the nonlinear joint control addendum",
+               "**Nonlinear joint control (2026-09-28" in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
+                                                          encoding="utf-8").read())
 
     # ---- FINDINGS 15: matched-handicap oracle ceilings (promoted 2026-09-27) --
     print("\n== FINDINGS 15: matched-handicap oracle ceilings across rungs ==")
@@ -1117,6 +1138,52 @@ def main() -> int:
                    "not a stored representation"):
         check_true(f"index.html no longer states the reactive-only claim '{phrase}'",
                    len(_find_all(idx, phrase)) == 0)
+
+    # ---- derived-doc guard: the 2026-09 boundary checks (10.8, 10.9, 15) ------
+    # The public pages once said the signal "transfers across fingerprint
+    # instances" and credited survival alone; 10.8 (with its device control) and
+    # 10.9 narrowed both, and section 15 withdrew the L2-versus-L3 ceiling
+    # contrast. Pin the narrowed wording and forbid the old one.
+    print("\n== derived-doc guard (10.8 / 10.9 boundary checks, section 15) ==")
+    for relpath, needle, label in [
+        ("index.html", "0.601", "index.html carries the no-auxiliary result"),
+        ("index.html", "0.730", "index.html carries the device-control result"),
+        ("index.html", "0.639", "index.html carries the second-instance result"),
+        ("README.md", "§10.8", "README points at the 10.8 boundary check"),
+        ("README.md", "§10.9", "README points at the 10.9 boundary check"),
+        ("README.md", "§15", "README points at the section 15 matched ceilings"),
+        ("CITATION.cff", "next-observation auxiliary", "CITATION.cff names the auxiliary"),
+        ("docs/PAPER_OUTLINE.md", "device_control_l3_h8_wm_cpu.json",
+         "PAPER_OUTLINE inventories the device control"),
+    ]:
+        check_true(label, needle in _read(relpath))
+    for relpath, banned in [("index.html", "transfers across fingerprint instances"),
+                            ("index.html", "subtler of the two tested fingerprints"),
+                            ("CITATION.cff", "subtler of two tested fingerprints"),
+                            ("docs/PAPER_OUTLINE.md", "L3 encoded by survival only"),
+                            ("docs/PAPER_OUTLINE.md", "H3 open pending re-run")]:
+        check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
+
+    # ---- FINDINGS methods note 2: engagement margin on committed cells --------
+    print("\n== FINDINGS note 2: engagement-margin sweep on committed cells ==")
+    import glob as _g2
+    engs = list(_load_art("expB2", "bv3_n10_gates.json")["engagement"])
+    for run in ("l3_h8_nowm", "l3_h10_gseed1", "l3_h8_wm_cpu"):
+        for cp in sorted(_g2.glob(os.path.join(ARTROOT, "reviewer_gaps_runs", run, "cells", "cell_*.json"))):
+            with open(cp, encoding="utf-8") as fh:
+                engs.append(json.load(fh)["cell"]["eng"])
+
+    def _engaged(e: dict, margin: float) -> bool:
+        return (e["trained_return"] >= max(e["random_return"], e["scripted_return"]) + margin
+                and e["trained_len"] >= e["random_len"] - 2.0)
+
+    check_int("note 2 committed cells (80)", len(engs), 80)
+    for m in (0.05, 0.10, 0.15):
+        check_int(f"note 2 cells engaged at margin {m:.2f} (80)", sum(_engaged(e, m) for e in engs), 80)
+    for m in (0.20, 0.25, 0.30):
+        check_int(f"note 2 cells engaged at margin {m:.2f} (79)", sum(_engaged(e, m) for e in engs), 79)
+    check("note 2 tightest committed cell clears by 0.182",
+          min(e["trained_return"] - max(e["random_return"], e["scripted_return"]) for e in engs), 0.182)
     # index.html is now GENERATED from index.template.html by scripts/build_index.py,
     # which fills {{...}} placeholders from the artifact-derived site metrics. So instead
     # of pinning bare number strings, regenerate the page and require it to be already up

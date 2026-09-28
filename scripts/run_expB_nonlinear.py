@@ -2,8 +2,8 @@ import _bootstrap  # noqa: F401
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GroupKFold
 from sklearn.metrics import roc_auc_score
+from itasorl import folds
 from itasorl.world import WorldParams
 from itasorl.experiment_b import collect_episodes, train_world_model, states_torch, episode_features
 
@@ -19,7 +19,7 @@ def subsample(pool, k, rng):
 
 def rf_auroc(X, y):
     g = np.arange(len(y)); aucs = []
-    for tr, te in GroupKFold(5).split(X, y, g):
+    for tr, te in folds.split(g, 5):
         if len(np.unique(y[te])) < 2: continue
         clf = RandomForestClassifier(n_estimators=200, random_state=0, n_jobs=-1)
         clf.fit(X[tr], y[tr]); p = clf.predict_proba(X[te])[:, 1]
