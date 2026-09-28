@@ -13,13 +13,15 @@ const OUT = process.env.SHOT_OUT || "shot.png";
     headless: true,
     args: ["--force-color-profile=srgb", "--hide-scrollbars"],
   });
-  const page = await browser.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 1 });
+  const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
   page.on("console", (m) => {
     const t = m.type();
     if (t === "error" || t === "warning") console.log(`[page:${t}]`, m.text());
   });
   await page.goto(URL, { waitUntil: "load" });
   await page.waitForFunction("window.__ready === true", null, { timeout: 30000 });
+  const size = await page.evaluate("window.__size || [1080, 1350]");
+  await page.setViewportSize({ width: size[0], height: size[1] });
   const src = await page.evaluate("window.__sceneSource");
   await page.evaluate((tt) => window.__seek(tt), T);
   await page.screenshot({ path: OUT });
