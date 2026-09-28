@@ -78,6 +78,7 @@ function writeChunk(stream, buf) {
     "ffmpeg",
     [
       "-y",
+      "-hide_banner", "-loglevel", "error",
       "-f", "image2pipe",
       "-framerate", String(FPS),
       "-i", "pipe:0",

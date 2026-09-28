@@ -18,8 +18,8 @@ const URL = process.env.CAP_URL || "http://127.0.0.1:8765/index.html";
 const FPS = parseInt(process.env.CAP_FPS || "30", 10);
 const OUT = process.env.CAP_OUT || "out.mp4";
 const MODE = process.env.CAP_MODE || "full";
-const W = 1080;
-const H = 1350;
+const FALLBACK_W = 1080;
+const FALLBACK_H = 1350;
 
 function writeChunk(stream, buf) {
   return new Promise((resolve) => {
@@ -35,7 +35,7 @@ function writeChunk(stream, buf) {
     args: ["--force-color-profile=srgb", "--hide-scrollbars"],
   });
   const page = await browser.newPage({
-    viewport: { width: W, height: H },
+    viewport: { width: FALLBACK_W, height: FALLBACK_H },
     deviceScaleFactor: 1,
   });
   page.on("console", (m) => {
@@ -47,10 +47,18 @@ function writeChunk(stream, buf) {
   await page.waitForFunction("window.__ready === true", null, { timeout: 30000 });
   await page.evaluate("document.fonts && document.fonts.ready");
 
+  const size = await page.evaluate("window.__size || null");
+  const W = size ? size[0] : FALLBACK_W;
+  const H = size ? size[1] : FALLBACK_H;
+  if (size) {
+    await page.setViewportSize({ width: W, height: H });
+    await page.evaluate("window.__seek(0)");
+  }
+
   const duration = await page.evaluate("window.__duration");
   const src = await page.evaluate("window.__sceneSource");
   const frameCount = Math.round((duration / 1000) * FPS);
-  console.log(`duration_ms=${duration} fps=${FPS} frames=${frameCount} scene=${src}`);
+  console.log(`duration_ms=${duration} fps=${FPS} frames=${frameCount} scene=${src} viewport=${W}x${H}`);
 
   // Number honesty: the published film must come from the real recorded world,
   // never the deterministic placeholder fallback. Proof mode may run on either.

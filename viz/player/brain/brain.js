@@ -15,9 +15,12 @@
  * n = 10 seeds, read out never rewarded):
  *   untrained mind        0.488  (chance floor)
  *   pre-registered bar    0.65   ("past this line = it can tell")
- *   survival-trained mind 0.752  (90% CI [0.698, 0.807])
- *   outside watcher gate  0.928
- *   vision masked         0.686 / all senses masked 0.500 (FINDINGS 14.6, A2)
+ *   survival-trained mind 0.726  (behaviour-independent component, section
+ *                                 10.4; 90% CI [0.685, 0.765], 9/10 seeds)
+ *   outside watcher gate  0.928  (oracle, a different quantity from the probe)
+ * The raw pooled target is 0.752, and so are the masked-sense figures
+ * (0.686 / 0.500). Neither appears as a number on screen: they belong to the
+ * uncontrolled family and would mix with the 0.726 the write-up quotes.
  * The layout/motion remain stylized; the numbers are not. Since the labeled
  * pass, the dots are grounded too: sense/action/readout names mirror the real
  * obs and head spec (viz_mind_learning.py SENSOR_GROUPS / MOTOR_HEADS), the
@@ -40,6 +43,8 @@ const SEC = Q.get("sec") || "memory";
 const LAYOUT = Q.get("layout") || "wide"; // wide 1920x1080 | vertical 1080x1920
 const W = LAYOUT === "vertical" ? 1080 : 1920;
 const H = LAYOUT === "vertical" ? 1920 : 1080;
+const SHOW_LABELS = Q.get("text") !== "0"; // text=0: wordless cut for VO
+const SHOW_CAPTION = Q.get("caption") === "1"; // scrolling line + headline off unless asked
 const T = 12000; // ms per loop
 
 // ---------------------------------------------------------------- palette
@@ -52,21 +57,48 @@ const AMBER = [232, 184, 75];
 const REAL_C = [124, 156, 232]; // blue-lavender
 const FAKE_C = [169, 139, 224]; // violet
 const CORAL = [235, 108, 92];   // the flaw: sloppy physics in the fake world
+const HOT_C = [198, 255, 240];  // a memory cell running hot in this world
+const DIM_C = [92, 90, 108];    // its twin powering down in the other world
 
-// Per-section presentation: caption headline, narration script, and which
-// node groups stay at full brightness (null = no dimming). The ring/verdict
-// timeline is shared across sections; each section retells it from its own
+// Per-section presentation: headline, narration script, which node groups stay
+// at full brightness (null = no dimming), and how this chapter treats the
+// readout.
+//
+//   meter: "live"    the probe readout climbs here. ONE chapter only: memory,
+//                    the layer the probe actually reads. Every other chapter
+//                    showing the same climb read as "each layer carries the
+//                    signal equally", which is not the claim.
+//          "pointer" a muted line naming where the readout lives.
+//          "none"    title / end cards.
+//
+// The ring + verdict timeline is shared; each section retells it from its own
 // vantage point.
 const SECTIONS = {
+  title: {
+    // Cold-open card for the tour: says what the viewer is looking at before
+    // any evidence plays. Sweep, rings, miss beat and the learning envelope are
+    // all suppressed here, so nothing on screen implies a result yet.
+    headline: "Can a brain tell a real world from a fake one?",
+    focus: null,
+    titleCard: true,
+    meter: "none",
+    narration: [],
+  },
   overview: {
     headline: "Same brain, two worlds, one flaw.",
     focus: null,
+    meter: "pointer",
+    // Line 3 sits ON the miss, not after it; line 4 rides the pulse and the
+    // ring bloom rather than describing them once they are over.
+    // Copy is cut to the DWELL, not the other way round. At roughly 16
+    // characters a second a 90-character line needs 5.5s, and a chapter has
+    // 12s; the long version put five of those on screen and none of them could
+    // be read before it moved on. Short lines, on the beat they describe.
     narration: [
-      { u0: 0.00, u1: 0.10, text: "the same brain lives in both worlds" },
-      { u0: 0.10, u1: 0.26, text: "the fake's physics are subtly wrong: an outside watcher spots it 93% of the time" },
-      { u0: 0.26, u1: 0.42, text: "survival training teaches memory to catch the mismatch" },
-      { u0: 0.42, u1: 0.86, text: "same brain, two verdicts: 75%, past the 0.65 bar, where 50% is a coin flip" },
-      { u0: 0.86, u1: 1.00, text: "read out, never rewarded: without pressure, the clue fades" },
+      { u0: 0.00, u1: 0.25, text: "One brain, copied into two worlds." },
+      { u0: 0.25, u1: 0.52, text: "Same move. In the fake world the reach falls short." },
+      { u0: 0.52, u1: 0.76, text: "The miss leaves a mark in memory." },
+      { u0: 0.76, u1: 1.00, text: "Nobody trained it to spot fakes." },
     ],
   },
   senses: {
@@ -75,63 +107,108 @@ const SECTIONS = {
     // 10 labeled sensor groups make a taller arc than the old anonymous 8;
     // a gentler zoom keeps "see front" and "ground + light" inside the panel.
     zoom: 1.25,
+    meter: "pointer",
     narration: [
-      { u0: 0.00, u1: 0.10, text: "every world reaches the brain only through its senses" },
-      { u0: 0.10, u1: 0.26, text: "the fake's physics are subtly wrong: an outside watcher spots it 93% of the time" },
-      { u0: 0.26, u1: 0.42, text: "cover its eyes and detection drops to 69%; cover every sense and it falls to 50%" },
-      { u0: 0.42, u1: 0.86, text: "downstream, memory turns the mismatch into a verdict: 75%" },
-      { u0: 0.86, u1: 1.00, text: "read out, never rewarded: without pressure, the clue fades" },
+      { u0: 0.00, u1: 0.25, text: "Ten senses. Every world arrives through them." },
+      { u0: 0.25, u1: 0.50, text: "The flaw enters at speed: how things move." },
+      { u0: 0.50, u1: 1.00, text: "Cover the eyes and the trace fades." },
     ],
   },
   process: {
     headline: "Signals mix until patterns form.",
     focus: ["process"],
     zoom: 1.45,
+    meter: "pointer",
     narration: [
-      { u0: 0.00, u1: 0.10, text: "process cells mix every sense into patterns" },
-      { u0: 0.10, u1: 0.26, text: "the fake's flaw is faint: one wrong channel among many" },
-      { u0: 0.26, u1: 0.42, text: "survival training routes the mismatch toward memory" },
-      { u0: 0.42, u1: 0.86, text: "same brain, two verdicts: 75%, past the 0.65 bar" },
-      { u0: 0.86, u1: 1.00, text: "read out, never rewarded: without pressure, the clue fades" },
+      { u0: 0.00, u1: 0.25, text: "Encoder cells blend all ten senses." },
+      { u0: 0.25, u1: 0.50, text: "One wrong channel in sixty-four." },
+      { u0: 0.50, u1: 1.00, text: "No history here. It passes straight through." },
     ],
   },
   memory: {
-    // The approved hero: no dimming - the rings already carry the emphasis.
+    // The payoff chapter, and the only one with a number. Zoomed onto the
+    // spine so it cannot be mistaken for a second pass of the overview.
     headline: "Teal rings = the cells that hold the clue.",
-    focus: null,
+    focus: ["memory"],
+    // 1.15 rather than more: the spine is 80% of the panel tall before any
+    // magnification, and past this the bottom unit starts sitting on the
+    // MEMORY group label.
+    zoom: 1.15,
+    meter: "live",
+    // Cut to the meter: the coin-flip line has to be up WHILE the meter still
+    // reads 49%, and the 73% line has to land as it settles. The old windows
+    // said "before the miss" at u 0.40, after the miss, over a climbing meter.
     narration: [
-      { u0: 0.00, u1: 0.10, text: "the same brain lives in both worlds" },
-      { u0: 0.10, u1: 0.26, text: "the fake's physics are subtly wrong: an outside watcher spots it 93% of the time" },
-      { u0: 0.26, u1: 0.42, text: "survival training teaches memory to catch the mismatch" },
-      { u0: 0.42, u1: 0.86, text: "same brain, two verdicts: 75%, past the 0.65 bar, where 50% is a coin flip" },
-      { u0: 0.86, u1: 1.00, text: "read out, never rewarded: without pressure, the clue fades" },
+      { u0: 0.00, u1: 0.22, text: "Twelve real memory cells, by unit number." },
+      { u0: 0.22, u1: 0.44, text: "Until the miss lands: a coin flip. 49%." },
+      { u0: 0.44, u1: 0.72, text: "After: 73%. Our bar, set in advance, was 65%." },
+      { u0: 0.72, u1: 1.00, text: "Teal rings hold the trace. Twins fade." },
     ],
   },
   actions: {
     headline: "Actions and guesses: the brain's bets.",
     focus: ["action", "guess"],
     zoom: 1.45,
+    meter: "pointer",
+    // The close-up of the event gets the grab THREE times, not once. The 73%
+    // is a rate over many held-out snapshots, so a single grab undersells it:
+    // one grab reads as an anecdote, three read as "this keeps happening",
+    // which is the actual claim. It also fills a chapter that was otherwise
+    // 3.5s of static diagram, 3s of event, then 5.5s of static diagram.
+    grabs: 3,
+    // And it does NOT mirror. Mirroring earns its keep in the wide cut only
+    // where the two memory spines face each other across the gap for the
+    // divergence threads, and this chapter draws none (the thread code
+    // returns early under a focus camera). Mirrored, the two reaches are
+    // mirror images and the eye cannot overlay them, which is the one thing
+    // this shot exists to allow.
+    noMirror: true,
+    // This chapter is the close-up of the event, so three lines rather than
+    // four and the middle one straddles the miss. It used to arrive two
+    // seconds after the grab had already finished and faded.
     narration: [
-      { u0: 0.00, u1: 0.10, text: "actions and guesses are the brain's bets about its world" },
-      { u0: 0.10, u1: 0.26, text: "sloppy physics makes the fake world's bets subtly miss" },
-      { u0: 0.26, u1: 0.42, text: "each miss is a lesson: memory catches the mismatch" },
-      { u0: 0.42, u1: 0.86, text: "same brain, two verdicts: 75%, where 50% is a coin flip" },
-      { u0: 0.86, u1: 1.00, text: "read out, never rewarded: without pressure, the clue fades" },
+      { u0: 0.00, u1: 0.26, text: "Five actions. Three predictions." },
+      { u0: 0.26, u1: 0.58, text: "Same move, two outcomes. The food is missed." },
+      { u0: 0.58, u1: 0.80, text: "Not once. Over and over." },
+      { u0: 0.80, u1: 1.00, text: "That is what memory picks up." },
     ],
+  },
+  end: {
+    // Closing hold: restates the one number, its guard rails, and where the
+    // code lives. The tour trims this chapter to a few seconds.
+    headline: "",
+    focus: null,
+    endCard: true,
+    meter: "none",
+    narration: [],
   },
 };
 const SECTION = SECTIONS[SEC] || SECTIONS.memory;
+// Title and end chapters are cards: no sweep, no miss, no rings, no climb.
+const CARD = Boolean(SECTION.titleCard || SECTION.endCard);
+// Whether the fake panel is flipped to face the real one. Only worth it where
+// the cross-panel divergence threads need the two spines facing each other.
+const MIRROR_FAKE = !SECTION.noMirror;
 
 // Focus dimming: non-focus groups drop to a clearly supporting role.
+// Non-focus groups drop to a clearly supporting role. 0.16 rather than 0.25:
+// memory dots are the largest in the constellation and carry a 3.4x glow
+// radius, so at a quarter brightness the dimmed spine still out-shone the
+// enc dots that the process chapter is actually about.
 function kindEmphasis(kind) {
   if (!SECTION.focus) return 1;
-  return SECTION.focus.includes(kind) ? 1 : 0.25;
+  return SECTION.focus.includes(kind) ? 1 : 0.16;
 }
 
 // Per-section camera: magnification applied to node geometry (not the canvas
 // transform), so UI chrome stays crisp while the focused group is centered
 // and enlarged in its panel.
 const FOCUS_Z = SECTION.focus && SECTION.zoom ? SECTION.zoom : 1;
+
+// Wordless cut: panels grow into the freed caption space and node geometry
+// scales up with them. Labels-only (default) keeps SIZE_Z at 1 so names fit.
+const TEXTLESS_Z = SHOW_LABELS ? 1 : (FOCUS_Z > 1 ? 1.15 : (LAYOUT === "vertical" ? 1.28 : 1.34));
+const SIZE_Z = FOCUS_Z * TEXTLESS_Z;
 
 // Text shadow helpers: dark halo lifts type off the glow field.
 function textShadowOn() {
@@ -146,6 +223,11 @@ function textShadowOff() {
 }
 
 const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const mixc = (a, b, p) => [
+  Math.round(a[0] + (b[0] - a[0]) * p),
+  Math.round(a[1] + (b[1] - a[1]) * p),
+  Math.round(a[2] + (b[2] - a[2]) * p),
+];
 const lerp = (a, b, p) => a + (b - a) * p;
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 const smooth = (p) => { p = clamp01(p); return p * p * (3 - 2 * p); };
@@ -177,8 +259,13 @@ const SENSE_LABELS = [
 ];
 const GLITCH_SENSE = 5; // "speed": the seam is the velocity law
 const ENC_LABELS = ["enc-0", "enc-12", "enc-25", "enc-37", "enc-50", "enc-63"]; // 6 of 64
-const ACTION_LABELS = ["move", "turn", "eat", "drink", "scent"];
-const GUESS_LABELS = ["outlook", "expects to see", "expects to feel"];
+// "scent" is the emit-scent actor head (world.py: thrust+turn, eat, drink,
+// emit-scent), not a sense. Spelled out so it can't be read as sniffing, which
+// would belong in the senses arc with "smell".
+const ACTION_LABELS = ["move", "turn", "eat", "drink", "emit scent"];
+// "outlook" is the critic head, i.e. the value estimate. Named for what it
+// predicts so it sits in the same grammar as the two decoder heads.
+const GUESS_LABELS = ["expects reward", "expects to see", "expects to feel"];
 
 // ---------------------------------------------------------------- layout
 // One "mind" = a constellation: senses arc -> process cloud -> MEMORY spine
@@ -198,30 +285,40 @@ function buildMind(seed) {
     return nodes.length - 1;
   };
 
-  // Senses: the 10 real sensor groups, gentle arc on the far side.
+  // Senses: the 10 real sensor groups, gentle arc on the far side. The
+  // wordless cut spreads groups a little wider into its taller panels.
   const senses = [];
   for (let i = 0; i < SENSE_LABELS.length; i++) {
     const p = i / (SENSE_LABELS.length - 1);
-    const y = lerp(0.14, 0.86, p);
+    const y = SHOW_LABELS ? lerp(0.14, 0.86, p) : lerp(0.12, 0.88, p);
     const x = 0.055 + 0.05 * Math.sin(p * Math.PI) + (R() - 0.5) * 0.02;
     senses.push(add(x, y, 6.5, "sense", SENSE_LABELS[i]));
   }
-  // Process: sampled encoder rows (embed = 64), loose two-column cloud.
+  // Process: sampled encoder rows (embed = 64). Labeled: loose two-column
+  // cloud (RNG draws must match the original film exactly). Wordless: one
+  // column reads cleaner at the larger scale.
   const process = [];
   for (let i = 0; i < ENC_LABELS.length; i++) {
-    const col = i % 2;
-    const p = Math.floor(i / 2) / 2;
-    const x = 0.27 + col * 0.09 + (R() - 0.5) * 0.04;
-    const y = lerp(0.22, 0.78, p) + (R() - 0.5) * 0.05;
-    process.push(add(x, y, 5.5, "process", ENC_LABELS[i]));
+    if (SHOW_LABELS) {
+      const col = i % 2;
+      const p = Math.floor(i / 2) / 2;
+      const x = 0.27 + col * 0.09 + (R() - 0.5) * 0.04;
+      const y = lerp(0.22, 0.78, p) + (R() - 0.5) * 0.05;
+      process.push(add(x, y, 5.5, "process", ENC_LABELS[i]));
+    } else {
+      const p = i / (ENC_LABELS.length - 1);
+      const x = 0.275 + (R() - 0.5) * 0.012;
+      const y = lerp(0.16, 0.84, p);
+      process.push(add(x, y, 5.5, "process", ENC_LABELS[i]));
+    }
   }
   // MEMORY spine: 12 real GRU units of the representative brain (of
   // DATA.hidden total), true indices as labels, sized by measured activity.
   const memory = [];
   for (let i = 0; i < DATA.display_units.length; i++) {
     const p = i / (DATA.display_units.length - 1);
-    const y = lerp(0.10, 0.90, p);
-    const x = 0.565 + 0.028 * Math.sin(p * Math.PI * 1.35 + 0.4);
+    const y = SHOW_LABELS ? lerp(0.10, 0.90, p) : lerp(0.08, 0.92, p);
+    const x = 0.565 + (SHOW_LABELS ? 0.028 : 0.034) * Math.sin(p * Math.PI * 1.35 + 0.4);
     const r = 8.5 + 4 * DATA.unit_activity[i];
     memory.push(add(x, y, r, "memory", "unit " + DATA.display_units[i]));
     nodes[nodes.length - 1].unit = DATA.display_units[i];
@@ -274,27 +371,110 @@ function buildMind(seed) {
 // Same seed on both sides: it is the SAME brain in two worlds.
 const MIND = buildMind(20260811);
 
+// Which way each shown memory unit reads between the worlds. Orientation is
+// fixed by dump_brain_film_data.py: unit_auroc = P(surrogate > authentic)
+// per unit (a = Ha authentic pool, s = Hs surrogate pool), so above 0.5 means
+// the unit runs hotter in the FAKE world and below 0.5 hotter in the REAL
+// one. unit_signal is |auroc - 0.5| normalized to the strongest ring unit,
+// so on screen the DIRECTION and RANKING are measured while the magnitude is
+// scaled up for visibility (raw per-unit effects are small; the 73% verdict
+// comes from the pooled probe, not any single cell).
+const UNIT_DIV = {};
+DATA.display_units.forEach((unit, i) => {
+  UNIT_DIV[unit] = {
+    dir: DATA.unit_auroc[i] >= 0.5 ? 1 : -1,
+    mag: DATA.unit_signal[i],
+  };
+});
+
 // ---------------------------------------------------------------- panels
 // Wide: two panels side by side, mirrored. Vertical: stacked.
 function panelRects() {
   if (LAYOUT === "vertical") {
+    if (!SHOW_CAPTION && SHOW_LABELS) {
+      // Labelled 9:16. Two changes from the old stack, both about reading it
+      // on a phone. (1) The panels are no longer mirrored. Mirroring earns its
+      // keep in the wide cut, where it faces the two memory spines at each
+      // other across the gap; stacked, all it did was run the bottom world
+      // right to left, so the same layer sat at opposite ends of the two
+      // frames and the group label row read backwards. Both now flow senses to
+      // actions, left to right, and a given x is the same layer in both.
+      // (2) The per-panel header is gone. There is one probe, so there is one
+      // readout, shared at the top, and the band it used to cost per panel
+      // goes back into the picture.
+      const ph = 580, pw = W * 0.94;
+      return [
+        { x: (W - pw) / 2, y: 300, w: pw, h: ph, mirror: false, fake: false, label: "REAL WORLD" },
+        { x: (W - pw) / 2, y: 1034, w: pw, h: ph, mirror: false, fake: true, label: "FAKE WORLD" },
+      ];
+    }
+    if (!SHOW_CAPTION) {
+      const ph = H * 0.40, pw = W * 0.90;
+      return [
+        { x: (W - pw) / 2, y: H * 0.075, w: pw, h: ph, mirror: false, fake: false, label: "REAL WORLD" },
+        { x: (W - pw) / 2, y: H * 0.545, w: pw, h: ph, mirror: true, fake: true, label: "FAKE WORLD" },
+      ];
+    }
     // Stacked panels with room below each for group labels, then narration
     // and caption at the bottom (no overlap: labels sit at y + h + 40).
     const ph = H * 0.33, pw = W * 0.86;
     return [
-      { x: (W - pw) / 2, y: H * 0.10, w: pw, h: ph, mirror: false, label: "REAL WORLD" },
-      { x: (W - pw) / 2, y: H * 0.50, w: pw, h: ph, mirror: true, label: "FAKE WORLD" },
+      { x: (W - pw) / 2, y: H * 0.10, w: pw, h: ph, mirror: false, fake: false, label: "REAL WORLD" },
+      { x: (W - pw) / 2, y: H * 0.50, w: pw, h: ph, mirror: true, fake: true, label: "FAKE WORLD" },
+    ];
+  }
+  if (!SHOW_CAPTION && SHOW_LABELS) {
+    // Labelled: a tall header band above y carries the panel title, the big
+    // readout, the meter and its scale caption; group labels sit at y + h + 36;
+    // the narration band owns everything below ~900. Panels lost height versus
+    // the old cut, and that is the trade: two captions in a whole minute left
+    // a muted autoplay viewer with no idea what they were looking at.
+    const pw = W * 0.40, ph = 624;
+    const y = 238;
+    return [
+      { x: 72, y, w: pw, h: ph, mirror: false, fake: false, label: "REAL WORLD" },
+      { x: W - 72 - pw, y, w: pw, h: ph, mirror: MIRROR_FAKE, fake: true, label: "FAKE WORLD" },
+    ];
+  }
+  if (!SHOW_CAPTION) {
+    // Wordless cut: panels run wide, only a compact meter above them.
+    const pw = W * 0.43, ph = H * 0.80;
+    const y = H * 0.10;
+    return [
+      { x: W * 0.05, y, w: pw, h: ph, mirror: false, fake: false, label: "REAL WORLD" },
+      { x: W * 0.95 - pw, y, w: pw, h: ph, mirror: true, fake: true, label: "FAKE WORLD" },
     ];
   }
   const pw = W * 0.415, ph = H * 0.60;
   const gap = W * 0.055;
   const y = H * 0.115;
   return [
-    { x: W / 2 - gap / 2 - pw, y, w: pw, h: ph, mirror: false, label: "REAL WORLD" },
-    { x: W / 2 + gap / 2, y, w: pw, h: ph, mirror: true, label: "FAKE WORLD" },
+    { x: W / 2 - gap / 2 - pw, y, w: pw, h: ph, mirror: false, fake: false, label: "REAL WORLD" },
+    { x: W / 2 + gap / 2, y, w: pw, h: ph, mirror: true, fake: true, label: "FAKE WORLD" },
   ];
 }
 const PANELS = panelRects();
+
+// Header band above each panel, as offsets from panel.y: title, meter line,
+// the meter's chance-tick caption, then the verdict readout. Fixed slots with
+// real gaps, so the readout never lands on the first row of dot labels the way
+// it did when it was drawn inside the panel. Caption and wordless cuts keep
+// the original compact stack.
+// Header slots as offsets from panel.y, top to bottom: panel title, the big
+// readout, the meter track, the scale caption. The readout moved ABOVE the
+// meter and grew: on a phone in a feed it is the one line that has to survive,
+// and at the old 24px it did not.
+// Per-panel header, now just the world's name: the readout, meter and scale
+// moved into one shared block at the top of the frame (see READOUT below),
+// because printing the same "probe accuracy" twice said there were two probes.
+const HEAD = SHOW_LABELS && !SHOW_CAPTION
+  ? { title: -44, verdict: -112, meter: -62, chance: -34 }
+  : { title: -42, meter: -8, chance: -20, verdict: 14 };
+
+// The shared readout block, in absolute canvas pixels.
+const READOUT = LAYOUT === "vertical"
+  ? { big: 100, bigSize: 54, meter: 164, track: 460, scale: 204, scaleSize: 28 }
+  : { big: 62, bigSize: 48, meter: 116, track: 380, scale: 150, scaleSize: 26 };
 
 function rawXY(panel, n) {
   const lx = panel.mirror ? 1 - n.x : n.x;
@@ -330,11 +510,22 @@ function nodeXY(panel, n) {
 // spine the clue rings bloom, hold with a glow-pulse, then decay before the
 // next pass. All envelopes are functions of u = (t mod T)/T.
 
-const SWEEP_IN = 0.10, SWEEP_OUT = 0.46;   // sweep front active window (u)
-const BLOOM_AT = 0.30;                      // u when front hits the spine
+// Ordering matters to the story, and the old timing told the wrong one. The
+// luminous band used to be crossing the panel at the exact moment the rings
+// bloomed, and it was labelled "survival training", which read as "training is
+// what moved the number". The finding is the opposite: nothing ever trained
+// this brain to notice fakes. The band now sweeps through and LEAVES before the
+// missed grab, and the rings only bloom after the miss. Cause, then effect,
+// with a gap the eye can see.
+const SWEEP_IN = SHOW_LABELS ? 0.05 : 0.04, SWEEP_OUT = 0.30; // sweep front active window (u)
+const MISS_AT = 0.32;                       // u of the missed grab (the event)
+const MISS_REACH = 0.06;                    // reach winds up over this long
+const MISS_HOLD = 0.18;                     // tag stays up this long after
+const MISS_FADE = 0.06;                     // and then leaves
+const BLOOM_AT = 0.40;                      // u when the mismatch reaches the spine
 const BLOOM_STAGGER = 0.022;                // per-cell delay (u units)
-const RING_HOLD_END = 0.86;                 // u when rings start to release
-const RING_DECAY = 0.10;                    // release length (u units)
+const RING_HOLD_END = 0.88;                 // u when rings start to release
+const RING_DECAY = 0.09;                    // release length (u units)
 
 function sweepX(panel, u) {
   // Front sweeps across the panel from the senses side toward actions.
@@ -348,6 +539,37 @@ function sweepAlpha(u) {
   return 0.85 * a;
 }
 
+// Progressive build (wordless cut only): the wave is the editor. Each group
+// fades in as the front reaches its local x, so the mind assembles senses ->
+// actions instead of hitting the viewer with the whole constellation at once.
+// Late in the loop everything settles back to a faint ghost, which keeps
+// frame(0) equal to frame(T): both are the ghost state. A section's focused
+// group stays up for the whole loop - it is the subject, not part of the
+// build. The labeled film shows the full constellation throughout.
+const REVEAL_LEAD = 0.12;                     // fade starts this far ahead of the front (local x)
+const REVEAL_SOFT = 0.16;                     // fade-in run length (local x)
+const SETTLE_START = 0.92, SETTLE_LEN = 0.06; // u window where the mind dims back to ghost
+const GHOST = 0.10;                           // dormant node visibility pre-wave / post-settle
+
+function frontLocal(u) {
+  const s = smooth((u - SWEEP_IN) / (SWEEP_OUT - SWEEP_IN));
+  return lerp(-0.15, 1.15, s);
+}
+
+function revealNode(n, u) {
+  if (SHOW_LABELS) return 1;
+  if (SECTION.focus && SECTION.focus.includes(n.kind)) return 1;
+  const wave = smooth((frontLocal(u) + REVEAL_LEAD - n.x) / REVEAL_SOFT);
+  const settle = 1 - smooth((u - SETTLE_START) / SETTLE_LEN);
+  return GHOST + (1 - GHOST) * wave * settle;
+}
+
+// Filaments have no ghost state: an edge exists only once the wave has
+// connected both ends.
+function revealEdge(revA, revB) {
+  return Math.max(0, (Math.min(revA, revB) - GHOST) / (1 - GHOST));
+}
+
 function ringEnv(u, order) {
   const start = BLOOM_AT + order * BLOOM_STAGGER;
   const uu = frac(u - start + 1);           // time since this cell's bloom, in u
@@ -355,6 +577,213 @@ function ringEnv(u, order) {
   const releaseAt = frac(RING_HOLD_END - start + 1);
   const rel = 1 - smooth((uu - releaseAt) / RING_DECAY);
   return clamp01(attack * rel);
+}
+
+// Learning envelope: how far training has pulled the verdict, 0..1. The
+// average of the six clue-ring envelopes; the verdict meter, the divergence
+// rendering, and the difference threads all share it so "cells read
+// differently" and "the meter climbs" move together. The title card pins it
+// at 0: nothing has been learned yet while the stage is being set.
+function learnEnv(u) {
+  if (CARD) return 0;
+  let e = 0;
+  for (let k = 0; k < 6; k++) e += ringEnv(u, k);
+  return e / 6;
+}
+
+// --------------------------------------------------------------- the miss
+// The event the whole result hangs on, and the thing no earlier cut ever put
+// on screen. The fake world's dynamics are slightly wrong, so the SAME grab
+// lands short there and the food is missed. Everything downstream (the
+// mismatch pulse, the rings, the climb) is the consequence of this beat, so it
+// has to happen first and it has to be visible.
+//
+// Every envelope rises and falls inside one loop: `off` drags all three back
+// to zero by u = 0.50, which keeps frame(0) identical to frame(T).
+const EAT_IDX = MIND.nodes.findIndex((n) => n.kind === "action" && n.label === "eat");
+// Food position in the mind's local 0..1 box (mirrored with everything else).
+const FOOD_LOCAL = { x: 0.888, y: 0.655 };
+
+// A chapter may repeat the grab. Cycles never overlap, so the envelope is just
+// whichever grab is currently live; between cycles everything is zero and the
+// beat draws nothing. Every cycle ends by u 0.76 at the latest, which is what
+// keeps frame(0) identical to frame(T).
+const GRABS = SECTION.grabs || 1;
+const GRAB_GAP = 0.19;
+const GRAB_FIRST = GRABS > 1 ? 0.26 : MISS_AT;
+const GRAB_HOLD = GRABS > 1 ? 0.07 : MISS_HOLD;
+const GRAB_FADE = GRABS > 1 ? 0.05 : MISS_FADE;
+
+function missEnv(u) {
+  if (CARD) return { reach: 0, flash: 0, tag: 0, hit: 0 };
+  let best = { reach: 0, flash: 0, tag: 0, hit: 0 };
+  for (let k = 0; k < GRABS; k++) {
+    const at = GRAB_FIRST + k * GRAB_GAP;
+    const off = 1 - smooth((u - (at + GRAB_HOLD)) / GRAB_FADE);
+    const reach = smooth((u - (at - MISS_REACH)) / MISS_REACH) * off;
+    const d = u - at;
+    const flash = d >= 0 ? Math.max(0, 1 - smooth(d / 0.07)) * off : 0;
+    const tag = smooth((u - (at - MISS_REACH * 0.6)) / 0.035) * off;
+    // How far past the moment of contact: the real world's pellet is eaten
+    // and gone, so it has to stop being drawn.
+    const hit = d >= 0 ? smooth(d / 0.05) : 0;
+    if (tag + reach > best.tag + best.reach) best = { reach, flash, tag, hit };
+  }
+  return best;
+}
+
+// Where the grab happens, in this panel's screen space. `dir` points outward,
+// away from the memory spine, so the food sits clear of the constellation.
+function missAnchor(panel) {
+  const n = MIND.nodes[EAT_IDX];
+  const [x, y] = nodeXY(panel, n);
+  return { n, x, y, dir: panel.mirror ? -1 : 1 };
+}
+
+function missOnScreen(panel) {
+  const [fx, fy] = nodeXY(panel, { x: FOOD_LOCAL.x, y: FOOD_LOCAL.y });
+  return fx > panel.x + 40 && fx < panel.x + panel.w - 40 &&
+         fy > panel.y - 20 && fy < panel.y + panel.h + 20;
+}
+
+function drawMissBeat(panel, u) {
+  const e = missEnv(u);
+  if (e.tag <= 0.01 && e.reach <= 0.01) return;
+  // The focus camera pushes the whole action group off frame in the senses and
+  // process chapters. The tag is clamped into the panel so it can never run
+  // off canvas, which meant those chapters printed "missed the food" over a
+  // frame containing no food and no reach. If the pellet is not on screen,
+  // there is no beat to tell here.
+  if (!missOnScreen(panel)) return;
+  const { n, x, y, dir } = missAnchor(panel);
+  const z = SIZE_Z;
+  const fake = panel.fake;
+  // The food sits in the empty lane between the action column (local x 0.82)
+  // and the guess column (0.945), below the "eat" row. Positioning it in the
+  // mind's local box rather than in screen pixels means the focus camera
+  // carries it with the group instead of flinging it off frame, and it stays
+  // clear of the guess dots that a straight outward offset landed on top of.
+  const [fx, fy] = nodeXY(panel, { x: FOOD_LOCAL.x, y: FOOD_LOCAL.y });
+  // Where the grab actually ends up: on the food in the real world, past and
+  // below it in the fake one.
+  // A bigger, more legible overshoot: far enough past the pellet to read as a
+  // whiff at a glance, dropping into the empty pocket below the guess column
+  // rather than onto "expects to feel".
+  const tx = fake ? fx + dir * 16 * z : fx;
+  const ty = fake ? fy + 62 * z : fy;
+
+  // The reach: a tapering arc growing out of the "eat" node.
+  const s = e.reach;
+  if (s > 0.01) {
+    const cx = (x + tx) / 2 + dir * 26 * z, cy = (y + ty) / 2 - 30 * z;
+    const ex = (1 - s) * (1 - s) * x + 2 * (1 - s) * s * cx + s * s * tx;
+    const ey = (1 - s) * (1 - s) * y + 2 * (1 - s) * s * cy + s * s * ty;
+    ctx.strokeStyle = rgba(fake ? CORAL : AMBER, 0.55 * e.tag);
+    ctx.lineWidth = 3 * z;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(cx, cy, ex, ey);
+    ctx.stroke();
+    // Grab head.
+    ctx.fillStyle = rgba(fake ? CORAL : AMBER, 0.8 * e.tag);
+    ctx.beginPath(); ctx.arc(ex, ey, 4.5 * z, 0, TAU); ctx.fill();
+  }
+
+  // The food. Real world: it flares and is gone. Fake world: it stays dark,
+  // untouched, while the grab closes on empty ground beside it.
+  // The clearest tell is not a colour difference, it is presence. Both pellets
+  // are the same amber. The real one flares at contact and is GONE; the fake
+  // one is still sitting there after the reach has been and left. Dimming the
+  // fake pellet, as before, read as "nothing was ever here".
+  const lit = fake ? 0 : e.flash;
+  const pipC = mixc(AMBER, [255, 244, 214], lit);
+  const present = fake ? 1 : 1 - e.hit;
+  const pr = (8 + 3 * lit) * z;
+  const a = e.tag * present;
+  const gg = ctx.createRadialGradient(fx, fy, 0, fx, fy, pr * 4);
+  gg.addColorStop(0, rgba(pipC, (0.3 + 0.5 * lit) * a));
+  gg.addColorStop(1, rgba(pipC, 0));
+  ctx.fillStyle = gg;
+  ctx.beginPath(); ctx.arc(fx, fy, pr * 4, 0, TAU); ctx.fill();
+  ctx.fillStyle = rgba(pipC, 0.95 * a);
+  ctx.beginPath(); ctx.arc(fx, fy, pr, 0, TAU); ctx.fill();
+
+  // Impact ripple at the point of contact (real) or of the whiff (fake).
+  if (e.flash > 0.01) {
+    const rp = 1 - e.flash;
+    ctx.strokeStyle = rgba(fake ? CORAL : AMBER, 0.75 * e.flash);
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(tx, ty, (8 + rp * 46) * z, 0, TAU); ctx.stroke();
+  }
+
+  if (!SHOW_LABELS) return;
+  // Name it. This is the one caption the reviewer could not find anywhere in
+  // the old cut, so it gets weight and it gets held.
+  const label = fake ? "missed the food" : "got the food";
+  const col = fake ? CORAL : AMBER;
+  ctx.font = "700 32px 'Segoe UI', sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  textShadowOn();
+  ctx.fillStyle = rgba(col, 0.97 * e.tag);
+  // Centred just above the pellet: the lane there is free of dots and of the
+  // outward-pointing guess labels in every chapter that shows this beat.
+  const half = ctx.measureText(label).width / 2;
+  const lx = Math.max(panel.x + half + 8, Math.min(panel.x + panel.w - half - 8, fx));
+  ctx.fillText(label, lx, fy - 54 * z);
+  textShadowOff();
+  void n;
+}
+
+// The consequence travelling home: a pulse leaving the grab and arriving at
+// the memory spine just as the first ring blooms. This is the link the old cut
+// left to inference, which let a "survival training" band take the credit.
+function drawMismatchPulse(panel, u) {
+  if (CARD) return;
+  const span = BLOOM_AT + 0.02 - MISS_AT;
+  const p = (u - MISS_AT) / span;
+  if (p <= 0 || p >= 1) return;
+  if (!missOnScreen(panel)) return;   // same reason as drawMissBeat
+  const { x, y } = missAnchor(panel);
+  let mx = 0, my = 0, k = 0;
+  for (const nd of MIND.nodes) {
+    if (nd.kind !== "memory") continue;
+    const [a, b] = nodeXY(panel, nd);
+    mx += a; my += b; k++;
+  }
+  mx /= k; my /= k;
+  const col = mixc(panel.fake ? CORAL : REAL_C, TEAL, smooth(p));
+  const a = Math.sin(Math.PI * p);
+  const cx = (x + mx) / 2, cy = (y + my) / 2 - 60 * SIZE_Z;
+  const q = 1 - p;
+  const px = q * q * x + 2 * q * p * cx + p * p * mx;
+  const py = q * q * y + 2 * q * p * cy + p * p * my;
+  for (let i = 4; i >= 0; i--) {
+    const pp = Math.max(0, p - i * 0.045);
+    const qq = 1 - pp;
+    const gx = qq * qq * x + 2 * qq * pp * cx + pp * pp * mx;
+    const gy = qq * qq * y + 2 * qq * pp * cy + pp * pp * my;
+    ctx.fillStyle = rgba(col, 0.10 * (5 - i) * a);
+    ctx.beginPath(); ctx.arc(gx, gy, 3 * SIZE_Z, 0, TAU); ctx.fill();
+  }
+  const r = 13 * SIZE_Z;
+  const g = ctx.createRadialGradient(px, py, 0, px, py, r);
+  g.addColorStop(0, rgba(col, 0.9 * a));
+  g.addColorStop(1, rgba(col, 0));
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(px, py, r, 0, TAU); ctx.fill();
+}
+
+// How strongly this memory cell responds in THIS panel's world once training
+// has taken hold: positive = this world's copy runs hot, negative = it fades.
+// Direction and magnitude come from the measured per-unit data (UNIT_DIV);
+// before learning both sides sit at 0 and render identically.
+function sideResponse(panel, n, u) {
+  const dv = UNIT_DIV[n.unit];
+  if (!dv) return 0;
+  const hot = (panel.fake ? 1 : -1) * dv.dir > 0;
+  return (hot ? 1 : -1) * learnEnv(u) * dv.mag;
 }
 
 // ---------------------------------------------------------------- canvas
@@ -398,10 +827,14 @@ function drawBackground(t) {
   }
 }
 
+// The fake world's guesses are the bets that miss: same amber, pulled toward
+// the flaw's coral so the two sides read true vs slightly wrong at a glance.
+const MISS_C = mixc(AMBER, CORAL, 0.55);
+
 function nodeColor(panel, n) {
-  if (n.kind === "guess") return AMBER;
-  if (n.glitch && panel.mirror) return CORAL;
-  return panel.mirror ? FAKE_C : REAL_C;
+  if (n.kind === "guess") return panel.fake ? MISS_C : AMBER;
+  if (n.glitch && panel.fake) return CORAL;
+  return panel.fake ? FAKE_C : REAL_C;
 }
 
 function drawScanlines(panel, t) {
@@ -425,38 +858,45 @@ function drawScanlines(panel, t) {
 
 function drawMind(panel, t) {
   const u = frac(t / T);
-  const fx = sweepX(panel, u), fa = sweepAlpha(u);
+  // Title card: no training sweep yet (fa = 0 also kills the node boost).
+  const fx = sweepX(panel, u), fa = CARD ? 0 : sweepAlpha(u);
+  const rev = MIND.nodes.map((n) => revealNode(n, u));
 
   // FAKE side: the world itself is rendered - faint scanlines carry the tell.
   // (An earlier panel-wide "digital shudder" was cut: it read as a rendering
   // glitch rather than a story beat.)
   ctx.save();
   // Panel clip: under the focus camera, pushed-out nodes must not spill into
-  // the neighboring panel or the caption band.
+  // the neighboring panel or the caption band. The band has to reach above the
+  // header slot the title sits in, or the title itself gets sliced.
+  const clipTop = panel.y + Math.min(HEAD.title - 34, -110);
+  const clipH = panel.y + panel.h + 60 - clipTop;
   ctx.beginPath();
   if (LAYOUT === "vertical") {
-    ctx.rect(0, panel.y - 110, W, panel.h + 170);
-  } else if (panel.mirror) {
-    ctx.rect(W / 2 + 6, panel.y - 110, panel.x + panel.w + 160 - (W / 2 + 6), panel.h + 170);
+    ctx.rect(0, clipTop, W, clipH);
+  } else if (panel.x > W / 2) {
+    ctx.rect(W / 2 + 6, clipTop, panel.x + panel.w + 160 - (W / 2 + 6), clipH);
   } else {
-    ctx.rect(panel.x - 160, panel.y - 110, W / 2 - 6 - (panel.x - 160), panel.h + 170);
+    ctx.rect(panel.x - 160, clipTop, W / 2 - 6 - (panel.x - 160), clipH);
   }
   ctx.clip();
-  if (panel.mirror) {
+  if (panel.fake) {
     drawScanlines(panel, t);
   }
 
   // --- edges (filaments)
   ctx.lineCap = "round";
   for (const e of MIND.edges) {
+    const er = revealEdge(rev[e.a], rev[e.b]);
+    if (er <= 0.01) continue;
     const A = MIND.nodes[e.a], B = MIND.nodes[e.b];
     const [ax, ay] = nodeXY(panel, A);
     const [bx, by] = nodeXY(panel, B);
     const [, , cx, cy] = bezier(ax, ay, bx, by, 0.5);
-    const base = panel.mirror ? FAKE_C : REAL_C;
-    const em = Math.max(kindEmphasis(A.kind), kindEmphasis(B.kind));
+    const base = panel.fake ? FAKE_C : REAL_C;
+    const em = Math.max(kindEmphasis(A.kind), kindEmphasis(B.kind)) * er;
     ctx.strokeStyle = rgba(base, (0.05 + 0.1 * e.w) * em);
-    ctx.lineWidth = (0.8 + e.w * 1.4) * FOCUS_Z;
+    ctx.lineWidth = (0.8 + e.w * 1.4) * SIZE_Z;
     ctx.beginPath();
     ctx.moveTo(ax, ay);
     ctx.quadraticCurveTo(cx, cy, bx, by);
@@ -466,28 +906,30 @@ function drawMind(panel, t) {
   // --- comets (signal pulses riding filaments)
   for (const e of MIND.edges) {
     if (!e.comet) continue;
+    const er = revealEdge(rev[e.a], rev[e.b]);
+    if (er <= 0.01) continue;
     const A = MIND.nodes[e.a], B = MIND.nodes[e.b];
     const [ax, ay] = nodeXY(panel, A);
     const [bx, by] = nodeXY(panel, B);
-    const s = frac(t / e.comet.P + e.comet.phi + (panel.mirror ? 0.5 : 0));
+    const s = frac(t / e.comet.P + e.comet.phi + (panel.fake ? 0.5 : 0));
     const [px, py] = bezier(ax, ay, bx, by, s);
     // The flaw propagates: signals leaving the glitched sense carry its tint.
-    const base = A.glitch && panel.mirror
+    const base = A.glitch && panel.fake
       ? CORAL
-      : panel.mirror ? FAKE_C : REAL_C;
+      : panel.fake ? FAKE_C : REAL_C;
     const bright = [
       Math.min(255, base[0] + 70),
       Math.min(255, base[1] + 70),
       Math.min(255, base[2] + 60),
     ];
-    const cem = Math.max(kindEmphasis(A.kind), kindEmphasis(B.kind));
+    const cem = Math.max(kindEmphasis(A.kind), kindEmphasis(B.kind)) * er;
     // Tail: a few ghost dots behind the head.
     for (let k = 3; k >= 1; k--) {
       const [tx, ty] = bezier(ax, ay, bx, by, Math.max(0, s - k * 0.03));
       ctx.fillStyle = rgba(base, 0.10 * (4 - k) * e.w * cem);
-      ctx.beginPath(); ctx.arc(tx, ty, 2.2 * FOCUS_Z, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(tx, ty, 2.2 * SIZE_Z, 0, TAU); ctx.fill();
     }
-    const cr = 9 * FOCUS_Z;
+    const cr = 9 * SIZE_Z;
     const g = ctx.createRadialGradient(px, py, 0, px, py, cr);
     g.addColorStop(0, rgba(bright, 0.9 * e.w * cem));
     g.addColorStop(1, rgba(bright, 0));
@@ -510,25 +952,55 @@ function drawMind(panel, t) {
     crest.addColorStop(1, rgba(TEAL, 0));
     ctx.fillStyle = crest;
     ctx.fillRect(fx - 3, panel.y - 30, 6, panel.h + 60);
+    // The band used to be captioned "survival training", which put the credit
+    // for the climb on training. Nothing trained this brain to notice fakes.
+    // The band is now just a pass of live signal, unnamed, and it has left the
+    // frame before the grab that actually starts the story.
   }
 
   // --- nodes
-  for (const n of MIND.nodes) {
+  for (let ni = 0; ni < MIND.nodes.length; ni++) {
+    const n = MIND.nodes[ni];
     const [x, y] = nodeXY(panel, n);
     const breathe = 1 + 0.09 * Math.sin(TAU * n.freqK * (t / T) + n.phase);
     // Sweep boost: nodes glow as the front passes them.
     const boost = fa * Math.exp(-Math.pow((x - fx) / (panel.w * 0.07), 2));
     const base = nodeColor(panel, n);
     // The flaw node stays vivid in every section; other nodes follow focus.
-    const em = n.glitch && panel.mirror ? 1 : kindEmphasis(n.kind);
-    const r = n.r * FOCUS_Z * breathe * (1 + 0.35 * boost);
+    // The wave reveal scales whatever remains.
+    let em = (n.glitch && panel.fake ? 1 : kindEmphasis(n.kind)) * rev[ni];
+    // Side contrast: once training takes hold, each memory cell runs hot in
+    // the world it reads high in and visibly powers down in the other. The
+    // fill alpha is already near 1, so the hot side brightens through COLOR
+    // (toward teal-white) and size, while the fading twin dims, grays out,
+    // and shrinks. Before learning (response 0) the sides are identical.
+    let flare = 1, col = base;
+    // Fake-side guesses stutter: a gentle periodic dip (integer cycles per
+    // loop, so still seamless) that makes the missing bets feel unsteady
+    // next to the real world's even amber.
+    if (n.kind === "guess" && panel.fake) {
+      em *= 1 - 0.22 * (0.5 + 0.5 * Math.sin(TAU * 6 * u + n.phase));
+    }
+    if (n.kind === "memory" && n.unit !== undefined) {
+      const s = sideResponse(panel, n, u);
+      if (s > 0) {
+        flare = 1 + 0.30 * s;
+        col = mixc(base, HOT_C, 0.60 * s);
+      } else if (s < 0) {
+        const f = -s;
+        em *= 1 - 0.62 * f;
+        flare = 1 - 0.18 * f;
+        col = mixc(base, DIM_C, 0.70 * f);
+      }
+    }
+    const r = n.r * SIZE_Z * breathe * (1 + 0.35 * boost) * flare;
     const glowR = r * (n.kind === "memory" ? 3.4 : 2.6);
     const g = ctx.createRadialGradient(x, y, 0, x, y, glowR);
-    g.addColorStop(0, rgba(base, (0.30 + 0.35 * boost) * em));
-    g.addColorStop(1, rgba(base, 0));
+    g.addColorStop(0, rgba(col, (0.30 + 0.35 * boost) * em));
+    g.addColorStop(1, rgba(col, 0));
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(x, y, glowR, 0, TAU); ctx.fill();
-    ctx.fillStyle = rgba(base, 0.95 * em);
+    ctx.fillStyle = rgba(col, 0.95 * em);
     ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
     ctx.fillStyle = `rgba(255,255,255,${0.55 * em})`;
     ctx.beginPath(); ctx.arc(x - r * 0.25, y - r * 0.28, r * 0.32, 0, TAU); ctx.fill();
@@ -537,21 +1009,29 @@ function drawMind(panel, t) {
   // --- teal clue rings on memory cells (the story). When another group is
   // the camera subject, the rings dim with the rest of memory so they read
   // as background context, not competition.
-  const memEm = kindEmphasis("memory");
+  // Title card: rings stay down while the stage is set (memEm 0 kills them).
+  const memEm = CARD ? 0 : kindEmphasis("memory");
   for (const idx of MIND.clue) {
     const n = MIND.nodes[idx];
     const [x, y] = nodeXY(panel, n);
-    const env = ringEnv(u, n.clueOrder) * memEm;
+    const env = ringEnv(u, n.clueOrder) * memEm * rev[idx];
     if (env <= 0.01) continue;
     const pulse = 1 + 0.06 * Math.sin(TAU * 3 * (t / T) + n.clueOrder * 1.1);
-    const rr = (n.r + 7.5) * FOCUS_Z * pulse;
+    const rr = (n.r + 7.5) * SIZE_Z * pulse;
+
+    // The ring follows its cell's side response: full and bright where the
+    // cell runs hot, a thin dashed ghost where its twin fades. THIS is the
+    // left-vs-right difference the film is about, so it must be unmissable.
+    const s = sideResponse(panel, n, u);
+    const fade = s < 0 ? -s : 0;              // 0 = hot/neutral, 1 = fully faded
+    const ghost = 1 - 0.78 * fade;            // alpha floor ~0.22 at full fade
 
     // Bloom ripple right after this cell's ring is born.
     const start = BLOOM_AT + n.clueOrder * BLOOM_STAGGER;
     const since = frac(u - start + 1);
     if (since < 0.05) {
       const rp = since / 0.05;
-      ctx.strokeStyle = rgba(TEAL, 0.5 * (1 - rp) * memEm);
+      ctx.strokeStyle = rgba(TEAL, 0.5 * (1 - rp) * memEm * rev[idx] * ghost);
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(x, y, rr + rp * 34, 0, TAU); ctx.stroke();
     }
@@ -560,17 +1040,19 @@ function drawMind(panel, t) {
     const st = n.signal || 1;
     const g = ctx.createRadialGradient(x, y, rr * 0.4, x, y, rr * 2.6);
     g.addColorStop(0, rgba(TEAL, 0));
-    g.addColorStop(0.45, rgba(TEAL, 0.22 * env * st));
+    g.addColorStop(0.45, rgba(TEAL, 0.22 * env * st * ghost));
     g.addColorStop(1, rgba(TEAL, 0));
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(x, y, rr * 2.6, 0, TAU); ctx.fill();
 
-    ctx.strokeStyle = rgba(TEAL, 0.95 * env * st);
-    ctx.lineWidth = 3;
+    if (fade > 0.4) ctx.setLineDash([4, 5]);
+    ctx.strokeStyle = rgba(TEAL, 0.95 * env * st * ghost);
+    ctx.lineWidth = lerp(3, 1.3, fade);
     ctx.beginPath(); ctx.arc(x, y, rr, 0, TAU); ctx.stroke();
-    ctx.strokeStyle = rgba(TEAL, 0.35 * env * st);
+    ctx.strokeStyle = rgba(TEAL, 0.35 * env * st * ghost);
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(x, y, rr + 5, 0, TAU); ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   // --- the flaw: flicker + warning ripple on the glitched sense, both panels
@@ -578,211 +1060,281 @@ function drawMind(panel, t) {
   //     Under the focus camera this only appears when senses are the subject
   //     (otherwise the flaw node is out of frame and the label would dangle).
   if (FOCUS_Z === 1 || SECTION.focus.includes("sense")) {
-    const gn = MIND.nodes.find((n) => n.glitch);
+    const gi = MIND.nodes.findIndex((n) => n.glitch);
+    const gn = MIND.nodes[gi];
+    const grev = rev[gi];
     const [gx, gy] = nodeXY(panel, gn);
     const dir = panel.mirror ? 1 : -1;
-    if (panel.mirror) {
+    if (panel.fake && grev > 0.15) {
       // Fast periodic flicker (integer cycles => seamless) + dashed alarm ring.
       const fl = 0.5 + 0.5 * Math.abs(Math.sin(TAU * 9 * u + 1.7) * Math.sin(TAU * 4 * u));
       ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = rgba(CORAL, 0.35 + 0.5 * fl);
+      ctx.strokeStyle = rgba(CORAL, (0.35 + 0.5 * fl) * grev);
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(gx, gy, (gn.r + 8) * FOCUS_Z, 0, TAU); ctx.stroke();
+      ctx.beginPath(); ctx.arc(gx, gy, (gn.r + 8) * SIZE_Z, 0, TAU); ctx.stroke();
       ctx.setLineDash([]);
       // Quarter-loop warning ripples.
       const q = frac(u * 4);
       if (q < 0.35) {
         const p = q / 0.35;
-        ctx.strokeStyle = rgba(CORAL, 0.4 * (1 - p));
+        ctx.strokeStyle = rgba(CORAL, 0.4 * (1 - p) * grev);
         ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(gx, gy, (gn.r + 6) * FOCUS_Z + p * 30, 0, TAU); ctx.stroke();
+        ctx.beginPath(); ctx.arc(gx, gy, (gn.r + 6) * SIZE_Z + p * 30, 0, TAU); ctx.stroke();
       }
     }
+    if (SHOW_LABELS) {
     // Physics label with underline leader, pointing toward the outer edge but
     // clamped inside a canvas-safe margin.
-    const label = panel.mirror ? "sloppy physics" : "true physics";
-    const col = panel.mirror ? CORAL : REAL_C;
-    const ly = gy - 46;
+    const label = panel.fake ? "sloppy physics" : "true physics";
+    const col = panel.fake ? CORAL : REAL_C;
+    // On the node's own row, with a straight leader. Two earlier bugs here:
+    // the callout used to sit 46px up, which in the zoomed senses chapter is
+    // exactly one sensor row, so it read as labelling "smell" instead of
+    // "speed"; and the far end was clamped to a fixed offset that ignored how
+    // wide the text actually is, so on the mirrored panel the clamp dragged
+    // the label back across the dot it was pointing at. Measure first, then
+    // place the far end so the NEAR edge clears the node either way.
+    ctx.font = "700 32px 'Segoe UI', sans-serif";
+    const lw = ctx.measureText(label).width;
+    const clear = gx + dir * (gn.r * SIZE_Z + 18);   // nearest the text may come
     const endX = panel.mirror
-      ? Math.min(gx + 182, W - 22)
-      : Math.max(gx - 182, 22);
-    ctx.strokeStyle = rgba(col, 0.45);
+      ? Math.min(Math.max(clear + lw, gx + 196), W - 20)
+      : Math.max(Math.min(clear - lw, gx - 196), 20);
+    // If the canvas edge still forces an overlap there is no room on this row,
+    // so lift the callout clear of it instead of printing over the dot.
+    const overlaps = panel.mirror ? endX - lw < clear : endX + lw > clear;
+    const ly = overlaps ? gy - 34 : gy;
+    ctx.strokeStyle = rgba(col, 0.5);
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(gx + dir * 16, gy - 12);
-    ctx.lineTo(gx + dir * 44, ly);
+    ctx.moveTo(gx + dir * (gn.r * SIZE_Z + 12), gy);
+    if (overlaps) ctx.lineTo(gx + dir * (gn.r * SIZE_Z + 40), ly);
     ctx.lineTo(endX, ly);
     ctx.stroke();
-    ctx.font = "600 25px 'Segoe UI', sans-serif";
     ctx.textAlign = panel.mirror ? "right" : "left";
     ctx.textBaseline = "alphabetic";
     textShadowOn();
     ctx.fillStyle = rgba(col, 0.95);
     ctx.fillText(label, endX, ly - 8);
     textShadowOff();
+    }
   }
 
-  // --- per-dot labels (real channel / unit / head names)
-  drawNodeLabels(panel, u);
+  // --- the grab, and the consequence travelling back to the spine
+  drawMissBeat(panel, u);
+  drawMismatchPulse(panel, u);
 
-  // --- stage labels under each functional group, with flow chevrons
-  drawGroupLabels(panel, u);
+  if (SHOW_LABELS) {
+    // --- per-dot labels (real channel / unit / head names)
+    drawNodeLabels(panel, u);
+    // --- stage labels under each functional group, with flow chevrons
+    drawGroupLabels(panel, u);
+  }
 
-  // --- verdict meter: same brain, different answer
-  drawVerdict(panel, u);
+  // --- wordless cut keeps a bar per panel; the labeled cut shares one readout
+  if (!SHOW_LABELS) drawVerdict(panel, u);
 
   // (The old "clue cell" callout is gone: the ringed cells now carry their
   // real unit labels, and the caption already translates what a ring means.)
 
   // --- panel label
-  ctx.font = "600 34px 'Segoe UI', sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillStyle = rgba(TEAL, 0.95);
-  const lw = ctx.measureText(panel.label).width;
-  ctx.save();
-  ctx.letterSpacing = "6px";
-  textShadowOn();
-  ctx.fillText(panel.label, panel.x + panel.w / 2, panel.y - 42);
-  textShadowOff();
-  ctx.restore();
-  ctx.strokeStyle = rgba(TEAL, 0.35);
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(panel.x + panel.w / 2 - lw / 2 - 26, panel.y - 42);
-  ctx.lineTo(panel.x + panel.w / 2 - lw / 2 - 56, panel.y - 42);
-  ctx.moveTo(panel.x + panel.w / 2 + lw / 2 + 26, panel.y - 42);
-  ctx.lineTo(panel.x + panel.w / 2 + lw / 2 + 56, panel.y - 42);
-  ctx.stroke();
+  if (SHOW_LABELS) {
+    ctx.font = `700 ${LAYOUT === "vertical" ? 42 : 40}px 'Segoe UI', sans-serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillStyle = rgba(TEAL, 0.95);
+    const lw = ctx.measureText(panel.label).width;
+    ctx.save();
+    ctx.letterSpacing = "6px";
+    textShadowOn();
+    const ty = panel.y + HEAD.title;
+    ctx.fillText(panel.label, panel.x + panel.w / 2, ty);
+    textShadowOff();
+    ctx.restore();
+    ctx.strokeStyle = rgba(TEAL, 0.35);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(panel.x + panel.w / 2 - lw / 2 - 26, ty);
+    ctx.lineTo(panel.x + panel.w / 2 - lw / 2 - 56, ty);
+    ctx.moveTo(panel.x + panel.w / 2 + lw / 2 + 26, ty);
+    ctx.lineTo(panel.x + panel.w / 2 + lw / 2 + 56, ty);
+    ctx.stroke();
+  }
 
   ctx.restore(); // close jitter/scanline wrapper
 }
 
-// REAL canonical numbers (docs/FINDINGS.md TL;DR, L3, n = 10 seeds):
-// untrained floor, pre-registered "can tell" bar, survival-trained result.
+// REAL canonical numbers (docs/FINDINGS.md, L3, n = 10 seeds).
+//
+// The peak is 0.726, NOT the 0.752 headline: 0.726 is the behaviour-independent
+// component from section 10.4 (90% CI [0.685, 0.765], 9/10 seeds over the bar),
+// which is the number the write-up and the post both quote. 0.752 is the raw
+// pooled target before behaviour is residualised out. Mixing the two is what
+// put "75%" on screen under a post that said 73%.
+//
+// Because the peak now comes from the controlled family, the masked-sense
+// figures (0.686 / 0.500, FINDINGS 14.6 A2) are NOT shown as numbers anywhere:
+// they belong to the uncontrolled 0.752 family and reading them next to 73%
+// would silently mix the two. The senses chapter makes that point in words.
 const AUROC_UNTRAINED = 0.488;
-const AUROC_TRAINED = 0.752;
+const AUROC_TRAINED = 0.726;
 const AUROC_BAR = 0.65;
 
-// Verdict meter under each panel title: both minds start at the measured
-// untrained floor (~chance), then resolve to DIFFERENT answers as the rings
-// bloom - same brain, two conclusions - rising past the pre-registered 0.65
-// bar to the measured 0.752, and falling back when the clue fades
-// (loop-periodic). Track spans 50% (chance) to 100%.
+// The readout used to say "reads REAL - 75%", which claims the probe is 75%
+// sure about the frame you are looking at. It is not. It is a rate over many
+// held-out snapshots, so it is labelled as one.
+function readoutText(pct) {
+  return `probe accuracy · ${pct}%`;
+}
+
+// One readout for the whole frame, drawn once. Which chapter it is decides
+// what it is allowed to say:
+//
+//   "live"    the memory chapter, the only layer the probe actually reads:
+//             the meter climbs from the measured untrained floor past the
+//             pre-registered bar to 0.726.
+//   "pointer" every other chapter: names where the readout lives and shows no
+//             number at all. Every layer climbing to the same figure on the
+//             same curve read as a claim that every layer carries the signal
+//             equally, which is not what was measured.
+function drawReadout(u) {
+  const mode = SECTION.meter || "live";
+  if (mode === "none") return;
+  const cx = W / 2;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  textShadowOn();
+
+  if (mode === "pointer") {
+    ctx.font = `600 ${Math.round(READOUT.bigSize * 0.72)}px 'Segoe UI', sans-serif`;
+    ctx.fillStyle = rgba(TEAL, 0.85);
+    ctx.fillText("the probe reads MEMORY", cx, READOUT.big);
+    ctx.font = `500 ${READOUT.scaleSize}px 'Segoe UI', sans-serif`;
+    ctx.fillStyle = "rgba(152,146,178,0.9)";
+    ctx.fillText("no number at this layer, and none claimed", cx, READOUT.big + 46);
+    textShadowOff();
+    return;
+  }
+
+  const env = learnEnv(u);
+  const v = lerp(AUROC_UNTRAINED, AUROC_TRAINED, env);
+  const fill = clamp01((v - 0.5) / 0.5);
+  const tw = READOUT.track;
+  const ty = READOUT.meter;
+  const x0 = cx - tw / 2;
+
+  ctx.strokeStyle = "rgba(96,86,150,0.45)";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "butt";
+  ctx.beginPath(); ctx.moveTo(x0, ty); ctx.lineTo(x0 + tw, ty); ctx.stroke();
+  ctx.strokeStyle = "rgba(140,134,165,0.75)";
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(x0, ty - 10); ctx.lineTo(x0, ty + 10); ctx.stroke();
+  const bx = x0 + tw * clamp01((AUROC_BAR - 0.5) / 0.5);
+  ctx.strokeStyle = rgba(TEAL, 0.7);
+  ctx.beginPath(); ctx.moveTo(bx, ty - 12); ctx.lineTo(bx, ty + 12); ctx.stroke();
+  ctx.strokeStyle = rgba(TEAL, 0.4 + 0.55 * env);
+  ctx.lineWidth = 7;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(x0, ty);
+  ctx.lineTo(x0 + tw * fill, ty);
+  ctx.stroke();
+  ctx.lineCap = "butt";
+
+  ctx.font = `500 ${READOUT.scaleSize}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = "rgba(162,156,188,0.92)";
+  ctx.fillText("50% = coin flip   ·   65% = the bar, set in advance", cx, READOUT.scale);
+
+  // The two states used to crossfade in the same spot and overlap as
+  // unreadable ghosted type for about half a second. They now hand over
+  // through zero: the first is fully gone before the second starts.
+  const know = smooth((env - 0.10) / 0.22);
+  const pct = Math.round(v * 100);
+  ctx.font = `700 ${READOUT.bigSize}px 'Segoe UI', sans-serif`;
+  if (know < 0.5) {
+    ctx.fillStyle = `rgba(158,152,182,${0.95 * (1 - smooth(know / 0.5))})`;
+  } else {
+    ctx.fillStyle = rgba(TEAL, 0.97 * smooth((know - 0.5) / 0.5));
+  }
+  ctx.fillText(readoutText(pct), cx, READOUT.big);
+  textShadowOff();
+}
+
+// Wordless cut only: a compact per-panel tick-and-fill bar, no text.
 function drawVerdict(panel, u) {
-  let env = 0;
-  for (let k = 0; k < 6; k++) env += ringEnv(u, k);
-  env /= 6;
+  if ((SECTION.meter || "live") !== "live") return;
+  const env = learnEnv(u);
   const v = lerp(AUROC_UNTRAINED, AUROC_TRAINED, env);
   const fill = clamp01((v - 0.5) / 0.5);
   const cx = panel.x + panel.w / 2;
-  const tw = 250, ty = panel.y - 8;
+  const tw = 168, ty = panel.y - 22;
   const x0 = cx - tw / 2;
-
   ctx.strokeStyle = "rgba(96,86,150,0.4)";
   ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(x0, ty); ctx.lineTo(x0 + tw, ty); ctx.stroke();
-  // Chance tick at the left end of the scale.
   ctx.strokeStyle = "rgba(120,114,143,0.6)";
   ctx.beginPath(); ctx.moveTo(x0, ty - 5); ctx.lineTo(x0, ty + 5); ctx.stroke();
-  ctx.font = "400 17px 'Segoe UI', sans-serif";
-  ctx.textAlign = "left"; ctx.textBaseline = "middle";
-  textShadowOn();
-  ctx.fillStyle = "rgba(150,145,175,0.85)";
-  ctx.fillText("50% = chance", x0 + 6, ty - 12);
-  textShadowOff();
-  // Pre-registered pass bar at 0.65: "past this line = it can tell".
   const bx = x0 + tw * clamp01((AUROC_BAR - 0.5) / 0.5);
   ctx.strokeStyle = rgba(TEAL, 0.55);
   ctx.beginPath(); ctx.moveTo(bx, ty - 6); ctx.lineTo(bx, ty + 6); ctx.stroke();
-
   ctx.strokeStyle = rgba(TEAL, 0.35 + 0.55 * env);
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(x0, ty);
   ctx.lineTo(x0 + tw * fill, ty);
   ctx.stroke();
-
-  ctx.font = "600 24px 'Segoe UI', sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  textShadowOn();
-  const know = smooth((env - 0.12) / 0.18);
-  const pct = Math.round(v * 100);
-  if (know < 1) {
-    ctx.fillStyle = `rgba(150,145,175,${0.9 * (1 - know)})`;
-    ctx.fillText(`can't tell yet · ${pct}%`, cx, ty + 22);
-  }
-  if (know > 0) {
-    ctx.fillStyle = rgba(TEAL, 0.95 * know);
-    ctx.fillText(
-      `reads ${panel.mirror ? "FAKE" : "REAL"} · ${pct}%`,
-      cx, ty + 22,
-    );
-  }
-  textShadowOff();
 }
 
-// Per-dot labels with the real names. Shown where there is room to read them:
-// each zoomed section labels its subject dots; the memory section labels the
-// ringed clue cells, fading in with their rings. Overview stays clean.
+// Per-dot labels with the real names, shown in the zoomed chapters where
+// there is room to read them. The memory chapter names all twelve units and
+// tints the six ringed ones teal as their rings come up, so "which cells" is
+// answered by the picture rather than by a caption.
 function drawNodeLabels(panel, u) {
-  const zoomed = FOCUS_Z > 1;
-  const memorySec = !zoomed && SEC === "memory";
-  if (!zoomed && !memorySec) return;
+  if (FOCUS_Z <= 1) return;
+  const memSec = SEC === "memory";
   ctx.textBaseline = "middle";
   textShadowOn();
   for (const n of MIND.nodes) {
     if (!n.label) continue;
-    let alpha;
-    if (zoomed) {
-      if (!SECTION.focus.includes(n.kind)) continue;
-      alpha = 0.9;
-      ctx.font = "600 21px 'Segoe UI', sans-serif";
-    } else {
-      if (!n.clue) continue;
+    if (!SECTION.focus.includes(n.kind)) continue;
+    let col;
+    if (memSec && n.clue) {
       const env = ringEnv(u, n.clueOrder);
-      if (env < 0.15) continue;
-      alpha = 0.85 * smooth((env - 0.15) / 0.3);
-      ctx.font = "600 19px 'Segoe UI', sans-serif";
+      col = rgba(TEAL, 0.55 + 0.42 * env);
+      ctx.font = "700 28px 'Segoe UI', sans-serif";
+    } else {
+      col = `rgba(214,209,232,${memSec ? 0.6 : 0.92})`;
+      ctx.font = "600 28px 'Segoe UI', sans-serif";
     }
     // Side: away from crowded neighbors. Actions point into the panel; all
     // other groups label toward the panel's inner space. Mirroring flips.
     let side = n.kind === "action" ? -1 : 1;
     if (panel.mirror) side = -side;
     const [x, y] = nodeXY(panel, n);
-    const off = n.r * FOCUS_Z + 14;
+    const off = n.r * FOCUS_Z + 18;
     ctx.textAlign = side > 0 ? "left" : "right";
-    ctx.fillStyle = memorySec
-      ? rgba(TEAL, alpha)
-      : `rgba(214,209,232,${alpha})`;
+    ctx.fillStyle = col;
     ctx.fillText(n.label, x + side * off, y);
   }
   textShadowOff();
 }
 
-// Group label positions: centroid x of each kind, on a baseline under the panel.
-function groupCentroidX(panel, kind) {
-  let sx = 0, n = 0;
-  for (const nd of MIND.nodes) {
-    if (nd.kind !== kind) continue;
-    sx += nodeXY(panel, nd)[0]; n++;
-  }
-  return sx / Math.max(1, n);
-}
-
 function drawGroupLabels(panel, u) {
-  const y = panel.y + panel.h + 40;
+  const y = panel.y + panel.h + 36;
   if (FOCUS_Z > 1) {
     // Under the focus camera the other groups are out of frame; a single
     // centered label names the subject and nothing else.
+    // The mirrored panel flips the dot order, so the pair label flips too.
     const name = SECTION.focus.includes("sense")
       ? "SENSES"
       : SECTION.focus.includes("process")
         ? "PROCESS"
-        : "ACTIONS · GUESSES";
+        : SECTION.focus.includes("memory")
+          ? "MEMORY"
+          : panel.mirror ? "GUESSES · ACTIONS" : "ACTIONS · GUESSES";
     ctx.save();
     ctx.letterSpacing = "3px";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.font = "700 27px 'Segoe UI', sans-serif";
+    ctx.font = "700 34px 'Segoe UI', sans-serif";
     textShadowOn();
     ctx.fillStyle = rgba(TEAL, 0.95);
     ctx.fillText(name, panel.x + panel.w / 2, y);
@@ -790,21 +1342,23 @@ function drawGroupLabels(panel, u) {
     ctx.restore();
     return;
   }
-  // Actions + guesses sit close together; one merged label avoids a collision.
-  const labels = [
-    { x: groupCentroidX(panel, "sense"), text: "SENSES", kinds: ["sense"] },
-    { x: groupCentroidX(panel, "process"), text: "PROCESS", kinds: ["process"] },
-    { x: groupCentroidX(panel, "memory"), text: "MEMORY", kinds: ["memory"] },
-    {
-      x: (groupCentroidX(panel, "action") + groupCentroidX(panel, "guess")) / 2,
-      text: "ACTIONS · GUESSES",
-      kinds: ["action", "guess"],
-    },
-  ];
+  // Four fixed slots rather than four centroids. At the old 23px the centroids
+  // were just far enough apart; at the size a phone needs, MEMORY and the
+  // merged action label ran into each other. Evenly spread slots in flow order
+  // can't collide, whatever the type size. The guess heads keep their own
+  // names in the actions chapter, where there is room to read them.
+  const slots = [0.10, 0.33, 0.57, 0.83];
+  const names = ["SENSES", "PROCESS", "MEMORY", "ACTIONS"];
+  const kinds = [["sense"], ["process"], ["memory"], ["action", "guess"]];
+  const labels = names.map((text, i) => ({
+    x: panel.x + panel.w * (panel.mirror ? 1 - slots[i] : slots[i]),
+    text,
+    kinds: kinds[i],
+  }));
   const xs = labels.map((l) => l.x);
   // MEMORY label glows teal while any ring is up; the section's focused
   // group also reads brighter than the supporting cast.
-  const memGlow = ringEnv(u, 0);
+  const memGlow = CARD ? 0 : ringEnv(u, 0);
 
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.save();
@@ -812,12 +1366,12 @@ function drawGroupLabels(panel, u) {
   textShadowOn();
   labels.forEach((l) => {
     // Clamp under the focus camera so labels stay within their panel.
-    const lx = Math.max(panel.x + 70, Math.min(panel.x + panel.w - 70, l.x));
+    const lx = Math.max(panel.x + 92, Math.min(panel.x + panel.w - 92, l.x));
     const focused = SECTION.focus && l.kinds.some((k) => SECTION.focus.includes(k));
     const hot = l.kinds[0] === "memory" && memGlow > 0.1;
     ctx.font = focused
-      ? "700 26px 'Segoe UI', sans-serif"
-      : "600 23px 'Segoe UI', sans-serif";
+      ? "700 34px 'Segoe UI', sans-serif"
+      : "600 30px 'Segoe UI', sans-serif";
     ctx.fillStyle = hot
       ? rgba(TEAL, 0.65 + 0.35 * memGlow)
       : focused
@@ -829,12 +1383,187 @@ function drawGroupLabels(panel, u) {
   ctx.restore();
 
   // Flow chevrons between adjacent labels, pointing senses -> guesses.
-  ctx.font = "600 20px 'Segoe UI', sans-serif";
+  ctx.font = "600 28px 'Segoe UI', sans-serif";
   ctx.fillStyle = "rgba(150,145,175,0.6)";
   for (let i = 0; i < xs.length - 1; i++) {
     const mx = (xs[i] + xs[i + 1]) / 2;
     ctx.fillText(xs[i + 1] > xs[i] ? "›" : "‹", mx, y - 1);
   }
+}
+
+// ----------------------------------------------------- difference threads
+// At ring time, each clue cell is linked to its twin in the other world by a
+// faint dashed teal arc with a pulsing spark at the crossing. This makes the
+// core claim literal: trace one cell to the other side and see the two copies
+// of the SAME cell disagree. Drawn only when memory carries the scene at full
+// emphasis (overview and memory sections) and never on the title card.
+function drawDivergenceLinks(t) {
+  // Wide only: in the vertical stack the arcs would cross the lower panel's
+  // header band; there the side contrast and rings carry the comparison.
+  if (LAYOUT === "vertical") return;
+  if (CARD || kindEmphasis("memory") < 1) return;
+  // Allowed unzoomed (overview) and in the memory chapter, whose camera keeps
+  // both spines in frame. Any other zoom pushes one end off canvas.
+  if (FOCUS_Z !== 1 && SEC !== "memory") return;
+  const u = frac(t / T);
+  for (const idx of MIND.clue) {
+    const n = MIND.nodes[idx];
+    const env = ringEnv(u, n.clueOrder) * revealNode(n, u);
+    if (env <= 0.02) continue;
+    const st = n.signal || 1;
+    const [ax, ay] = nodeXY(PANELS[0], n);
+    const [bx, by] = nodeXY(PANELS[1], n);
+    const mx = (ax + bx) / 2, my = (ay + by) / 2;
+    // Gentle bow away from the panel middles (wide only; the vertical stack
+    // already crosses the gap diagonally).
+    const bow = (my - H / 2) * 0.12;
+    const cy = my + bow;
+    ctx.strokeStyle = rgba(TEAL, 0.26 * env * st);
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([2, 7]);
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.quadraticCurveTo(mx, cy, bx, by);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Stationary spark at the crossing: "compared here", not "sent there".
+    const sx = 0.25 * ax + 0.5 * mx + 0.25 * bx;
+    const sy = 0.25 * ay + 0.5 * cy + 0.25 * by;
+    const pu = 1 + 0.3 * Math.sin(TAU * 3 * (t / T) + n.clueOrder * 1.3);
+    const sr = 5 * pu;
+    const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr * 3);
+    g.addColorStop(0, rgba(TEAL, 0.55 * env * st));
+    g.addColorStop(1, rgba(TEAL, 0));
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(sx, sy, sr * 3, 0, TAU); ctx.fill();
+    ctx.fillStyle = rgba(TEAL, 0.85 * env * st);
+    ctx.beginPath(); ctx.arc(sx, sy, sr * 0.55, 0, TAU); ctx.fill();
+  }
+  // One caption for the whole bundle (labeled cut only), sitting in the gap
+  // between the panels beside the sparks it describes.
+  if (SHOW_LABELS) {
+    const gl = learnEnv(u);
+    if (gl > 0.25) {
+      // Stacked on two short lines: the gap between the panels is 240px and
+      // the old single line was wider than that, so it ran under both headers.
+      const a = smooth((gl - 0.25) / 0.3);
+      ctx.font = "600 26px 'Segoe UI', sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      textShadowOn();
+      ctx.fillStyle = rgba(TEAL, 0.85 * a);
+      const my = PANELS[0].y + PANELS[0].h / 2;
+      ctx.fillText("same cells", W / 2, my - 18);
+      ctx.fillText("two readings", W / 2, my + 18);
+      textShadowOff();
+    }
+  }
+}
+
+// ------------------------------------------------------------- title card
+// Cold open over the live (pre-learning) brains: name the film, then say in
+// two beats what the viewer is looking at. The tour trims this chapter at
+// ~7.2s so beats one and two land inside it; the third beat only plays when
+// the 12s loop runs standalone. The wordless cut keeps just title + subtitle
+// (the VO speaks the setup).
+function drawTitleCard(t) {
+  const u = frac(t / T);
+  const vert = LAYOUT === "vertical";
+  const bandH = vert ? H * 0.30 : H * 0.46;
+  const y0 = H / 2 - bandH / 2;
+  const g = ctx.createLinearGradient(0, y0, 0, y0 + bandH);
+  g.addColorStop(0, "rgba(10,9,16,0)");
+  g.addColorStop(0.25, "rgba(10,9,16,0.97)");
+  g.addColorStop(0.75, "rgba(10,9,16,0.97)");
+  g.addColorStop(1, "rgba(10,9,16,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, y0, W, bandH);
+
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  textShadowOn();
+  const titleY = vert ? H * 0.452 : H * 0.415;
+  ctx.save();
+  ctx.letterSpacing = "12px";
+  ctx.font = `700 ${vert ? 92 : 104}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = INK;
+  ctx.fillText("TWO MINDS", W / 2, titleY);
+  ctx.restore();
+  ctx.font = `500 ${vert ? 33 : 36}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = rgba(TEAL, 0.95);
+  ctx.fillText("one brain · two worlds · one flaw", W / 2, titleY + (vert ? 74 : 84));
+
+  if (SHOW_LABELS) {
+    const where2 = vert ? "top world" : "left world";
+    // "agent", not "animal": this is a reinforcement-learning agent, and a
+    // research audience will read "animal" as a claim about a real creature.
+    // All three beats now land inside the 7.2s the tour trims this card to;
+    // the third used to start at 7.4s and was never seen in the stitched cut.
+    const BEATS = [
+      { u0: 0.04, u1: 0.40, text: "One agent's brain, copied into two worlds." },
+      { u0: 0.42, u1: 0.78, text: `The ${where2} is real. The other has one rule wrong.` },
+    ];
+    const by = titleY + (vert ? 160 : 180);
+    ctx.font = `500 ${vert ? 40 : 38}px 'Segoe UI', sans-serif`;
+    for (const b of BEATS) {
+      const local = (u - b.u0) / (b.u1 - b.u0);
+      if (local < 0 || local >= 1) continue;
+      const a = smooth(local / 0.15) * (1 - smooth((local - 0.85) / 0.15));
+      ctx.fillStyle = `rgba(230,226,244,${0.95 * a})`;
+      fillBlock(balancedLines(b.text, vert ? 940 : 1420), by, vert ? 52 : 50);
+    }
+  }
+  textShadowOff();
+}
+
+// --------------------------------------------------------------- end card
+// The old cut faded out mid-climb on the actions chapter with no title, no
+// link and no idea where the code was. This holds the result and the repo.
+function drawEndCard() {
+  const vert = LAYOUT === "vertical";
+  ctx.fillStyle = "rgba(10,9,16,0.72)";
+  ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  textShadowOn();
+
+  // Explicit y for every line, so the block sits centred in its own frame
+  // rather than inheriting offsets tuned for the other aspect ratio.
+  const L = vert
+    ? { mark: 620, markSize: 32, head: 740, headSize: 54, headLH: 66, headMax: 960,
+        num: 930, numSize: 72, scale: 1010, seeds: 1054, small: 30,
+        url: 1240, urlSize: 50, colab: 1300, colabSize: 30 }
+    : { mark: 290, markSize: 28, head: 380, headSize: 48, headLH: 58, headMax: 1360,
+        num: 520, numSize: 64, scale: 588, seeds: 628, small: 28,
+        url: 750, urlSize: 46, colab: 800, colabSize: 28 };
+
+  ctx.save();
+  ctx.letterSpacing = "10px";
+  ctx.font = `600 ${L.markSize}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = rgba(TEAL, 0.9);
+  ctx.fillText("ITASORL", W / 2, L.mark);
+  ctx.restore();
+
+  ctx.font = `700 ${L.headSize}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = INK;
+  fillBlock(
+    balancedLines("A brain trained only to survive kept a trace of which world it was in.", L.headMax),
+    L.head, L.headLH,
+  );
+
+  ctx.font = `700 ${L.numSize}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = rgba(TEAL, 0.97);
+  ctx.fillText(readoutText(Math.round(AUROC_TRAINED * 100)), W / 2, L.num);
+
+  ctx.font = `500 ${L.small}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = "rgba(180,174,206,0.94)";
+  ctx.fillText("50% = coin flip   ·   65% = the bar, set in advance", W / 2, L.scale);
+  ctx.fillText("n = 10 seeds   ·   read out, never rewarded", W / 2, L.seeds);
+
+  ctx.font = `700 ${L.urlSize}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = INK;
+  ctx.fillText("github.com/iLevyTate/ItaSoRL", W / 2, L.url);
+  ctx.font = `500 ${L.colabSize}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = rgba(TEAL, 0.85);
+  ctx.fillText("code + Colab notebook", W / 2, L.colab);
+  textShadowOff();
 }
 
 // ------------------------------------------------------------- text layout
@@ -869,16 +1598,23 @@ function fillBlock(lines, yc, lineH) {
   lines.forEach((l, i) => ctx.fillText(l, W / 2, y0 + i * lineH));
 }
 
-// Bottom text band metrics per layout: narration block, headline, sub-line.
-// Absolute pixels (W/H are constants) chosen so nothing collides with the
-// panel group labels above or the canvas edge below, with safe side margins.
-const TXT = LAYOUT === "vertical"
-  ? { narrY: 1706, narrSize: 34, narrLH: 44, narrMax: 940,
-      headY: 1802, headSize: 48,
-      subY: 1858, subSize: 22, subLH: 30, subMax: 940, bandTop: 1590 }
-  : { narrY: 884, narrSize: 32, narrLH: 42, narrMax: 1520,
-      headY: 956, headSize: 50,
-      subY: 1008, subSize: 24, subLH: 30, subMax: 1700, bandTop: 826 };
+// Bottom text band metrics per layout. The labeled default now carries live
+// narration, which it did not before: `caption=1` was the only thing that ever
+// drew SECTION.narration, the build never passed it, and the shipped cut had
+// exactly two captions in 61 seconds. Reddit autoplays muted, so the band is
+// the only thing telling a viewer what the readout, the layers and the rings
+// are.
+const TXT = SHOW_CAPTION
+  ? (LAYOUT === "vertical"
+      ? { narrY: 1706, narrSize: 34, narrLH: 44, narrMax: 940,
+          headY: 1802, headSize: 48,
+          subY: 1858, subSize: 22, subLH: 30, subMax: 940, bandTop: 1590 }
+      : { narrY: 884, narrSize: 32, narrLH: 42, narrMax: 1520,
+          headY: 956, headSize: 50,
+          subY: 1008, subSize: 24, subLH: 30, subMax: 1700, bandTop: 826 })
+  : (LAYOUT === "vertical"
+      ? { narrY: 1790, narrSize: 44, narrLH: 54, narrMax: 980, bandTop: 1700 }
+      : { narrY: 986, narrSize: 38, narrLH: 46, narrMax: 1680, bandTop: 916 });
 
 // Live narration: the story phase-by-phase. Phase windows tile [0,1) in u,
 // so the text cycle is loop-periodic like the motion.
@@ -892,7 +1628,7 @@ function drawNarration(t) {
     const span = ph.u1 - ph.u0;
     const local = (u - ph.u0) / span;
     if (local < 0 || local >= 1) continue;
-    const a = smooth(local / 0.12) * (1 - smooth((local - 0.88) / 0.12));
+    const a = smooth(local / 0.09) * (1 - smooth((local - 0.91) / 0.09));
     ctx.fillStyle = `rgba(230,226,244,${0.97 * a})`;
     fillBlock(balancedLines(ph.text, TXT.narrMax), TXT.narrY, TXT.narrLH);
   }
@@ -904,13 +1640,16 @@ function drawDivider(t) {
   const u = frac(t / T);
   const x = W / 2;
   const shimmer = 0.25 + 0.12 * Math.sin(TAU * 2 * u);
-  const g = ctx.createLinearGradient(0, H * 0.16, 0, H * 0.72);
+  // Wordless panels run nearly edge to edge; the divide follows them.
+  const y0 = SHOW_CAPTION ? H * 0.16 : H * 0.08;
+  const y1 = SHOW_CAPTION ? H * 0.72 : H * 0.92;
+  const g = ctx.createLinearGradient(0, y0, 0, y1);
   g.addColorStop(0, "rgba(66,58,110,0)");
   g.addColorStop(0.5, `rgba(96,86,150,${shimmer})`);
   g.addColorStop(1, "rgba(66,58,110,0)");
   ctx.strokeStyle = g;
   ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x, H * 0.16); ctx.lineTo(x, H * 0.72); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
 }
 
 // Shade band drawn BEFORE the narration so type never gets painted over.
@@ -955,13 +1694,24 @@ function render(t) {
   const s = 1 + 0.012 * Math.sin(TAU * (t / T));
   ctx.translate(W / 2, H / 2); ctx.scale(s, s); ctx.translate(-W / 2, -H / 2);
   drawBackground(t);
-  for (const p of PANELS) drawMind(p, t);
-  drawDivider(t);
+  // The end card is its own stage. Drawing the minds under it left panel
+  // titles, group labels and the physics callouts ghosting through the card.
+  if (!SECTION.endCard) {
+    for (const p of PANELS) drawMind(p, t);
+    drawDivider(t);
+    drawDivergenceLinks(t);
+  }
   ctx.restore();
   drawVignette();
-  drawCaptionBand();
-  drawNarration(t);
-  drawCaption();
+  if (SHOW_LABELS && !CARD) drawReadout(frac(t / T));
+  if (SECTION.titleCard) drawTitleCard(t);
+  if (SECTION.endCard) drawEndCard();
+  // Narration rides every evidence chapter now, caption flag or not.
+  if (SHOW_LABELS && !CARD) {
+    drawCaptionBand();
+    drawNarration(t);
+  }
+  if (SHOW_CAPTION) drawCaption();
 }
 
 // ---------------------------------------------------------------- boot

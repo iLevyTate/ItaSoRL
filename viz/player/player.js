@@ -5,6 +5,28 @@
 
 "use strict";
 
+// Stage size. The published 4:5 master is 1080x1350. `?layout=vertical` is the
+// 9:16 Shorts cut: same beats and numbers, chrome redistributed so the extra
+// height holds type, meter, and the world instead of empty bands.
+const LAYOUT = new URLSearchParams(location.search).get("layout") === "vertical"
+  ? "vertical" : "square";
+const STAGE = { w: 1080, h: LAYOUT === "vertical" ? 1920 : 1350 };
+// World pixel box. Square film keeps the original 960 window. Vertical
+// paints a tall window of the same terrain so the frame is filled with
+// ground, not empty substrate, and CSS does not have to crop a square.
+const VIEW_W = LAYOUT === "vertical" ? 1080 : 960;
+const VIEW_H = LAYOUT === "vertical" ? 1920 : 960;
+// Vertical looks at a taller slice of the same terrain. Without this the
+// 1080x1920 window is the whole baked canvas and the frame is mostly sky.
+const VIEW_ZOOM = LAYOUT === "vertical" ? 2.45 : 1;
+// Vertical chrome sits on the world. The creature must stay in the open
+// band between those plates, not the geometric centre of the 1080x1920 box.
+function actionBand(beat) {
+  if (LAYOUT !== "vertical") return { top: 0, bot: 0 };
+  if (beat && beat.gauge) return { top: 300, bot: 236 };
+  return { top: 200, bot: 160 };
+}
+
 // ---------------------------------------------------------------- utilities
 
 function mulberry32(seed) {
@@ -213,6 +235,8 @@ function placeholderScene() {
 // pad must supply ~445px of ground past any world edge: 445 / TH(5.3) per
 // (i+j) step downward means ~44 tiles.
 const ISO = { N: 72, PAD: 44, LEVELS: 7, TW: 10.6, TH: 5.3, STEP: 13, WATER_LVL: 0.6, OX: 480, OY: 132 };
+// Tall follow needs more edge tiles so a 9:16 window stays on ground.
+const ISO_PAD = LAYOUT === "vertical" ? 64 : ISO.PAD;
 const TOP_LO = [120, 108, 184], TOP_HI = [214, 205, 242];   // low -> high ground
 const GRASS = [150, 205, 176], DIRT = [96, 74, 126];        // mint lip, dirt sides
 const WATER_HI = [120, 176, 232], WATER_LO = [70, 116, 190];
@@ -259,7 +283,7 @@ function makeIsoWorld(scene) {
   // shift the projection so every tile lands in-bounds. The window the player
   // pans is 960 wide, so pad to at least that in each dimension.
   let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
-  for (let j = -ISO.PAD; j <= N + ISO.PAD; j++) for (let i = -ISO.PAD; i <= N + ISO.PAD; i++) {
+  for (let j = -ISO_PAD; j <= N + ISO_PAD; j++) for (let i = -ISO_PAD; i <= N + ISO_PAD; i++) {
     const [x, y] = base(i, j, 0);
     if (x < minX) minX = x; if (x > maxX) maxX = x;
     if (y < minY) minY = y; if (y > maxY) maxY = y;
@@ -323,7 +347,7 @@ function makeIsoWorld(scene) {
       }
     }
   };
-  bakeTiles(c, project, -ISO.PAD, N + ISO.PAD);
+  bakeTiles(c, project, -ISO_PAD, N + ISO_PAD);
 
   // Second bake: just the play-area diamond on a transparent background, for
   // whole-world fits (the scan beat). The padded canvas cannot serve there,
@@ -618,11 +642,11 @@ function drawEnergyPill(ctx, x, y, e, scale, t) {
 // panel settles into a pixel-identical copy.
 function drawMaterialize(ctx, vx, vw, tl) {
   const P = clamp01(tl / 1400);
-  const edge = P * 960;
+  const edge = P * VIEW_H;
   ctx.save();
-  ctx.beginPath(); ctx.rect(vx, 0, vw, 960); ctx.clip();
+  ctx.beginPath(); ctx.rect(vx, 0, vw, VIEW_H); ctx.clip();
   ctx.fillStyle = "rgba(233,228,245,0.92)";
-  ctx.fillRect(vx, edge, vw, 960 - edge);
+  ctx.fillRect(vx, edge, vw, VIEW_H - edge);
   const r = mulberry32(77);
   const n = Math.round(8 * (1 - P));
   for (let k = 0; k < n; k++) {
@@ -699,6 +723,8 @@ class Player {
     this.scene = scene;
     this.creature = creature;
     this.canvas = $("world");
+    this.canvas.width = VIEW_W;
+    this.canvas.height = VIEW_H;
     this.ctx = this.canvas.getContext("2d");
     const iso = makeIsoWorld(scene);
     this.terrain = iso.terrain;
@@ -714,7 +740,8 @@ class Player {
 
   paintWorld(t, beat) {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, 960, 960);
+    this.sprites = [];
+    ctx.clearRect(0, 0, VIEW_W, VIEW_H);
     const mode = beat.world ? beat.world.mode : "none";
     if (mode === "none") return;
 
@@ -749,22 +776,53 @@ class Player {
       // creature from a fixed anchor, so it visibly roams the frame instead of
       // sitting dead-centre while the world scrolls under it. follow=1 is the
       // old tight lock; lower = looser. Pure function of t.
-      if (opts && opts.follow != null && opts.follow < 1 && opts.anchor) {
-        cx = opts.anchor[0] + (cx - opts.anchor[0]) * opts.follow;
-        cy = opts.anchor[1] + (cy - opts.anchor[1]) * opts.follow;
+      // Vertical's window is a tight slice. The same 0.4 follow that reads as
+      // a roam on the square walks the creature off the 9:16 frame.
+      const follow = LAYOUT === "vertical"
+        ? 1
+        : (opts && opts.follow != null ? opts.follow : 1);
+      if (follow < 1 && opts && opts.anchor) {
+        cx = opts.anchor[0] + (cx - opts.anchor[0]) * follow;
+        cy = opts.anchor[1] + (cy - opts.anchor[1]) * follow;
       }
-      let sw = 960 / zoom;
+      let sw = VIEW_W / (zoom * VIEW_ZOOM);
       if (targets.length > 1) {
         const dx = Math.abs(targets[0][0] - targets[1][0]);
         const dy = Math.abs(targets[0][1] - targets[1][1]);
-        sw = Math.max(sw, dx * 2.6, dy * 1.7);
+        const spanX = LAYOUT === "vertical" ? 3.8 : 2.6;
+        const spanY = LAYOUT === "vertical" ? 2.8 : 1.7;
+        sw = Math.max(sw, dx * spanX, dy * spanY);
       }
-      sw = Math.min(sw, this.iso.w, this.iso.h);
-      return {
-        sw,
-        sx: Math.max(0, Math.min(this.iso.w - sw, cx - sw / 2)),
-        sy: Math.max(0, Math.min(this.iso.h - sw, cy - sw / 2)),
-      };
+      let sh = sw * (VIEW_H / VIEW_W);
+      sw = Math.min(sw, this.iso.w);
+      sh = sw * (VIEW_H / VIEW_W);
+      if (sh > this.iso.h) {
+        sh = this.iso.h;
+        sw = sh * (VIEW_W / VIEW_H);
+      }
+      const band = actionBand(beat);
+      const destX = VIEW_W / 2;
+      const destY = LAYOUT === "vertical"
+        ? band.top + (VIEW_H - band.top - band.bot) / 2
+        : VIEW_H / 2;
+      let sx = cx - (destX / VIEW_W) * sw;
+      let sy = cy - (destY / VIEW_H) * sh;
+      sx = Math.max(0, Math.min(this.iso.w - sw, sx));
+      sy = Math.max(0, Math.min(this.iso.h - sh, sy));
+      if (LAYOUT === "vertical" && targets.length === 1) {
+        const [tx, ty] = targets[0];
+        const slackX = VIEW_W * 0.08;
+        const slackY = VIEW_H * 0.06;
+        let x = ((tx - sx) / sw) * VIEW_W;
+        let y = ((ty - sy) / sh) * VIEW_H;
+        if (x < destX - slackX) sx = tx - ((destX - slackX) / VIEW_W) * sw;
+        if (x > destX + slackX) sx = tx - ((destX + slackX) / VIEW_W) * sw;
+        if (y < destY - slackY) sy = ty - ((destY - slackY) / VIEW_H) * sh;
+        if (y > destY + slackY) sy = ty - ((destY + slackY) / VIEW_H) * sh;
+        sx = Math.max(0, Math.min(this.iso.w - sw, sx));
+        sy = Math.max(0, Math.min(this.iso.h - sh, sy));
+      }
+      return { sw, sh, sx, sy };
     };
 
     // Per-frame interpolation between recorded steps (a screen-space lerp of
@@ -803,14 +861,14 @@ class Player {
     const drawPatch = (vx, vw, key, cam, pos, ghost) => {
       const traj = trajFor(key);
       const idx = pos.idx;
-      const { sx, sy, sw } = cam;
-      const dx0 = vx - (960 - vw) / 2;
+      const { sx, sy, sw, sh } = cam;
+      const dx0 = vx - (VIEW_W - vw) / 2;
       ctx.save();
-      ctx.beginPath(); ctx.rect(vx, 0, vw, 960); ctx.clip();
-      ctx.drawImage(this.terrain, sx, sy, sw, sw, dx0, 0, 960, 960);
-      const map = (tx, ty) => [dx0 + ((tx - sx) / sw) * 960, ((ty - sy) / sw) * 960];
+      ctx.beginPath(); ctx.rect(vx, 0, vw, VIEW_H); ctx.clip();
+      ctx.drawImage(this.terrain, sx, sy, sw, sh, dx0, 0, VIEW_W, VIEW_H);
+      const map = (tx, ty) => [dx0 + ((tx - sx) / sw) * VIEW_W, ((ty - sy) / sh) * VIEW_H];
       const view = { pt: (u, v) => map(...this.iso.surfaceAt(u, v)) };
-      const worldScale = 960 / sw;
+      const worldScale = VIEW_W / sw;
       const sc = Math.max(2, Math.round(4 * worldScale));
       // Glitches anchor where the creature WAS when the glitch began, so the
       // flicker and its label stay put instead of trailing the creature.
@@ -842,6 +900,8 @@ class Player {
       drawEats(ctx, pt, idx, view, worldScale, wt, stepMs);
       drawTrail(ctx, traj, idx, view);
       const cp = map(pos.scr[0], pos.scr[1]);
+      this.sprites = this.sprites || [];
+      this.sprites.push({ x: cp[0], y: cp[1], key, vx, vw });
       if (fanMode) drawFan(ctx, view, cp, pos.u, pos.v, pos.heading, t, worldScale, alert);
       drawCreature(ctx, this.creature, beat.world.stage || 0, cp[0], cp[1], t, sc);
       // Mind-probe: show the mind CATCHING the fake's glitches, not an idle halo.
@@ -859,7 +919,7 @@ class Player {
         if (caught) {
           const ca = Math.min(1, glitch.phase / 130) * (1 - clamp01((glitch.phase - 280) / 320));
           drawCallout(ctx, gc[0], gc[1] - 20 * worldScale, "CAUGHT",
-            gc[0] < 480 ? [40, -26] : [-40, -26], ca);
+            gc[0] < VIEW_W / 2 ? [40, -26] : [-40, -26], ca);
         }
       }
       if (beat.world.energy) drawEnergyPill(ctx, cp[0], cp[1], pos.energy, worldScale, t);
@@ -944,7 +1004,7 @@ class Player {
             anchor: posAt(this.scene.trajs.auth,
               beat.world.worldT0 != null ? beat.world.worldT0 : beat.t0).scr }
         : null;
-      drawPatch(0, 960, "auth", camFor([pos.scr], camOpts), pos, null);
+      drawPatch(0, VIEW_W, "auth", camFor([pos.scr], camOpts), pos, null);
       if (beat.world.energy) this.paintEnergy(t, wt, beat);
     } else if (mode === "split") {
       // With world.sim, both panels are driven by the momentum sim: same start,
@@ -954,13 +1014,18 @@ class Player {
       const pa = posOf(trajFor(kL));
       const pr = posOf(trajFor(kR));
       const cam = camFor([pa.scr, pr.scr]);
-      drawPatch(0, 477, kL, cam, pa,
+      const gutter = 6;
+      const half = Math.floor((VIEW_W - gutter) / 2);
+      drawPatch(0, half, kL, cam, pa,
         { scr: pr.scr, color: "rgba(224,82,110,ALPHA)",
           label: beat.id === "reveal" ? "COPY IS HERE" : null });
       ctx.fillStyle = "#E8E5F1";
-      ctx.fillRect(477, 0, 6, 960);
-      drawPatch(483, 477, kR, cam, pr, { scr: pa.scr, color: "rgba(38,166,140,ALPHA)" });
-      if (tl < 1400 && beat.world.wipe !== false) drawMaterialize(ctx, 483, 477, tl);
+      ctx.fillRect(half, 0, gutter, VIEW_H);
+      drawPatch(half + gutter, VIEW_W - half - gutter, kR, cam, pr,
+        { scr: pa.scr, color: "rgba(38,166,140,ALPHA)" });
+      if (tl < 1400 && beat.world.wipe !== false) {
+        drawMaterialize(ctx, half + gutter, VIEW_W - half - gutter, tl);
+      }
     } else if (mode === "diverge") {
       // GREEN = what really happens next (the solid creature). RED = the copy's
       // guess (a ghost ring that starts on top and drifts a hair further off every
@@ -971,12 +1036,12 @@ class Player {
       const real = posOf(trajFor("simReal"));
       const copy = posOf(trajFor("simCopy"));
       const cam = camFor([real.scr]);
-      drawPatch(0, 960, "simReal", cam, real,
+      drawPatch(0, VIEW_W, "simReal", cam, real,
         { scr: copy.scr, color: "rgba(224,82,110,ALPHA)" });
       // Anchor tags to the SMOOTH interpolated screen point (same one the sprite
       // uses), not surfaceAt(u,v) - that snaps to the nearest tile centre, so a
       // tag pinned to it hops one grid cell at a time and reads as a glitch.
-      const m0 = (tx, ty) => [((tx - cam.sx) / cam.sw) * 960, ((ty - cam.sy) / cam.sw) * 960];
+      const m0 = (tx, ty) => [((tx - cam.sx) / cam.sw) * VIEW_W, ((ty - cam.sy) / cam.sh) * VIEW_H];
       const rs = m0(real.scr[0], real.scr[1]);
       const cs = m0(copy.scr[0], copy.scr[1]);
       const gap = Math.hypot(rs[0] - cs[0], rs[1] - cs[1]);
@@ -1002,10 +1067,10 @@ class Player {
       // (energy drains), then it learns to lead and catches (energy recovers).
       const pos = posOf(trajFor("forageTraj"));
       const cam = camFor([pos.scr]);
-      drawPatch(0, 960, "forageTraj", cam, pos, null);
+      drawPatch(0, VIEW_W, "forageTraj", cam, pos, null);
       const sw = beat.gauge ? beat.gauge.sweep : [4000, 14000];
       const Lf = easeInOut(ramp(tl, sw[0], sw[1]));
-      const m0 = (tx, ty) => [((tx - cam.sx) / cam.sw) * 960, ((ty - cam.sy) / cam.sw) * 960];
+      const m0 = (tx, ty) => [((tx - cam.sx) / cam.sw) * VIEW_W, ((ty - cam.sy) / cam.sh) * VIEW_H];
       const cs = m0(pos.scr[0], pos.scr[1]);   // smooth anchor (see diverge note)
       if (Lf < 0.5) {
         drawCallout(ctx, cs[0], cs[1] - 64, "IT OVERSHOOTS", [46, -34],
@@ -1019,22 +1084,55 @@ class Player {
       // where the band has passed. The band uses the same eased ramp that
       // fills the gauge, so 0.99 lands exactly as the sweep completes.
       const core = this.iso.core;
-      const fs = Math.min(900 / core.w, 900 / core.h);
-      const ox = (960 - core.w * fs) / 2;
-      const oy = (960 - core.h * fs) / 2;
-      ctx.save();
-      ctx.globalAlpha = 0.22;
-      ctx.drawImage(this.iso.coreView, ox, oy, core.w * fs, core.h * fs);
-      ctx.restore();
+      const inset = 30;
+      let fs, ox, oy, scanMap;
+      if (LAYOUT === "vertical") {
+        // Tall follow on the replayed path so this beat is ground, not a
+        // letterboxed diamond sitting in empty substrate.
+        const traj = this.scene.trajs.surr;
+        let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+        for (let k = 0; k < traj.length; k += 2) {
+          const s = this.iso.surfaceAt(traj[k][0], traj[k][1]);
+          if (s[0] < minX) minX = s[0]; if (s[0] > maxX) maxX = s[0];
+          if (s[1] < minY) minY = s[1]; if (s[1] > maxY) maxY = s[1];
+        }
+        const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+        const pad = 140;
+        let sw = Math.max(maxX - minX + pad * 2, VIEW_W / VIEW_ZOOM);
+        let sh = sw * (VIEW_H / VIEW_W);
+        if (sh < maxY - minY + pad * 2) {
+          sh = maxY - minY + pad * 2;
+          sw = sh * (VIEW_W / VIEW_H);
+        }
+        sw = Math.min(sw, this.iso.w);
+        sh = sw * (VIEW_H / VIEW_W);
+        if (sh > this.iso.h) {
+          sh = this.iso.h;
+          sw = sh * (VIEW_W / VIEW_H);
+        }
+        const sx = Math.max(0, Math.min(this.iso.w - sw, cx - sw / 2));
+        const sy = Math.max(0, Math.min(this.iso.h - sh, cy - sh / 2));
+        ctx.save();
+        ctx.globalAlpha = 0.88;
+        ctx.drawImage(this.terrain, sx, sy, sw, sh, 0, 0, VIEW_W, VIEW_H);
+        ctx.restore();
+        scanMap = (tx, ty) => [((tx - sx) / sw) * VIEW_W, ((ty - sy) / sh) * VIEW_H];
+      } else {
+        fs = Math.min((VIEW_W - 2 * inset) / core.w, (VIEW_H - 2 * inset) / core.h);
+        ox = (VIEW_W - core.w * fs) / 2;
+        oy = (VIEW_H - core.h * fs) / 2;
+        ctx.save();
+        ctx.globalAlpha = 0.22;
+        ctx.drawImage(this.iso.coreView, ox, oy, core.w * fs, core.h * fs);
+        ctx.restore();
+        scanMap = (tx, ty) => [(tx - core.x) * fs + ox, (ty - core.y) * fs + oy];
+      }
       if (!this.scanFlags) {
         // Flags sit ON the copy creature's recorded path: each marks a moment
         // of motion the observer checked against the true physics. The faint
         // line is that replayed path, so the dots point at movement, not land.
         const traj = this.scene.trajs.surr;
-        const fit = (u, v) => {
-          const s = this.iso.surfaceAt(u, v);
-          return [(s[0] - core.x) * fs + ox, (s[1] - core.y) * fs + oy];
-        };
+        const fit = (u, v) => scanMap(...this.iso.surfaceAt(u, v));
         this.scanPath = [];
         for (let k = 0; k < traj.length; k += 2) this.scanPath.push(fit(traj[k][0], traj[k][1]));
         this.scanFlags = [];
@@ -1053,7 +1151,7 @@ class Player {
       ctx.restore();
       const swp = beat.gauge ? beat.gauge.sweep : [0, 1];
       const p = easeInOut(ramp(tl, swp[0], swp[1]));
-      const xBand = lerp(60, 900, p);
+      const xBand = lerp(VIEW_W * (60 / 960), VIEW_W * (900 / 960), p);
       for (const [fx, fy] of this.scanFlags) {
         if (xBand < fx) continue;
         const pop = Math.min(1, (xBand - fx) / 46);
@@ -1069,19 +1167,19 @@ class Player {
         g.addColorStop(0.85, "rgba(95,130,198,0.20)");
         g.addColorStop(1, "rgba(95,130,198,0.42)");
         ctx.fillStyle = g;
-        ctx.fillRect(xBand - 70, 0, 84, 960);
+        ctx.fillRect(xBand - 70, 0, 84, VIEW_H);
         ctx.fillStyle = "rgba(63,94,178,0.85)";
-        ctx.fillRect(xBand + 12, 0, 2.5, 960);
+        ctx.fillRect(xBand + 12, 0, 2.5, VIEW_H);
       }
       // Name the path first, then the first mismatch the scanner catches.
       const midP = this.scanPath[Math.floor(this.scanPath.length / 2)];
       drawCallout(ctx, midP[0], midP[1], "THE PATH IT WALKED",
-        midP[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 1300, 3200));
+        midP[0] < VIEW_W / 2 ? [46, -36] : [-46, -36], calloutAlpha(tl, 1300, 3200));
       let fmin = null;
       for (const f of this.scanFlags) if (!fmin || f[0] < fmin[0]) fmin = f;
       if (fmin && xBand > fmin[0] + 46) {
         drawCallout(ctx, fmin[0], fmin[1], "A WRONG STEP, CAUGHT",
-          fmin[0] < 480 ? [46, -36] : [-46, -36], calloutAlpha(tl, 3600, 7200));
+          fmin[0] < VIEW_W / 2 ? [46, -36] : [-46, -36], calloutAlpha(tl, 3600, 7200));
       }
     }
   }
@@ -1118,9 +1216,10 @@ class Player {
 
     const cap = beat.caption;
     if (cap) {
-      // With the gauge on screen its label already carries the context; the
-      // kicker would double it up and crowd the lower third.
-      $("kicker").textContent = beat.gauge ? "" : (cap.kicker || "");
+      // Square: the kicker and the gauge label stack in the same lower third,
+      // so the kicker drops while the meter is up. Vertical puts the kicker
+      // in the top band, clear of the meter, so it stays on.
+      $("kicker").textContent = (beat.gauge && LAYOUT !== "vertical") ? "" : (cap.kicker || "");
       setHeadline($("headline"), cap.headline || "");
       $("subline").textContent = cap.subline || "";
       const el = $("caption");
@@ -1131,6 +1230,8 @@ class Player {
     }
 
     const g = beat.gauge;
+    $("stage").classList.toggle("has-gauge", !!g);
+    $("stage").dataset.mode = (beat.world && beat.world.mode) || "none";
     if (g) {
       const el = $("gauge");
       el.style.opacity = vis.toFixed(3);
@@ -1182,12 +1283,12 @@ class Player {
         refEl.style.opacity = "0";
         refLbl.style.opacity = "0";
       }
-      $("caption").style.top = "1214px";
+      if (LAYOUT !== "vertical") $("caption").style.top = "1214px";
     } else {
       $("gauge").style.opacity = "0";
       $("gauge-ref").style.opacity = "0";
       $("gauge-ref-label").style.opacity = "0";
-      $("caption").style.top = "1108px";
+      if (LAYOUT !== "vertical") $("caption").style.top = "1108px";
     }
 
     // Split-panel chips are beat-driven: the question beat shows neutral
@@ -1245,6 +1346,9 @@ class Player {
     const beat = this.beatAt(t);
     this.paintWorld(t, beat);
     this.chrome(t, beat);
+    const band = actionBand(beat);
+    window.__sprites = this.sprites;
+    window.__band = band;
   }
 }
 
@@ -1253,11 +1357,11 @@ class Player {
 function fitStage() {
   // Reserve room for the transport bar while it is visible so the film's
   // lower-third caption never sits underneath it. Capture mode hides the bar
-  // and refits, so encoded frames keep scale = 1 at exactly 1080x1350.
+  // and refits, so encoded frames keep scale = 1 at the layout's pixel box.
   const controls = $("controls");
   const reserve = controls && controls.style.display !== "none" ? 96 : 0;
   const h = window.innerHeight - reserve;
-  const s = Math.min(window.innerWidth / 1080, h / 1350);
+  const s = Math.min(window.innerWidth / STAGE.w, h / STAGE.h);
   const stage = $("stage");
   stage.style.transform = `translate(-50%, -50%) scale(${s})`;
   stage.style.top = `${h / 2}px`;
@@ -1366,6 +1470,7 @@ function wireGallery(pauseFilm) {
 }
 
 async function main() {
+  document.body.dataset.layout = LAYOUT;
   fitStage();
   window.addEventListener("resize", fitStage);
   const params = new URLSearchParams(location.search);
@@ -1388,11 +1493,12 @@ async function main() {
     transport.pause();
     gallery.hide();
     $("controls").style.display = "none";   // capture frames stay chrome-free
-    fitStage();                             // back to scale 1 at 1080x1350
+    fitStage();                             // back to scale 1 at the layout box
     player.render(t);
     return true;
   };
   window.__duration = beats.duration_ms;
+  window.__size = [STAGE.w, STAGE.h];
   window.__sceneSource = scene.meta ? scene.meta.source : "unknown";
 
   transport.draw(parseFloat(params.get("t") || "0"));

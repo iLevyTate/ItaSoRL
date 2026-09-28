@@ -27,8 +27,9 @@ html, body {
   height: 100%;
 }
 
-/* The stage is a fixed 1080x1350 composition, scaled to fit the window for
-   preview; capture runs the window at exactly 1080x1350 so scale = 1. */
+/* The stage is a fixed pixel composition, scaled to fit the window for
+   preview; capture runs the window at the layout box so scale = 1.
+   Default is the 4:5 master (1080x1350). ?layout=vertical is 9:16. */
 #stage {
   position: absolute;
   width: 1080px;
@@ -38,6 +39,9 @@ html, body {
   transform-origin: center center;
   background: var(--substrate);
   font-family: var(--font-body);
+}
+body[data-layout="vertical"] #stage {
+  height: 1920px;
 }
 
 /* World card: raised neumorphic surface holding the canvas. */
@@ -488,3 +492,189 @@ html, body {
   text-decoration: none;
 }
 #gallery-foot a:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------------ */
+/* 9:16 Shorts cut. The world paints the full 1080x1920 frame. Caption */
+/* and meter sit on it as plates. No lavender bands, no CSS crop.      */
+/* ------------------------------------------------------------------ */
+body[data-layout="vertical"] #world-card {
+  left: 0;
+  top: 0;
+  width: 1080px;
+  height: 1920px;
+  border-radius: 0;
+  box-shadow: none;
+}
+body[data-layout="vertical"] #world {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+}
+body[data-layout="vertical"] #caption,
+body[data-layout="vertical"] #gauge {
+  z-index: 2;
+}
+body[data-layout="vertical"] #caption {
+  top: 0;
+  left: 0;
+  width: 1080px;
+  right: auto;
+}
+body[data-layout="vertical"] #caption-lead {
+  padding: 36px 40px 28px;
+  border-radius: 0;
+  background: var(--substrate);
+  box-shadow: 0 10px 24px rgba(42, 37, 71, 0.10);
+}
+body[data-layout="vertical"] #kicker {
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  margin-bottom: 12px;
+}
+body[data-layout="vertical"] #headline {
+  font-size: 42px;
+  line-height: 1.12;
+}
+body[data-layout="vertical"] #subline {
+  margin-top: 14px;
+  font-size: 22px;
+  line-height: 1.4;
+  max-width: none;
+}
+body[data-layout="vertical"] #stage.has-gauge #caption {
+  padding: 32px 40px 28px;
+  border-radius: 0;
+  background: var(--substrate);
+  box-shadow: 0 10px 24px rgba(42, 37, 71, 0.10);
+}
+body[data-layout="vertical"] #stage.has-gauge #caption-lead {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+body[data-layout="vertical"] #stage.has-gauge #subline {
+  margin-top: 12px;
+  padding: 0;
+}
+body[data-layout="vertical"] #stage:not(.has-gauge) #caption {
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+body[data-layout="vertical"] #stage:not(.has-gauge) #subline {
+  margin-top: 0;
+  padding: 28px 40px 36px;
+  border-radius: 0;
+  background: var(--substrate);
+  box-shadow: 0 -10px 24px rgba(42, 37, 71, 0.10);
+  font-size: 24px;
+  line-height: 1.4;
+}
+body[data-layout="vertical"] .pool-chip {
+  top: 196px;
+  padding: 11px 20px;
+  font-size: 16px;
+}
+body[data-layout="vertical"] #chip-a { left: 28px; }
+body[data-layout="vertical"] #chip-b { right: 28px; }
+body[data-layout="vertical"] #gauge {
+  left: 0;
+  top: auto;
+  bottom: 0;
+  width: 1080px;
+  padding: 22px 40px 28px;
+  border-radius: 0;
+  box-shadow: 0 -10px 24px rgba(42, 37, 71, 0.10);
+}
+body[data-layout="vertical"] #gauge-label {
+  font-size: 14px;
+}
+body[data-layout="vertical"] #gauge-source {
+  font-size: 13px;
+}
+body[data-layout="vertical"] #gauge-legend {
+  font-size: 13px;
+  margin-top: 6px;
+}
+body[data-layout="vertical"] #gauge-row {
+  margin-top: 28px;
+}
+body[data-layout="vertical"] #gauge-value {
+  font-size: 34px;
+  min-width: 104px;
+}
+body[data-layout="vertical"] #gauge-scale {
+  margin-top: 10px;
+  font-size: 13px;
+}
+body[data-layout="vertical"] #gauge-ref-label {
+  font-size: 13px;
+  top: -22px;
+}
+body[data-layout="vertical"] #endcard {
+  z-index: 3;
+  justify-content: flex-start;
+  padding: 36px 32px 188px;
+  text-align: center;
+}
+body[data-layout="vertical"] #endcard .glyph {
+  margin-bottom: 16px;
+}
+body[data-layout="vertical"] #endcard .blob-glyph {
+  width: 160px;
+  height: 160px;
+  background-size: 640px 960px;
+  background-position: -480px -800px;
+}
+body[data-layout="vertical"] #end-headline {
+  font-size: 54px;
+  line-height: 1.14;
+  max-width: none;
+  width: 100%;
+  padding: 0;
+  text-align: center;
+}
+body[data-layout="vertical"] #end-recap {
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-evenly;
+  gap: 0;
+  margin-top: 20px;
+  width: 100%;
+}
+body[data-layout="vertical"] .recap-chip {
+  flex: 0 0 auto;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 32px 36px;
+}
+body[data-layout="vertical"] .recap-pct {
+  font-size: 120px;
+  line-height: 0.92;
+}
+body[data-layout="vertical"] .recap-label {
+  font-size: 34px;
+  letter-spacing: 0.04em;
+  color: var(--body);
+}
+body[data-layout="vertical"] #end-url {
+  margin-top: 22px;
+  font-size: 24px;
+}
+body[data-layout="vertical"] #end-foot {
+  position: static;
+  margin-top: 14px;
+  bottom: auto;
+  font-size: 16px;
+  max-width: none;
+  width: 100%;
+  padding: 0 8px;
+  line-height: 1.45;
+  text-align: center;
+}

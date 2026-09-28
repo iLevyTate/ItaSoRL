@@ -38,7 +38,8 @@ STAGE = """
     <div id="gauge-scale"><span>0.50 = coin flip</span><span>1.00 = always right</span></div>
   </div>
   <div id="caption" class="layer">
-    <div id="kicker"></div><div id="headline"></div><div id="subline"></div>
+    <div id="caption-lead"><div id="kicker"></div><div id="headline"></div></div>
+    <div id="subline"></div>
   </div>
   <div id="endcard" class="layer">
     <div class="glyph blob-glyph"></div>
