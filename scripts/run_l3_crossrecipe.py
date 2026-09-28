@@ -37,6 +37,7 @@ import re
 import numpy as np
 
 import itasorl.experiment_b2 as b2
+from itasorl import folds
 from itasorl.experiment_b2 import (default_device, load_agent_bundle,
                                    pooled_readout, setup_l3_surrogate,
                                    transfer_readout)
@@ -44,7 +45,8 @@ from itasorl.surrogate_l3_families import fit_g_rff, make_g_cd
 from itasorl.world import WorldParams
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)   # frozen organism world
-PUBLISHED_TARGET = 0.752                                 # drift-0.45 survival mean
+# The drift-0.45 survival reference lives in itasorl.folds, keyed by fold scheme
+# (published GPU value under ITASORL_FOLDS=legacy).
 SEED_BASES = {"rff": (880_000, 890_000), "cd": (940_000, 950_000)}
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 
@@ -161,6 +163,7 @@ def main():
         train_pools[(drift, seed, arm)] = (Ha, Hs)
         print(f"  integrity ok: {name}  target={out['target']:.3f}")
     if not a.quick:
+        PUBLISHED_TARGET = folds.reference_survival_target(8)
         mean_t = round(float(np.mean(survival_targets_045)), 3)
         if mean_t != PUBLISHED_TARGET:
             raise SystemExit(f"INTEGRITY GATE FAILED: drift-0.45 survival mean "

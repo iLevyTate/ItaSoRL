@@ -35,6 +35,7 @@ import re
 import numpy as np
 
 import itasorl.experiment_b2 as b2
+from itasorl import folds
 from itasorl.experiment_b2 import (default_device, load_agent_bundle,
                                    pooled_readout, setup_l3_surrogate,
                                    transfer_readout)
@@ -43,8 +44,8 @@ from itasorl.surrogate_l3_families import make_g_gn
 from itasorl.world import WorldParams
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)   # frozen organism world
-PUBLISHED_TARGET_H8 = 0.752                              # drift-0.45 survival mean at hidden=8
-PUBLISHED_TARGET_H7 = 0.737                              # drift-0.45 survival mean at hidden=7
+# The drift-0.45 survival reference per capacity lives in itasorl.folds, keyed by fold
+# scheme (published GPU values under ITASORL_FOLDS=legacy).
 LADDER_HIDDENS = (16, 32, 64)
 SEED_BASES = {
     "gn": (960_000, 970_000),
@@ -153,7 +154,7 @@ def main():
     os.makedirs(a.out_dir, exist_ok=True)
     b2.DRIFT_MODE = "l3"
     n_eps, steps = (12, 8) if a.quick else (a.n_eps, a.steps)
-    published_target = PUBLISHED_TARGET_H7 if a.hidden == 7 else PUBLISHED_TARGET_H8
+    published_target = None if a.quick else folds.reference_survival_target(a.hidden)
 
     # Training surrogate must be the bit-identical hidden=<capacity> GMotion so the
     # regenerated pools can match the saved dumps.

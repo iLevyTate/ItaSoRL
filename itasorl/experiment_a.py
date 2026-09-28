@@ -127,17 +127,18 @@ def grouped_auroc(X: np.ndarray, y: np.ndarray, groups: np.ndarray, n_splits: in
                   return_oof: bool = False):
     """Grouped 5-fold CV AUROC with the scaler fit on TRAIN folds only (no leakage).
     With return_oof=True also returns the concatenated out-of-fold (y_true, y_score),
-    which lets callers bootstrap an AUROC CI without refitting the probe."""
+    which lets callers bootstrap an AUROC CI without refitting the probe. Folds come
+    from itasorl.folds (the same partition on every scikit-learn / numpy stack)."""
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import roc_auc_score
-    from sklearn.model_selection import GroupKFold
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
 
-    gkf = GroupKFold(n_splits=n_splits)
+    from itasorl import folds
+
     aucs = []
     oof_y, oof_p = [], []
-    for tr, te in gkf.split(X, y, groups):
+    for tr, te in folds.split(groups, n_splits):
         if len(np.unique(y[te])) < 2:
             continue
         clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))

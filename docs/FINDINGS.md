@@ -1338,6 +1338,20 @@ Stated once, plainly, with pointers into the code.
    direct sensory control that regresses the instantaneous observation basis
    out of `h_t` leaves the survival signal at 0.731 (rule passes); the joint
    sensory-plus-behavior control leaves 0.670.
+8. **Cross-validation folds depended on the software stack (found 2026-09-28;
+   re-score pending).** Every grouped probe splits episodes with a 5-fold
+   GroupKFold, and scikit-learn before its stable sort ordered equal-sized groups
+   with numpy's unstable sort, so fold membership depended on the numpy build and
+   the CPU. The published GPU runs were scored on the split (24,20), (22,22),
+   (21,23), (21,23), (22,22) for a 110 + 110 pool; the 2026-09 cloud runs (10.8,
+   10.9, the device control) on five balanced 22/22 folds. Both are valid
+   partitions, so this is noise, not bias: a simulation at AUROC near 0.73 puts the
+   shift at about 0.004 on a 10-seed mean. `itasorl/folds.py` now builds the
+   balanced partition in plain numpy on every stack (`ITASORL_FOLDS=legacy`
+   reproduces the old behavior), and the re-score of the published dumps under both
+   splits is specified in `docs/specs/2026-09-28-explicit-cv-folds.md`, to be
+   frozen before it runs. The published
+   numbers stand as the record until that re-score is reported here.
 
 ---
 
