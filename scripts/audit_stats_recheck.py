@@ -1051,8 +1051,7 @@ def main() -> int:
                == ab["arms"][ab["dmax"]]["predictor"]["pool_target"]["per_seed"])
 
     # ---- FINDINGS 10.4.2 addendum: nonlinear joint control (2026-09-28) ------
-    print("
-== FINDINGS 10.4.2 addendum: nonlinear joint control ==")
+    print("\n== FINDINGS 10.4.2 addendum: nonlinear joint control ==")
     nl = _load_art("expB2", "sensory_echo_l3_h8_mlp.json")
     check_true("nonlinear control integrity: 30/30 bit-match, 0.752 reproduced",
                nl["integrity"]["all_match"] is True and nl["integrity"]["target_reproduced"] is True
