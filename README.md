@@ -124,17 +124,19 @@ whether a blank-slate agent encodes it unasked. Axis-by-axis comparison:
 | Experiment A, L2 | **done** |
 | Experiment B (incidental detection), L2 arc | **done (robust negative result)** |
 | Experiment B, L1 organism + H2 battery | **done (organism negative at in-band Δ=0.023: survival 0.533; FINDINGS §14.7)** |
-| Experiment B, L3 (learned-dynamics) | **positive at n=10, replicated at a second capacity** - behavior-independent signal ~0.72 at both; H2 texture-specific at L3; transfer is direction-dependent but recipe-general; the re-scored common-garden control shows a modest persistent world-identity component (details in [Key result](#key-result) below and FINDINGS §10.6.1 / §14) |
+| Experiment B, L3 (learned-dynamics) | **positive at n=10, replicated at a second capacity** - behavior-independent signal ~0.72 at both; needs the next-observation predictor (0.601 without it, device-controlled, FINDINGS §10.8); an independently trained second fingerprint is survival-specific but under the bar (0.639, §10.9); H2 texture-specific at L3; transfer is direction-dependent but recipe-general; the re-scored common-garden control shows a modest persistent world-identity component (details in [Key result](#key-result) below and FINDINGS §10.6.1 / §14) |
 | Experiment C (emergence under selection) | **validated null** on fixed-code re-run (FINDINGS §13.D); H3 resolves negative |
 | Ladder L4 (adversarially-hardened surrogate) | not started |
 
 ### Key result
 
 Hand-authored seams (L1 discretization, L2 rollout drift): catchable from the
-outside, not encoded inside. An L2 artifact an external oracle detects at AUROC
-≈ 0.99 leaves essentially no decodable trace in a from-scratch agent's
-representation (≈ 0.5). An in-band L1 quantization grid (oracle AUROC 0.873)
-leaves the survival state at **0.533** (n = 10; FINDINGS §14.7).
+outside, not encoded inside. An L2 artifact a nearly noiseless external oracle
+detects at AUROC ≈ 0.99 leaves essentially no decodable trace in a from-scratch
+agent's representation (≈ 0.5). Give that oracle the detector noise the L3 gate
+uses and the L2 artifacts read 0.62 to 0.65 (FINDINGS §15), so the matched case is
+L1: an in-band quantization grid (oracle AUROC 0.873) leaves the survival state at
+**0.533** (n = 10; FINDINGS §14.7).
 
 L3 is where that sentence breaks. The surrogate is a **learned-dynamics
 fingerprint**: a small net replacing the velocity law, not a hand-tuned knob.
@@ -169,6 +171,17 @@ the pre-registered +0.05 dissociation). Survival-*only* is therefore
 conditional on the subtler hidden = 8 artifact. What both capacities share is
 a reward-clean, survivorship-clean, behavior-independent world-signal of about
 **0.72**.
+
+Two boundary checks run in September narrow it. Take away the survival agent's
+next-observation predictor, an auxiliary loss it trains alongside survival, and
+the signal drops to **0.601** (t-based 90% CI [0.549, 0.654]; 1 of 10 seeds),
+under the bar. That run was on CPU, so a pre-registered device control reran the
+published setup on the same machine: **0.730** [0.668, 0.791], 8 of 10. Neither
+objective alone does it. Prediction alone reads about 0.59, survival alone 0.601,
+both together 0.73 to 0.75 (FINDINGS §10.8). A second fingerprint, trained
+independently, keeps the survival-specific signal (**0.639** against 0.534 for
+prediction-only) but lands under the bar, so replication of the full-strength
+result is not claimed (FINDINGS §10.9).
 
 A held-out probe (n = 10, `artifacts/expB2/heldout_l3_h8_summary.json`) splits
 the rest. The world-identity direction still reads a held-out capacity variant

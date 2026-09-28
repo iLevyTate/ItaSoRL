@@ -1285,7 +1285,14 @@ Stated once, plainly, with pointers into the code.
    (and `LIFE_TOL = 2.0`) were fixed during the B-v2 de-risk and carried forward
    unchanged (`itasorl/experiment_b2.py`); no sensitivity sweep has been run. A
    materially different margin could flip engagement-gate adjudications near the
-   boundary, though every headline run passed with room.
+   boundary, though every headline run passed with room. **Swept 2026-09-28 on the
+   committed cells** (`scripts/audit_engagement_margin.py`; the B-v3 n = 10 gate
+   values in `artifacts/expB2/bv3_n10_gates.json` and the three cloud runs of 10.8
+   and 10.9 in `artifacts/expB2/engagement_margin_cloud_runs.json`, 80 cells): every
+   cell passes at margins 0.05, 0.10, and 0.15. From 0.20 to 0.30 one cell fails,
+   the no-auxiliary run at drift 0.45, whose trained return clears the better
+   baseline by 0.182. The published GPU L3 cells are not committed, so this sweep
+   does not cover them.
 3. **One primary readout; everything else is a control or exploratory.** The
    pre-registered decision uses only the pooled LEVEL `target` against the 0.65 bar
    and the 0.05 SESOI. The volatility readouts (`target_var`, `target_full`),

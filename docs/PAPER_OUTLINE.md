@@ -30,7 +30,9 @@ resolve.*
    - 4.1 Detectability ceilings (FINDINGS 2): L1 1.000, L2 0.993, L3 gate 0.928.
    - 4.2 The L2 negative arc (FINDINGS 3, 4, 9): chance across channels, horizons,
      probes; survival coupling 0.610 [0.585, 0.634]; capacity ceiling 0.596.
-   - 4.3 The L3 positive (FINDINGS 10): 0.752 [0.698, 0.807] survival-only;
+   - 4.3 The L3 positive (FINDINGS 10): 0.752 [0.698, 0.807] for survival with
+     the next-observation auxiliary (neither objective alone reaches the bar,
+     FINDINGS 10.8);
      controls; behavior mediation; 0.726 behavior-independent (holds at 0.723
      once absolute position and heading join the control basis, FINDINGS 10.4.1).
    - 4.4 Replications: second capacity resolved (FINDINGS 10.5): the
@@ -47,6 +49,20 @@ resolve.*
      0.548, rule passes), while the constant-drag family proved uncalibratable
      (empty gate-0 window) - coefficient-bias artifacts cannot be made
      subtle-but-detectable, independently motivating learned-texture surrogates.
+   - 4.5 Boundary checks (FINDINGS 10.8, 10.9): without the auxiliary the survival
+     agent reads 0.601 [0.549, 0.654]; the device control reruns the published
+     protocol on the same CPU sandbox at 0.730 [0.668, 0.791], so the drop is not
+     the device; an independently trained second fingerprint is survival-specific
+     (0.639 against predictor 0.534) but under the bar.
+   - 4.6 H2 substrate grounding (FINDINGS 14 to 14.7): the signal collapses with
+     the graded seam (0.752 to 0.506 at alpha 0), the direction does not read
+     matched-band unstructured noise (0.539), and the L1 organism is negative at the
+     in-band grid (0.533).
+   - 4.7 Matched-handicap ceilings (FINDINGS 15): at the L3 gate noise the L2
+     artifacts read 0.646 and 0.618 against L3 0.928, so the matched
+     detectable-but-not-encoded contrast is L1 against L3.
+   - 4.8 Emergence under selection (FINDINGS 13.D): a validated null, contrast
+     -0.002 [-0.013, +0.009].
 5. **Limitations** (FINDINGS 11, verbatim spirit)
 6. **Related work** (ITASORL.md Part I literature sections, incl. the 2026-07
    axis-by-axis cross-reference: evaluation awareness behavioral and probe-based
@@ -75,7 +91,7 @@ resolve.*
 | 9 | B-v3 regime negative at scale | 0.610, 90% CI [0.585, 0.634], n=10 | FINDINGS 7.1 | artifacts/expB2/bv3_n10_summary.json | - |
 | 10 | L2 capacity ceiling below bar | 0.596, 90% CI [0.577, 0.616], n=10 | FINDINGS 7.1 | artifacts/expB2/sysid_ceiling_n10_summary.json | - |
 | 11 | L3 gate frozen in-band | oracle 0.928, floor 0.483 | FINDINGS 10.1 | PREREGISTRATION_L3.md sec. 12 | - |
-| 12 | L3 encoded by survival only | 0.752, t 90% CI [0.698, 0.807], 8/10 seeds | FINDINGS 10.2 | artifacts/expB2/behavior_audit_l3_h8_traces.json | - |
+| 12 | L3 encoded by survival-trained agents carrying the next-observation auxiliary (neither objective alone; FINDINGS 10.8) | 0.752, t 90% CI [0.698, 0.807], 8/10 seeds | FINDINGS 10.2 | artifacts/expB2/behavior_audit_l3_h8_traces.json | - |
 | 13 | L3 predictor baseline near chance | 0.573 [0.546, 0.599] | FINDINGS 10.2 | artifacts/expB2/behavior_audit_l3_h8_traces.json | - |
 | 14 | L3 untrained floor at chance | 0.488 [0.461, 0.514] | FINDINGS 10.2 | artifacts/expB2/behavior_audit_l3_h8_traces.json | - |
 | 15 | Reward leak clean | 0.541, clean 10/10 | FINDINGS 10.3 | PREREGISTRATION_L3.md sec. 12 (n=10 audited entry) | - |
@@ -90,9 +106,24 @@ resolve.*
 | 24 | Common-garden control: re-scored, MODEST PERSISTENT (frozen rule passes both directions) | survival cg_tail 0.666 forward / 0.684 reverse (>= 0.65 and > untrained + 0.05); late tail 0.586/0.577 decays below bar | FINDINGS 10.6.1 | artifacts/expB2/heldout_l3_h8_cg_rescore.json | - |
 | 25 | Reverse transfer direction-dependent: coarse-to-subtle FAILS | survival 0.638, frozen rule fails | FINDINGS 10.6 | artifacts/expB2/heldout_l3_h7_reverse_summary.json | - |
 | 26 | Cross-recipe transfer: GENERALIZES across surrogate families (the generalization claim) | survival 0.684, t 90% CI [0.654, 0.715], 7/10 vs untrained 0.548; rule passes, margin +0.034 | FINDINGS 10.7 | artifacts/l3_crossrecipe/summary.json | - |
-| 27 | Exp C milestone-3 pilot null INVALIDATED (wrong-world + biased estimator); H3 open pending re-run | contrast +0.020 (not a valid measurement) | FINDINGS 13, 13.C | artifacts/expC/emergence_pilot_summary.json (provenance caveat: run predates artifact's stamped commit) | - |
+| 27 | Exp C: the milestone-3 pilot null was INVALIDATED (13.C); the fixed-code re-run is a validated null, so H3 resolves negative | contrast -0.002, t 90% CI [-0.013, +0.009]; final treatment AUROC 0.509 | FINDINGS 13.C, 13.D | artifacts/expC/emergence_pilot_summary.json (holds the re-run, `git_commit_at_run` a0cb850) | - |
+| 28 | Sensory-echo control passes at hidden 8 | `resid_obs` 0.731 [0.690, 0.772], 8/10 vs untrained 0.534; joint sensory-plus-behavior 0.670 | FINDINGS 10.4.2 | artifacts/expB2/sensory_echo_l3_h8.json | - |
+| 29 | The positive needs the next-observation auxiliary | survival without it 0.601 [0.549, 0.654], 1/10; predictor 0.589 | FINDINGS 10.8 | artifacts/expB2/arch_baseline_l3_h8_nowm.json | - |
+| 30 | Device control: the CPU is not the cause | survival with the auxiliary on the same CPU sandbox 0.730 [0.668, 0.791], 8/10; paired lead over 0.601 +0.128 [+0.089, +0.168] | FINDINGS 10.8 | artifacts/expB2/device_control_l3_h8_wm_cpu.json | - |
+| 31 | Second fingerprint instance: survival-specific, below the bar | survival 0.639 [0.610, 0.669], 5/10 vs predictor 0.534, untrained 0.514 | FINDINGS 10.9 | artifacts/expB2/second_instance_l3_h10_gseed1.json | - |
+| 32 | H2 graded seam: the signal collapses to chance with the seam | 0.752 at alpha 1 to 0.506 at alpha 0 (ROPE accept), Spearman rho 1.0 | FINDINGS 14 | artifacts/expH2/summary.json | - |
+| 33 | H2 texture knockout: matched-band noise is not read | survival 0.539 vs untrained 0.542 (hidden 8); 0.510 vs 0.520 (hidden 7) | FINDINGS 14.5 | artifacts/expH2/texture_knockout_h8.json, texture_knockout_h7.json | - |
+| 34 | Observation-channel localization (hidden 8) | vision masked 0.686, interoception masked 0.756, all masked 0.500 | FINDINGS 14.6 | artifacts/expH2/obs_localization_h8.json, obs_localization_h7.json | - |
+| 35 | L1 organism negative at the in-band grid | survival 0.533 [0.509, 0.556], 0/10; oracle 0.873 | FINDINGS 14.7 | artifacts/expL1/organism_summary.json | - |
+| 36 | Matched-handicap oracle: L2 weaker than L3 at the L3 gate noise | L2 ar1 0.646, regime 0.618 vs L3 0.928 at sigma 0.02; L2 1.000 at sigma 2e-4 | FINDINGS 15 | artifacts/expA/l2_inconfig_oracle.json | - |
+| 37 | Engagement margin sweep on committed cells | 80/80 cells pass at margins 0.05 to 0.15; 79/80 from 0.20 to 0.30 | FINDINGS 11, note 2 | artifacts/expB2/bv3_n10_gates.json; artifacts/expB2/engagement_margin_cloud_runs.json | - |
 
 ## Known gaps
+
+- Rows 28 to 37 added 2026-09-28 for the sections that resolved after July
+  (10.4.2, 10.8, 10.9, 11 note 2, 14 to 14.7, 15). Row 12 is narrowed by 10.8, and
+  row 27 now records the 13.D re-run. The published GPU L3 cells are not committed,
+  so row 37 does not cover them.
 
 - Claims 1-7 resolved (2026-07-16): the recorded 06302026 e2e bundle's step
   metrics (plus the 2026-07-13 k-step rerun and the across-seed stds recovered

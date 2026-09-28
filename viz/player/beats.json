@@ -3,7 +3,7 @@
   "fps": 24,
   "size": [1080, 1350],
   "numbers": {
-    "oracle_l2": { "display": "99%", "source": "docs/FINDINGS.md sec 2.2 (0.993)" },
+    "oracle_l2": { "display": "99%", "source": "docs/FINDINGS.md sec 2.2 (L2, 0.993); sec 15: the L3 fingerprint the 73% creature lives with reads 1.000 at the same low detector noise" },
     "probe_chance": { "display": "50%", "source": "artifacts h8 untrained target 0.488 / L0 0.517" },
     "probe_survival": { "display": "73%", "source": "artifacts h8 survival resid_trace 0.726 / h7 0.722" }
   },
