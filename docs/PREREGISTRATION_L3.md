@@ -655,6 +655,61 @@ Rigor carried from the B-v3 audit (2026-07-10):
   surrogate, not on generic dynamics perturbation. The survival-specificity claim
   remains conditional on the subtler hidden=8 artifact (section 10.5).
 
+- **2026-09-26 - SENSORY-ECHO CONTROL (n = 10, readout-only): THE BEHAVIOR-INDEPENDENT
+  WORLD-SIGNAL IS NOT A PASSIVE ECHO OF THE INPUTS (rule passes).** Executes the frozen
+  spec `docs/specs/2026-09-26-l3-sensory-echo-control-design.md` against the saved
+  `fullruns/l3_h8_heldout` agents (no training). PRE-RUN AMENDMENT, logged in the spec
+  before launch: the synthetic control-property tests showed the basis as first written
+  (`[x_t, x_{t-1}, cummean(x)]`) absorbs any persistent tag once the inputs carry the
+  label; the primary basis was frozen as the instantaneous `[x_t, x_{t-1}]`, the
+  integrated basis demoted to a secondary diagnostic. INTEGRITY GATE (determinism check
+  #8): all 60 regenerated pools bit-match the saved dumps; drift-0.45 survival target
+  reproduces **0.752** and the seven-channel behavior control reproduces **0.723**
+  exactly. RESULT at drift 0.45: survival `resid_obs` = **0.731** (t 90% CI
+  [0.690, 0.772]; boot [0.695, 0.765]; 8/10 seeds >= 0.65) vs untrained 0.534 and
+  predictor 0.542; the frozen rule (>= 0.65 AND > untrained + 0.05) PASSES on both
+  clauses, t-CI lower bound above the untrained mean. Secondary: `resid_obs_int` 0.758,
+  `resid_obs_beh` (sensory + behavior jointly) 0.670 [0.638, 0.702], `obs_trace_only`
+  0.709. Drift-0.00 floors near chance under every control. Committed artifact:
+  `artifacts/expB2/sensory_echo_l3_h8.json`; FINDINGS 10.4.2. The first full run
+  completed all 60 cells and then failed while printing the summary (a NumPy bool in the
+  JSON encoder); the aggregate was rebuilt from the saved `cells.json` with a
+  `--reaggregate` path added to the runner, no cell recomputed.
+
+- **2026-09-27 - SECOND FINGERPRINT INSTANCE, GATE 0 (G seed 1; spec `docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md`; recorded by the run chain mechanically BEFORE launch).** Calibration on world P at the frozen sigma=0.02: hidden=8: oracle 0.928 (in band True), mech leak pass, floor 0.664 (dirty) -> fail; hidden=7: oracle 0.957 (in band False), mech leak pass, floor 0.640 (dirty) -> fail; hidden=9: oracle 0.982 (in band False), mech leak pass, floor 0.487 (ok) -> fail; hidden=10: oracle 0.893 (in band True), mech leak pass, floor 0.484 (ok) -> PASS. Selected hidden=10 at G seed 1 (first passing candidate in the frozen order 8, 7, 9, 10). The organism run launches with this instance; its result is recorded in a later entry.
+
+- **2026-09-27 - ARCHITECTURE BASELINE (no world-model auxiliary; n = 10; CPU cloud
+  sandbox): THE L3 POSITIVE IS AUXILIARY-CONDITIONAL.** Executes the frozen spec
+  `docs/specs/2026-09-26-l3-architecture-baseline-design.md` (`--no-world-model`; survival
+  and untrained arms without the next-observation decoder, predictor unchanged; otherwise
+  the frozen hidden = 8 protocol). All gates pass (engagement 20/20, L0 0.514 TOST p = 0.006
+  / ROPE accept, speed >= 0.835, pooled leak clean 20/20, floor 0.529, 0 deaths). Drift 0.45:
+  survival **0.601** (t 90% CI [0.549, 0.654]; boot [0.559, 0.649]; 1/10 seeds >= 0.65),
+  predictor 0.589, untrained 0.529; behavior-controlled survival 0.646 [0.593, 0.698].
+  Frozen rule: survival < 0.65 -> AUXILIARY-CONDITIONAL cell (lead over predictor +0.013,
+  under the 0.05 margin; over untrained +0.072); section 8 matrix: intermediate zone.
+  Execution differs from the published GPU run (CPU sandbox, 4 vCPU, 3 workers, torch
+  2.14+cpu); a device control was pre-registered as a dated addendum to the spec BEFORE
+  its launch and is running. Committed: `artifacts/reviewer_gaps_runs/l3_h8_nowm/`,
+  `artifacts/expB2/arch_baseline_l3_h8_nowm.json`; FINDINGS 10.8.
+
+- **2026-09-27 - SECOND FINGERPRINT INSTANCE (G seed 1, hidden 10; n = 10; CPU cloud
+  sandbox): SURVIVAL-SPECIFIC DISSOCIATION REPRODUCES, ABSOLUTE BAR MISSED (replication
+  not claimed).** Executes the frozen spec
+  `docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md` at the instance the
+  gate-0 entry above selected mechanically (hidden 8 at seed 1 failed on a dirty floor
+  0.664; hidden 10 passed: oracle 0.893, floor 0.484). All gates pass (engagement 20/20,
+  L0 0.529 TOST p = 0.039 / ROPE accept, speed >= 0.830, pooled leak clean 20/20, floor
+  0.514, 0 deaths; the demoted matched-pair leak channel is clean in 7/10 untrained cells).
+  Drift 0.45: survival **0.639** (t 90% CI [0.610, 0.669]; boot [0.614, 0.664]; 5/10 seeds
+  >= 0.65), predictor 0.534, untrained 0.514; behavior-controlled survival 0.658
+  [0.625, 0.691] (5/10). Frozen rule: replication requires both the pooled target and
+  `resid_trace` >= 0.65 with t-CIs excluding the bar -> NOT MET; the two margin clauses
+  pass (+0.105 over predictor, +0.126 over untrained; t-CI excludes both baseline means).
+  Section 8 matrix: intermediate zone. Committed: `artifacts/reviewer_gaps_runs/
+  l3_gate0_seed1/`, `l3_h10_gseed1/`, `artifacts/expB2/second_instance_l3_h10_gseed1.json`;
+  FINDINGS 10.9.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

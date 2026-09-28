@@ -112,6 +112,13 @@ def cfg():
     ap.add_argument("--l3-hidden", type=int, default=8,
                     help="G_motion capacity for --drift-mode l3 (frozen gate-0 value 8; "
                          "see docs/PREREGISTRATION_L3.md sec.12)")
+    ap.add_argument("--l3-seed", type=int, default=0,
+                    help="training seed of the L3 fingerprint G_motion (frozen 0; a second "
+                         "instance per docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md)")
+    ap.add_argument("--no-world-model", dest="world_model", action="store_false",
+                    help="architecture baseline: build the survival and untrained arms WITHOUT the "
+                         "next-observation decoder auxiliary (model-free recurrent A2C on the same "
+                         "trunk); docs/specs/2026-09-26-l3-architecture-baseline-design.md")
     ap.add_argument("--l1-delta", type=float, default=1.0 / 64,
                     help="L1 grid spacing for --drift-mode l1 (default 1/64)")
     ap.add_argument("--sensor-sigma", type=float, default=0.01,
@@ -318,17 +325,20 @@ def run_cell(task: dict) -> dict:
         b2.L1_DELTA = k.get("l1_delta", 1.0 / 64)
         b2.SENSOR_SIGMA = k.get("sensor_sigma", 0.01)
     if k.get("drift_mode") == "l3" and b2._L3_GMOTION is None:  # train G_motion once per worker
-        b2.setup_l3_surrogate(hidden=k.get("l3_hidden", 8), device=dev, seed=0, params=P)  # THIS world
+        b2.setup_l3_surrogate(hidden=k.get("l3_hidden", 8), device=dev,
+                              seed=k.get("l3_seed", 0), params=P)  # THIS world
     if k.get("heldout_evals") and b2._L3_GMOTION_HELDOUT is None:  # once per worker
         b2.setup_l3_heldout_surrogate(hidden=k["heldout_hidden"], device=dev, seed=0, params=P)
 
-    agents = {"untrained": untrained_agent(P, d, k["ray_steps"], k["hidden"], 64, True, dev, seed=s),
+    wm = bool(k.get("world_model", True))
+    agents = {"untrained": untrained_agent(P, d, k["ray_steps"], k["hidden"], 64, wm, dev, seed=s),
               "predictor": train_predictor_only(d, P, n_eps=k["n_eps"], updates=k["updates"],
                                                 hidden=k["hidden"], max_steps=k["max_steps"],
                                                 ray_steps=k["ray_steps"], seed=s, device=dev)}
     sa, sn, _ = train_actor_critic(d, P, n_eps=k["n_eps"], updates=k["updates"], hidden=k["hidden"],
                                    max_steps=k["max_steps"], ray_steps=k["ray_steps"], seed=s,
                                    device=dev, shaping_coef=k["shaping_coef"],
+                                   world_model=wm,
                                    sysid_aux=k.get("sysid_aux", False),
                                    sysid_coef=k.get("sysid_coef", 1.0))
     agents["survival"] = (sa, sn)
@@ -458,7 +468,7 @@ def main():
         print(f"  drift_mode=l3: surrogate = LEARNED velocity law G_motion (hidden={a.l3_hidden}), "
               "the dynamics-level L3 rung; obs come from the REAL sensor model so only the "
               "learned dynamics differ (see docs/PREREGISTRATION_L3.md sec.4/sec.12)")
-        b2.setup_l3_surrogate(hidden=a.l3_hidden, device=dev, seed=0, params=P)  # train on THIS world
+        b2.setup_l3_surrogate(hidden=a.l3_hidden, device=dev, seed=a.l3_seed, params=P)  # train on THIS world
         if a.heldout_evals:
             print(f"  heldout evals ON: transfer fingerprint G(hidden={a.heldout_hidden}), "
                   f"common garden prefix={a.cg_prefix} tail={a.cg_steps}")
@@ -484,7 +494,7 @@ def main():
                                        "shaping_coef", "pool_n", "pool_steps", "mp_pairs", "mp_prefix",
                                        "mp_branch", "basal_e", "n_pellets", "reach", "dump_states",
                                        "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden",
-                                       "l1_delta", "sensor_sigma")}
+                                       "l1_delta", "sensor_sigma", "l3_seed", "world_model")}
     base.update(drifts=a.drifts, device=dev, out_dir=a.out_dir, save_agents=a.save_agents)
     if a.heldout_evals:
         base.update(heldout_evals=True, heldout_hidden=a.heldout_hidden,

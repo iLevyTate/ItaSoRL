@@ -40,7 +40,8 @@ Reward leakage, survivorship, and nonlinear-probe controls pass; a strict
 per-timestep behavior control leaves a behavior-independent world-signal of
 **0.726** (90% CI [0.685, 0.765], 9/10 seeds above the bar; section 10; widening
 that control to also residualize absolute position and heading holds it at 0.723,
-section 10.4.1). H2 substrate-grounding is confirmed at L3 (sections 14-14.5):
+section 10.4.1; a direct sensory-echo control that regresses the observation
+itself out of the state leaves 0.731, section 10.4.2). H2 substrate-grounding is confirmed at L3 (sections 14-14.5):
 the signal collapses with the graded seam and does not read matched-band
 unstructured jitter. A pre-registered replication at a second oracle-calibrated
 capacity (hidden = 7) splits the claim: the behavior-independent world-signal
@@ -49,6 +50,20 @@ survival-vs-predictor dissociation was not demonstrated (survival 0.737 vs
 predictor 0.714; the paired difference +0.023 misses the pre-registered +0.05
 rule), so the survival-*specific* part of the claim is conditional on the
 subtler hidden = 8 artifact (section 10.5).
+
+Two boundary checks run on 2026-09-27 narrow the positive (sections 10.8,
+10.9). Removing the survival agent's next-observation auxiliary loss drops the
+signal to **0.601** [0.549, 0.654], below the bar, so the encoding belongs to
+survival and prediction trained together on one trunk, not to survival alone
+(a pre-registered device control is running because that run was CPU-executed).
+An independently trained fingerprint (G seed 1, hidden 10 by the frozen
+fallback) reproduces the survival-specific dissociation (**0.639** against
+predictor 0.534 and untrained 0.514) at a magnitude below the bar, so
+replication of the absolute level is not claimed. A matched-handicap oracle sweep (section 15)
+shows the L2 artifacts at the organism's drift are weaker to a handicapped
+oracle than L3's fingerprint (0.646 and 0.618 against 0.928 at the L3 gate's
+noise), so the clean "detectable but not encoded" contrast is L1 (0.873, not
+encoded) against L3, not L2 against L3.
 
 A held-out probe (n = 10, section 10.6) sharpens what "emerges" means. The
 world-signal survives transfer to a *capacity variant* of the training
@@ -303,7 +318,7 @@ the oracle number comes from Experiment A's tamed diagnostic configuration - its
 hard-coded physics constants cannot run on the Experiment-B world - so the contrast
 is oracle-in-diagnostic-config vs agent-in-foraging-config; no in-config L2 oracle
 ceiling was measured, unlike L3's in-config gate. The qualitative gap is not in
-doubt, but the two numbers are not a same-world comparison.)
+doubt, but the two numbers are not a same-world comparison.) **Resolved 2026-09-27 (section 15):** measured on P, the L2 oracle reads 1.000 at the tamed configuration's detector noise and 0.646 (ar1) / 0.618 (regime) at the L3 gate's sigma = 0.02, below L3's 0.928 on the same sweep; the cross-rung ordering in this section's headline is withdrawn in favour of the matched comparisons named there.
 
 Three things explain the gap:
 
@@ -350,7 +365,7 @@ inducing it (if possible) requires something more deliberate.
 
 - **H1 (detectability).** Supported at the substrate level: L1, L2, and L3 are all
   detectable by a privileged discriminator, with calibrated difficulty and a
-  validated leakage gate (Experiment A; the L3 oracle gate in section 10.1).
+  validated leakage gate (Experiment A; the L3 oracle gate in section 10.1). Section 15 (2026-09-27) scores the rungs on one detector handicap: at the L3 gate's noise the L2 artifacts at the organism's drift read below the band (0.646, 0.618) while L3 reads 0.928; the section-2 L2 ceiling was measured at a hundredfold smaller handicap.
 - **H4 (legibility / incidental encoding).** Conditionally supported. Not supported
   at L2 under any lever pulled (sections 3, 9): a hand-tuned dynamics artifact is
   not encoded even under survival pressure at scale. Supported at L3 (section 10):
@@ -368,7 +383,11 @@ inducing it (if possible) requires something more deliberate.
   felt dynamics (see section 10.6.1). The generalization evidence is the
   cross-recipe probe (section 10.7): the same direction reads a
   gate-calibrated random-Fourier-features law (0.684, rule passes), so the
-  world-identity signal is recipe-general.
+  world-identity signal is recipe-general. Two 2026-09-27 boundary checks
+  (10.8, 10.9) narrow the conditional support: the positive requires the
+  next-observation auxiliary alongside survival (0.601 without it), and an
+  independently trained fingerprint reproduces the survival-specific
+  dissociation at 0.639, below the bar.
 - **H2 (substrate-grounding via ablations).** CONFIRMED for the L3 rung at
   hidden=8 (sections 14 and 14.5). Section 14 (A1) shows a graded neutralization
   of the one substrate seam (the learned velocity law, blended
@@ -437,7 +456,15 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    brackets the survival agent's 0.610, but it cannot establish a supremum.
    (Per-seed pooled targets for both n = 10 runs are committed
    in `artifacts/expB2/bv3_n10_summary.json` and
-   `artifacts/expB2/sysid_ceiling_n10_summary.json`.) The probe harness accepted the
+   `artifacts/expB2/sysid_ceiling_n10_summary.json`.) The B-v3 gate values,
+   promoted 2026-09-26 to `artifacts/expB2/bv3_n10_gates.json`: engagement
+   passes in 20/20 cells, the L0 control reads 0.517 (TOST p = 0.010), the
+   speed positive control is at least 0.784 in every cell, and the matched-pair
+   leakage audit is clean in 59/60 cells (drift 0.45, seed 6, survival arm:
+   reward-sum AUROC 0.393, deviation 0.107 against the 0.1 margin). That one
+   marginal miss sits on the demoted matched-pair channel; the pooled leakage
+   audit (PR #39) postdates this run and was not part of its battery. The
+   pooled verdict is unchanged. The probe harness accepted the
    actor-critic unchanged. (The
    pooled probe is read as Experiment-B-comparable, not confound-clean - it drops early
    deaths per world, a survivorship asymmetry the matched-pair channel is designed to
@@ -737,6 +764,66 @@ position-in-disguise. The 10.4 "behavior-independent ~0.73" reading stands with
 position and heading now inside the control basis (revised figure resid_trace
 0.723). This resolves the covariate-gap note above.
 
+### 10.4.2 Sensory-echo control (2026-09-26)
+
+Methods note 7 (section 11) left one scope limit on the behavior-mediation
+control: its basis is seven behavior scalars, not the ~146-dim observation, so
+"behavior-independent" did not mean "sensory-echo-independent". A state that
+passively mirrors world-dependent inputs would survive the behavior control.
+This probe tests it directly. Spec frozen before the run:
+`docs/specs/2026-09-26-l3-sensory-echo-control-design.md` (readout-only against
+the saved hidden = 8 agents; runner `scripts/audit_sensory_echo.py`; committed
+artifact `artifacts/expB2/sensory_echo_l3_h8.json`).
+
+**Design.** The pools are regenerated with the same seed bases as the headline
+readout, now also recording the normalized observation the trunk received at
+every step. The PRIMARY control `resid_obs` regresses the instantaneous input
+basis `[x_t, x_{t-1}]` (292 columns) out of every `h_t`, in-fold, and probes
+the residual. The integrated basis with `cummean(x)` added is reported as
+`resid_obs_int` (secondary): a pre-run amendment logged in the spec showed on
+synthetic ground truth that a cumulative-mean column absorbs any persistent
+tag, genuine or echoed, once the inputs separate the worlds. `resid_obs_beh`
+joins the instantaneous observation basis with the full seven-channel behavior
+basis (the strongest control the project has; reported, not adjudicated).
+
+**Integrity gate (determinism check #8).** All 60 regenerated pools bit-match
+the saved dumps at both drifts; the drift-0.45 survival target reproduces
+**0.752** and the seven-channel behavior control reproduces **0.723** (10.4.1).
+
+**Result (drift 0.45, n = 10, t-based 90% CI; seed bootstrap in the artifact).**
+
+| readout | survival | predictor | untrained |
+|---|---|---|---|
+| target | 0.752 [0.698, 0.807] (8/10) | 0.573 | 0.488 |
+| obs_trace_only (ceiling) | 0.709 [0.650, 0.769] | 0.559 | 0.543 |
+| resid_trace (behavior control) | 0.723 [0.676, 0.769] (8/10) | 0.565 | 0.512 |
+| **resid_obs (sensory control, PRIMARY)** | **0.731 [0.690, 0.772] (8/10)** | 0.542 | 0.534 |
+| resid_obs_int (integrated, secondary) | 0.758 [0.716, 0.800] (9/10) | 0.576 | 0.562 |
+| resid_obs_beh (sensory + behavior) | 0.670 [0.638, 0.702] (7/10) | 0.527 | 0.517 |
+
+The frozen rule PASSES on both clauses: 0.731 >= 0.65 and 0.731 > 0.534 + 0.05,
+with the t-CI lower bound (0.690) above the untrained mean. Every drift-0.00
+floor sits near chance under every control (survival 0.504, untrained 0.472
+for `resid_obs`), so the control manufactures nothing.
+
+**Reading.** The observation stream alone decodes the world at only 0.709,
+below the state probe (0.752): the surrogate's fingerprint is not loudly
+present in any single input. Removing what a linear echo of the current and
+previous input could account for leaves the survival world-signal essentially
+intact (0.731), while the untrained and predictor arms stay near chance under
+the identical control. The integrated variant reads higher still (0.758),
+which is what the amendment's ground truth predicts when the inputs separate
+the worlds only weakly per step. Under the joint sensory-plus-behavior control
+the signal is attenuated to 0.670 with a t-CI lower bound (0.638) just under
+the bar; that is the most conservative number the project has, and it is
+reported as such. Methods note 7 is closed in the headline's favor: the
+behavior-independent world-signal is not a passive echo of the inputs.
+
+**Scope.** One capacity (hidden = 8), linear residualization, one lag. A
+nonlinear or longer-history sensory control is not run (spec: no rescue in
+either direction). The joint-control attenuation is the honest upper bound on
+what linear input-plus-behavior mirroring could explain.
+
 ### 10.5 Second in-band capacity (replication across artifact type)
 
 The preregistration requires the organism test at a second in-band capacity, since
@@ -1012,6 +1099,137 @@ generalization claim. Scope: `G_rff` is fit on the same training data as
 
 ---
 
+### 10.8 Architecture baseline: the positive needs the world-model auxiliary (2026-09-27)
+
+Methods note 6 and the design document both named the missing external-validity
+check: every result rides on one trunk, and the survival arm carries a
+next-observation decoder as an auxiliary loss (`wm_coef = 1.0`). If the L3
+positive depends on that auxiliary, "the survival objective, uniquely" overclaims.
+Spec frozen before the run:
+`docs/specs/2026-09-26-l3-architecture-baseline-design.md`. Runner flag
+`scripts/run_expB2.py --no-world-model` (survival and untrained arms built with
+`world_model=False`; the predictor arm is the decoder objective and is unchanged).
+Committed artifacts: raw `artifacts/reviewer_gaps_runs/l3_h8_nowm/`, summary
+`artifacts/expB2/arch_baseline_l3_h8_nowm.json`.
+
+**Execution.** The run executed in a CPU cloud sandbox (4 vCPU, 3 workers, torch
+2.14+cpu, 4 h 06 min) because the local GPU machine was memory-starved; the
+published hidden = 8 run it is compared against was GPU-generated. That is the one
+nuisance factor the comparison does not control; the device control below
+addresses it.
+
+**Gates (all pass).** Engagement 20/20 cells; L0 control 0.514 (TOST p = 0.006,
+ROPE P = 0.9997, both accept); speed positive control at least 0.835 in every
+cell; pooled reward-leak clean in every cell; untrained floor at drift 0.45
+0.529 (within tolerance); 0 early deaths in every pool.
+
+**Result (drift 0.45, n = 10, t-based 90% CI; seed bootstrap in the artifact).**
+
+| agent (no auxiliary unless noted) | pooled target | t 90% CI | seeds >= 0.65 |
+|---|---|---|---|
+| untrained | 0.529 | [0.510, 0.549] | 0/10 |
+| predictor (unchanged objective) | 0.589 | [0.567, 0.610] | 0/10 |
+| **survival, no auxiliary** | **0.601** | **[0.549, 0.654]** | 1/10 |
+| survival with auxiliary (published, GPU, 10.2) | 0.752 | [0.698, 0.807] | 8/10 |
+
+Per-seed survival: 0.603, 0.619, 0.599, 0.617, 0.488, 0.488, 0.810, 0.619,
+0.626, 0.545. Behavior audit (`resid_trace`, seven-channel basis): survival
+**0.646** [0.593, 0.698] (6/10), predictor 0.592, untrained 0.548; the behavior
+trace alone decodes the world at 0.771.
+
+**Adjudication (frozen rule).** Survival 0.601 < 0.65, so the run lands in the
+spec's **auxiliary-conditional** cell: the L3 positive does not survive removal
+of the world-model auxiliary. The survival lead over the predictor is +0.013
+(under the 0.05 margin) and over the untrained floor +0.072. By the
+PREREGISTRATION_L3 section 8 matrix this is the intermediate zone (above the
+floor, below the bar), not a strengthened negative.
+
+**Reading.** Neither objective alone produces the positive. Prediction alone
+reads 0.573 (10.2); survival alone reads 0.601; survival with the next-observation
+auxiliary reads 0.752. The L3 world-identity encoding is a property of the two
+objectives trained together on one trunk: the auxiliary forces the state to carry
+predictive information about the sensory stream, and survival pressure under the
+flawed velocity law shapes that information into a world-identity direction. The
+published wording "encoded by the survival objective, uniquely" is narrowed
+accordingly: encoded by survival-trained agents carrying the next-observation
+auxiliary, and by neither objective alone.
+
+**Device control (pre-registered addendum, 2026-09-27, running).** The
+decoder-carrying protocol is being rerun unchanged on the same CPU sandbox
+(`scripts/reviewer_gaps/run_cloud_device_control.sh`). The frozen rule: if that
+run clears 0.65 with its t-CI excluding the bar and leads 0.601 by more than
+0.05, the auxiliary-conditional verdict stands; if it falls below 0.65, the
+verdict is withdrawn to "not established" pending a same-device comparison. The
+predictor arm, whose objective did not change, reads 0.589 here against 0.573
+published (intervals overlap), which is the available evidence that the device
+shift is small. This subsection is updated when the control lands.
+
+### 10.9 Second fingerprint instance: survival-specific, below the bar (2026-09-27)
+
+Methods note 4: `G` was a single frozen instance trained at seed 0. The held-out
+probes (10.6, 10.7) show the world-identity DIRECTION transfers to other
+fingerprints, but no agent had been trained against a second instance. Spec
+frozen before any run:
+`docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md`; flags
+`scripts/run_expA_l3.py --g-seed` and `scripts/run_expB2.py --l3-seed`.
+Committed artifacts: raw `artifacts/reviewer_gaps_runs/l3_gate0_seed1/` and
+`l3_h10_gseed1/`, summary `artifacts/expB2/second_instance_l3_h10_gseed1.json`.
+Executed in the same CPU cloud sandbox as 10.8 (gate 0 in 8 min, organism run
+3 h 59 min).
+
+**Gate 0 at G seed 1 (frozen fallback order 8, 7, 9, 10; selection appended to
+PREREGISTRATION_L3 section 12 by the chain before launch).**
+
+| hidden | oracle AUROC | in band | untrained floor | gate 0 |
+|---|---|---|---|---|
+| 8 | 0.928 | yes | 0.664 (dirty) | fail |
+| 7 | 0.957 | no | 0.640 (dirty) | fail |
+| 9 | 0.982 | no | 0.487 | fail |
+| **10** | **0.893** | yes | **0.484** | **PASS** |
+
+Two things about this table are themselves findings. The clean untrained floor at
+hidden = 8 is a property of the seed-0 instance, not of the capacity: the seed-1
+hidden-8 map is oracle-identical (0.928) but mechanically leaky (floor 0.664).
+And oracle detectability is not monotone in capacity at this seed (hidden 9 reads
+0.982). The selected instance is subtler to the oracle than the published one
+(0.893 against 0.928).
+
+**Gates (all pass).** Engagement 20/20; L0 control 0.529 (TOST p = 0.039, ROPE
+P = 0.983, both accept); speed at least 0.830; pooled reward-leak clean in every
+cell; untrained floor 0.514; 0 early deaths. (The secondary matched-pair leakage
+channel is clean in 7/10 untrained cells at drift 0.45; no rule reads it.)
+
+**Result (drift 0.45, n = 10, t-based 90% CI).**
+
+| agent | pooled target | t 90% CI | seeds >= 0.65 |
+|---|---|---|---|
+| untrained | 0.514 | [0.485, 0.542] | 0/10 |
+| predictor | 0.534 | [0.508, 0.560] | 0/10 |
+| **survival** | **0.639** | **[0.610, 0.669]** | 5/10 |
+
+Per-seed survival: 0.652, 0.556, 0.600, 0.657, 0.581, 0.626, 0.726, 0.679,
+0.676, 0.638. Behavior audit: survival `resid_trace` **0.658** [0.625, 0.691]
+(5/10), predictor 0.565, untrained 0.539; behavior trace alone 0.702.
+
+**Adjudication (frozen rule).** Replication is NOT claimed: the pooled target
+0.639 misses the 0.65 bar and its t-CI straddles it, and the behavior-controlled
+0.658 has a t-CI that also straddles the bar. The two margin clauses PASS with
+room: survival leads the predictor by +0.105 and the untrained floor by +0.126,
+and the t-CI [0.610, 0.669] excludes both baseline means. Zone: intermediate.
+
+**Reading.** On a fingerprint the agent never met at design time (different
+authentic rollouts, different initialization, different capacity), the
+survival-specific world-identity encoding reproduces in direction and in
+specificity, at a magnitude below the pre-registered bar. Read together with
+10.5, three instances are now on record: hidden 8 / seed 0 (magnitude above the
+bar, survival-specific), hidden 7 / seed 0 (magnitude above the bar, not
+survival-specific), hidden 10 / seed 1 (survival-specific, magnitude below the
+bar). The claim that survives all three is a survival-specific world-identity
+signal well above both baselines; the claim that clears the absolute bar is
+instance-conditional. The instance is subtler to the oracle, and the run is
+CPU-executed, so the magnitude gap to 0.752 has two candidate sources the design
+did not separate.
+
 ## 11. Methods notes and limitations
 
 Stated once, plainly, with pointers into the code.
@@ -1043,7 +1261,10 @@ Stated once, plainly, with pointers into the code.
    experiment tests encoding of one reproducible artifact, not artifact-general
    detection. Generality across fingerprint instances is exactly what the held-out
    probe (10.6) tests, and stability across artifact type is what the second
-   capacity (10.5) tests.
+   capacity (10.5) tests. **Updated 2026-09-27 (10.9):** an agent population
+   trained against an independently trained instance (seed 1, hidden 10)
+   reproduces the survival-specific dissociation at 0.639, below the bar; the
+   absolute level is instance-conditional.
 5. **CI methodology at the decision boundary.** The percentile bootstrap of a seed
    mean under-covers near the bar at n ≤ 10, so "clears / misses 0.65"
    adjudications use the t-based interval, with both reported
@@ -1052,7 +1273,10 @@ Stated once, plainly, with pointers into the code.
    GRU core, hidden = 96), one world family ("A Patch of Earth" v0), the frozen
    difficulty band (oracle AUROC in [0.85, 0.95]), and the specific objectives
    tested. They are existence and non-existence proofs within that scope, not
-   universal claims.
+   universal claims. **Updated 2026-09-27 (10.8):** the one architecture
+   baseline run (the same trunk without the next-observation auxiliary) reads
+   0.601, so the L3 positive is conditional on survival and prediction being
+   trained together; no other core or width has been tested.
 7. **The behavior-mediation control covers behavior, not the full sensory
    stream.** The residualization basis is the four per-timestep behavior scalars
    (speed/energy/food/drag) with lag and cumulative-mean expansions
@@ -1063,7 +1287,10 @@ Stated once, plainly, with pointers into the code.
    predictor arms, which pass through the identical control - cleanly at
    hidden = 8 (untrained 0.498, predictor 0.574) but not at hidden = 7 (0.579 and
    0.691), which is part of why the survival-specific claim is stated as
-   artifact-conditional (10.5).
+   artifact-conditional (10.5). **Closed 2026-09-26 at hidden = 8 (10.4.2):** a
+   direct sensory control that regresses the instantaneous observation basis
+   out of `h_t` leaves the survival signal at 0.731 (rule passes); the joint
+   sensory-plus-behavior control leaves 0.670.
 
 ---
 
@@ -1437,7 +1664,11 @@ grid, so L1 does not reproduce the L3 positive.
 **Status: CONFIRMED for the L3 rung at hidden=8 and hidden=7.** Design spec:
 `docs/specs/2026-07-22-h2-substrate-grounding-ablations-design.md`. Local artifacts:
 `fullruns/l3_h2_ablations/{gate0_gn.json,gate0_ladder.json,aggregate.json,cells.json}`
-(hidden=8) and `fullruns/l3_h7_h2_ablations/aggregate.json` (hidden=7).
+(hidden=8) and `fullruns/l3_h7_h2_ablations/aggregate.json` (hidden=7). Committed
+artifacts (promoted 2026-09-26 by `scripts/promote_h2_batteries.py`, verified by
+`scripts/audit_stats_recheck.py`): `artifacts/expH2/texture_knockout_h8.json` and
+`artifacts/expH2/texture_knockout_h7.json` (per-seed transfers, gate-0 rows,
+integrity receipts).
 
 This probe adjudicates the surviving skeptic story after A1: the survival world-signal
 collapses with the seam, but does it read the *texture* of the learned
@@ -1486,7 +1717,11 @@ specificity part remains conditional on the subtler hidden=8 artifact (section
 **Status: COMPLETE for the L3 rung at hidden=8 and hidden=7.** Design and runner:
 `scripts/run_l3_obs_localization.py`. Local artifacts:
 `fullruns/l3_h8_obs_localization/aggregate.json` and
-`fullruns/l3_h7_obs_localization/aggregate.json`.
+`fullruns/l3_h7_obs_localization/aggregate.json`. Committed artifacts (promoted
+2026-09-26 by `scripts/promote_h2_batteries.py`, verified by
+`scripts/audit_stats_recheck.py`): `artifacts/expH2/obs_localization_h8.json` and
+`artifacts/expH2/obs_localization_h7.json` (per-seed, per-mask targets and the
+zeroed-dimension counts).
 
 This probe asks *which* observation channels carry the world-identity signal in
 the survival agent's recurrent state. The agent is frozen; the only change is a
@@ -1498,7 +1733,7 @@ pooled_readout is run on each masked condition.
 
 | Mask | Zeroed dims | survival mean | predictor mean | untrained mean |
 |---|---|---|---|---|
-| none | 0 / 146 | **0.753** (8/10 >= 0.65) | 0.573 | 0.488 |
+| none | 0 / 146 | **0.752** (8/10 >= 0.65) | 0.573 | 0.488 |
 | vision | 120 / 146 | **0.686** (7/10) | 0.598 | 0.567 |
 | intero | 14 / 146 | **0.756** (8/10) | 0.562 | 0.506 |
 | all | 146 / 146 | **0.500** (0/10) | 0.500 | 0.500 |
@@ -1516,7 +1751,9 @@ pooled_readout is run on each masked condition.
 in both capacities, which is a sanity check that the readout is not decoding from
 unmasked behavior correlates. At **hidden=8**, masking **interoception** (velocity,
 heading, energy, etc.) leaves the signal essentially unchanged, while masking
-**vision** causes a modest but clear drop from 0.753 to 0.686. This suggests the
+**vision** causes a modest but clear drop from 0.752 to 0.686 (the no-mask
+baseline is the headline 0.752 to full precision; an earlier draft rounded the
+4-dp aggregate 0.7525 up). This suggests the
 world-identity signal is carried by the visual stream and/or the behavior it
 shapes, not by explicit interoceptive velocity feedback.
 
@@ -1544,7 +1781,11 @@ Design and runners: `scripts/run_expA_l1.py`, `scripts/run_expA_l1_noise.py`,
 `scripts/run_l3_obs_localization.py --drift-mode l1`. Local artifacts:
 `fullruns/l1_calib.json`, `fullruns/l1_noise_calib.json`,
 `fullruns/l1_heldout/`, `fullruns/l1_h2_ablations/`,
-`fullruns/l1_obs_localization/`.
+`fullruns/l1_obs_localization/`. Committed artifacts (promoted 2026-09-26 by
+`scripts/promote_h2_batteries.py`, verified by `scripts/audit_stats_recheck.py`):
+`artifacts/expL1/organism_summary.json` (per-seed pools, engagement and gate
+values, gate-0 calibration rows), `artifacts/expL1/h2_ablations.json` (A1 delta
+ladder and A2 noise knockout), `artifacts/expL1/obs_localization.json`.
 
 This extends the L3 H2 battery to a different substrate primitive: observation-
 level quantization (grid spacing Δ) with a matched sensor-noise floor
@@ -1587,3 +1828,72 @@ confirmed at L3 (learned dynamics texture) and does not extend to L1
 result strengthens the rung-specificity of the L3 positive: detectability of a
 substrate seam is not sufficient for incidental encoding; the seam's
 computational character matters.
+
+---
+
+## 15. Matched-handicap oracle ceilings across rungs (2026-09-27)
+
+**Status: MEASURED; it qualifies the cross-rung comparison, it does not change
+any organism number.** Spec (probe A, with its dated extension):
+`docs/specs/2026-09-27-local-strengthening-probes-design.md`. Runner
+`scripts/run_expA_l2_inconfig.py`; committed artifact
+`artifacts/expA/l2_inconfig_oracle.json`.
+
+**Why.** Section 4's scope note admitted that the L2 ceiling (0.993, section 2)
+was measured in Experiment A's tamed diagnostic world while every L2 organism
+number lives in world P, and that no in-configuration L2 oracle existed. Fixing
+that exposed a second mismatch: the tamed L2 oracle used a detector-side
+velocity-noise floor of sigma = 2e-4, while the L3 gate (section 10.1) used
+sigma = 0.02, a hundredfold larger. The cross-rung statement "L2 is more
+detectable (0.99) than L3 (0.93), yet only L3 is encoded" therefore compared
+two oracles with different handicaps.
+
+**Design.** Matched pairs in world P exactly as the L3 gate builds them (60
+pairs, prefix 10, branch 30, identical action streams), with the surrogate
+branch being the L2 world itself at the organism's drift (ar1 0.45, the B-v2
+artifact; regime 0.45, the B-v3 artifact). The residual oracle applies the
+authentic law with P's authentic constant drag (1.5) and is scored across a
+sweep of detector noise; the L3 fingerprints at hidden 8 and 7 (G seed 0) are
+scored on the identical sweep. Mechanical leakage (length, metadata) is clean in
+every cell. The L0 anchor (drift 0, bit-identical branches) reads 0.475 averaged
+over eight noise-seed draws (range 0.394 to 0.581): chance.
+
+| detector noise sigma | 0.0002 | 0.001 | 0.005 | 0.01 | **0.02** | 0.05 |
+|---|---|---|---|---|---|---|
+| L2 ar1, drift 0.45 (B-v2 artifact) | 1.000 | 1.000 | 0.957 | 0.810 | **0.646** | 0.588 |
+| L2 regime, drift 0.45 (B-v3 artifact) | 1.000 | 1.000 | 0.854 | 0.703 | **0.618** | 0.586 |
+| L3 hidden 8, seed 0 (the headline fingerprint) | 1.000 | 1.000 | 1.000 | 0.997 | **0.928** | 0.674 |
+| L3 hidden 7, seed 0 | 1.000 | 1.000 | 1.000 | 0.985 | **0.922** | 0.671 |
+
+**Reading.** Three things follow, and they are stated in order of how much they
+change.
+
+1. The same-world L2 ceiling at the tamed configuration's own detector noise is
+   1.000, so section 2's 0.993 was not an artifact of the diagnostic world. The
+   section-4 scope note is retired.
+2. At every detector handicap the L3 fingerprint is at least as detectable as the
+   L2 drift, and at the handicap that defines the L3 band the L2 artifacts at
+   the organism's drift sit BELOW the band (0.646 and 0.618 against 0.928). The
+   L2 rung was never a matched comparison to L3: the L2 negative is a negative
+   on an artifact that a handicapped oracle finds weaker than L3's, not
+   stronger. The wording "L2 more detectable than L3, yet only L3 encoded" is
+   withdrawn.
+3. The claim that detectability is not sufficient for incidental encoding
+   survives on the matched comparisons the project does have: the L1 seam at
+   the in-band grid (oracle 0.873 at the organism's own sensor noise, section
+   14.7) is not encoded (survival 0.533), and the unstructured comparator G_gn
+   at 0.865 in the L3 band (section 14.5) is not read by the world-identity
+   direction (0.539). The L2 negative remains a negative against a noiseless
+   oracle (1.000) and against the agent's own interoception, which carries exact
+   velocity; but the graded curve above and the dose-response ladder of section
+   14.5 (h16 0.701 at oracle 0.788, h32 0.622 at 0.656, h64 0.541 at 0.603)
+   together say that, within the learned-fingerprint family, encoding tracks
+   handicapped-oracle detectability, and the L2 artifacts at drift 0.45 fall
+   where that curve predicts (0.52 to 0.61 at 0.62 to 0.65 detectability). The
+   "artifact character" reading of section 4 therefore rests on the structure
+   knockout of 14.5, not on the L2-versus-L3 ceiling comparison.
+
+**What this does not touch.** No organism number, gate, or pre-registered verdict
+changes. The B-v3 constant-drag family's uncalibratable window (section 10.7)
+is consistent with the curve: a coefficient artifact strong enough to reach the
+band at sigma = 0.02 is felt grossly by any recurrent state.

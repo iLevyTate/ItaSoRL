@@ -144,6 +144,77 @@ def trace_residual_probe_auroc(H: np.ndarray, Bt: np.ndarray, y: np.ndarray,
     return float(np.mean(aucs)) if aucs else float("nan")
 
 
+def _echo_phi(Ot: np.ndarray) -> np.ndarray:
+    """Instantaneous regressors: [x_t, x_{t-1} (edge-padded)]. No running mean:
+    when the input stream itself separates the worlds, a cumulative-mean column
+    linearly encodes the world label and the regression absorbs any persistent
+    tag, genuine or echoed (synthetic ground truth, spec amendment 2026-09-26).
+    The instantaneous basis removes what a state could passively mirror from
+    its current input while leaving integrated state alone."""
+    n, T, C = Ot.shape
+    prev = np.concatenate([Ot[:, :1], Ot[:, :-1]], axis=1)
+    return np.concatenate([Ot.reshape(n * T, C), prev.reshape(n * T, C)], axis=1)
+
+
+def sensory_residual_probe_auroc(H: np.ndarray, Ot: np.ndarray, y: np.ndarray,
+                                 Bt: np.ndarray | None = None,
+                                 groups: np.ndarray | None = None, n_splits: int = 5,
+                                 alpha: float = 1e-3, integrated: bool = False,
+                                 nonlinear: bool = False, seed: int = 0) -> float:
+    """Per-timestep SENSORY control (spec 2026-09-26-l3-sensory-echo-control).
+    Same fold structure as `trace_residual_probe_auroc`, but the regressor basis
+    is built from the normalized OBSERVATION the trunk received: by default the
+    instantaneous `[x_t, x_{t-1}]` (2 * obs_dim columns, the PRIMARY control);
+    with `integrated=True` the full trace expansion `[x_t, x_{t-1},
+    cummean(x)_{<=t}]` (SECONDARY diagnostic, over-strict when the inputs carry
+    the label). `Bt` optionally joins the behavior trace basis. A ridge with a
+    near-zero penalty replaces plain least squares because the basis is wide.
+    What survives the primary control is state that is not a linear readout of
+    the current or previous input. `nonlinear=True` swaps the ridge for a
+    one-hidden-layer MLP (64 ReLU units, L2 penalty 1e-3, Adam, 300 iterations)
+    fit in-fold, the nonlinear joint control of spec
+    2026-09-27-local-strengthening-probes."""
+    from sklearn.linear_model import LogisticRegression, Ridge
+    from sklearn.metrics import roc_auc_score
+    from sklearn.model_selection import GroupKFold
+    from sklearn.neural_network import MLPRegressor
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    if groups is None:
+        groups = np.arange(len(y))
+    n, T, hid = H.shape
+    O = np.asarray(Ot, dtype=float)
+    Phi = _trace_phi(O, quad=False) if integrated else _echo_phi(O)
+    if Bt is not None:
+        Phi = np.concatenate([Phi, _trace_phi(np.asarray(Bt, dtype=float), quad=False)], axis=1)
+    Hflat = np.asarray(H, dtype=float).reshape(n * T, hid)
+    row_ep = np.repeat(np.arange(n), T)
+    aucs = []
+    for tr, te in GroupKFold(n_splits=n_splits).split(np.zeros(n), y, groups):
+        if len(np.unique(y[te])) < 2:
+            continue
+        tr_rows = np.isin(row_ep, tr)
+        if nonlinear:
+            # 300 Adam iterations is a frozen budget, not a convergence target; the
+            # optimizer's "not converged" warning is expected and silenced here.
+            import warnings
+            from sklearn.exceptions import ConvergenceWarning
+            warnings.simplefilter("ignore", ConvergenceWarning)
+            reg = make_pipeline(StandardScaler(),
+                                MLPRegressor(hidden_layer_sizes=(64,), alpha=1e-3, max_iter=300,
+                                             random_state=seed))
+        else:
+            reg = make_pipeline(StandardScaler(), Ridge(alpha=alpha))
+        reg.fit(Phi[tr_rows], Hflat[tr_rows])
+        R = (Hflat - reg.predict(Phi)).reshape(n, T, hid)
+        F = episode_features(R)
+        clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))
+        clf.fit(F[tr], y[tr])
+        aucs.append(roc_auc_score(y[te], clf.predict_proba(F[te])[:, 1]))
+    return float(np.mean(aucs)) if aucs else float("nan")
+
+
 def audit_cell(npz: dict, seed: int = 0) -> dict:
     """Behavior-mediation audit of one dumped cell. Returns {} when either
     pool is too small to probe (mirrors the headline's 5-survivor guard)."""
