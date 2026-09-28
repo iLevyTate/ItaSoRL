@@ -14,11 +14,17 @@ summary JSON per run under artifacts/expB2/ with provenance:
     the audit cells
   * gate-0 calibration rows when a calibration.json is given
   * the frozen decision rule for the run (spec named in --spec)
+  * with --device-control-against <no-auxiliary run dir>, the device-control rule
+    frozen in the 2026-09-27 addendum to the architecture-baseline spec: the
+    decoder-carrying survival target on the same device against the no-auxiliary one
 
 Usage:
     python scripts/promote_reviewer_gaps_runs.py --run artifacts/reviewer_gaps_runs/l3_h8_nowm \
         --out artifacts/expB2/arch_baseline_l3_h8_nowm.json --spec <spec path> \
         --label "architecture baseline (no world-model auxiliary)" [--calibration <json>]
+    python scripts/promote_reviewer_gaps_runs.py --run artifacts/reviewer_gaps_runs/l3_h8_wm_cpu \
+        --out artifacts/expB2/device_control_l3_h8_wm_cpu.json --spec <spec path> \
+        --label "device control" --device-control-against artifacts/reviewer_gaps_runs/l3_h8_nowm
 """
 
 from __future__ import annotations
@@ -75,8 +81,40 @@ def _nanmean(xs) -> float:
         return float("nan")
 
 
+def device_control(res: dict, compare_res: dict, dmax: str) -> dict:
+    """Frozen device-control rule (addendum 2026-09-27, architecture-baseline spec).
+
+    `res` is the decoder-carrying run and `compare_res` the no-auxiliary run, both on
+    the same device and seeds. Seeds pair by index, so the paired lead is reported
+    alongside the difference of means the rule is written in."""
+    wm = [float(x) for x in res[dmax]["survival"]["pool_target"]]
+    nowm = [float(x) for x in compare_res[dmax]["survival"]["pool_target"]]
+    wm_mean, nowm_mean = float(np.mean(wm)), float(np.mean(nowm))
+    wm_t90 = [float(x) for x in t_ci90(wm)]
+    lead = wm_mean - nowm_mean
+    paired = [a - b for a, b in zip(wm, nowm)] if len(wm) == len(nowm) else []
+    paired_t90 = [float(x) for x in t_ci90(paired)] if len(paired) > 1 else [float("nan")] * 2
+    if wm_mean < BAR:
+        verdict = "DEVICE CONFOUND (verdict withdrawn to not established)"
+    elif wm_t90[0] > BAR and lead > MARGIN:
+        verdict = "DEVICE NOT THE CAUSE (auxiliary-conditional verdict stands)"
+    elif lead <= MARGIN:
+        verdict = "INTERMEDIATE (auxiliary contribution not demonstrated on this device)"
+    else:
+        verdict = "NOT COVERED BY THE FROZEN RULE (mean clears the bar, t-CI does not)"
+    pred_same = (res[dmax]["predictor"]["pool_target"] == compare_res[dmax]["predictor"]["pool_target"])
+    return {"decoder_survival": wm_mean, "decoder_survival_t90": wm_t90,
+            "no_auxiliary_survival": nowm_mean, "lead": lead,
+            "paired_lead": float(np.mean(paired)) if paired else float("nan"),
+            "paired_lead_t90": paired_t90,
+            "pass_bar": wm_mean >= BAR, "t90_excludes_bar": wm_t90[0] > BAR,
+            "pass_lead": lead > MARGIN,
+            "predictor_arm_identical_to_comparison": bool(pred_same),
+            "verdict": verdict}
+
+
 def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: str | None = None,
-            head: str | None = None) -> dict:
+            head: str | None = None, compare_run: str | None = None) -> dict:
     with open(os.path.join(run_dir, "expB2_results.json"), encoding="utf-8") as fh:
         res = json.load(fh)
     drifts = sorted(res.keys(), key=float)
@@ -162,6 +200,11 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
             cal = json.load(fh)
         calib_out = {"g_seed": cal.get("g_seed"), "rows": cal["rows"],
                      "selected_hidden": next((r["hidden"] for r in cal["rows"] if r.get("passes_gate0")), None)}
+    dc_out = None
+    if compare_run:
+        with open(os.path.join(compare_run, "expB2_results.json"), encoding="utf-8") as fh:
+            cres = json.load(fh)
+        dc_out = {"compare_run": compare_run.replace("\\", "/"), **device_control(res, cres, dmax)}
     out = {
         "source_run": run_dir.replace("\\", "/"),
         "label": label, "spec": spec,
@@ -174,6 +217,8 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
         "arms": arms_out, "gates": gates, "decision": decision,
         "behavior_audit": audit_out, "gate0_calibration": calib_out,
     }
+    if dc_out is not None:
+        out["device_control"] = dc_out
     d = os.path.dirname(out_path)
     if d:
         os.makedirs(d, exist_ok=True)
@@ -189,12 +234,19 @@ def main() -> int:
     ap.add_argument("--spec", required=True)
     ap.add_argument("--label", required=True)
     ap.add_argument("--calibration", default=None)
+    ap.add_argument("--device-control-against", default=None,
+                    help="no-auxiliary run dir on the same device; adds the frozen device-control rule")
     a = ap.parse_args()
-    out = promote(a.run, a.out, spec=a.spec, label=a.label, calibration=a.calibration)
+    out = promote(a.run, a.out, spec=a.spec, label=a.label, calibration=a.calibration,
+                  compare_run=a.device_control_against)
     dec = out["decision"]
     print(f"wrote {a.out}: survival {dec['survival']:.3f} t90 [{dec['survival_t90'][0]:.3f}, "
           f"{dec['survival_t90'][1]:.3f}] vs predictor {dec['predictor']:.3f}, untrained "
           f"{dec['untrained']:.3f} -> {dec['zone']}")
+    if "device_control" in out:
+        dc = out["device_control"]
+        print(f"device control: decoder {dc['decoder_survival']:.3f} vs no-auxiliary "
+              f"{dc['no_auxiliary_survival']:.3f}, lead {dc['lead']:+.3f} -> {dc['verdict']}")
     return 0
 
 

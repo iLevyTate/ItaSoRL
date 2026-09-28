@@ -14,7 +14,7 @@ world-identity representation. This module makes that audit reproducible:
                              cell; per-timestep metrics only when the dump
                              carries traces (bta/bts)
 
-All controls are fit IN-FOLD (train folds only, GroupKFold at episode level,
+All controls are fit IN-FOLD (train folds only, itasorl.folds at episode level,
 same estimator family as the headline probe) because in-sample residualization
 over-removes: it deflated the audited signal to 0.56-0.63 in the ad hoc run.
 Spec: docs/specs/2026-07-12-l3-behavior-audit-design.md.
@@ -50,7 +50,7 @@ def behavior_only_auroc(B: np.ndarray, y: np.ndarray, groups: np.ndarray | None 
     which sees variance/interaction codes the linear decoder misses."""
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.metrics import roc_auc_score
-    from sklearn.model_selection import GroupKFold
+    from itasorl import folds
 
     from itasorl.experiment_a import grouped_auroc
     if groups is None:
@@ -58,7 +58,7 @@ def behavior_only_auroc(B: np.ndarray, y: np.ndarray, groups: np.ndarray | None 
     if not nonlinear:
         return grouped_auroc(B, y, groups, n_splits=n_splits)
     aucs = []
-    for tr, te in GroupKFold(n_splits=n_splits).split(B, y, groups):
+    for tr, te in folds.split(groups, n_splits):
         if len(np.unique(y[te])) < 2:
             continue
         clf = RandomForestClassifier(n_estimators=200, random_state=seed)
@@ -75,7 +75,7 @@ def residual_probe_auroc(X: np.ndarray, B: np.ndarray, y: np.ndarray,
     run the standard probe on residuals. Out-of-fold mean AUROC."""
     from sklearn.linear_model import LinearRegression, LogisticRegression
     from sklearn.metrics import roc_auc_score
-    from sklearn.model_selection import GroupKFold
+    from itasorl import folds
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
 
@@ -83,7 +83,7 @@ def residual_probe_auroc(X: np.ndarray, B: np.ndarray, y: np.ndarray,
         groups = np.arange(len(y))
     Phi = quad_expand(B) if quad else B
     aucs = []
-    for tr, te in GroupKFold(n_splits=n_splits).split(X, y, groups):
+    for tr, te in folds.split(groups, n_splits):
         if len(np.unique(y[te])) < 2:
             continue
         reg = make_pipeline(StandardScaler(), LinearRegression())
@@ -119,7 +119,7 @@ def trace_residual_probe_auroc(H: np.ndarray, Bt: np.ndarray, y: np.ndarray,
     rebuild episode features from the residual states, probe as usual."""
     from sklearn.linear_model import LinearRegression, LogisticRegression
     from sklearn.metrics import roc_auc_score
-    from sklearn.model_selection import GroupKFold
+    from itasorl import folds
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
 
@@ -130,7 +130,7 @@ def trace_residual_probe_auroc(H: np.ndarray, Bt: np.ndarray, y: np.ndarray,
     Hflat = np.asarray(H, dtype=float).reshape(n * T, hid)
     row_ep = np.repeat(np.arange(n), T)                          # episode id per row
     aucs = []
-    for tr, te in GroupKFold(n_splits=n_splits).split(np.zeros(n), y, groups):
+    for tr, te in folds.split(groups, n_splits):
         if len(np.unique(y[te])) < 2:
             continue
         tr_rows = np.isin(row_ep, tr)
@@ -176,7 +176,7 @@ def sensory_residual_probe_auroc(H: np.ndarray, Ot: np.ndarray, y: np.ndarray,
     2026-09-27-local-strengthening-probes."""
     from sklearn.linear_model import LogisticRegression, Ridge
     from sklearn.metrics import roc_auc_score
-    from sklearn.model_selection import GroupKFold
+    from itasorl import folds
     from sklearn.neural_network import MLPRegressor
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
@@ -191,7 +191,7 @@ def sensory_residual_probe_auroc(H: np.ndarray, Ot: np.ndarray, y: np.ndarray,
     Hflat = np.asarray(H, dtype=float).reshape(n * T, hid)
     row_ep = np.repeat(np.arange(n), T)
     aucs = []
-    for tr, te in GroupKFold(n_splits=n_splits).split(np.zeros(n), y, groups):
+    for tr, te in folds.split(groups, n_splits):
         if len(np.unique(y[te])) < 2:
             continue
         tr_rows = np.isin(row_ep, tr)

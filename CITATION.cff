@@ -13,11 +13,15 @@ abstract: >-
   ITASORL tests whether a self-supervised digital organism, trained with no
   imported semantic knowledge, incidentally encodes whether its world is an
   authentic base simulation or a generative surrogate. Hand-tuned dynamics
-  artifacts (L2) are readily detectable by a privileged oracle but are not
-  encoded by the agent (robust negative); a learned-dynamics fingerprint
-  surrogate (L3) is incidentally encoded by survival-trained agents, with a
-  behavior-independent component that clears the pre-registered bar
-  (survival-specificity holds at the subtler of two tested fingerprints). A
+  artifacts (L2) are readily detectable by a noiseless privileged oracle but are
+  not encoded by the agent (robust negative; at the L3 gate's detector noise the
+  L2 oracle reads 0.62 to 0.65, so the matched contrast is L1 against L3); a
+  learned-dynamics fingerprint surrogate (L3) is incidentally encoded by
+  survival-trained agents carrying a next-observation auxiliary, with a
+  behavior-independent component that clears the pre-registered bar. Neither
+  objective alone reaches the bar (0.601 without the auxiliary, device-controlled).
+  Survival-specificity holds at two of three tested fingerprints, including an
+  independently trained one that falls under the bar (0.639). A
   cross-recipe probe shows the signal generalizes across surrogate families
   (it also reads a random-Fourier-features law fit on the same data); a
   same-recipe held-out probe adds capacity-variant robustness in one direction

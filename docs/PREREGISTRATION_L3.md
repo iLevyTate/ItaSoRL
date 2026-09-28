@@ -710,6 +710,23 @@ Rigor carried from the B-v3 audit (2026-07-10):
   l3_gate0_seed1/`, `l3_h10_gseed1/`, `artifacts/expB2/second_instance_l3_h10_gseed1.json`;
   FINDINGS 10.9.
 
+- **2026-09-28 - DEVICE CONTROL (decoder-carrying hidden = 8 protocol, unchanged, on the
+  same CPU cloud sandbox; n = 10): DEVICE IS NOT THE CAUSE; THE AUXILIARY-CONDITIONAL
+  VERDICT STANDS.** Executes the dated addendum (2026-09-27) to
+  `docs/specs/2026-09-26-l3-architecture-baseline-design.md`, frozen before launch
+  (`scripts/reviewer_gaps/run_cloud_device_control.sh`; launched 2026-09-27 22:33 UTC,
+  self-committed 02:44 UTC in `f746469`; an earlier 17:06 UTC launch committed no
+  results). All gates pass (engagement 20/20, L0 0.529 TOST p = 0.039 / ROPE accept,
+  speed >= 0.830, pooled leak clean 20/20, floor 0.523, 0 deaths). Drift 0.45: survival
+  **0.730** (t 90% CI [0.668, 0.791]; boot [0.677, 0.782]; 8/10 seeds >= 0.65), predictor
+  0.589, untrained 0.523; behavior-controlled survival 0.710 [0.656, 0.764] (7/10).
+  Frozen rule: >= 0.65 with the t-CI excluding the bar AND a lead over the no-auxiliary
+  0.601 of more than 0.05 (lead +0.128; paired by seed +0.128 [+0.089, +0.168]) -> DEVICE
+  NOT THE CAUSE. The predictor arm is bit-identical per seed to the architecture-baseline
+  run's, a determinism check across sessions. Committed:
+  `artifacts/reviewer_gaps_runs/l3_h8_wm_cpu/`,
+  `artifacts/expB2/device_control_l3_h8_wm_cpu.json`; FINDINGS 10.8.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
