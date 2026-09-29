@@ -43,7 +43,7 @@ under `clips/` is a local build output, gitignored, rebuilt on demand with
 
 | File | What it is | Source |
 |------|------------|--------|
-| `two-minds-web.mp4` | 1280x720, 30 fps, H.264 CRF 25, no audio track, 65.9 s. The cut the site plays. | Web encode of `clips/two-minds-tour.mp4`. |
+| `two-minds-web.mp4` | 1280x720, 30 fps, H.264, no audio track, 65.9 s (1977 frames). The cut the site plays. | Web encode of `clips/two-minds-tour.mp4`, end card corrected 2026-09-29 (below). |
 | `two-minds-poster.jpg` | Poster frame at 2 s (the title card). | Same. |
 | `clips/two-minds-tour.mp4` (local only) | 1920x1080 tour: title card (9.5 s), the five sections (overview 12, senses 9, process 9, memory 12, actions 12), end card (6 s), joined with 0.6 s fade-to-black. | `viz/player/capture/build-two-minds.ps1` |
 | `clips/two-minds-tour-vertical.mp4` (local only) | 1080x1920 tour. | Same. |
@@ -66,6 +66,20 @@ section 10.4, 90% CI 0.685 to 0.765), 0.928 watcher gate (93%). The pooled
 0.752 and the masked-sense figures (0.686, 0.500) belong to the uncontrolled
 family and are not shown as numbers; the senses chapter states that direction
 in words.
+
+**End card correction (2026-09-29).** The v3 end card said "A brain trained only
+to survive kept a trace of which world it was in." FINDINGS 10.8 contradicts
+that: without its next-observation predictor the survival brain reads 0.601,
+under the bar. `brain.js` now says "A brain trained to survive and predict kept a
+trace of which world it was in." The web encode was patched without the local
+tour master: frames 0 to 1800 are the v3 web encode unchanged in content (PSNR
+49 dB after one re-encode), and from frame 1801, where the fade to black bottoms
+out, the corrected `?sec=end&layout=wide` capture fades up on the original's luma
+ramp; re-encoded at CRF 22. That capture was rendered on Linux with Selawik,
+Microsoft's metric-compatible open substitute, standing in for Segoe UI. The
+local 1080p and 9:16 clips still carry the old card until the next
+`build-two-minds.ps1` run, which renders the corrected text in Segoe UI and
+supersedes this patch.
 
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
 the same way as film one and replace `two-minds-web.mp4` in place so the site

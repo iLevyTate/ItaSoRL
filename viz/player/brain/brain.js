@@ -1543,8 +1543,11 @@ function drawEndCard() {
 
   ctx.font = `700 ${L.headSize}px 'Segoe UI', sans-serif`;
   ctx.fillStyle = INK;
+  // Not "trained only to survive": without its next-observation predictor the
+  // survival brain reads 0.601, under the bar (FINDINGS 10.8). The 73% brain
+  // trains on both, which the actions chapter already shows as its guesses.
   fillBlock(
-    balancedLines("A brain trained only to survive kept a trace of which world it was in.", L.headMax),
+    balancedLines("A brain trained to survive and predict kept a trace of which world it was in.", L.headMax),
     L.head, L.headLH,
   );
 
