@@ -1,7 +1,15 @@
 # Explicit cross-validation folds and the re-score of published numbers
 
 Date: 2026-09-28
-Status: draft for the owner to freeze before any re-score is run
+Status: FROZEN 2026-09-29 on the owner's instruction ("run whatever is left"),
+before the re-score below was launched. Executed the same day on the owner's
+machine (Python 3.13.2, numpy 1.26.4, scikit-learn 1.5.2, torch 2.7.0+cu126),
+the stack that produced the published GPU numbers. Runs re-scored, in order:
+L3 hidden 8 and hidden 7 trace runs (integrity check), then every other saved
+pooled dump present locally (hidden 4 capacity run, L1 organism run, the L3 n = 10
+run, and the hidden 8 and 7 held-out bundles), then the common-garden, matched-pair,
+and gate-0 readouts under both `ITASORL_FOLDS` values. Outputs under
+`fullruns/fold_rescore/` (gitignored) until promoted.
 
 ## Problem
 

@@ -1,8 +1,21 @@
 # L3 second fingerprint at fixed capacity (hidden 8, new G seed)
 
 Date: 2026-09-28
-Status: DRAFT, not frozen. The owner freezes it (edits allowed until then) before
-any gate-0 or organism run.
+Status: FROZEN 2026-09-29 on the owner's instruction ("run whatever is left"),
+before any gate-0 or organism run, with one execution amendment recorded here.
+
+Freeze-time amendment (2026-09-29). The run executes on the owner's GPU machine
+(RTX 4050, torch 2.7.0+cu126, `--device cuda`, two parallel workers with
+`--resume`; `--workers` is outside the config fingerprint), not the CPU cloud
+sandbox, because the owner chose local execution. Consequences, fixed before
+launch: (1) the direct same-device comparison partner is the published hidden 8,
+seed 0 GPU run (0.752 under the legacy split; its explicit-split value comes from
+the re-score in `docs/specs/2026-09-28-explicit-cv-folds.md`, run first), and the
+CPU device control (0.730) becomes the secondary comparison; (2) the run is scored
+under `ITASORL_FOLDS=explicit` as written below; (3) gate 0 also runs on CUDA;
+(4) the local chain does not self-commit; results stay in `fullruns/` until the
+owner promotes them. Gate-0 order, capacity, seeds, updates, and the decision rule
+are unchanged.
 
 ## Purpose
 
