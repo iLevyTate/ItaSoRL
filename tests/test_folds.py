@@ -103,7 +103,9 @@ def test_integrity_reference_is_keyed_by_scheme():
         assert folds.reference_survival_target(8) == 0.752
         assert folds.reference_survival_target(7) == 0.737
     with folds.fold_scheme("explicit"):
-        if not folds.REFERENCE_SURVIVAL_TARGET["explicit"].get(8):
-            with pytest.raises(SystemExit, match="ITASORL_FOLDS=legacy"):
-                folds.reference_survival_target(8)
-            assert folds.reference_survival_target(8, strict=False) is None
+        # recorded by the 2026-09-29 re-score (docs/specs/2026-09-28-explicit-cv-folds.md)
+        assert folds.reference_survival_target(8) == 0.774
+        assert folds.reference_survival_target(7) == 0.740
+        with pytest.raises(SystemExit, match="ITASORL_FOLDS=legacy"):
+            folds.reference_survival_target(99)
+        assert folds.reference_survival_target(99, strict=False) is None
