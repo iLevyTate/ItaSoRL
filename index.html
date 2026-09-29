@@ -574,7 +574,8 @@
           <div>
             <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:#8a72c0; margin-bottom:22px;">03 &nbsp;/&nbsp; The readout</div>
             <h2 style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:38px; line-height:1.1; letter-spacing:-0.02em; margin:0 0 20px; color:#2a2547; text-wrap:balance;">Detectable is not the same as learned.</h2>
-            <p style="font-size:16px; line-height:1.65; color:#5c5776; margin:0 0 30px; max-width:440px; text-wrap:pretty;">After training, a linear probe reads the agent's internal state and asks: is world identity in there? At L1 and L2 the answer stays near chance while an outside oracle catches the flaw. At L3, survival pressure is the first condition that lifts the curve, and only while the agent also trains to predict its next observation.</p>
+            <p style="font-size:16px; line-height:1.65; color:#5c5776; margin:0 0 16px; max-width:440px; text-wrap:pretty;">After training, a linear probe reads the agent's internal state and asks: is world identity in there? At L1 and L2 the answer stays near chance while an outside oracle catches the flaw. At L3, survival pressure is the first condition that lifts the readout over the bar, and only while the agent also trains to predict its next observation.</p>
+            <p style="font-size:15px; line-height:1.6; color:#6b6588; margin:0 0 30px; max-width:440px; text-wrap:pretty;">The chart shows every brain we trained against the L3 fingerprint, ten seeds each. The lower rows take the best brain and subtract what the signal could be echoing: how it moves, what it senses, then both at once with a nonlinear fit. The last one lands on the bar, not above it.</p>
             <div style="display:flex; gap:16px;">
               <div style="flex:1; background:#e8e5f1; border-radius:14px; padding:18px 20px; box-shadow:inset 5px 5px 11px #c8c3dd, inset -5px -5px 11px #fbfaff;">
                 <div style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:24px; color:#2a2547;">AUROC</div>
@@ -589,16 +590,13 @@
           <div style="background:#e8e5f1; border-radius:18px; padding:26px; box-shadow:inset 7px 7px 16px #c8c3dd, inset -7px -7px 16px #fbfaff;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#8a72c0;">probe readout · L3 fingerprint</span>
-              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5f82c6;">● confirmed, n = 10</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6b6588;">10 seeds per row</span>
             </div>
-            <div style="display:flex; gap:18px; margin-bottom:14px;">
-              <span style="display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6b6588;"><span style="width:14px; height:3px; border-radius:2px; background:linear-gradient(90deg,#8a72c0,#5f82c6);"></span>survival agent</span>
-              <span style="display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6b6588;"><span style="width:14px; height:3px; border-radius:2px; background:#b3aecb;"></span>prediction-only</span>
+            <div style="display:flex; gap:18px; flex-wrap:wrap; margin-bottom:10px;">
+              <span style="display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6b6588;"><svg width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="3.2" fill="#5a4bc4" opacity="0.5"></circle></svg>one trained brain</span>
+              <span style="display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6b6588;"><svg width="26" height="12" aria-hidden="true"><line x1="2" y1="6" x2="24" y2="6" stroke="#5a4bc4" stroke-width="2.5" stroke-linecap="round"></line><circle cx="13" cy="6" r="4.6" fill="#5a4bc4" stroke="#e8e5f1" stroke-width="2"></circle></svg>mean and 90% interval</span>
             </div>
-            <div ref="{{ chartRef }}" style="width:100%;"></div>
-            <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#8a849e; margin-top:12px;">
-              <span>training progress →</span><span>survival pressure applied</span>
-            </div>
+            <div ref="{{ chartRef }}" style="width:100%; position:relative;"></div>
           </div>
         </div>
       </div>
@@ -853,9 +851,6 @@ class Component extends DCLogic {
     els.forEach((el) => this._io.observe(el));
   }
 
-  // deterministic jitter
-  noise(i) { return Math.sin(i * 12.9898) * 0.5; }
-
   blobPath(cx, cy, rx, ry, phase) {
     const pts = [];
     const N = 96;
@@ -913,63 +908,277 @@ class Component extends DCLogic {
       </svg>`;
   }
 
+  // Per-seed readout, one row per brain or control, from site_metrics.readout_rows
+  // (committed artifacts; t-based 90% intervals). No time axis: the probe is read
+  // once, after training, so the chart shows where each trained brain landed.
+  get READOUT() {
+    return {
+ "untrained": {
+  "seeds": [
+   0.483,
+   0.414,
+   0.549,
+   0.543,
+   0.468,
+   0.509,
+   0.452,
+   0.488,
+   0.413,
+   0.559
+  ],
+  "mean": 0.488,
+  "lo": 0.457,
+  "hi": 0.518,
+  "over_bar": 0
+ },
+ "predictor": {
+  "seeds": [
+   0.495,
+   0.597,
+   0.629,
+   0.579,
+   0.611,
+   0.597,
+   0.494,
+   0.524,
+   0.565,
+   0.643
+  ],
+  "mean": 0.573,
+  "lo": 0.542,
+  "hi": 0.604,
+  "over_bar": 0
+ },
+ "no_predictor": {
+  "seeds": [
+   0.603,
+   0.619,
+   0.599,
+   0.617,
+   0.488,
+   0.488,
+   0.81,
+   0.619,
+   0.626,
+   0.545
+  ],
+  "mean": 0.601,
+  "lo": 0.549,
+  "hi": 0.654,
+  "over_bar": 1
+ },
+ "no_predictor_ref": {
+  "seeds": [
+   0.666,
+   0.79,
+   0.7,
+   0.733,
+   0.617,
+   0.537,
+   0.885,
+   0.721,
+   0.85,
+   0.798
+  ],
+  "mean": 0.73,
+  "lo": 0.668,
+  "hi": 0.791,
+  "over_bar": 8
+ },
+ "survival": {
+  "seeds": [
+   0.853,
+   0.636,
+   0.841,
+   0.823,
+   0.83,
+   0.573,
+   0.705,
+   0.782,
+   0.759,
+   0.723
+  ],
+  "mean": 0.752,
+  "lo": 0.698,
+  "hi": 0.807,
+  "over_bar": 8
+ },
+ "minus_behavior": {
+  "seeds": [
+   0.783,
+   0.653,
+   0.807,
+   0.793,
+   0.829,
+   0.57,
+   0.673,
+   0.715,
+   0.734,
+   0.704
+  ],
+  "mean": 0.726,
+  "lo": 0.679,
+  "hi": 0.772,
+  "over_bar": 9
+ },
+ "minus_senses": {
+  "seeds": [
+   0.764,
+   0.599,
+   0.786,
+   0.75,
+   0.837,
+   0.636,
+   0.727,
+   0.761,
+   0.756,
+   0.694
+  ],
+  "mean": 0.731,
+  "lo": 0.69,
+  "hi": 0.772,
+  "over_bar": 8
+ },
+ "minus_both_nonlinear": {
+  "seeds": [
+   0.686,
+   0.593,
+   0.653,
+   0.675,
+   0.778,
+   0.575,
+   0.61,
+   0.68,
+   0.652,
+   0.639
+  ],
+  "mean": 0.654,
+  "lo": 0.621,
+  "hi": 0.687,
+  "over_bar": 6
+ }
+};
+  }
+
   drawChart() {
     const host = this.chartRef.current;
     if (!host) return;
+    const R = this.READOUT;
+    const ACC = '#5a4bc4', MUTE = '#827d98', SURF = '#e8e5f1';
+    const groups = [
+      { head: 'What each brain holds', rows: [
+        { id: 'untrained', label: 'Untrained brain', color: MUTE, ref: 'FINDINGS 10.2' },
+        { id: 'predictor', label: 'Trained only to predict', color: MUTE, ref: 'FINDINGS 10.2' },
+        { id: 'no_predictor', label: 'Trained to survive, predictor removed †', color: MUTE, ref: 'FINDINGS 10.8' },
+        { id: 'survival', label: 'Trained to survive and predict', color: ACC, ref: 'FINDINGS 10.2' },
+      ] },
+      { head: 'That brain, echoes subtracted', rows: [
+        { id: 'minus_behavior', label: '…minus how it moves', color: ACC, ref: 'FINDINGS 10.4' },
+        { id: 'minus_senses', label: '…minus what it senses', color: ACC, ref: 'FINDINGS 10.4.2' },
+        { id: 'minus_both_nonlinear', label: '…minus both, nonlinear fit', color: ACC, ref: 'FINDINGS 10.4.2' },
+      ] },
+    ];
     const W = Math.max(280, host.clientWidth || 380);
-    const H = 210;
-    const padL = 36, padR = 46, padT = 14, padB = 10;
-    const x0 = padL, x1 = W - padR, y0 = padT, y1 = H - padB;
-    const X = (t) => x0 + t * (x1 - x0);
-    const map = (auroc) => y1 - ((auroc - 0.4) / 0.6) * (y1 - y0);
-    const N = 64, split = 0.6;
-
-    const surv = [], pred = [];
-    for (let i = 0; i <= N; i++) {
-      const t = i / N;
-      let a = 0.5 + this.noise(i) * 0.014;
-      if (t > split) {
-        const k = (t - split) / (1 - split);
-        a = 0.5 + (0.752 - 0.5) * (1 / (1 + Math.exp(-9 * (k - 0.45)))) + this.noise(i + 7) * 0.008;
+    const x0 = 6, x1 = W - 8, lo = 0.40, hi = 0.90;
+    const X = (v) => x0 + ((v - lo) / (hi - lo)) * (x1 - x0);
+    const HEAD = 30, LAB = 17, TRACK = 24, GAP = 9, AXIS = 40;
+    let y = 22;
+    const layout = [];
+    groups.forEach((g, gi) => {
+      layout.push({ head: g.head, y: y + 14 });
+      y += HEAD;
+      g.rows.forEach((r) => { layout.push({ row: r, y }); y += LAB + TRACK + GAP; });
+      if (gi < groups.length - 1) y += 6;
+    });
+    const plotTop = 18, plotBot = y - GAP + 4, H = plotBot + AXIS;
+    const f3 = (v) => v.toFixed(3);
+    let s = '';
+    [0.4, 0.6, 0.7, 0.8, 0.9].forEach((v) => {
+      s += `<line x1="${X(v).toFixed(1)}" y1="${plotTop}" x2="${X(v).toFixed(1)}" y2="${plotBot}" stroke="rgba(120,110,160,0.13)" stroke-width="1"/>`;
+    });
+    s += `<line x1="${X(0.5).toFixed(1)}" y1="${plotTop}" x2="${X(0.5).toFixed(1)}" y2="${plotBot}" stroke="rgba(74,68,104,0.42)" stroke-width="1"/>`;
+    s += `<line x1="${X(0.65).toFixed(1)}" y1="${plotTop}" x2="${X(0.65).toFixed(1)}" y2="${plotBot}" stroke="${ACC}" stroke-opacity="0.55" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+    s += `<text x="${(X(0.65) + 6).toFixed(1)}" y="11" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4a4468">bar 0.65, set in advance</text>`;
+    let rowsSvg = '';
+    let k = 0;
+    layout.forEach((it) => {
+      if (it.head) {
+        s += `<text x="${x0}" y="${it.y}" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.4" fill="#7a679f" paint-order="stroke" stroke="#e8e5f1" stroke-width="5" stroke-linejoin="round">${it.head.toUpperCase()}</text>`;
+        return;
       }
-      surv.push([X(t), map(Math.min(a, 0.76))]);
-      pred.push([X(t), map(0.53 + this.noise(i + 31) * 0.02 + t * 0.03)]);
-    }
-    const toPath = (pts) => pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
-    const survPath = toPath(surv);
-    const predPath = toPath(pred);
-    const areaPath = survPath + ` L ${surv[surv.length - 1][0].toFixed(1)} ${y1} L ${surv[0][0].toFixed(1)} ${y1} Z`;
-    const chance = map(0.5);
-    const end = surv[surv.length - 1];
-    const grid = [1.0, 0.75].map((v) =>
-      `<line x1="${x0}" y1="${map(v).toFixed(1)}" x2="${x1}" y2="${map(v).toFixed(1)}" stroke="rgba(120,110,160,0.14)" stroke-width="1"/>`
+      const r = it.row, d = R[r.id], ty = it.y + LAB + TRACK / 2;
+      const emph = r.color === ACC;
+      const anim = this._chartDrawn ? '' : ` animation:rise .6s ease-out ${(0.08 * k).toFixed(2)}s both;`;
+      let g = `<g class="ro-row" data-id="${r.id}" tabindex="0" style="outline:none;${anim}">`;
+      g += `<rect x="0" y="${it.y - 2}" width="${W}" height="${LAB + TRACK + 4}" rx="8" fill="rgba(138,114,192,0)" class="ro-hit"/>`;
+      g += `<text x="${x0}" y="${it.y + 12}" font-family="Hanken Grotesk, sans-serif" font-size="12.5" font-weight="${emph ? 600 : 500}" fill="${emph ? '#2a2547' : '#5c5776'}" paint-order="stroke" stroke="#e8e5f1" stroke-width="5" stroke-linejoin="round">${r.label}</text>`;
+      g += `<text x="${x1}" y="${it.y + 12}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="500" fill="#2a2547" paint-order="stroke" stroke="#e8e5f1" stroke-width="5" stroke-linejoin="round">${f3(d.mean)}</text>`;
+      g += `<line x1="${X(d.lo).toFixed(1)}" y1="${ty}" x2="${X(d.hi).toFixed(1)}" y2="${ty}" stroke="${r.color}" stroke-width="2.5" stroke-linecap="round"/>`;
+      const order = d.seeds.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
+      order.forEach(([v], j) => {
+        const dy = [-6, 6, -3, 3, 0][j % 5];
+        g += `<circle cx="${X(v).toFixed(1)}" cy="${(ty + dy).toFixed(1)}" r="3.2" fill="${r.color}" fill-opacity="0.45"/>`;
+      });
+      g += `<circle cx="${X(d.mean).toFixed(1)}" cy="${ty}" r="5.2" fill="${r.color}" stroke="${SURF}" stroke-width="2"/>`;
+      g += `</g>`;
+      rowsSvg += g;
+      k += 1;
+    });
+    const ticks = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9].map((v) =>
+      `<text x="${X(v).toFixed(1)}" y="${plotBot + 16}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8a849e">${v.toFixed(1)}</text>`
     ).join('');
-    const ticks = [1.0, 0.75, 0.5].map((v) =>
-      `<text x="6" y="${(map(v) + 4).toFixed(1)}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8a849e">${v.toFixed(2)}</text>`
-    ).join('');
-
+    s += ticks;
+    s += `<text x="${X(0.5).toFixed(1)}" y="${plotBot + 32}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6588">coin flip</text>`;
+    s += `<text x="${x1}" y="${plotBot + 32}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8a849e">probe AUROC →</text>`;
+    const ref = R.no_predictor_ref;
+    const allRows = groups.flatMap((g) => g.rows);
+    const tableRows = allRows.map((r) => {
+      const d = R[r.id];
+      return `<tr><td style="padding:5px 10px 5px 0;">${r.label}</td><td style="padding:5px 10px; text-align:right;">${f3(d.mean)}</td><td style="padding:5px 10px; white-space:nowrap;">${f3(d.lo)} to ${f3(d.hi)}</td><td style="padding:5px 10px; text-align:right;">${d.over_bar} / ${d.seeds.length}</td><td style="padding:5px 0 5px 10px; white-space:nowrap;">${r.ref}</td></tr>`;
+    }).join('');
     host.innerHTML =
-      `<svg width="100%" viewBox="0 0 ${W} ${H}" style="display:block; overflow:visible;">
-        <defs>
-          <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#8a72c0"/><stop offset="1" stop-color="#5f82c6"/>
-          </linearGradient>
-          <linearGradient id="fillg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="rgba(122,111,193,0.20)"/><stop offset="1" stop-color="rgba(122,111,193,0)"/>
-          </linearGradient>
-        </defs>
-        <rect x="${X(split).toFixed(1)}" y="${y0}" width="${(x1 - X(split)).toFixed(1)}" height="${(y1 - y0).toFixed(1)}" fill="rgba(138,114,192,0.06)" rx="6"/>
-        <line x1="${X(split).toFixed(1)}" y1="${y0}" x2="${X(split).toFixed(1)}" y2="${y1}" stroke="rgba(138,114,192,0.3)" stroke-width="1" stroke-dasharray="3 4"/>
-        ${grid}${ticks}
-        <line x1="${x0}" y1="${chance.toFixed(1)}" x2="${x1}" y2="${chance.toFixed(1)}" stroke="rgba(74,68,104,0.28)" stroke-width="1" stroke-dasharray="4 5"/>
-        <text x="${x1}" y="${(chance + 14).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6588">chance</text>
-        <path d="${areaPath}" fill="url(#fillg)" style="animation:fade 1.6s ease-out both;"/>
-        <path d="${predPath}" fill="none" stroke="#b3aecb" stroke-width="2" stroke-linecap="round" stroke-dasharray="1100" style="animation:drawline 2.2s ease-out forwards;"/>
-        <path d="${survPath}" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1100" style="animation:drawline 2.6s ease-out forwards;"/>
-        <circle cx="${end[0].toFixed(1)}" cy="${end[1].toFixed(1)}" r="4.5" fill="#5f82c6"/>
-        <circle cx="${end[0].toFixed(1)}" cy="${end[1].toFixed(1)}" r="9" fill="none" stroke="rgba(95,130,198,0.35)" stroke-width="1.5"/>
-        <text x="${(end[0] + 14).toFixed(1)}" y="${(end[1] + 4).toFixed(1)}" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="500" fill="#4f6fc0">&#8776;0.75</text>
-      </svg>`;
+      `<svg width="100%" viewBox="0 0 ${W} ${H}" role="img" aria-label="Probe AUROC per seed for each trained brain and control, with the 0.5 coin-flip line and the 0.65 bar" style="display:block; overflow:visible;">${s}${rowsSvg}</svg>
+      <div class="ro-tip" role="status" style="position:absolute; pointer-events:none; opacity:0; transition:opacity .12s; background:#2a2547; color:#f2f0fa; border-radius:10px; padding:10px 12px; max-width:250px; box-shadow:0 8px 20px rgba(30,25,64,0.28); font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.5; z-index:5;"></div>
+      <p style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; line-height:1.6; color:#8a849e; margin:10px 0 0;">† Ran on CPU. The same setup with its predictor, on that machine, reads ${f3(ref.mean)} (${ref.over_bar} of 10 over the bar), so the drop is not the machine. Every number comes from a committed artifact.</p>
+      <details style="margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5c5776;">
+        <summary style="cursor:pointer; color:#6b6588;">show the numbers</summary>
+        <div style="overflow-x:auto; margin-top:8px;"><table style="border-collapse:collapse; font-variant-numeric:tabular-nums; min-width:460px;">
+          <thead><tr style="color:#8a849e; text-align:left;"><th style="padding:4px 10px 4px 0; font-weight:500;">readout</th><th style="padding:4px 10px; font-weight:500; text-align:right;">mean</th><th style="padding:4px 10px; font-weight:500;">90% CI (t)</th><th style="padding:4px 10px; font-weight:500; text-align:right;">≥ 0.65</th><th style="padding:4px 0 4px 10px; font-weight:500;">source</th></tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table></div>
+      </details>`;
+    this._chartDrawn = true;
+    const tip = host.querySelector('.ro-tip');
+    const byId = {};
+    allRows.forEach((r) => { byId[r.id] = r; });
+    const show = (el, evt) => {
+      const r = byId[el.getAttribute('data-id')], d = R[r.id];
+      tip.textContent = '';
+      const v = document.createElement('div');
+      v.style.cssText = 'font-size:13px; font-weight:500; color:#ffffff;';
+      v.textContent = `${f3(d.mean)}  (${f3(d.lo)} to ${f3(d.hi)})`;
+      const l = document.createElement('div');
+      l.style.cssText = 'color:#cfc9e8; margin-top:2px;';
+      l.textContent = r.label;
+      const n = document.createElement('div');
+      n.style.cssText = 'color:#b6b1d2; margin-top:6px;';
+      n.textContent = `${d.over_bar} of ${d.seeds.length} seeds at or over 0.65 · ${r.ref}`;
+      tip.append(v, l, n);
+      const hb = host.getBoundingClientRect(), eb = el.getBoundingClientRect();
+      const tw = Math.min(250, hb.width - 8);
+      const px = evt && evt.clientX ? evt.clientX - hb.left : hb.width / 2;
+      tip.style.left = Math.max(0, Math.min(hb.width - tw, px - tw / 2)) + 'px';
+      tip.style.top = (eb.top - hb.top - tip.offsetHeight - 6) + 'px';
+      tip.style.opacity = '1';
+      el.querySelector('.ro-hit').setAttribute('fill', 'rgba(138,114,192,0.08)');
+    };
+    const hide = (el) => { tip.style.opacity = '0'; el.querySelector('.ro-hit').setAttribute('fill', 'rgba(138,114,192,0)'); };
+    host.querySelectorAll('.ro-row').forEach((el) => {
+      el.addEventListener('pointermove', (e) => show(el, e));
+      el.addEventListener('pointerleave', () => hide(el));
+      el.addEventListener('focus', () => show(el, null));
+      el.addEventListener('blur', () => hide(el));
+    });
   }
 
   renderVals() {

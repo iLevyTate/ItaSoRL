@@ -36,3 +36,36 @@ def test_derive_metrics_matches_findings_headline_numbers():
 def test_derive_metrics_values_are_display_strings():
     m = site_metrics.derive_metrics(ROOT / "artifacts" / "expB2")
     assert all(isinstance(v, str) for v in m.values())
+
+
+def test_readout_rows_match_findings_per_seed_sources():
+    # The readout chart plots these rows; each mean and t-based 90% CI is the one
+    # FINDINGS reports for that readout (10.2, 10.4, 10.4.2 and addendum, 10.8).
+    import json
+
+    rows = json.loads(site_metrics.derive_metrics(ROOT / "artifacts" / "expB2")["readout_rows"])
+    expect = {
+        "untrained": (0.488, None, None, 0),
+        "predictor": (0.573, None, None, 0),
+        "no_predictor": (0.601, 0.549, 0.654, 1),
+        "no_predictor_ref": (0.730, 0.668, 0.791, 8),
+        "survival": (0.752, 0.698, 0.807, 8),
+        "minus_behavior": (0.726, 0.679, 0.772, 9),
+        "minus_senses": (0.731, 0.690, 0.772, 8),
+        "minus_both_nonlinear": (0.654, 0.621, 0.687, 6),
+    }
+    assert set(rows) == set(expect)
+    for key, (mean, lo, hi, over) in expect.items():
+        r = rows[key]
+        assert len(r["seeds"]) == 10, key
+        assert r["mean"] == mean, key
+        assert r["over_bar"] == over, key
+        if lo is not None:
+            assert (r["lo"], r["hi"]) == (lo, hi), key
+
+
+def test_readout_rows_literal_has_no_adjacent_braces():
+    # The page runtime treats "{{" and "}}" as template bindings, even inside the
+    # component script, so the injected JSON must never put two braces together.
+    lit = site_metrics.derive_metrics(ROOT / "artifacts" / "expB2")["readout_rows"]
+    assert "{{" not in lit and "}}" not in lit

@@ -1175,8 +1175,12 @@ def main() -> int:
         ("index.html", "validated null", "index.html states the Exp C verdict"),
     ]:
         check_true(label, needle in _read(relpath))
+    # The readout chart once drew an invented training-time curve ("survival pressure
+    # applied" part-way through training); it now plots the per-seed readouts.
     for relpath, banned in [("index.html", "EXP C · next"),
-                            ("index.html", "no matter how loud the artifact")]:
+                            ("index.html", "no matter how loud the artifact"),
+                            ("index.html", "survival pressure applied"),
+                            ("index.html", "training progress")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
 
     # ---- FINDINGS methods note 2: engagement margin on committed cells --------
