@@ -771,6 +771,21 @@ Rigor carried from the B-v3 audit (2026-07-10):
   resumed from its cell file; the 60 cells are unique. Committed:
   `artifacts/expB2/sensory_echo_l3_h7.json`; FINDINGS 10.4.2 hidden = 7 addendum.
 
+- **2026-09-29 - EXPLICIT-FOLD RE-SCORE OF THE PUBLISHED DUMPS (readout-only; owner's
+  stack, numpy 1.26.4 / scikit-learn 1.5.2): RECORD REPRODUCED; ONE GATE CLAUSE FLIPS.**
+  Executes `docs/specs/2026-09-28-explicit-cv-folds.md`, frozen the same day before the
+  run. Legacy column reproduces 0.752 / 0.726 (hidden 8), 0.737 / 0.722 (hidden 7),
+  common garden 0.666 / 0.684, every stored matched-pair value, gate 0 (0.928 / 0.482,
+  0.922 / 0.566). Explicit: hidden 8 survival **0.774** [0.727, 0.821], `resid_trace` 0.750;
+  hidden 7 0.740 [0.688, 0.791], 0.725; common garden 0.677 / 0.677; no decision or margin
+  clause on these moves. FLIP: gate 0 at hidden 7 FAILS under explicit (untrained floor
+  0.615 against the |target - 0.5| < 0.1 tolerance; the n = 10 organism-run floor reads
+  0.599959, inside by 0.00004) -> FINDINGS 16; hidden 8 passes under both. Partition
+  correction: the legacy split on this stack is (22,22) x 3, (21,23), (23,21). Not
+  re-scored: B-v3 (dumps absent) and the sensory-echo joint controls (pool-regenerating).
+  `REFERENCE_SURVIVAL_TARGET` explicit entries recorded (8: 0.774, 7: 0.740). Committed:
+  `artifacts/fold_rescore/` (17 files); FINDINGS methods note 8 and section 16.
+
 - **2026-09-29 - HIDDEN-8 NEW-SEED INSTANCE, GATE 0 (G seed 2; spec `docs/specs/2026-09-28-l3-hidden8-second-seed-design.md`; recorded by the run chain mechanically BEFORE launch).** Calibration on world P at the frozen sigma=0.02: hidden=8: oracle 0.939 (in band True), mech leak pass, floor 0.540 (ok) -> PASS. Selected hidden=8 at G seed 2 (first passing candidate in the frozen order G seeds 2, 3, 4 at hidden 8). The organism run launches with this instance; its result is recorded in a later entry.
 
 ## 13. How to run (milestones, in order)

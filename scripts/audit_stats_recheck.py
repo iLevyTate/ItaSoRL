@@ -1148,6 +1148,46 @@ def main() -> int:
     check("fold h7: explicit lead over predictor (+0.037; raw 0.0365 is the 3-dp midpoint)", s7["mean"] - p7, 0.037, tol=1e-3)
     check_true("folds.py explicit references match the re-score (8: 0.774, 7: 0.740)",
                abs(round(s8["mean"], 3) - 0.774) < 1e-9 and abs(round(s7["mean"], 3) - 0.740) < 1e-9)
+    # common garden, matched pair, gate 0 under both schemes
+    cg = {(h, sch): _fold_art(f"cg_h{h}_{sch}.json")["aggregate"] for h in (8, 7) for sch in ("legacy", "explicit")}
+    check("fold cg h8 legacy reproduces the forward tail (0.666)", cg[(8, "legacy")]["d0.45_survival"]["cg_tail_mean"], 0.666)
+    check("fold cg h7 legacy reproduces the reverse tail (0.684)", cg[(7, "legacy")]["d0.45_survival"]["cg_tail_mean"], 0.684)
+    check("fold cg h8 explicit forward tail (0.677)", cg[(8, "explicit")]["d0.45_survival"]["cg_tail_mean"], 0.677)
+    check("fold cg h7 explicit reverse tail (0.677)", cg[(7, "explicit")]["d0.45_survival"]["cg_tail_mean"], 0.677)
+    for h in (8, 7):
+        a = cg[(h, "explicit")]
+        check_true(f"fold cg h{h} explicit: both frozen clauses still pass",
+                   a["d0.45_survival"]["cg_tail_mean"] >= 0.65
+                   and a["d0.45_survival"]["cg_tail_mean"] > a["d0.45_untrained"]["cg_tail_mean"] + 0.05)
+    for h, leg, exp in ((8, 0.893, 0.903), (7, 0.855, 0.848)):
+        mpl = _fold_art(f"mp_h{h}_legacy.json")["aggregate"]["d0.45_survival"]
+        mpe = _fold_art(f"mp_h{h}_explicit.json")["aggregate"]["d0.45_survival"]
+        check_true(f"fold mp h{h} legacy reproduces every stored value", bool(mpl["all_reproduce_stored"]))
+        check(f"fold mp h{h} legacy survival ({leg})", mpl["mp_fixed_mean"], leg)
+        check(f"fold mp h{h} explicit survival ({exp})", mpe["mp_fixed_mean"], exp)
+    g0 = {sch: {int(r["hidden"]): r for r in _fold_art(f"gate0_h8h7_{sch}.json")["rows"]} for sch in ("legacy", "explicit")}
+    check("fold gate0 legacy h8 oracle reproduces (0.928)", g0["legacy"][8]["oracle_auroc"], 0.928)
+    check("fold gate0 legacy h8 floor reproduces (0.482)", g0["legacy"][8]["floor"], 0.482)
+    check("fold gate0 legacy h7 oracle reproduces (0.922)", g0["legacy"][7]["oracle_auroc"], 0.922)
+    check("fold gate0 legacy h7 floor reproduces (0.566)", g0["legacy"][7]["floor"], 0.566)
+    check_true("fold gate0 legacy: both capacities pass", g0["legacy"][8]["passes_gate0"] and g0["legacy"][7]["passes_gate0"])
+    check("fold gate0 explicit h8 floor (0.508)", g0["explicit"][8]["floor"], 0.508)
+    check_true("fold gate0 explicit h8 passes", bool(g0["explicit"][8]["passes_gate0"]))
+    check("section 16: gate0 explicit h7 floor (0.615)", g0["explicit"][7]["floor"], 0.615)
+    check("section 16: gate0 explicit h7 oracle still in band (0.918)", g0["explicit"][7]["oracle_auroc"], 0.918)
+    check_true("section 16: gate0 explicit h7 FAILS on the floor clause",
+               (not g0["explicit"][7]["passes_gate0"]) and (not g0["explicit"][7]["floor_ok"])
+               and abs(g0["explicit"][7]["floor"] - 0.5) >= 0.1)
+    u7e = fr[7]["aggregate"]["d=0.45 untrained"]["target"]["explicit"]["mean"]
+    check_true("section 16: h7 organism-run floor under explicit inside the tolerance by < 0.001",
+               abs(u7e - 0.5) < 0.1 and (0.1 - abs(u7e - 0.5)) < 0.001)
+    u7_cells = {sch: [c[sch]["target"] for c in fr[7]["cells"] if c["agent"] == "untrained" and float(c["drift"]) == 0.45]
+                for sch in ("legacy", "explicit")}
+    check_int("section 16: h7 seeds with floor >= 0.6 under explicit (5)", sum(x >= 0.6 for x in u7_cells["explicit"]), 5)
+    check_int("section 16: h7 seeds with floor >= 0.6 under legacy (3)", sum(x >= 0.6 for x in u7_cells["legacy"]), 3)
+    check_true("FINDINGS carries section 16",
+               "## 16. Fold-split sensitivity" in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
+                                                      encoding="utf-8").read())
 
     # ---- FINDINGS 10.8 device control (promoted 2026-09-28) --------------------
     print("\n== FINDINGS 10.8: device control (decoder-carrying arm on the CPU sandbox) ==")
