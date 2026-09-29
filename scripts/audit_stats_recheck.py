@@ -1058,6 +1058,48 @@ def main() -> int:
     check("10.9-gpu paired predictor delta (-0.005)", float(d_pred.mean()), -0.005)
     check_true("10.9-gpu paired delta interval includes zero", lo < 0 < hi)
 
+    print("\n== FINDINGS 10.4.2 addendum: sensory-echo control at hidden 7 (2026-09-29) ==")
+    s7 = _load_art("expB2", "sensory_echo_l3_h7.json")
+    check_true("h7 sensory-echo: artifact names the hidden 7 surrogate and agents",
+               "hidden=7" in s7["surrogate"] and "l3_h7_heldout" in s7["agents"])
+    check_true("h7 sensory-echo integrity: every regenerated pool bit-matches",
+               s7["integrity"]["all_match"] is True)
+    check_true("h7 sensory-echo integrity: published 0.737 reproduced (legacy split)",
+               s7["integrity"]["target_reproduced"] is True and s7["integrity"]["fold_scheme"] == "legacy")
+    check_int("h7 sensory-echo cells (60)", len(s7["cells"]), 60)
+    check_int("h7 sensory-echo cells are unique (drift, seed, agent)",
+              len({(c["drift"], c["seed"], c["agent"]) for c in s7["cells"]}), 60)
+    for key, block in s7["aggregate"].items():
+        for met, v in block.items():
+            check(f"h7 sensory-echo {key} {met}: stored mean reproduces per-seed mean",
+                  float(np.mean(v["per_seed"])), float(v["mean"]))
+    sv7 = s7["aggregate"]["d=0.45 survival"]
+    check("h7 10.4.2 survival target reproduces 0.737", sv7["target"]["mean"], 0.737)
+    check("h7 10.4.2 survival obs_trace_only (0.697)", sv7["obs_trace_only"]["mean"], 0.697)
+    check("h7 10.4.2 survival resid_trace, seven-channel (0.739)", sv7["resid_trace"]["mean"], 0.739)
+    check("h7 10.4.2 survival resid_obs (0.684)", sv7["resid_obs"]["mean"], 0.684)
+    lo, hi = t_ci(sv7["resid_obs"]["per_seed"])
+    check("h7 10.4.2 survival resid_obs t90 lo (0.627)", lo, 0.627)
+    check("h7 10.4.2 survival resid_obs t90 hi (0.741)", hi, 0.741)
+    check_int("h7 10.4.2 survival resid_obs seeds >= 0.65 (7)", sv7["resid_obs"]["n_ge_065"], 7)
+    check("h7 10.4.2 survival resid_obs_int (0.695)", sv7["resid_obs_int"]["mean"], 0.695)
+    check("h7 10.4.2 survival resid_obs_beh (0.671)", sv7["resid_obs_beh"]["mean"], 0.671)
+    lo, hi = t_ci(sv7["resid_obs_beh"]["per_seed"])
+    check("h7 10.4.2 survival resid_obs_beh t90 lo (0.618)", lo, 0.618)
+    check("h7 10.4.2 survival resid_obs_beh t90 hi (0.725)", hi, 0.725)
+    p7o = s7["aggregate"]["d=0.45 predictor"]["resid_obs"]["mean"]
+    check("h7 10.4.2 predictor resid_obs (0.589)", p7o, 0.589)
+    check("h7 10.4.2 predictor raw target (0.714)", s7["aggregate"]["d=0.45 predictor"]["target"]["mean"], 0.714)
+    check("h7 10.4.2 untrained resid_obs (0.549)", s7["aggregate"]["d=0.45 untrained"]["resid_obs"]["mean"], 0.549)
+    check("h7 10.4.2 untrained obs_trace_only (0.643)", s7["aggregate"]["d=0.45 untrained"]["obs_trace_only"]["mean"], 0.643)
+    check("h7 10.4.2 survival-minus-predictor lead under the sensory control (+0.095)",
+          sv7["resid_obs"]["mean"] - p7o, 0.095)
+    check("h7 10.4.2 drift-0 survival resid_obs floor (0.504)", s7["aggregate"]["d=0.00 survival"]["resid_obs"]["mean"], 0.504)
+    check("h7 10.4.2 drift-0 untrained resid_obs floor (0.472)", s7["aggregate"]["d=0.00 untrained"]["resid_obs"]["mean"], 0.472)
+    d7 = s7["decision"]
+    check_true("h7 10.4.2 frozen rule passes both clauses", bool(d7["pass_bar"] and d7["pass_margin"]))
+    check_true("h7 10.4.2 t-CI lower bound below the bar, as stated", d7["survival_t90"][0] < BAR)
+
     print("\n== FINDINGS methods note 8: explicit-fold re-score of the saved dumps (2026-09-29) ==")
     def _fold_art(name):
         with open(os.path.join(ARTROOT, "fold_rescore", name), encoding="utf-8") as fh:

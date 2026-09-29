@@ -758,6 +758,21 @@ Rigor carried from the B-v3 audit (2026-07-10):
   Committed: `artifacts/reviewer_gaps_runs/l3_gate0_seed1_gpu/`, `l3_h10_gseed1_gpu/`,
   `artifacts/expB2/second_instance_l3_h10_gseed1_gpu.json`; FINDINGS 10.9 addendum.
 
+- **2026-09-29 - SENSORY-ECHO CONTROL AT HIDDEN = 7 (readout-only on the saved hidden = 7
+  agents; n = 10; owner's GPU; legacy fold split): RULE PASSES.** Executes the frozen
+  `docs/specs/2026-09-26-l3-sensory-echo-control-design.md` at the second in-band capacity
+  (`scripts/audit_sensory_echo.py --hidden 7`). Integrity 60/60 bit-match, 0.737 reproduced.
+  Drift 0.45: survival `resid_obs` **0.684** (t 90% CI [0.627, 0.741]; 7/10 seeds >= 0.65)
+  vs untrained 0.549 and predictor 0.589; `resid_obs_int` 0.695; `resid_obs_beh` 0.671
+  [0.618, 0.725]; seven-channel `resid_trace` 0.739. Frozen rule (>= 0.65 AND > untrained
+  + 0.05) -> PASSES on both clauses; the t-CI lower bound is below the bar, stated. The
+  survival-minus-predictor lead under the sensory control (+0.095) is reported, not
+  adjudicated. Process note: the run was interrupted once by an operator restart and
+  resumed from its cell file; the 60 cells are unique. Committed:
+  `artifacts/expB2/sensory_echo_l3_h7.json`; FINDINGS 10.4.2 hidden = 7 addendum.
+
+- **2026-09-29 - HIDDEN-8 NEW-SEED INSTANCE, GATE 0 (G seed 2; spec `docs/specs/2026-09-28-l3-hidden8-second-seed-design.md`; recorded by the run chain mechanically BEFORE launch).** Calibration on world P at the frozen sigma=0.02: hidden=8: oracle 0.939 (in band True), mech leak pass, floor 0.540 (ok) -> PASS. Selected hidden=8 at G seed 2 (first passing candidate in the frozen order G seeds 2, 3, 4 at hidden 8). The organism run launches with this instance; its result is recorded in a later entry.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

@@ -821,9 +821,43 @@ the bar; that is the most conservative number the project has, and it is
 reported as such. Methods note 7 is closed in the headline's favor: the
 behavior-independent world-signal is not a passive echo of the inputs.
 
-**Scope.** One capacity (hidden = 8), one lag. The joint-control attenuation is
-the upper bound on what linear input-plus-behavior mirroring could explain; the
-nonlinear addendum below bounds the nonlinear case.
+**Scope.** One capacity (hidden = 8) at the time of the first run, one lag. The
+joint-control attenuation is the upper bound on what linear input-plus-behavior
+mirroring could explain; the nonlinear addendum below bounds the nonlinear case.
+The second capacity is covered by the hidden = 7 addendum that follows.
+
+**Hidden = 7 (2026-09-29; readout-only on the saved hidden = 7 agents, owner's
+GPU, legacy fold split so the integrity gate reads the published 0.737;
+committed artifact `artifacts/expB2/sensory_echo_l3_h7.json`).** The same
+runner and rule at the second in-band capacity, where the behavior control had
+been least clean (10.5). Integrity gate: all 60 regenerated pools bit-match the
+saved dumps and the drift-0.45 survival target reproduces **0.737**.
+
+| readout | survival | predictor | untrained |
+|---|---|---|---|
+| target | 0.737 [0.682, 0.791] (8/10) | 0.714 | 0.586 |
+| obs_trace_only (ceiling) | 0.697 [0.645, 0.750] | 0.675 | 0.643 |
+| resid_trace (seven-channel behavior control) | 0.739 [0.691, 0.786] (8/10) | 0.702 | 0.584 |
+| **resid_obs (sensory control, PRIMARY)** | **0.684 [0.627, 0.741] (7/10)** | 0.589 | 0.549 |
+| resid_obs_int (integrated, secondary) | 0.695 [0.659, 0.732] (7/10) | 0.600 | 0.570 |
+| resid_obs_beh (sensory + behavior) | 0.671 [0.618, 0.725] (7/10) | 0.554 | 0.533 |
+
+The frozen rule PASSES on both clauses: 0.684 >= 0.65 and 0.684 > 0.549 + 0.05,
+with the t-CI lower bound (0.627) above the untrained mean but below the bar,
+stated as such. Drift-0.00 floors sit at chance under the control (survival
+0.504, untrained 0.472). Two readings. The sensory control costs more at
+hidden = 7 than at hidden = 8 (0.737 to 0.684, against 0.752 to 0.731): this
+fingerprint is louder in the inputs (obs_trace_only 0.697 with the untrained
+arm already at 0.643), so more of the state's world-signal is accounted for by
+a linear echo of the current input, and what remains still clears the bar.
+And the predictor arm, which at hidden = 7 matches survival on the raw target
+(0.714 against 0.737, the 10.5 non-dissociation), falls to 0.589 under the
+sensory control while survival holds 0.684: the survival-versus-predictor
+dissociation that the raw probe does not show at this capacity appears once
+the input echo is removed (+0.095), a reading reported here, not adjudicated,
+since no rule was frozen for it. The seven-channel behavior control on these
+regenerated pools reads 0.739; the published 0.722 (10.5) used the original
+four-channel dump.
 
 **Nonlinear joint control (2026-09-28; spec
 `docs/specs/2026-09-27-local-strengthening-probes-design.md`, probe B).** The

@@ -41,7 +41,7 @@ def promote(run_dir: str, out_path: str, head: str | None = None) -> dict:
         "spec": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md",
         "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
         "surrogate": f"L3 GMotion hidden={agg['hidden']} seed={agg['g_seed']} trained on P",
-        "agents": "saved fullruns/l3_h8_heldout bundles (readout-only, no training)",
+        "agents": f"saved fullruns/l3_h{agg['hidden']}_heldout bundles (readout-only, no training)",
         "git_commit_at_promotion": head or git_head(),
         "generated_by": "scripts/promote_sensory_echo.py",
         "bars": {"auroc_floor": agg["bar"], "margin": agg["margin"]},

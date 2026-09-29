@@ -34,3 +34,19 @@ def test_promote_round_trip(tmp_path):
     assert back["decision"]["zone"] == "SENSORY-INDEPENDENT"
     assert len(back["cells"]) == 3 and "extra" not in back["cells"][0]
     assert back["integrity"]["all_match"] is True
+
+
+def test_agents_line_follows_the_run_capacity(tmp_path):
+    """A hidden 7 run reads the hidden 7 held-out bundles; the artifact must not say hidden 8."""
+    run = tmp_path / "run"
+    run.mkdir()
+    agg = {"hidden": 7, "g_seed": 0, "n_eps": 110, "steps": 24, "quick": False, "device": "cuda",
+           "bar": 0.65, "margin": 0.05,
+           "integrity": {"checked": True, "mismatches": [], "all_match": True},
+           "d=0.45 survival": {"resid_obs": {"mean": 0.684, "per_seed": [0.684] * 3}},
+           "decision": {"survival_resid_obs": 0.684, "untrained_resid_obs": 0.549, "zone": "SENSORY-INDEPENDENT"}}
+    (run / "cells.json").write_text("[]", encoding="utf-8")
+    (run / "aggregate.json").write_text(json.dumps(agg), encoding="utf-8")
+    out = pse.promote(str(run), str(tmp_path / "o.json"), head="abc")
+    assert "l3_h7_heldout" in out["agents"]
+    assert "hidden=7" in out["surrogate"]
