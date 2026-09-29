@@ -1189,6 +1189,111 @@ def main() -> int:
                "## 16. Fold-split sensitivity" in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
                                                       encoding="utf-8").read())
 
+    print("\n== FINDINGS section 16 addendum: L0 equivalence gate under the explicit split (2026-09-29) ==")
+    l0 = {}
+    for name in ("l3_h8_traces", "l3_h7_traces", "l3_h4_traces", "l3_n10", "l1_heldout"):
+        cells0 = [c for c in _fold_art(f"{name}.json")["cells"]
+                  if c["agent"] == "survival" and float(c["drift"]) == 0.0]
+        check_int(f"L0 {name}: drift-0 survival cells (10)", len(cells0), 10)
+        for sch in ("legacy", "explicit"):
+            vals = [float(c[sch]["target"]) for c in cells0]
+            l0[(name, sch)] = (vals, equivalence_test(vals, 0.5, margin=0.05), rope_test(vals))
+    for name in ("l3_h8_traces", "l3_h7_traces", "l3_h4_traces", "l3_n10"):
+        v_l, t_l, r_l = l0[(name, "legacy")]
+        v_e, t_e, r_e = l0[(name, "explicit")]
+        check(f"L0 {name} legacy mean (0.517)", float(np.mean(v_l)), 0.517)
+        check(f"L0 {name} legacy TOST p (0.010)", t_l.p_value, 0.010)
+        check(f"L0 {name} explicit mean (0.539)", float(np.mean(v_e)), 0.539)
+        check(f"L0 {name} explicit TOST p (0.207)", t_e.p_value, 0.207)
+        check(f"L0 {name} explicit ROPE P (0.816)", r_e.p_in_rope, 0.816)
+        check_true(f"L0 {name}: equivalent under legacy, not shown under explicit",
+                   bool(t_l.equivalent) and bool(r_l.accept) and (not t_e.equivalent) and (not r_e.accept))
+    check_true("L0: the four L3 dump sets share one set of drift-0 cells (surrogate off at drift 0)",
+               all(l0[(n, "explicit")][0] == l0[("l3_h8_traces", "explicit")][0]
+                   for n in ("l3_h7_traces", "l3_h4_traces", "l3_n10")))
+    v_l, t_l, r_l = l0[("l1_heldout", "legacy")]
+    v_e, t_e, r_e = l0[("l1_heldout", "explicit")]
+    check("L0 L1 organism legacy mean (0.522)", float(np.mean(v_l)), 0.522)
+    check("L0 L1 organism legacy TOST p (0.029)", t_l.p_value, 0.029)
+    check("L0 L1 organism explicit mean (0.546)", float(np.mean(v_e)), 0.546)
+    check("L0 L1 organism explicit TOST p (0.374)", t_e.p_value, 0.374)
+    check("L0 L1 organism explicit ROPE P (0.628)", r_e.p_in_rope, 0.628)
+
+    print("\n== FINDINGS 10.9 addendum: hidden 8 new-seed run (G seed 2, 2026-09-29) ==")
+    s2 = _load_art("expB2", "second_seed_l3_h8_gseed2_gpu.json")
+    _fd = open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"), encoding="utf-8").read()
+    check_true("FINDINGS carries the section 16 L0 equivalence addendum",
+               "**Addendum (2026-09-29, found while promoting the hidden 8 new-seed run)" in _fd)
+    check_true("FINDINGS carries the hidden-8 new-seed paragraph",
+               "*Hidden-8 new-seed run (2026-09-29).*" in _fd)
+    check_true("h8-seed2 execution names the owner's GPU machine", s2["execution"].startswith("owner's GPU"))
+    check_int("h8-seed2 gate 0 G seed (2)", int(s2["gate0_calibration"]["g_seed"]), 2)
+    check_int("h8-seed2 gate 0 selected hidden (8)", int(s2["gate0_calibration"]["selected_hidden"]), 8)
+    g8 = s2["gate0_calibration"]["rows"][0]
+    check("h8-seed2 gate 0 oracle (0.939)", g8["oracle_auroc"], 0.939)
+    check("h8-seed2 gate 0 floor (0.540)", g8["floor"], 0.540)
+    check_true("h8-seed2 gate 0 passes with a clean mechanical floor",
+               bool(g8["passes_gate0"]) and bool(g8["mech_leak_pass"]) and bool(g8["in_band"]))
+    for arm, ref in (("survival", 0.676), ("predictor", 0.627), ("untrained", 0.550)):
+        blk = s2["arms"][s2["dmax"]][arm]["pool_target"]
+        check(f"h8-seed2 {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"h8-seed2 {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
+    sv2 = s2["arms"][s2["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(sv2["per_seed"])
+    check("h8-seed2 survival t90 lo (0.636)", lo, 0.636)
+    check("h8-seed2 survival t90 hi (0.717)", hi, 0.717)
+    check_int("h8-seed2 survival seeds >= 0.65 (6)", sv2["n_ge_065"], 6)
+    rt2 = s2["behavior_audit"]["survival"]["resid_trace"]
+    check("h8-seed2 survival resid_trace (0.660)", rt2["mean"], 0.660)
+    lo, hi = t_ci(rt2["per_seed"])
+    check("h8-seed2 survival resid_trace t90 lo (0.631)", lo, 0.631)
+    check("h8-seed2 survival resid_trace t90 hi (0.689)", hi, 0.689)
+    check("h8-seed2 survival behavior_trace_only (0.745)", s2["behavior_audit"]["survival"]["behavior_trace_only"]["mean"], 0.745)
+    ba2 = s2["behavior_audit"]
+    check("h8-seed2 predictor behavior_trace_only (0.719)", ba2["predictor"]["behavior_trace_only"]["mean"], 0.719)
+    check("h8-seed2 untrained behavior_trace_only (0.683)", ba2["untrained"]["behavior_trace_only"]["mean"], 0.683)
+    check("h8-seed2 predictor resid_trace (0.606)", ba2["predictor"]["resid_trace"]["mean"], 0.606)
+    check("h8-seed2 untrained resid_trace (0.563)", ba2["untrained"]["resid_trace"]["mean"], 0.563)
+    check("h8-seed2 resid_trace lead over predictor (+0.054)", rt2["mean"] - ba2["predictor"]["resid_trace"]["mean"], 0.054)
+    check("h8-seed2 resid_trace lead over untrained (+0.098)", rt2["mean"] - ba2["untrained"]["resid_trace"]["mean"], 0.098)
+    check_int("h8-seed2 survival resid_trace seeds >= 0.65 (5)", sum(v >= BAR for v in rt2["per_seed"]), 5)
+    d2 = s2["decision"]
+    check("h8-seed2 lead over predictor (+0.0491)", d2["lead_over_predictor"], 0.0491, tol=0.0001)
+    check("h8-seed2 lead over untrained (+0.126)", d2["lead_over_untrained"], 0.126)
+    check_true("h8-seed2 rule: mean clears the bar, t-CI does not, predictor margin misses by < 0.001",
+               bool(d2["pass_bar"]) and (not d2["t90_excludes_bar"]) and (not d2["pass_margin_predictor"])
+               and bool(d2["pass_margin_untrained"]) and (0.05 - d2["lead_over_predictor"]) < 0.001)
+    lead2 = np.asarray(sv2["per_seed"]) - np.asarray(s2["arms"][s2["dmax"]]["predictor"]["pool_target"]["per_seed"])
+    lo, hi = t_ci(list(lead2))
+    check("h8-seed2 paired lead over predictor t90 lo (-0.003)", lo, -0.003)
+    check("h8-seed2 paired lead over predictor t90 hi (+0.101)", hi, 0.101)
+    check_true("h8-seed2 paired lead over predictor includes zero", lo < 0 < hi)
+    lead2u = np.asarray(sv2["per_seed"]) - np.asarray(s2["arms"][s2["dmax"]]["untrained"]["pool_target"]["per_seed"])
+    lo, hi = t_ci(list(lead2u))
+    check("h8-seed2 paired lead over untrained t90 lo (+0.074)", lo, 0.074)
+    check("h8-seed2 paired lead over untrained t90 hi (+0.179)", hi, 0.179)
+    check_true("h8-seed2 remaining gates pass (engagement, leak, floor, deaths)",
+               s2["gates"]["pool_leak_clean_all"] and s2["gates"]["untrained_floor_ok"]
+               and s2["gates"]["deaths_total"] == 0
+               and all(v["pass"] == v["n"] for v in s2["gates"]["engagement"].values()))
+    check_true("h8-seed2 L0 gate open, same drift-0 cells as the hidden 10 GPU run",
+               (not s2["gates"]["l0_tost"]["equivalent"])
+               and s2["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]
+               == sg["arms"]["0.0"]["survival"]["pool_target"]["per_seed"])
+    cpu0 = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")
+    dcs = np.asarray(sv2["per_seed"]) - np.asarray(cpu0["arms"][cpu0["dmax"]]["survival"]["pool_target"]["per_seed"])
+    check("h8-seed2 paired vs CPU device control, survival (-0.053)", float(dcs.mean()), -0.053)
+    lo, hi = t_ci(list(dcs))
+    check("h8-seed2 paired vs CPU device control t90 lo (-0.124)", lo, -0.124)
+    check("h8-seed2 paired vs CPU device control t90 hi (+0.018)", hi, 0.018)
+    seed0 = {c["seed"]: float(c["explicit"]["target"]) for c in fr[8]["cells"]
+             if c["agent"] == "survival" and float(c["drift"]) == 0.45}
+    dse = np.asarray(sv2["per_seed"]) - np.asarray([seed0[i] for i in range(10)])
+    check("h8-seed2 paired vs explicit seed-0 headline, survival (-0.097)", float(dse.mean()), -0.097)
+    lo, hi = t_ci(list(dse))
+    check("h8-seed2 paired vs explicit seed-0 headline t90 lo (-0.140)", lo, -0.140)
+    check("h8-seed2 paired vs explicit seed-0 headline t90 hi (-0.055)", hi, -0.055)
+
     # ---- FINDINGS 10.8 device control (promoted 2026-09-28) --------------------
     print("\n== FINDINGS 10.8: device control (decoder-carrying arm on the CPU sandbox) ==")
     dc = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")

@@ -1355,6 +1355,57 @@ so `--resume` reused the finished cell). Committed:
 `artifacts/reviewer_gaps_runs/l3_gate0_seed1_gpu/`, `l3_h10_gseed1_gpu/`,
 `artifacts/expB2/second_instance_l3_h10_gseed1_gpu.json`.
 
+*Hidden-8 new-seed run (2026-09-29).* The run the two notes above pointed to:
+capacity held at the published 8, only the G seed changed. Spec frozen before
+launch (`docs/specs/2026-09-28-l3-hidden8-second-seed-design.md`). Gate 0 at G
+seed 2, the first of the frozen order 2, 3, 4: oracle 0.939 (in band), mechanical
+leakage clean, untrained floor 0.540, PASS, so seeds 3 and 4 were never tried.
+Executed on the owner's GPU machine (RTX 4050, torch 2.7.0+cu126, explicit folds,
+three parallel CUDA workers with `--resume`), n = 10. Drift 0.45:
+
+| agent | pooled target | t 90% CI | seeds >= 0.65 | `resid_trace` |
+|---|---|---|---|---|
+| untrained | 0.550 | [0.511, 0.589] | 1/10 | 0.563 |
+| predictor | 0.627 | [0.609, 0.646] | 3/10 | 0.606 |
+| **survival** | **0.676** | **[0.636, 0.717]** | 6/10 | **0.660** [0.631, 0.689] (5/10) |
+
+Per-seed survival: 0.636, 0.600, 0.755, 0.676, 0.713, 0.607, 0.744, 0.742,
+0.567, 0.725. Behavior trace alone reads 0.745 for survival, 0.719 for the
+predictor, 0.683 untrained (the trace channel carries most of the readable
+signal in every arm, as in 10.4).
+
+**Adjudication (frozen rule).** Replication at hidden 8 is NOT claimed: both
+means clear 0.65 but both t-CI lower bounds (0.636, 0.631) sit below it. The
+margin over the untrained floor passes (+0.126, paired 90% CI [+0.074, +0.179]).
+The margin over the predictor misses by one thousandth: survival leads by
++0.0491 against the frozen 0.05, with a paired 90% CI of [-0.003, +0.101] that
+includes zero. Read strictly, the table row is "margins fail", not
+"survival-specific but under the bar": the hidden 7 pattern of 10.5 recurs on a
+new instance, at the boundary. The `resid_trace` leads (+0.054 over the
+predictor, +0.098 over untrained) would pass on their own but the rule reads the
+pooled target. Gates: engagement 20/20, speed at least 0.814, pooled leak clean
+in every cell, untrained floor 0.550, 0 early deaths; the L0 control reads 0.539
+(TOST p = 0.207), the open clause described in section 16, and these are the
+same ten drift-0 cells as the hidden 10 GPU run.
+
+**Reading.** Two independently trained hidden-8 fingerprints (seed 0: 0.774
+explicit, seed 2: 0.676) both give a survival readout well above the untrained
+floor and above the 0.65 bar in the mean, so the encoding is not confined to the
+published instance. What does not replicate is the full-strength rule: the
+size is instance-dependent (paired against the explicit seed-0 run, -0.097
+[-0.140, -0.055]), and on this instance the predictor baseline is higher (0.627
+against 0.588 explicit at seed 0, 0.529 on the hidden 10 instance), which is
+what closes the predictor margin. The device comparison the spec planned
+(against the CPU device control, 0.730) is confounded here because this run is
+GPU: paired difference -0.053 [-0.124, +0.018], not adjudicated. With the hidden
+10 instance (0.612 GPU, 0.639 CPU) and this one, both extra instances land below
+the seed-0 headline on the pooled target and the survival-over-predictor lead
+ranges from +0.049 to +0.105; the wording that "the headline is one
+fingerprint's full-strength result" stands, and "survival-specific" is now
+qualified by two instances, one clear and one at the margin. Committed:
+`artifacts/reviewer_gaps_runs/l3_gate0_seed2_gpu/`, `l3_h8_gseed2_gpu/`,
+`artifacts/expB2/second_seed_l3_h8_gseed2_gpu.json`.
+
 ## 11. Methods notes and limitations
 
 Stated once, plainly, with pointers into the code.
@@ -1462,13 +1513,17 @@ Stated once, plainly, with pointers into the code.
    verdict on the two organism runs, the common garden, or the transfer channels
    changes: hidden 8 clears the bar with room on both readouts, hidden 7 clears the
    bar and its survival-minus-predictor lead stays under the 0.05 margin (+0.037),
-   and both common-garden directions pass both clauses. One pre-registered clause
-   flips: the hidden 7 gate-0 untrained floor, reported in section 16. Not
+   and both common-garden directions pass both clauses. Two pre-registered gate
+   clauses flip, both reported in section 16: the hidden 7 gate-0 untrained floor,
+   and the L0 equivalence test on every GPU-scored L3 and L1 organism run (the
+   L0 control reads 0.539 with TOST p = 0.207 under explicit, 0.517 with p = 0.010
+   under legacy; the first entry of this note missed it). Not
    re-scored: the B-v3 dumps are not on the owner's machine, and the joint
    sensory-plus-behavior controls come from `audit_sensory_echo.py`, which
    regenerates pools rather than reading dumps, so their lower bounds (0.638
    linear, 0.621 nonlinear) stand as legacy-split numbers. The hidden 4, L1, and
-   L3 n = 10 dump sets were also re-scored with no reading affected. The explicit
+   L3 n = 10 dump sets were also re-scored; no reading is affected except the
+   L0 equivalence gate of section 16. The explicit
    hidden 8 and 7 survival means (0.774, 0.740) are now the `explicit` entries of
    `REFERENCE_SURVIVAL_TARGET`, so the regeneration integrity gates work on any
    stack. The published numbers stay as the record; runs from 2026-09 on use the
@@ -2082,9 +2137,10 @@ band at sigma = 0.02 is felt grossly by any recurrent state.
 
 ## 16. Fold-split sensitivity: the hidden 7 gate (2026-09-29)
 
-**Status: MEASURED; one pre-registered gate clause flips under the explicit
-split; no organism number and no verdict on the encoding changes.** Found by the
-re-score of methods note 8; artifacts `artifacts/fold_rescore/gate0_h8h7_legacy.json`,
+**Status: MEASURED; two pre-registered gate clauses flip under the explicit
+split (the hidden 7 untrained floor, and the L0 equivalence test on the
+GPU-scored runs, see the addendum at the end); no organism number and no
+verdict on the encoding changes.** Found by the re-score of methods note 8; artifacts `artifacts/fold_rescore/gate0_h8h7_legacy.json`,
 `gate0_h8h7_explicit.json`, `l3_h7_traces.json`.
 
 The gate-0 rule (`scripts/run_expA_l3.py`) accepts a capacity only if the
@@ -2108,10 +2164,45 @@ certifies the capacity as mechanically clean. The second-capacity replication
 (10.5) therefore carries the qualifier that its untrained floor is at the
 tolerance under the stack-independent partition. The hidden 7 sensory-echo control
 (10.4.2 addendum) ran under the legacy split so its integrity gate could read
-0.737; its verdict does not depend on the floor. Hidden 8, the headline capacity,
-is not affected by any of this.
+0.737; its verdict does not depend on the floor. Hidden 8, the headline capacity, is
+not affected by the floor clause; its L0 gate is in the addendum below.
 
 **Consequence for the code.** None beyond the record: gate 0 keeps its rule, and
 `REFERENCE_SURVIVAL_TARGET` carries the explicit survival references. A future
 hidden 7 organism run would fail gate 0 under the default scheme and would need a
 spec to justify it.
+
+**Addendum (2026-09-29, found while promoting the hidden 8 new-seed run): the L0
+equivalence gate.** Gate 2 of PREREGISTRATION_L3 section 7 requires the
+authentic-vs-authentic control (L0, drift 0) to be equivalent to 0.5 by TOST.
+The first entry of this section and methods note 8 reported only the floor
+clause; the L0 test also moves under the explicit split, on the same ten
+drift-0 survival cells, and it was not computed at the time of the re-score.
+
+| run (drift-0 survival cells) | legacy | explicit |
+|---|---|---|
+| L3 hidden 8, hidden 7, hidden 4, and n = 10 dumps (one shared set of 10 cells) | 0.517, TOST p = 0.010, ROPE P = 0.999 (equivalent) | 0.539, TOST p = 0.207, ROPE P = 0.816 (not shown) |
+| L1 organism run | 0.522, TOST p = 0.029, ROPE P = 0.989 (equivalent) | 0.546, TOST p = 0.374, ROPE P = 0.628 (not shown) |
+
+The L3 rows are one measurement, not four: at drift 0 the surrogate is not
+installed (`itasorl/experiment_b2.py`, `drift_sigma > 0.0`), so the drift-0 agents
+and pools do not depend on the fingerprint's seed or capacity, and cells trained
+with the same seeds on the same device are bit-identical. The hidden 8 new-seed
+run (10.9) and the hidden 10 GPU re-measure (10.9) reproduce the same ten
+per-seed values to the fourth decimal, which is a determinism check on the GPU
+machine. The cloud CPU runs, which trained their own drift-0 agents, pass this
+gate under the explicit split: 0.514 (TOST p = 0.006) for the no-auxiliary run and
+0.529 (p = 0.039) for the world-model runs (10.8 and the hidden 10 instance share
+those cells).
+
+**Reading.** The mean stays inside the +/-0.05 equivalence band (0.539) but a
+ten-seed TOST cannot show it: the upper 90% t-bound is above 0.55. This is the
+"inconclusive" outcome the project has met before at small n (the Experiment B2
+negative carried the same open gate, FINDINGS 9), not a measured departure from
+chance. By the letter of PREREGISTRATION_L3 section 8, "encoding induced" needs
+all gates to pass, so under the default scheme the GPU-scored L3 positives (10.2,
+10.5, and the two 2026-09-29 GPU runs) carry an open L0 clause that they did not
+carry when published. The other gates, the oracle band, the engagement counts,
+the speed probe, the leakage audit, and every margin, are unchanged. No organism
+value moves; the verdicts stand with this clause recorded as open on the GPU
+side and closed on the CPU side.
