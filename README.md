@@ -23,7 +23,11 @@ Make your own copy first (`File -> Save a copy in Drive`). The first cell
 enforces that. Pick your own GPU runtime. Then run all cells: it clones the repo
 and runs `python scripts/run_e2e.py`.
 
-Two illustrated walkthroughs, same numbers, from the committed artifacts:
+Two illustrated walkthroughs, printed 20 July 2026 from the artifacts committed then. They
+predate the H2 ablations (FINDINGS 14), the sensory-echo controls (10.4.2), the
+predictor requirement and the second fingerprint (10.8, 10.9), and the matched oracles
+(15), and they still show Experiment C as queued; it closed as a validated null (13.D).
+Where they disagree, FINDINGS wins.
 
 - [**Plain-English series (PDF)**](docs/itasorl-series-plain-english.pdf)
 - [**Research edition (PDF)**](docs/itasorl-series-research.pdf)
