@@ -1058,6 +1058,55 @@ def main() -> int:
     check("10.9-gpu paired predictor delta (-0.005)", float(d_pred.mean()), -0.005)
     check_true("10.9-gpu paired delta interval includes zero", lo < 0 < hi)
 
+    print("\n== FINDINGS methods note 8: explicit-fold re-score of the saved dumps (2026-09-29) ==")
+    def _fold_art(name):
+        with open(os.path.join(ARTROOT, "fold_rescore", name), encoding="utf-8") as fh:
+            return json.load(fh)
+    fr = {h: _fold_art(f"l3_h{h}_traces.json") for h in (8, 7)}
+    for h in (8, 7):
+        check_true(f"fold h{h}: re-scored on the owner's stack (scikit-learn 1.5.2, numpy 1.26.4)",
+                   fr[h]["stack"]["sklearn"] == "1.5.2" and fr[h]["stack"]["numpy"] == "1.26.4")
+        check_true(f"fold h{h}: explicit partition is five balanced 22/22 folds",
+                   fr[h]["partition_110_110"]["explicit"] == [[22, 22]] * 5)
+        check_true(f"fold h{h}: legacy partition on this stack is (22,22)x3, (21,23), (23,21)",
+                   fr[h]["partition_110_110"]["legacy"] == [[22, 22], [22, 22], [22, 22], [21, 23], [23, 21]])
+        check_int(f"fold h{h}: 60 cells re-scored", int(fr[h]["n_cells"]), 60)
+    # legacy column reproduces the published record; explicit column is the re-score
+    published = {8: {"target": (0.752, 0.774), "resid_trace": (0.726, 0.750)},
+                 7: {"target": (0.737, 0.740), "resid_trace": (0.722, 0.725)}}
+    for h, mets in published.items():
+        for met, (leg, exp) in mets.items():
+            blk = fr[h]["aggregate"]["d=0.45 survival"][met]
+            tol = 1e-3 if (h, met) == (8, "target") else TOL   # 0.7525 is the exact 3-dp midpoint
+            check(f"fold h{h} survival {met} legacy reproduces published ({leg})", blk["legacy"]["mean"], leg, tol=tol)
+            check(f"fold h{h} survival {met} explicit ({exp})", blk["explicit"]["mean"], exp)
+            check(f"fold h{h} survival {met}: stored shift = explicit - legacy",
+                  blk["mean_shift"], blk["explicit"]["mean"] - blk["legacy"]["mean"])
+            for scheme in ("legacy", "explicit"):
+                per_seed = [c[scheme][met] for c in fr[h]["cells"]
+                            if c["agent"] == "survival" and float(c["drift"]) == 0.45]
+                check_int(f"fold h{h} survival {met} {scheme}: ten cells", len(per_seed), 10)
+                check(f"fold h{h} survival {met} {scheme}: mean reproduces from cells", float(np.mean(per_seed)), blk[scheme]["mean"])
+                lo, hi = t_ci(per_seed)
+                check(f"fold h{h} survival {met} {scheme} t90 lo reproduces", lo, blk[scheme]["t90"][0])
+                check(f"fold h{h} survival {met} {scheme} t90 hi reproduces", hi, blk[scheme]["t90"][1])
+    # no pre-registered verdict moves on the two published organism runs
+    s8 = fr[8]["aggregate"]["d=0.45 survival"]["target"]["explicit"]
+    check_true("fold h8: explicit survival still clears the bar with the t-CI above it",
+               s8["mean"] >= 0.65 and s8["t90"][0] > 0.65)
+    p8 = fr[8]["aggregate"]["d=0.45 predictor"]["target"]["explicit"]["mean"]
+    u8 = fr[8]["aggregate"]["d=0.45 untrained"]["target"]["explicit"]["mean"]
+    check_true("fold h8: explicit survival keeps both margins (> predictor + 0.05, > untrained + 0.05)",
+               s8["mean"] > p8 + 0.05 and s8["mean"] > u8 + 0.05)
+    s7 = fr[7]["aggregate"]["d=0.45 survival"]["target"]["explicit"]
+    p7 = fr[7]["aggregate"]["d=0.45 predictor"]["target"]["explicit"]["mean"]
+    check_true("fold h7: explicit survival still clears the bar", s7["mean"] >= 0.65 and s7["t90"][0] > 0.65)
+    check_true("fold h7: survival-minus-predictor lead still under the 0.05 margin (10.5 verdict unchanged)",
+               (s7["mean"] - p7) < 0.05)
+    check("fold h7: explicit lead over predictor (+0.037; raw 0.0365 is the 3-dp midpoint)", s7["mean"] - p7, 0.037, tol=1e-3)
+    check_true("folds.py explicit references match the re-score (8: 0.774, 7: 0.740)",
+               abs(round(s8["mean"], 3) - 0.774) < 1e-9 and abs(round(s7["mean"], 3) - 0.740) < 1e-9)
+
     # ---- FINDINGS 10.8 device control (promoted 2026-09-28) --------------------
     print("\n== FINDINGS 10.8: device control (decoder-carrying arm on the CPU sandbox) ==")
     dc = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")
