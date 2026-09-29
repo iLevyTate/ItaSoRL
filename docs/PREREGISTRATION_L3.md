@@ -740,6 +740,24 @@ Rigor carried from the B-v3 audit (2026-07-10):
   out-of-memory error; the runner gained a `--resume` path and the remaining cells were
   computed without recomputing the first seven.
 
+- **2026-09-29 - SECOND INSTANCE, GPU RE-MEASURE (hidden 10, G seed 1, the 10.9 protocol
+  unchanged, on the owner's GPU machine; n = 10): RULE NOT MET; THE DEVICE IS NOT THE
+  SOURCE OF THE GAP.** Re-executes `docs/specs/2026-09-26-l3-second-fingerprint-instance-
+  design.md` at the already-selected instance on CUDA (gate 0 re-run first: oracle 0.893,
+  floor 0.521, pass), explicit fold split (the cloud run's partition). Launched 2026-09-28
+  21:13 UTC; the single-worker start paged and was resumed at 22:03 UTC with two CUDA
+  workers (`--workers` is outside the config fingerprint; `--resume` kept cell 1); organism
+  run done 02:58 UTC, audit 03:00 UTC. Gates: engagement 20/20, speed >= 0.833, pooled leak
+  clean 20/20, floor 0.521, 0 deaths; L0 0.539 NOT shown equivalent (TOST p = 0.207, ROPE
+  P = 0.816), reported as an open gate on this run; the verdict below does not depend on it.
+  Drift 0.45: survival **0.612** (t 90% CI [0.582, 0.642]; 3/10 seeds >= 0.65), predictor
+  0.529, untrained 0.521; behavior-controlled survival 0.638 [0.612, 0.663] (4/10). Frozen
+  rule (both the pooled target and `resid_trace` >= 0.65 with t-CIs excluding the bar) ->
+  NOT MET; margin clauses pass (+0.083 over predictor, +0.091 over untrained). Paired by
+  seed against the cloud CPU run: survival -0.027 [-0.060, +0.005], predictor -0.005.
+  Committed: `artifacts/reviewer_gaps_runs/l3_gate0_seed1_gpu/`, `l3_h10_gseed1_gpu/`,
+  `artifacts/expB2/second_instance_l3_h10_gseed1_gpu.json`; FINDINGS 10.9 addendum.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

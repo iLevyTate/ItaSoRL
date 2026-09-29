@@ -1014,6 +1014,50 @@ def main() -> int:
                    sec in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
                                encoding="utf-8").read())
 
+    print("\n== FINDINGS 10.9 addendum: second instance re-measured on GPU (2026-09-29) ==")
+    sg = _load_art("expB2", "second_instance_l3_h10_gseed1_gpu.json")
+    check_true("10.9-gpu execution names the owner's GPU machine", sg["execution"].startswith("owner's GPU"))
+    check_int("10.9-gpu gate 0 re-run selected hidden (10)", int(sg["gate0_calibration"]["selected_hidden"]), 10)
+    g10 = {int(r["hidden"]): r for r in sg["gate0_calibration"]["rows"]}[10]
+    check("10.9-gpu gate 0 hidden 10 oracle on CUDA (0.893)", g10["oracle_auroc"], 0.893)
+    check("10.9-gpu gate 0 hidden 10 floor on CUDA (0.521)", g10["floor"], 0.521)
+    for arm, ref in (("survival", 0.612), ("predictor", 0.529), ("untrained", 0.521)):
+        blk = sg["arms"][sg["dmax"]][arm]["pool_target"]
+        check(f"10.9-gpu {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.9-gpu {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
+    svg = sg["arms"][sg["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(svg["per_seed"])
+    check("10.9-gpu survival t90 lo (0.582)", lo, 0.582)
+    check("10.9-gpu survival t90 hi (0.642)", hi, 0.642)
+    check_int("10.9-gpu survival seeds >= 0.65 (3)", svg["n_ge_065"], 3)
+    rtg = sg["behavior_audit"]["survival"]["resid_trace"]
+    check("10.9-gpu survival resid_trace (0.638)", rtg["mean"], 0.638)
+    lo, hi = t_ci(rtg["per_seed"])
+    check("10.9-gpu survival resid_trace t90 lo (0.612)", lo, 0.612)
+    check("10.9-gpu survival resid_trace t90 hi (0.663)", hi, 0.663)
+    check("10.9-gpu lead over predictor (+0.083)", sg["decision"]["lead_over_predictor"], 0.083)
+    check("10.9-gpu lead over untrained (+0.091)", sg["decision"]["lead_over_untrained"], 0.091)
+    check_true("10.9-gpu rule not met: bar missed, both margin clauses pass",
+               (not sg["decision"]["pass_bar"]) and sg["decision"]["pass_margin_predictor"]
+               and sg["decision"]["pass_margin_untrained"])
+    check_true("10.9-gpu L0 gate open as stated (TOST and ROPE both reject at n = 10)",
+               (not sg["gates"]["l0_tost"]["equivalent"]) and (not sg["gates"]["l0_rope"]["accept"]))
+    check("10.9-gpu L0 survival mean (0.539)", sg["gates"]["l0_survival_mean"], 0.539)
+    check_true("10.9-gpu remaining gates pass (engagement, leak, floor, deaths)",
+               sg["gates"]["pool_leak_clean_all"] and sg["gates"]["untrained_floor_ok"]
+               and sg["gates"]["deaths_total"] == 0
+               and all(v["pass"] == v["n"] for v in sg["gates"]["engagement"].values()))
+    # paired device delta, recomputed from the two committed per-seed arrays
+    d_surv = np.asarray(svg["per_seed"]) - np.asarray(sv["per_seed"])
+    d_pred = (np.asarray(sg["arms"][sg["dmax"]]["predictor"]["pool_target"]["per_seed"])
+              - np.asarray(si["arms"][si["dmax"]]["predictor"]["pool_target"]["per_seed"]))
+    check("10.9-gpu paired GPU-minus-CPU survival delta (-0.027)", float(d_surv.mean()), -0.027)
+    lo, hi = t_ci(list(d_surv))
+    check("10.9-gpu paired delta t90 lo (-0.060)", lo, -0.060)
+    check("10.9-gpu paired delta t90 hi (+0.005)", hi, 0.005)
+    check("10.9-gpu paired predictor delta (-0.005)", float(d_pred.mean()), -0.005)
+    check_true("10.9-gpu paired delta interval includes zero", lo < 0 < hi)
+
     # ---- FINDINGS 10.8 device control (promoted 2026-09-28) --------------------
     print("\n== FINDINGS 10.8: device control (decoder-carrying arm on the CPU sandbox) ==")
     dc = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")

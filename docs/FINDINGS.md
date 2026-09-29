@@ -1295,6 +1295,32 @@ execution reads 0.730 against 0.752 on GPU (10.8). If the device shift is simila
 this instance, the device accounts for about 0.02 of the 0.113 gap, and most of it
 sits with the instance, whose seed and capacity changed together.
 
+*GPU re-measure (2026-09-29).* The device question above is now answered directly.
+The same hidden 10, G seed 1 protocol was re-run on the owner's GPU machine (RTX
+4050, torch 2.7.0+cu126; gate 0 re-run on CUDA first: oracle 0.893 in band, floor
+0.521, pass; n = 10; explicit fold split, the same partition the cloud run used).
+Drift 0.45: survival **0.612** [0.582, 0.642] (3/10 seeds), predictor 0.529,
+untrained 0.521; `resid_trace` **0.638** [0.612, 0.663] (4/10), predictor 0.566,
+untrained 0.538. Per-seed survival: 0.555, 0.650, 0.571, 0.588, 0.541, 0.603, 0.640,
+0.704, 0.664, 0.602. Frozen rule: NOT MET on either clause; the two margin clauses
+pass (+0.083 over predictor, +0.091 over untrained). Paired by seed against the cloud
+run, GPU minus CPU survival is **-0.027** [-0.060, +0.005] and predictor -0.005: the
+device shift is small, includes zero, and runs the other way from the 0.02 the note
+above allowed for. The gap to 0.752 therefore sits with the instance, whose seed and
+capacity changed together; the hidden-8 new-seed run
+(`docs/specs/2026-09-28-l3-hidden8-second-seed-design.md`) separates them. Gates:
+engagement 20/20, speed >= 0.833, pooled leak clean 20/20, floor 0.521, 0 deaths.
+One gate is open: the L0 control reads 0.539 (HDI [0.516, 0.562]) and is not shown
+equivalent to chance by TOST (p = 0.207) or ROPE (P = 0.816) at n = 10, the first
+L3 organism run on record with that gate open. The verdict does not depend on it (the
+run misses the bar on the fingerprint-active drift regardless) and it is reported as
+a caveat on this run's apparatus, not on the instance. Execution note: the run
+started with one worker, paged at under 1 GB of free RAM, and was resumed after one
+cell with two parallel CUDA workers (`--workers` is outside the config fingerprint,
+so `--resume` reused the finished cell). Committed:
+`artifacts/reviewer_gaps_runs/l3_gate0_seed1_gpu/`, `l3_h10_gseed1_gpu/`,
+`artifacts/expB2/second_instance_l3_h10_gseed1_gpu.json`.
+
 ## 11. Methods notes and limitations
 
 Stated once, plainly, with pointers into the code.

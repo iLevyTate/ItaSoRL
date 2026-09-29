@@ -113,8 +113,12 @@ def device_control(res: dict, compare_res: dict, dmax: str) -> dict:
             "verdict": verdict}
 
 
+CLOUD_EXECUTION = "cloud CPU sandbox (4 vCPU, 3 workers, torch 2.14+cpu); published runs were GPU"
+
+
 def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: str | None = None,
-            head: str | None = None, compare_run: str | None = None) -> dict:
+            head: str | None = None, compare_run: str | None = None,
+            execution: str | None = None) -> dict:
     with open(os.path.join(run_dir, "expB2_results.json"), encoding="utf-8") as fh:
         res = json.load(fh)
     drifts = sorted(res.keys(), key=float)
@@ -209,7 +213,7 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
         "source_run": run_dir.replace("\\", "/"),
         "label": label, "spec": spec,
         "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
-        "execution": "cloud CPU sandbox (4 vCPU, 3 workers, torch 2.14+cpu); published runs were GPU",
+        "execution": execution or CLOUD_EXECUTION,
         "git_commit_at_promotion": head or git_head(),
         "generated_by": "scripts/promote_reviewer_gaps_runs.py",
         "bars": {"auroc_floor": BAR, "margin": MARGIN},
@@ -236,9 +240,11 @@ def main() -> int:
     ap.add_argument("--calibration", default=None)
     ap.add_argument("--device-control-against", default=None,
                     help="no-auxiliary run dir on the same device; adds the frozen device-control rule")
+    ap.add_argument("--execution", default=None,
+                    help="where the run executed (default: the cloud CPU sandbox text)")
     a = ap.parse_args()
     out = promote(a.run, a.out, spec=a.spec, label=a.label, calibration=a.calibration,
-                  compare_run=a.device_control_against)
+                  compare_run=a.device_control_against, execution=a.execution)
     dec = out["decision"]
     print(f"wrote {a.out}: survival {dec['survival']:.3f} t90 [{dec['survival_t90'][0]:.3f}, "
           f"{dec['survival_t90'][1]:.3f}] vs predictor {dec['predictor']:.3f}, untrained "
