@@ -1180,7 +1180,13 @@ def main() -> int:
     for relpath, banned in [("index.html", "EXP C · next"),
                             ("index.html", "no matter how loud the artifact"),
                             ("index.html", "survival pressure applied"),
-                            ("index.html", "training progress")]:
+                            ("index.html", "training progress"),
+                            # retired July demo loops (training steps 0-24, not the n = 10 runs)
+                            ("index.html", "loop-idle-clouds"),
+                            ("index.html", "loop-survival-clouds"),
+                            ("index.html", "loop-race"),
+                            ("viz/player/index.html", "loop-idle-clouds"),
+                            ("viz/player/index.html", "loop-race")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
 
     # ---- FINDINGS methods note 2: engagement margin on committed cells --------

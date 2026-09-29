@@ -84,12 +84,38 @@ ffmpeg -ss 2 -i assets/film/clips/two-minds-tour.mp4 -frames:v 1 \
 
 ## Companion loops (the "More ways to see it" row)
 
-| File | What it shows | Source |
-|------|---------------|--------|
-| `loop-idle-clouds.mp4` | Idle mind: memories from both worlds sit in one mixed blob. | `viz/player` capture |
-| `loop-survival-clouds.mp4` | Surviving mind: the two worlds' memories drift into separate islands. | `viz/player` capture |
-| `loop-race.mp4` | Two brains train side by side; the detection score only climbs when the fake matters. | `viz/player` capture |
-| `loop-brain-pair.mp4` | Teal rings on the memory cells that hold the clue, present only under survival. | `scripts/render_brain_pair_tour.py` |
-| `clips/loop-brain-pair-*` (local only) | The earlier brain-pair tour and its per-section loops (wide, vertical, GIF). Superseded by Two Minds for outreach. | `scripts/render_brain_pair_tour.py` |
+Four 1280x720, 30 fps, H.264 CRF 23 loops with no audio. Each is a page of
+`viz/player/loops/` (open `index.html?loop=<name>` for the live version) that reads
+its numbers at load time from committed files and refuses to draw if a derived
+mean differs from its FINDINGS value. Dots move between measured states as a
+visual tween; a number is only on screen while the picture sits on a measured
+state. Frame 0 equals the frame at the loop length, so every clip loops cleanly.
 
-All loops start and end on the same frame.
+| File | `?loop=` | What it shows | Data |
+|------|----------|---------------|------|
+| `loop-two-worlds.mp4` | `worlds` | The recorded seed-0 survival brain in the real and the fake world from the same start, steps 0 to 140, with the measured distance between the two creatures. The paths part at step 27 (more than 5% of the world apart). 12 s. | `viz/data/scene.json` (`viz/collect.py`) |
+| `loop-four-brains.mp4` | `brains` | Per-seed probe AUROC for untrained (0.488), prediction-only (0.573), survival without its predictor (0.601, CPU; 0.730 with it on the same CPU), and survival and prediction (0.752), against the coin flip and the 0.65 bar. 11 s. | `artifacts/expB2/heldout_l3_h8_summary.json`, `arch_baseline_l3_h8_nowm.json`, `device_control_l3_h8_wm_cpu.json`; FINDINGS 10.2, 10.8 |
+| `loop-echoes.mp4` | `echoes` | The same ten survival seeds as behavior (0.726), senses (0.731), and both with a nonlinear fit (0.654) are subtracted. 12 s. | `artifacts/expB2/behavior_audit_l3_h8_heldout.json`, `sensory_echo_l3_h8.json`, `sensory_echo_l3_h8_mlp.json`; FINDINGS 10.4, 10.4.2 |
+| `loop-seam-dial.mp4` | `dial` | The H2 graded seam: flaw left at 100, 75, 50, 25, 10, 0%; survival 0.752 falls to 0.506 while the untrained floor stays near chance. 11 s. | `artifacts/expH2/summary.json`; FINDINGS 14 |
+| `clips/loop-brain-pair-*` (local only) | | The earlier brain-pair tour and its per-section loops (wide, vertical, GIF). Superseded by Two Minds for outreach. | `scripts/render_brain_pair_tour.py` |
+
+The four loops that played here until 2026-09-29 (`loop-idle-clouds`,
+`loop-survival-clouds`, `loop-race`, `loop-brain-pair`) were retired. They were
+July demo renders of an early short run (training steps 0 to 24), not the n = 10
+results, and their headlines ("It knows this world is fake", "separate islands")
+claimed more than the overlapping clouds they drew. They remain in git history.
+
+Rebuild (serve the repo root, so the page can reach `artifacts/` and
+`viz/data/`; `ffmpeg` with libx264 on PATH; Playwright Chromium):
+
+```bash
+python -m http.server 8931 --bind 127.0.0.1 &   # from the repo root
+cd viz/player/capture
+for pair in worlds:two-worlds brains:four-brains echoes:echoes dial:seam-dial; do
+  CAP_SOURCE=artifacts CAP_CRF=23 CAP_FPS=30 \
+  CAP_URL="http://127.0.0.1:8931/viz/player/loops/index.html?loop=${pair%%:*}" \
+  CAP_OUT="../../../assets/film/loop-${pair##*:}.mp4" \
+  CHROME_EXE=/path/to/chromium node capture-brain.js
+done
+for f in ../../../assets/film/loop-*.mp4; do ffmpeg -nostdin -v error -i "$f" -f null -; done
+```

@@ -4,7 +4,10 @@
 // (window.__sceneSource === "stylized"), so there is no recorded-world claim
 // to protect. Refuses anything else so it can't silently encode the wrong page.
 //
-// Env: CHROME_EXE, CAP_URL, CAP_FPS (30), CAP_OUT (out.mp4), CAP_MODE (full|proof)
+// Env: CHROME_EXE, CAP_URL, CAP_FPS (30), CAP_OUT (out.mp4), CAP_MODE (full|proof),
+//      CAP_SOURCE (accepted window.__sceneSource values, comma list; default
+//      "stylized"; the site loops in viz/player/loops declare "artifacts"),
+//      CAP_CRF (x264 CRF, default 17)
 
 const { chromium } = require("playwright");
 const { spawn } = require("child_process");
@@ -15,6 +18,8 @@ const URL = process.env.CAP_URL || "http://127.0.0.1:8766/index.html";
 const FPS = parseInt(process.env.CAP_FPS || "30", 10);
 const OUT = process.env.CAP_OUT || "out.mp4";
 const MODE = process.env.CAP_MODE || "full";
+const SOURCES = (process.env.CAP_SOURCE || "stylized").split(",").map((x) => x.trim());
+const CRF = process.env.CAP_CRF || "17";
 
 function writeChunk(stream, buf) {
   return new Promise((resolve) => {
@@ -43,8 +48,8 @@ function writeChunk(stream, buf) {
   await page.evaluate("document.fonts && document.fonts.ready");
 
   const src = await page.evaluate("window.__sceneSource");
-  if (src !== "stylized") {
-    console.error(`CAPTURE_ERROR wrong page: sceneSource="${src}", expected "stylized"`);
+  if (!SOURCES.includes(src)) {
+    console.error(`CAPTURE_ERROR wrong page: sceneSource="${src}", expected one of ${SOURCES.join(", ")}`);
     await browser.close();
     process.exit(2);
   }
@@ -84,7 +89,7 @@ function writeChunk(stream, buf) {
       "-i", "pipe:0",
       "-c:v", "libx264",
       "-preset", "medium",
-      "-crf", "17",
+      "-crf", CRF,
       "-pix_fmt", "yuv420p",
       "-movflags", "+faststart",
       OUT,
