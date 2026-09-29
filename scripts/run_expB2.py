@@ -119,6 +119,10 @@ def cfg():
                     help="architecture baseline: build the survival and untrained arms WITHOUT the "
                          "next-observation decoder auxiliary (model-free recurrent A2C on the same "
                          "trunk); docs/specs/2026-09-26-l3-architecture-baseline-design.md")
+    ap.add_argument("--survival-updates", type=int, default=None,
+                    help="skill-matched baseline: actor-critic update budget for the SURVIVAL arm only "
+                         "(predictor and untrained keep --updates); "
+                         "docs/specs/2026-09-29-l3-skill-matched-baseline-design.md")
     ap.add_argument("--l1-delta", type=float, default=1.0 / 64,
                     help="L1 grid spacing for --drift-mode l1 (default 1/64)")
     ap.add_argument("--sensor-sigma", type=float, default=0.01,
@@ -153,10 +157,20 @@ def cfg():
     return a
 
 
+def survival_update_budget(k: dict) -> int:
+    """Actor-critic update count for the survival arm: --survival-updates when set, else
+    --updates (docs/specs/2026-09-29-l3-skill-matched-baseline-design.md)."""
+    v = k.get("survival_updates")
+    return int(k["updates"]) if v is None else int(v)
+
+
 def config_fingerprint(base: dict) -> str:
     """Hash of the science-relevant config. Cells from different configs never mix;
-    dump_states is a path, not science, so it is excluded."""
+    dump_states is a path, not science, so it is excluded. survival_updates=None is
+    the same config as the key being absent (every pre-existing checkpoint stays valid)."""
     fp = {k: v for k, v in base.items() if k not in ("dump_states", "save_agents", "out_dir")}
+    if fp.get("survival_updates") is None:
+        fp.pop("survival_updates", None)
     payload = json.dumps(fp, sort_keys=True, default=float)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
@@ -335,7 +349,7 @@ def run_cell(task: dict) -> dict:
               "predictor": train_predictor_only(d, P, n_eps=k["n_eps"], updates=k["updates"],
                                                 hidden=k["hidden"], max_steps=k["max_steps"],
                                                 ray_steps=k["ray_steps"], seed=s, device=dev)}
-    sa, sn, _ = train_actor_critic(d, P, n_eps=k["n_eps"], updates=k["updates"], hidden=k["hidden"],
+    sa, sn, _ = train_actor_critic(d, P, n_eps=k["n_eps"], updates=survival_update_budget(k), hidden=k["hidden"],
                                    max_steps=k["max_steps"], ray_steps=k["ray_steps"], seed=s,
                                    device=dev, shaping_coef=k["shaping_coef"],
                                    world_model=wm,
@@ -459,7 +473,7 @@ def main():
     os.makedirs(a.out_dir, exist_ok=True)
     results_path = os.path.join(a.out_dir, "expB2_results.json")
     print(f"Experiment B-v2 full run  (device={dev}, drifts={a.drifts}, seeds={a.seeds}, "
-          f"updates={a.updates}, workers={a.workers})")
+          f"updates={a.updates}, survival_updates={a.survival_updates}, workers={a.workers})")
     print(f"  survival metabolism={b2.SURVIVAL_METAB}  food={b2.SURVIVAL_FOOD}  drift_mode={b2.DRIFT_MODE}")
     if a.drift_mode == "regime":
         print("  drift_mode=regime: surrogate = per-episode CONSTANT drag offset "
@@ -494,7 +508,8 @@ def main():
                                        "shaping_coef", "pool_n", "pool_steps", "mp_pairs", "mp_prefix",
                                        "mp_branch", "basal_e", "n_pellets", "reach", "dump_states",
                                        "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden",
-                                       "l1_delta", "sensor_sigma", "l3_seed", "world_model")}
+                                       "l1_delta", "sensor_sigma", "l3_seed", "world_model",
+                                       "survival_updates")}
     base.update(drifts=a.drifts, device=dev, out_dir=a.out_dir, save_agents=a.save_agents)
     if a.heldout_evals:
         base.update(heldout_evals=True, heldout_hidden=a.heldout_hidden,
