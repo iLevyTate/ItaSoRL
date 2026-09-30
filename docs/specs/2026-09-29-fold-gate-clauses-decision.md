@@ -13,9 +13,9 @@ spending GPU time on either.
 
 ## 1. One fact explains both flips
 
-The explicit partition is uniformly more optimistic than the legacy one. Re-scoring the
-hidden 8 headline dumps (60 cells, `l3_h8_traces.json`) under both schemes moves every
-drift/arm/metric mean in the same direction:
+Re-scoring the published dumps under both schemes moves nearly every readout up, and moves
+up every readout that the two flipped clauses gate. On the hidden 8 headline dumps (60 cells,
+`l3_h8_traces.json`) the move is universal:
 
 | drift | arm | metric | legacy | explicit | delta |
 |---|---|---|---|---|---|
@@ -32,20 +32,32 @@ drift/arm/metric mean in the same direction:
 | 0.45 | untrained | `resid_trace` | 0.4982 | 0.5259 | +0.0277 |
 | 0.45 | untrained | target | 0.4878 | 0.5130 | +0.0251 |
 
-Twelve of twelve positive, mean +0.0212, range +0.005 to +0.029. The gate-0 floors move the
-same way: hidden 8 from 0.482 to 0.508, hidden 7 from 0.566 to 0.615.
+Twelve of twelve positive, mean +0.0212, range +0.005 to +0.029.
 
-The shift lands on signal and null alike, so it is a property of the partition, not evidence
-about any agent. The likely mechanism is class balance: the explicit scheme makes every fold
-(22,22), while the legacy scheme on this stack leaves two folds at (21,23) and (23,21), and an
-imbalanced fold pulls a pooled AUROC down slightly. The re-score does not isolate that
-mechanism, so it is stated as the probable cause and not as a measured one. What is measured
-is the direction and the size: up, on all twelve reads, by about two points.
+**The move is not universal across every dump set, and the note should not claim it is.** The
+six drift-0 rows above are one measurement shared by all the L3 sets, since the surrogate is
+not installed at drift 0, and there all six move up. At drift 0.45 the sets differ: hidden 8
+moves up on 6 of 6, hidden 7 on 4 of 6 (predictor target -0.0107, predictor `resid_trace`
+-0.0023) and hidden 4 on 4 of 6 (predictor target -0.0029, untrained `resid_trace` -0.0019).
+Methods note 8's table already carries two of those negatives. The exceptions are small, at
+worst -0.011 against typical positive moves of +0.02, and they sit on readouts far from any
+threshold.
+
+What matters for this note is narrower and is not mixed. Every quantity that gates one of the
+two flipped clauses moved **up**: the L0 drift-0 survival target +0.0226, the hidden 7 gate-0
+untrained floor +0.049, the hidden 7 organism untrained arm at drift 0.45 +0.0143, and the
+hidden 8 gate-0 floor +0.026, which stayed inside its tolerance.
+
+The likely mechanism is class balance: the explicit scheme makes every fold (22,22), while the
+legacy scheme on this stack leaves two folds at (21,23) and (23,21), and an imbalanced fold
+pulls a pooled AUROC down slightly. The re-score does not isolate that mechanism, so it is
+stated as the probable cause and not as a measured one. What is measured is the direction and
+the size on the readouts that matter here: up, by about two points.
 
 ## 2. No contrast moves
 
-Because the shift is common, every difference the claims actually rest on survives it
-(hidden 8, drift 0.45, pooled target unless noted):
+Because the shift is common to the arms within a set, every difference the claims actually
+rest on survives it (hidden 8, drift 0.45, pooled target unless noted):
 
 | contrast | legacy | explicit | delta |
 |---|---|---|---|
