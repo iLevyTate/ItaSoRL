@@ -1340,8 +1340,11 @@ untrained 0.538. Per-seed survival: 0.555, 0.650, 0.571, 0.588, 0.541, 0.603, 0.
 pass (+0.083 over predictor, +0.091 over untrained). Paired by seed against the cloud
 run, GPU minus CPU survival is **-0.027** [-0.060, +0.005] and predictor -0.005: the
 device shift is small, includes zero, and runs the other way from the 0.02 the note
-above allowed for. The gap to 0.752 therefore sits with the instance, whose seed and
-capacity changed together; the hidden-8 new-seed run
+above allowed for. The gap therefore sits with the instance, whose seed and
+capacity changed together. Comparator, corrected 2026-09-30: this run is scored on the
+explicit split, so its like-for-like headline is the explicit 0.774, not the legacy-scored
+0.752, and the gap is **0.162** rather than 0.140 (methods note 8; section 16). The
+hidden-8 new-seed run
 (`docs/specs/2026-09-28-l3-hidden8-second-seed-design.md`) separates them. Gates:
 engagement 20/20, speed >= 0.833, pooled leak clean 20/20, floor 0.521, 0 deaths.
 One gate is open: the L0 control reads 0.539 (HDI [0.516, 0.562]) and is not shown
@@ -1526,8 +1529,16 @@ Stated once, plainly, with pointers into the code.
    L0 equivalence gate of section 16. The explicit
    hidden 8 and 7 survival means (0.774, 0.740) are now the `explicit` entries of
    `REFERENCE_SURVIVAL_TARGET`, so the regeneration integrity gates work on any
-   stack. The published numbers stay as the record; runs from 2026-09 on use the
-   explicit scheme (the three cloud runs and the 2026-09-29 GPU runs already do).
+   stack.
+
+   **Comparator convention (fixed 2026-09-30).** The published numbers stay as the
+   record and stay primary on the legacy split: that is what was pre-registered, and
+   this stack reproduces it exactly. Every run from 2026-09 on is scored on the
+   explicit split (the three cloud runs and the 2026-09-29 GPU runs already are). When
+   a run is compared against the headline, both sides must come from the same
+   partition, so an explicit-scored run is read against 0.774 and not against 0.752.
+   Mixing the scales flatters the newer run by about the size of the shift, roughly
+   0.02; section 10.9's GPU paragraph was corrected on exactly that point.
 
 ---
 
@@ -2167,6 +2178,18 @@ tolerance under the stack-independent partition. The hidden 7 sensory-echo contr
 0.737; its verdict does not depend on the floor. Hidden 8, the headline capacity, is
 not affected by the floor clause; its L0 gate is in the addendum below.
 
+**Decision (2026-09-30): hidden 7 stays the second in-band capacity, with the
+qualifier.** Its survival result does not depend on the clause (0.740 pooled,
+`resid_trace` 0.725, both above the bar under explicit). The floor that decides the
+clause sits on the tolerance under both estimates available: 0.615 on the three gate-0
+floor seeds and 0.599959 on the ten organism seeds, inside by 0.00004. More seeds will
+not move a quantity that is at the line, so this is a reporting call and not a
+measurement one. Demotion would also be inconsistent: the partition that fails the floor
+is the same partition that raises the headline from 0.752 to 0.774, so a report cannot
+take the higher headline and refuse the stricter floor. What the record carries instead
+is this section's qualifier, and the rule that a future hidden 7 organism run would fail
+gate 0 under the default scheme and would need a spec to justify launching.
+
 **Consequence for the code.** None beyond the record: gate 0 keeps its rule, and
 `REFERENCE_SURVIVAL_TARGET` carries the explicit survival references. A future
 hidden 7 organism run would fail gate 0 under the default scheme and would need a
@@ -2206,3 +2229,60 @@ carry when published. The other gates, the oracle band, the engagement counts,
 the speed probe, the leakage audit, and every margin, are unchanged. No organism
 value moves; the verdicts stand with this clause recorded as open on the GPU
 side and closed on the CPU side.
+
+**Decision (2026-09-30): report the clause as open; do not buy it with seeds.** The
+ten per-seed values are 0.6074, 0.5376, 0.4822, 0.5149, 0.5438, 0.5326, 0.4822, 0.5731,
+0.5736, 0.5450 (mean 0.53926, sd 0.03968). Holding that mean and spread, the one-sided
+TOST p against the 0.55 bound falls with n as:
+
+| n | 10 | 20 | 30 | 40 | 50 | 60 |
+|---|---|---|---|---|---|---|
+| p (upper) | 0.207 | 0.120 | 0.074 | 0.047 | 0.031 | 0.020 |
+
+Acceptance needs about forty drift-0 seeds, thirty more cells, on the order of fifteen
+hours on this machine, and only if the mean does not move up. The shortfall is not
+small-sample luck: 0.539 sits 0.011 from a fixed bound. What the data do support is the
+margin, and the margin is untouched by the partition: headline minus this floor is 0.2358
+under legacy and 0.2347 under explicit. The claim rests on that distance from the
+authentic-vs-authentic control, not on a binary equivalence verdict, and that is how the
+paper states it.
+
+**What the two clauses have in common (2026-09-30).** Both are gates written against a
+fixed absolute number, and the re-score moves the readouts those gates read. On the
+hidden 8 dumps every arm, drift, and metric moves up:
+
+| drift | arm | metric | legacy | explicit | delta |
+|---|---|---|---|---|---|
+| 0.00 | predictor | `resid_trace` / target | 0.4838 / 0.4844 | 0.5133 / 0.5075 | +0.0294 / +0.0231 |
+| 0.00 | survival | `resid_trace` / target | 0.5204 / 0.5166 | 0.5498 / 0.5393 | +0.0294 / +0.0226 |
+| 0.00 | untrained | `resid_trace` / target | 0.4736 / 0.4756 | 0.4790 / 0.4805 | +0.0054 / +0.0049 |
+| 0.45 | predictor | `resid_trace` / target | 0.5745 / 0.5733 | 0.6004 / 0.5883 | +0.0260 / +0.0149 |
+| 0.45 | survival | `resid_trace` / target | 0.7259 / 0.7525 | 0.7504 / 0.7739 | +0.0245 / +0.0214 |
+| 0.45 | untrained | `resid_trace` / target | 0.4982 / 0.4878 | 0.5259 / 0.5130 | +0.0277 / +0.0251 |
+
+Twelve of twelve up, mean +0.0212. The move is not universal across every set and this
+section does not claim it is: the six drift-0 rows are one shared measurement and all
+rise, but at drift 0.45 hidden 7 moves up on 4 of 6 (predictor target -0.0107) and hidden
+4 on 4 of 6 (predictor target -0.0029), exceptions that methods note 8's table already
+lists and that sit far from any threshold. What is not mixed is the set that matters here:
+every quantity gating one of the two flipped clauses moved up, the L0 drift-0 survival
+target by +0.0226, the hidden 7 gate-0 floor by +0.049, the hidden 7 organism untrained
+arm by +0.0143, and the hidden 8 gate-0 floor by +0.026 while staying inside tolerance.
+
+The contrasts the claims rest on do not move (hidden 8, drift 0.45, pooled target unless
+noted):
+
+| contrast | legacy | explicit | delta |
+|---|---|---|---|
+| survival minus the L0 floor (survival at drift 0) | 0.2358 | 0.2347 | -0.0012 |
+| survival minus untrained | 0.2646 | 0.2610 | -0.0037 |
+| survival minus predictor | 0.1792 | 0.1857 | +0.0065 |
+| survival minus untrained, `resid_trace` | 0.2277 | 0.2245 | -0.0032 |
+
+Absolute reads move about 0.021, contrasts at most 0.007. Every clause that flipped is an
+absolute threshold; every clause that held is a contrast. The probable mechanism is class
+balance, since the explicit scheme makes every fold (22,22) where the legacy scheme on this
+stack leaves two at (21,23) and (23,21), and an imbalanced fold pulls a pooled AUROC down
+slightly. The re-score does not isolate that mechanism, so it is stated as the probable
+cause and not a measured one. The argument and the costings behind both decisions are in
+`docs/specs/2026-09-29-fold-gate-clauses-decision.md`.

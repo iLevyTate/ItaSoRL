@@ -1459,6 +1459,56 @@ def main() -> int:
                             ("index.html", "no matter how loud the artifact")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
 
+    # ---- section 16: the shared mechanism behind both flipped clauses --------
+    # Recompute the legacy-to-explicit shift and the contrasts straight from the
+    # re-score artifact, so the section 16 tables cannot drift from the dumps.
+    print("")
+    print("== section 16: fold shift and contrast invariance ==")
+    from collections import defaultdict as _dd
+    _h8 = _load_art("fold_rescore", "l3_h8_traces.json")
+    _g = _dd(lambda: _dd(list))
+    for _c in _h8["cells"]:
+        for _k in ("target", "resid_trace"):
+            _g[(_c["drift"], _c["agent"], _k)]["leg"].append(_c["legacy"][_k])
+            _g[(_c["drift"], _c["agent"], _k)]["exp"].append(_c["explicit"][_k])
+    _m = {k: (float(np.mean(v["leg"])), float(np.mean(v["exp"]))) for k, v in _g.items()}
+    _deltas = [e - l for l, e in _m.values()]
+    check_int("section 16 shift: 12 arm/drift/metric means at hidden 8", len(_deltas), 12)
+    check_int("section 16 shift: all 12 move up", sum(d > 0 for d in _deltas), 12)
+    check("section 16 shift: mean delta +0.0212", float(np.mean(_deltas)), 0.0212)
+    for label, a, da, b, db, metric, expect_leg, expect_exp in [
+        ("survival minus L0 floor", "survival", "0.45", "survival", "0.00", "target", 0.2358, 0.2347),
+        ("survival minus untrained", "survival", "0.45", "untrained", "0.45", "target", 0.2646, 0.2610),
+        ("survival minus predictor", "survival", "0.45", "predictor", "0.45", "target", 0.1792, 0.1857),
+        ("survival minus untrained resid", "survival", "0.45", "untrained", "0.45", "resid_trace", 0.2277, 0.2245),
+    ]:
+        check(f"section 16 contrast {label} (legacy)", _m[(da, a, metric)][0] - _m[(db, b, metric)][0], expect_leg)
+        check(f"section 16 contrast {label} (explicit)", _m[(da, a, metric)][1] - _m[(db, b, metric)][1], expect_exp)
+    _l0 = _load_art("expB2", "second_seed_l3_h8_gseed2_gpu.json")["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]
+    check_int("section 16 L0: ten drift-0 survival seeds", len(_l0), 10)
+    check("section 16 L0 mean 0.5393", float(np.mean(_l0)), 0.5393)
+    check("section 16 L0 sd 0.0397", float(np.std(_l0, ddof=1)), 0.0397)
+    check("section 16 L0 TOST p 0.207", equivalence_test(_l0).p_value, 0.207)
+
+    # ---- section 16 and note 8: the decisions and the comparator convention --
+    print("")
+    print("== section 16 decisions and the comparator convention (2026-09-30) ==")
+    for relpath, needle, label in [
+        ("docs/FINDINGS.md", "Twelve of twelve up, mean +0.0212",
+         "section 16 states the uniform shift at hidden 8"),
+        ("docs/FINDINGS.md", "hidden 7 stays the second in-band capacity",
+         "section 16 records the hidden 7 decision"),
+        ("docs/FINDINGS.md", "report the clause as open; do not buy it with seeds",
+         "section 16 records the L0 decision"),
+        ("docs/FINDINGS.md", "Comparator convention (fixed 2026-09-30)",
+         "methods note 8 states the comparator convention"),
+        ("docs/FINDINGS.md", "the gap is **0.162** rather than 0.140",
+         "10.9 compares the GPU re-measure like for like"),
+    ]:
+        check_true(label, needle in _read(relpath))
+    check_true("FINDINGS no longer says 'The gap to 0.752 therefore sits with the instance'",
+               "The gap to 0.752 therefore sits with the instance" not in _read("docs/FINDINGS.md"))
+
     # ---- blind clarification of the skill-match clause (2026-09-30) ----------
     # Stage 1 of the skill-matched baseline overshot the return it was meant to match
     # (+0.0067 against -0.219), which made the stage-2 clause's one-sided vs two-sided
