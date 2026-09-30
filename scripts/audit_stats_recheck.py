@@ -1459,6 +1459,31 @@ def main() -> int:
                             ("index.html", "no matter how loud the artifact")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
 
+    # ---- blind clarification of the skill-match clause (2026-09-30) ----------
+    # Stage 1 of the skill-matched baseline overshot the return it was meant to match
+    # (+0.0067 against -0.219), which made the stage-2 clause's one-sided vs two-sided
+    # reading load-bearing. The reading was fixed asymmetrically while the stage-2 cells
+    # directory was still empty. These pins fail if that provenance is edited away.
+    print("")
+    print("== skill-match clause: blind asymmetric reading (2026-09-30) ==")
+    _SKILL_SPEC = "docs/specs/2026-09-29-l3-skill-matched-baseline-design.md"
+    for relpath, needle, label in [
+        (_SKILL_SPEC, "Amendment (2026-09-30 03:17 UTC): the skill-match clause is asymmetric",
+         "skill-matched spec carries the dated amendment"),
+        (_SKILL_SPEC, "before any stage 2 cell existed",
+         "skill-matched spec records that the reading was fixed blind"),
+        (_SKILL_SPEC, "+0.0067", "skill-matched spec carries the stage 1 three-seed mean"),
+        (_SKILL_SPEC, "skill-advantaged, not skill-matched",
+         "skill-matched spec names the overshoot case"),
+        (_SKILL_SPEC, "budget ladder ascends only",
+         "skill-matched spec records the ascending-only ladder limitation"),
+        ("docs/PREREGISTRATION_L3.md", "BLIND CLARIFICATION OF THE",
+         "prereg sec 12 logs the blind clarification"),
+        ("docs/PREREGISTRATION_L3.md", "+0.0067",
+         "prereg sec 12 carries the stage 1 three-seed mean"),
+    ]:
+        check_true(label, needle in _read(relpath))
+
     # ---- FINDINGS methods note 2: engagement margin on committed cells --------
     print("\n== FINDINGS note 2: engagement-margin sweep on committed cells ==")
     import glob as _g2
