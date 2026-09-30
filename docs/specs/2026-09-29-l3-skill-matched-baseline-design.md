@@ -87,3 +87,42 @@ new-seed chain on the same GPU.
 
 Matching skill by any other lever (a different learning rate, a longer horizon,
 reward shaping), and matching the predictor arm's budget.
+
+## Amendment (2026-09-30 03:17 UTC): the skill-match clause is asymmetric
+
+Recorded on the owner's instruction **before any stage 2 cell existed**. Stage 2 launched
+2026-09-30 02:09:15 UTC; at the time of writing `fullruns/l3_h8_nowm_skill_u450/cells` was
+empty and the only file in the run directory was an empty `run.log`. No probe value from
+stage 2 was visible to anyone when this text was fixed.
+
+**Why the clause needed a reading.** Stage 1 selected budget 450 with a three-seed mean
+eval@0.45 return of **+0.0067** (per seed +0.2156, -0.3497, +0.1543; sd 0.3102, se 0.1791)
+against the reference -0.219. The selection is correct as written: the stage-1 rule glosses
+"within 0.05" as "at least -0.269", and the runner implemented that gloss. But the arm did
+not land at the decoder agents' skill, it landed 0.2257 above it, 1.26 calibration standard
+errors away. The stage-2 clause repeats "within 0.05 of -0.219" without the gloss, so the
+one-sided and two-sided readings, identical everywhere else, disagree exactly here.
+
+**The reading, frozen.** Let R be the stage 2 survival arm's mean eval@0.45 return over the
+ten seeds, M = -0.219, tol = 0.05.
+
+| R | reading |
+|---|---|
+| R < M - tol (below -0.269) | Skill not matched, as the original text says. No verdict on the confound; the readout is recorded. |
+| M - tol <= R <= M + tol (in [-0.269, -0.169]) | Skill matched. The section "Gates and decision rules" decision table applies unchanged. |
+| R > M + tol (above -0.169), **and the primary probe reads below the bar** | The arm is skill-advantaged, not skill-matched. The decoder-direct reading stands and is *strengthened*: an agent with more survival skill than the decoder-carrying agents still fails to encode the fingerprint, so the encoding does not run through the policy. |
+| R > M + tol, **and the primary probe reads at or above the bar** | No skill-mediation verdict. The positive is reported as confounded by excess skill, because encoding cannot be credited to matched skill that was in fact exceeded. Adjudicating the confound would need a budget between 300 and 450. |
+
+"Primary probe reads below the bar" means the pooled survival target at drift 0.45 is below
+0.65, or its t-based 90% CI does not exclude the bar; this is the same primary readout and
+the same bar the decision table already uses.
+
+**Two design limitations recorded at the same time, and not fixed retroactively.**
+
+1. The budget ladder ascends only (450, 600, 900), so an overshoot cannot be corrected inside
+   this design. A follow-up would bisect between 300, whose n = 10 return was -0.474, and 450.
+2. The plus-or-minus 0.05 window is tight against the noise in the quantity it gates. The
+   reference's own spread is sd 0.144 at n = 10, a standard error near 0.046, so even a
+   perfectly matched budget would land inside a 0.05 point window only about half the time.
+   Future designs of this shape should gate on an equivalence test of the difference in
+   returns rather than on a point window. This run keeps the frozen window, read as above.

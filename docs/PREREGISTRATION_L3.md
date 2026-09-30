@@ -790,6 +790,26 @@ Rigor carried from the B-v3 audit (2026-07-10):
 - **2026-09-29 - HIDDEN-8 NEW-SEED INSTANCE, RESULT (G seed 2; spec `docs/specs/2026-09-28-l3-hidden8-second-seed-design.md`; executed on the owner's GPU machine, RTX 4050, torch 2.7.0+cu126, explicit folds, n = 10; FINDINGS 10.9).** Drift 0.45: survival 0.676 t90 [0.636, 0.717], predictor 0.627, untrained 0.550; `resid_trace` 0.660 [0.631, 0.689]. Frozen rule: replication NOT claimed (t-CI lower bounds under 0.65 on both readouts); margin over untrained passes (+0.126); margin over predictor misses by 0.0009 (+0.0491 against 0.05), so the strict table row is "margins fail". Gates: engagement 20/20, pooled leak clean, floor 0.550, speed at least 0.814, 0 deaths; the L0 TOST reads 0.539, p = 0.207 (open; see the entry below). No deviation from the frozen protocol; the spec's secondary device comparison is confounded (GPU against the CPU control) and is reported, not adjudicated.
 - **2026-09-29 - L0 EQUIVALENCE GATE UNDER THE EXPLICIT FOLD SPLIT (found while promoting the entry above; FINDINGS section 16 addendum).** The re-score of the explicit-folds spec did not compute the L0 TOST. On the GPU machine's ten drift-0 survival cells (one set, shared by every GPU-scored L3 run because the surrogate is off at drift 0) the legacy split gave 0.517, TOST p = 0.010 (gate 2 passed as published) and the explicit split gives 0.539, TOST p = 0.207, ROPE P = 0.816 (not shown equivalent at n = 10). The L1 organism run moves 0.522 (p = 0.029) to 0.546 (p = 0.374). The cloud CPU runs pass under explicit (0.514 no-auxiliary, 0.529 world-model). Recorded as an open gate-2 clause on the GPU-side L3 and L1 runs; no verdict is re-adjudicated and no run is repeated to chase the number.
 
+- **2026-09-30 - SKILL-MATCHED BASELINE, STAGE 1 SELECTION AND A BLIND CLARIFICATION OF THE
+  MATCH CLAUSE (spec `docs/specs/2026-09-29-l3-skill-matched-baseline-design.md`, amendment
+  of 2026-09-30 03:17 UTC).** Stage 1 ran the frozen ascending ladder and stopped at the
+  first budget: at `--survival-updates 450` the model-free survival arm returned +0.0067 over
+  three seeds at train 0.45 / eval 0.45 (per seed +0.2156, -0.3497, +0.1543; sd 0.3102),
+  against the published GPU decoder-carrying reference -0.219. Selection is correct as
+  written (the stage-1 rule glosses "within 0.05" as "at least -0.269"), but the arm
+  overshot the reference by 0.2257, 1.26 calibration standard errors, so the stage-2 clause
+  "within 0.05 of -0.219", which carries no such gloss, became load-bearing. The reading was
+  fixed asymmetrically BEFORE any stage 2 cell existed (stage 2 launched 02:09:15 UTC; the
+  cells directory was empty at 03:17 UTC when the amendment was committed): an overshoot with
+  the primary probe below the bar strengthens the decoder-direct reading, an overshoot with
+  the primary probe at or above the bar yields no skill-mediation verdict and is reported as
+  confounded by excess skill, and an undershoot is "skill not matched" as originally
+  specified. Two design limitations are recorded in the same amendment and not fixed
+  retroactively: the ladder ascends only, so an overshoot cannot be corrected within the
+  design, and the plus-or-minus 0.05 point window is about one standard error of the quantity
+  it gates. Stage 2 (n = 10, `--survival-updates 450`, two CUDA workers, explicit folds) is
+  running; its result is recorded in a later entry.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
