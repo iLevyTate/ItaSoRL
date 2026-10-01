@@ -156,13 +156,13 @@ const SECTIONS = {
     // which is the actual claim. It also fills a chapter that was otherwise
     // 3.5s of static diagram, 3s of event, then 5.5s of static diagram.
     grabs: 3,
-    // And it does NOT mirror. Mirroring earns its keep in the wide cut only
-    // where the two memory spines face each other across the gap for the
-    // divergence threads, and this chapter draws none (the thread code
-    // returns early under a focus camera). Mirrored, the two reaches are
-    // mirror images and the eye cannot overlay them, which is the one thing
-    // this shot exists to allow.
-    noMirror: true,
+    // This chapter used to carry noMirror, on the grounds that the two reaches
+    // read best overlaid rather than as mirror images. The opt-out is gone: it
+    // left actions as the one chapter in the film where both worlds ran left to
+    // right, and a viewer who has just watched four facing chapters reads that
+    // inconsistency as a mistake before they read the reaches. Facing panels
+    // also put the two grabs nearest each other across the gap, so the miss and
+    // the catch land side by side rather than a panel width apart.
     // This chapter is the close-up of the event, so three lines rather than
     // four and the middle one straddles the miss. It used to arrive two
     // seconds after the grab had already finished and faded.
@@ -186,8 +186,10 @@ const SECTIONS = {
 const SECTION = SECTIONS[SEC] || SECTIONS.memory;
 // Title and end chapters are cards: no sweep, no miss, no rings, no climb.
 const CARD = Boolean(SECTION.titleCard || SECTION.endCard);
-// Whether the fake panel is flipped to face the real one. Only worth it where
-// the cross-panel divergence threads need the two spines facing each other.
+// Whether the fake panel is flipped to face the real one. Every chapter mirrors
+// now, so this reads true throughout; the noMirror hook stays because a future
+// chapter may want the two panels in the same orientation for a direct overlay,
+// and that is a per-section call rather than a layout one.
 const MIRROR_FAKE = !SECTION.noMirror;
 
 // Focus dimming: non-focus groups drop to a clearly supporting role.
@@ -392,20 +394,24 @@ DATA.display_units.forEach((unit, i) => {
 function panelRects() {
   if (LAYOUT === "vertical") {
     if (!SHOW_CAPTION && SHOW_LABELS) {
-      // Labelled 9:16. Two changes from the old stack, both about reading it
-      // on a phone. (1) The panels are no longer mirrored. Mirroring earns its
-      // keep in the wide cut, where it faces the two memory spines at each
-      // other across the gap; stacked, all it did was run the bottom world
-      // right to left, so the same layer sat at opposite ends of the two
-      // frames and the group label row read backwards. Both now flow senses to
-      // actions, left to right, and a given x is the same layer in both.
-      // (2) The per-panel header is gone. There is one probe, so there is one
-      // readout, shared at the top, and the band it used to cost per panel
-      // goes back into the picture.
+      // Labelled 9:16. (1) The fake panel mirrors, on the same rule as the wide
+      // cut, so the two worlds face each other and the fake one reads right to
+      // left. This is the house convention across the research, and the stacked
+      // cut was the one place that broke it. An earlier pass unmirrored it here
+      // on the theory that the group label row would read backwards; it does
+      // not. The labels take their x from panel.mirror like every other node,
+      // and the flow chevrons pick direction from the rendered x order, so a
+      // mirrored panel draws ACTIONS < MEMORY < PROCESS < SENSES, which reads
+      // correctly right to left rather than backwards. The divergence threads
+      // are not a factor either way here: drawDivergenceLinks returns early on
+      // the vertical stack, where the rings and side contrast carry the
+      // comparison instead. (2) The per-panel header is gone. There is one
+      // probe, so there is one readout, shared at the top, and the band it used
+      // to cost per panel goes back into the picture.
       const ph = 580, pw = W * 0.94;
       return [
         { x: (W - pw) / 2, y: 300, w: pw, h: ph, mirror: false, fake: false, label: "REAL WORLD" },
-        { x: (W - pw) / 2, y: 1034, w: pw, h: ph, mirror: false, fake: true, label: "FAKE WORLD" },
+        { x: (W - pw) / 2, y: 1034, w: pw, h: ph, mirror: MIRROR_FAKE, fake: true, label: "FAKE WORLD" },
       ];
     }
     if (!SHOW_CAPTION) {
