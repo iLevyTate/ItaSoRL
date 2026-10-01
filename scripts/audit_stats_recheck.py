@@ -1294,6 +1294,81 @@ def main() -> int:
     check("h8-seed2 paired vs explicit seed-0 headline t90 lo (-0.140)", lo, -0.140)
     check("h8-seed2 paired vs explicit seed-0 headline t90 hi (-0.055)", hi, -0.055)
 
+    print("\n== FINDINGS 10.8.1: skill-matched model-free baseline (budget 450, 2026-09-30) ==")
+    sk = _load_art("expB2", "skill_matched_l3_h8_nowm_u450.json")
+    check_true("skill-match execution names the owner's GPU machine", sk["execution"].startswith("owner's GPU"))
+    check_true("FINDINGS carries the skill-matched section",
+               "### 10.8.1 Skill-matched model-free baseline: no skill-mediation verdict (2026-09-30)" in _fd)
+    check_true("FINDINGS records the verdict as no skill-mediation verdict",
+               "**no skill-mediation verdict.**" in _fd)
+    check_true("FINDINGS keeps 10.8 auxiliary-conditional unchanged",
+               "**auxiliary-conditional** verdict therefore stands unchanged" in _fd)
+    for arm, ref in (("survival", 0.717), ("predictor", 0.588), ("untrained", 0.513)):
+        blk = sk["arms"][sk["dmax"]][arm]["pool_target"]
+        check(f"skill-match {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"skill-match {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
+    svk = sk["arms"][sk["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(svk["per_seed"])
+    check("skill-match survival t90 lo (0.679)", lo, 0.679)
+    check("skill-match survival t90 hi (0.755)", hi, 0.755)
+    check_int("skill-match survival seeds >= 0.65 (8)", svk["n_ge_065"], 8)
+    rtk = sk["behavior_audit"]["survival"]["resid_trace"]
+    check("skill-match survival resid_trace (0.724)", rtk["mean"], 0.724)
+    lo, hi = t_ci(rtk["per_seed"])
+    check("skill-match survival resid_trace t90 lo (0.690)", lo, 0.690)
+    check("skill-match survival resid_trace t90 hi (0.757)", hi, 0.757)
+    check_int("skill-match survival resid_trace seeds >= 0.65 (9)", sum(v >= BAR for v in rtk["per_seed"]), 9)
+    bak = sk["behavior_audit"]
+    check("skill-match predictor resid_trace (0.590)", bak["predictor"]["resid_trace"]["mean"], 0.590)
+    check("skill-match untrained resid_trace (0.539)", bak["untrained"]["resid_trace"]["mean"], 0.539)
+    check("skill-match survival behavior_trace_only (0.838)", bak["survival"]["behavior_trace_only"]["mean"], 0.838)
+    dk = sk["decision"]
+    check("skill-match lead over predictor (+0.129)", dk["lead_over_predictor"], 0.129)
+    check("skill-match lead over untrained (+0.204)", dk["lead_over_untrained"], 0.204)
+    check_true("skill-match probe passes bar, t-CI excludes it, and both margins pass",
+               bool(dk["pass_bar"]) and bool(dk["t90_excludes_bar"])
+               and bool(dk["pass_margin_predictor"]) and bool(dk["pass_margin_untrained"]))
+    # The frozen match clause: an overshoot voids the mediation inference even though
+    # every probe clause above passes. Both halves must stay true together.
+    sm = sk["skill_match"]
+    check("skill-match reference return (-0.219)", sm["reference_return"], -0.219)
+    check("skill-match window lo (-0.269)", sm["window"][0], -0.269)
+    check("skill-match window hi (-0.169)", sm["window"][1], -0.169)
+    check("skill-match stage-2 return R (-0.1559)", sm["match_return"], -0.1559, tol=0.0001)
+    check("skill-match R reproduces the per-seed mean", float(np.mean(sm["per_seed_returns"])), sm["match_return"])
+    check_int("skill-match stage-2 seeds (10)", sm["n_seeds"], 10)
+    check("skill-match stage-2 return se (0.096)", sm["return_se"], 0.096)
+    check("skill-match overshoot past the window (+0.0131)", sm["overshoot_past_window"], 0.0131, tol=0.0001)
+    check("skill-match overshoot in standard errors (0.14)", sm["overshoot_in_se"], 0.14, tol=0.005)
+    check("skill-match deviation from reference (+0.0631)", sm["deviation_from_reference"], 0.0631, tol=0.0001)
+    check_true("skill-match R is outside the window and above it",
+               (not sm["in_window"]) and sm["match_return"] > sm["window"][1])
+    check_true("skill-match probe does not read below the bar", not sm["probe_below_bar"])
+    check_true("skill-match frozen rule gives no skill-mediation verdict",
+               sm["verdict"].startswith("NO SKILL-MEDIATION VERDICT"))
+    check_true("skill-match gates pass except L0 (engagement, leak, floor, deaths)",
+               sk["gates"]["pool_leak_clean_all"] and sk["gates"]["untrained_floor_ok"]
+               and sk["gates"]["deaths_total"] == 0
+               and all(v["pass"] == v["n"] for v in sk["gates"]["engagement"].values()))
+    check("skill-match speed positive control min (0.837)", sk["gates"]["speed_min"], 0.837)
+    check("skill-match L0 survival mean (0.539)", sk["gates"]["l0_survival_mean"], 0.539)
+    check("skill-match L0 TOST p (0.285)", sk["gates"]["l0_tost"]["p_value"], 0.285)
+    check("skill-match L0 ROPE P (0.736)", sk["gates"]["l0_rope"]["p_in_rope"], 0.736)
+    check_true("skill-match L0 gate recorded open, not accepted",
+               (not sk["gates"]["l0_tost"]["equivalent"]) and (not sk["gates"]["l0_rope"]["accept"]))
+    # Determinism cross-check: at drift 0 the untrained and predictor arms are objective
+    # -identical to the hidden-8 new-seed GPU run, while the survival arm must differ
+    # because this arm drops the decoder and trains on a longer budget.
+    for arm in ("untrained", "predictor"):
+        check_true(f"skill-match drift-0 {arm} arm bit-identical to the h8-seed2 GPU run",
+                   sk["arms"]["0.0"][arm]["pool_target"]["per_seed"]
+                   == s2["arms"]["0.0"][arm]["pool_target"]["per_seed"])
+    check_true("skill-match drift-0 survival arm differs from the h8-seed2 GPU run",
+               sk["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]
+               != s2["arms"]["0.0"]["survival"]["pool_target"]["per_seed"])
+    check_true("skill-match survival clears the budget-300 no-auxiliary run (0.601)",
+               svk["mean"] > _load_art("expB2", "arch_baseline_l3_h8_nowm.json")["decision"]["survival"])
+
     # ---- FINDINGS 10.8 device control (promoted 2026-09-28) --------------------
     print("\n== FINDINGS 10.8: device control (decoder-carrying arm on the CPU sandbox) ==")
     dc = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")

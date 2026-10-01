@@ -1258,6 +1258,98 @@ decoder-carrying agents also survive somewhat better on the same device
 design does not separate the auxiliary's direct effect on the state from an
 indirect effect through a stronger policy.
 
+### 10.8.1 Skill-matched model-free baseline: no skill-mediation verdict (2026-09-30)
+
+10.8 closes on the one confound its design does not separate: the decoder-carrying
+agents also forage better, so the auxiliary's direct effect on the state is not
+distinguished from an indirect effect through a stronger policy. This run is the
+pre-registered check for that confound. Spec
+`docs/specs/2026-09-29-l3-skill-matched-baseline-design.md`, frozen 2026-09-29, with an
+amendment at 2026-09-30 03:17 UTC that makes the match clause asymmetric and was written
+while `fullruns/l3_h8_nowm_skill_u450/cells` was still empty. Committed artifacts: raw
+`artifacts/reviewer_gaps_runs/l3_h8_nowm_skill_u450/`, summary
+`artifacts/expB2/skill_matched_l3_h8_nowm_u450.json` (the rule is evaluated in its
+`skill_match` block).
+
+**Design.** Train the no-auxiliary survival arm on a longer budget until its foraging
+return matches the decoder-carrying agents', then probe it unchanged. The reference is
+the published GPU decoder-carrying mean eval@0.45 return, -0.219; the match window is
+that value plus or minus 0.05; the budget ladder is the frozen ascending order 450, 600,
+900 survival updates against the published 300. Stage 1 calibrates the budget on three
+seeds, stage 2 runs the selected budget at n = 10, and the n = 10 return is what the
+rule reads.
+
+**Execution.** Owner's GPU machine (RTX 4050 Laptop, torch 2.7.0+cu126, `--device cuda`,
+`--resume`, `ITASORL_FOLDS=explicit`), stage 1 from 2026-09-29 20:24 UTC and stage 2
+finishing 20/20 cells at 2026-09-30 23:56 UTC. Runner
+`scripts/run_expB2.py --no-world-model --survival-updates 450`.
+
+**Stage 1, and why the clause needed a reading.** Budget 450 returned **+0.0067** on
+three seeds (sd 0.310, se 0.179), which is 0.2257 above the reference and 1.26
+calibration standard errors away from it. The stage-1 rule glosses "within 0.05" as "at
+least -0.269", one-sided, and the runner implemented that gloss, so 450 was selected on
+the first rung and the ladder never ascended. The stage-2 clause repeats "within 0.05 of
+-0.219" without the gloss, so the one-sided and two-sided readings, identical everywhere
+else, disagree exactly here. The amendment resolves that in writing, before any stage-2
+cell existed, and records that the selection is correct as written while the arm is not
+at the decoder agents' skill.
+
+**Gates.** Engagement 20/20 cells; speed positive control at least 0.837 in every cell;
+pooled reward-leak clean in every cell; untrained floor at drift 0.45 0.513 (within
+tolerance); 0 early deaths in every pool. **The L0 control does not accept**: 0.539 with
+TOST p = 0.285 and ROPE P(in ROPE) = 0.736. This is the same open drift-zero clause
+recorded for every GPU run scored on the stack-independent partition (section 16
+addendum, 10.9), it is recorded as open here on the same terms, and no verdict below
+rests on it. Two cross-checks on the pipeline: the drift-zero untrained and predictor
+arms are bit-identical per seed to the hidden-8 new-seed GPU run's, and the drift-zero
+survival arm differs as it must, 0.5390 against 0.5393, since this arm's objective and
+budget differ.
+
+**Result (drift 0.45, n = 10, t-based 90% CI; seed bootstrap in the artifact).**
+
+| agent (no auxiliary, survival budget 450) | pooled target | t 90% CI | seeds >= 0.65 |
+|---|---|---|---|
+| untrained | 0.513 | [0.490, 0.536] | 0/10 |
+| predictor (unchanged objective) | 0.588 | [0.562, 0.615] | 0/10 |
+| **survival, no auxiliary, budget 450** | **0.717** | **[0.679, 0.755]** | 8/10 |
+| survival, no auxiliary, budget 300 (10.8, CPU) | 0.601 | [0.549, 0.654] | 1/10 |
+| survival with auxiliary (published, GPU, 10.2) | 0.752 | [0.698, 0.807] | 8/10 |
+
+Per-seed survival: 0.764, 0.618, 0.755, 0.791, 0.730, 0.621, 0.800, 0.686, 0.733,
+0.672. Behavior audit (`resid_trace`, seven-channel basis): survival **0.724**
+[0.690, 0.757] (9/10), predictor 0.590, untrained 0.539; the behavior trace alone
+decodes the world at 0.838.
+
+**Adjudication (frozen rule, amended 2026-09-30).** R, the stage-2 survival arm's mean
+eval@0.45 return over the ten seeds, is **-0.1559** (sd 0.304, se 0.096). The match
+window is [-0.269, -0.169], so R sits **0.0131 above** it. The primary probe reads 0.717
+with its t-based 90% interval excluding the bar, so it reads at or above the bar. That is
+row 4 of the frozen table: **no skill-mediation verdict.** The positive is reported as
+confounded by excess skill, because encoding cannot be credited to matched skill that was
+in fact exceeded. The 10.8 **auxiliary-conditional** verdict therefore stands unchanged.
+It does not narrow to a skill effect, and it is not strengthened to decoder-direct.
+Adjudicating the confound would need a budget between 300 and 450.
+
+**The readout, recorded without adjudication.** A model-free survival agent at 450
+updates, carrying no next-observation decoder, encodes world identity at 0.717 against an
+untrained floor of 0.513 and a predictor arm of 0.588, with the behavior-controlled
+residual at 0.724. This is the first above-bar L3 reading from an arm with no decoder, and
+it is precisely why the overshoot matters: had the arm landed in the window, this readout
+would have narrowed 10.8 from "the auxiliary is needed" to "the survival skill the
+auxiliary buys is needed". The data cannot carry that narrowing, because the arm that
+produced the readout is better at foraging than the agents it was meant to match.
+
+**Three limitations, two of them recorded in the spec before the run and none fixed
+retroactively.** (1) The budget ladder ascends only, so an overshoot cannot be corrected
+inside this design; a follow-up would bisect between 300, whose n = 10 return was -0.474,
+and 450. (2) The plus-or-minus 0.05 window is tight against the noise in the quantity it
+gates: the overshoot is 0.0131 against a stage-2 standard error of 0.096, about 0.14 of
+one standard error, and the reference's own spread (sd 0.144 at n = 10) gives a standard
+error near 0.046. The arm did not meaningfully exceed the target; it landed on it, and the
+window is narrower than the noise. (3) Stage 1's three seeds are the first three of stage
+2's ten, so stage 1 is not an independent pre-test of the budget. The rule reads the
+n = 10 return, which is what is quoted and adjudicated above.
+
 ### 10.9 Second fingerprint instance: survival-specific, below the bar (2026-09-27)
 
 Methods note 4: `G` was a single frozen instance trained at seed 0. The held-out

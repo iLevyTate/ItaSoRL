@@ -810,6 +810,28 @@ Rigor carried from the B-v3 audit (2026-07-10):
   it gates. Stage 2 (n = 10, `--survival-updates 450`, two CUDA workers, explicit folds) is
   running; its result is recorded in a later entry.
 
+- **2026-09-30 - SKILL-MATCHED BASELINE, STAGE 2 RESULT: NO SKILL-MEDIATION VERDICT (spec
+  `docs/specs/2026-09-29-l3-skill-matched-baseline-design.md` as amended 2026-09-30 03:17 UTC;
+  executed on the owner's GPU machine, RTX 4050, torch 2.7.0+cu126, explicit folds, n = 10,
+  20/20 cells complete 23:56 UTC; FINDINGS 10.8.1).** Match statistic: the stage-2 survival
+  arm's mean eval@0.45 return is R = -0.1559 (sd 0.304, se 0.096) against the reference
+  -0.219 and the window [-0.269, -0.169], so R sits 0.0131 above the window, about 0.14 of
+  one standard error. Primary probe at drift 0.45: survival 0.717 t90 [0.679, 0.755] (8/10),
+  predictor 0.588, untrained 0.513; `resid_trace` 0.724 [0.690, 0.757]. Both margin clauses
+  and the bar clause pass, so the probe reads at or above the bar. Frozen table row 4
+  therefore governs: **no skill-mediation verdict**, the positive reported as confounded by
+  excess skill. The 10.8 auxiliary-conditional verdict stands unchanged, neither narrowed to
+  a skill effect nor strengthened to decoder-direct; adjudicating the confound would need a
+  budget between 300 and 450, which the ascending-only ladder cannot reach within this
+  design. Gates: engagement 20/20, pooled leak clean in every cell, untrained floor 0.513,
+  speed at least 0.837, 0 deaths; the L0 TOST reads 0.539, p = 0.285, ROPE P = 0.736, the
+  same open gate-2 clause recorded above for GPU runs under the explicit split, and no
+  verdict here rests on it. No deviation from the frozen protocol. Recorded alongside the
+  readout and not adjudicated: this is the first above-bar L3 reading from an arm carrying no
+  next-observation decoder. Committed: raw
+  `artifacts/reviewer_gaps_runs/l3_h8_nowm_skill_u450/`, summary
+  `artifacts/expB2/skill_matched_l3_h8_nowm_u450.json` (`skill_match` block).
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
