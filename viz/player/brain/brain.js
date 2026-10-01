@@ -392,20 +392,24 @@ DATA.display_units.forEach((unit, i) => {
 function panelRects() {
   if (LAYOUT === "vertical") {
     if (!SHOW_CAPTION && SHOW_LABELS) {
-      // Labelled 9:16. Two changes from the old stack, both about reading it
-      // on a phone. (1) The panels are no longer mirrored. Mirroring earns its
-      // keep in the wide cut, where it faces the two memory spines at each
-      // other across the gap; stacked, all it did was run the bottom world
-      // right to left, so the same layer sat at opposite ends of the two
-      // frames and the group label row read backwards. Both now flow senses to
-      // actions, left to right, and a given x is the same layer in both.
-      // (2) The per-panel header is gone. There is one probe, so there is one
-      // readout, shared at the top, and the band it used to cost per panel
-      // goes back into the picture.
+      // Labelled 9:16. (1) The fake panel mirrors, on the same rule as the wide
+      // cut, so the two worlds face each other and the fake one reads right to
+      // left. This is the house convention across the research, and the stacked
+      // cut was the one place that broke it. An earlier pass unmirrored it here
+      // on the theory that the group label row would read backwards; it does
+      // not. The labels take their x from panel.mirror like every other node,
+      // and the flow chevrons pick direction from the rendered x order, so a
+      // mirrored panel draws ACTIONS < MEMORY < PROCESS < SENSES, which reads
+      // correctly right to left rather than backwards. The divergence threads
+      // are not a factor either way here: drawDivergenceLinks returns early on
+      // the vertical stack, where the rings and side contrast carry the
+      // comparison instead. (2) The per-panel header is gone. There is one
+      // probe, so there is one readout, shared at the top, and the band it used
+      // to cost per panel goes back into the picture.
       const ph = 580, pw = W * 0.94;
       return [
         { x: (W - pw) / 2, y: 300, w: pw, h: ph, mirror: false, fake: false, label: "REAL WORLD" },
-        { x: (W - pw) / 2, y: 1034, w: pw, h: ph, mirror: false, fake: true, label: "FAKE WORLD" },
+        { x: (W - pw) / 2, y: 1034, w: pw, h: ph, mirror: MIRROR_FAKE, fake: true, label: "FAKE WORLD" },
       ];
     }
     if (!SHOW_CAPTION) {
