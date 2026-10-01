@@ -139,15 +139,21 @@ foreach ($suffix in @('', '-vertical')) {
   Assert-Decodes $tour
 }
 
+# The two gif steps pass -hide_banner -loglevel error, matching the tour stitch
+# above. ffmpeg writes its version banner to stderr, and under a caller that
+# redirects (2>&1) PowerShell 5.1 wraps every stderr line in an ErrorRecord, so
+# $ErrorActionPreference='Stop' killed the build here on a run whose captures and
+# tour stitch had all succeeded. Silencing the banner makes the step robust
+# however it is invoked; $LASTEXITCODE still gates it and real errors still print.
 foreach ($s in $secs) {
   Write-Host "=== gif $s"
-  ffmpeg -nostdin -y -i "$clips\two-minds-$s$mode.mp4" `
+  ffmpeg -nostdin -y -hide_banner -loglevel error -i "$clips\two-minds-$s$mode.mp4" `
     -vf "fps=10,scale=560:-2:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" `
     "$clips\two-minds-$s$mode-loop.gif"
   if ($LASTEXITCODE -ne 0) { throw "gif failed $s" }
 }
 Write-Host "=== gif tour"
-ffmpeg -nostdin -y -i "$clips\two-minds-tour$mode.mp4" `
+ffmpeg -nostdin -y -hide_banner -loglevel error -i "$clips\two-minds-tour$mode.mp4" `
   -vf "fps=7,scale=420:-2:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" `
   "$clips\two-minds-tour$mode-loop.gif"
 if ($LASTEXITCODE -ne 0) { throw "gif failed tour" }
