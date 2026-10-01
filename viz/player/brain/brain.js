@@ -156,13 +156,13 @@ const SECTIONS = {
     // which is the actual claim. It also fills a chapter that was otherwise
     // 3.5s of static diagram, 3s of event, then 5.5s of static diagram.
     grabs: 3,
-    // And it does NOT mirror. Mirroring earns its keep in the wide cut only
-    // where the two memory spines face each other across the gap for the
-    // divergence threads, and this chapter draws none (the thread code
-    // returns early under a focus camera). Mirrored, the two reaches are
-    // mirror images and the eye cannot overlay them, which is the one thing
-    // this shot exists to allow.
-    noMirror: true,
+    // This chapter used to carry noMirror, on the grounds that the two reaches
+    // read best overlaid rather than as mirror images. The opt-out is gone: it
+    // left actions as the one chapter in the film where both worlds ran left to
+    // right, and a viewer who has just watched four facing chapters reads that
+    // inconsistency as a mistake before they read the reaches. Facing panels
+    // also put the two grabs nearest each other across the gap, so the miss and
+    // the catch land side by side rather than a panel width apart.
     // This chapter is the close-up of the event, so three lines rather than
     // four and the middle one straddles the miss. It used to arrive two
     // seconds after the grab had already finished and faded.
@@ -186,8 +186,10 @@ const SECTIONS = {
 const SECTION = SECTIONS[SEC] || SECTIONS.memory;
 // Title and end chapters are cards: no sweep, no miss, no rings, no climb.
 const CARD = Boolean(SECTION.titleCard || SECTION.endCard);
-// Whether the fake panel is flipped to face the real one. Only worth it where
-// the cross-panel divergence threads need the two spines facing each other.
+// Whether the fake panel is flipped to face the real one. Every chapter mirrors
+// now, so this reads true throughout; the noMirror hook stays because a future
+// chapter may want the two panels in the same orientation for a direct overlay,
+// and that is a per-section call rather than a layout one.
 const MIRROR_FAKE = !SECTION.noMirror;
 
 // Focus dimming: non-focus groups drop to a clearly supporting role.
