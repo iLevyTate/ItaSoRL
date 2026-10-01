@@ -4,6 +4,20 @@ What the site serves, where each file came from, and how to rebuild it. Two
 films carry the project now. The first is the 90-second story with voice and
 music. The second is Two Minds, the labeled brain film.
 
+## What is in git and what is not
+
+This directory is gitignored by default. Only the nine files the site actually
+serves are allowlisted by name in `.gitignore`: the two 720p web encodes, their
+two poster frames, the four companion loop mp4s, and this README. Everything
+else here is a local build output and stays on local disk, including all of
+`clips/`, every 1080p and 9:16 master, the textless passes, the loop gifs, and
+the voiced `.mov` masters. That is about 930 MB kept out of the repo across
+`clips/`, `viz/out/`, `viz/artifacts/`, `artifacts/clip_audit/`, and `promo/`.
+
+The picture is byte-reproducible from `viz/` code plus `viz/data/scene.json`, so
+re-render rather than commit. If you ever do need to publish a new file from
+here, add an explicit `!/assets/film/<name>` line; without one it is ignored.
+
 ## Film one: Detectable All Along (90 s, voice and music)
 
 | File | What it is | Source |
@@ -38,17 +52,17 @@ browser at `viz/player/` (same beats, same scene, transport bar included), and
 ## Film two: Two Minds (66 s, seven chapters)
 
 Only `two-minds-web.mp4` and `two-minds-poster.jpg` are tracked. Everything
-under `clips/` is a local build output, gitignored, rebuilt on demand with
-`viz/player/capture/build-two-minds.ps1`; the site links the web encode.
+else, `clips/` included, is a local build output, gitignored, rebuilt on demand
+with `viz/player/capture/build-two-minds.ps1`; the site links the web encode.
 
 | File | What it is | Source |
 |------|------------|--------|
-| `two-minds-web.mp4` | 1280x720, 30 fps, H.264 CRF 25, no audio track, 65.9 s. The cut the site plays. | Web encode of `clips/two-minds-tour.mp4`. |
+| `two-minds-web.mp4` | 1280x720, 30 fps, H.264 CRF 25, no audio track, 65.9 s. The cut the site plays, intro and outro included. | Web encode of `clips/two-minds-tour.mp4`. |
 | `two-minds-poster.jpg` | Poster frame at 2 s (the title card). | Same. |
-| `clips/two-minds-tour.mp4` (local only) | 1920x1080 tour: title card (9.5 s), the five sections (overview 12, senses 9, process 9, memory 12, actions 12), end card (6 s), joined with 0.6 s fade-to-black. | `viz/player/capture/build-two-minds.ps1` |
+| `clips/two-minds-tour.mp4` (local only) | 1920x1080 tour: intro title card (9.5 s), the five sections (overview 12, senses 9, process 9, memory 12, actions 12), outro end card (6 s), joined with 0.6 s fade-to-black. Trims sum to 69.5 s; the six 0.6 s crossfades overlap away 3.6 s, so the film runs 65.9 s. | `viz/player/capture/build-two-minds.ps1` |
 | `clips/two-minds-tour-vertical.mp4` (local only) | 1080x1920 tour. | Same. |
 | `clips/two-minds-tour-loop.gif` (local only) | 420 px wide, 7 fps loop GIF of the tour. | Same. |
-| `clips/two-minds-<section>.mp4` (local only) | 12 s seamless loop per section: overview, senses, process, memory, actions. `title` and `end` are captured the same way but only feed the tour. | Same. |
+| `clips/two-minds-<section>.mp4` (local only) | 12 s seamless loop per section: overview, senses, process, memory, actions. The intro and outro are captured the same way as full 12 s chapters, `clips/two-minds-title.mp4` and `clips/two-minds-end.mp4`, but only feed the tour, where they are trimmed to 9.5 s and 6 s. | Same. |
 | `clips/two-minds-<section>-vertical.mp4` (local only) | 9:16 of each section. | Same. |
 | `clips/two-minds-<section>-loop.gif` (local only) | 560 px wide, 10 fps loop GIF of each section. | Same. |
 

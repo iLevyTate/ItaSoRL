@@ -212,15 +212,37 @@ artifacts/expB2/logs/
 # Rendered film output: byte-reproducible from viz/ code + scene.json (verified deterministic).
 viz/out/
 
-# Big film files stay local. The remote carries only what the site plays: the
-# 720p web encodes and posters at the assets/film root plus the small loop
-# mp4s. The clip set (assets/film/clips: 1080p and 9:16 masters, loop gifs)
-# and the 90s silent masters render on demand from viz/ code + scene.json via
-# viz/player/capture/build-two-minds.ps1 and build-detectable-vertical.ps1.
-/assets/film/clips/
-/assets/film/detectable-all-along-vertical.mp4
-/assets/film/detectable-all-along-poster-vertical.jpg
-/assets/film/detectable-all-along-wide.mp4
+# Film files stay local to keep the repo small. Everything under assets/film is
+# a build output of viz/ code plus data/scene.json, so the directory is ignored
+# by default and only the files index.html actually serves are allowlisted below
+# by name. A new master, vertical cut, tour stitch, textless pass, or voiced
+# export therefore stays local on its own, with nobody editing this file.
+# Rebuild with viz/player/capture/build-two-minds.ps1 (Two Minds) or
+# build-detectable-vertical.ps1 (the 9:16 cut of film one). Note that
+# assets/film itself is NOT ignored as a directory: git cannot re-include a file
+# whose parent directory is excluded, so the pattern has to be the glob below.
+/assets/film/*
+!/assets/film/README.md
+# The two full films the site plays, plus their poster frames.
+!/assets/film/detectable-all-along-web.mp4
+!/assets/film/detectable-all-along-poster.jpg
+!/assets/film/two-minds-web.mp4
+!/assets/film/two-minds-poster.jpg
+# The four companion loops in the site's "More ways to see it" row, 182 KB total.
+!/assets/film/loop-idle-clouds.mp4
+!/assets/film/loop-survival-clouds.mp4
+!/assets/film/loop-race.mp4
+!/assets/film/loop-brain-pair.mp4
+
+# Editing masters and NLE project files wherever they land: too large for git and
+# not reproducible from code, so they live on local disk or the owner's Drive.
+*.mov
+*.mkv
+*.avi
+*.prproj
+*.drp
+*.aep
+*.psd
 
 # Clip audit scratch, proof frames, and creative working docs (VO scripts,
 # music prompts, design notes under post-materials): local only.
