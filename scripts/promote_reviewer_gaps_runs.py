@@ -113,8 +113,59 @@ def device_control(res: dict, compare_res: dict, dmax: str) -> dict:
             "verdict": verdict}
 
 
+def skill_match(run_dir: str, res: dict, dmax: str, reference: float, tol: float) -> dict:
+    """Frozen skill-match rule (2026-09-29 skill-matched-baseline spec, amended 2026-09-30).
+
+    R is the survival arm's mean eval@dmax return over the stage-2 seeds, read from the
+    per-cell `xeval` block. The amendment makes the clause asymmetric: an overshoot is
+    not "matched", and what it implies depends on where the primary probe lands. The
+    four rows below are the frozen table, reproduced in order."""
+    rets = []
+    for cp in sorted(glob.glob(os.path.join(run_dir, "cells", "cell_*.json"))):
+        with open(cp, encoding="utf-8") as fh:
+            c = json.load(fh)["cell"]
+        if f"{float(c['drift']):.2f}" != dmax or dmax not in c.get("xeval", {}):
+            continue
+        rets.append(float(c["xeval"][dmax]))
+    if not rets:
+        return {"error": "no xeval returns at dmax in cells/"}
+    r = float(np.mean(rets))
+    lo, hi = reference - tol, reference + tol
+    surv = [float(x) for x in res[dmax]["survival"]["pool_target"]]
+    surv_mean = float(np.mean(surv))
+    surv_t90 = [float(x) for x in t_ci90(surv)]
+    # "Reads below the bar" = mean under the bar, or a t90 that does not exclude it.
+    probe_below_bar = surv_mean < BAR or surv_t90[0] <= BAR
+    if r < lo:
+        verdict = "SKILL NOT MATCHED (no verdict on the confound; the readout is recorded)"
+    elif r <= hi:
+        verdict = "SKILL MATCHED (the spec's decision table applies unchanged)"
+    elif probe_below_bar:
+        verdict = "SKILL-ADVANTAGED (decoder-direct reading stands, strengthened)"
+    else:
+        verdict = "NO SKILL-MEDIATION VERDICT (positive confounded by excess skill)"
+    n = len(rets)
+    se = float(np.std(rets, ddof=1) / n ** 0.5) if n > 1 else float("nan")
+    return {"reference_return": reference, "tol": tol, "window": [lo, hi],
+            "match_return": r, "per_seed_returns": rets, "n_seeds": n,
+            "return_sd": float(np.std(rets, ddof=1)) if n > 1 else float("nan"),
+            "return_se": se,
+            "deviation_from_reference": r - reference,
+            "overshoot_past_window": max(0.0, r - hi),
+            "overshoot_in_se": (r - hi) / se if se and np.isfinite(se) and r > hi else 0.0,
+            "in_window": lo <= r <= hi,
+            "probe_survival": surv_mean, "probe_survival_t90": surv_t90,
+            "probe_below_bar": bool(probe_below_bar),
+            "verdict": verdict}
+
+
+CLOUD_EXECUTION = "cloud CPU sandbox (4 vCPU, 3 workers, torch 2.14+cpu); published runs were GPU"
+
+
 def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: str | None = None,
-            head: str | None = None, compare_run: str | None = None) -> dict:
+            head: str | None = None, compare_run: str | None = None,
+            execution: str | None = None, skill_match_reference: float | None = None,
+            skill_match_tol: float = MARGIN) -> dict:
     with open(os.path.join(run_dir, "expB2_results.json"), encoding="utf-8") as fh:
         res = json.load(fh)
     drifts = sorted(res.keys(), key=float)
@@ -209,7 +260,7 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
         "source_run": run_dir.replace("\\", "/"),
         "label": label, "spec": spec,
         "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
-        "execution": "cloud CPU sandbox (4 vCPU, 3 workers, torch 2.14+cpu); published runs were GPU",
+        "execution": execution or CLOUD_EXECUTION,
         "git_commit_at_promotion": head or git_head(),
         "generated_by": "scripts/promote_reviewer_gaps_runs.py",
         "bars": {"auroc_floor": BAR, "margin": MARGIN},
@@ -219,6 +270,8 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
     }
     if dc_out is not None:
         out["device_control"] = dc_out
+    if skill_match_reference is not None:
+        out["skill_match"] = skill_match(run_dir, res, dmax, skill_match_reference, skill_match_tol)
     d = os.path.dirname(out_path)
     if d:
         os.makedirs(d, exist_ok=True)
@@ -236,9 +289,17 @@ def main() -> int:
     ap.add_argument("--calibration", default=None)
     ap.add_argument("--device-control-against", default=None,
                     help="no-auxiliary run dir on the same device; adds the frozen device-control rule")
+    ap.add_argument("--execution", default=None,
+                    help="where the run executed (default: the cloud CPU sandbox text)")
+    ap.add_argument("--skill-match-reference", type=float, default=None,
+                    help="reference eval return to match; adds the frozen skill-match rule")
+    ap.add_argument("--skill-match-tol", type=float, default=MARGIN,
+                    help="half-width of the skill-match window (default: the 0.05 margin)")
     a = ap.parse_args()
     out = promote(a.run, a.out, spec=a.spec, label=a.label, calibration=a.calibration,
-                  compare_run=a.device_control_against)
+                  compare_run=a.device_control_against, execution=a.execution,
+                  skill_match_reference=a.skill_match_reference,
+                  skill_match_tol=a.skill_match_tol)
     dec = out["decision"]
     print(f"wrote {a.out}: survival {dec['survival']:.3f} t90 [{dec['survival_t90'][0]:.3f}, "
           f"{dec['survival_t90'][1]:.3f}] vs predictor {dec['predictor']:.3f}, untrained "
@@ -247,6 +308,12 @@ def main() -> int:
         dc = out["device_control"]
         print(f"device control: decoder {dc['decoder_survival']:.3f} vs no-auxiliary "
               f"{dc['no_auxiliary_survival']:.3f}, lead {dc['lead']:+.3f} -> {dc['verdict']}")
+    if "skill_match" in out:
+        sm = out["skill_match"]
+        print(f"skill match: R {sm['match_return']:+.4f} against window "
+              f"[{sm['window'][0]:+.3f}, {sm['window'][1]:+.3f}] "
+              f"(overshoot {sm['overshoot_past_window']:+.4f}, {sm['overshoot_in_se']:.2f} SE) "
+              f"-> {sm['verdict']}")
     return 0
 
 

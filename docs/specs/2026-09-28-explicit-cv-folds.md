@@ -1,7 +1,15 @@
 # Explicit cross-validation folds and the re-score of published numbers
 
 Date: 2026-09-28
-Status: draft for the owner to freeze before any re-score is run
+Status: FROZEN 2026-09-29 on the owner's instruction ("run whatever is left"),
+before the re-score below was launched. Executed the same day on the owner's
+machine (Python 3.13.2, numpy 1.26.4, scikit-learn 1.5.2, torch 2.7.0+cu126),
+the stack that produced the published GPU numbers. Runs re-scored, in order:
+L3 hidden 8 and hidden 7 trace runs (integrity check), then every other saved
+pooled dump present locally (hidden 4 capacity run, L1 organism run, the L3 n = 10
+run, and the hidden 8 and 7 held-out bundles), then the common-garden, matched-pair,
+and gate-0 readouts under both `ITASORL_FOLDS` values. Outputs under
+`fullruns/fold_rescore/` (gitignored) until promoted.
 
 ## Problem
 
@@ -105,3 +113,15 @@ not, the stack is not the one that produced them, and the re-score stops there.
 
 Other numerical dependence on the stack (BLAS, the logistic solver) is at the
 1e-6 level, well below the partition effect, and is not addressed.
+
+## Correction after the run (2026-09-29)
+
+The table above inferred the published GPU partition as (24,20), (22,22),
+(21,23), (21,23), (22,22) from fold means. The re-score measured the legacy
+partition on the owner's stack directly: (22,22), (22,22), (22,22), (21,23),
+(23,21) for a 110 + 110 pool, and the legacy column reproduces every published
+value exactly. The measurement supersedes the inference; nothing else in the spec
+changes. Results: FINDINGS methods note 8 (table of shifts) and section 16 (the
+one flipped clause: the hidden 7 gate-0 untrained floor). Not re-scored, as the
+protocol could not: the B-v3 dumps are not on the owner's machine, and the joint
+sensory-plus-behavior controls regenerate pools rather than reading dumps.

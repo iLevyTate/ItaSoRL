@@ -91,7 +91,9 @@ def split(groups: np.ndarray, n_splits: int = 5, scheme: str | None = None
 # here, an explicit-scheme gate stops and says so rather than skipping the check.
 REFERENCE_SURVIVAL_TARGET: dict[str, dict[int, float]] = {
     "legacy": {8: 0.752, 7: 0.737},
-    "explicit": {},
+    # explicit entries from the 2026-09-29 re-score of the saved hidden 8 and 7 dumps
+    # (artifacts/fold_rescore/l3_h8_traces.json, l3_h7_traces.json; FINDINGS methods note 8)
+    "explicit": {8: 0.774, 7: 0.740},
 }
 
 

@@ -124,7 +124,7 @@ whether a blank-slate agent encodes it unasked. Axis-by-axis comparison:
 | Experiment A, L2 | **done** |
 | Experiment B (incidental detection), L2 arc | **done (robust negative result)** |
 | Experiment B, L1 organism + H2 battery | **done (organism negative at in-band Δ=0.023: survival 0.533; FINDINGS §14.7)** |
-| Experiment B, L3 (learned-dynamics) | **positive at n=10, replicated at a second capacity** - behavior-independent signal ~0.72 at both; needs the next-observation predictor (0.601 without it, device-controlled, FINDINGS §10.8); an independently trained second fingerprint is survival-specific but under the bar (0.639, §10.9); H2 texture-specific at L3; transfer is direction-dependent but recipe-general; the re-scored common-garden control shows a modest persistent world-identity component (details in [Key result](#key-result) below and FINDINGS §10.6.1 / §14) |
+| Experiment B, L3 (learned-dynamics) | **positive at n=10, replicated at a second capacity** - behavior-independent signal ~0.72 at both; needs the next-observation predictor (0.601 without it, device-controlled, FINDINGS §10.8); an independently trained second fingerprint is survival-specific but under the bar (0.639, §10.9), and a third at the headline capacity reads 0.676 with the predictor margin missed by 0.001 (§10.9); H2 texture-specific at L3; transfer is direction-dependent but recipe-general; the re-scored common-garden control shows a modest persistent world-identity component (details in [Key result](#key-result) below and FINDINGS §10.6.1 / §14) |
 | Experiment C (emergence under selection) | **validated null** on fixed-code re-run (FINDINGS §13.D); H3 resolves negative |
 | Ladder L4 (adversarially-hardened surrogate) | not started |
 
@@ -145,7 +145,9 @@ sits at chance (about 0.49, still 0.52 under a nonlinear probe). Prediction-only
 sits near chance (about 0.57). Survival reads **0.752** (n = 10, t-based 90% CI
 **[0.698, 0.807]**, excludes the pre-registered 0.65 bar; 8 of 10 seeds clear
 it). World is not decodable from summed reward (AUROC 0.541, 10 of 10 seeds).
-Zero early deaths, every pool 110/110. L0 authentic-vs-authentic sits at 0.517.
+Zero early deaths, every pool 110/110. L0 authentic-vs-authentic sits at 0.517 under the
+original cross-validation split (0.539 under the stack-independent split, where the
+ten-seed equivalence test no longer accepts; FINDINGS §16).
 
 **The signal survives after behavior is removed.** The agent does move and
 forage differently in the two worlds. The full behavior trace alone decodes the
@@ -180,8 +182,11 @@ published setup on the same machine: **0.730** [0.668, 0.791], 8 of 10. Neither
 objective alone does it. Prediction alone reads about 0.59, survival alone 0.601,
 both together 0.73 to 0.75 (FINDINGS §10.8). A second fingerprint, trained
 independently, keeps the survival-specific signal (**0.639** against 0.534 for
-prediction-only) but lands under the bar, so replication of the full-strength
-result is not claimed (FINDINGS §10.9).
+prediction-only) but lands under the bar. A third fingerprint at the headline
+capacity (new seed, hidden 8) reads **0.676** [0.636, 0.717] against 0.627 for
+prediction-only and 0.550 untrained: above the bar in the mean, but the lower
+bound is under it and the predictor margin misses by 0.001. Replication of the
+full-strength result is not claimed (FINDINGS §10.9).
 
 A held-out probe (n = 10, `artifacts/expB2/heldout_l3_h8_summary.json`) splits
 the rest. The world-identity direction still reads a held-out capacity variant

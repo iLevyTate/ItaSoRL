@@ -67,3 +67,17 @@ def test_untrained_agent_honours_world_model_flag():
     without, _ = untrained_agent(P, 0.0, 5, 8, 8, False, "cpu", seed=0)
     assert with_wm.world_model is True and without.world_model is False
     assert hasattr(with_wm, "decoder") and not hasattr(without, "decoder")
+
+
+def test_fingerprint_changes_with_survival_updates_override():
+    """--survival-updates trains only the survival arm longer (skill-matched baseline spec);
+    it is science-relevant, so it must enter the fingerprint, and None must equal absent."""
+    a = run_expB2.config_fingerprint(BASE)
+    assert run_expB2.config_fingerprint({**BASE, "survival_updates": None}) == a
+    assert run_expB2.config_fingerprint({**BASE, "survival_updates": 600}) != a
+
+
+def test_survival_updates_resolves_to_updates_when_unset():
+    assert run_expB2.survival_update_budget({"updates": 300}) == 300
+    assert run_expB2.survival_update_budget({"updates": 300, "survival_updates": None}) == 300
+    assert run_expB2.survival_update_budget({"updates": 300, "survival_updates": 600}) == 600

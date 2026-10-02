@@ -1014,6 +1014,361 @@ def main() -> int:
                    sec in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
                                encoding="utf-8").read())
 
+    print("\n== FINDINGS 10.9 addendum: second instance re-measured on GPU (2026-09-29) ==")
+    sg = _load_art("expB2", "second_instance_l3_h10_gseed1_gpu.json")
+    check_true("10.9-gpu execution names the owner's GPU machine", sg["execution"].startswith("owner's GPU"))
+    check_int("10.9-gpu gate 0 re-run selected hidden (10)", int(sg["gate0_calibration"]["selected_hidden"]), 10)
+    g10 = {int(r["hidden"]): r for r in sg["gate0_calibration"]["rows"]}[10]
+    check("10.9-gpu gate 0 hidden 10 oracle on CUDA (0.893)", g10["oracle_auroc"], 0.893)
+    check("10.9-gpu gate 0 hidden 10 floor on CUDA (0.521)", g10["floor"], 0.521)
+    for arm, ref in (("survival", 0.612), ("predictor", 0.529), ("untrained", 0.521)):
+        blk = sg["arms"][sg["dmax"]][arm]["pool_target"]
+        check(f"10.9-gpu {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.9-gpu {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
+    svg = sg["arms"][sg["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(svg["per_seed"])
+    check("10.9-gpu survival t90 lo (0.582)", lo, 0.582)
+    check("10.9-gpu survival t90 hi (0.642)", hi, 0.642)
+    check_int("10.9-gpu survival seeds >= 0.65 (3)", svg["n_ge_065"], 3)
+    rtg = sg["behavior_audit"]["survival"]["resid_trace"]
+    check("10.9-gpu survival resid_trace (0.638)", rtg["mean"], 0.638)
+    lo, hi = t_ci(rtg["per_seed"])
+    check("10.9-gpu survival resid_trace t90 lo (0.612)", lo, 0.612)
+    check("10.9-gpu survival resid_trace t90 hi (0.663)", hi, 0.663)
+    check("10.9-gpu lead over predictor (+0.083)", sg["decision"]["lead_over_predictor"], 0.083)
+    check("10.9-gpu lead over untrained (+0.091)", sg["decision"]["lead_over_untrained"], 0.091)
+    check_true("10.9-gpu rule not met: bar missed, both margin clauses pass",
+               (not sg["decision"]["pass_bar"]) and sg["decision"]["pass_margin_predictor"]
+               and sg["decision"]["pass_margin_untrained"])
+    check_true("10.9-gpu L0 gate open as stated (TOST and ROPE both reject at n = 10)",
+               (not sg["gates"]["l0_tost"]["equivalent"]) and (not sg["gates"]["l0_rope"]["accept"]))
+    check("10.9-gpu L0 survival mean (0.539)", sg["gates"]["l0_survival_mean"], 0.539)
+    check_true("10.9-gpu remaining gates pass (engagement, leak, floor, deaths)",
+               sg["gates"]["pool_leak_clean_all"] and sg["gates"]["untrained_floor_ok"]
+               and sg["gates"]["deaths_total"] == 0
+               and all(v["pass"] == v["n"] for v in sg["gates"]["engagement"].values()))
+    # paired device delta, recomputed from the two committed per-seed arrays
+    d_surv = np.asarray(svg["per_seed"]) - np.asarray(sv["per_seed"])
+    d_pred = (np.asarray(sg["arms"][sg["dmax"]]["predictor"]["pool_target"]["per_seed"])
+              - np.asarray(si["arms"][si["dmax"]]["predictor"]["pool_target"]["per_seed"]))
+    check("10.9-gpu paired GPU-minus-CPU survival delta (-0.027)", float(d_surv.mean()), -0.027)
+    lo, hi = t_ci(list(d_surv))
+    check("10.9-gpu paired delta t90 lo (-0.060)", lo, -0.060)
+    check("10.9-gpu paired delta t90 hi (+0.005)", hi, 0.005)
+    check("10.9-gpu paired predictor delta (-0.005)", float(d_pred.mean()), -0.005)
+    check_true("10.9-gpu paired delta interval includes zero", lo < 0 < hi)
+
+    print("\n== FINDINGS 10.4.2 addendum: sensory-echo control at hidden 7 (2026-09-29) ==")
+    s7 = _load_art("expB2", "sensory_echo_l3_h7.json")
+    check_true("h7 sensory-echo: artifact names the hidden 7 surrogate and agents",
+               "hidden=7" in s7["surrogate"] and "l3_h7_heldout" in s7["agents"])
+    check_true("h7 sensory-echo integrity: every regenerated pool bit-matches",
+               s7["integrity"]["all_match"] is True)
+    check_true("h7 sensory-echo integrity: published 0.737 reproduced (legacy split)",
+               s7["integrity"]["target_reproduced"] is True and s7["integrity"]["fold_scheme"] == "legacy")
+    check_int("h7 sensory-echo cells (60)", len(s7["cells"]), 60)
+    check_int("h7 sensory-echo cells are unique (drift, seed, agent)",
+              len({(c["drift"], c["seed"], c["agent"]) for c in s7["cells"]}), 60)
+    for key, block in s7["aggregate"].items():
+        for met, v in block.items():
+            check(f"h7 sensory-echo {key} {met}: stored mean reproduces per-seed mean",
+                  float(np.mean(v["per_seed"])), float(v["mean"]))
+    sv7 = s7["aggregate"]["d=0.45 survival"]
+    check("h7 10.4.2 survival target reproduces 0.737", sv7["target"]["mean"], 0.737)
+    check("h7 10.4.2 survival obs_trace_only (0.697)", sv7["obs_trace_only"]["mean"], 0.697)
+    check("h7 10.4.2 survival resid_trace, seven-channel (0.739)", sv7["resid_trace"]["mean"], 0.739)
+    check("h7 10.4.2 survival resid_obs (0.684)", sv7["resid_obs"]["mean"], 0.684)
+    lo, hi = t_ci(sv7["resid_obs"]["per_seed"])
+    check("h7 10.4.2 survival resid_obs t90 lo (0.627)", lo, 0.627)
+    check("h7 10.4.2 survival resid_obs t90 hi (0.741)", hi, 0.741)
+    check_int("h7 10.4.2 survival resid_obs seeds >= 0.65 (7)", sv7["resid_obs"]["n_ge_065"], 7)
+    check("h7 10.4.2 survival resid_obs_int (0.695)", sv7["resid_obs_int"]["mean"], 0.695)
+    check("h7 10.4.2 survival resid_obs_beh (0.671)", sv7["resid_obs_beh"]["mean"], 0.671)
+    lo, hi = t_ci(sv7["resid_obs_beh"]["per_seed"])
+    check("h7 10.4.2 survival resid_obs_beh t90 lo (0.618)", lo, 0.618)
+    check("h7 10.4.2 survival resid_obs_beh t90 hi (0.725)", hi, 0.725)
+    p7o = s7["aggregate"]["d=0.45 predictor"]["resid_obs"]["mean"]
+    check("h7 10.4.2 predictor resid_obs (0.589)", p7o, 0.589)
+    check("h7 10.4.2 predictor raw target (0.714)", s7["aggregate"]["d=0.45 predictor"]["target"]["mean"], 0.714)
+    check("h7 10.4.2 untrained resid_obs (0.549)", s7["aggregate"]["d=0.45 untrained"]["resid_obs"]["mean"], 0.549)
+    check("h7 10.4.2 untrained obs_trace_only (0.643)", s7["aggregate"]["d=0.45 untrained"]["obs_trace_only"]["mean"], 0.643)
+    check("h7 10.4.2 survival-minus-predictor lead under the sensory control (+0.095)",
+          sv7["resid_obs"]["mean"] - p7o, 0.095)
+    check("h7 10.4.2 drift-0 survival resid_obs floor (0.504)", s7["aggregate"]["d=0.00 survival"]["resid_obs"]["mean"], 0.504)
+    check("h7 10.4.2 drift-0 untrained resid_obs floor (0.472)", s7["aggregate"]["d=0.00 untrained"]["resid_obs"]["mean"], 0.472)
+    d7 = s7["decision"]
+    check_true("h7 10.4.2 frozen rule passes both clauses", bool(d7["pass_bar"] and d7["pass_margin"]))
+    check_true("h7 10.4.2 t-CI lower bound below the bar, as stated", d7["survival_t90"][0] < BAR)
+
+    print("\n== FINDINGS methods note 8: explicit-fold re-score of the saved dumps (2026-09-29) ==")
+    def _fold_art(name):
+        with open(os.path.join(ARTROOT, "fold_rescore", name), encoding="utf-8") as fh:
+            return json.load(fh)
+    fr = {h: _fold_art(f"l3_h{h}_traces.json") for h in (8, 7)}
+    for h in (8, 7):
+        check_true(f"fold h{h}: re-scored on the owner's stack (scikit-learn 1.5.2, numpy 1.26.4)",
+                   fr[h]["stack"]["sklearn"] == "1.5.2" and fr[h]["stack"]["numpy"] == "1.26.4")
+        check_true(f"fold h{h}: explicit partition is five balanced 22/22 folds",
+                   fr[h]["partition_110_110"]["explicit"] == [[22, 22]] * 5)
+        check_true(f"fold h{h}: legacy partition on this stack is (22,22)x3, (21,23), (23,21)",
+                   fr[h]["partition_110_110"]["legacy"] == [[22, 22], [22, 22], [22, 22], [21, 23], [23, 21]])
+        check_int(f"fold h{h}: 60 cells re-scored", int(fr[h]["n_cells"]), 60)
+    # legacy column reproduces the published record; explicit column is the re-score
+    published = {8: {"target": (0.752, 0.774), "resid_trace": (0.726, 0.750)},
+                 7: {"target": (0.737, 0.740), "resid_trace": (0.722, 0.725)}}
+    for h, mets in published.items():
+        for met, (leg, exp) in mets.items():
+            blk = fr[h]["aggregate"]["d=0.45 survival"][met]
+            tol = 1e-3 if (h, met) == (8, "target") else TOL   # 0.7525 is the exact 3-dp midpoint
+            check(f"fold h{h} survival {met} legacy reproduces published ({leg})", blk["legacy"]["mean"], leg, tol=tol)
+            check(f"fold h{h} survival {met} explicit ({exp})", blk["explicit"]["mean"], exp)
+            check(f"fold h{h} survival {met}: stored shift = explicit - legacy",
+                  blk["mean_shift"], blk["explicit"]["mean"] - blk["legacy"]["mean"])
+            for scheme in ("legacy", "explicit"):
+                per_seed = [c[scheme][met] for c in fr[h]["cells"]
+                            if c["agent"] == "survival" and float(c["drift"]) == 0.45]
+                check_int(f"fold h{h} survival {met} {scheme}: ten cells", len(per_seed), 10)
+                check(f"fold h{h} survival {met} {scheme}: mean reproduces from cells", float(np.mean(per_seed)), blk[scheme]["mean"])
+                lo, hi = t_ci(per_seed)
+                check(f"fold h{h} survival {met} {scheme} t90 lo reproduces", lo, blk[scheme]["t90"][0])
+                check(f"fold h{h} survival {met} {scheme} t90 hi reproduces", hi, blk[scheme]["t90"][1])
+    # no pre-registered verdict moves on the two published organism runs
+    s8 = fr[8]["aggregate"]["d=0.45 survival"]["target"]["explicit"]
+    check_true("fold h8: explicit survival still clears the bar with the t-CI above it",
+               s8["mean"] >= 0.65 and s8["t90"][0] > 0.65)
+    p8 = fr[8]["aggregate"]["d=0.45 predictor"]["target"]["explicit"]["mean"]
+    u8 = fr[8]["aggregate"]["d=0.45 untrained"]["target"]["explicit"]["mean"]
+    check_true("fold h8: explicit survival keeps both margins (> predictor + 0.05, > untrained + 0.05)",
+               s8["mean"] > p8 + 0.05 and s8["mean"] > u8 + 0.05)
+    s7 = fr[7]["aggregate"]["d=0.45 survival"]["target"]["explicit"]
+    p7 = fr[7]["aggregate"]["d=0.45 predictor"]["target"]["explicit"]["mean"]
+    check_true("fold h7: explicit survival still clears the bar", s7["mean"] >= 0.65 and s7["t90"][0] > 0.65)
+    check_true("fold h7: survival-minus-predictor lead still under the 0.05 margin (10.5 verdict unchanged)",
+               (s7["mean"] - p7) < 0.05)
+    check("fold h7: explicit lead over predictor (+0.037; raw 0.0365 is the 3-dp midpoint)", s7["mean"] - p7, 0.037, tol=1e-3)
+    check_true("folds.py explicit references match the re-score (8: 0.774, 7: 0.740)",
+               abs(round(s8["mean"], 3) - 0.774) < 1e-9 and abs(round(s7["mean"], 3) - 0.740) < 1e-9)
+    # common garden, matched pair, gate 0 under both schemes
+    cg = {(h, sch): _fold_art(f"cg_h{h}_{sch}.json")["aggregate"] for h in (8, 7) for sch in ("legacy", "explicit")}
+    check("fold cg h8 legacy reproduces the forward tail (0.666)", cg[(8, "legacy")]["d0.45_survival"]["cg_tail_mean"], 0.666)
+    check("fold cg h7 legacy reproduces the reverse tail (0.684)", cg[(7, "legacy")]["d0.45_survival"]["cg_tail_mean"], 0.684)
+    check("fold cg h8 explicit forward tail (0.677)", cg[(8, "explicit")]["d0.45_survival"]["cg_tail_mean"], 0.677)
+    check("fold cg h7 explicit reverse tail (0.677)", cg[(7, "explicit")]["d0.45_survival"]["cg_tail_mean"], 0.677)
+    for h in (8, 7):
+        a = cg[(h, "explicit")]
+        check_true(f"fold cg h{h} explicit: both frozen clauses still pass",
+                   a["d0.45_survival"]["cg_tail_mean"] >= 0.65
+                   and a["d0.45_survival"]["cg_tail_mean"] > a["d0.45_untrained"]["cg_tail_mean"] + 0.05)
+    for h, leg, exp in ((8, 0.893, 0.903), (7, 0.855, 0.848)):
+        mpl = _fold_art(f"mp_h{h}_legacy.json")["aggregate"]["d0.45_survival"]
+        mpe = _fold_art(f"mp_h{h}_explicit.json")["aggregate"]["d0.45_survival"]
+        check_true(f"fold mp h{h} legacy reproduces every stored value", bool(mpl["all_reproduce_stored"]))
+        check(f"fold mp h{h} legacy survival ({leg})", mpl["mp_fixed_mean"], leg)
+        check(f"fold mp h{h} explicit survival ({exp})", mpe["mp_fixed_mean"], exp)
+    g0 = {sch: {int(r["hidden"]): r for r in _fold_art(f"gate0_h8h7_{sch}.json")["rows"]} for sch in ("legacy", "explicit")}
+    check("fold gate0 legacy h8 oracle reproduces (0.928)", g0["legacy"][8]["oracle_auroc"], 0.928)
+    check("fold gate0 legacy h8 floor reproduces (0.482)", g0["legacy"][8]["floor"], 0.482)
+    check("fold gate0 legacy h7 oracle reproduces (0.922)", g0["legacy"][7]["oracle_auroc"], 0.922)
+    check("fold gate0 legacy h7 floor reproduces (0.566)", g0["legacy"][7]["floor"], 0.566)
+    check_true("fold gate0 legacy: both capacities pass", g0["legacy"][8]["passes_gate0"] and g0["legacy"][7]["passes_gate0"])
+    check("fold gate0 explicit h8 floor (0.508)", g0["explicit"][8]["floor"], 0.508)
+    check_true("fold gate0 explicit h8 passes", bool(g0["explicit"][8]["passes_gate0"]))
+    check("section 16: gate0 explicit h7 floor (0.615)", g0["explicit"][7]["floor"], 0.615)
+    check("section 16: gate0 explicit h7 oracle still in band (0.918)", g0["explicit"][7]["oracle_auroc"], 0.918)
+    check_true("section 16: gate0 explicit h7 FAILS on the floor clause",
+               (not g0["explicit"][7]["passes_gate0"]) and (not g0["explicit"][7]["floor_ok"])
+               and abs(g0["explicit"][7]["floor"] - 0.5) >= 0.1)
+    u7e = fr[7]["aggregate"]["d=0.45 untrained"]["target"]["explicit"]["mean"]
+    check_true("section 16: h7 organism-run floor under explicit inside the tolerance by < 0.001",
+               abs(u7e - 0.5) < 0.1 and (0.1 - abs(u7e - 0.5)) < 0.001)
+    u7_cells = {sch: [c[sch]["target"] for c in fr[7]["cells"] if c["agent"] == "untrained" and float(c["drift"]) == 0.45]
+                for sch in ("legacy", "explicit")}
+    check_int("section 16: h7 seeds with floor >= 0.6 under explicit (5)", sum(x >= 0.6 for x in u7_cells["explicit"]), 5)
+    check_int("section 16: h7 seeds with floor >= 0.6 under legacy (3)", sum(x >= 0.6 for x in u7_cells["legacy"]), 3)
+    check_true("FINDINGS carries section 16",
+               "## 16. Fold-split sensitivity" in open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"),
+                                                      encoding="utf-8").read())
+
+    print("\n== FINDINGS section 16 addendum: L0 equivalence gate under the explicit split (2026-09-29) ==")
+    l0 = {}
+    for name in ("l3_h8_traces", "l3_h7_traces", "l3_h4_traces", "l3_n10", "l1_heldout"):
+        cells0 = [c for c in _fold_art(f"{name}.json")["cells"]
+                  if c["agent"] == "survival" and float(c["drift"]) == 0.0]
+        check_int(f"L0 {name}: drift-0 survival cells (10)", len(cells0), 10)
+        for sch in ("legacy", "explicit"):
+            vals = [float(c[sch]["target"]) for c in cells0]
+            l0[(name, sch)] = (vals, equivalence_test(vals, 0.5, margin=0.05), rope_test(vals))
+    for name in ("l3_h8_traces", "l3_h7_traces", "l3_h4_traces", "l3_n10"):
+        v_l, t_l, r_l = l0[(name, "legacy")]
+        v_e, t_e, r_e = l0[(name, "explicit")]
+        check(f"L0 {name} legacy mean (0.517)", float(np.mean(v_l)), 0.517)
+        check(f"L0 {name} legacy TOST p (0.010)", t_l.p_value, 0.010)
+        check(f"L0 {name} explicit mean (0.539)", float(np.mean(v_e)), 0.539)
+        check(f"L0 {name} explicit TOST p (0.207)", t_e.p_value, 0.207)
+        check(f"L0 {name} explicit ROPE P (0.816)", r_e.p_in_rope, 0.816)
+        check_true(f"L0 {name}: equivalent under legacy, not shown under explicit",
+                   bool(t_l.equivalent) and bool(r_l.accept) and (not t_e.equivalent) and (not r_e.accept))
+    check_true("L0: the four L3 dump sets share one set of drift-0 cells (surrogate off at drift 0)",
+               all(l0[(n, "explicit")][0] == l0[("l3_h8_traces", "explicit")][0]
+                   for n in ("l3_h7_traces", "l3_h4_traces", "l3_n10")))
+    v_l, t_l, r_l = l0[("l1_heldout", "legacy")]
+    v_e, t_e, r_e = l0[("l1_heldout", "explicit")]
+    check("L0 L1 organism legacy mean (0.522)", float(np.mean(v_l)), 0.522)
+    check("L0 L1 organism legacy TOST p (0.029)", t_l.p_value, 0.029)
+    check("L0 L1 organism explicit mean (0.546)", float(np.mean(v_e)), 0.546)
+    check("L0 L1 organism explicit TOST p (0.374)", t_e.p_value, 0.374)
+    check("L0 L1 organism explicit ROPE P (0.628)", r_e.p_in_rope, 0.628)
+
+    print("\n== FINDINGS 10.9 addendum: hidden 8 new-seed run (G seed 2, 2026-09-29) ==")
+    s2 = _load_art("expB2", "second_seed_l3_h8_gseed2_gpu.json")
+    _fd = open(os.path.join(os.path.dirname(__file__), "..", "docs", "FINDINGS.md"), encoding="utf-8").read()
+    check_true("FINDINGS carries the section 16 L0 equivalence addendum",
+               "**Addendum (2026-09-29, found while promoting the hidden 8 new-seed run)" in _fd)
+    check_true("FINDINGS carries the hidden-8 new-seed paragraph",
+               "*Hidden-8 new-seed run (2026-09-29).*" in _fd)
+    check_true("h8-seed2 execution names the owner's GPU machine", s2["execution"].startswith("owner's GPU"))
+    check_int("h8-seed2 gate 0 G seed (2)", int(s2["gate0_calibration"]["g_seed"]), 2)
+    check_int("h8-seed2 gate 0 selected hidden (8)", int(s2["gate0_calibration"]["selected_hidden"]), 8)
+    g8 = s2["gate0_calibration"]["rows"][0]
+    check("h8-seed2 gate 0 oracle (0.939)", g8["oracle_auroc"], 0.939)
+    check("h8-seed2 gate 0 floor (0.540)", g8["floor"], 0.540)
+    check_true("h8-seed2 gate 0 passes with a clean mechanical floor",
+               bool(g8["passes_gate0"]) and bool(g8["mech_leak_pass"]) and bool(g8["in_band"]))
+    for arm, ref in (("survival", 0.676), ("predictor", 0.627), ("untrained", 0.550)):
+        blk = s2["arms"][s2["dmax"]][arm]["pool_target"]
+        check(f"h8-seed2 {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"h8-seed2 {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
+    sv2 = s2["arms"][s2["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(sv2["per_seed"])
+    check("h8-seed2 survival t90 lo (0.636)", lo, 0.636)
+    check("h8-seed2 survival t90 hi (0.717)", hi, 0.717)
+    check_int("h8-seed2 survival seeds >= 0.65 (6)", sv2["n_ge_065"], 6)
+    rt2 = s2["behavior_audit"]["survival"]["resid_trace"]
+    check("h8-seed2 survival resid_trace (0.660)", rt2["mean"], 0.660)
+    lo, hi = t_ci(rt2["per_seed"])
+    check("h8-seed2 survival resid_trace t90 lo (0.631)", lo, 0.631)
+    check("h8-seed2 survival resid_trace t90 hi (0.689)", hi, 0.689)
+    check("h8-seed2 survival behavior_trace_only (0.745)", s2["behavior_audit"]["survival"]["behavior_trace_only"]["mean"], 0.745)
+    ba2 = s2["behavior_audit"]
+    check("h8-seed2 predictor behavior_trace_only (0.719)", ba2["predictor"]["behavior_trace_only"]["mean"], 0.719)
+    check("h8-seed2 untrained behavior_trace_only (0.683)", ba2["untrained"]["behavior_trace_only"]["mean"], 0.683)
+    check("h8-seed2 predictor resid_trace (0.606)", ba2["predictor"]["resid_trace"]["mean"], 0.606)
+    check("h8-seed2 untrained resid_trace (0.563)", ba2["untrained"]["resid_trace"]["mean"], 0.563)
+    check("h8-seed2 resid_trace lead over predictor (+0.054)", rt2["mean"] - ba2["predictor"]["resid_trace"]["mean"], 0.054)
+    check("h8-seed2 resid_trace lead over untrained (+0.098)", rt2["mean"] - ba2["untrained"]["resid_trace"]["mean"], 0.098)
+    check_int("h8-seed2 survival resid_trace seeds >= 0.65 (5)", sum(v >= BAR for v in rt2["per_seed"]), 5)
+    d2 = s2["decision"]
+    check("h8-seed2 lead over predictor (+0.0491)", d2["lead_over_predictor"], 0.0491, tol=0.0001)
+    check("h8-seed2 lead over untrained (+0.126)", d2["lead_over_untrained"], 0.126)
+    check_true("h8-seed2 rule: mean clears the bar, t-CI does not, predictor margin misses by < 0.001",
+               bool(d2["pass_bar"]) and (not d2["t90_excludes_bar"]) and (not d2["pass_margin_predictor"])
+               and bool(d2["pass_margin_untrained"]) and (0.05 - d2["lead_over_predictor"]) < 0.001)
+    lead2 = np.asarray(sv2["per_seed"]) - np.asarray(s2["arms"][s2["dmax"]]["predictor"]["pool_target"]["per_seed"])
+    lo, hi = t_ci(list(lead2))
+    check("h8-seed2 paired lead over predictor t90 lo (-0.003)", lo, -0.003)
+    check("h8-seed2 paired lead over predictor t90 hi (+0.101)", hi, 0.101)
+    check_true("h8-seed2 paired lead over predictor includes zero", lo < 0 < hi)
+    lead2u = np.asarray(sv2["per_seed"]) - np.asarray(s2["arms"][s2["dmax"]]["untrained"]["pool_target"]["per_seed"])
+    lo, hi = t_ci(list(lead2u))
+    check("h8-seed2 paired lead over untrained t90 lo (+0.074)", lo, 0.074)
+    check("h8-seed2 paired lead over untrained t90 hi (+0.179)", hi, 0.179)
+    check_true("h8-seed2 remaining gates pass (engagement, leak, floor, deaths)",
+               s2["gates"]["pool_leak_clean_all"] and s2["gates"]["untrained_floor_ok"]
+               and s2["gates"]["deaths_total"] == 0
+               and all(v["pass"] == v["n"] for v in s2["gates"]["engagement"].values()))
+    check_true("h8-seed2 L0 gate open, same drift-0 cells as the hidden 10 GPU run",
+               (not s2["gates"]["l0_tost"]["equivalent"])
+               and s2["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]
+               == sg["arms"]["0.0"]["survival"]["pool_target"]["per_seed"])
+    cpu0 = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")
+    dcs = np.asarray(sv2["per_seed"]) - np.asarray(cpu0["arms"][cpu0["dmax"]]["survival"]["pool_target"]["per_seed"])
+    check("h8-seed2 paired vs CPU device control, survival (-0.053)", float(dcs.mean()), -0.053)
+    lo, hi = t_ci(list(dcs))
+    check("h8-seed2 paired vs CPU device control t90 lo (-0.124)", lo, -0.124)
+    check("h8-seed2 paired vs CPU device control t90 hi (+0.018)", hi, 0.018)
+    seed0 = {c["seed"]: float(c["explicit"]["target"]) for c in fr[8]["cells"]
+             if c["agent"] == "survival" and float(c["drift"]) == 0.45}
+    dse = np.asarray(sv2["per_seed"]) - np.asarray([seed0[i] for i in range(10)])
+    check("h8-seed2 paired vs explicit seed-0 headline, survival (-0.097)", float(dse.mean()), -0.097)
+    lo, hi = t_ci(list(dse))
+    check("h8-seed2 paired vs explicit seed-0 headline t90 lo (-0.140)", lo, -0.140)
+    check("h8-seed2 paired vs explicit seed-0 headline t90 hi (-0.055)", hi, -0.055)
+
+    print("\n== FINDINGS 10.8.1: skill-matched model-free baseline (budget 450, 2026-09-30) ==")
+    sk = _load_art("expB2", "skill_matched_l3_h8_nowm_u450.json")
+    check_true("skill-match execution names the owner's GPU machine", sk["execution"].startswith("owner's GPU"))
+    check_true("FINDINGS carries the skill-matched section",
+               "### 10.8.1 Skill-matched model-free baseline: no skill-mediation verdict (2026-09-30)" in _fd)
+    check_true("FINDINGS records the verdict as no skill-mediation verdict",
+               "**no skill-mediation verdict.**" in _fd)
+    check_true("FINDINGS keeps 10.8 auxiliary-conditional unchanged",
+               "**auxiliary-conditional** verdict therefore stands unchanged" in _fd)
+    for arm, ref in (("survival", 0.717), ("predictor", 0.588), ("untrained", 0.513)):
+        blk = sk["arms"][sk["dmax"]][arm]["pool_target"]
+        check(f"skill-match {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"skill-match {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
+    svk = sk["arms"][sk["dmax"]]["survival"]["pool_target"]
+    lo, hi = t_ci(svk["per_seed"])
+    check("skill-match survival t90 lo (0.679)", lo, 0.679)
+    check("skill-match survival t90 hi (0.755)", hi, 0.755)
+    check_int("skill-match survival seeds >= 0.65 (8)", svk["n_ge_065"], 8)
+    rtk = sk["behavior_audit"]["survival"]["resid_trace"]
+    check("skill-match survival resid_trace (0.724)", rtk["mean"], 0.724)
+    lo, hi = t_ci(rtk["per_seed"])
+    check("skill-match survival resid_trace t90 lo (0.690)", lo, 0.690)
+    check("skill-match survival resid_trace t90 hi (0.757)", hi, 0.757)
+    check_int("skill-match survival resid_trace seeds >= 0.65 (9)", sum(v >= BAR for v in rtk["per_seed"]), 9)
+    bak = sk["behavior_audit"]
+    check("skill-match predictor resid_trace (0.590)", bak["predictor"]["resid_trace"]["mean"], 0.590)
+    check("skill-match untrained resid_trace (0.539)", bak["untrained"]["resid_trace"]["mean"], 0.539)
+    check("skill-match survival behavior_trace_only (0.838)", bak["survival"]["behavior_trace_only"]["mean"], 0.838)
+    dk = sk["decision"]
+    check("skill-match lead over predictor (+0.129)", dk["lead_over_predictor"], 0.129)
+    check("skill-match lead over untrained (+0.204)", dk["lead_over_untrained"], 0.204)
+    check_true("skill-match probe passes bar, t-CI excludes it, and both margins pass",
+               bool(dk["pass_bar"]) and bool(dk["t90_excludes_bar"])
+               and bool(dk["pass_margin_predictor"]) and bool(dk["pass_margin_untrained"]))
+    # The frozen match clause: an overshoot voids the mediation inference even though
+    # every probe clause above passes. Both halves must stay true together.
+    sm = sk["skill_match"]
+    check("skill-match reference return (-0.219)", sm["reference_return"], -0.219)
+    check("skill-match window lo (-0.269)", sm["window"][0], -0.269)
+    check("skill-match window hi (-0.169)", sm["window"][1], -0.169)
+    check("skill-match stage-2 return R (-0.1559)", sm["match_return"], -0.1559, tol=0.0001)
+    check("skill-match R reproduces the per-seed mean", float(np.mean(sm["per_seed_returns"])), sm["match_return"])
+    check_int("skill-match stage-2 seeds (10)", sm["n_seeds"], 10)
+    check("skill-match stage-2 return se (0.096)", sm["return_se"], 0.096)
+    check("skill-match overshoot past the window (+0.0131)", sm["overshoot_past_window"], 0.0131, tol=0.0001)
+    check("skill-match overshoot in standard errors (0.14)", sm["overshoot_in_se"], 0.14, tol=0.005)
+    check("skill-match deviation from reference (+0.0631)", sm["deviation_from_reference"], 0.0631, tol=0.0001)
+    check_true("skill-match R is outside the window and above it",
+               (not sm["in_window"]) and sm["match_return"] > sm["window"][1])
+    check_true("skill-match probe does not read below the bar", not sm["probe_below_bar"])
+    check_true("skill-match frozen rule gives no skill-mediation verdict",
+               sm["verdict"].startswith("NO SKILL-MEDIATION VERDICT"))
+    check_true("skill-match gates pass except L0 (engagement, leak, floor, deaths)",
+               sk["gates"]["pool_leak_clean_all"] and sk["gates"]["untrained_floor_ok"]
+               and sk["gates"]["deaths_total"] == 0
+               and all(v["pass"] == v["n"] for v in sk["gates"]["engagement"].values()))
+    check("skill-match speed positive control min (0.837)", sk["gates"]["speed_min"], 0.837)
+    check("skill-match L0 survival mean (0.539)", sk["gates"]["l0_survival_mean"], 0.539)
+    check("skill-match L0 TOST p (0.285)", sk["gates"]["l0_tost"]["p_value"], 0.285)
+    check("skill-match L0 ROPE P (0.736)", sk["gates"]["l0_rope"]["p_in_rope"], 0.736)
+    check_true("skill-match L0 gate recorded open, not accepted",
+               (not sk["gates"]["l0_tost"]["equivalent"]) and (not sk["gates"]["l0_rope"]["accept"]))
+    # Determinism cross-check: at drift 0 the untrained and predictor arms are objective
+    # -identical to the hidden-8 new-seed GPU run, while the survival arm must differ
+    # because this arm drops the decoder and trains on a longer budget.
+    for arm in ("untrained", "predictor"):
+        check_true(f"skill-match drift-0 {arm} arm bit-identical to the h8-seed2 GPU run",
+                   sk["arms"]["0.0"][arm]["pool_target"]["per_seed"]
+                   == s2["arms"]["0.0"][arm]["pool_target"]["per_seed"])
+    check_true("skill-match drift-0 survival arm differs from the h8-seed2 GPU run",
+               sk["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]
+               != s2["arms"]["0.0"]["survival"]["pool_target"]["per_seed"])
+    check_true("skill-match survival clears the budget-300 no-auxiliary run (0.601)",
+               svk["mean"] > _load_art("expB2", "arch_baseline_l3_h8_nowm.json")["decision"]["survival"])
+
     # ---- FINDINGS 10.8 device control (promoted 2026-09-28) --------------------
     print("\n== FINDINGS 10.8: device control (decoder-carrying arm on the CPU sandbox) ==")
     dc = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")
@@ -1178,6 +1533,81 @@ def main() -> int:
     for relpath, banned in [("index.html", "EXP C · next"),
                             ("index.html", "no matter how loud the artifact")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
+
+    # ---- section 16: the shared mechanism behind both flipped clauses --------
+    # Recompute the legacy-to-explicit shift and the contrasts straight from the
+    # re-score artifact, so the section 16 tables cannot drift from the dumps.
+    print("")
+    print("== section 16: fold shift and contrast invariance ==")
+    from collections import defaultdict as _dd
+    _h8 = _load_art("fold_rescore", "l3_h8_traces.json")
+    _g = _dd(lambda: _dd(list))
+    for _c in _h8["cells"]:
+        for _k in ("target", "resid_trace"):
+            _g[(_c["drift"], _c["agent"], _k)]["leg"].append(_c["legacy"][_k])
+            _g[(_c["drift"], _c["agent"], _k)]["exp"].append(_c["explicit"][_k])
+    _m = {k: (float(np.mean(v["leg"])), float(np.mean(v["exp"]))) for k, v in _g.items()}
+    _deltas = [e - l for l, e in _m.values()]
+    check_int("section 16 shift: 12 arm/drift/metric means at hidden 8", len(_deltas), 12)
+    check_int("section 16 shift: all 12 move up", sum(d > 0 for d in _deltas), 12)
+    check("section 16 shift: mean delta +0.0212", float(np.mean(_deltas)), 0.0212)
+    for label, a, da, b, db, metric, expect_leg, expect_exp in [
+        ("survival minus L0 floor", "survival", "0.45", "survival", "0.00", "target", 0.2358, 0.2347),
+        ("survival minus untrained", "survival", "0.45", "untrained", "0.45", "target", 0.2646, 0.2610),
+        ("survival minus predictor", "survival", "0.45", "predictor", "0.45", "target", 0.1792, 0.1857),
+        ("survival minus untrained resid", "survival", "0.45", "untrained", "0.45", "resid_trace", 0.2277, 0.2245),
+    ]:
+        check(f"section 16 contrast {label} (legacy)", _m[(da, a, metric)][0] - _m[(db, b, metric)][0], expect_leg)
+        check(f"section 16 contrast {label} (explicit)", _m[(da, a, metric)][1] - _m[(db, b, metric)][1], expect_exp)
+    _l0 = _load_art("expB2", "second_seed_l3_h8_gseed2_gpu.json")["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]
+    check_int("section 16 L0: ten drift-0 survival seeds", len(_l0), 10)
+    check("section 16 L0 mean 0.5393", float(np.mean(_l0)), 0.5393)
+    check("section 16 L0 sd 0.0397", float(np.std(_l0, ddof=1)), 0.0397)
+    check("section 16 L0 TOST p 0.207", equivalence_test(_l0).p_value, 0.207)
+
+    # ---- section 16 and note 8: the decisions and the comparator convention --
+    print("")
+    print("== section 16 decisions and the comparator convention (2026-09-30) ==")
+    for relpath, needle, label in [
+        ("docs/FINDINGS.md", "Twelve of twelve up, mean +0.0212",
+         "section 16 states the uniform shift at hidden 8"),
+        ("docs/FINDINGS.md", "hidden 7 stays the second in-band capacity",
+         "section 16 records the hidden 7 decision"),
+        ("docs/FINDINGS.md", "report the clause as open; do not buy it with seeds",
+         "section 16 records the L0 decision"),
+        ("docs/FINDINGS.md", "Comparator convention (fixed 2026-09-30)",
+         "methods note 8 states the comparator convention"),
+        ("docs/FINDINGS.md", "the gap is **0.162** rather than 0.140",
+         "10.9 compares the GPU re-measure like for like"),
+    ]:
+        check_true(label, needle in _read(relpath))
+    check_true("FINDINGS no longer says 'The gap to 0.752 therefore sits with the instance'",
+               "The gap to 0.752 therefore sits with the instance" not in _read("docs/FINDINGS.md"))
+
+    # ---- blind clarification of the skill-match clause (2026-09-30) ----------
+    # Stage 1 of the skill-matched baseline overshot the return it was meant to match
+    # (+0.0067 against -0.219), which made the stage-2 clause's one-sided vs two-sided
+    # reading load-bearing. The reading was fixed asymmetrically while the stage-2 cells
+    # directory was still empty. These pins fail if that provenance is edited away.
+    print("")
+    print("== skill-match clause: blind asymmetric reading (2026-09-30) ==")
+    _SKILL_SPEC = "docs/specs/2026-09-29-l3-skill-matched-baseline-design.md"
+    for relpath, needle, label in [
+        (_SKILL_SPEC, "Amendment (2026-09-30 03:17 UTC): the skill-match clause is asymmetric",
+         "skill-matched spec carries the dated amendment"),
+        (_SKILL_SPEC, "before any stage 2 cell existed",
+         "skill-matched spec records that the reading was fixed blind"),
+        (_SKILL_SPEC, "+0.0067", "skill-matched spec carries the stage 1 three-seed mean"),
+        (_SKILL_SPEC, "skill-advantaged, not skill-matched",
+         "skill-matched spec names the overshoot case"),
+        (_SKILL_SPEC, "budget ladder ascends only",
+         "skill-matched spec records the ascending-only ladder limitation"),
+        ("docs/PREREGISTRATION_L3.md", "BLIND CLARIFICATION OF THE",
+         "prereg sec 12 logs the blind clarification"),
+        ("docs/PREREGISTRATION_L3.md", "+0.0067",
+         "prereg sec 12 carries the stage 1 three-seed mean"),
+    ]:
+        check_true(label, needle in _read(relpath))
 
     # ---- FINDINGS methods note 2: engagement margin on committed cells --------
     print("\n== FINDINGS note 2: engagement-margin sweep on committed cells ==")

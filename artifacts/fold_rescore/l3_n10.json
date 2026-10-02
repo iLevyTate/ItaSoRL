@@ -1,0 +1,941 @@
+{
+ "states_dir": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_n10/states",
+ "label": "l3_n10",
+ "spec": "docs/specs/2026-09-28-explicit-cv-folds.md",
+ "generated_by": "scripts/rescore_fold_split.py",
+ "stack": {
+  "python": "3.13.2",
+  "numpy": "1.26.4",
+  "sklearn": "1.5.2",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "machine": "AMD64",
+  "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel"
+ },
+ "partition_110_110": {
+  "legacy": [
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ],
+   [
+    21,
+    23
+   ],
+   [
+    23,
+    21
+   ]
+  ],
+  "explicit": [
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ]
+  ]
+ },
+ "n_cells": 60,
+ "cells": [
+  {
+   "drift": "0.00",
+   "seed": 0,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.3937349212052769
+   },
+   "explicit": {
+    "target": 0.4429752066115703
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 0,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.5740482179217357
+   },
+   "explicit": {
+    "target": 0.6074380165289257
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 0,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.4156263367725819
+   },
+   "explicit": {
+    "target": 0.3876033057851239
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 1,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.49839159522953985
+   },
+   "explicit": {
+    "target": 0.5553719008264464
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 1,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.5215047139948326
+   },
+   "explicit": {
+    "target": 0.5376033057851239
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 1,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.4602244922403025
+   },
+   "explicit": {
+    "target": 0.5115702479338843
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 2,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.586429512516469
+   },
+   "explicit": {
+    "target": 0.6082644628099174
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 2,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.44751125027804867
+   },
+   "explicit": {
+    "target": 0.48223140495867767
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 2,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.5045565764933354
+   },
+   "explicit": {
+    "target": 0.5037190082644628
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 3,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.5074628270280445
+   },
+   "explicit": {
+    "target": 0.5004132231404959
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 3,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.5459507554369214
+   },
+   "explicit": {
+    "target": 0.5148760330578512
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 3,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.5252913094810328
+   },
+   "explicit": {
+    "target": 0.5334710743801653
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 4,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.48923309891689337
+   },
+   "explicit": {
+    "target": 0.5264462809917355
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 4,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.5219555806512328
+   },
+   "explicit": {
+    "target": 0.5438016528925621
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 4,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.46192358366271413
+   },
+   "explicit": {
+    "target": 0.47438016528925625
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 5,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.47395496466642706
+   },
+   "explicit": {
+    "target": 0.47107438016528924
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 5,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.4797306777543932
+   },
+   "explicit": {
+    "target": 0.5326446280991736
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 5,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.4631495645329638
+   },
+   "explicit": {
+    "target": 0.5119834710743801
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 6,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.4433730301319233
+   },
+   "explicit": {
+    "target": 0.47396694214876034
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 6,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.4942225758431292
+   },
+   "explicit": {
+    "target": 0.4822314049586776
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 6,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.4868239138990127
+   },
+   "explicit": {
+    "target": 0.4462809917355372
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 7,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.4057406361754188
+   },
+   "explicit": {
+    "target": 0.4231404958677686
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 7,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.5070444706808342
+   },
+   "explicit": {
+    "target": 0.5731404958677686
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 7,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.4478842632992831
+   },
+   "explicit": {
+    "target": 0.45165289256198343
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 8,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.5297751655459166
+   },
+   "explicit": {
+    "target": 0.5487603305785124
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 8,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.5567150899166708
+   },
+   "explicit": {
+    "target": 0.5735537190082644
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 8,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.477267594066013
+   },
+   "explicit": {
+    "target": 0.4694214876033058
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 9,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.5157358451824855
+   },
+   "explicit": {
+    "target": 0.5243801652892561
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 9,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.5177993942816077
+   },
+   "explicit": {
+    "target": 0.5450413223140496
+   }
+  },
+  {
+   "drift": "0.00",
+   "seed": 9,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.5128578272847047
+   },
+   "explicit": {
+    "target": 0.5144628099173554
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 0,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.494603288674435
+   },
+   "explicit": {
+    "target": 0.5285123966942148
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 0,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.8527650873500676
+   },
+   "explicit": {
+    "target": 0.831404958677686
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 0,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.48308779494550247
+   },
+   "explicit": {
+    "target": 0.48429752066115694
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 1,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.596831955922865
+   },
+   "explicit": {
+    "target": 0.6177685950413222
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 1,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.6364731447735401
+   },
+   "explicit": {
+    "target": 0.662396694214876
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 1,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.41397686634840786
+   },
+   "explicit": {
+    "target": 0.48429752066115705
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 2,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.6290086066765908
+   },
+   "explicit": {
+    "target": 0.6446280991735537
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 2,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.8411982615539928
+   },
+   "explicit": {
+    "target": 0.8442148760330579
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 2,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.5487449309583696
+   },
+   "explicit": {
+    "target": 0.5545454545454546
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 3,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.5789812295741149
+   },
+   "explicit": {
+    "target": 0.5929752066115703
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 3,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.8234416439950036
+   },
+   "explicit": {
+    "target": 0.8566115702479339
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 3,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.5430436493677601
+   },
+   "explicit": {
+    "target": 0.565702479338843
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 4,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.6112708108755539
+   },
+   "explicit": {
+    "target": 0.6264462809917355
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 4,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.8299873380901047
+   },
+   "explicit": {
+    "target": 0.8367768595041323
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 4,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.46812706397686643
+   },
+   "explicit": {
+    "target": 0.5024793388429752
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 5,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.5967686463733894
+   },
+   "explicit": {
+    "target": 0.5921487603305786
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 5,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.5728795578597949
+   },
+   "explicit": {
+    "target": 0.6115702479338843
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 5,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.5091063087110518
+   },
+   "explicit": {
+    "target": 0.5053719008264463
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 6,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.4938230412538712
+   },
+   "explicit": {
+    "target": 0.5214876033057851
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 6,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.7046686515065962
+   },
+   "explicit": {
+    "target": 0.7685950413223142
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 6,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.45245538387830875
+   },
+   "explicit": {
+    "target": 0.49214876033057847
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 7,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.5236118953510258
+   },
+   "explicit": {
+    "target": 0.5371900826446281
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 7,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.781641941720993
+   },
+   "explicit": {
+    "target": 0.8099173553719009
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 7,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.4880404838902862
+   },
+   "explicit": {
+    "target": 0.5136363636363636
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 8,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.5649769861232311
+   },
+   "explicit": {
+    "target": 0.5830578512396694
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 8,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.7593595469089539
+   },
+   "explicit": {
+    "target": 0.7640495867768594
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 8,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.4127397635302773
+   },
+   "explicit": {
+    "target": 0.4508264462809917
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 9,
+   "agent": "predictor",
+   "legacy": {
+    "target": 0.6434876717485413
+   },
+   "explicit": {
+    "target": 0.6384297520661157
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 9,
+   "agent": "survival",
+   "legacy": {
+    "target": 0.7225339219410365
+   },
+   "explicit": {
+    "target": 0.7537190082644629
+   }
+  },
+  {
+   "drift": "0.45",
+   "seed": 9,
+   "agent": "untrained",
+   "legacy": {
+    "target": 0.559168762726075
+   },
+   "explicit": {
+    "target": 0.5764462809917357
+   }
+  }
+ ],
+ "aggregate": {
+  "d=0.00 predictor": {
+   "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "target": {
+    "legacy": {
+     "mean": 0.48438315965983947,
+     "t90": [
+      0.45069196018266955,
+      0.5180743591370094
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "explicit": {
+     "mean": 0.5074793388429752,
+     "t90": [
+      0.4748171064174453,
+      0.5401415712685053
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "mean_shift": 0.02309617918313578,
+    "max_abs_seed_shift": 0.05698030559690653
+   }
+  },
+  "d=0.00 survival": {
+   "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "target": {
+    "legacy": {
+     "mean": 0.5166482726759407,
+     "t90": [
+      0.4950018398163805,
+      0.538294705535501
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "explicit": {
+     "mean": 0.5392561983471074,
+     "t90": [
+      0.5162533730157111,
+      0.5622590236785037
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "mean_shift": 0.02260792567116665,
+    "max_abs_seed_shift": 0.06609602518693436
+   }
+  },
+  "d=0.00 untrained": {
+   "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "target": {
+    "legacy": {
+     "mean": 0.47556054617319443,
+     "t90": [
+      0.45646323631742297,
+      0.4946578560289659
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "explicit": {
+     "mean": 0.48045454545454547,
+     "t90": [
+      0.4550776026597924,
+      0.5058314882492985
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "mean_shift": 0.004893999281351036,
+    "max_abs_seed_shift": 0.051345755693581796
+   }
+  },
+  "d=0.45 predictor": {
+   "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "target": {
+    "legacy": {
+     "mean": 0.5733364132573617,
+     "t90": [
+      0.5423861208509366,
+      0.6042867056637868
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "explicit": {
+     "mean": 0.5882644628099173,
+     "t90": [
+      0.5618239671263523,
+      0.6147049584934823
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "mean_shift": 0.014928049552555556,
+    "max_abs_seed_shift": 0.03390910801977981
+   }
+  },
+  "d=0.45 survival": {
+   "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "target": {
+    "legacy": {
+     "mean": 0.7524949095700083,
+     "t90": [
+      0.6982654244140569,
+      0.8067243947259597
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 8
+    },
+    "explicit": {
+     "mean": 0.7739256198347108,
+     "t90": [
+      0.726729406841748,
+      0.8211218328276735
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 9
+    },
+    "mean_shift": 0.021430710264702446,
+    "max_abs_seed_shift": 0.06392638981571797
+   }
+  },
+  "d=0.45 untrained": {
+   "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "target": {
+    "legacy": {
+     "mean": 0.4878491008332905,
+     "t90": [
+      0.45726301748791703,
+      0.518435184178664
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "explicit": {
+     "mean": 0.5129752066115703,
+     "t90": [
+      0.48959052587058133,
+      0.5363598873525591
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "mean_shift": 0.025126105778279728,
+    "max_abs_seed_shift": 0.0703206543127492
+   }
+  }
+ }
+}

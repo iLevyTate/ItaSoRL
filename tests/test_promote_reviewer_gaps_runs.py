@@ -98,3 +98,14 @@ def test_promote_without_comparison_has_no_device_block(tmp_path):
     run, _ = _bundle(tmp_path)
     out = prg.promote(str(run), str(tmp_path / "z.json"), spec="s", label="t", head="abc")
     assert "device_control" not in out
+
+
+def test_execution_field_defaults_to_cloud_and_accepts_override(tmp_path):
+    run, _calib = _bundle(tmp_path, surv=0.61, pred=0.53, untr=0.52)
+    default = prg.promote(str(run), str(tmp_path / "e1.json"), spec="s", label="d", head="abc")
+    assert default["execution"].startswith("cloud CPU sandbox")
+    local = prg.promote(str(run), str(tmp_path / "e2.json"), spec="s", label="d", head="abc",
+                        execution="owner's GPU machine (RTX 4050, torch 2.7.0+cu126, 2 cuda workers)")
+    assert local["execution"].startswith("owner's GPU machine")
+    back = json.loads((tmp_path / "e2.json").read_text(encoding="utf-8"))
+    assert back["execution"] == local["execution"]
