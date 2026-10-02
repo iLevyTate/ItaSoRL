@@ -36,6 +36,42 @@ try {
 # $ErrorActionPreference='Stop' a corrupt file (a killed capture leaves a
 # moov-less mp4) blew up inside the check itself with a NativeCommandError,
 # instead of reaching the throw below that actually names the bad file.
+# Every section clip is a 12 s seamless loop by construction. -Resume used to
+# accept a leftover clip on "exists, over 100 KB, newer than the renderer", and
+# all three of those pass for a partial file from a killed capture. On
+# 2026-10-01 a crashed capture left a 1.6 s end card that cleared every one of
+# them; it was one `-Resume` away from being stitched into the 65.9 s tour with
+# correct text and a quarter of the running time. Duration is the discriminator
+# a truncated file cannot fake, so the resume check reads it instead of the size.
+# If the renderer's own duration ever changes, this goes stricter and recaptures,
+# which is the safe direction to fail in.
+$clipSeconds = 12.0
+
+function Get-ClipSeconds([string]$path) {
+  $raw = cmd /c "ffprobe -v error -show_entries format=duration -of csv=p=0 `"$path`"" 2>$null
+  $val = 0.0
+  if ([double]::TryParse(($raw | Select-Object -First 1), [ref]$val)) { return $val }
+  return 0.0
+}
+
+# A crashed capture can hold its handle open for a moment after the process is
+# gone. Remove-Item throwing there aborted the whole build twice on 2026-10-01,
+# and, worse, left the partial file in place for -Resume to find. Retry briefly,
+# then fail loudly rather than silently leaving a stale clip behind.
+function Remove-Stale([string]$path) {
+  if (-not (Test-Path $path)) { return }
+  foreach ($wait in 0, 1, 2, 4) {
+    if ($wait -gt 0) { Start-Sleep -Seconds $wait }
+    try {
+      Remove-Item $path -Force -ErrorAction Stop
+      return
+    } catch {
+      # handle still held; fall through and retry
+    }
+  }
+  throw "cannot delete $path (another process still holds it); delete it by hand before resuming"
+}
+
 function Assert-Decodes([string]$path) {
   $log = [System.IO.Path]::GetTempFileName()
   try {
@@ -70,12 +106,16 @@ foreach ($sec in $capSecs) {
     $q = if ($Textless) { '&text=0' } else { '' }
     $env:CAP_URL = "http://127.0.0.1:8877/index.html?sec=$sec&layout=$lay$q"
     $env:CAP_OUT = "$clips\two-minds-$sec$mode$suffix.mp4"
-    # -Resume: skip clips already captured from the current renderer.
+    # -Resume: skip clips already captured from the current renderer, and only
+    # if they are a full-length clip rather than a partial one (see Get-ClipSeconds).
     if ($Resume -and (Test-Path $env:CAP_OUT) -and
-        (Get-Item $env:CAP_OUT).LastWriteTime -gt (Get-Item $renderer).LastWriteTime -and
-        (Get-Item $env:CAP_OUT).Length -gt 100KB) {
-      Write-Host "=== skip $sec $lay (exists)"
-      continue
+        (Get-Item $env:CAP_OUT).LastWriteTime -gt (Get-Item $renderer).LastWriteTime) {
+      $have = Get-ClipSeconds $env:CAP_OUT
+      if ([math]::Abs($have - $clipSeconds) -lt 0.1) {
+        Write-Host "=== skip $sec $lay (exists, $have s)"
+        continue
+      }
+      Write-Host "=== recapture $sec $lay (partial: $have s, want $clipSeconds s)"
     }
     Write-Host "=== capture $sec $lay"
     # Headless Chromium dies mid-run now and then; one clean retry absorbs it.
@@ -84,13 +124,13 @@ foreach ($sec in $capSecs) {
     # way out of a failure.
     $ok = $false
     foreach ($attempt in 1, 2) {
-      if (Test-Path $env:CAP_OUT) { Remove-Item $env:CAP_OUT -Force }
+      Remove-Stale $env:CAP_OUT
       node capture-brain.js
       if ($LASTEXITCODE -eq 0) { $ok = $true; break }
       Write-Host "=== capture $sec $lay attempt $attempt failed, retrying"
     }
     if (-not $ok) {
-      if (Test-Path $env:CAP_OUT) { Remove-Item $env:CAP_OUT -Force }
+      Remove-Stale $env:CAP_OUT
       throw "capture failed twice: $sec $lay"
     }
     Assert-Decodes $env:CAP_OUT

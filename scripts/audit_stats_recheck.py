@@ -1518,6 +1518,60 @@ def main() -> int:
                             ("docs/PAPER_OUTLINE.md", "H3 open pending re-run")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
 
+    # ---- derived-doc guard: the survival-alone phrasing, everywhere it lives ---
+    # 10.8 narrowed "encoded by the survival objective, uniquely" on 2026-09-27:
+    # strip the next-observation decoder and the same protocol reads 0.601 against
+    # 0.730 with it, so survival is necessary and not sufficient. FINDINGS and the
+    # paper were corrected the same week because their numbers are pinned here.
+    # The prose artifacts were not, and the old sentence survived in three of them
+    # until 2026-10-01: the film's end card, the status note's film table, and the
+    # plain-language explainer. Nothing failed, because nothing was watching them.
+    #
+    # These guards are deliberately phrase-level rather than number-level. The
+    # failure mode is not a wrong number, it is a correct number under a claim the
+    # evidence no longer supports, which no arithmetic check can catch.
+    print("\n== derived-doc guard (survival-alone phrasing in the prose artifacts) ==")
+    for relpath, needle, label in [
+        ("viz/player/brain/brain.js", "Trained to survive and to expect what comes next",
+         "film end card names both objectives"),
+        ("viz/player/brain/brain.js", "drop the second job and the trace falls below the bar",
+         "film end card states the decoder requirement"),
+        ("viz/player/brain/brain.js", "Five actions. Three predictions.",
+         "film actions chapter still names the prediction heads"),
+        ("docs/LEARNING.md", "it is not survival alone",
+         "LEARNING.md carries the decoder requirement as its own act"),
+        ("docs/LEARNING.md", "0.601",
+         "LEARNING.md quotes the no-decoder result"),
+        ("docs/LEARNING.md", "prediction side task",
+         "LEARNING.md flags the confound where it sets up the three-way comparison"),
+    ]:
+        check_true(label, needle in _read(relpath))
+    # What the film must not SAY, which is not the same as what its source may
+    # mention. brain.js carries a comment naming the retired sentence so the next
+    # editor knows why it is retired; checking the raw file would fire on that
+    # comment and push the explanation out of the code. Strip line comments first
+    # and check what actually renders.
+    def _code_without_comments(relpath: str) -> str:
+        return "\n".join(ln for ln in _read(relpath).splitlines()
+                         if not ln.lstrip().startswith("//"))
+
+    for relpath, banned in [
+        ("docs/LEARNING.md", "Now, and only now, the survival creature encodes the world"),
+        ("docs/LEARNING.md", "snapshot 2026-07-14"),
+        ("docs/STATUS_2026-09-27.md", "Three lines credit survival alone"),
+        ("index.html", "trained only to survive"),
+        ("index.template.html", "trained only to survive"),
+    ]:
+        check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
+    for banned in ("trained only to survive", "survival alone", "only to survive"):
+        check_true(f"the film renders no '{banned}' claim",
+                   banned not in _code_without_comments("viz/player/brain/brain.js"))
+    # The film ships silent. If a voiced cut is ever committed, the VO script in
+    # docs/specs/2026-10-01-two-minds-vo-music.md has to be re-read against 10.8
+    # first, so pin the spec's own warning rather than let it be recorded blind.
+    check_true("the Two Minds VO spec records that its survival-alone line has a shelf life",
+               "The one line with a shelf life" in _read("docs/specs/2026-10-01-two-minds-vo-music.md"))
+
     # ---- derived-doc guard: sensory echo (10.4.2), H2 (14), Exp C (13.D) -------
     # The site carried Experiment C as "next" for two months after 13.D closed it,
     # and never mentioned the sensory-echo or graded-seam controls. Pin them.
