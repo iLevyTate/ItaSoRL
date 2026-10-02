@@ -65,7 +65,7 @@ The four hypotheses (from `README.md`):
 
 - **H1 (detectability)**: a privileged outside inspector can tell the two worlds apart.
 - **H2 (substrate-grounding)**: the signal really lives in the computational seams, not in some side effect.
-- **H3 (emergence under selection)**: across generations, creatures whose survival depends on the difference get better at representing it. (Future work, Experiment C.)
+- **H3 (emergence under selection)**: across generations, creatures whose survival depends on the difference get better at representing it. (Tested in Experiment C and resolved negative: thirty generations built no heritable detector. See Act 9's caveats in section 8.)
 - **H4 (legibility, or incidental encoding)**: a from-scratch creature encodes the difference on its own, without reward. (The main event.)
 
 ---
@@ -214,6 +214,12 @@ creatures with the identical skeleton, differing only in their goal:
 
 If only the survival creature encodes the world's identity, then survival
 pressure is doing the work. That three-way comparison is the experiment's engine.
+
+One wrinkle, found later and worth flagging here rather than letting it ambush you
+in section 8: the survival arm carries that prediction side task too, so the
+three-way comparison on its own cannot separate "survival did it" from "survival
+plus self-prediction did it". A fourth arm, survival with the side task removed,
+settles it, and the answer is that both are needed. See Act 6.
 
 ---
 
@@ -423,10 +429,12 @@ Precisely (`itasorl/behavior_audit.py`, `scripts/audit_behavior_mediation.py`):
 
 ---
 
-## 8. What We Found So Far (snapshot 2026-07-14)
+## 8. What We Found So Far (updated 2026-10-02)
 
-The story in five acts, with real numbers. Remember: 0.5 is blind guessing, 1.0
-is perfect, and 0.65 is the pre-registered bar.
+The story in nine acts, with real numbers. Remember: 0.5 is blind guessing, 1.0
+is perfect, and 0.65 is the pre-registered bar. Acts 1 to 5 are the original arc.
+Acts 6 to 9 are the work from September 2026, which narrowed the headline claim in
+one important way and tested it in four others.
 
 **Act 1: the inspector is nearly perfect (Experiment A).**
 L0 photocopy: inspector 0.523, which is chance, exactly as required (the honesty
@@ -436,15 +444,26 @@ planted on purpose the audit correctly sounds the alarm (the leak jumps to about
 0.98). Verdict: the fakes are clearly catchable, and only through the substrate.
 H1 is supported.
 
+*Correction, 2026-09-27.* Those ceilings were measured with a near-perfect
+detector. Give the inspector the same blurry glance the creature gets, and the
+ranking of the fakes reverses. At the detector noise that defines the L3 band, the
+L2 smears read 0.646 and 0.618 while the L3 forger reads 0.928; the L2 artifacts
+only reach 1.000 when the detector is a hundred times sharper. So the project no
+longer says "L2 is more detectable than L3 yet only L3 is encoded". The clean
+matched comparison is L1 against L3: an L1 seam sitting inside the same band
+(0.873 to the inspector) leaves the creature at chance (0.533), while an in-band
+forger is encoded. Detectable at the creature's own resolution turns out to be
+necessary but not sufficient.
+
 **Act 2: the daydreamer does not care (Experiment B).**
 The prediction-only creature, living in a world whose ink smears (L2), writes
 nothing about it in its notebook: target about 0.51 at every drift strength, while
 the speed control reads about 0.90 (the notebook is perfectly legible, just
 silent on this topic). The prediction-error channel shows a faint 0.596 at the
 strongest drift. Longer imagination horizons: no lift. The stronger reader (a
-random forest): nothing. This is the headline negative: detectable (0.99) does
-not mean encoded (0.51). Nothing about predicting the next moment requires caring
-whether the drag slowly wobbles.
+random forest): nothing. This is the headline negative: detectable does not mean
+encoded. Nothing about predicting the next moment requires caring whether the drag
+slowly wobbles.
 
 **Act 3: even hunger does not make L2 matter (B-v2, B-v3).**
 Make it life and death: the survival creature at L2 drift reads 0.523 (plus or
@@ -457,26 +476,33 @@ encoding.
 
 **Act 4: the forger's fake flips the result (L3, hidden=8).**
 Swap the hand-tuned knob for G_motion, the learned forger (gate-0 passed,
-inspector 0.928). Now, and only now, the survival creature encodes the world:
-pooled target 0.752 (90% CI [0.698, 0.807], which clears the bar; 8 of 10 seeds
-clear it), while the untrained newborn reads 0.488 (a clean floor) and the
-daydreamer reads 0.573. Every referee check passes: reward is not decodable
-(0.541, clean in 10 of 10 seeds), zero deaths (all pools 110 of 110), L0 sits at
-0.517 with equivalence accepted, and the result survives the nonlinear probe.
+inspector 0.928). Now the creature encodes the world: pooled target 0.752 (90% CI
+[0.698, 0.807], which clears the bar; 8 of 10 seeds clear it), while the untrained
+newborn reads 0.488 (a clean floor) and the daydreamer reads 0.573. Every referee
+check passes: reward is not decodable (0.541, clean in 10 of 10 seeds), zero deaths
+(all pools 110 of 110), L0 sits at 0.517 with equivalence accepted, and the result
+survives the nonlinear probe.
+
 Then comes the deflating objection: behavior alone reveals the world at 0.803,
 better than the state probe, so maybe the reader is just seeing the limp. The
 pre-registered per-timestep control answers it: after surgically subtracting the
-behavior trace, 0.726 remains (90% CI [0.685, 0.765]; 9 of 10 seeds clear the
-bar; the quadratic version is 0.721). A later audit widened that subtraction to
-also remove the creature's absolute position and heading, the one covariate the
-two worlds' different motion laws could smuggle in; the signal barely moved, to
-0.723, so it is not position wearing a disguise. And the control is honest on its
-own tests:
-the untrained creature's residual reads exact chance (0.498) even though its raw
-behavior reveals the world at 0.645. This is the first reversal of the negative: a
-creature never rewarded for it carries world-distinguishing state (about 0.73
-after the behavior control) as a byproduct of surviving. The deterministic rerun
-(`fullruns/l3_h8_traces`) reproduced every figure exactly.
+behavior trace, 0.726 remains (90% CI [0.685, 0.765]; 9 of 10 seeds clear the bar;
+the quadratic version is 0.721). A later audit widened that subtraction to also
+remove the creature's absolute position and heading, the one covariate the two
+worlds' different motion laws could smuggle in; the signal barely moved, to 0.723,
+so it is not position wearing a disguise. And the control is honest on its own
+tests: the untrained creature's residual reads exact chance (0.498) even though its
+raw behavior reveals the world at 0.645.
+
+A second objection arrived later and is worth its own line. "Behavior-independent"
+does not automatically mean "input-independent": a notebook that passively mirrors
+what the creature sees would survive the behavior control, because the view under a
+different motion law is itself different. A readout-only control, frozen before it
+ran, subtracts the observation stream too. The signal holds at 0.731 (90% CI
+[0.690, 0.772], 8 of 10 seeds). Subtract the senses and the behavior together, with
+a nonlinear reader, and it falls to 0.654, right at the bar with the interval
+straddling it. The honest summary is that roughly two thirds of the above-chance
+signal survives a one-step mirror of everything the creature just saw and did.
 
 **Act 5: a second forger complicates the moral (gate-0 recal plus hidden=7).**
 The pre-registration required a replication with a second in-band forger. The
@@ -484,44 +510,124 @@ first attempt, hidden=4, blew through its gates (untrained floor 0.891, reward
 leak clean in 0 of 10 seeds, engagement 30%), so it was UNINFORMATIVE, not a
 negative. The cause: it had been calibrated on the wrong world settings before a
 fix. The fix: gate-0 became a committed, runnable per-capacity check, and a fresh
-recalibration sweep (`fullruns/l3_gate0_recal`) re-froze the second capacity at
-hidden=7 (inspector 0.922, in band; floor 0.566, elevated but within tolerance).
-The hidden=7 run of 10 seeds then passed every gate. Results: the survival target
-is 0.737 (90% CI [0.688, 0.780], 8 of 10 seeds), and the behavior-independent
-signal replicates almost exactly at 0.722 (90% CI [0.678, 0.763]) versus 0.726 at
-hidden=8. But the predictor now also reads 0.714, only 0.023 behind survival, so
-the pre-registered "survival must beat predictor by 0.05" requirement fails. The
-reading: the hidden=7 forger is a coarser, more behaviorally obvious fake
-(behavior alone reveals the world at 0.76 to 0.80 in every arm, even untrained),
-so at this capacity every trained creature picks it up. The survival-specific part
-of the claim is therefore artifact-conditional; it held for the subtler hidden=8
-forger. What survives both forgers is this: a reward-clean, survivorship-clean,
-behavior-independent world signal of about 0.72 in the survival creature's state.
+recalibration sweep re-froze the second capacity at hidden=7 (inspector 0.922, in
+band; floor 0.566, elevated but within tolerance). The hidden=7 run of 10 seeds
+then passed every gate. Results: the survival target is 0.737 (90% CI [0.688,
+0.780], 8 of 10 seeds), and the behavior-independent signal replicates almost
+exactly at 0.722 versus 0.726 at hidden=8. But the predictor now also reads 0.714,
+only 0.023 behind survival, so the pre-registered "survival must beat predictor by
+0.05" requirement fails. The reading: the hidden=7 forger is a coarser, more
+behaviorally obvious fake, so at this capacity every trained creature picks it up.
+The survival-specific part of the claim is therefore artifact-conditional; it held
+for the subtler hidden=8 forger. (The sensory control was later run at hidden=7 as
+well, and there the dissociation reappears: survival holds 0.684 while the
+daydreamer, level with it on the raw probe, falls to 0.589.)
+
+**Act 6: it is not survival alone. It is survival plus imagination.**
+This is the act that changed the headline, and it arrived on 2026-09-27.
+
+Every creature in Act 4 had two jobs, not one. It had to stay alive, and it also
+carried a decoder: a second head trained to predict what it would see and feel
+next. That was always in the architecture, but the write-up credited the result to
+survival. So the obvious experiment is to take the imagination away and run the
+same thing.
+
+Take it away and the signal collapses. The survival creature with no decoder reads
+**0.601** (90% CI [0.549, 0.654]), under the bar, on the same machine where the
+decoder-carrying creature reads **0.730**. Prediction alone, as Act 4 already
+showed, reads 0.573. So neither job does it alone. The encoding is a property of
+the two trained together: the decoder forces the notebook to carry information
+about the sensory stream, and foraging under a flawed motion law shapes that
+information into a world-identity direction.
+
+The published wording "encoded by the survival objective, uniquely" was narrowed
+accordingly, and the films were corrected to match.
+
+One confound stayed open. The decoder-carrying creatures also forage better, so the
+decoder's effect on the notebook is not separated from its effect through a better
+policy. The pre-registered check for that ran on 2026-09-30: train the no-decoder
+creature longer until its foraging return matches, then probe it. The probe came
+back at **0.717**, above the bar. But the match missed. The arm's return landed
+0.0131 past the top of its frozen window, so by the rule fixed in advance the run
+yields **no verdict** on the confound, because you cannot credit encoding to
+matched skill that was in fact exceeded. Worth knowing how small that miss is:
+0.0131 against a standard error of 0.096 on the same quantity, about one seventh of
+one standard error. The window was narrower than the noise it was gating. The
+result is reported as attempted and inconclusive rather than reinterpreted after
+the fact, which is what pre-registration costs when it bites.
+
+**Act 7: other forgers reproduce the direction, not the size.**
+Act 5 changed capacity but kept the same forger recipe and seed. Two later runs
+trained genuinely independent forgers. A hidden=10 forger at a new seed reads 0.639
+on the cloud machine and 0.612 when re-measured on the owner's GPU. A second
+hidden=8 forger at another new seed reads 0.676, and misses the predictor margin by
+0.0009, which under the frozen table reads as "margins fail" at the boundary.
+
+Both land above their untrained floors and above their daydreamer arms, and both
+land under the 0.65 bar once the interval is taken into account. So the direction
+replicates and the magnitude does not travel: 0.752 belongs to the specific forger
+the claim came from. The machine explains about 0.03 of the gap and not the rest.
+
+**Act 8: is it really the seam? (substrate grounding).**
+If the creature is reading the forger's brushstroke, then sanding the brushstroke
+off should silence it, and sanding half of it off should half-silence it. Blend the
+seam out in graded steps and the signal falls monotonically from 0.752 to 0.506,
+perfect rank correlation, while the untrained arm stays flat throughout. A texture
+knockout with a dose response and a sensory lesion point the same way. This is the
+strongest evidence that the signal is about the artifact itself rather than
+something the apparatus manufactures.
+
+**Act 9: an audit of the bookkeeping, and what it moved.**
+At the very end of the work a dependency surfaced: the way episodes were split into
+cross-validation folds depended on the installed software versions. Two valid
+splits existed, and GPU and CPU runs had been scored on different ones. A
+pre-registered re-score of the saved dumps under a stack-independent split
+reproduced every published number under the original split, and moved the hidden=8
+readouts up by about 0.02 on every arm (survival 0.774, behavior-controlled 0.750).
+
+No adjudicated verdict changed, and the contrasts the claims rest on moved by at
+most 0.007, because the shift lifts every arm together. Two clauses written against
+fixed absolute thresholds did flip, and both are reported as open rather than
+quietly re-run: the drift-zero chance control now reads 0.539 and its equivalence
+test does not accept at ten seeds, and the hidden=7 untrained floor, marginal from
+the start, sits at its tolerance. Buying the first one would take about forty extra
+drift-zero seeds, and the quantity the claim actually rests on does not move with
+it, so it was left open and said out loud.
 
 **Honest caveats, current scoreboard:**
 
-- The survival-only dissociation depends on the artifact (Act 5).
-- Behavior is highly world-distinguishing on its own (0.803 at hidden=8); the
-  0.72 figure is what survives a linear or quadratic per-timestep control, and a
-  richer control could in principle remove more.
-- There are 10 seeds; the hidden=7 untrained floor is elevated (0.586 in the
-  actual run, matching the 0.566 seen in the gate-0 recalibration sweep; within
-  the pooled tolerance, but violated in 2 or 3 individual seeds).
-- The held-out and cross-recipe probes are now done. The world signal transfers
-  to a fingerprint the creature has never seen (0.773, rule passes) and even to a
-  forger built on a different recipe (0.684, rule passes). But a frozen reverse
-  test, training on the coarse fingerprint and reading the subtle one, fails the
-  bar (0.638): transfer runs from subtle training artifacts, not both ways. And a
-  common-garden control, re-scored with a fixed estimator, settles what the signal
-  is: a modest persistent memory of which world the creature came from that its
-  policy also expresses reactively (0.666 forward and 0.684 reverse, both clearing
-  the bar; the memory is weak and the trace decays across the tail). L4 remains
-  open, and Experiment C's emergence pilot resolved negative (FINDINGS 13.D).
+- The positive needs both jobs. Survival alone reads 0.601 and prediction alone
+  0.573; together they read 0.752 (Act 6). Whether the decoder acts on the notebook
+  directly or through the better policy it buys is still open.
+- The survival-specific dissociation depends on the artifact (Act 5), and the size
+  of the effect depends on the individual forger (Act 7).
+- Behavior is highly world-distinguishing on its own (0.803 at hidden=8). The 0.72
+  figure is what survives a per-timestep control, 0.731 survives a sensory control,
+  and 0.654 survives both at once with a nonlinear reader. A full-history control
+  could in principle remove more.
+- There are 10 seeds, one world family, one trunk (a 96-unit GRU), and one frozen
+  oracle band. No other architecture or width has been tested.
+- Detectability at the creature's resolution is necessary but not sufficient, and
+  the matched comparison that shows it is L1 against L3, not L2 against L3 (Act 1
+  correction).
+- The held-out and cross-recipe probes are done. The world signal transfers to a
+  fingerprint the creature has never seen (0.773, rule passes) and to a forger built
+  on a different recipe (0.684, rule passes). A frozen reverse test fails the bar
+  (0.638), so transfer runs from subtle training artifacts and bidirectionality is
+  unresolved. A common-garden control settles what the signal is: a modest
+  persistent memory of which world the creature came from, which its policy also
+  expresses reactively (0.666 forward, 0.684 reverse, both clearing the bar; weak,
+  and decaying across the tail).
+- L4, the forger with a detective on the team, remains unbuilt. Experiment C's
+  emergence pilot resolved negative (FINDINGS 13.D): thirty generations of selection
+  built no heritable detector.
 
 Where results live: `docs/FINDINGS.md` (the narrative), `docs/PREREGISTRATION_L3.md`
 section 12 (the dated lab log), `artifacts/expB2/*.json` (the committed numbers),
 and `fullruns/` (the full bundles, ignored by git, with the latest pointer in
-`results/LATEST_RUN.txt`).
+`results/LATEST_RUN.txt`). A verification script recomputes every number quoted
+above from the committed artifacts; it runs 990 checks, and it runs in CI on every
+change.
 
 ---
 
