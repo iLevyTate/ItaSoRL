@@ -1533,12 +1533,12 @@ function drawEndCard() {
   // Explicit y for every line, so the block sits centred in its own frame
   // rather than inheriting offsets tuned for the other aspect ratio.
   const L = vert
-    ? { mark: 620, markSize: 32, head: 740, headSize: 54, headLH: 66, headMax: 960,
-        num: 930, numSize: 72, scale: 1010, seeds: 1054, small: 30,
-        url: 1240, urlSize: 50, colab: 1300, colabSize: 30 }
-    : { mark: 290, markSize: 28, head: 380, headSize: 48, headLH: 58, headMax: 1360,
-        num: 520, numSize: 64, scale: 588, seeds: 628, small: 28,
-        url: 750, urlSize: 46, colab: 800, colabSize: 28 };
+    ? { mark: 600, markSize: 32, head: 730, headSize: 54, headLH: 66, headMax: 960,
+        num: 940, numSize: 72, scale: 1020, seeds: 1064, aux: 1108, small: 30,
+        url: 1250, urlSize: 50, colab: 1310, colabSize: 30 }
+    : { mark: 280, markSize: 28, head: 378, headSize: 48, headLH: 58, headMax: 1360,
+        num: 524, numSize: 64, scale: 592, seeds: 632, aux: 672, small: 28,
+        url: 756, urlSize: 46, colab: 806, colabSize: 28 };
 
   ctx.save();
   ctx.letterSpacing = "10px";
@@ -1549,8 +1549,14 @@ function drawEndCard() {
 
   ctx.font = `700 ${L.headSize}px 'Segoe UI', sans-serif`;
   ctx.fillStyle = INK;
+  // NOT "trained only to survive". FINDINGS 10.8: strip the next-observation
+  // decoder and the same protocol reads 0.601 on the same machine, under the
+  // 0.65 bar, against 0.730 with it. Survival is necessary, not sufficient, so
+  // the card names both jobs. The 2026-09-30 skill-matched run (0.717 with no
+  // decoder, FINDINGS 10.8.1) does not license the old wording: its match
+  // overshot, so it carries no mediation verdict.
   fillBlock(
-    balancedLines("A brain trained only to survive kept a trace of which world it was in.", L.headMax),
+    balancedLines("Trained to survive and to expect what comes next, this brain kept a trace of which world it was in.", L.headMax),
     L.head, L.headLH,
   );
 
@@ -1562,6 +1568,10 @@ function drawEndCard() {
   ctx.fillStyle = "rgba(180,174,206,0.94)";
   ctx.fillText("50% = coin flip   ·   65% = the bar, set in advance", W / 2, L.scale);
   ctx.fillText("n = 10 seeds   ·   read out, never rewarded", W / 2, L.seeds);
+  // Stated in words, not a second number: the no-decoder arm's 0.601 belongs to
+  // a different run family than the 0.726 on the card above, and putting two
+  // percentages side by side is what previously mixed families on screen.
+  ctx.fillText("drop the second job and the trace falls below the bar", W / 2, L.aux);
 
   ctx.font = `700 ${L.urlSize}px 'Segoe UI', sans-serif`;
   ctx.fillStyle = INK;
