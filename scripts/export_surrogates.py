@@ -25,6 +25,8 @@ INSTANCES = ((8, 0), (7, 0), (10, 1), (8, 2), (4, 0))   # hidden, G seed, as use
 
 
 def main() -> int:
+    import torch
+    torch.set_num_threads(1)     # the run workers fit G single-threaded; match their bits
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default="artifacts/surrogates")
     a = ap.parse_args()

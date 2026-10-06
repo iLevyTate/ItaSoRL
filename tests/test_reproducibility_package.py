@@ -37,7 +37,15 @@ def test_exported_surrogates_match_their_index_and_a_fresh_retrain():
         with open(os.path.join(d, name), "rb") as fh:
             assert hashlib.sha256(fh.read()).hexdigest() == meta["sha256"], name
     g = GMotion.from_npz(os.path.join(d, "gmotion_h8_s0.npz"))
-    fresh = train_g_motion(hidden=8, seed=0, params=P)          # the recipe, on CPU
+    # The export trains single-threaded (as the run workers do); a multi-threaded CPU fit
+    # moves the last bits (about 1e-5), so pin one thread for the comparison.
+    import torch
+    n_threads = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        fresh = train_g_motion(hidden=8, seed=0, params=P)      # the recipe, on CPU
+    finally:
+        torch.set_num_threads(n_threads)
     rng = np.random.default_rng(0)
     for _ in range(5):
         v, a = rng.normal(size=2), rng.normal(size=2)
