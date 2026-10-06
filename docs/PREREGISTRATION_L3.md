@@ -845,6 +845,21 @@ Rigor carried from the B-v3 audit (2026-07-10):
   the 300-update agent. Every historical number above stays as recorded and is labeled
   historical in `docs/RESULTS_MANIFEST.md`; the results are recorded in a later entry.
 
+- **2026-10-06 - DESCRIPTION CORRECTION: THE SURROGATE AS IMPLEMENTED (revision step 10;
+  `docs/CORRECTIONS.md`).** Section 9 describes `G` as a "small recurrent predictor (GRU core)"
+  trained "to convergence (early-stop on held-out authentic MSE, patience 5)" over hidden sizes
+  {8, 16, 24, 32, 48, 64}. Every L3 result in this log used `itasorl.surrogate_l3.train_g_motion`
+  instead: a feed-forward 4 -> h -> h -> 2 ReLU MLP on (vel, a), trained full batch with Adam
+  (lr 1e-3) for a FIXED 300 epochs on 250 x 40 authentic scripted-policy transitions, with no
+  held-out set and no early stopping, at the capacities recorded in the entries above (8, 7, 4,
+  10, and the 16 / 32 / 64 ladder). Section 9 is left as frozen; this entry records that the
+  executed configuration differs from it. Introducing early stopping now would produce a
+  different fingerprint and would need its own gate 0. In world P drag is the constant 1.5, so the
+  authentic law is linear in (vel, a) and withholding drag from `G` withholds a constant; a
+  least-squares linear fit recovers the law to rounding, so the fingerprint is the approximation
+  error of this finite-trained network (`scripts/run_surrogate_diagnostics.py`,
+  `artifacts/surrogate_diagnostics.json`).
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
