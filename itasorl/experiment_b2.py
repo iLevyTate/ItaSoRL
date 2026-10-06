@@ -178,7 +178,17 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
     `device` for the A2C update plus per-episode scalars. h0 is zero per episode.
 
     shaping_coef>0 adds potential-based food-approach shaping to the TRAINING reward
-    (optimal-policy-preserving); `ret`/lengths still report the TRUE task outcome."""
+    (optimal-policy-preserving); `ret`/lengths still report the TRUE task outcome.
+
+    The max_steps cutoff is a SAMPLING truncation of a continuing task: the world has no
+    horizon (death is its only terminal event) and nothing in the observation says how
+    many rollout steps remain. For every episode still alive at the cutoff the batch
+    therefore keeps what the truncation bootstrap needs: `next_obs`, the successor
+    observation after the final recorded action, and `last_env_act`, that final action.
+    Normalization convention: `next_obs` is normalized with the normalizer exactly as it
+    stood for the episode's final stored observation, and it is NOT added to the running
+    statistics (it was never fed to the agent). Both are zero for episodes that died,
+    whose bootstrap is zero."""
     A = agent.act_dim
     envs = [make_world(params, drift_sigma, ray_steps, food_override) for _ in range(n_eps)]
     obs = np.stack([e.reset(_seeds(seed_base + i)).obs for i, e in enumerate(envs)]).astype(np.float64)
@@ -236,6 +246,14 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
     lengths = np.array([len(s) for s in seq_obs])
     Tmax = int(lengths.max())
     O, Adim = agent.obs_dim, A
+    # Truncation-bootstrap inputs (see the docstring): alive at the cutoff = not terminated.
+    truncated = ~terminated
+    next_obs = np.zeros((n_eps, O), np.float32)
+    last_env_act = np.zeros((n_eps, Adim), np.float32)
+    if truncated.any():
+        next_obs[truncated] = norm(obs[truncated]).astype(np.float32)
+        for i in np.flatnonzero(truncated):
+            last_env_act[i] = seq_env[i][-1]
 
     def pad(seqs, width):
         out = np.zeros((n_eps, Tmax, width), np.float32)
@@ -264,6 +282,8 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
         "drift_w": torch.as_tensor(drift, device=device),
         "mask": torch.as_tensor(mask, device=device),
         "terminated": torch.as_tensor(terminated.astype(np.float32), device=device),
+        "next_obs": torch.as_tensor(next_obs, device=device),
+        "last_env_act": torch.as_tensor(last_env_act, device=device),
         "lengths": lengths,
         "ret": true_ret,
         "speed": np.array([np.mean(s) if s else 0.0 for s in speeds]),
@@ -271,14 +291,20 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
     return batch
 
 
-def compute_gae(reward, value, mask, terminated, gamma, lam):
-    """Per-episode GAE. reward/value/mask (B,T); terminated (B,). Bootstrap is 0 for
-    episodes that ended in death, else the last in-episode value (truncation)."""
+GAE_BOOTSTRAPS = ("successor", "pre_transition")
+
+
+def compute_gae(reward, value, mask, terminated, gamma, lam, *, bootstrap):
+    """Per-episode GAE. reward/value/mask (B,T); terminated (B,); bootstrap (B,).
+
+    `bootstrap` is the value of each episode's SUCCESSOR state, the state after its final
+    recorded action (see truncation_bootstrap). It enters only the final valid residual,
+    r_T + gamma * bootstrap - V_T, and only for episodes alive at the cutoff: an episode
+    that ended in death bootstraps from 0 whatever is passed. Padded slots past an
+    episode's end never contribute."""
     B, T = reward.shape
     adv = torch.zeros_like(reward)
-    last_idx = mask.sum(1).long().clamp(min=1) - 1  # final valid step per episode
-    boot = torch.where(terminated > 0.5, torch.zeros(B, device=reward.device),
-                       value.gather(1, last_idx.unsqueeze(1)).squeeze(1))
+    boot = torch.where(terminated > 0.5, torch.zeros_like(bootstrap), bootstrap)
     gae = torch.zeros(B, device=reward.device)
     next_v = boot
     # next_mask = mask of step t+1 (0 at the final valid step). It gates the GAE
@@ -296,17 +322,49 @@ def compute_gae(reward, value, mask, terminated, gamma, lam):
     return adv, ret
 
 
+@torch.no_grad()
+def truncation_bootstrap(agent: RecurrentActorCritic, batch: dict, states: torch.Tensor,
+                         value: torch.Tensor, mode: str = "successor") -> torch.Tensor:
+    """Bootstrap value per episode for compute_gae, without gradients and without another
+    environment step.
+
+    successor       (corrected, default): run the GRU once more from the state after the
+                    final stored observation, feeding the successor observation with the
+                    final env action as the previous action, and read the critic there.
+    pre_transition  (historical, 679fee6 to 4b6e1f3): the critic value at the final
+                    stored step, i.e. BEFORE the final transition. Kept only so the
+                    published runs can be reproduced bit for bit; it is wrong for a
+                    continuing task and wrong for a terminal horizon alike.
+    Terminated episodes are zeroed inside compute_gae in both modes."""
+    if mode not in GAE_BOOTSTRAPS:
+        raise ValueError(f"unknown gae bootstrap {mode!r}; expected one of {GAE_BOOTSTRAPS}")
+    B = value.shape[0]
+    last_idx = batch["mask"].sum(1).long().clamp(min=1) - 1   # final valid step per episode
+    if mode == "pre_transition":
+        return value.gather(1, last_idx.unsqueeze(1)).squeeze(1).detach()
+    h_last = states[torch.arange(B, device=states.device), last_idx].detach()
+    return agent.successor_value(h_last, batch["last_env_act"], batch["next_obs"])
+
+
 def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, updates: int = 200,
                        embed: int = 64, hidden: int = 96, world_model: bool = True,
                        lr: float = 3e-4, gamma: float = 0.99, lam: float = 0.95,
                        ent_coef: float = 0.01, vf_coef: float = 0.5, wm_coef: float = 1.0,
                        shaping_coef: float = 0.5, max_steps: int = 80, ray_steps: int = 5,
                        seed: int = 0, device: str | None = None, log_every: int = 0,
-                       sysid_aux: bool = False, sysid_coef: float = 1.0):
+                       sysid_aux: bool = False, sysid_coef: float = 1.0,
+                       gae_bootstrap: str = "successor"):
     """Train the survival actor-critic. sysid_aux adds a CEILING-control auxiliary loss
     that regresses h_t onto the scalar drag-drift - a positive control that deliberately
     breaks readout-not-reward to measure whether the trunk CAN linearly encode world
-    identity. Run it separately from the headline; never fold its target into the H_B2 verdict."""
+    identity. Run it separately from the headline; never fold its target into the H_B2 verdict.
+
+    gae_bootstrap selects the truncation bootstrap (truncation_bootstrap): "successor" is
+    the corrected value of the state after the final recorded action; "pre_transition"
+    reproduces the historical trainer that produced every survival result up to 4b6e1f3
+    (docs/CORRECTIONS.md, 2026-10-06)."""
+    if gae_bootstrap not in GAE_BOOTSTRAPS:
+        raise ValueError(f"unknown gae_bootstrap {gae_bootstrap!r}; expected one of {GAE_BOOTSTRAPS}")
     device = device or default_device()
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -325,7 +383,9 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
         logp, value, ent, states = agent.score_actions(batch["obs"], batch["act_in"], batch["raw"],
                                                         agent.initial_state(n_eps, device))
         with torch.no_grad():
-            adv, ret = compute_gae(batch["reward"], value, batch["mask"], batch["terminated"], gamma, lam)
+            boot = truncation_bootstrap(agent, batch, states, value, gae_bootstrap)
+            adv, ret = compute_gae(batch["reward"], value, batch["mask"], batch["terminated"],
+                                   gamma, lam, bootstrap=boot)
             am = batch["mask"].sum()
             adv = (adv - (adv * batch["mask"]).sum() / am) / ((adv * batch["mask"]).std() + 1e-6)
         m = batch["mask"]

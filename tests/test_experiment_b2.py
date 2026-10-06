@@ -327,7 +327,8 @@ def test_compute_gae_no_padding_leakage():
     value = torch.tensor([[0.5, 0.3, 0.7], [0.2, 0.2, 0.2]])  # value[0,2]=0.7 is the padded slot
     mask = torch.tensor([[1.0, 1.0, 0.0], [1.0, 1.0, 1.0]])
     terminated = torch.tensor([1.0, 1.0])
-    adv, ret = compute_gae(reward, value, mask, terminated, gamma, lam)
+    adv, ret = compute_gae(reward, value, mask, terminated, gamma, lam,
+                           bootstrap=torch.tensor([9.0, 9.0]))   # ignored: both terminated
     ref0 = _ref_gae([1.0, 2.0], [0.5, 0.3], gamma, lam, bootstrap=0.0)
     ref1 = _ref_gae([1.0, 1.0, 1.0], [0.2, 0.2, 0.2], gamma, lam, bootstrap=0.0)
     assert np.allclose(adv[0, :2].numpy(), ref0, atol=1e-6)
@@ -344,7 +345,8 @@ def test_compute_gae_truncation_bootstraps_last_value():
     value = torch.tensor([[0.5, 0.3, 0.7], [0.2, 0.2, 0.2]])
     mask = torch.tensor([[1.0, 1.0, 0.0], [1.0, 1.0, 1.0]])
     terminated = torch.tensor([0.0, 1.0])                         # ep0 TRUNCATED
-    adv, _ = compute_gae(reward, value, mask, terminated, gamma, lam)
+    adv, _ = compute_gae(reward, value, mask, terminated, gamma, lam,
+                         bootstrap=torch.tensor([0.3, 0.0]))
     ref0 = _ref_gae([1.0, 2.0], [0.5, 0.3], gamma, lam, bootstrap=0.3)  # last in-ep value
     assert np.allclose(adv[0, :2].numpy(), ref0, atol=1e-6)
 

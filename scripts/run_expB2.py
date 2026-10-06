@@ -123,6 +123,10 @@ def cfg():
                     help="skill-matched baseline: actor-critic update budget for the SURVIVAL arm only "
                          "(predictor and untrained keep --updates); "
                          "docs/specs/2026-09-29-l3-skill-matched-baseline-design.md")
+    ap.add_argument("--gae-bootstrap", choices=("successor", "pre_transition"), default="successor",
+                    help="truncation bootstrap of the survival trainer: successor (corrected, "
+                         "default) or pre_transition (the historical trainer behind every "
+                         "survival result up to 4b6e1f3; reproduction only). docs/CORRECTIONS.md")
     ap.add_argument("--l1-delta", type=float, default=1.0 / 64,
                     help="L1 grid spacing for --drift-mode l1 (default 1/64)")
     ap.add_argument("--sensor-sigma", type=float, default=0.01,
@@ -167,10 +171,15 @@ def survival_update_budget(k: dict) -> int:
 def config_fingerprint(base: dict) -> str:
     """Hash of the science-relevant config. Cells from different configs never mix;
     dump_states is a path, not science, so it is excluded. survival_updates=None is
-    the same config as the key being absent (every pre-existing checkpoint stays valid)."""
+    the same config as the key being absent (every pre-existing checkpoint stays valid).
+    gae_bootstrap="pre_transition" is likewise the historical config, so a reproduction
+    run hashes like the published ones; the corrected "successor" trainer hashes apart,
+    so its cells can never resume into, or be mixed with, a historical run."""
     fp = {k: v for k, v in base.items() if k not in ("dump_states", "save_agents", "out_dir")}
     if fp.get("survival_updates") is None:
         fp.pop("survival_updates", None)
+    if fp.get("gae_bootstrap", "pre_transition") == "pre_transition":
+        fp.pop("gae_bootstrap", None)
     payload = json.dumps(fp, sort_keys=True, default=float)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
@@ -354,7 +363,8 @@ def run_cell(task: dict) -> dict:
                                    device=dev, shaping_coef=k["shaping_coef"],
                                    world_model=wm,
                                    sysid_aux=k.get("sysid_aux", False),
-                                   sysid_coef=k.get("sysid_coef", 1.0))
+                                   sysid_coef=k.get("sysid_coef", 1.0),
+                                   gae_bootstrap=k.get("gae_bootstrap", "successor"))
     agents["survival"] = (sa, sn)
     if k.get("save_agents"):
         for g, (ag, nm) in agents.items():
@@ -365,7 +375,8 @@ def run_cell(task: dict) -> dict:
     xev = {f"{ed:.2f}": survival_return(sa, sn, P, ed, max_steps=k["max_steps"],
                                         ray_steps=k["ray_steps"], device=dev) for ed in k["drifts"]}
     a_ns = argparse.Namespace(**k)               # evaluate_agent reads attrs off a namespace
-    out = {"drift": d, "seed": s, "eng": eng, "xeval": xev, "agents": {}}
+    out = {"drift": d, "seed": s, "eng": eng, "xeval": xev, "agents": {},
+           "gae_bootstrap": k.get("gae_bootstrap", "successor")}
     for g in AG:
         pool, mp, ho = evaluate_agent(agents[g][0], agents[g][1], d, a_ns, dev, s, g)
         out["agents"][g] = {"pool": pool, "mp": mp}
@@ -473,7 +484,8 @@ def main():
     os.makedirs(a.out_dir, exist_ok=True)
     results_path = os.path.join(a.out_dir, "expB2_results.json")
     print(f"Experiment B-v2 full run  (device={dev}, drifts={a.drifts}, seeds={a.seeds}, "
-          f"updates={a.updates}, survival_updates={a.survival_updates}, workers={a.workers})")
+          f"updates={a.updates}, survival_updates={a.survival_updates}, workers={a.workers}, "
+          f"gae_bootstrap={a.gae_bootstrap})")
     print(f"  survival metabolism={b2.SURVIVAL_METAB}  food={b2.SURVIVAL_FOOD}  drift_mode={b2.DRIFT_MODE}")
     if a.drift_mode == "regime":
         print("  drift_mode=regime: surrogate = per-episode CONSTANT drag offset "
@@ -509,7 +521,7 @@ def main():
                                        "mp_branch", "basal_e", "n_pellets", "reach", "dump_states",
                                        "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden",
                                        "l1_delta", "sensor_sigma", "l3_seed", "world_model",
-                                       "survival_updates")}
+                                       "survival_updates", "gae_bootstrap")}
     base.update(drifts=a.drifts, device=dev, out_dir=a.out_dir, save_agents=a.save_agents)
     if a.heldout_evals:
         base.update(heldout_evals=True, heldout_hidden=a.heldout_hidden,

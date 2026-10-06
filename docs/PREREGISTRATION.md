@@ -145,3 +145,17 @@ raw metrics in `expB2_results.json`. Published confirmatory copies live in
   de-risk (pilot) data and frozen before the confirmatory re-run - consistent with §9's
   "tuned on the de-risk, frozen for the run" policy. This cleanly separates the engaged
   forager (+0.43) from a non-learner (+0.04).
+- **2026-10-06 - CORRECTION: the GAE truncation bootstrap used the pre-transition value
+  (revision step 2; `docs/CORRECTIONS.md`).** An episode alive at the 80-step rollout cutoff
+  bootstrapped its final residual from V(h_T), the critic value at its last stored step,
+  so the final term read r_T + gamma V(h_T) - V(h_T) instead of r_T + gamma V(h_{T+1}) -
+  V(h_T). The 80-step cutoff is a sampling truncation of a continuing task (the world has
+  no horizon; death is its only terminal event), so the correct bootstrap is the value of
+  the successor state. `itasorl/experiment_b2.py` now computes it from one extra GRU step on
+  the successor observation with the final action as the previous action, without
+  gradients and without another environment step; deaths still bootstrap from 0, and the
+  679fee6 padding guard is unchanged. Every survival result from 679fee6 to 4b6e1f3 used
+  the old bootstrap and is now labeled historical (`docs/RESULTS_MANIFEST.md`); the
+  predictor and untrained arms do not use GAE and are unaffected. The historical trainer
+  stays available as `--gae-bootstrap pre_transition` for exact reproduction only. Whether
+  the published effect survives the correction is measured, not assumed (revision step 4).

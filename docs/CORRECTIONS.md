@@ -31,3 +31,44 @@ localization) reads saved survival agents and inherits the issue. Evaluation wor
 seed bases shared by every agent seed, and the pooled readout draws its authentic pool
 (seed base 800000) and its surrogate pool (850000) from different world samples; both facts
 bear on step 5 and step 13.
+
+## 2026-10-06: GAE truncation bootstrap
+
+**What was wrong.** `compute_gae` in `itasorl/experiment_b2.py` bootstrapped every episode
+still alive at the 80-step rollout cutoff from `value[:, last]`, the critic value at the
+episode's last stored step. That value belongs to the state before the final transition, so
+the final residual was r_T + gamma V(h_T) - V(h_T), which is (gamma - 1) V(h_T) + r_T. Neither
+treatment of the cutoff justifies it: a continuing task needs V of the successor state, and a
+true terminal horizon needs 0. The test `test_compute_gae_truncation_bootstraps_last_value`
+asserted the wrong value, so the suite protected the bug.
+
+**Which cutoff this is.** A sampling truncation of a continuing task. `PatchOfEarthV0` has no
+horizon (`age_max` is 1e9 and `StepResult.truncated` is always false), death is its only
+terminal event, and nothing in the observation counts rollout steps. The corrected bootstrap
+is therefore the successor value; deaths keep a zero bootstrap.
+
+**Change.** The collector keeps, for each episode alive at the cutoff, the successor
+observation and the final environment action. After `score_actions`, the trainer takes the
+recurrent state after the final stored observation, runs one GRU step on the successor
+observation with the final action as the previous action, and passes the critic's value of
+that state to `compute_gae` through a now-required `bootstrap` argument. No gradient flows
+through it and no environment step is taken. Normalization convention: the successor
+observation is normalized with the normalizer as it stood for the episode's final stored
+observation and is not added to the running statistics. The next-step mask that keeps the
+GAE carry from crossing padded steps (`679fee6`) is unchanged.
+
+**Results touched.** Every survival-trained run in `docs/RESULTS_MANIFEST.md` (trainer
+`pre_transition_value`) and every readout-only analysis of those agents. The predictor and
+untrained arms, Experiments A, B and C, and the oracle gates train no actor-critic and are
+unaffected.
+
+**Reproduction of the record.** `train_actor_critic(..., gae_bootstrap="pre_transition")` and
+`run_expB2.py --gae-bootstrap pre_transition` keep the historical trainer. On a 12-update
+check it produces agent weights and normalizer statistics bit-identical to the original
+`4b6e1f3` code, and a reproduction run hashes to the same config fingerprint as the
+published runs. The corrected default hashes apart, so corrected cells can never resume into
+or mix with a historical run. Each new cell records `gae_bootstrap`.
+
+**What this does not establish.** Whether the published effect sizes or verdicts survive.
+That is measured in revision step 4; until then every historical number stays as published,
+labeled historical.
