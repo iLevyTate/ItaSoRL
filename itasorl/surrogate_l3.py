@@ -63,6 +63,24 @@ class GMotion:
         self._b = [m.bias.detach().numpy().astype(np.float32) for m in lin]
         self._xm, self._xs, self._ym, self._ys = norm  # numpy normalization stats
 
+    def to_npz(self, path: str) -> None:
+        """Serialize the frozen law (weights, biases, normalization) for the reproducibility
+        package (revision step 15). `from_npz` restores a callable with identical outputs."""
+        arrays = {f"W{i}": W for i, W in enumerate(self._W)}
+        arrays.update({f"b{i}": b for i, b in enumerate(self._b)})
+        np.savez(path, n_layers=np.int64(len(self._W)), xm=self._xm, xs=self._xs,
+                 ym=self._ym, ys=self._ys, **arrays)
+
+    @classmethod
+    def from_npz(cls, path: str) -> "GMotion":
+        z = np.load(path)
+        g = cls.__new__(cls)
+        n = int(z["n_layers"])
+        g._W = [z[f"W{i}"] for i in range(n)]
+        g._b = [z[f"b{i}"] for i in range(n)]
+        g._xm, g._xs, g._ym, g._ys = z["xm"], z["xs"], z["ym"], z["ys"]
+        return g
+
     def __call__(self, vel, a, drag=None) -> np.ndarray:
         h = (np.array([vel[0], vel[1], a[0], a[1]], np.float32) - self._xm) / self._xs
         for i, (W, b) in enumerate(zip(self._W, self._b)):

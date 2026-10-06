@@ -2209,6 +2209,36 @@
       "affected_by_gae_correction": false,
       "agent_seeds": null,
       "artifacts": [
+        "surrogates"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {
+        "instances": "h8 s0, h7 s0, h10 s1, h8 s2, h4 s0",
+        "runner": "scripts/export_surrogates.py"
+      },
+      "deps": null,
+      "device": "cpu",
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "n/a",
+      "id": "SURROGATES",
+      "local_run_dir": null,
+      "notes": "CPU-trained; GPU-published runs trained G on CUDA (see index.json).",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "surrogates": {}
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Frozen L3 fingerprints (G_motion instances), serialized"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
         "l0_audit/pre_intervention.json"
       ],
       "budget": null,

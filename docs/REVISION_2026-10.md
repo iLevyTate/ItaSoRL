@@ -60,7 +60,7 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 12 | Evolutionary readout | Per-individual readout, lineage summary, and value of world information built (`itasorl/experiment_c.py`); validation on known-decodable agents (`scripts/validate_population_readout.py`) runs on `C1` agents; the evolution itself is not rerun (9.6 h for 3 lineages), so the claim is narrowed in step 14 |
 | 13 | Statistical terminology and estimators | Done 2026-10-06: ROPE relabeled as a bootstrap check (FINDINGS methods note 9, `itasorl/stats.py`); per-cell intervals tied to their estimator, pair-level resampling for paired readouts, `fold_mean_auroc_ci`; seed-paired margin intervals for every run (`docs/CONTRAST_INTERVALS.md`); conditioning stated; analysis tiers fixed |
 | 14 | Claims and methods rewritten consistently | Pending |
-| 15 | Related work and the reproducibility package | Pending |
+| 15 | Related work and the reproducibility package | Meta-RL comparison (RL^2, Mikulik et al., VariBAD, PEARL, RMA) in `docs/ITASORL.md`; `docs/REPRODUCE.md`; `scripts/reproduce.py` (tables without training, retrain recipes, anonymized supplement verified to pass the tests and the full audit when extracted); frozen surrogates in `artifacts/surrogates/`; manuscript tables and check (`scripts/build_paper_tables.py`); the audit's stated purpose corrected |
 
 ## Where the manuscript lives
 

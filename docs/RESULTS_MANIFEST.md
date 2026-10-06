@@ -42,6 +42,7 @@ Reviewed at commit `4b6e1f3`. Every row below is **historical**: it records what
 | `CONTRAST-INTERVALS` | methods | - | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
 | `QD-GATE0` | methods | - | none | - | not recorded | explicit | not recorded |
 | `SURROGATE-DIAG` | methods | - | none | - | not recorded | explicit | not recorded |
+| `SURROGATES` | methods | - | none | - | not recorded | n/a | cpu |
 | `L0-PRE-INTERVENTION` | L0 audit | - | none | - | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
@@ -452,6 +453,16 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: Agent free: G instances retrained deterministically from their recipe.
 - Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py"}
 - Artifacts: `artifacts/surrogate_diagnostics.json`
+
+### `SURROGATES`: Frozen L3 fingerprints (G_motion instances), serialized
+
+- Status: historical
+- Trainer: none
+- Folds: n/a
+- Device: cpu
+- Notes: CPU-trained; GPU-published runs trained G on CUDA (see index.json).
+- Config (beyond the standard protocol): {"runner": "scripts/export_surrogates.py", "instances": "h8 s0, h7 s0, h10 s1, h8 s2, h4 s0"}
+- Artifacts: `artifacts/surrogates`
 
 ### `L0-PRE-INTERVENTION`: Pool membership decoded from the reset observation (agent free)
 

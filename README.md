@@ -242,7 +242,7 @@ seeds sit above it. Recipe-general, not one function class. Details:
 |   |-- run_expA.py ...         Experiment A/B runners
 |   |-- run_expB2.py            Experiment B-v2 / L3 (GPU if available)
 |   |-- audit_behavior_mediation.py  behavior-mediation audit on dumped states
-|   |-- audit_stats_recheck.py  CI gate: every published number vs its committed artifact
+|   |-- audit_stats_recheck.py  CI gate: quoted numbers and watched wording vs committed artifacts
 |   |-- build_index.py          renders index.html from index.template.html + artifacts
 |   `-- dump_brain_film_data.py per-unit world-signal for the Two Minds film
 |-- index.template.html         the site, hand-maintained; numbers are {{placeholders}}

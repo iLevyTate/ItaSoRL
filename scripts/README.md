@@ -21,7 +21,8 @@ See the root `README.md` for the full list.
 ```bash
 python scripts/build_index.py            # render index.html from index.template.html
 python scripts/build_index.py --check    # exit 1 if index.html is stale (CI runs this)
-python scripts/audit_stats_recheck.py    # every published number vs its committed artifact
+python scripts/audit_stats_recheck.py    # quoted numbers and watched wording vs committed artifacts
+python scripts/reproduce.py tables        # rebuild every table and gate without training (docs/REPRODUCE.md)
 python scripts/build_results_manifest.py # which code, config, seeds and trainer produced each artifact
 python scripts/dump_brain_film_data.py   # per-unit world-signal -> viz/player/brain/brain-data.js
 python scripts/render_brain_pair_tour.py # the earlier brain-pair tour and section loops

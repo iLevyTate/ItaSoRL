@@ -1,12 +1,18 @@
-"""Recompute every published L3/B-v2 number from committed artifacts.
+"""Check quoted numbers and watched wording against the committed artifacts.
 
-Publication gate: loads the committed JSONs under artifacts/expB2/ and
-recomputes, from the per-seed cell values, every quantitative claim quoted in
-README.md, docs/FINDINGS.md sections 9-10 and 14 (including the 14.5-14.7 H2
-batteries under artifacts/expH2 and artifacts/expL1), docs/PAPER_OUTLINE.md,
-and the B-v3 n=10 gate values recorded in docs/PREREGISTRATION_Bv3.md
-section 12 (artifacts/expB2/bv3_n10_gates.json). Fails loudly (non-zero exit)
-on any mismatch beyond rounding.
+What it does: loads the committed JSONs under artifacts/ and checks that the numbers
+quoted in README.md, docs/FINDINGS.md (sections 9-10, 14 to 16 and the methods notes),
+docs/PAPER_OUTLINE.md, CITATION.cff, the site, and the B-v3 gate entry of
+docs/PREREGISTRATION_Bv3.md section 12 equal values recomputed from the per-seed cells
+they come from; that generated pages (index.html, the results manifest, the gate table,
+the contrast intervals, the manuscript tables) are current; and that retired wording has
+not returned to the pages it watches. Fails loudly (non-zero exit) on any mismatch
+beyond rounding.
+
+What it does not do (revision 2026-10): it reruns no experiment, it cannot detect an error
+in the committed per-seed values themselves (the GAE bootstrap defect passed it for
+months), and it does not read the LaTeX manuscript, which lives outside git
+(`scripts/build_paper_tables.py --manuscript <dir>` checks that).
 
 Two interval types appear in the docs, both recomputed here:
   boot: seed-level percentile bootstrap of the across-seed mean
@@ -1706,6 +1712,10 @@ def main() -> int:
     import build_contrast_intervals
     check_true("contrast intervals are current (build_contrast_intervals --check)",
                build_contrast_intervals.main(["--check"]) == 0)
+    # Revision step 15: the manuscript's tables are generated from the checked artifacts.
+    import build_paper_tables
+    check_true("manuscript tables are current (build_paper_tables --check)",
+               build_paper_tables.main(["--check"]) == 0)
 
     print()
     if failures:

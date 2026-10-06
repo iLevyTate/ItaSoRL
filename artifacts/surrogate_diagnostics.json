@@ -1,0 +1,304 @@
+{
+ "generated_by": "scripts/run_surrogate_diagnostics.py",
+ "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
+ "pools": {
+  "n_per_pool": 110,
+  "steps": 24,
+  "seed_bases": [
+   800000,
+   850000
+  ],
+  "policy": "scripted, rng 600000 + i"
+ },
+ "surrogates": {
+  "gmotion_h8_s0": {
+   "diagnostics": {
+    "uniform_drag": true,
+    "authentic_law": {
+     "vel_coef": 0.925,
+     "acc_coef": 0.05
+    },
+    "linear_fit": {
+     "coef_vel_x": [
+      0.925000000056555,
+      1.778858591434132e-10
+     ],
+     "coef_acc_x": [
+      0.04999999992893784,
+      -4.6282210076390316e-12
+     ],
+     "rms_train": 6.02161399590437e-09,
+     "rms_heldout": 6.111593451397146e-09
+    },
+    "g_one_step": {
+     "rms_train": 0.03608491931611651,
+     "rms_heldout": 0.03485254525712853
+    },
+    "n_train": 10000,
+    "n_heldout": 2400,
+    "rollout_rms_velocity_gap": {
+     "1": 0.03783784436915421,
+     "5": 0.05676515320568409,
+     "10": 0.07902066274353524,
+     "24": 0.07155694103040587
+    }
+   },
+   "profile": {
+    "rms_one_step": 0.03485254525712853,
+    "mean_dev": [
+     -0.0009835530012363355,
+     -0.001118729197241161
+    ],
+    "linear_explained_share": 0.5890290859870992,
+    "lag1_autocorr": 0.8350844824185939,
+    "n_transitions": 2400
+   },
+   "agent_accessible_detector": {
+    "auroc": 0.990909090909091,
+    "law_fit_note": "fit on authentic training-fold observations only",
+    "dt": 0.05
+   }
+  },
+  "gmotion_h7_s0": {
+   "diagnostics": {
+    "uniform_drag": true,
+    "authentic_law": {
+     "vel_coef": 0.925,
+     "acc_coef": 0.05
+    },
+    "linear_fit": {
+     "coef_vel_x": [
+      0.925000000056555,
+      1.778858591434132e-10
+     ],
+     "coef_acc_x": [
+      0.04999999992893784,
+      -4.6282210076390316e-12
+     ],
+     "rms_train": 6.02161399590437e-09,
+     "rms_heldout": 6.111593451397146e-09
+    },
+    "g_one_step": {
+     "rms_train": 0.057403726654506736,
+     "rms_heldout": 0.05590810623079492
+    },
+    "n_train": 10000,
+    "n_heldout": 2400,
+    "rollout_rms_velocity_gap": {
+     "1": 0.031075135559915028,
+     "5": 0.06641772008969815,
+     "10": 0.12108419439348475,
+     "24": 0.12732180681481256
+    }
+   },
+   "profile": {
+    "rms_one_step": 0.05590810623079492,
+    "mean_dev": [
+     -0.0015022535326291594,
+     0.0018251874654326154
+    ],
+    "linear_explained_share": 0.8109612406119652,
+    "lag1_autocorr": 0.9431362345885997,
+    "n_transitions": 2400
+   },
+   "agent_accessible_detector": {
+    "auroc": 0.9917355371900826,
+    "law_fit_note": "fit on authentic training-fold observations only",
+    "dt": 0.05
+   }
+  },
+  "gmotion_h10_s1": {
+   "diagnostics": {
+    "uniform_drag": true,
+    "authentic_law": {
+     "vel_coef": 0.925,
+     "acc_coef": 0.05
+    },
+    "linear_fit": {
+     "coef_vel_x": [
+      0.925000000056555,
+      1.778858591434132e-10
+     ],
+     "coef_acc_x": [
+      0.04999999992893784,
+      -4.6282210076390316e-12
+     ],
+     "rms_train": 6.02161399590437e-09,
+     "rms_heldout": 6.111593451397146e-09
+    },
+    "g_one_step": {
+     "rms_train": 0.026290775136940232,
+     "rms_heldout": 0.026394579799047718
+    },
+    "n_train": 10000,
+    "n_heldout": 2400,
+    "rollout_rms_velocity_gap": {
+     "1": 0.018946022583763763,
+     "5": 0.05133279367005288,
+     "10": 0.0857680193685094,
+     "24": 0.1003825343859226
+    }
+   },
+   "profile": {
+    "rms_one_step": 0.026394579799047718,
+    "mean_dev": [
+     -0.0010918463761784853,
+     0.0019073390748182344
+    ],
+    "linear_explained_share": 0.176018900076076,
+    "lag1_autocorr": 0.8771773115846093,
+    "n_transitions": 2400
+   },
+   "agent_accessible_detector": {
+    "auroc": 0.990909090909091,
+    "law_fit_note": "fit on authentic training-fold observations only",
+    "dt": 0.05
+   }
+  },
+  "gmotion_h8_s2": {
+   "diagnostics": {
+    "uniform_drag": true,
+    "authentic_law": {
+     "vel_coef": 0.925,
+     "acc_coef": 0.05
+    },
+    "linear_fit": {
+     "coef_vel_x": [
+      0.925000000056555,
+      1.778858591434132e-10
+     ],
+     "coef_acc_x": [
+      0.04999999992893784,
+      -4.6282210076390316e-12
+     ],
+     "rms_train": 6.02161399590437e-09,
+     "rms_heldout": 6.111593451397146e-09
+    },
+    "g_one_step": {
+     "rms_train": 0.03574862229693678,
+     "rms_heldout": 0.034004979040943066
+    },
+    "n_train": 10000,
+    "n_heldout": 2400,
+    "rollout_rms_velocity_gap": {
+     "1": 0.014142295282878024,
+     "5": 0.06317544086602774,
+     "10": 0.09439868187685675,
+     "24": 0.12267082384188234
+    }
+   },
+   "profile": {
+    "rms_one_step": 0.034004979040943066,
+    "mean_dev": [
+     -0.0022735647116072263,
+     0.0020886483455077117
+    ],
+    "linear_explained_share": 0.5128828295570906,
+    "lag1_autocorr": 0.9286678491480175,
+    "n_transitions": 2400
+   },
+   "agent_accessible_detector": {
+    "auroc": 0.9913223140495868,
+    "law_fit_note": "fit on authentic training-fold observations only",
+    "dt": 0.05
+   }
+  },
+  "gn_sigma0.01": {
+   "diagnostics": {
+    "uniform_drag": true,
+    "authentic_law": {
+     "vel_coef": 0.925,
+     "acc_coef": 0.05
+    },
+    "linear_fit": {
+     "coef_vel_x": [
+      0.925000000056555,
+      1.778858591434132e-10
+     ],
+     "coef_acc_x": [
+      0.04999999992893784,
+      -4.6282210076390316e-12
+     ],
+     "rms_train": 6.02161399590437e-09,
+     "rms_heldout": 6.111593451397146e-09
+    },
+    "g_one_step": {
+     "rms_train": 0.014149161304203977,
+     "rms_heldout": 0.014293426631680243
+    },
+    "n_train": 10000,
+    "n_heldout": 2400,
+    "rollout_rms_velocity_gap": {
+     "1": 0.013264203985474902,
+     "5": 0.025809096805752583,
+     "10": 0.032860350153250714,
+     "24": 0.03597893696385095
+    }
+   },
+   "profile": {
+    "rms_one_step": 0.01418927525399475,
+    "mean_dev": [
+     -9.762737958643995e-06,
+     0.0003351385374537666
+    ],
+    "linear_explained_share": 0.0005752633705015109,
+    "lag1_autocorr": 0.0014496648642379172,
+    "n_transitions": 2400
+   },
+   "agent_accessible_detector": {
+    "auroc": 0.990909090909091,
+    "law_fit_note": "fit on authentic training-fold observations only",
+    "dt": 0.05
+   }
+  },
+  "qd_eps6": {
+   "diagnostics": {
+    "uniform_drag": true,
+    "authentic_law": {
+     "vel_coef": 0.925,
+     "acc_coef": 0.05
+    },
+    "linear_fit": {
+     "coef_vel_x": [
+      0.925000000056555,
+      1.778858591434132e-10
+     ],
+     "coef_acc_x": [
+      0.04999999992893784,
+      -4.6282210076390316e-12
+     ],
+     "rms_train": 6.02161399590437e-09,
+     "rms_heldout": 6.111593451397146e-09
+    },
+    "g_one_step": {
+     "rms_train": 0.01434839511583285,
+     "rms_heldout": 0.014133533734952988
+    },
+    "n_train": 10000,
+    "n_heldout": 2400,
+    "rollout_rms_velocity_gap": {
+     "1": 0.0,
+     "5": 0.041388679240329546,
+     "10": 0.08317557559583338,
+     "24": 0.04170994927772869
+    }
+   },
+   "profile": {
+    "rms_one_step": 0.014133533734952988,
+    "mean_dev": [
+     2.118148647410565e-05,
+     0.0006789222946921308
+    ],
+    "linear_explained_share": 0.8482569153447372,
+    "lag1_autocorr": 0.9408167240243479,
+    "n_transitions": 2400
+   },
+   "agent_accessible_detector": {
+    "auroc": 0.9673553719008264,
+    "law_fit_note": "fit on authentic training-fold observations only",
+    "dt": 0.05
+   }
+  }
+ },
+ "wall_seconds": 247.0
+}
