@@ -1771,6 +1771,64 @@ def main() -> int:
             check_true(f"FINDINGS 17 quotes {label}", needle in _s17)
         check_true("C1 integrity passes (successor bootstrap, baselines bit-identical)",
                    _c1["integrity"]["pass"])
+    _c2 = _v["runs"].get("C2", {})
+    if _c2.get("status") == "complete":
+        _p2, _g2 = _c2["primary"], _c2["gates"]
+        _iv2 = lambda t: f"[{t[0]:.3f}, {t[1]:.3f}]"
+        _sv2 = lambda t: f"[{t[0]:+.3f}, {t[1]:+.3f}]"
+        _s17n2 = " ".join(_s17.split())
+        _ce = _c2["correction_effect"]
+        for label, needle in [
+            ("C2 survival", f"**{_p2['survival']['mean']:.3f} {_iv2(_p2['survival']['t90'])}**"),
+            ("C2 predictor", f"{_p2['predictor']['mean']:.3f} {_iv2(_p2['predictor']['t90'])}"),
+            ("C2 untrained", f"{_p2['untrained']['mean']:.3f} {_iv2(_p2['untrained']['t90'])}"),
+            ("C2 per-seed survival", ", ".join(f"{x:.3f}" for x in _p2["survival"]["per_seed"])),
+            ("C2 margin vs predictor", f"{_p2['contrast_vs_predictor']['mean']:+.3f} {_sv2(_p2['contrast_vs_predictor']['t90'])}"),
+            ("C2 margin vs untrained", f"{_p2['contrast_vs_untrained']['mean']:+.3f} {_sv2(_p2['contrast_vs_untrained']['t90'])}"),
+            ("C2 L0", f"average {_g2['l0']['mean']:.3f} (TOST p = {_g2['l0']['tost_p']:.3f})"),
+            ("C2 verdict", f"**Verdict: {_p2['verdict']}**"),
+            ("C2 correction 0.45", f"{_ce['0.45']['survival_target']['difference']['mean']:+.3f} "
+                                   f"{_sv2(_ce['0.45']['survival_target']['difference']['t90'])}"),
+            ("C2 correction 0.00", f"{_ce['0.00']['survival_target']['difference']['mean']:+.3f} "
+                                   f"{_sv2(_ce['0.00']['survival_target']['difference']['t90'])}"),
+        ]:
+            check_true(f"FINDINGS 17.4 quotes {label}", needle in _s17n2)
+        check_true("C2 integrity passes", _c2["integrity"]["pass"])
+        _ac = _v["auxiliary_comparison"]
+        check_true("FINDINGS 17.4 quotes the auxiliary contrast",
+                   f"**{_ac['c1_minus_c2']:+.3f}**, paired by seed **{_sv2(_ac['paired']['t90'])}**" in _s17n2)
+        check_true("FINDINGS 17.4 counts the seeds favoring the decoder",
+                   f"{sum(x > 0 for x in _ac['paired']['diff_per_seed'])} of 10 seeds favor the decoder" in _s17n2)
+        check_true("17.4 wording matches the frozen auxiliary rule (holds on decodability, not in full)",
+                   (not _ac["holds"]) and _ac["holds_on_decodability_clauses"]
+                   and "holds on the decodability clauses, conditional on `C1`'s open gate" in _s17n2)
+    _bcp = os.path.join(ARTROOT, "budget_curve.json")
+    if os.path.exists(_bcp):
+        _bc = _load_art("budget_curve.json")
+        _on = {r["updates"]: r for r in _bc["series"]["decoder on"]}
+        _off = {r["updates"]: r for r in _bc["series"]["decoder off"]}
+        for u in (100, 200, 300, 450):
+            f = lambda r, k: f"{r[k]['mean']:.3f} [{r[k]['t90'][0]:.3f}, {r[k]['t90'][1]:.3f}]"
+            row = (f"| {f(_on[u], 'return')} | {f(_off[u], 'return')} | "
+                   f"{f(_on[u], 'target')} | {f(_off[u], 'target')} |")
+            check_true(f"FINDINGS 17.10 budget row {u}", row in _s17)
+        for c in _bc["contrast"]:
+            row = (f"| {c['updates']} | {c['target']['mean']:+.3f} [{c['target']['t90'][0]:+.3f}, {c['target']['t90'][1]:+.3f}] | "
+                   f"{c['return']['mean']:+.3f} [{c['return']['t90'][0]:+.3f}, {c['return']['t90'][1]:+.3f}] |")
+            check_true(f"FINDINGS 17.10 contrast row {c['updates']}", row in _s17)
+    _xrp = os.path.join(ARTROOT, "cross_replay", "corrected_c1_c2.json")
+    if os.path.exists(_xrp):
+        _xr = _load_art("cross_replay", "corrected_c1_c2.json")
+        _xa = _xr["aggregate"]
+        g = lambda k: f"{_xa[k]['mean']:.3f} [{_xa[k]['t90'][0]:.3f}, {_xa[k]['t90'][1]:.3f}]"
+        check_true("FINDINGS 17.10 cross-replay row, decoder-on trunk",
+                   f"| decoder-on trunk | {g('a_on_a')} | {g('a_on_b')} |" in _s17)
+        check_true("FINDINGS 17.10 cross-replay row, decoder-off trunk",
+                   f"| decoder-off trunk | {g('b_on_a')} | {g('b_on_b')} |" in _s17)
+        for k, c in _xr["contrasts"].items():
+            check_true(f"FINDINGS 17.10 quotes {k.split(' ')[0]}",
+                       f"{c['mean']:+.3f} [{c['t90'][0]:+.3f}, {c['t90'][1]:+.3f}]" in _s17)
+        check_true("the cross-replay artifact is labeled exploratory", "exploratory" in _xr["status"])
     _l0p = os.path.join(ARTROOT, "l0_audit", "corrected_l3_h8_wm.json")
     if os.path.exists(_l0p):
         _l0 = _load_art("l0_audit", "corrected_l3_h8_wm.json")

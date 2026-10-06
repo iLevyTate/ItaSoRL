@@ -2644,6 +2644,34 @@ about 0.03, which is enough to move the historical L0 pass (0.529, p = 0.039) to
 gate. The historical device-control verdict (MET with every gate) therefore does not carry
 over unchanged: the corrected run meets the decodability clauses and leaves L0 open.
 
+### 17.4 C2: survival without the auxiliary, and the auxiliary comparison
+
+`C2` is the same protocol with the next-observation decoder removed from the survival arm (and,
+as historically, from the untrained arm). Integrity passes on all 20 cells: every cell records
+the successor bootstrap, and the predictor and untrained targets equal the historical
+`L3-H8-NOWM-CPU` cells to the bit.
+
+| arm | corrected `C2` | seeds >= 0.65 | historical `L3-H8-NOWM-CPU` |
+|---|---|---|---|
+| untrained | 0.529 [0.510, 0.549] | 0/10 | 0.529 (bit-identical) |
+| predictor | 0.589 [0.567, 0.610] | 0/10 | 0.589 (bit-identical) |
+| **survival, no auxiliary** | **0.613 [0.552, 0.675]** | 4/10 | 0.601 [0.549, 0.654] |
+
+Per-seed survival: 0.679, 0.573, 0.594, 0.528, 0.564, 0.486, 0.848, 0.663, 0.677, 0.522.
+Margins: over the predictor +0.025 [-0.053, +0.102], over the untrained arm +0.084
+[+0.012, +0.156]. Every gate passes, L0 included: the drift-0 survival targets average 0.515
+(TOST p = 0.001). **Verdict: NOT MET**, as historically. The correction moved the drift-0.45
+survival target by +0.012 [-0.019, +0.044] and the drift-0 target by +0.001 [-0.014,
++0.016]. After the seven-channel behavior control 0.642 [0.585, 0.698] remains.
+
+**Auxiliary comparison (frozen rule, same device).** `C1` minus `C2` in survival means is
+**+0.120**, paired by seed **[+0.065, +0.174]**; 9 of 10 seeds favor the decoder. The rule
+asks for `C1` to meet its primary rule and for the difference to exceed 0.05. The difference
+clears 0.05 with its interval; `C1` meets its rule on the decodability clauses and leaves
+L0 open on the registered pair (17.2, 17.5). The auxiliary-conditional reading therefore
+holds on the decodability clauses, conditional on `C1`'s open gate, at the 300-update
+budget. Sections 17.6 and 17.10 say what the decoder changes.
+
 ### 17.5 The L0 gate across world samples (revision step 5)
 
 The registered L0 rule reads one pair of evaluation-world samples: the authentic pool from
@@ -2866,6 +2894,60 @@ separate on temporal coherence and state dependence, not on learnedness. This re
 amendment alone did. Two cautions: `qd` and `gn` are matched on one-step RMS, not on
 detectability, and `qd` was not calibrated through gate 0 (no eps passed), so its larger
 untrained floor (0.612) means part of its signal is felt by any recurrent state.
+
+### 17.10 The auxiliary result against the training budget (revision step 11)
+
+Each corrected survival agent was trained to 450 updates, and frozen copies after 100, 200,
+300 (the registered budget), and 450 updates were scored on the drift-0.45 cells with the
+engagement evaluation and the primary readout (`scripts/build_budget_curve.py`,
+`artifacts/budget_curve.json`, figure `docs/figures/budget_curve.png`). Every point of a
+curve comes from one training run per seed, so the curve separates the fixed-budget
+comparison from capability at a larger budget. Means over ten seeds, t-based 90% CIs:
+
+| updates | env steps | return, decoder on | return, decoder off | target, decoder on | target, decoder off |
+|---|---|---|---|---|---|
+| 100 | about 108,000 | -0.686 [-0.721, -0.651] | -0.673 [-0.704, -0.642] | 0.548 [0.514, 0.583] | 0.528 [0.503, 0.554] |
+| 200 | about 219,000 | -0.512 [-0.620, -0.404] | -0.685 [-0.798, -0.572] | 0.680 [0.640, 0.721] | 0.565 [0.535, 0.595] |
+| 300 | about 330,000 | -0.418 [-0.486, -0.351] | -0.531 [-0.663, -0.400] | 0.733 [0.669, 0.797] | 0.613 [0.552, 0.675] |
+| 450 | about 500,000 | -0.264 [-0.364, -0.164] | -0.210 [-0.366, -0.054] | 0.821 [0.774, 0.868] | 0.685 [0.632, 0.739] |
+
+Decoder on minus decoder off, paired by seed:
+
+| updates | target | return |
+|---|---|---|
+| 100 | +0.020 [-0.018, +0.058] | -0.013 [-0.054, +0.027] |
+| 200 | +0.115 [+0.067, +0.163] | +0.173 [+0.052, +0.294] |
+| 300 | +0.120 [+0.065, +0.174] | +0.113 [+0.012, +0.215] |
+| 450 | +0.136 [+0.058, +0.214] | -0.054 [-0.198, +0.090] |
+
+**What the budget changes.** Decodability rises with training in both arms. Without the
+decoder the survival agent reaches 0.685 at 450 updates, above the bar in the mean with the
+lower bound under it (0.632); the historical GPU run at 450 updates read 0.717 (10.8.1). So
+"without the auxiliary the criterion is not met" holds at 300 updates and is not a statement
+about what the arm can reach with more training. At 450 updates the two arms forage about
+equally well (return difference -0.054 [-0.198, +0.090]) and the decoder arm still reads
+higher by 0.136 [0.058, 0.214]. The decoder-off arm at 450 out-forages the decoder-on arm at
+300 (return +0.208 [+0.063, +0.353], paired by seed) and does not out-read it (target -0.048
+[-0.126, +0.030]). Return is a coarse measure of where a policy takes the body, so none of
+this is a skill match, and no mediation verdict follows from it (10.8.1 stays a failed match).
+
+**Exploratory: trunk or trajectories (post hoc).** Written after `C1` and `C2` were read and
+labeled exploratory: `scripts/run_cross_replay.py` recorded each survival agent's own
+evaluation streams and replayed both trunks, with and without the decoder, on both stream
+sets (`artifacts/cross_replay/corrected_c1_c2.json`).
+
+| trunk \ streams | decoder-on policy's streams | decoder-off policy's streams |
+|---|---|---|
+| decoder-on trunk | 0.733 [0.669, 0.797] | 0.694 [0.642, 0.745] |
+| decoder-off trunk | 0.677 [0.627, 0.727] | 0.613 [0.551, 0.675] |
+
+At fixed streams the decoder-carrying trunk reads higher by +0.056 [+0.027, +0.085] and
++0.080 [+0.050, +0.110]; at a fixed trunk the decoder-carrying policy's streams read higher
+by +0.039 [-0.021, +0.100] and +0.064 [+0.015, +0.113]. About half of the +0.120 sits in
+what the trunk keeps from a given stream and about half in where the policy goes. This fits
+17.6, where a trunk trained only on next-observation prediction read the survival streams at
+0.721: the prediction objective shapes a trunk that keeps the dynamics difference, and a
+foraging policy produces streams in which there is a difference to keep.
 
 ### 17.11 The evolutionary readout, validated on agents with a known answer (revision step 12)
 
