@@ -60,6 +60,21 @@ def _fake_individual_probe_panel(pop, **kw):
 
 
 def _run_main(tmp_path, monkeypatch, extra=(), run_arm_fn=None):
+    # main() mutates two kinds of process-global state that outlive this test
+    # unless undone, both caught for real by running this file immediately
+    # before tests/test_experiment_b2.py: (1) torch.use_deterministic_algorithms
+    # is a process-wide flag, not something these tests exercise, so it's
+    # stubbed to a no-op outright; (2) `b2.DRIFT_MODE = "l3"` is a plain
+    # attribute assignment on the shared itasorl.experiment_b2 module (not a
+    # local/return value), which main() never resets - it broke
+    # test_experiment_b2.py's authentic-vs-surrogate divergence check two
+    # files later, because that test's own rollout silently picked up "l3"
+    # mode with no L3 surrogate actually installed (setup_l3_surrogate is
+    # stubbed below) instead of its expected default. monkeypatch.setattr on
+    # its OWN current value registers it for guaranteed restoration at
+    # teardown, regardless of what main() later assigns to it directly.
+    monkeypatch.setattr(m3.torch, "use_deterministic_algorithms", lambda *a, **kw: None)
+    monkeypatch.setattr(m3.b2, "DRIFT_MODE", m3.b2.DRIFT_MODE)
     monkeypatch.setattr(m3.b2, "setup_l3_surrogate", lambda **kw: None)
     monkeypatch.setattr(m3, "gate1_exploitability", lambda **kw: _fake_gate1())
     monkeypatch.setattr(m3, "run_arm", run_arm_fn or _fake_run_arm)
