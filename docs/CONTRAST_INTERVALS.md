@@ -39,6 +39,8 @@ Each registered margin (survival at least 0.05 above the predictor and above the
 | `L3-H8-GS2-GPU` | historical | explicit | resid_trace | 0.660 [0.631, 0.689] | yes / no | +0.054 [+0.011, +0.097] | yes / no | +0.098 [+0.058, +0.137] | yes / yes |
 | `L3-H8-NOWM-U450` | historical | explicit | target | 0.717 [0.679, 0.755] | yes / yes | +0.129 [+0.075, +0.182] | yes / yes | +0.204 [+0.161, +0.247] | yes / yes |
 | `L3-H8-NOWM-U450` | historical | explicit | resid_trace | 0.724 [0.690, 0.757] | yes / yes | +0.134 [+0.087, +0.180] | yes / yes | +0.184 [+0.149, +0.220] | yes / yes |
+| `CORRECTED-L3_H8_NOWM` | corrected | explicit | target | 0.613 [0.552, 0.675] | no / no | +0.025 [-0.053, +0.102] | no / no | +0.084 [+0.012, +0.156] | yes / no |
+| `CORRECTED-L3_H8_NOWM` | corrected | explicit | resid_trace | 0.642 [0.585, 0.698] | no / no | +0.050 [-0.017, +0.117] | yes / no | +0.093 [+0.031, +0.156] | yes / no |
 | `CORRECTED-L3_H8_WM` | corrected | explicit | target | 0.733 [0.669, 0.797] | yes / yes | +0.144 [+0.072, +0.217] | yes / yes | +0.210 [+0.135, +0.286] | yes / yes |
 | `CORRECTED-L3_H8_WM` | corrected | explicit | resid_trace | 0.723 [0.670, 0.776] | yes / yes | +0.131 [+0.066, +0.196] | yes / yes | +0.180 [+0.119, +0.240] | yes / yes |
 
@@ -47,3 +49,4 @@ Each registered margin (survival at least 0.05 above the predictor and above the
 | Comparison | Status | Paired difference (t 90%) | rule / evidence vs 0.05 |
 |---|---|---|---|
 | historical CPU (L3-H8-WM-CPU minus L3-H8-NOWM-CPU) | historical | +0.128 [+0.089, +0.168] | yes / yes |
+| corrected CPU (C1 minus C2) | corrected | +0.120 [+0.065, +0.174] | yes / yes |

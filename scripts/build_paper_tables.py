@@ -112,7 +112,7 @@ def corrected_table() -> str | None:
         c = ac["paired"]
         L.append(r"\midrule")
         L.append(f"C1 $-$ C2 & \\multicolumn{{5}}{{l}}{{{c['mean']:+.3f} [{c['t90'][0]:+.3f}, {c['t90'][1]:+.3f}]; "
-                 f"auxiliary reading holds: {'yes' if ac['holds'] else 'no'}}} \\\\")
+                 f"auxiliary reading: {'holds' if ac['holds'] else 'holds on the decodability clauses, conditional on the C1 gates' if ac.get('holds_on_decodability_clauses') else 'does not hold'}}} \\\\")
     L += [r"\bottomrule", r"\end{tabular}", ""]
     return "\n".join(L)
 

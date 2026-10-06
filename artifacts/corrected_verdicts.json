@@ -422,8 +422,408 @@
    "replaces": "L3-H8-NOWM-CPU",
    "historical": "artifacts/reviewer_gaps_runs/l3_h8_nowm",
    "auxiliary": false,
-   "cells": 0,
-   "status": "incomplete: 20 of 20 cells missing"
+   "cells": 20,
+   "status": "complete",
+   "integrity": {
+    "gae_bootstrap": [
+     "successor"
+    ],
+    "bit_identical_to_historical": {
+     "predictor": {
+      "compared": 20,
+      "mismatches": []
+     },
+     "untrained": {
+      "compared": 20,
+      "mismatches": []
+     }
+    },
+    "pass": true
+   },
+   "gates": {
+    "engagement": {
+     "per_drift": {
+      "0.00": 10,
+      "0.45": 10
+     },
+     "pass": true
+    },
+    "l0": {
+     "mean": 0.515083,
+     "per_seed": [
+      0.478512,
+      0.511983,
+      0.503719,
+      0.50124,
+      0.499174,
+      0.557438,
+      0.48719,
+      0.53719,
+      0.542149,
+      0.532231
+     ],
+     "tost_p": 0.001035,
+     "pass": true,
+     "rope": {
+      "boot_interval": [
+       0.500248,
+       0.530537
+      ],
+      "boot_share_in_rope": 1.0,
+      "accept": true
+     }
+    },
+    "speed": {
+     "min": 0.787171,
+     "pass": true
+    },
+    "reward_leak": {
+     "max_abs_dev": 0.096281,
+     "pass": true
+    },
+    "untrained_floor": {
+     "mean": 0.529421,
+     "pass": true
+    },
+    "deaths": {
+     "total": 0,
+     "pass": true
+    },
+    "failed": []
+   },
+   "primary": {
+    "survival": {
+     "per_seed": [
+      0.679339,
+      0.57314,
+      0.593802,
+      0.527686,
+      0.563636,
+      0.48595,
+      0.848347,
+      0.663223,
+      0.677273,
+      0.522314
+     ],
+     "mean": 0.613471,
+     "t90": [
+      0.551615,
+      0.675327
+     ],
+     "seeds_at_bar": 4
+    },
+    "predictor": {
+     "per_seed": [
+      0.531818,
+      0.614463,
+      0.63719,
+      0.587603,
+      0.616529,
+      0.604132,
+      0.559504,
+      0.535124,
+      0.57438,
+      0.625207
+     ],
+     "mean": 0.588595,
+     "t90": [
+      0.56697,
+      0.61022
+     ],
+     "seeds_at_bar": 0
+    },
+    "untrained": {
+     "per_seed": [
+      0.499587,
+      0.510331,
+      0.544628,
+      0.593802,
+      0.519835,
+      0.518182,
+      0.530165,
+      0.509504,
+      0.492149,
+      0.576033
+     ],
+     "mean": 0.529421,
+     "t90": [
+      0.510285,
+      0.548558
+     ],
+     "seeds_at_bar": 0
+    },
+    "lead_over_predictor": 0.024876,
+    "lead_over_untrained": 0.08405,
+    "contrast_vs_predictor": {
+     "diff_per_seed": [
+      0.147521,
+      -0.041322,
+      -0.043388,
+      -0.059917,
+      -0.052893,
+      -0.118182,
+      0.288843,
+      0.128099,
+      0.102893,
+      -0.102893
+     ],
+     "mean": 0.024876,
+     "t90": [
+      -0.052543,
+      0.102295
+     ],
+     "mean_ge_margin": false,
+     "t90_lower_ge_margin": false,
+     "margin": 0.05,
+     "n": 10
+    },
+    "contrast_vs_untrained": {
+     "diff_per_seed": [
+      0.179752,
+      0.06281,
+      0.049174,
+      -0.066116,
+      0.043802,
+      -0.032231,
+      0.318182,
+      0.153719,
+      0.185124,
+      -0.053719
+     ],
+     "mean": 0.08405,
+     "t90": [
+      0.012429,
+      0.15567
+     ],
+     "mean_ge_margin": true,
+     "t90_lower_ge_margin": false,
+     "margin": 0.05,
+     "n": 10
+    },
+    "clauses": {
+     "mean_at_bar": false,
+     "lower_bound_at_bar": false,
+     "margin_predictor": false,
+     "margin_untrained": true
+    },
+    "decodability": "NOT MET",
+    "verdict": "NOT MET",
+    "met": false
+   },
+   "correction_effect": {
+    "0.00": {
+     "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "survival_target": {
+      "corrected": {
+       "per_seed": [
+        0.478512,
+        0.511983,
+        0.503719,
+        0.50124,
+        0.499174,
+        0.557438,
+        0.48719,
+        0.53719,
+        0.542149,
+        0.532231
+       ],
+       "mean": 0.515083,
+       "t90": [
+        0.500105,
+        0.53006
+       ],
+       "seeds_at_bar": 0
+      },
+      "historical": {
+       "per_seed": [
+        0.495868,
+        0.533471,
+        0.507851,
+        0.519835,
+        0.456612,
+        0.537603,
+        0.466942,
+        0.579339,
+        0.533471,
+        0.513636
+       ],
+       "mean": 0.514463,
+       "t90": [
+        0.49375,
+        0.535176
+       ],
+       "seeds_at_bar": 0
+      },
+      "difference": {
+       "diff_per_seed": [
+        -0.017355,
+        -0.021488,
+        -0.004132,
+        -0.018595,
+        0.042562,
+        0.019835,
+        0.020248,
+        -0.042149,
+        0.008678,
+        0.018595
+       ],
+       "mean": 0.00062,
+       "t90": [
+        -0.014265,
+        0.015505
+       ],
+       "mean_ge_margin": true,
+       "t90_lower_ge_margin": false,
+       "margin": 0.0,
+       "n": 10
+      }
+     },
+     "engagement_return": {
+      "corrected": -0.309469,
+      "historical": -0.320404,
+      "difference": {
+       "diff_per_seed": [
+        -0.055233,
+        -0.017868,
+        -0.006652,
+        0.177288,
+        -0.057187,
+        -0.021056,
+        0.00728,
+        0.024487,
+        -0.047797,
+        0.106089
+       ],
+       "mean": 0.010935,
+       "t90": [
+        -0.032939,
+        0.054809
+       ],
+       "mean_ge_margin": true,
+       "t90_lower_ge_margin": false,
+       "margin": 0.0,
+       "n": 10
+      }
+     }
+    },
+    "0.45": {
+     "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "survival_target": {
+      "corrected": {
+       "per_seed": [
+        0.679339,
+        0.57314,
+        0.593802,
+        0.527686,
+        0.563636,
+        0.48595,
+        0.848347,
+        0.663223,
+        0.677273,
+        0.522314
+       ],
+       "mean": 0.613471,
+       "t90": [
+        0.551615,
+        0.675327
+       ],
+       "seeds_at_bar": 4
+      },
+      "historical": {
+       "per_seed": [
+        0.603306,
+        0.618595,
+        0.599174,
+        0.616529,
+        0.488017,
+        0.487603,
+        0.809504,
+        0.619008,
+        0.626446,
+        0.545041
+       ],
+       "mean": 0.601322,
+       "t90": [
+        0.548844,
+        0.6538
+       ],
+       "seeds_at_bar": 1
+      },
+      "difference": {
+       "diff_per_seed": [
+        0.076033,
+        -0.045455,
+        -0.005372,
+        -0.088843,
+        0.07562,
+        -0.001653,
+        0.038843,
+        0.044215,
+        0.050826,
+        -0.022727
+       ],
+       "mean": 0.012149,
+       "t90": [
+        -0.019352,
+        0.04365
+       ],
+       "mean_ge_margin": true,
+       "t90_lower_ge_margin": false,
+       "margin": 0.0,
+       "n": 10
+      }
+     },
+     "engagement_return": {
+      "corrected": -0.531488,
+      "historical": -0.54673,
+      "difference": {
+       "diff_per_seed": [
+        -0.018331,
+        0.019271,
+        0.048765,
+        0.013836,
+        0.002393,
+        0.000151,
+        0.160436,
+        -0.017586,
+        -0.006295,
+        -0.050215
+       ],
+       "mean": 0.015242,
+       "t90": [
+        -0.017984,
+        0.048469
+       ],
+       "mean_ge_margin": true,
+       "t90_lower_ge_margin": false,
+       "margin": 0.0,
+       "n": 10
+      }
+     }
+    }
+   }
   }
  },
  "fold_partition": {
@@ -456,5 +856,35 @@
    ]
   ],
   "matches_serialized": true
+ },
+ "auxiliary_comparison": {
+  "c1_minus_c2": 0.119545,
+  "paired": {
+   "diff_per_seed": [
+    -0.047107,
+    0.231818,
+    0.097521,
+    0.216116,
+    0.098347,
+    0.036364,
+    0.036364,
+    0.119421,
+    0.190496,
+    0.216116
+   ],
+   "mean": 0.119545,
+   "t90": [
+    0.065291,
+    0.1738
+   ],
+   "mean_ge_margin": true,
+   "t90_lower_ge_margin": true,
+   "margin": 0.05,
+   "n": 10
+  },
+  "c1_meets_primary": false,
+  "c1_decodability": "MET",
+  "holds": false,
+  "holds_on_decodability_clauses": true
  }
 }

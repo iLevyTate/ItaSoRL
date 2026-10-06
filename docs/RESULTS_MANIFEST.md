@@ -45,13 +45,16 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `SURROGATES` | historical | methods | - | none | - | not recorded | n/a | cpu |
 | `L0-PRE-INTERVENTION` | historical | L0 audit | - | none | - | not recorded | explicit | not recorded |
 | `C1` | corrected | B-v2 L3 | 41, 42 | successor_value | - | f676b95 | explicit (explicit-v1; equals legacy on this stack) | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C2` | corrected | B-v2 L3 | 42 | successor_value | - | f676b95 | explicit (explicit-v1; equals legacy on this stack) | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-L0-AUDIT` | corrected | L0 audit | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-POLICY-CONTROLS` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-PERSISTENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-CONTROL-DIAG` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-TEXTURE` | corrected | H2 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-POPULATION` | corrected | C | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
+| `BUDGET-CURVE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | not recorded | explicit | not recorded |
+| `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 0894d6c | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
 Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.
@@ -496,6 +499,22 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "budget_extend": 450, "budget_snapshots": [100, 200]}
 - Artifacts: `artifacts/expB2/corrected_l3_h8_wm.json`, `artifacts/corrected_runs/corrected_l3_h8_wm`
 
+### `C2`: Corrected trainer, next-observation auxiliary off, n = 10 (replaces L3-H8-NOWM-CPU)
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: f676b95
+- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Budget: {"survival_updates": 300, "budget_curve": [100, 200, 300, 450], "predictor_updates": 300}
+- Folds: explicit (explicit-v1; equals legacy on this stack)
+- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
+- Dependencies: torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1
+- Local run directory (not in git): fullruns/corrected_l3_h8_nowm
+- Notes: Untrained arm also built without the decoder; predictor arm unchanged. The 450 point is a budget point, not a skill match.
+- Config (beyond the standard protocol): {"drift_mode": "l3", "world_model": false, "gae_bootstrap": "successor", "budget_extend": 450, "budget_snapshots": [100, 200]}
+- Artifacts: `artifacts/expB2/corrected_l3_h8_nowm.json`, `artifacts/corrected_runs/corrected_l3_h8_nowm`
+
 ### `C1-L0-AUDIT`: L0 across independent world-sample pairs and the balanced readout, C1 agents
 
 - Status: corrected
@@ -555,6 +574,24 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/validate_population_readout.py; revision step 12.
 - Artifacts: `artifacts/population_readout/corrected_l3_h8_wm.json`
+
+### `BUDGET-CURVE`: Return and decodability against survival updates, decoder on and off
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Folds: explicit
+- Notes: scripts/build_budget_curve.py; revision step 11; frozen snapshots of one training run per seed; figure docs/figures/budget_curve.png.
+- Artifacts: `artifacts/budget_curve.json`
+
+### `CROSS-REPLAY`: EXPLORATORY: decoder-on and decoder-off survival trunks replayed on each other's streams
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 0894d6c
+- Folds: explicit
+- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
+- Notes: scripts/run_cross_replay.py; post hoc, written after C1 and C2 were read; revision step 11.
+- Artifacts: `artifacts/cross_replay/corrected_c1_c2.json`
 
 ### `CORRECTED-VERDICTS`: Frozen-rule verdicts, integrity, and correction effect for C1 and C2
 

@@ -539,6 +539,35 @@
    "status": "historical"
   },
   {
+   "run": "CORRECTED-L3_H8_NOWM",
+   "partition": "explicit",
+   "source": "artifacts/expB2/corrected_l3_h8_nowm.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5150826446280992,
+    "sd": 0.025837555003007096,
+    "tost_p": 0.0010347236528882233,
+    "equivalent": true,
+    "rope_interval": [
+     0.5002479338842976,
+     0.5305371900826445
+    ],
+    "rope_share_inside": 1.0,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.5294214876033058,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.8348087690234614,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0.0,
+   "status": "corrected"
+  },
+  {
    "run": "CORRECTED-L3_H8_WM",
    "partition": "explicit",
    "source": "artifacts/expB2/corrected_l3_h8_wm.json",

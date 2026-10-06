@@ -379,6 +379,21 @@ RUNS = [
         local_run_dir="fullruns/corrected_l3_h8_wm",
         notes="Frozen protocol: docs/specs/2026-10-06-corrected-trainer-confirmation-design.md. "
               "The headline arm is the 300-update snapshot of a run trained to 450."),
+    run("C2", "Corrected trainer, next-observation auxiliary off, n = 10 (replaces L3-H8-NOWM-CPU)",
+        experiment="B-v2 L3", artifacts=["expB2/corrected_l3_h8_nowm.json",
+                                         "corrected_runs/corrected_l3_h8_nowm"],
+        claims=[42], survival_trainer="successor_value", status="corrected",
+        commit_at_run="f676b95",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "world_model": False, "gae_bootstrap": "successor",
+                "budget_extend": 450, "budget_snapshots": [100, 200]},
+        agent_seeds=S10, surrogate=L3_H8,
+        budget={"survival_updates": 300, "budget_curve": [100, 200, 300, 450],
+                "predictor_updates": 300},
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit (explicit-v1; equals legacy on this stack)",
+        device=CPU_REVISION, deps="torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+        local_run_dir="fullruns/corrected_l3_h8_nowm",
+        notes="Untrained arm also built without the decoder; predictor arm unchanged. The 450 point "
+              "is a budget point, not a skill match."),
     run("C1-L0-AUDIT", "L0 across independent world-sample pairs and the balanced readout, C1 agents",
         experiment="L0 audit", artifacts=["l0_audit/corrected_l3_h8_wm.json"], trains_survival=False,
         readout_of=["C1"], survival_trainer="successor_value", status="corrected",
@@ -423,9 +438,20 @@ RUNS = [
         readout_of=["C1"], survival_trainer="successor_value", status="corrected",
         commit_at_run="39c1e5d", folds="explicit", eval_seeds=HELDOUT_EVAL_SEEDS, device=CPU_REVISION,
         notes="scripts/validate_population_readout.py; revision step 12."),
+    run("BUDGET-CURVE", "Return and decodability against survival updates, decoder on and off",
+        experiment="B-v2 L3", artifacts=["budget_curve.json"], trains_survival=False,
+        readout_of=["C1", "C2"], survival_trainer="successor_value", status="corrected",
+        folds="explicit", notes="scripts/build_budget_curve.py; revision step 11; frozen snapshots "
+                                "of one training run per seed; figure docs/figures/budget_curve.png."),
+    run("CROSS-REPLAY", "EXPLORATORY: decoder-on and decoder-off survival trunks replayed on each "
+        "other's streams", experiment="B-v2 L3", artifacts=["cross_replay/corrected_c1_c2.json"],
+        trains_survival=False, readout_of=["C1", "C2"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="0894d6c", folds="explicit", eval_seeds=BV2_EVAL_SEEDS,
+        device=CPU_REVISION, notes="scripts/run_cross_replay.py; post hoc, written after C1 and C2 "
+                                   "were read; revision step 11."),
     run("CORRECTED-VERDICTS", "Frozen-rule verdicts, integrity, and correction effect for C1 and C2",
         experiment="methods", artifacts=["corrected_verdicts.json"], trains_survival=False,
-        readout_of=["C1", "L3-H8-WM-CPU", "L3-H8-NOWM-CPU"], survival_trainer="successor_value",
+        readout_of=["C1", "C2", "L3-H8-WM-CPU", "L3-H8-NOWM-CPU"], survival_trainer="successor_value",
         status="corrected", folds="explicit",
         notes="scripts/build_corrected_verdicts.py; rules frozen in "
               "docs/specs/2026-10-06-corrected-trainer-confirmation-design.md."),

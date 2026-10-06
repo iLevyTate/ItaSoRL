@@ -2377,6 +2377,114 @@
     },
     {
       "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "artifacts": [
+        "expB2/corrected_l3_h8_nowm.json",
+        "corrected_runs/corrected_l3_h8_nowm"
+      ],
+      "budget": {
+        "budget_curve": [
+          100,
+          200,
+          300,
+          450
+        ],
+        "predictor_updates": 300,
+        "survival_updates": 300
+      },
+      "claims": [
+        42
+      ],
+      "commit_at_run": "f676b95",
+      "config": {
+        "budget_extend": 450,
+        "budget_snapshots": [
+          100,
+          200
+        ],
+        "drift_mode": "l3",
+        "drifts": [
+          0.0,
+          0.45
+        ],
+        "embed": 64,
+        "gae_bootstrap": "successor",
+        "hidden": 96,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)",
+        "world_model": false
+      },
+      "deps": "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+      "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit (explicit-v1; equals legacy on this stack)",
+      "id": "C2",
+      "local_run_dir": "fullruns/corrected_l3_h8_nowm",
+      "notes": "Untrained arm also built without the decoder; predictor arm unchanged. The 450 point is a budget point, not a skill match.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "corrected_runs/corrected_l3_h8_nowm": {
+          "cell_commits": {
+            "f676b95": 20
+          },
+          "cell_fingerprints": {
+            "aff3863123e3e3ee": 20
+          },
+          "n_cells": 20
+        },
+        "expB2/corrected_l3_h8_nowm.json": {
+          "execution": "revision container: 4 vCPU, 4 workers, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, ITASORL_FOLDS=explicit; code at f676b95",
+          "generated_by": "scripts/promote_reviewer_gaps_runs.py",
+          "git_commit_at_promotion": "0894d6c68a8828453a4da1808f241677887b33ea",
+          "source_run": "artifacts/corrected_runs/corrected_l3_h8_nowm",
+          "spec": "docs/specs/2026-10-06-corrected-trainer-confirmation-design.md"
+        }
+      },
+      "status": "corrected",
+      "surrogate": {
+        "family": "GMotion (itasorl/surrogate_l3.py)",
+        "g_seed": 0,
+        "hidden": 8,
+        "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"
+      },
+      "survival_trainer": "successor_value",
+      "title": "Corrected trainer, next-observation auxiliary off, n = 10 (replaces L3-H8-NOWM-CPU)"
+    },
+    {
+      "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
         "l0_audit/corrected_l3_h8_wm.json"
@@ -2596,6 +2704,77 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "budget_curve.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "BUDGET-CURVE",
+      "local_run_dir": null,
+      "notes": "scripts/build_budget_curve.py; revision step 11; frozen snapshots of one training run per seed; figure docs/figures/budget_curve.png.",
+      "readout_only_on": [
+        "C1",
+        "C2"
+      ],
+      "recorded_provenance": {
+        "budget_curve.json": {
+          "generated_by": "scripts/build_budget_curve.py"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Return and decodability against survival updates, decoder on and off"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "cross_replay/corrected_c1_c2.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "0894d6c",
+      "config": {},
+      "deps": null,
+      "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "CROSS-REPLAY",
+      "local_run_dir": null,
+      "notes": "scripts/run_cross_replay.py; post hoc, written after C1 and C2 were read; revision step 11.",
+      "readout_only_on": [
+        "C1",
+        "C2"
+      ],
+      "recorded_provenance": {
+        "cross_replay/corrected_c1_c2.json": {
+          "generated_by": "scripts/run_cross_replay.py"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "EXPLORATORY: decoder-on and decoder-off survival trunks replayed on each other's streams"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "corrected_verdicts.json"
       ],
       "budget": null,
@@ -2612,6 +2791,7 @@
       "notes": "scripts/build_corrected_verdicts.py; rules frozen in docs/specs/2026-10-06-corrected-trainer-confirmation-design.md.",
       "readout_only_on": [
         "C1",
+        "C2",
         "L3-H8-WM-CPU",
         "L3-H8-NOWM-CPU"
       ],
