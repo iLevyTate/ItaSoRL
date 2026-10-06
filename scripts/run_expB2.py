@@ -123,6 +123,14 @@ def cfg():
                     help="skill-matched baseline: actor-critic update budget for the SURVIVAL arm only "
                          "(predictor and untrained keep --updates); "
                          "docs/specs/2026-09-29-l3-skill-matched-baseline-design.md")
+    ap.add_argument("--budget-extend", type=int, default=None,
+                    help="budget curve (revision step 11): keep training the SURVIVAL arm past its "
+                         "protocol budget to this many updates. The headline survival arm stays the "
+                         "exact protocol-budget agent (a frozen snapshot of the same training run); "
+                         "the extended agent is evaluated as an extra budget point")
+    ap.add_argument("--budget-snapshots", type=int, nargs="*", default=[],
+                    help="extra survival update counts to snapshot and evaluate (engagement + pooled "
+                         "readout) on the way, e.g. 100 200; evaluated on drift>0 cells only")
     ap.add_argument("--gae-bootstrap", choices=("successor", "pre_transition"), default="successor",
                     help="truncation bootstrap of the survival trainer: successor (corrected, "
                          "default) or pre_transition (the historical trainer behind every "
@@ -180,6 +188,10 @@ def config_fingerprint(base: dict) -> str:
         fp.pop("survival_updates", None)
     if fp.get("gae_bootstrap", "pre_transition") == "pre_transition":
         fp.pop("gae_bootstrap", None)
+    if fp.get("budget_extend") is None:
+        fp.pop("budget_extend", None)
+    if not fp.get("budget_snapshots"):
+        fp.pop("budget_snapshots", None)
     payload = json.dumps(fp, sort_keys=True, default=float)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
@@ -235,6 +247,18 @@ def decide_h_b2(surv, pred, untr, bar: float = 0.65, sesoi: float = 0.05):
         zone = ("NOT met  -> strengthened negative (state readable, identity not encoded)"
                 + ci_note)
     return False, zone, 0, sv
+
+
+def budget_plan(k: dict) -> tuple[int, int, list[int]]:
+    """(headline budget, updates actually trained, extra budget points to evaluate).
+    The headline is the protocol budget; training runs to the largest requested point."""
+    head = survival_update_budget(k)
+    extend = k.get("budget_extend")
+    train_to = max(head, int(extend)) if extend else head
+    extra = sorted({int(u) for u in (k.get("budget_snapshots") or [])} | ({train_to} - {head}))
+    if any(u < 1 or u > train_to for u in extra):
+        raise SystemExit(f"--budget-snapshots must lie in [1, {train_to}]; got {extra}")
+    return head, train_to, [u for u in extra if u != head]
 
 
 def cell_file(cells_dir, drift: float, seed: int) -> Path:
@@ -358,13 +382,21 @@ def run_cell(task: dict) -> dict:
               "predictor": train_predictor_only(d, P, n_eps=k["n_eps"], updates=k["updates"],
                                                 hidden=k["hidden"], max_steps=k["max_steps"],
                                                 ray_steps=k["ray_steps"], seed=s, device=dev)}
-    sa, sn, _ = train_actor_critic(d, P, n_eps=k["n_eps"], updates=survival_update_budget(k), hidden=k["hidden"],
-                                   max_steps=k["max_steps"], ray_steps=k["ray_steps"], seed=s,
-                                   device=dev, shaping_coef=k["shaping_coef"],
-                                   world_model=wm,
-                                   sysid_aux=k.get("sysid_aux", False),
-                                   sysid_coef=k.get("sysid_coef", 1.0),
-                                   gae_bootstrap=k.get("gae_bootstrap", "successor"))
+    head, train_to, extra = budget_plan(k)
+    snap_at = sorted({u for u in extra + [head] if u < train_to})
+    tstats: dict = {}
+    trained = train_actor_critic(d, P, n_eps=k["n_eps"], updates=train_to, hidden=k["hidden"],
+                                 max_steps=k["max_steps"], ray_steps=k["ray_steps"], seed=s,
+                                 device=dev, shaping_coef=k["shaping_coef"],
+                                 world_model=wm,
+                                 sysid_aux=k.get("sysid_aux", False),
+                                 sysid_coef=k.get("sysid_coef", 1.0),
+                                 gae_bootstrap=k.get("gae_bootstrap", "successor"),
+                                 snapshot_at=snap_at, stats=tstats)
+    snaps = {train_to: (trained[0], trained[1])}
+    if snap_at:
+        snaps.update(trained[3])
+    sa, sn = snaps[head]                         # the headline arm is the protocol-budget agent
     agents["survival"] = (sa, sn)
     if k.get("save_agents"):
         for g, (ag, nm) in agents.items():
@@ -376,12 +408,34 @@ def run_cell(task: dict) -> dict:
                                         ray_steps=k["ray_steps"], device=dev) for ed in k["drifts"]}
     a_ns = argparse.Namespace(**k)               # evaluate_agent reads attrs off a namespace
     out = {"drift": d, "seed": s, "eng": eng, "xeval": xev, "agents": {},
-           "gae_bootstrap": k.get("gae_bootstrap", "successor")}
+           "gae_bootstrap": k.get("gae_bootstrap", "successor"),
+           "survival_train": {"updates": head, "env_steps": tstats["env_steps"][head - 1]}}
     for g in AG:
         pool, mp, ho = evaluate_agent(agents[g][0], agents[g][1], d, a_ns, dev, s, g)
         out["agents"][g] = {"pool": pool, "mp": mp}
         if ho is not None:
             out["agents"][g]["heldout"] = ho
+    if extra and d > 0.0:
+        # Budget curve (revision step 11): engagement + the headline pooled readout per extra
+        # budget point, on the SAME training run. Evaluated after all training, with the frozen
+        # deterministic agent and fixed seed bases, so it cannot perturb the headline arms.
+        curve = {str(head): {"env_steps": tstats["env_steps"][head - 1], "eng": eng,
+                             "pool": out["agents"]["survival"]["pool"]}}
+        for u in extra:
+            ag, nm = snaps[u]
+            dump = (os.path.join(k["dump_states"], f"states_d{format_drift(d)}_s{s}_survival_u{u}.npz")
+                    if k.get("dump_states") else None)
+            curve[str(u)] = {
+                "env_steps": tstats["env_steps"][u - 1],
+                "eng": engagement_metric(ag, nm, P, d, n_eps=64, max_steps=k["max_steps"],
+                                         ray_steps=k["ray_steps"], device=dev),
+                "pool": pooled_readout(ag, nm, P, d, n_eps=k["pool_n"], steps=k["pool_steps"],
+                                       ray_steps=k["ray_steps"], device=dev, seed=s,
+                                       dump_path=dump)}
+            if k.get("save_agents"):
+                save_agent_bundle(os.path.join(k["out_dir"], "agents",
+                                               f"agent_d{format_drift(d)}_s{s}_survival_u{u}.pt"), ag, nm)
+        out["budget_curve"] = curve
     return out
 
 
@@ -521,7 +575,8 @@ def main():
                                        "mp_branch", "basal_e", "n_pellets", "reach", "dump_states",
                                        "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden",
                                        "l1_delta", "sensor_sigma", "l3_seed", "world_model",
-                                       "survival_updates", "gae_bootstrap")}
+                                       "survival_updates", "gae_bootstrap", "budget_extend",
+                                       "budget_snapshots")}
     base.update(drifts=a.drifts, device=dev, out_dir=a.out_dir, save_agents=a.save_agents)
     if a.heldout_evals:
         base.update(heldout_evals=True, heldout_hidden=a.heldout_hidden,
@@ -707,6 +762,19 @@ def main():
     vol_hit = max(surv_tv, surv_tf) >= 0.65
     print(f"  volatility check: survival target_var={surv_tv:.3f} target_full={surv_tf:.3f} "
           f"(bar 0.65) -> {'VOLATILITY-ENCODED (level probe was mis-specified)' if vol_hit else 'no volatility encoding either'}")
+
+    curves = [all_cells[key]["budget_curve"] for key in sorted(all_cells)
+              if key[0] == dmax and "budget_curve" in all_cells[key]]
+    if curves:
+        print(f"\nBudget curve, survival arm at drift={dmax:.2f} (same training run per seed; "
+              "revision step 11):")
+        for u in sorted({int(x) for c in curves for x in c}, key=int):
+            rows = [c[str(u)] for c in curves if str(u) in c]
+            tg = np.array([r["pool"]["target"] for r in rows], float)
+            rt = np.array([r["eng"]["trained_return"] for r in rows], float)
+            es = np.array([r["env_steps"] for r in rows], float)
+            print(f"  updates={u:4d}  env_steps={es.mean():9.0f}  return={rt.mean():+.3f}  "
+                  f"pool_target={np.nanmean(tg):.3f}  (n={len(rows)})")
 
     if res[dmax]["survival"].get("transfer_target"):
         print("\nHeld-out channels at strongest drift (frozen rules, spec 2026-07-14):")

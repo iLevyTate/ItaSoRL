@@ -832,6 +832,19 @@ Rigor carried from the B-v3 audit (2026-07-10):
   `artifacts/reviewer_gaps_runs/l3_h8_nowm_skill_u450/`, summary
   `artifacts/expB2/skill_matched_l3_h8_nowm_u450.json` (`skill_match` block).
 
+- **2026-10-06 - CORRECTED-TRAINER CONFIRMATION RUNS ANNOUNCED (frozen BEFORE launch; spec
+  `docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`; correction
+  `docs/CORRECTIONS.md` 2026-10-06).** The GAE truncation bootstrap of every survival run in
+  this log read the critic value before an episode's final transition; it now reads the
+  value of the successor state. The trainer is the only change: the section 9 configuration,
+  the section 7 gates, and the section 8 and 10 decision rules are unchanged. Two n = 10 runs
+  on a CPU container shown to reproduce a committed device-control cell bit for bit:
+  `C1` (auxiliary on, like for like with the 2026-09-28 device control) and `C2` (auxiliary
+  off, like for like with the 2026-09-27 architecture baseline), each extended to 450 survival
+  updates with frozen snapshots at 100, 200 and 450 for the budget curve; the headline arm is
+  the 300-update agent. Every historical number above stays as recorded and is labeled
+  historical in `docs/RESULTS_MANIFEST.md`; the results are recorded in a later entry.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

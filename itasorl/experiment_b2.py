@@ -25,6 +25,7 @@ Pipeline (all knobs in run_expB2.py):
 
 from __future__ import annotations
 
+import copy
 import os
 
 import numpy as np
@@ -356,7 +357,8 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
                        shaping_coef: float = 0.5, max_steps: int = 80, ray_steps: int = 5,
                        seed: int = 0, device: str | None = None, log_every: int = 0,
                        sysid_aux: bool = False, sysid_coef: float = 1.0,
-                       gae_bootstrap: str = "successor"):
+                       gae_bootstrap: str = "successor", snapshot_at=(),
+                       stats: dict | None = None):
     """Train the survival actor-critic. sysid_aux adds a CEILING-control auxiliary loss
     that regresses h_t onto the scalar drag-drift - a positive control that deliberately
     breaks readout-not-reward to measure whether the trunk CAN linearly encode world
@@ -365,9 +367,20 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
     gae_bootstrap selects the truncation bootstrap (truncation_bootstrap): "successor" is
     the corrected value of the state after the final recorded action; "pre_transition"
     reproduces the historical trainer that produced every survival result up to 4b6e1f3
-    (docs/CORRECTIONS.md, 2026-10-06)."""
+    (docs/CORRECTIONS.md, 2026-10-06).
+
+    snapshot_at: update counts u < updates at which a frozen copy of (agent, norm) is kept.
+    Training is sequential and deterministic, so the copy after u updates is the agent a
+    run with updates=u would return. When given, the return value gains a fourth element
+    {u: (agent, norm)} (budget curves, revision step 11). `stats`, if a dict, receives
+    "env_steps": the cumulative environment steps after each update."""
     if gae_bootstrap not in GAE_BOOTSTRAPS:
         raise ValueError(f"unknown gae_bootstrap {gae_bootstrap!r}; expected one of {GAE_BOOTSTRAPS}")
+    snapshot_at = sorted({int(u) for u in snapshot_at})
+    if any(u < 1 or u >= updates for u in snapshot_at):
+        raise ValueError(f"snapshot_at must lie in [1, updates); got {snapshot_at} for updates={updates}")
+    snaps: dict = {}
+    env_steps: list[int] = []
     device = device or default_device()
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -409,10 +422,18 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
         torch.nn.utils.clip_grad_norm_(agent.parameters(), 1.0)
         opt.step()
         history.append(float(batch["ret"].mean()))
+        env_steps.append((env_steps[-1] if env_steps else 0) + int(batch["lengths"].sum()))
         if log_every and (u % log_every == 0 or u == updates - 1):
             print(f"   update {u:4d}  mean_return={np.mean(history[-log_every:]):+.3f}  "
                   f"len={batch['lengths'].mean():.0f}  ent={float(entropy):.2f}")
+        if (u + 1) in snapshot_at:
+            snap_norm = copy.deepcopy(norm).freeze()
+            snaps[u + 1] = (copy.deepcopy(agent).train(False), snap_norm)
     norm.freeze()
+    if stats is not None:
+        stats["env_steps"] = env_steps
+    if snapshot_at:
+        return agent, norm, history, snaps
     return agent, norm, history
 
 
