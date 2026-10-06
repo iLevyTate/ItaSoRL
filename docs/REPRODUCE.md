@@ -16,6 +16,8 @@ This rebuilds, from the committed per-seed artifacts under `artifacts/`:
   historical or corrected;
 - `docs/GATE_TABLE.md`: every registered gate per run and fold partition, with L0 recomputed;
 - `docs/CONTRAST_INTERVALS.md`: the registered margins as seed-paired intervals;
+- `artifacts/corrected_verdicts.json`: the frozen decision rules applied to the corrected
+  runs `C1` and `C2`, with integrity checks and the correction effect;
 - `docs/paper_tables/*.tex`: the same tables for the manuscript (`scripts/build_paper_tables.py`).
 
 It then runs `scripts/audit_stats_recheck.py`. **What the audit checks:** that the numbers
@@ -55,8 +57,13 @@ committed historical CPU cell bit for bit (156 of 156 values), so CPU reruns can
 with the historical CPU runs exactly.
 
 The readout-only follow-ups on a run's saved agents (L0 world-sample audit, policy-controlled
-readouts, controlled persistence, control diagnostics, texture fresh probe, population
-readout validation) are printed by `retrain C1` after the training commands.
+readouts, controlled persistence, control diagnostics, both texture comparators, population
+readout validation) are printed by `retrain C1` after the training commands, followed by
+the steps that need both runs (verdicts, budget curve, and the exploratory cross-run
+replay). `scripts/revision/run_corrected_readouts.sh` runs the per-run chain unattended. On
+the revision container the C1 chain took about 2 h 50 min at reduced priority alongside
+the C2 training run; C1 and C2 themselves took about 3 h 20 min and 4 h 25 min on 4 workers
+(C2 shared the CPU with the readouts).
 
 ## Frozen surrogates
 

@@ -52,7 +52,18 @@ READOUTS = [
     "python scripts/run_persistence_readout.py --agents-dir {run}/agents --out artifacts/persistence/{name}.json --workers 4",
     "python scripts/run_control_diagnostics.py --run-dir {run} --out artifacts/control_diagnostics/{name}.json --workers 4",
     "python scripts/run_texture_fresh_probe.py --agents-dir {run}/agents --family gn --param 0.01 --out artifacts/texture/{name}_gn.json --workers 4",
+    "python scripts/run_texture_fresh_probe.py --agents-dir {run}/agents --family qd --param 6.0 --out artifacts/texture/{name}_qd.json --workers 4",
     "python scripts/validate_population_readout.py --run-dir {run} --out artifacts/population_readout/{name}.json",
+]
+# After both corrected runs: frozen-rule verdicts, the budget curve, and the exploratory
+# cross-run replay (FINDINGS 17.4, 17.10).
+AFTER_BOTH = [
+    "python scripts/build_corrected_verdicts.py",
+    'python scripts/build_budget_curve.py --run "decoder on=artifacts/corrected_runs/corrected_l3_h8_wm" '
+    '--run "decoder off=artifacts/corrected_runs/corrected_l3_h8_nowm" --out artifacts/budget_curve.json '
+    "--figure docs/figures/budget_curve.png",
+    "python scripts/run_cross_replay.py --a fullruns/corrected_l3_h8_wm --b fullruns/corrected_l3_h8_nowm "
+    "--out artifacts/cross_replay/corrected_c1_c2.json   # exploratory, post hoc",
 ]
 
 
@@ -63,7 +74,8 @@ def _run(cmd: list[str]) -> int:
 
 def tables(dumps: list[str]) -> int:
     rc = 0
-    for script in ("build_results_manifest.py", "build_gate_table.py", "build_contrast_intervals.py"):
+    for script in ("build_results_manifest.py", "build_gate_table.py", "build_contrast_intervals.py",
+                   "build_corrected_verdicts.py", "build_paper_tables.py"):
         rc |= _run([PY, os.path.join("scripts", script)])
     rc |= _run([PY, os.path.join("scripts", "audit_stats_recheck.py")])
     for d in dumps:
@@ -85,6 +97,9 @@ def retrain(run: str, execute: bool) -> int:
         print("\n# readout-only follow-ups on the saved agents (revision steps 5 to 12):")
         for r in READOUTS:
             print(r.format(run=run_dir, name=os.path.basename(run_dir)))
+        print("\n# once both C1 and C2 exist:")
+        for r in AFTER_BOTH:
+            print(r)
     if execute:
         rc = 0
         for c in cmds:

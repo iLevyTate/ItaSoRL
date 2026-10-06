@@ -20,9 +20,8 @@ site_metrics = importlib.import_module("site_metrics")
 
 def test_derive_metrics_matches_findings_headline_numbers():
     m = site_metrics.derive_metrics(ROOT / "artifacts" / "expB2")
-    # FINDINGS sec.10.2 L3 survival headline + hero (2dp) rounding of the same source.
+    # FINDINGS sec.10.2 historical L3 survival headline (the hero tile now shows C1, below).
     assert m["l3_survival"] == "0.752"
-    assert m["l3_survival_hero"] == "0.75"
     # Decision interval: t-based 90% CI recomputed from the per-seed survival cells.
     assert m["l3_ci_lo"] == "0.698"
     assert m["l3_ci_hi"] == "0.807"

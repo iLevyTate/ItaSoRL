@@ -51,7 +51,6 @@ def derive_metrics(artifacts_dir: str | Path) -> dict[str, str]:
 
     out = {
         "l3_survival": f"{survival:.3f}",
-        "l3_survival_hero": f"{survival:.2f}",
         "l3_ci_lo": f"{ci_lo:.3f}",
         "l3_ci_hi": f"{ci_hi:.3f}",
         "transfer_same": f"{h8['aggregate']['d=0.45 survival']['transfer_target']['mean']:.3f}",
