@@ -54,7 +54,7 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 6 | Arm-by-arm training and evaluation table; predictor evaluated under its own policy | Table done (`docs/METHODS_ARMS.md`); `itasorl/eval_protocols.py` and `scripts/run_policy_controlled_readouts.py` (scripted, replay, exposure-matched predictor) built and smoke-tested; full run waits for `C1` agents |
 | 7 | Memory: controlled persistence test or narrower claim | Test built (`itasorl/persistence.py`: replay, common state, hidden by physical factorial, reset), rule frozen (`docs/specs/2026-10-06-controlled-persistence-design.md`); runs on `C1` agents; historical claim narrowed in step 14 |
 | 8 | Behavioral and sensory controls | Diagnostics built (`itasorl/control_diagnostics.py`: held-out nuisance R^2, nuisance-from-residual R^2, MLP convergence, longer sensory histories, action channels, sequence readouts); `scripts/run_control_diagnostics.py` runs on `C1` agents; wording in step 14 |
-| 9 | Texture knockout interpretation | Pending |
+| 9 | Texture knockout interpretation | Three questions separated and wording frozen (`docs/specs/2026-10-06-texture-comparator-design.md`); fresh-probe runner, hand-authored quadratic-drag family, perturbation profile, and comparator training (`--l3-family`) built; readouts run on `C1` agents; comparator-trained runs only if compute allows |
 | 10 | Oracle and surrogate descriptions | Pending |
 | 11 | Auxiliary-loss conclusion bounded by budget | Pending |
 | 12 | Evolutionary readout | Pending |

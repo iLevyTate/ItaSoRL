@@ -115,6 +115,13 @@ def cfg():
     ap.add_argument("--l3-seed", type=int, default=0,
                     help="training seed of the L3 fingerprint G_motion (frozen 0; a second "
                          "instance per docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md)")
+    ap.add_argument("--l3-family", choices=("gmotion", "gn", "qd"), default="gmotion",
+                    help="surrogate family the agents LIVE in for --drift-mode l3: gmotion (the "
+                         "learned law, frozen default), gn (authentic law + iid velocity jitter) or "
+                         "qd (authentic law + hand-authored quadratic drag); revision step 9, "
+                         "docs/specs/2026-10-06-texture-comparator-design.md")
+    ap.add_argument("--l3-family-param", type=float, default=None,
+                    help="the family's gate-0 knob: sigma_v for gn, eps for qd")
     ap.add_argument("--no-world-model", dest="world_model", action="store_false",
                     help="architecture baseline: build the survival and untrained arms WITHOUT the "
                          "next-observation decoder auxiliary (model-free recurrent A2C on the same "
@@ -190,6 +197,9 @@ def config_fingerprint(base: dict) -> str:
         fp.pop("gae_bootstrap", None)
     if fp.get("budget_extend") is None:
         fp.pop("budget_extend", None)
+    if fp.get("l3_family", "gmotion") == "gmotion":
+        fp.pop("l3_family", None)
+        fp.pop("l3_family_param", None)
     if not fp.get("budget_snapshots"):
         fp.pop("budget_snapshots", None)
     payload = json.dumps(fp, sort_keys=True, default=float)
@@ -350,6 +360,23 @@ def evaluate_agent(agent, norm, drift, a, dev, seed, agent_name=""):
     return pool, mp, ho
 
 
+def install_l3_family(b2mod, family: str, param, drift: float, seed: int) -> None:
+    """Replace the learned surrogate with a comparator family for this cell. The Gaussian
+    family's noise stream is reseeded per cell from (drift, seed), so a cell's result does
+    not depend on which worker ran it or in what order."""
+    from itasorl.surrogate_l3_families import make_g_gn, make_g_qd
+    if param is None:
+        raise SystemExit(f"--l3-family {family} needs --l3-family-param (its gate-0 knob)")
+    if family == "gn":
+        g = make_g_gn(sigma_v=float(param), params=P, seed=0)
+        g.reseed(5_000_000 + 1000 * int(seed) + int(round(float(drift) * 100)))
+    elif family == "qd":
+        g = make_g_qd(eps=float(param), params=P)
+    else:
+        raise SystemExit(f"unknown --l3-family {family}")
+    b2mod._L3_GMOTION = g
+
+
 def run_cell(task: dict) -> dict:
     """Train the 3 agents for one (drift, seed) cell and return ALL metrics as plain
     floats/dicts (picklable). Self-contained so it can run in a worker process: the B-v2
@@ -374,6 +401,8 @@ def run_cell(task: dict) -> dict:
     if k.get("drift_mode") == "l3" and b2._L3_GMOTION is None:  # train G_motion once per worker
         b2.setup_l3_surrogate(hidden=k.get("l3_hidden", 8), device=dev,
                               seed=k.get("l3_seed", 0), params=P)  # THIS world
+    if k.get("drift_mode") == "l3" and k.get("l3_family", "gmotion") != "gmotion":
+        install_l3_family(b2, k["l3_family"], k["l3_family_param"], d, s)
     if k.get("heldout_evals") and b2._L3_GMOTION_HELDOUT is None:  # once per worker
         b2.setup_l3_heldout_surrogate(hidden=k["heldout_hidden"], device=dev, seed=0, params=P)
 
@@ -549,6 +578,9 @@ def main():
               "the dynamics-level L3 rung; obs come from the REAL sensor model so only the "
               "learned dynamics differ (see docs/PREREGISTRATION_L3.md sec.4/sec.12)")
         b2.setup_l3_surrogate(hidden=a.l3_hidden, device=dev, seed=a.l3_seed, params=P)  # train on THIS world
+        if a.l3_family != "gmotion":
+            print(f"  l3 family = {a.l3_family} (param {a.l3_family_param}): the agents live in this "
+                  "comparator instead of the learned law (revision step 9)")
         if a.heldout_evals:
             print(f"  heldout evals ON: transfer fingerprint G(hidden={a.heldout_hidden}), "
                   f"common garden prefix={a.cg_prefix} tail={a.cg_steps}")
@@ -576,7 +608,7 @@ def main():
                                        "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden",
                                        "l1_delta", "sensor_sigma", "l3_seed", "world_model",
                                        "survival_updates", "gae_bootstrap", "budget_extend",
-                                       "budget_snapshots")}
+                                       "budget_snapshots", "l3_family", "l3_family_param")}
     base.update(drifts=a.drifts, device=dev, out_dir=a.out_dir, save_agents=a.save_agents)
     if a.heldout_evals:
         base.update(heldout_evals=True, heldout_hidden=a.heldout_hidden,
