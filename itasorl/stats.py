@@ -164,6 +164,50 @@ def cluster_auroc_ci(y_true, y_score, clusters, level: float = 0.95, n_boot: int
     return (float(np.nanpercentile(aucs, 100 * a)), float(np.nanpercentile(aucs, 100 * (1 - a))))
 
 
+def fold_mean_auroc_ci(fold_y: list, fold_p: list, level: float = 0.95, n_boot: int = 2000,
+                       seed: int = 0, fold_groups: list | None = None) -> tuple[float, float]:
+    """Percentile bootstrap interval ALIGNED with the mean-of-fold-AUROCs point estimator
+    (revision step 13): each draw resamples within every test fold (whole groups when
+    `fold_groups` is given, else stratified by class) and averages the per-fold AUROCs.
+    `auroc_ci` on the pooled out-of-fold scores is an interval for a different quantity, the
+    pooled out-of-fold AUROC. Both are conditional on the fitted probes (no refit)."""
+    rng = np.random.default_rng(seed)
+    folds_ = [(np.asarray(y).astype(int), np.asarray(p, float)) for y, p in zip(fold_y, fold_p)]
+    if not folds_:
+        return (float("nan"), float("nan"))
+    draws = np.empty(n_boot)
+    for b in range(n_boot):
+        vals = []
+        for k, (y, p) in enumerate(folds_):
+            if fold_groups is not None:
+                g = np.asarray(fold_groups[k])
+                ug = np.unique(g)
+                pick = ug[rng.integers(0, len(ug), len(ug))]
+                idx = np.concatenate([np.flatnonzero(g == u) for u in pick])
+            else:
+                pos, neg = np.flatnonzero(y == 1), np.flatnonzero(y == 0)
+                idx = np.concatenate([pos[rng.integers(0, pos.size, pos.size)],
+                                      neg[rng.integers(0, neg.size, neg.size)]])
+            vals.append(auroc(y[idx], p[idx]))
+        draws[b] = np.nanmean(vals)
+    a = (1.0 - level) / 2.0
+    return (float(np.nanpercentile(draws, 100 * a)), float(np.nanpercentile(draws, 100 * (1 - a))))
+
+
+def paired_contrast(a, b, margin: float = 0.05) -> dict:
+    """Seed-paired contrast a - b with its t-based 90% CI and whether the CI clears `margin`
+    (revision step 13: the registered 0.05 margins are claims about a difference, so they get
+    an interval of the difference, not two separate intervals). Conditional on the evaluation
+    worlds and surrogate the seeds share."""
+    a = np.asarray(a, float).ravel()
+    b = np.asarray(b, float).ravel()
+    d = a - b
+    lo, hi = t_ci90(d) if d.size > 1 else (float("nan"), float("nan"))
+    return {"diff_per_seed": d.tolist(), "mean": float(d.mean()), "t90": [float(lo), float(hi)],
+            "mean_ge_margin": bool(d.mean() >= margin), "t90_lower_ge_margin": bool(lo >= margin),
+            "margin": float(margin), "n": int(d.size)}
+
+
 def mean_ci(values, level: float = 0.90, n_boot: int = 10000,
             seed: int = 0) -> tuple[float, float, float]:
     """Bootstrap CI of the across-seed mean. Seeds are the replication unit for a null
@@ -200,26 +244,40 @@ def t_ci90(values) -> tuple[float, float]:
 
 @dataclass
 class RopeResult:
+    """Bootstrap ROPE check. NOT a Bayesian analysis (revision step 13): there is no prior and
+    no posterior. `hdi` and `p_in_rope` keep their historical field names because committed
+    artifacts store them under those keys; read them as `boot_interval` (a percentile
+    bootstrap interval of the across-seed mean, not a highest-density interval) and
+    `boot_share_in_rope` (the share of bootstrap means inside the ROPE, not a posterior
+    probability). TOST (`equivalence_test`) is the formal equivalence test."""
     mean: float
     rope: tuple[float, float]
-    hdi: tuple[float, float]      # bootstrap percentile interval of the mean
-    p_in_rope: float             # P(mean in ROPE) under the bootstrap posterior
-    accept: bool                 # 95% interval entirely inside ROPE -> accept equivalence
+    hdi: tuple[float, float]      # percentile bootstrap interval of the mean (historical key)
+    p_in_rope: float             # share of bootstrap means inside the ROPE (historical key)
+    accept: bool                 # the bootstrap interval lies entirely inside the ROPE
     n: int
 
+    @property
+    def boot_interval(self) -> tuple[float, float]:
+        return self.hdi
+
+    @property
+    def boot_share_in_rope(self) -> float:
+        return self.p_in_rope
+
     def __str__(self) -> str:
-        verdict = "ACCEPT equivalence" if self.accept else "inconclusive"
+        verdict = "bootstrap interval inside ROPE" if self.accept else "not inside ROPE"
         return (f"mean={self.mean:.3f}  ROPE=[{self.rope[0]:.3f},{self.rope[1]:.3f}]  "
-                f"95%HDI=[{self.hdi[0]:.3f},{self.hdi[1]:.3f}]  "
-                f"P(in ROPE)={self.p_in_rope:.3f}  -> {verdict} (n={self.n})")
+                f"95% percentile-bootstrap interval=[{self.hdi[0]:.3f},{self.hdi[1]:.3f}]  "
+                f"share of bootstrap means in ROPE={self.p_in_rope:.3f}  -> {verdict} (n={self.n})")
 
 
 def rope_test(values, rope: tuple[float, float] = (0.45, 0.55), level: float = 0.95,
               n_boot: int = 20000, seed: int = 0) -> RopeResult:
-    """Bayesian-style equivalence leg (Kruschke HDI+ROPE). A bootstrap posterior over the
-    across-seed mean; accept equivalence when the 95% interval lies entirely inside the
-    ROPE. Reported alongside TOST - both agreeing is a cheap, large credibility gain for
-    a null."""
+    """Descriptive equivalence leg beside TOST: resample the per-seed values, take the
+    percentile interval of the bootstrap means, and check whether it lies inside the ROPE.
+    Seeds are resampled as independent; when they share evaluation worlds or a surrogate the
+    interval is conditional on those (revision step 13). Not a posterior; TOST is the test."""
     x = np.asarray(values, dtype=float).ravel()
     n = x.size
     lo_r, hi_r = rope

@@ -36,7 +36,7 @@ from .experiment_a import grouped_auroc
 from .experiment_b import (episode_features, episode_features_full, episode_features_var,
                            probe_auroc, scripted_policy)
 from .patch_of_earth import PatchOfEarthV0
-from .stats import auroc_ci
+from .stats import auroc_ci, cluster_auroc_ci
 from .world import SeedBundle, WorldParams
 
 
@@ -875,16 +875,29 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
 
 
 def _auroc_with_ci(X, y, seed: int = 0, groups: np.ndarray | None = None) -> tuple[float, float, float]:
-    """5-fold grouped CV AUROC plus a stratified-bootstrap 95% CI from its out-of-fold
-    predictions (no model refit). `groups` defaults to one group per row (independent
-    episodes); matched-pair callers pass a shared pair id for the two members so
-    GroupKFold never splits a pair across folds."""
+    """5-fold grouped CV AUROC plus a 95% bootstrap interval from its out-of-fold predictions
+    (no model refit). `groups` defaults to one group per row (independent episodes);
+    matched-pair callers pass a shared pair id for the two members so GroupKFold never
+    splits a pair across folds.
+
+    What the interval is (revision step 13): the point estimate is the MEAN of the fold
+    AUROCs, while the interval is a bootstrap of the POOLED out-of-fold AUROC, a different
+    quantity; both are conditional on the fitted probes. With paired groups the bootstrap
+    resamples whole pairs (`cluster_auroc_ci`); before 2026-10-06 it resampled rows, treating
+    the two members of a pair as independent (historical cg_tail_lo/hi). The aligned
+    interval for the mean-of-folds estimator is `stats.fold_mean_auroc_ci`."""
     if groups is None:
         groups = np.arange(len(y))
     auc, yv, pv = grouped_auroc(X, y, groups, return_oof=True)
     if yv.size == 0:
         return auc, float("nan"), float("nan")
-    lo, hi = auroc_ci(yv, pv, seed=seed)
+    if len(np.unique(groups)) < len(groups):
+        from itasorl import folds as _folds
+        gv = np.concatenate([np.asarray(groups)[te] for _, te in _folds.split(groups)
+                             if len(np.unique(np.asarray(y)[te])) > 1])
+        lo, hi = cluster_auroc_ci(yv, pv, gv, seed=seed)
+    else:
+        lo, hi = auroc_ci(yv, pv, seed=seed)
     return auc, lo, hi
 
 

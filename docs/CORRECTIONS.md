@@ -120,3 +120,25 @@ rescoring, and a balanced paired-seed readout with a pair-level bootstrap
 pair reads 0.453 (chance). Across eight independent pairs the same probe reads 0.419 to 0.612,
 sd 0.066, larger than the 0.05 equivalence margin. A seed-level L0 interval is therefore
 conditional on the fixed world pair.
+
+## 2026-10-06: statistical labels and estimators
+
+**What was wrong.** The ROPE leg was described as Bayesian: its percentile bootstrap interval
+was called a 95% HDI and the share of bootstrap means inside the ROPE was called P(in ROPE),
+a posterior probability. FINDINGS 14 called the alpha 0 interval a "90% bootstrap HDI"; it is
+a 95% percentile bootstrap interval. Per-cell AUROC intervals bootstrapped the pooled
+out-of-fold AUROC while the point estimate was the mean of fold AUROCs. The paired readouts'
+per-cell intervals resampled rows, treating the two members of a pair as independent. The
+0.05 margins were judged on separate intervals rather than on an interval of the difference,
+and across-seed intervals did not say they condition on one surrogate and one set of
+evaluation worlds.
+
+**Change.** `RopeResult` keeps its stored field names (artifacts use them) but is documented,
+printed, and aliased as a bootstrap check (`boot_interval`, `boot_share_in_rope`). FINDINGS
+labels are corrected and methods note 9 states the conventions, the conditioning, the
+difference between a rule met and evidence shown, and the analysis tiers.
+`itasorl.stats.fold_mean_auroc_ci` gives an interval aligned with the fold-mean estimator;
+`_auroc_with_ci` resamples pairs when groups are paired (`cluster_auroc_ci`);
+`paired_contrast` and `docs/CONTRAST_INTERVALS.md` give seed-paired margin intervals for
+every run. TOST stays the formal equivalence test. No decision rule used a per-cell
+interval, so no verdict moves.

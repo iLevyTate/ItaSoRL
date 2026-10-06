@@ -39,6 +39,7 @@ Reviewed at commit `4b6e1f3`. Every row below is **historical**: it records what
 | `SENSORY-ECHO` | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
 | `FOLDS-EXPLICIT-V1` | methods | - | none | - | not recorded | explicit | not recorded |
 | `GATE-TABLE` | methods | - | inherited: pre_transition_value | BV2-L2-AR1, BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
+| `CONTRAST-INTERVALS` | methods | - | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
 | `L0-PRE-INTERVENTION` | L0 audit | - | none | - | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
@@ -423,6 +424,14 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: both
 - Notes: scripts/build_gate_table.py; docs/GATE_TABLE.md.
 - Artifacts: `artifacts/gate_table.json`
+
+### `CONTRAST-INTERVALS`: Seed-paired intervals for the registered margins, every run
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Folds: both
+- Notes: scripts/build_contrast_intervals.py; docs/CONTRAST_INTERVALS.md.
+- Artifacts: `artifacts/contrast_intervals.json`
 
 ### `L0-PRE-INTERVENTION`: Pool membership decoded from the reset observation (agent free)
 

@@ -568,7 +568,7 @@ Gates (replication run, all pre-registered): **engagement** passed in 100 % of s
 **positive control** (speed probe) ≈ 0.84-0.96; **leakage audit** clean in every cell;
 **manipulation check** passed (drift-trained policies lose return under eval@0.45;
 artifact survival-relevant); **L0 equivalence** for the survival agent: point estimate
-0.520, TOST inconclusive at n = 3 (p = 0.20), ROPE inconclusive (P(in ROPE) = 0.85).
+0.520, TOST inconclusive at n = 3 (p = 0.20), ROPE leg inconclusive (share of bootstrap means inside the ROPE 0.85).
 
 **Result: the negative holds - with the L0 equivalence gate INCONCLUSIVE, not
 passed.** The pre-registered battery requires all gates to pass before the survival
@@ -1180,7 +1180,7 @@ nuisance factor the comparison against 0.752 does not control; the device contro
 below closes it with a same-device comparison.
 
 **Gates (all pass).** Engagement 20/20 cells; L0 control 0.514 (TOST p = 0.006,
-ROPE P = 0.9997, both accept); speed positive control at least 0.835 in every
+ROPE share = 0.9997, both accept); speed positive control at least 0.835 in every
 cell; pooled reward-leak clean in every cell; untrained floor at drift 0.45
 0.529 (within tolerance); 0 early deaths in every pool.
 
@@ -1297,7 +1297,7 @@ at the decoder agents' skill.
 **Gates.** Engagement 20/20 cells; speed positive control at least 0.837 in every cell;
 pooled reward-leak clean in every cell; untrained floor at drift 0.45 0.513 (within
 tolerance); 0 early deaths in every pool. **The L0 control does not accept**: 0.539 with
-TOST p = 0.285 and ROPE P(in ROPE) = 0.736. This is the same open drift-zero clause
+TOST p = 0.285 and a share of 0.736 of bootstrap means inside the ROPE. This is the same open drift-zero clause
 recorded for every GPU run scored on the stack-independent partition (section 16
 addendum, 10.9), it is recorded as open here on the same terms, and no verdict below
 rests on it. Two cross-checks on the pipeline: the drift-zero untrained and predictor
@@ -1439,7 +1439,7 @@ explicit split, so its like-for-like headline is the explicit 0.774, not the leg
 hidden-8 new-seed run
 (`docs/specs/2026-09-28-l3-hidden8-second-seed-design.md`) separates them. Gates:
 engagement 20/20, speed >= 0.833, pooled leak clean 20/20, floor 0.521, 0 deaths.
-One gate is open: the L0 control reads 0.539 (HDI [0.516, 0.562]) and is not shown
+One gate is open: the L0 control reads 0.539 (95% percentile bootstrap interval [0.516, 0.562]) and is not shown
 equivalent to chance by TOST (p = 0.207) or ROPE (P = 0.816) at n = 10, the first
 L3 organism run on record with that gate open. The verdict does not depend on it (the
 run misses the bar on the fingerprint-active drift regardless) and it is reported as
@@ -1631,6 +1631,50 @@ Stated once, plainly, with pointers into the code.
    partition, so an explicit-scored run is read against 0.774 and not against 0.752.
    Mixing the scales flatters the newer run by about the size of the shift, roughly
    0.02; section 10.9's GPU paragraph was corrected on exactly that point.
+9. **Interval labels, estimators, and what the intervals condition on (2026-10-06,
+   revision step 13).**
+   - *ROPE.* The ROPE leg resamples the per-seed values and checks whether the
+     percentile bootstrap interval of their mean lies inside [0.45, 0.55]. It is not
+     a Bayesian analysis: there is no prior and no posterior. Its interval is a
+     **percentile bootstrap interval**, not a highest-density interval, and the number
+     reported beside it is the **share of bootstrap means inside the ROPE**, not a
+     posterior probability. Dated log entries in the preregistrations write these as
+     "HDI", "ROPE P", or "P(in ROPE)"; read them this way. TOST is the formal
+     equivalence test.
+   - *Per-cell AUROC intervals.* A cell's `target` is the mean of the five fold
+     AUROCs; the `target_lo` / `target_hi` beside it bootstrap the pooled out-of-fold
+     AUROC, a different quantity. Both condition on the fitted probes (no refit).
+     `itasorl.stats.fold_mean_auroc_ci` gives the interval aligned with the fold-mean
+     estimator. Before 2026-10-06 the paired readouts (common garden, matched pairs)
+     resampled rows for their per-cell interval, treating the two members of a pair as
+     independent; they now resample pairs (`cluster_auroc_ci`). No decision rule uses
+     a per-cell interval.
+   - *Across-seed intervals.* Every t-based interval over agent seeds conditions on
+     the run's single trained surrogate and on its fixed evaluation worlds, which all
+     seeds share (`docs/RESULTS_MANIFEST.md`; the world-sample spread is measured in
+     `artifacts/l0_audit/`). They describe agent-seed variation, not variation over
+     surrogates or worlds.
+   - *Margins.* The 0.05 margins are claims about differences, so
+     `docs/CONTRAST_INTERVALS.md` gives each survival-minus-baseline difference paired
+     by seed with its t-based 90% CI.
+   - *Rule met is not evidence shown.* A registered threshold applied to a mean is a
+     prospective decision rule; whether the data clearly exceed the threshold is a
+     separate question, answered by the interval. The nonlinear joint control reads
+     0.654 [0.621, 0.687] (10.4.2): it meets the mean rule and its interval straddles
+     0.65. The cross-recipe transfer reads 0.684 with a lower bound of 0.654 (10.7).
+     The hidden 8 new-seed instance reads 0.676 [0.636, 0.717] (10.9). Each is
+     reported as "meets the registered rule; the interval does not exclude the
+     threshold", never as clear evidence above it.
+   - *Analysis tiers (revision 2026-10).* **Primary:** the pooled target of the
+     corrected decoder-carrying survival arm against the 0.65 bar and both baselines,
+     and the decoder-on minus decoder-off contrast on one device
+     (`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`). **Secondary:**
+     the registered gates, the behavior and sensory controls, the L0 world-sample
+     audit, and the policy-controlled readouts. **Exploratory:** the budget curve, the
+     persistence test, the texture comparators, the transfer channels, the H2
+     batteries, the evolutionary readout, and every historical result produced with
+     the pre-correction trainer. Exploratory results are reported uncorrected and
+     carry no claim on their own.
 
 ---
 
@@ -1961,7 +2005,7 @@ CUDA re-run reproduces it.)
 
 The survival collapse is strictly monotone (Spearman rho of the per-alpha means
 against alpha is 1.0). At alpha=0, with the seam fully removed, the survival
-signal is equivalent to chance: mean 0.506, 90% bootstrap HDI [0.481, 0.530],
+signal is equivalent to chance: mean 0.506, 95% percentile bootstrap interval [0.481, 0.530],
 entirely inside the ROPE [0.45, 0.55] (accept equivalence), 0/10 seeds above the
 0.65 bar. So the incidentally-encoded world-identity signal is *necessary on* the
 substrate seam: dial the seam out and it dose-responsively vanishes.
@@ -1984,8 +2028,8 @@ the saved hidden=7 agents (`fullruns/l3_h7_heldout`, 10 seeds, drift 0.45). The
 integrity gate reproduces the hidden=7 published survival mean **0.737** exactly.
 The collapse is again strictly monotonic (Spearman rho 1.0): alpha=1.00 **0.737**,
 0.75 **0.725**, 0.50 **0.704**, 0.25 **0.650**, 0.10 **0.554**, 0.00 **0.472**.
-The L0 anchor at alpha=0 is near chance (mean 0.472, bootstrap HDI [0.445, 0.501],
-ROPE p=0.947). The graded-seam necessity result is robust across the two in-band
+The L0 anchor at alpha=0 is near chance (mean 0.472, 95% percentile bootstrap interval [0.445, 0.501],
+ROPE share 0.947). The graded-seam necessity result is robust across the two in-band
 capacities.
 
 **Scope and deferred follow-ons.** This is a necessity-plus-specificity result on
@@ -2296,8 +2340,8 @@ drift-0 survival cells, and it was not computed at the time of the re-score.
 
 | run (drift-0 survival cells) | legacy | explicit |
 |---|---|---|
-| L3 hidden 8, hidden 7, hidden 4, and n = 10 dumps (one shared set of 10 cells) | 0.517, TOST p = 0.010, ROPE P = 0.999 (equivalent) | 0.539, TOST p = 0.207, ROPE P = 0.816 (not shown) |
-| L1 organism run | 0.522, TOST p = 0.029, ROPE P = 0.989 (equivalent) | 0.546, TOST p = 0.374, ROPE P = 0.628 (not shown) |
+| L3 hidden 8, hidden 7, hidden 4, and n = 10 dumps (one shared set of 10 cells) | 0.517, TOST p = 0.010, ROPE share = 0.999 (equivalent) | 0.539, TOST p = 0.207, ROPE share = 0.816 (not shown) |
+| L1 organism run | 0.522, TOST p = 0.029, ROPE share = 0.989 (equivalent) | 0.546, TOST p = 0.374, ROPE share = 0.628 (not shown) |
 
 The L3 rows are one measurement, not four: at drift 0 the surrogate is not
 installed (`itasorl/experiment_b2.py`, `drift_sigma > 0.0`), so the drift-0 agents

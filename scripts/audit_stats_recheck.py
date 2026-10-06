@@ -1702,6 +1702,10 @@ def main() -> int:
     import build_gate_table
     check_true("gate table is current (build_gate_table --check)",
                build_gate_table.main(["--check"]) == 0)
+    # Revision step 13: margins get intervals of the difference.
+    import build_contrast_intervals
+    check_true("contrast intervals are current (build_contrast_intervals --check)",
+               build_contrast_intervals.main(["--check"]) == 0)
 
     print()
     if failures:

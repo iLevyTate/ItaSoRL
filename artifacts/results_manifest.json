@@ -2095,6 +2095,48 @@
       "title": "Gate table, historical and corrected runs, both partitions"
     },
     {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "contrast_intervals.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "both",
+      "id": "CONTRAST-INTERVALS",
+      "local_run_dir": null,
+      "notes": "scripts/build_contrast_intervals.py; docs/CONTRAST_INTERVALS.md.",
+      "readout_only_on": [
+        "BV3-REGIME-N10",
+        "L3-H8-N10",
+        "L3-H7-N10",
+        "L3-H8-HELDOUT",
+        "L3-H7-REVERSE",
+        "L1-ORGANISM",
+        "L3-H8-NOWM-CPU",
+        "L3-H8-WM-CPU",
+        "L3-H10-GS1-CPU",
+        "L3-H10-GS1-GPU",
+        "L3-H8-GS2-GPU",
+        "L3-H8-NOWM-U450"
+      ],
+      "recorded_provenance": {
+        "contrast_intervals.json": {
+          "generated_by": "scripts/build_contrast_intervals.py"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "inherited: pre_transition_value",
+      "title": "Seed-paired intervals for the registered margins, every run"
+    },
+    {
       "affected_by_gae_correction": false,
       "agent_seeds": null,
       "artifacts": [
