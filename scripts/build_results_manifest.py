@@ -532,6 +532,15 @@ def build() -> dict:
                                "status 'corrected'",
         },
         "fold_schemes": FOLDS_NOTE,
+        "commits_off_main": {
+            "branch": "feat/remaining-research",
+            "commits": ["4d57253", "80550ca", "80948ff", "9d5d047", "d67dd51"],
+            "note": "Recorded by the 2026-09 runs (second instances on GPU, the skill-matched "
+                    "baseline, the hidden 7 sensory echo). Their content reached main through the "
+                    "squash merge 21ed4df (#111), so the commits themselves are reachable only from "
+                    "the branch feat/remaining-research. Keep that branch, or tag its head 55afc72, "
+                    "or these provenance hashes stop resolving.",
+        },
         "eval_world_note": "Evaluation worlds are fixed seed bases shared by every agent seed, "
                            "so across-seed intervals condition on one sample of evaluation "
                            "worlds and on the single trained surrogate of each run.",
@@ -566,6 +575,9 @@ def render_md(m: dict) -> str:
         L.append(f"| `{r['id']}` | {r['status']} | {r['experiment']} | {claims} | {r['survival_trainer']} | "
                  f"{ro} | {r['commit_at_run'] or 'not recorded'} | {r['folds']} | "
                  f"{r['device'] or 'not recorded'} |")
+    off = m["commits_off_main"]
+    L += ["", f"Commits recorded off main: {', '.join('`' + c + '`' for c in off['commits'])} live only on "
+          f"the branch `{off['branch']}`. {off['note']}"]
     L += ["", "Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.",
           "", "## Evaluation worlds and seeds", "",
           m["eval_world_note"], "",

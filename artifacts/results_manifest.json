@@ -1,4 +1,15 @@
 {
+  "commits_off_main": {
+    "branch": "feat/remaining-research",
+    "commits": [
+      "4d57253",
+      "80550ca",
+      "80948ff",
+      "9d5d047",
+      "d67dd51"
+    ],
+    "note": "Recorded by the 2026-09 runs (second instances on GPU, the skill-matched baseline, the hidden 7 sensory echo). Their content reached main through the squash merge 21ed4df (#111), so the commits themselves are reachable only from the branch feat/remaining-research. Keep that branch, or tag its head 55afc72, or these provenance hashes stop resolving."
+  },
   "eval_world_note": "Evaluation worlds are fixed seed bases shared by every agent seed, so across-seed intervals condition on one sample of evaluation worlds and on the single trained surrogate of each run.",
   "fold_schemes": {
     "both": "scored under both; see artifacts/fold_rescore and FINDINGS methods note 8",

@@ -57,6 +57,8 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
+Commits recorded off main: `4d57253`, `80550ca`, `80948ff`, `9d5d047`, `d67dd51` live only on the branch `feat/remaining-research`. Recorded by the 2026-09 runs (second instances on GPU, the skill-matched baseline, the hidden 7 sensory echo). Their content reached main through the squash merge 21ed4df (#111), so the commits themselves are reachable only from the branch feat/remaining-research. Keep that branch, or tag its head 55afc72, or these provenance hashes stop resolving.
+
 Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.
 
 ## Evaluation worlds and seeds

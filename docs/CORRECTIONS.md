@@ -211,14 +211,8 @@ local (`AGENTS.md`), and a regular merge would have carried those commits into m
 **Change.** The branch was rewritten from the first commit that added the tables onward, with
 the tables removed from every commit and each rewritten commit signed again. The final tree is
 byte-identical to the one before the rewrite. The 13 earlier commits keep their hashes,
-including `f676b95`, the code every corrected-run cell records. Two later commits that the
-provenance records name changed hash; their code is identical, only the generated tables
-dropped out:
-
-| before | after | what records it |
-|---|---|---|
-| `39c1e5d` | `34e2c0d` | the C1 readouts (`commit_at_run` in the manifest) and the C1 promotion (`git_commit_at_promotion`) |
-| `0894d6c` | `7870bba` | the exploratory cross-run replay and the C2 promotion |
-
-The references were updated to the new hashes. No number changed.
-
+including `f676b95`, the code every corrected-run cell records. Two later commits named in
+the provenance records changed hash with identical code: the C1 readouts and the C1
+promotion now name `34e2c0d`, and the exploratory cross-run replay and the C2 promotion now
+name `7870bba`. No number changed. The pre-rewrite hashes are deliberately not listed here,
+because they still resolve on GitHub to commits that carry the tables.
