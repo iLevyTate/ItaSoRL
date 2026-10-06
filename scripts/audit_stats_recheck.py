@@ -1843,6 +1843,29 @@ def main() -> int:
                 check_true(f"FINDINGS 17.8 held-out R2 {m} ({_r2:.2f})", f"| {_r2:.2f} |" in _s17)
                 check_true(f"17.8: basis not recoverable from the survival residual ({m})",
                            _ca[f"d=0.45 survival {m}"]["nuisance_from_residual_r2_mean"] <= -0.005)
+    for _fam in ("gn", "qd"):
+        _tp = os.path.join(ARTROOT, "texture", f"corrected_l3_h8_wm_{_fam}.json")
+        if not os.path.exists(_tp):
+            continue
+        from itasorl.stats import paired_contrast as _pc2
+        _ta = _load_art("texture", f"corrected_l3_h8_wm_{_fam}.json")["aggregate"]
+        for _q in ("transfer", "fresh", "fresh_paired"):
+            _s, _u = _ta[f"survival {_q}"], _ta[f"untrained {_q}"]
+            _c = _pc2(_s["per_seed"], _u["per_seed"])
+            row = (f"{_s['mean']:.3f} [{_s['t90'][0]:.3f}, {_s['t90'][1]:.3f}] | "
+                   f"{_ta[f'predictor {_q}']['mean']:.3f} | {_u['mean']:.3f} | "
+                   f"{_c['mean']:+.3f} [{_c['t90'][0]:+.3f}, {_c['t90'][1]:+.3f}] |")
+            check_true(f"FINDINGS 17.9 quotes {_fam} {_q}", row in _s17)
+        # the frozen Q1 / Q2 rule: mean >= 0.65 and >= 0.05 above untrained
+        _s17n = " ".join(_s17.split())
+        for _q, _yes, _no in (("transfer", f"For `{_fam}`: the L3 direction reads the comparator",
+                               "the original direction does not transfer"),
+                              ("fresh", "separates the comparator when a probe is fit to it",
+                               "a fresh probe did not meet the registered criterion")):
+            _m = _ta[f"survival {_q}"]["mean"]
+            _ok = _m >= 0.65 and _m - _ta[f"untrained {_q}"]["mean"] >= 0.05
+            check_true(f"17.9 {_fam} {_q}: frozen rule {'passes' if _ok else 'fails'} and the wording says so",
+                       (_yes if _ok else _no) in _s17n)
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
     print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
     _f = _read("docs/FINDINGS.md")

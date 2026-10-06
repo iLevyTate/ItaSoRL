@@ -410,7 +410,8 @@ RUNS = [
         notes="scripts/run_control_diagnostics.py; revision step 8. Pools regenerated and "
               "bit-matched to the run's state dumps."),
     run("C1-TEXTURE", "Texture comparators on the C1 agents: transfer of the original direction "
-        "and a fresh probe", experiment="H2", artifacts=["texture/corrected_l3_h8_wm_gn.json"],
+        "and a fresh probe", experiment="H2", artifacts=["texture/corrected_l3_h8_wm_gn.json",
+                                                "texture/corrected_l3_h8_wm_qd.json"],
         trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
         status="corrected", commit_at_run="39c1e5d", folds="explicit",
         eval_seeds={"gn": "960000 / 970000", "qd": "1900000 / 1950000"}, device=CPU_REVISION,

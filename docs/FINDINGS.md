@@ -2818,3 +2818,49 @@ and summary statistics of the observation trace alone read 0.715. The survival s
 input stream does, and the stream carries it because of where the survival policy takes the
 body. The wording "behavior-independent" is retired: the paper says which basis was
 controlled, with which model, and what remained.
+
+### 17.9 Texture comparators: three questions, two answered (revision step 9)
+
+The published texture knockout (14.5) asked one question: does the world-identity direction
+fit on the learned law read a Gaussian-jitter comparator? It did not. The frozen comparator
+spec (`docs/specs/2026-10-06-texture-comparator-design.md`) separates that from whether a
+fresh probe decodes the comparator, and from whether agents raised in it would. Both
+comparators were scored on the `C1` agents at drift 0.45 (`scripts/run_texture_fresh_probe.py`;
+`artifacts/texture/corrected_l3_h8_wm_{gn,qd}.json`):
+
+- `gn`: the authentic law plus white velocity noise, sigma_v 0.01 (the published gate-0
+  value). One-step RMS deviation 0.0142, lag-1 autocorrelation of the deviation 0.02.
+- `qd`: the authentic law minus a hand-authored quadratic drag, eps 6.0. Gate 0 found no
+  in-band eps (amendment in the spec), so eps was fixed to match `gn` on one-step RMS
+  deviation; the deviation is deterministic, smooth, state-dependent, and temporally
+  coherent (lag-1 autocorrelation 0.94). Its untrained floor sits outside tolerance, as the
+  amendment anticipated, so the survival-minus-untrained margin is the comparison that
+  carries meaning.
+
+Survival arm, n = 10, t-based 90% CIs, with the seed-paired margin over the untrained arm:
+
+| comparator | question | survival | predictor | untrained | survival minus untrained |
+|---|---|---|---|---|---|
+| `gn` | 1. transfer of the original direction | 0.527 [0.511, 0.542] | 0.553 | 0.539 | -0.013 [-0.039, +0.014] |
+| `gn` | 2. fresh probe | 0.488 [0.462, 0.514] | 0.555 | 0.531 | -0.043 [-0.069, -0.018] |
+| `gn` | 2. fresh probe, balanced pairs | 0.484 [0.467, 0.502] | 0.496 | 0.501 | -0.017 [-0.040, +0.006] |
+| `qd` | 1. transfer of the original direction | 0.721 [0.674, 0.767] | 0.619 | 0.612 | +0.109 [+0.061, +0.157] |
+| `qd` | 2. fresh probe | 0.754 [0.718, 0.789] | 0.683 | 0.612 | +0.142 [+0.095, +0.189] |
+| `qd` | 2. fresh probe, balanced pairs | 0.780 [0.751, 0.808] | 0.686 | 0.647 | +0.133 [+0.106, +0.160] |
+
+**Frozen wording.** For `gn`: the original direction does not transfer to the comparator,
+and a fresh probe did not meet the registered criterion on it. For `qd`: the L3 direction
+reads the comparator, and the existing agent's state separates the comparator when a probe is
+fit to it. Question 3 (agents raised in each comparator) was not run: `qd` failed its gate 0,
+so a comparator-trained run could not meet the matched-detectability condition, and the
+learned-texture rule cannot be met in this revision.
+
+**Reading.** At the same one-step magnitude, a hand-authored perturbation that is coherent
+over time and depends on the state is read by the survival agent's state, through the very
+direction fit on the learned law, while white jitter is read by none of the arms. What the
+agent picks up is therefore not specific to a learned approximation. The tested classes
+separate on temporal coherence and state dependence, not on learnedness. This retires the
+"texture-specific" reading of 14.5 and the 2026-07-23 log entry more firmly than the wording
+amendment alone did. Two cautions: `qd` and `gn` are matched on one-step RMS, not on
+detectability, and `qd` was not calibrated through gate 0 (no eps passed), so its larger
+untrained floor (0.612) means part of its signal is felt by any recurrent state.

@@ -543,7 +543,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_texture_fresh_probe.py; revision step 9; wording rules frozen in docs/specs/2026-10-06-texture-comparator-design.md.
-- Artifacts: `artifacts/texture/corrected_l3_h8_wm_gn.json`
+- Artifacts: `artifacts/texture/corrected_l3_h8_wm_gn.json`, `artifacts/texture/corrected_l3_h8_wm_qd.json`
 
 ### `CORRECTED-VERDICTS`: Frozen-rule verdicts, integrity, and correction effect for C1 and C2
 

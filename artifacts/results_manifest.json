@@ -2523,7 +2523,8 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
-        "texture/corrected_l3_h8_wm_gn.json"
+        "texture/corrected_l3_h8_wm_gn.json",
+        "texture/corrected_l3_h8_wm_qd.json"
       ],
       "budget": null,
       "claims": [],
@@ -2545,6 +2546,9 @@
       ],
       "recorded_provenance": {
         "texture/corrected_l3_h8_wm_gn.json": {
+          "generated_by": "scripts/run_texture_fresh_probe.py"
+        },
+        "texture/corrected_l3_h8_wm_qd.json": {
           "generated_by": "scripts/run_texture_fresh_probe.py"
         }
       },
