@@ -387,6 +387,14 @@ RUNS = [
                     "independent": "(1000000 + 100000k) / (1050000 + 100000k), k < 8",
                     "balanced": "800000 + i for both pools (same world seed and initial state)"},
         device=CPU_REVISION, notes="scripts/run_l0_audit.py; revision step 5; diagnostic, not a gate."),
+    run("C1-POLICY-CONTROLS", "Readouts under own, scripted, and replayed policies, with an "
+        "exposure-matched predictor, C1 agents", experiment="B-v2 L3",
+        artifacts=["policy_controls/corrected_l3_h8_wm.json"], trains_survival=False,
+        readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run="39c1e5d", folds="explicit", eval_seeds=BV2_EVAL_SEEDS, device=CPU_REVISION,
+        notes="scripts/run_policy_controlled_readouts.py; revision step 6. Survival agents "
+              "retrained with batch logging, bit-identical to the saved agents (10/10); "
+              "predictor_logged trains the prediction objective on those batches."),
     run("CORRECTED-VERDICTS", "Frozen-rule verdicts, integrity, and correction effect for C1 and C2",
         experiment="methods", artifacts=["corrected_verdicts.json"], trains_survival=False,
         readout_of=["C1", "L3-H8-WM-CPU", "L3-H8-NOWM-CPU"], survival_trainer="successor_value",

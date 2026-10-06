@@ -1789,6 +1789,24 @@ def main() -> int:
         for arm in ("predictor", "untrained"):
             check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
                        f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
+    _pcp = os.path.join(ARTROOT, "policy_controls", "corrected_l3_h8_wm.json")
+    if os.path.exists(_pcp):
+        from itasorl.stats import paired_contrast as _pc
+        _pcd = _load_art("policy_controls", "corrected_l3_h8_wm.json")
+        check_true("17.6: every survival retrain was bit-identical",
+                   all(c["retrain_identical"] for c in _pcd["cells"]) and len(_pcd["cells"]) == 10)
+        _agg = _pcd["aggregate"]
+        for arm in ("untrained", "predictor", "predictor_logged", "survival"):
+            row = f"| {arm} | " + " | ".join(
+                f"{_agg[f'{arm} {pr}']['mean']:.3f} [{_agg[f'{arm} {pr}']['t90'][0]:.3f}, "
+                f"{_agg[f'{arm} {pr}']['t90'][1]:.3f}]" for pr in ("own", "scripted", "replay")) + " |"
+            check_true(f"FINDINGS 17.6 table row {arm}", row in _s17)
+        _cells = sorted(_pcd["cells"], key=lambda c: c["seed"])
+        _tv = lambda arm, pr: [c["targets"][arm][pr]["target"] for c in _cells]
+        for pr in ("own", "scripted", "replay"):
+            cs = [_pc(_tv("survival", pr), _tv(b2, pr)) for b2 in ("predictor", "predictor_logged", "untrained")]
+            row = f"| {pr} | " + " | ".join(f"{c['mean']:+.3f} [{c['t90'][0]:+.3f}, {c['t90'][1]:+.3f}]" for c in cs) + " |"
+            check_true(f"FINDINGS 17.6 contrast row {pr}", row in _s17)
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
     print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
     _f = _read("docs/FINDINGS.md")

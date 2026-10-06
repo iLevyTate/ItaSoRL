@@ -2684,3 +2684,54 @@ separation then comes from the dynamics, not from the world sample. Survival **0
 0.773), predictor 0.611 [0.590, 0.631], untrained 0.553 [0.529, 0.578]; no pair was
 dropped. The survival reading does not depend on the two pools being different world
 samples.
+
+### 17.6 Who drives the evaluation episodes (revision step 6)
+
+The standard readout scores each arm on episodes its own actor head generates. The three arms
+therefore differ in objective, in training data, and in the evaluation inputs their trunks
+read (`docs/METHODS_ARMS.md`). `scripts/run_policy_controlled_readouts.py` separates those on
+the `C1` agents (`artifacts/policy_controls/corrected_l3_h8_wm.json`). It retrained each
+survival agent with batch logging, required the result to be bit-identical to the saved agent
+(10 of 10 were), trained `predictor_logged` with the prediction objective on exactly those
+300 batches, and scored four arms under three protocols: `own` (each arm's actor drives),
+`scripted` (one scripted action sequence drives every arm in both pools), and `replay` (the
+survival agent's own evaluation episodes, fed open loop to every trunk).
+
+Pooled target at drift 0.45, n = 10, t-based 90% CIs:
+
+| arm | own | scripted | replay |
+|---|---|---|---|
+| untrained | 0.523 [0.491, 0.554] | 0.551 [0.530, 0.571] | 0.636 [0.586, 0.686] |
+| predictor | 0.589 [0.567, 0.610] | 0.554 [0.541, 0.567] | 0.721 [0.664, 0.778] |
+| predictor_logged | 0.632 [0.611, 0.653] | 0.577 [0.558, 0.596] | 0.738 [0.689, 0.787] |
+| survival | 0.733 [0.669, 0.797] | 0.570 [0.547, 0.594] | 0.733 [0.669, 0.797] |
+
+Seed-paired contrasts, survival minus each arm:
+
+| protocol | minus predictor | minus predictor_logged | minus untrained |
+|---|---|---|---|
+| own | +0.144 [+0.072, +0.217] | +0.101 [+0.037, +0.165] | +0.210 [+0.135, +0.286] |
+| scripted | +0.016 [-0.014, +0.046] | -0.007 [-0.039, +0.025] | +0.020 [+0.004, +0.036] |
+| replay | +0.012 [-0.002, +0.026] | -0.005 [-0.038, +0.027] | +0.097 [+0.066, +0.128] |
+
+**What this shows.** When every trunk reads the survival agent's own observation and action
+streams, a trunk trained only to predict reads the world as well as the survival trunk does
+(0.721 and 0.738 against 0.733; neither contrast is distinguishable from zero), and so does
+a predictor trained on exactly the survival agent's experience. When one scripted policy
+drives every arm, no arm separates the worlds well, the survival trunk included (0.570).
+Training of either kind adds about 0.1 over an untrained trunk on the same streams.
+
+The survival-over-predictor margin of the primary readout (+0.144) is therefore a
+difference between training regimes, and at matched evaluation input it is not a difference
+of objective. What carries the world signal is the trajectories the survival policy
+generates. The scripted policy, which thrusts and turns at random, visits states where the
+learned law and the authentic law agree closely enough that no tested trunk separates them;
+the survival policy visits states where they differ, and any trained trunk reading those
+streams carries the difference. The primary verdict of 17.2 is unchanged, since it is defined
+on the `own` protocol. The wording of every claim that calls the signal survival-specific,
+or credits it to the survival objective, is narrowed to this reading (the closing summary
+of this section and the public pages).
+
+This also bears on the auxiliary comparison. An arm without the next-observation decoder
+forages differently, so a lower reading for it can come from the episodes its policy
+generates as well as from its state; section 17.4 reads the `C2` contrast with that in view.
