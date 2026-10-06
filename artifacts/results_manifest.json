@@ -2379,6 +2379,41 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "l0_audit/corrected_l3_h8_wm.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "39c1e5d",
+      "config": {},
+      "deps": null,
+      "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
+      "eval_seeds": {
+        "balanced": "800000 + i for both pools (same world seed and initial state)",
+        "independent": "(1000000 + 100000k) / (1050000 + 100000k), k < 8",
+        "standard": "800000 / 850000"
+      },
+      "experiment": "L0 audit",
+      "folds": "explicit",
+      "id": "C1-L0-AUDIT",
+      "local_run_dir": null,
+      "notes": "scripts/run_l0_audit.py; revision step 5; diagnostic, not a gate.",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "l0_audit/corrected_l3_h8_wm.json": {
+          "generated_by": "scripts/run_l0_audit.py"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "L0 across independent world-sample pairs and the balanced readout, C1 agents"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "corrected_verdicts.json"
       ],
       "budget": null,

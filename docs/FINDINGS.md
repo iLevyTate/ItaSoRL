@@ -2641,3 +2641,46 @@ At drift 0 it raised the survival arm's separation of the two authentic world sa
 about 0.03, which is enough to move the historical L0 pass (0.529, p = 0.039) to an open
 gate. The historical device-control verdict (MET with every gate) therefore does not carry
 over unchanged: the corrected run meets the decodability clauses and leaves L0 open.
+
+### 17.5 The L0 gate across world samples (revision step 5)
+
+The registered L0 rule reads one pair of evaluation-world samples: the authentic pool from
+seed base 800000 and the "surrogate" pool from 850000, the same pair for every agent seed.
+The frozen step-5 spec (`docs/specs/2026-10-06-primary-analysis-and-l0.md`) keeps that rule
+and adds two diagnostics, run on the ten drift-0 survival agents of `C1`
+(`scripts/run_l0_audit.py`, `artifacts/l0_audit/corrected_l3_h8_wm.json`). They do not change
+the verdict of section 17.2.
+
+**Independent world-sample pairs.** The same agents, probe, and partition, rescored on eight
+further pairs of world samples:
+
+| world-sample pair (seed bases) | mean over 10 agents | TOST p | from h_1 only |
+|---|---|---|---|
+| 800000 / 850000 (the registered pair) | 0.559 | 0.939 | 0.460 |
+| 1000000 / 1050000 | 0.557 | 0.656 | 0.522 |
+| 1100000 / 1150000 | 0.539 | 0.185 | 0.548 |
+| 1200000 / 1250000 | 0.513 | 0.060 | 0.529 |
+| 1300000 / 1350000 | 0.504 | 0.003 | 0.441 |
+| 1400000 / 1450000 | 0.406 | 0.996 | 0.407 |
+| 1500000 / 1550000 | 0.459 | 0.268 | 0.469 |
+| 1600000 / 1650000 | 0.458 | 0.213 | 0.475 |
+| 1700000 / 1750000 | 0.504 | 0.014 | 0.576 |
+
+Across the eight independent pairs the pair means average **0.493** with sd **0.049**, and a
+TOST over pairs accepts equivalence to 0.5 at the 0.05 margin (p = 0.022). The registered
+pair's 0.559 sits inside that spread. The last column decodes pool membership from h_1, the
+state after the reset observation alone, before any dynamics act; it ranges from 0.407 to
+0.576 across pairs, so a single pair of 110 + 110 world samples moves this probe by several
+hundredths with no dynamics involved. Read together: the corrected drift-0 agents do not
+separate authentic world samples in general, and the open gate reflects the one registered
+draw that every seed shares. That is a diagnostic reading. The registered rule is evaluated
+on the registered pair, it is not met there, and the verdict stays conditional on it.
+
+**Balanced pooled readout at drift 0.45 (secondary).** Each authentic episode is paired with a
+surrogate episode from the same world seed and initial state, both members share a CV group,
+and the interval resamples whole pairs (`itasorl.l0_audit.paired_pooled_readout`). Any
+separation then comes from the dynamics, not from the world sample. Survival **0.767**
+[0.718, 0.816] (per seed 0.645, 0.839, 0.729, 0.774, 0.698, 0.647, 0.864, 0.836, 0.863,
+0.773), predictor 0.611 [0.590, 0.631], untrained 0.553 [0.529, 0.578]; no pair was
+dropped. The survival reading does not depend on the two pools being different world
+samples.

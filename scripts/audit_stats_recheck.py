@@ -1771,6 +1771,24 @@ def main() -> int:
             check_true(f"FINDINGS 17 quotes {label}", needle in _s17)
         check_true("C1 integrity passes (successor bootstrap, baselines bit-identical)",
                    _c1["integrity"]["pass"])
+    _l0p = os.path.join(ARTROOT, "l0_audit", "corrected_l3_h8_wm.json")
+    if os.path.exists(_l0p):
+        _l0 = _load_art("l0_audit", "corrected_l3_h8_wm.json")
+        _ls = _l0["l0_summary"]
+        for r in _ls["by_pair"]:
+            check_true(f"FINDINGS 17.5 quotes L0 pair {r['bases'][0]}",
+                       f"| {r['mean']:.3f} | {r['tost_p']:.3f} | {r['first_state_mean']:.3f} |" in _s17)
+        _ti = _ls["tost_over_independent_pairs"]
+        check_true("FINDINGS 17.5 quotes the independent-pair mean and sd",
+                   f"average **{_ti['mean']:.3f}** with sd **{_ls['independent_sd_of_pair_means']:.3f}**" in _s17)
+        check_true("FINDINGS 17.5 quotes the TOST over pairs", f"(p = {_ti['p']:.3f})" in _s17)
+        _ps = _l0["paired_summary"]
+        check_true("FINDINGS 17.5 quotes the balanced survival readout",
+                   f"**{_ps['survival']['mean']:.3f}**\n[{_ps['survival']['t90'][0]:.3f}, {_ps['survival']['t90'][1]:.3f}]" in _s17
+                   or f"**{_ps['survival']['mean']:.3f}** [{_ps['survival']['t90'][0]:.3f}, {_ps['survival']['t90'][1]:.3f}]" in _s17)
+        for arm in ("predictor", "untrained"):
+            check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
+                       f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
     print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
     _f = _read("docs/FINDINGS.md")
