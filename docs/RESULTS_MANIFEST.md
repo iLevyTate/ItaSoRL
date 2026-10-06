@@ -40,6 +40,8 @@ Reviewed at commit `4b6e1f3`. Every row below is **historical**: it records what
 | `FOLDS-EXPLICIT-V1` | methods | - | none | - | not recorded | explicit | not recorded |
 | `GATE-TABLE` | methods | - | inherited: pre_transition_value | BV2-L2-AR1, BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
 | `CONTRAST-INTERVALS` | methods | - | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
+| `QD-GATE0` | methods | - | none | - | not recorded | explicit | not recorded |
+| `SURROGATE-DIAG` | methods | - | none | - | not recorded | explicit | not recorded |
 | `L0-PRE-INTERVENTION` | L0 audit | - | none | - | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
@@ -432,6 +434,24 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: both
 - Notes: scripts/build_contrast_intervals.py; docs/CONTRAST_INTERVALS.md.
 - Artifacts: `artifacts/contrast_intervals.json`
+
+### `QD-GATE0`: Gate 0 for the hand-authored quadratic-drag comparator (no eps passes)
+
+- Status: historical
+- Trainer: none
+- Folds: explicit
+- Notes: Untrained floor seeds use the corrected trainer's untrained arm (no actor-critic). docs/specs/2026-10-06-texture-comparator-design.md amendment.
+- Config (beyond the standard protocol): {"runner": "scripts/run_expA_l3.py --family qd", "sigma_meas": 0.02, "sweep": [0.5, 1, 2, 4, 8, 16]}
+- Artifacts: `artifacts/texture/gate0_qd.json`
+
+### `SURROGATE-DIAG`: Surrogate diagnostics: linear-fit control, held-out and rollout error, agent-accessible detector
+
+- Status: historical
+- Trainer: none
+- Folds: explicit
+- Notes: Agent free: G instances retrained deterministically from their recipe.
+- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py"}
+- Artifacts: `artifacts/surrogate_diagnostics.json`
 
 ### `L0-PRE-INTERVENTION`: Pool membership decoded from the reset observation (agent free)
 

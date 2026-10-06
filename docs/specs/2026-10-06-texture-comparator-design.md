@@ -66,3 +66,22 @@ The convex blend from the learned law to the authentic law shows decoding falls 
 as the dynamics difference shrinks, to chance at the authentic end. That is evidence that the
 decoding depends on the dynamics difference. It does not by itself identify a representation
 of learnedness, because every point of the blend is also a smaller perturbation.
+
+## Amendment (2026-10-06, after the qd gate 0 and before any qd readout on agents)
+
+Gate 0 for `qd` (`artifacts/texture/gate0_qd.json`, sweep eps 0.5 to 16, sigma 0.02, three
+untrained floor seeds) found **no passing eps**. The privileged oracle rises slowly (0.601 at
+eps 0.5, 0.656 at 4, 0.697 at 8, 0.768 at 16) and the untrained floor leaves its tolerance
+first (0.560 at eps 4, 0.682 at 8, 0.814 at 16). A coherent coefficient-like perturbation is
+felt by an untrained recurrent state before the handicapped oracle finds it in band, the same
+empty window FINDINGS 10.7 recorded for constant drag.
+
+Fallback, fixed here: `qd` is matched to `gn` on **one-step RMS magnitude** instead of oracle
+detectability. On 60 held-out authentic episodes `gn` at sigma 0.01 deviates by 0.01419 RMS
+and `qd` at eps 1 by 0.002356, and the deviation is linear in eps, so the matched value is
+**eps = 6.0**. At that eps the untrained floor is expected outside tolerance, so questions 1
+and 2 for `qd` are reported with the untrained arm beside the survival arm, and the
+comparison that carries meaning is the survival-minus-untrained margin. The comparator-trained
+run `T-qd` is **not run**: its family fails gate 0, and a run on an uncalibrated family could
+not support the matched-detectability condition of the learned-texture rule. That rule
+therefore cannot be met in this revision, and the paper keeps the narrow wording.

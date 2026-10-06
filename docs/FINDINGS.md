@@ -11,6 +11,20 @@ reading order; there is deliberately no section 8.)*
 
 ---
 
+> **Revision 2026-10 (read first).** Every survival-trained result below was produced by
+> a trainer whose GAE bootstrap read the critic value before an episode's final
+> transition. The trainer is corrected (`docs/CORRECTIONS.md`), the historical numbers
+> stay as recorded and are labeled by implementation in `docs/RESULTS_MANIFEST.md`, and
+> the corrected confirmation runs are reported in section 17. Claim wording is narrowed
+> throughout to what each estimator measured: below-bar results "did not meet the
+> registered encoding criterion"; behavior and sensory controls name their basis and
+> model; the common garden shows that prefix condition "remains decodable after
+> restoring authentic dynamics", not internal memory; the texture knockout shows that
+> the original direction does not transfer; the evolutionary null is restricted to the
+> pooled population readout. Gates under both fold partitions: `docs/GATE_TABLE.md`.
+> Margin intervals: `docs/CONTRAST_INTERVALS.md`. What each arm experienced:
+> `docs/METHODS_ARMS.md`.
+
 ## TL;DR
 
 A from-scratch agent, never paid to look, in a world that is either the real
@@ -105,9 +119,9 @@ substrate). Detection is measured against a **surrogate ladder**:
 | Rung | Nature of the artifact | Status |
 |------|------------------------|--------|
 | L0 | Identical re-implementation (control, must be at chance) | tested |
-| L1 | Observation discretization (a lattice / quantization tell) | tested (organism negative at in-band Δ=0.023: survival 0.533; section 14.7) |
+| L1 | Observation discretization (a lattice / quantization tell) | tested (survival did not meet the registered encoding criterion at in-band Δ=0.023: 0.533; section 14.7) |
 | L2 | Rollout drift (a slowly drifting dynamics coefficient) | tested |
-| L3 | Learned world-model surrogate (a generative fingerprint) | tested (positive, n=10; reward/survivorship-controlled, behavior-independent component 0.726; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so the signal is a modest persistent world-identity component, not purely reactive (section 10.6.1); section 10) |
+| L3 | Learned world-model surrogate (a generative fingerprint) | tested (positive at the registered 300-update budget with the next-observation auxiliary, n=10, historical trainer; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
 | L4 | Adversarially-hardened surrogate | not started |
 
 Three experiments were planned. This cycle completed Experiment A for L1 and L2
@@ -116,12 +130,18 @@ the survival-coupled B-v2/B-v3 arc (section 9), and the L3 arc (section 10).
 Experiment C (emergence under selection) has run its first pilot; the recorded
 null was **invalidated by two since-fixed measurement bugs** (see the correction
 in section 13.C) and the re-run on fixed code has now landed as a **validated
-null** (section 13.D), so H3 resolves negative: selection did not build a
-persistent heritable world-detector.
+null** (section 13.D) under its pooled population readout: selection did not raise
+world-condition decodability as that readout measures it (scope in section 13.E).
 
 The world is **"A Patch of Earth" v0**, a 2.5D, deterministic, dissipative,
 Earth-*like* (authored, not data-driven) environment with a ~146-dimensional
 observation (vision raycasts + interoception; smell masked in the first config).
+As implemented in v0 there are no weather or PDE fields (the weather seed stream is
+drawn but unused and `_update_fields` is a no-op), the arena is a closed unit square
+whose walls clip position and zero the outward velocity component (not a torus), and
+drag is a constant 1.5 in world P. Dissipation damps velocity; it does not by itself
+rule out sensitive dependence on initial conditions. Methods note 10 lists the
+implemented world.
 
 ---
 
@@ -325,17 +345,21 @@ doubt, but the two numbers are not a same-world comparison.) **Resolved 2026-09-
 Three things explain the gap:
 
 1. **The oracle is privileged.** It applies the *exact* authentic motion law to
-   the *true* velocity and measures the deviation directly. The agent sees
-   raycasts, not velocity, and must *learn* an approximate dynamics law that
-   simply adapts to whatever it is fed.
+   the world's internal transitions and measures the deviation directly. The agent
+   does observe velocity (interoception carries it exactly, and every vision ray
+   carries a radial velocity), but nothing in its objective asks it to check that
+   velocity against a law; it learns whatever dynamics its objective needs.
+   *(Corrected 2026-10-06: this item said the agent sees raycasts, not velocity.)*
 2. **The objective is local / under-constraining.** One-step prediction never
    requires representing whether drag is slowly drifting; the next observation is
    predictable either way. The drift's signature lives in long-horizon coherence,
    which self-supervised prediction does not force into the representation. And,
    empirically, even a *verified-engaged* open-loop objective did not change this
    (§3.4).
-3. **Readout-not-reward bites.** What no objective requires, the agent does not
-   represent. This is the cleanest possible demonstration of the principle.
+3. **Readout-not-reward, as a hypothesis.** The tested objectives did not require
+   the distinction, and the state did not meet the registered encoding criterion.
+   That is consistent with the principle that what no objective requires the agent
+   does not represent; it is one configuration, not a demonstration of the principle.
 
 ---
 
@@ -369,23 +393,26 @@ inducing it (if possible) requires something more deliberate.
   detectable by a privileged discriminator, with calibrated difficulty and a
   validated leakage gate (Experiment A; the L3 oracle gate in section 10.1). Section 15 (2026-09-27) scores the rungs on one detector handicap: at the L3 gate's noise the L2 artifacts at the organism's drift read below the band (0.646, 0.618) while L3 reads 0.928; the section-2 L2 ceiling was measured at a hundredfold smaller handicap.
 - **H4 (legibility / incidental encoding).** Conditionally supported. Not supported
-  at L2 under any lever pulled (sections 3, 9): a hand-tuned dynamics artifact is
-  not encoded even under survival pressure at scale. Supported at L3 (section 10):
-  a learned-dynamics fingerprint IS incidentally encoded by the survival-trained
-  agent, uniquely among the three objectives, with a behavior-independent component
-  that clears the pre-registered bar. The condition that flips the result is the
+  at L2 under any lever pulled (sections 3, 9): a hand-tuned dynamics artifact did
+  not meet the registered encoding criterion even under survival pressure at scale.
+  Supported at L3 (section 10), with the historical trainer: a learned-dynamics
+  fingerprint is decodable from the state of survival-trained agents that also carry
+  the next-observation auxiliary, at the registered 300-update budget, above the
+  predictor and untrained arms, and the signal that remains after controlling for the
+  named behavior channels clears the registered bar. Corrected-trainer results:
+  section 17. The condition that flips the result is the
   artifact's character (a generative fingerprint that survival must cope with), not
   probe power, capacity, or objective horizon. A held-out probe (section 10.6)
   qualifies the *nature* of the encoding: it transfers to a capacity variant of
   the training fingerprint (same recipe, seed, and training data - robustness
   within one recipe, see the 10.6 scope note), and a common-garden
   control, re-scored with the fixed estimator, passes the frozen rule on both
-  directions (survival tail 0.666 forward, 0.684 reverse), so it carries a modest
-  persistent stored world-identity component, not purely reactive tracking of the
-  felt dynamics (see section 10.6.1). The generalization evidence is the
+  directions (survival tail 0.666 forward, 0.684 reverse), so prefix condition
+  remains decodable after authentic dynamics are restored (see section 10.6.1; that
+  control does not separate internal memory from the prefix's physical footprint). The generalization evidence is the
   cross-recipe probe (section 10.7): the same direction reads a
-  gate-calibrated random-Fourier-features law (0.684, rule passes), so the
-  world-identity signal is recipe-general. Two 2026-09-27 boundary checks
+  gate-calibrated random-Fourier-features law (0.684, rule passes; interval lower
+  bound 0.654), fit on the same authentic data as `G`. Two 2026-09-27 boundary checks
   (10.8, 10.9) narrow the conditional support: the positive requires the
   next-observation auxiliary alongside survival (0.601 without it), and an
   independently trained fingerprint reproduces the survival-specific
@@ -401,11 +428,14 @@ inducing it (if possible) requires something more deliberate.
   a matched-band unstructured Gaussian-jitter surrogate is read at chance by the
   survival arm (0.539 vs untrained 0.542), while the same-recipe capacity ladder
   co-decays with oracle detectability (h16 0.701, h32 0.622, h64 0.541). Together
-  these establish that detection loads on the learned *texture* of the substrate
-  artifact, not on generic dynamics perturbation. The survival-specificity part
+  these show that decoding depends on the dynamics difference (A1) and that the
+  original L3 direction does not transfer to matched-band white noise (A2). They do
+  not establish that decoding loads on the learned *texture*: no fresh probe was fit
+  on the Gaussian comparator and no agents were trained under it (scope:
+  `docs/specs/2026-10-06-texture-comparator-design.md`). The survival-specificity part
   remains conditional on the subtler hidden=8 artifact (section 10.5). The same
-  H2 battery on the L1 discretization rung (section 14.7) finds **no incidental
-  encoding** at the matched in-band grid (survival 0.533), so L1 does not
+  H2 battery on the L1 discretization rung (section 14.7) finds that survival does
+  **not meet the registered encoding criterion** at the matched in-band grid (0.533), so L1 does not
   reproduce the L3 positive; H2 at L1 is therefore a strengthened negative for
   organism encoding of an oracle-detectable observation artifact.
 - **H3 (emergence under selection).** RESOLVED NEGATIVE. The first pilot's
@@ -418,11 +448,10 @@ inducing it (if possible) requires something more deliberate.
   emergence contrast is -0.002 (90% t-CI [-0.013, +0.009], spanning 0), mean
   final treatment AUROC 0.509 (below the 0.65 floor), so emergence_claim is
   False on all three pre-registered sub-conditions. Selection had grip (fitness
-  moved in both arms) but did not route it through a persistent heritable
-  world-detector, coherent with the L3 arc's reading (section 10.6.1): the
-  world-signal is a modest, largely within-lifetime component the survival policy
-  expresses when the dynamics bite, and selection did not consolidate it into a
-  heritable detector.
+  moved in both arms) but the pooled population readout did not rise. That readout
+  fits one probe across individuals, so it cannot see detectors that individuals
+  carry along unaligned directions, and the run is 3 lineages at 30 generations; the
+  result is restricted to that estimator and budget (section 13.E).
 
 ---
 
@@ -483,10 +512,10 @@ detectability-vs-encoding gap has survived every lever pulled so far.
 1. **L3, a generative fingerprint: TESTED, POSITIVE (section 10).** This was the lever
    that changed the result. A surrogate whose tell comes from a separately *learned*
    predictive world-model reverses the L2 nulls: the survival agent incidentally
-   encodes world identity at 0.752 with a behavior-independent component of 0.726
-   (0.723 once absolute position and heading join the control basis, section 10.4.1).
+   encodes world identity at 0.752, and 0.726 remains after the four-channel behavior
+   control (0.723 once absolute position and heading join the basis, section 10.4.1).
    The second in-band capacity is now tested (section 10.5): the
-   behavior-independent signal replicates (0.722), but the survival-vs-predictor
+   behavior-controlled signal replicates (0.722), but the survival-vs-predictor
    dissociation does not, making the survival-specific verdict conditional on the
    subtler hidden = 8 artifact. The held-out fingerprint probe (section 10.6) is
    now run and reported below.
@@ -499,9 +528,11 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    re-scoring: with the felt dynamics made identical for the tail, tail-only state
    still recovers the prefix world above the frozen bar on both directions
    (survival 0.666 forward, 0.684 reverse; both clauses pass; section 10.6.1).
-   This resolves the reactive-vs-representational ambiguity (§9 caveats) toward a
-   MODEST PERSISTENT component: the state holds a weak, tail-decaying world-identity
-   signal, not only reactive tracking of the currently-felt dynamics. *(The original
+   Prefix condition therefore remains modestly decodable after the dynamics are
+   equalized, decaying along the tail. Because each tail keeps its prefix's physical
+   state as well as its hidden state, this does not separate internal memory from
+   the footprint the prefix left in the world (controlled test:
+   `docs/specs/2026-10-06-controlled-persistence-design.md`). *(The original
    common-garden read as NEGATIVE, survival 0.557 below the bar, was scored with
    the since-fixed biased estimator of section 13.C; the re-score of the saved tail
    dumps overturned it, see section 10.6.1. The transfer channel was unaffected.)*
@@ -511,8 +542,8 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    never lived with (survival 0.684 vs untrained 0.548; pre-registered rule passes,
    machine-checked), survival-specifically. The secondary constant-drag family
    proved uncalibratable (empty gate-0 window) and was dropped per the pre-stated
-   rule. The world-identity reading from item 2 carries over; its generality now
-   spans surrogate recipes, not only instances.
+   rule. The direction thus reads a second surrogate family fit on the same training
+   data: transfer across two function classes, not across independent data.
 4. **Remaining objective variants.** Weighting the dynamics-relevant observation
    dimensions and increasing capacity, though the capacity-ceiling result above makes a
    pooled-probe breakthrough from these unlikely at L2.
@@ -525,15 +556,16 @@ Experiment B's null was conjectured to follow from *readout, not reward*: what t
 objective does not require, the agent does not represent. B-v2 tests the strongest
 lever from §7.1: it makes the agent **act to stay alive in a world whose dynamics
 drift**, so coping with the drifting drag (and thus modelling it) becomes
-instrumentally useful. World identity is still never in the observation or the
-reward; only the probe ever sees it. Pre-registered before the run
+instrumentally useful. No explicit world label is in the observation or the
+reward, and only the probe sees the label. The observation does carry the
+consequences of the dynamics, which is what any detector reads. Pre-registered before the run
 (`docs/PREREGISTRATION.md`). Three agents share the identical recurrent trunk and the
 identical readout, differing only in objective: `untrained` (mechanical floor),
 `predictor` (Experiment B's next-step prediction on this trunk), and `survival`
 (recurrent A2C + GAE, potential-based food shaping, harsh metabolism so a non-forager
 starves in ≈ 50 steps).
 
-**Primary readout, pooled (Experiment B frame).** Persistent world-identity
+**Primary readout, pooled (Experiment B frame).** A world-identity
 direction across independent authentic (drift 0) vs surrogate (drift d) episodes;
 ≈ 0.50 means no incidental encoding. Mean ± std over 3 seeds, 300 A2C updates.
 
@@ -587,8 +619,8 @@ the initial run.
   reaches **0.523 ± 0.045 at drift 0.45**, a small drift-specific lift (per-seed
   range 0.488-0.586) that is **well below the pre-registered SESOI of 0.65** (an
   oracle reads the same artifact at ≈ 0.99). Drag-ceiling probes read ≈ 0.75 while
-  identity-target probes read ≈ 0.52: the state tracks *dynamics*, not persistent
-  *world identity*.
+  identity-target probes read ≈ 0.52: the state tracks *dynamics*, while the
+  identity target does not meet the encoding criterion.
 - **Verdict (pre-registered decision matrix): the strong hypothesis is not
   supported.** *Detectability ≫ incidental encoding* survives the move to survival
   pressure and an independent 4-hour full-scale replication. Treat the initial 0.595
@@ -602,7 +634,7 @@ A2C updates (the forager is engaged but not expert); and the *reactive-vs-repres
 ambiguity is unresolved. The secondary matched-pair readout is reported in
 `expB2_results.json` but is demoted: with bit-identical L0 branches its
 cross-validated AUROC is a biased estimate of chance, so it indexes *detectability*,
-not persistent encoding.
+not encoding across independent episodes.
 
 ---
 
@@ -621,14 +653,15 @@ deviation is logged in its section 12. All headline numbers below are committed 
 `G_motion` is a small MLP velocity law `(vel, action) -> vel_next` trained on a
 fixed budget of authentic rollouts of the same world `P` the organism inhabits
 (`itasorl/surrogate_l3.py`). The surrogate world runs `G`'s predicted state through
-the REAL sensor model, so observations stay on the authentic manifold and the sole
-tell is `G`'s dynamics error. Capacity is the single difficulty knob: the
+the REAL sensor model, so no observation channel is synthetic and the sole tell is
+`G`'s dynamics error. (Whether every surrogate state is reachable under the
+authentic law is not established, so "on the authentic manifold" is not claimed.) Capacity is the single difficulty knob: the
 pre-registered gate requires an Experiment-A-style residual oracle to detect
 authentic-vs-surrogate at AUROC in [0.85, 0.95] (fingerprint exists, but not
 L2-trivially).
 
-**Frozen gate 0 (world `P`): hidden = 8, sensor σ = 0.02, oracle AUROC 0.928,
-untrained mechanical floor 0.483 (chance).** (Disclosure: σ is a *detector-side*
+**Frozen gate 0 (world `P`): hidden = 8, detector-side noise σ = 0.02 (not sensor
+noise), privileged detector score 0.928, untrained mechanical floor 0.483 (chance).** (Disclosure: σ is a *detector-side*
 handicap inside the oracle's residual computation, not a world property - the
 world's observation model is noiseless, and a noiseless privileged detector reads
 this fingerprint at ≈ 1.0. The [0.85, 0.95] band is therefore a calibration of
@@ -663,8 +696,10 @@ The honest t-based 90% CI for the survival mean is **[0.698, 0.807]**, which
 **excludes the pre-registered 0.65 bar** (per-seed: 0.853, 0.636, 0.841, 0.823,
 0.830, 0.573, 0.705, 0.782, 0.759, 0.723). Survival beats both baselines by far
 more than the 0.05 SESOI; the L0 authentic-vs-authentic control is 0.517 (TOST and
-ROPE both accept equivalence to chance). The same artifact that the L2 arc showed
-is NOT encoded for free is here encoded by the survival objective, uniquely.
+ROPE both accept equivalence to chance). *(Narrowed by 10.8: the decodability
+belongs to survival-trained agents carrying the next-observation auxiliary at the
+registered budget, not to the survival objective alone; the earlier wording
+"encoded by the survival objective, uniquely" is withdrawn.)*
 
 ### 10.3 Controls that pass
 
@@ -713,7 +748,7 @@ could in principle remove more.
 > and heading are not in the dump and are not controlled. Because the two
 > worlds' velocity laws differ, identical policies trace diverging position
 > paths, so a state component that encodes *position* would survive this
-> control and read as "behavior-independent." The 0.726/0.722 controlled
+> control and read as signal beyond behavior. The 0.726/0.722 controlled
 > numbers should be cited with this scope limit until the audit is re-run with
 > position and heading added to the trace basis (the dump and covariate code
 > now support them for future runs; existing dumps do not contain position, so
@@ -727,7 +762,7 @@ The covariate-gap note above flagged that the per-timestep behavior control
 residualized speed/energy/food/drag only; absolute position and heading were
 absent from the dump, so a state component encoding *position* (which diverges
 across worlds under the differing velocity laws) could survive the control and
-read as "behavior-independent." To close it, the L3 hidden = 8 pools were
+read as signal beyond behavior. To close it, the L3 hidden = 8 pools were
 regenerated at n = 10 with the extended dump (`scripts/run_expB2.py --drift-mode
 l3 --l3-hidden 8 --dump-states`, which now records pos_x/pos_y/heading trace
 channels), and the audit re-run with the seven-channel basis
@@ -761,8 +796,9 @@ heading -- raised the behavior ceiling (+0.028) but left the residual world-sign
 at 0.723, above the 0.65 bar with a t-CI that excludes it. Had a position code
 been masquerading as world-identity, adding those channels to the control would
 have collapsed `resid_trace`; instead the ceiling rose while the residual held,
-the signature of a genuine latent world representation rather than
-position-in-disguise. The 10.4 "behavior-independent ~0.73" reading stands with
+which is consistent with a component those seven channels do not explain rather
+than position in disguise. The 10.4 reading (about 0.73 remains after the behavior
+control) stands with
 position and heading now inside the control basis (revised figure resid_trace
 0.723). This resolves the covariate-gap note above.
 
@@ -770,7 +806,7 @@ position and heading now inside the control basis (revised figure resid_trace
 
 Methods note 7 (section 11) left one scope limit on the behavior-mediation
 control: its basis is seven behavior scalars, not the ~146-dim observation, so
-"behavior-independent" did not mean "sensory-echo-independent". A state that
+controlling for behavior did not control for sensory echo. A state that
 passively mirrors world-dependent inputs would survive the behavior control.
 This probe tests it directly. Spec frozen before the run:
 `docs/specs/2026-09-26-l3-sensory-echo-control-design.md` (readout-only against
@@ -818,8 +854,10 @@ which is what the amendment's ground truth predicts when the inputs separate
 the worlds only weakly per step. Under the joint sensory-plus-behavior control
 the signal is attenuated to 0.670 with a t-CI lower bound (0.638) just under
 the bar; that is the most conservative number the project has, and it is
-reported as such. Methods note 7 is closed in the headline's favor: the
-behavior-independent world-signal is not a passive echo of the inputs.
+reported as such. Methods note 7 is closed for the linear, current-plus-previous
+input basis: the signal that remains after the behavior control is not a linear
+echo of the current and previous input. Longer histories, the action channels, and
+held-out regression quality are measured in revision step 8.
 
 **Scope.** One capacity (hidden = 8) at the time of the first run, one lag. The
 joint-control attenuation is the upper bound on what linear input-plus-behavior
@@ -916,7 +954,7 @@ seed-level percentile-bootstrap 90% CI):
 | predictor | 0.714 | [0.687, 0.740] | 8/10 |
 | **survival** | **0.737** | [0.688, 0.780] | **8/10** |
 
-**What replicates: the behavior-independent survival world-signal.** Under the
+**What replicates: the survival signal that remains after the behavior control.** Under the
 same frozen per-timestep control, survival resid_trace reads **0.722** (t-based
 90% CI [0.672, 0.773]; seed-level bootstrap [0.678, 0.763]; 8/10 seeds ≥ 0.65;
 quadratic variant 0.704) - an almost exact replication of hidden = 8's 0.726
@@ -937,8 +975,8 @@ untrained, vs 0.645 for the untrained arm at hidden = 8), so at this capacity
 every trained agent picks the fingerprint up.
 
 **Reading, per the pre-registered two-capacity clause:** the cross-capacity claim
-that survives both runs is a reward-clean, survivorship-clean,
-behavior-independent world-signal of ≈ 0.72 in the survival agent's state at both
+that survives both runs is a reward-clean, survivorship-clean world-signal of
+≈ 0.72 remaining after the seven-channel behavior control in the survival agent's state at both
 frozen capacities. The survival-*specific* "encoding induced" verdict is
 conditional on the subtler hidden = 8 artifact.
 
@@ -1098,15 +1136,15 @@ agree.
 
 **Corrected reading.** Under the fixed estimator the common-garden control does
 NOT read reactive. Once the felt dynamics are made identical, tail-only state
-still recovers the prefix world above the frozen bar on both directions, so the L3
-world-signal carries a persistent held-out world-identity component, not only
-reactive tracking of the live dynamics. The component is modest (survival tail
+still recovers the prefix world above the frozen bar on both directions, so prefix
+condition remains decodable after restoring authentic dynamics. The component is modest (survival tail
 just over the 0.65 bar, 0.666 forward and 0.684 reverse) and decays across the
-tail (late-tail 0.586/0.577, below the bar), so the honest statement is
-"persistent but weak and fading," not "strongly stored." This supersedes the
-"resolves toward reactive" conclusion in the body above: the
-reactive-vs-representational ambiguity (§7.2, §9 caveats) resolves toward a modest
-persistent representation.
+tail (late-tail 0.586/0.577, below the bar), so the honest statement is "remains
+decodable, weakly, and fades". This supersedes the "resolves toward reactive"
+conclusion in the body above. It does not resolve the reactive-vs-representational
+ambiguity (§7.2, §9 caveats): each tail keeps its prefix's physical state as well as
+its hidden state, so memory and the external footprint are confounded. The
+controlled test is `docs/specs/2026-10-06-controlled-persistence-design.md`.
 
 ### 10.7 Cross-recipe transfer probe
 
@@ -1153,7 +1191,7 @@ attenuated relative to same-recipe transfer (0.773 -> 0.684) as expected for a
 farther family. The common-garden verdict of section 10.6 is a separate question:
 this channel extends the *generality* of the world-signal; it says nothing new
 about persistence. *(2026-07-19 note: the common-garden verdict was re-scored and
-now reads as a modest persistent component, see section 10.6.1; and per the 10.6
+now reads as prefix condition remaining decodable after restoring authentic dynamics, see section 10.6.1; and per the 10.6
 scope note, this cross-recipe channel, not same-recipe transfer, carries the
 generalization claim. Scope: `G_rff` is fit on the same training data as
 `G_motion` by design - the recipes differ in function class and fit, not data.)*
@@ -1205,15 +1243,18 @@ of the world-model auxiliary. The survival lead over the predictor is +0.013
 PREREGISTRATION_L3 section 8 matrix this is the intermediate zone (above the
 floor, below the bar), not a strengthened negative.
 
-**Reading.** Neither objective alone produces the positive. Prediction alone
+**Reading.** At the registered 300-update budget and protocol, neither objective
+alone produced the positive. Prediction alone
 reads 0.573 (10.2); survival alone reads 0.601; survival with the next-observation
-auxiliary reads 0.752. The L3 world-identity encoding is a property of the two
-objectives trained together on one trunk: the auxiliary forces the state to carry
-predictive information about the sensory stream, and survival pressure under the
-flawed velocity law shapes that information into a world-identity direction. The
-published wording "encoded by the survival objective, uniquely" is narrowed
-accordingly: encoded by survival-trained agents carrying the next-observation
-auxiliary, and by neither objective alone.
+auxiliary reads 0.752. At this budget the decodability belongs to the two
+objectives trained together on one trunk. One account is that the auxiliary makes
+the state carry predictive information about the sensory stream and survival
+pressure shapes it into a world-identity direction; this run does not test that
+mechanism. The published wording "encoded by the survival objective, uniquely" is
+narrowed accordingly: decodable from survival-trained agents carrying the
+next-observation auxiliary at the 300-update budget, and from neither objective alone
+at that budget and protocol. The no-auxiliary arm trained to 450 updates reads above
+the bar with a failed skill match (10.8.1), so the statement is bounded by budget.
 
 **Device control (pre-registered addendum, 2026-09-27; landed 2026-09-28): the
 verdict stands.** The published decoder-carrying protocol was rerun unchanged in the
@@ -1559,7 +1600,7 @@ Stated once, plainly, with pointers into the code.
    stream.** The residualization basis is the four per-timestep behavior scalars
    (speed/energy/food/drag) with lag and cumulative-mean expansions
    (`itasorl/behavior_audit.py`), not the ~146-dim observation.
-   "Behavior-independent" therefore does not mean "sensory-echo-independent":
+   Controlling for behavior is therefore not controlling for sensory echo:
    state that passively mirrors world-dependent inputs (e.g. the vision rays)
    would survive the control. That reading is bounded by the untrained and
    predictor arms, which pass through the identical control - cleanly at
@@ -1675,6 +1716,41 @@ Stated once, plainly, with pointers into the code.
      batteries, the evolutionary readout, and every historical result produced with
      the pre-correction trainer. Exploratory results are reported uncorrected and
      carry no claim on their own.
+10. **The world, the trainer, and the arms as implemented (2026-10-06, revision step
+    14).** Descriptions elsewhere in this document and in the plans are corrected to
+    the code:
+    - *World.* v0 has no weather and no PDE fields: the weather seed stream is drawn
+      and never used, and `_update_fields` does nothing. The arena is a closed unit
+      square, not a torus: a wall clips the position to the boundary and sets the
+      outward velocity component to zero (`patch_of_earth.py`, `_integrate_motion`).
+      In world P drag is the constant 1.5 everywhere, so the authentic velocity law is
+      linear in (velocity, acceleration). The dynamics are dissipative (drag damps
+      velocity); dissipation does not by itself exclude sensitive dependence on
+      initial conditions, and none was measured.
+    - *Metabolism.* Rates are per unit simulated time and the step is dt = 0.05. In the
+      B-v2 worlds the basal energy drain is 0.4 per unit time, 0.02 per step, against a
+      starting energy of 1.0, so a creature that does not eat starves in 50 steps from
+      the basal drain alone and sooner once movement costs (0.05 per unit acceleration
+      per unit time) are added.
+    - *Observation.* No explicit world label is supplied. Interoception carries the
+      velocity and the applied acceleration exactly, and each of the 24 vision rays
+      carries a radial velocity alongside distance and color, so vision is a motion
+      sensor as well as an appearance sensor (this bears on 14.6). The surrogate's
+      observations come from the real sensor model; reachability of every surrogate
+      state under the authentic law is not established.
+    - *Trainer.* Survival arms: Adam lr 3e-4, entropy 0.01, value 0.5, decoder 1.0,
+      gamma 0.99, lambda 0.95, one update per 16-episode batch. Predictor arms: Adam lr
+      **1e-3** on scripted-policy data. Potential-based shaping uses coefficient
+      **1.0** in every run (`scripts/run_expB2.py`; the function default 0.5 was never
+      used), potential minus the distance to the nearest available pellet, set to 0 at
+      a terminal step. The policy-invariance argument for that shaping assumes a zero
+      potential at true terminals and correct bootstrapping at truncation; with the
+      historical pre-transition bootstrap (`docs/CORRECTIONS.md`) the second condition
+      did not hold, so for the historical runs the shaping is a training aid without
+      the invariance guarantee.
+    - *Who experienced what.* Each cell trains in one condition and is evaluated in
+      two; the arms differ in objective, training policy, and data at once. The full
+      table is `docs/METHODS_ARMS.md`.
 
 ---
 
@@ -1731,9 +1807,9 @@ correspondence.
 `scripts/audit_stats_recheck.py`. As of the 13.D re-run the artifact holds the
 fixed-code numbers. Pre-registration: `docs/PREREGISTRATION_C.md`.)*
 
-**The question.** The L3 arc found a *reactive* world-signal: the survival-trained
-agent tracks the felt dynamics but does not carry a persistent, stored
-world-identity representation (section 10.6). Experiment C asks the next question
+**The question.** The L3 arc, as read at the time (section 10.6, since re-scored in
+10.6.1), found a *reactive* world-signal: the survival-trained agent tracks the felt
+dynamics. Experiment C asks the next question
 directly: if lineages are placed under Darwinian selection in a world where
 knowing the world's identity *pays*, does selection build a persistent, heritable
 world-detector that was not there at generation 0?
@@ -1939,13 +2015,11 @@ All three pre-registered sub-conditions fail: the contrast CI includes 0
 **Selection had grip; it did not route through detection.** The mechanism reads
 that survived the correction hold on the fixed world: the fitness delta is
 positive in every arm-run of every seed (gate-2 passes on both arms), and seed-0
-treatment evolution is bit-reproducible. Selection moved the population, but it
-did not build a persistent heritable world-detector; the final-generation
-foragers read their world no better than the gen-0 population did. This is
-coherent with the L3 arc's reading (section 10.6.1): the within-lifetime
-world-signal is modest and largely expressed while the velocity law bites, and
-selection did not consolidate that within-lifetime signal into a heritable
-world-identity detector it can carry across generations.
+treatment evolution is bit-reproducible. Selection moved the population, but the
+pooled population readout of the final-generation foragers is no higher than at
+generation 0. That readout fits one probe across individuals, so it cannot see
+world information that individuals encode along different directions; section 13.E
+gives the per-individual estimator and its scope.
 
 **H3 disposition: resolved negative.** Darwinian selection over 30 generations
 in this world did not produce an emergent world-detector. The payoff-steepness
@@ -1954,6 +2028,34 @@ no longer provisional-on-the-re-run: the re-run confirms the null it took as
 premise.
 
 ---
+
+### 13.E What the evolutionary readout measures (2026-10-06, revision step 12)
+
+The 13.D null was measured with a pooled population readout: tail states from the
+sampled individuals are pooled and ONE probe is fit across them. If each individual
+encodes the prefix world along its own direction, that probe can read chance while
+every individual is decodable, so the null does not show that no individual carries a
+detector. The result is therefore restricted to that estimator and that budget (three
+lineage seeds, 30 generations, 48 policies of an 8-unit trunk): **under the pooled
+population readout, selection did not raise world-condition decodability.** "No
+heritable detector" is not claimed.
+
+The per-individual estimator now exists (`itasorl.experiment_c.individual_probe_panel`:
+a held-out AUROC per individual with pair groups, summarized within a population, with
+lineages as the replication unit across populations, `lineage_summary`), and
+`scripts/validate_population_readout.py` checks both estimators on populations whose
+answer is known (independently trained survival agents, and untrained agents as a
+null). The evolution itself was not rerun (about 9.6 hours for three lineages).
+
+Whether detection would pay is measurable from the B-v2 cross-evaluation cells
+(`experiment_c.value_of_world_information`): with the authentic-trained and the
+surrogate-trained policy of each seed, the matched assignment (each policy in its own
+world) minus the better single policy is **-0.043** return (t-based 90% CI
+[-0.084, -0.001], n = 10, historical CPU device-control cells; -0.090 without the
+auxiliary). With those policies, knowing the world buys no return. This is a lower
+bound on what an ideal world-conditional policy could gain, measured in the B-v2
+setting rather than Experiment C's, and it is consistent with selection having no
+gradient toward a detector.
 
 ## 14. H2 substrate-grounding: the graded-seam ablation (A1)
 
@@ -2007,7 +2109,7 @@ The survival collapse is strictly monotone (Spearman rho of the per-alpha means
 against alpha is 1.0). At alpha=0, with the seam fully removed, the survival
 signal is equivalent to chance: mean 0.506, 95% percentile bootstrap interval [0.481, 0.530],
 entirely inside the ROPE [0.45, 0.55] (accept equivalence), 0/10 seeds above the
-0.65 bar. So the incidentally-encoded world-identity signal is *necessary on* the
+0.65 bar. So decoding depends on the dynamics difference: the world-identity signal is *necessary on* the
 substrate seam: dial the seam out and it dose-responsively vanishes.
 
 **The collapse is specific to the learned signal.** The untrained agent's floor
@@ -2035,8 +2137,8 @@ capacities.
 **Scope and deferred follow-ons.** This is a necessity-plus-specificity result on
 the L3 rung at hidden=8 and hidden=7; it does not speak to L1/L2 (different
 substrate primitives) or to H3 (resolved negative, section 13). The reactive
-reading of the common-garden control (section 10.6.1: the signal is a modest
-persistent component the policy also expresses reactively while the dynamics bite)
+reading of the common-garden control (section 10.6.1: prefix condition remains
+modestly decodable after restoring authentic dynamics)
 is unchanged; A1 neutralizes the felt dynamics divergence, so a collapse is fully
 consistent with it. A2 observation-channel localization is now resolved in
 section 14.6. A3 (same H2 battery on the L1 discretization rung) is now
@@ -2045,7 +2147,8 @@ grid, so L1 does not reproduce the L3 positive.
 
 ## 14.5 H2 texture-knockout: structure + dose-response ablations
 
-**Status: CONFIRMED for the L3 rung at hidden=8 and hidden=7.** Design spec:
+**Status: the original direction does not transfer, at hidden=8 and hidden=7; the
+broader texture claim is not established (narrowed 2026-10-06).** Design spec:
 `docs/specs/2026-07-22-h2-substrate-grounding-ablations-design.md`. Local artifacts:
 `fullruns/l3_h2_ablations/{gate0_gn.json,gate0_ladder.json,aggregate.json,cells.json}`
 (hidden=8) and `fullruns/l3_h7_h2_ablations/aggregate.json` (hidden=7). Committed
@@ -2070,7 +2173,8 @@ This is matched-band detectability with zero learned structure.
 *Hidden=8 result:* survival `transfer_gn_target` = **0.539** (n=10, mean),
 untrained floor **0.542**, predictor **0.556**. The frozen positive rule fails both
 clauses; the structured-texture direction does NOT read the matched-magnitude
-unstructured perturbation. **H2 is supported in texture-specific form** at hidden=8.
+unstructured perturbation. The original direction does not transfer to the
+comparator at hidden=8.
 
 *Hidden=7 result:* survival `transfer_gn_target` = **0.510**, untrained floor
 **0.520**, predictor **0.539**. The positive rule also fails both clauses; the
@@ -2089,10 +2193,13 @@ reloaded agents per capacity regenerated the standard pools bit-identically, and
 the drift-0.45 survival means reproduced the published **0.752** (hidden=8) and
 **0.737** (hidden=7) exactly.
 
-**Verdict.** Combined with A1 and the banked task-confound controls, the texture-
-knockout confirms H2 for the L3 rung at both in-band capacities: the incidentally-
-encoded world-identity signal is driven by the learned structure of the substrate
-velocity-law surrogate, not by a task-level perturbation confound. The survival-
+**Verdict (narrowed 2026-10-06).** The texture knockout answers one question: the
+original L3 direction does not transfer to a matched-band Gaussian-jitter comparator,
+at either in-band capacity. It does not show that the Gaussian condition cannot be
+encoded (no fresh probe was fit on it) or that agents trained under it would not
+encode it (none were trained), so it does not establish that the signal is driven by
+the learned structure of the surrogate. The three questions and the wording each
+licenses are in `docs/specs/2026-10-06-texture-comparator-design.md`. The survival-
 specificity part remains conditional on the subtler hidden=8 artifact (section
 10.5).
 
@@ -2265,9 +2372,9 @@ change.
 3. The claim that detectability is not sufficient for incidental encoding
    survives on the matched comparisons the project does have: the L1 seam at
    the in-band grid (oracle 0.873 at the organism's own sensor noise, section
-   14.7) is not encoded (survival 0.533), and the unstructured comparator G_gn
-   at 0.865 in the L3 band (section 14.5) is not read by the world-identity
-   direction (0.539). The L2 negative remains a negative against a noiseless
+   14.7) did not meet the registered encoding criterion (survival 0.533), and the
+   unstructured comparator G_gn at 0.865 in the L3 band (section 14.5) is not read by
+   the original world-identity direction (0.539; no fresh probe was fit on it). The L2 negative remains a negative against a noiseless
    oracle (1.000) and against the agent's own interoception, which carries exact
    velocity; but the graded curve above and the dose-response ladder of section
    14.5 (h16 0.701 at oracle 0.788, h32 0.622 at 0.656, h64 0.541 at 0.603)

@@ -1,0 +1,147 @@
+{
+  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
+  "sigma_meas": 0.02,
+  "band": [
+    0.85,
+    0.95
+  ],
+  "floor_tol": 0.1,
+  "drift": 0.45,
+  "floor_seeds": [
+    0,
+    1,
+    2
+  ],
+  "g_seed": 0,
+  "rows": [
+    {
+      "family": "qd",
+      "eps": 0.5,
+      "oracle_auroc": 0.601388888888889,
+      "in_band": false,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.5444444444444445,
+      "floor": 0.4736914600550965,
+      "floor_per_seed": [
+        0.3867768595041322,
+        0.4983471074380166,
+        0.5359504132231405
+      ],
+      "floor_ok": true,
+      "pool_reward_leak_per_seed": [
+        0.4884297520661157,
+        0.5566115702479338,
+        0.5417355371900827
+      ],
+      "passes_gate0": false
+    },
+    {
+      "family": "qd",
+      "eps": 1.0,
+      "oracle_auroc": 0.6041666666666667,
+      "in_band": false,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.5666666666666668,
+      "floor": 0.4822314049586776,
+      "floor_per_seed": [
+        0.40578512396694216,
+        0.4855371900826446,
+        0.5553719008264463
+      ],
+      "floor_ok": true,
+      "pool_reward_leak_per_seed": [
+        0.46115702479338844,
+        0.5417355371900827,
+        0.5520661157024793
+      ],
+      "passes_gate0": false
+    },
+    {
+      "family": "qd",
+      "eps": 2.0,
+      "oracle_auroc": 0.6222222222222223,
+      "in_band": false,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.6083333333333334,
+      "floor": 0.4984848484848485,
+      "floor_per_seed": [
+        0.40867768595041315,
+        0.5078512396694215,
+        0.5789256198347108
+      ],
+      "floor_ok": true,
+      "pool_reward_leak_per_seed": [
+        0.5016528925619834,
+        0.5421487603305785,
+        0.555785123966942
+      ],
+      "passes_gate0": false
+    },
+    {
+      "family": "qd",
+      "eps": 4.0,
+      "oracle_auroc": 0.6555555555555556,
+      "in_band": false,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.6736111111111112,
+      "floor": 0.5601928374655648,
+      "floor_per_seed": [
+        0.48636363636363644,
+        0.5677685950413224,
+        0.6264462809917355
+      ],
+      "floor_ok": true,
+      "pool_reward_leak_per_seed": [
+        0.5314049586776859,
+        0.5338842975206611,
+        0.5504132231404959
+      ],
+      "passes_gate0": false
+    },
+    {
+      "family": "qd",
+      "eps": 8.0,
+      "oracle_auroc": 0.6972222222222222,
+      "in_band": false,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.7541666666666667,
+      "floor": 0.6816804407713498,
+      "floor_per_seed": [
+        0.5822314049586776,
+        0.6723140495867769,
+        0.790495867768595
+      ],
+      "floor_ok": false,
+      "pool_reward_leak_per_seed": [
+        0.578512396694215,
+        0.5396694214876033,
+        0.5537190082644627
+      ],
+      "passes_gate0": false
+    },
+    {
+      "family": "qd",
+      "eps": 16.0,
+      "oracle_auroc": 0.7680555555555555,
+      "in_band": false,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.8027777777777778,
+      "floor": 0.8139118457300274,
+      "floor_per_seed": [
+        0.7524793388429751,
+        0.7917355371900825,
+        0.8975206611570247
+      ],
+      "floor_ok": false,
+      "pool_reward_leak_per_seed": [
+        0.6264462809917355,
+        0.5396694214876033,
+        0.5590909090909091
+      ],
+      "passes_gate0": false
+    }
+  ],
+  "regression_ok": null,
+  "selected_hidden": null,
+  "selected": null
+}

@@ -338,6 +338,18 @@ RUNS = [
                     "L1-ORGANISM", "L3-H8-NOWM-CPU", "L3-H8-WM-CPU", "L3-H10-GS1-CPU",
                     "L3-H10-GS1-GPU", "L3-H8-GS2-GPU", "L3-H8-NOWM-U450"],
         folds="both", notes="scripts/build_contrast_intervals.py; docs/CONTRAST_INTERVALS.md."),
+    run("QD-GATE0", "Gate 0 for the hand-authored quadratic-drag comparator (no eps passes)",
+        experiment="methods", artifacts=["texture/gate0_qd.json"], trains_survival=False,
+        survival_trainer="none", folds="explicit",
+        config={"runner": "scripts/run_expA_l3.py --family qd", "sigma_meas": 0.02,
+                "sweep": [0.5, 1, 2, 4, 8, 16]},
+        notes="Untrained floor seeds use the corrected trainer's untrained arm (no actor-critic). "
+              "docs/specs/2026-10-06-texture-comparator-design.md amendment."),
+    run("SURROGATE-DIAG", "Surrogate diagnostics: linear-fit control, held-out and rollout error, "
+        "agent-accessible detector", experiment="methods", artifacts=["surrogate_diagnostics.json"],
+        trains_survival=False, survival_trainer="none", folds="explicit",
+        config={"runner": "scripts/run_surrogate_diagnostics.py"},
+        notes="Agent free: G instances retrained deterministically from their recipe."),
     run("L0-PRE-INTERVENTION", "Pool membership decoded from the reset observation (agent free)",
         experiment="L0 audit", artifacts=["l0_audit/pre_intervention.json"], trains_survival=False,
         survival_trainer="none", folds="explicit",

@@ -2140,6 +2140,75 @@
       "affected_by_gae_correction": false,
       "agent_seeds": null,
       "artifacts": [
+        "texture/gate0_qd.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {
+        "runner": "scripts/run_expA_l3.py --family qd",
+        "sigma_meas": 0.02,
+        "sweep": [
+          0.5,
+          1,
+          2,
+          4,
+          8,
+          16
+        ]
+      },
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "explicit",
+      "id": "QD-GATE0",
+      "local_run_dir": null,
+      "notes": "Untrained floor seeds use the corrected trainer's untrained arm (no actor-critic). docs/specs/2026-10-06-texture-comparator-design.md amendment.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "texture/gate0_qd.json": {}
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Gate 0 for the hand-authored quadratic-drag comparator (no eps passes)"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
+        "surrogate_diagnostics.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {
+        "runner": "scripts/run_surrogate_diagnostics.py"
+      },
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "explicit",
+      "id": "SURROGATE-DIAG",
+      "local_run_dir": null,
+      "notes": "Agent free: G instances retrained deterministically from their recipe.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "surrogate_diagnostics.json": {
+          "generated_by": "scripts/run_surrogate_diagnostics.py"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Surrogate diagnostics: linear-fit control, held-out and rollout error, agent-accessible detector"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
         "l0_audit/pre_intervention.json"
       ],
       "budget": null,
