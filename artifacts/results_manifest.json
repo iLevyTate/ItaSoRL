@@ -2452,6 +2452,39 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "persistence/corrected_l3_h8_wm.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "39c1e5d",
+      "config": {},
+      "deps": null,
+      "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
+      "eval_seeds": {
+        "persistence": "980000 + p, p < 110"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "C1-PERSISTENCE",
+      "local_run_dir": null,
+      "notes": "scripts/run_persistence_readout.py; revision step 7; rule frozen in docs/specs/2026-10-06-controlled-persistence-design.md.",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "persistence/corrected_l3_h8_wm.json": {
+          "generated_by": "scripts/run_persistence_readout.py"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Controlled persistence test (replay, common state, factorial, reset), C1 agents"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "corrected_verdicts.json"
       ],
       "budget": null,

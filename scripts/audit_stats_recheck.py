@@ -1807,6 +1807,26 @@ def main() -> int:
             cs = [_pc(_tv("survival", pr), _tv(b2, pr)) for b2 in ("predictor", "predictor_logged", "untrained")]
             row = f"| {pr} | " + " | ".join(f"{c['mean']:+.3f} [{c['t90'][0]:+.3f}, {c['t90'][1]:+.3f}]" for c in cs) + " |"
             check_true(f"FINDINGS 17.6 contrast row {pr}", row in _s17)
+    _psp = os.path.join(ARTROOT, "persistence", "corrected_l3_h8_wm.json")
+    if os.path.exists(_psp):
+        _pa = _load_art("persistence", "corrected_l3_h8_wm.json")["aggregate"]
+        check_true("17.7: every drift-0 condition reads exactly 0.5",
+                   all(v["window_mean"] == 0.5 for k, v in _pa.items() if k.startswith("d=0.00")))
+        _w = lambda arm, c: (f"{_pa[f'd=0.45 {arm} {c}']['window_mean']:.3f} "
+                             f"[{_pa[f'd=0.45 {arm} {c}']['window_t90'][0]:.3f}, "
+                             f"{_pa[f'd=0.45 {arm} {c}']['window_t90'][1]:.3f}]")
+        for c in ("replay:prefix", "common_state:prefix", "factorial:hidden", "factorial:physical",
+                  "reset_hidden:prefix"):
+            for arm in ("untrained", "predictor", "survival"):
+                check_true(f"FINDINGS 17.7 quotes {arm} {c}", _w(arm, c) in _s17)
+            check_true(f"FINDINGS 17.7 quotes survival late {c}",
+                       f"| {_pa[f'd=0.45 survival {c}']['late_mean']:.3f} |" in _s17)
+        _rp = _pa["d=0.45 survival replay:prefix"]
+        _first = next(i + 1 for i, x in enumerate(_rp["auc_by_t_mean"]) if x < 0.55)
+        check_true("17.7: the frozen replay rule is not met (mean or lower bound under 0.65)",
+                   _rp["window_mean"] < 0.65 or _rp["window_t90"][0] < 0.65)
+        check_true("FINDINGS 17.7 states the first step under 0.55 (the fifth)", _first == 5
+                   and "falls below\n0.55 at the fifth" in _s17)
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
     print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
     _f = _read("docs/FINDINGS.md")

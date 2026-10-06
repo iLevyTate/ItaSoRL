@@ -2735,3 +2735,40 @@ of this section and the public pages).
 This also bears on the auxiliary comparison. An arm without the next-observation decoder
 forages differently, so a lower reading for it can come from the episodes its policy
 generates as well as from its state; section 17.4 reads the `C2` contrast with that in view.
+
+### 17.7 Memory or footprint: the controlled persistence test (revision step 7)
+
+The common garden of 10.6.1 lets each branch keep both its prefix hidden state and its
+prefix physical state, so a decodable tail can come from memory, from the footprint the prefix
+left in body and world, or from both. The controlled test
+(`docs/specs/2026-10-06-controlled-persistence-design.md`, frozen before any agent was
+scored; `itasorl/persistence.py`) separates them on the `C1` agents
+(`artifacts/persistence/corrected_l3_h8_wm.json`). Prefix 20 steps under the cell's
+condition, tail 24 steps under authentic dynamics, 110 pairs per agent, world seeds 980000 + p,
+window AUROC over the tail with a t-based 90% CI over ten agent seeds; "late" is the last 8
+tail steps.
+
+| condition (drift 0.45) | untrained | predictor | survival | survival, late |
+|---|---|---|---|---|
+| `replay`: own prefix memory, identical recorded tail input | 0.528 [0.524, 0.532] | 0.517 [0.508, 0.526] | **0.561 [0.545, 0.577]** | 0.506 |
+| `common_state`: own memory, identical physical snapshot | 0.519 [0.511, 0.526] | 0.507 [0.500, 0.514] | 0.551 [0.533, 0.568] | 0.498 |
+| `factorial`, hidden-origin label | 0.529 [0.521, 0.537] | 0.509 [0.501, 0.517] | 0.569 [0.549, 0.590] | 0.503 |
+| `factorial`, physical-origin label | 0.552 [0.527, 0.578] | 0.577 [0.551, 0.602] | 0.658 [0.634, 0.682] | 0.595 |
+| `reset_hidden`: zero memory, own physical state | 0.550 [0.522, 0.578] | 0.594 [0.566, 0.623] | **0.662 [0.638, 0.687]** | 0.601 |
+
+Every condition reads exactly 0.500 on the drift-0 survival agents, as the design requires.
+
+**Frozen rule: retention under identical input is not shown.** The survival `replay` window is
+0.561, under 0.65, and 0.033 above the untrained arm against the required 0.05. Under
+identical input the per-step AUROC starts at 0.677 on the first tail step and falls below
+0.55 at the fifth, then settles near 0.50: the recurrent state carries the prefix condition
+for a few steps and not across the tail. With memory zeroed and the physical state kept
+(`reset_hidden`) the tail reads 0.662, and in the factorial the physical-origin label reads
+0.658 against 0.569 for the hidden-origin label, with the physical reading still near 0.60 in
+the last 8 steps.
+
+The licensed wording stays "prefix condition remains decodable after restoring authentic
+dynamics", and on the corrected agents most of that decodability is carried by the physical
+footprint of the prefix, not by memory. The historical common-garden numbers (0.666, 0.684)
+stay as recorded under the same narrow wording; the agents behind them are not in this
+repository, so this test cannot be run on them.

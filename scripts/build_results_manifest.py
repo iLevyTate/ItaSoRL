@@ -395,6 +395,13 @@ RUNS = [
         notes="scripts/run_policy_controlled_readouts.py; revision step 6. Survival agents "
               "retrained with batch logging, bit-identical to the saved agents (10/10); "
               "predictor_logged trains the prediction objective on those batches."),
+    run("C1-PERSISTENCE", "Controlled persistence test (replay, common state, factorial, reset), "
+        "C1 agents", experiment="B-v2 L3", artifacts=["persistence/corrected_l3_h8_wm.json"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="39c1e5d", folds="explicit",
+        eval_seeds={"persistence": "980000 + p, p < 110"}, device=CPU_REVISION,
+        notes="scripts/run_persistence_readout.py; revision step 7; rule frozen in "
+              "docs/specs/2026-10-06-controlled-persistence-design.md."),
     run("CORRECTED-VERDICTS", "Frozen-rule verdicts, integrity, and correction effect for C1 and C2",
         experiment="methods", artifacts=["corrected_verdicts.json"], trains_survival=False,
         readout_of=["C1", "L3-H8-WM-CPU", "L3-H8-NOWM-CPU"], survival_trainer="successor_value",
