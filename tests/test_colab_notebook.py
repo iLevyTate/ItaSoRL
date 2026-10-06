@@ -59,14 +59,50 @@ def test_copy_guard_is_the_first_code_cell():
     assert "run_e2e.py" not in guard, "the guard must precede the run cell"
 
 
-def test_copy_guard_degrades_gracefully():
-    # If Colab internals change so the notebook name can't be read, the guard
-    # must warn rather than block - it only raises when it *positively* sees the
-    # pristine GitHub filename, and it is skipped entirely off-Colab.
+def test_copy_guard_blocks_when_unverifiable():
+    # An unverifiable result from Colab's internal name check is not proof of a
+    # safe copy, so the guard must raise in that case too, not wave it through -
+    # it is only skipped entirely off-Colab, or when the person explicitly ticks
+    # I_MADE_A_COPY.
     nb = _load()
     guard = _src(_code_cells(nb)[0])
     assert "_in_colab" in guard
-    assert "Continuing anyway" in guard
+    assert "Continuing anyway" not in guard
+    assert "_nb_name is None" in guard
+    # two distinct blocking paths: the confirmed-original case and the
+    # cannot-verify case, both via the same raise.
+    assert guard.count("raise RuntimeError") >= 2
+
+
+def test_copy_guard_sets_a_sentinel_other_cells_can_check():
+    nb = _load()
+    guard = _src(_code_cells(nb)[0])
+    assert "COPY_CHECK_PASSED = True" in guard
+    assert "COPY_CHECK_PASSED = False" in guard
+
+
+def test_heavy_cells_require_the_copy_guard_to_have_passed():
+    # Jumping straight to the cell that clones the repo, the main run cell, or
+    # the 2026-10 extras run cell must not skip Step 0 - each has to check the
+    # guard's sentinel before doing anything real (cloning, installing,
+    # launching a training run), so running them out of order does not get
+    # around the make-a-copy check.
+    nb = _load()
+    code = _code_cells(nb)
+    markers = {
+        "clone/install cell": "git clone",
+        "main run cell": 'sys.executable, "scripts/run_e2e.py"',
+        "2026-10 extras run cell": "def run_extra(",
+    }
+    found = set()
+    for cell in code[1:]:
+        src = _src(cell)
+        for label, marker in markers.items():
+            if marker in src:
+                found.add(label)
+                assert "COPY_CHECK_PASSED" in src, (
+                    f"the {label} does not check the copy guard's sentinel")
+    assert found == set(markers), f"could not locate: {set(markers) - found}"
 
 
 def test_intro_documents_make_a_copy_first():
