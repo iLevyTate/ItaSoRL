@@ -7,12 +7,17 @@ living in a fake world. Nobody paid it to look. A detector that knows the true
 rules catches a hand-made fake **87%** of the time. The agent's own state reads
 **53%**, a coin flip. A learned fake reads **73%**, in agents trained both to
 survive and to predict what they will sense next. Drop the prediction task and
-it reads **60%**.
+it reads **61%**.
 
-Those agent numbers are historical. A review in October 2026 found a bug in how
-the trainer valued the last step of an episode. The trainer is fixed, the fixed
-runs are going now, and every number below keeps its pre-correction label until
-a corrected run replaces it. The record: [`docs/CORRECTIONS.md`](docs/CORRECTIONS.md).
+Then I checked what was doing the noticing. A brain trained only to predict,
+fed the exact senses the surviving agent lived through, reads the fake just as
+well. What finds the fake is where the agent goes. A brain shaped to predict
+keeps what it saw there.
+
+Those numbers come from a corrected trainer. A review in October 2026 found a
+bug in how the trainer valued the last step of an episode. Fixing it moved the
+headline by less than a point, and the record of what changed, and what did not
+get rerun, is in [`docs/CORRECTIONS.md`](docs/CORRECTIONS.md).
 
 The 90-second film is the one to watch. Voice and music are in. Nothing clipped
 out. [ilevytate.github.io/ItaSoRL](https://ilevytate.github.io/ItaSoRL/)
@@ -57,10 +62,12 @@ creature's state stays near a coin flip, under the bar we set in advance.
 
 At L3 the fake is a learned-dynamics fingerprint: a small net standing in for
 the velocity law. Agents trained to survive and to predict their next
-observation then carry a world signal of about **0.73**, after a per-timestep
-control for how they moved. Survival training without the prediction task
-reads 0.60, under the bar. The detector could always catch the copy. The
-agent's state separated it only under that training.
+observation then carry a world signal of about **0.73**. Survival training
+without the prediction task reads 0.61, under the bar. The signal rides on the
+paths the foraging creature takes, where the fake physics part from the real
+ones, and a brain trained to predict holds on to it. A hand-written fake that
+drifts the same coherent way gets read too; white noise of the same size does
+not.
 
 ### Hasn't this been done before?
 
@@ -124,9 +131,9 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 ### Hypotheses
 
 - **H1 (detectability)**: a privileged detector distinguishes the surrogate from the authentic world. **Supported** at L1, L2, and L3; at one shared detector noise the L2 flaws read weaker than L3 (FINDINGS §15).
-- **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference and the learned-law direction does not transfer to matched-band jitter; a learned-texture mechanism is not established (FINDINGS §14 to §14.5). At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
+- **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference (FINDINGS §14). A hand-authored, temporally coherent drag of matched one-step size is read as well, white jitter is not, so nothing here is specific to learned dynamics (§17.9). At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
 - **H3 (emergence under selection)**: selection raises world decodability. **Negative under the pooled population readout**, 3 lineages at 30 generations (FINDINGS §13.D, §13.E).
-- **H4 (incidental encoding)**: the condition is decodable from a from-scratch agent's state without reward. **Met at L3** for survival with the next-observation auxiliary at 300 updates (historical trainer; corrected runs in FINDINGS §17); not met at L1 or L2.
+- **H4 (incidental encoding)**: the condition is decodable from a from-scratch agent's state without reward. **Met at L3** for survival with the next-observation auxiliary at 300 updates, corrected trainer: 0.733, with the L0 gate open on the registered world pair (FINDINGS §17); not met at L1 or L2.
 
 ### Current status
 
@@ -139,16 +146,16 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 | Experiment A, L2 | **done** |
 | Experiment B (incidental detection), L2 arc | **done: did not meet the registered encoding criterion** |
 | Experiment B, L1 organism + H2 battery | **done: did not meet it at in-band Δ=0.023 (survival 0.533; FINDINGS §14.7)** |
-| Experiment B, L3 (learned-dynamics) | **met the criterion at n=10** with survival plus the next-observation auxiliary at 300 updates (historical trainer): 0.752, and 0.726 after the per-timestep behavior control. Without the auxiliary 0.601, against 0.730 with it on the same CPU (FINDINGS §10.8). An independently trained fingerprint 0.639, under the bar (§10.9). Prefix condition remains decodable after restoring authentic dynamics (FINDINGS §10.6.1). Details in [Key result](#key-result) |
-| Trainer correction (2026-10) | GAE truncation bootstrap fixed; corrected ten-seed runs with and without the auxiliary in progress ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), FINDINGS §17) |
+| Experiment B, L3 (learned-dynamics) | **met the decodability clauses at n=10** with survival plus the next-observation auxiliary at 300 updates, corrected trainer: 0.733 against predictor 0.589 and untrained 0.523, L0 gate open on the registered world pair. Without the auxiliary 0.613, not met (FINDINGS §17). Historical: 0.752 on GPU, 0.730 and 0.601 on CPU (§10.8); an independently trained fingerprint 0.639 (§10.9); prefix condition remains decodable after restoring authentic dynamics (FINDINGS §10.6.1). Details in [Key result](#key-result) |
+| Trainer correction (2026-10) | **done**: GAE truncation bootstrap fixed; both primary runs rerun; effect +0.003 and +0.012 ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), FINDINGS §17) |
 | Experiment C (emergence under selection) | **validated null** under the pooled population readout on the fixed-code re-run (FINDINGS §13.D, §13.E) |
 | Ladder L4 (adversarially-hardened surrogate) | not started |
 
 ### Key result
 
-*Every agent number in this section came from the pre-correction trainer and is
-historical ([`docs/RESULTS_MANIFEST.md`](docs/RESULTS_MANIFEST.md)). Corrected
-runs: FINDINGS §17.*
+*The L3 primary comparisons below were rerun with the corrected trainer
+(FINDINGS §17). Every other agent number is historical and labeled so in
+[`docs/RESULTS_MANIFEST.md`](docs/RESULTS_MANIFEST.md).*
 
 Hand-authored seams (L1 discretization, L2 rollout drift): catchable from the
 outside, not decodable inside at the registered criterion. An L2 artifact a
@@ -158,10 +165,42 @@ noise the L3 gate uses and the L2 artifacts read 0.62 to 0.65 (FINDINGS §15), s
 the matched case is L1: an in-band quantization grid (detector AUROC 0.873)
 leaves the survival state at **0.533** (n = 10; FINDINGS §14.7).
 
-L3 is where that changes. The surrogate is a **learned-dynamics fingerprint**:
-a small net replacing the velocity law, not a hand-tuned knob. At this
-fingerprint the **survival** agent's state, trained with the next-observation
-auxiliary, separates the worlds. Untrained sits at chance (about 0.49, still
+**Corrected L3 result (FINDINGS §17).** Survival training with the
+next-observation auxiliary, 300 updates, ten seeds, on CPU: the survival state
+reads **0.733** (t-based 90% CI **[0.669, 0.797]**, 8 of 10 seeds at the 0.65
+bar), the predictor arm 0.589 and the untrained arm 0.523, with paired margins
+of +0.144 and +0.210 whose intervals clear the registered 0.05. The L0 gate
+(both pools authentic) is open on the registered pair of evaluation worlds
+(0.559) and equivalent to chance across eight independent pairs (0.493), so
+the verdict is met on the decodability clauses, conditional on L0. Without the
+auxiliary the same protocol reads **0.613** [0.552, 0.675], not met; the
+decoder adds **+0.120** [+0.065, +0.174]. The bootstrap fix moved these two
+readings by +0.003 and +0.012.
+
+**What does the noticing.** Fed the survival agent's own observation streams,
+a trunk trained only to predict reads the world at 0.721, and one trained on
+exactly the survival agent's experience at 0.738, against 0.733 for the
+survival trunk. Driven by one scripted policy, every arm reads 0.55 to 0.58.
+A decoder that never sees the brain, only the senses, reads 0.724. So the
+signal rides on where the survival policy takes the body, and a trunk trained
+to predict keeps it; at matched input the survival objective adds nothing
+measurable, and "survival-specific" is withdrawn. A replay across the two
+corrected runs puts about half of the decoder's +0.120 in the trunk and half in
+the paths the decoder-carrying policy takes (exploratory, FINDINGS §17.10).
+
+**Bounded by budget.** Trained to 450 updates, the arm without the decoder
+reaches 0.685 and the arm with it 0.821, at about equal return. The best-fitting
+nonlinear control over observations, actions, and behavior leaves 0.620, under
+the bar. Under identical input the prefix condition fades within a few steps,
+and with the recurrent state zeroed the body's footprint still reads 0.662. A
+hand-authored, smoothly drifting drag of the same one-step size as the Gaussian
+jitter is read through the original direction (0.721); the jitter is not.
+
+**The historical record (pre-correction trainer).** The surrogate is a
+**learned-dynamics fingerprint**: a small net replacing the velocity law, not a
+hand-tuned knob. On the published GPU run the **survival** agent's state,
+trained with the next-observation auxiliary, separates the worlds. Untrained
+sits at chance (about 0.49, still
 0.52 under a nonlinear probe). Prediction-only sits near chance (about 0.57).
 Survival reads **0.752** (n = 10, t-based 90% CI **[0.698, 0.807]**, excludes
 the pre-registered 0.65 bar; 8 of 10 seeds clear it). World is not decodable

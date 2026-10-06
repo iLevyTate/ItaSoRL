@@ -6,11 +6,12 @@ anchored `<!--metric:key-->...<!--/metric-->` spans, and the recheck gate regene
 and diffs instead of pinning bare strings. So the numbers on the page trace to an
 artifact by construction; a re-run that moves a headline moves the page in the same step.
 
-Scope: the exact, gate-relevant L3 numbers (survival, its t-based decision CI, held-out
-transfer both directions, re-scored common-garden both directions). Soft "~" display
-values on the page (oracle ~0.99, agent probe ~0.50, ~0.73 behavior-independent) are
-intentional loose rounds and stay as static prose - mechanical formatting would fight
-them, and the gate never pinned them.
+Scope: the exact, gate-relevant L3 numbers (the historical survival headline and its
+t-based decision CI, held-out transfer both directions, re-scored common-garden both
+directions) and, from the 2026-10 revision, the corrected confirmation runs C1 and C2
+(`corrected_l3_h8_wm.json`, `corrected_l3_h8_nowm.json`) and their seed-paired auxiliary
+contrast. Soft "~" display values on the page are intentional loose rounds and stay as
+static prose.
 """
 
 from __future__ import annotations
@@ -48,7 +49,7 @@ def derive_metrics(artifacts_dir: str | Path) -> dict[str, str]:
     survival = h8["aggregate"]["d=0.45 survival"]["pool_target"]["mean"]
     ci_lo, ci_hi = t_ci90(_survival_per_seed(h8))
 
-    return {
+    out = {
         "l3_survival": f"{survival:.3f}",
         "l3_survival_hero": f"{survival:.2f}",
         "l3_ci_lo": f"{ci_lo:.3f}",
@@ -58,6 +59,26 @@ def derive_metrics(artifacts_dir: str | Path) -> dict[str, str]:
         "cg_forward": f"{cg_fwd['strong_drift']['survival']['cg_tail_mean']:.3f}",
         "cg_reverse": f"{cg_rev['strong_drift']['survival']['cg_tail_mean']:.3f}",
     }
+    c1p, c2p = artifacts_dir / "corrected_l3_h8_wm.json", artifacts_dir / "corrected_l3_h8_nowm.json"
+    if c1p.exists() and c2p.exists():
+        c1, c2 = _load(artifacts_dir, c1p.name), _load(artifacts_dir, c2p.name)
+        a1 = c1["arms"][c1["dmax"]]
+        a2 = c2["arms"][c2["dmax"]]
+        s1 = a1["survival"]["pool_target"]
+        s2 = a2["survival"]["pool_target"]
+        diff = [x - y for x, y in zip(s1["per_seed"], s2["per_seed"])]
+        dlo, dhi = t_ci90(diff)
+        out.update({
+            "c1_survival": f"{s1['mean']:.3f}", "c1_survival_hero": f"{s1['mean']:.2f}",
+            "c1_ci_lo": f"{s1['t90'][0]:.3f}", "c1_ci_hi": f"{s1['t90'][1]:.3f}",
+            "c1_predictor": f"{a1['predictor']['pool_target']['mean']:.3f}",
+            "c1_untrained": f"{a1['untrained']['pool_target']['mean']:.3f}",
+            "c1_l0": f"{c1['gates']['l0_survival_mean']:.3f}",
+            "c2_survival": f"{s2['mean']:.3f}",
+            "aux_contrast": f"{sum(diff) / len(diff):+.3f}",
+            "aux_ci_lo": f"{dlo:+.3f}", "aux_ci_hi": f"{dhi:+.3f}",
+        })
+    return out
 
 
 if __name__ == "__main__":

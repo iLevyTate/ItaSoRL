@@ -33,6 +33,16 @@ def test_derive_metrics_matches_findings_headline_numbers():
     assert m["cg_reverse"] == "0.684"
 
 
+def test_derive_metrics_carries_the_corrected_runs():
+    # FINDINGS 17.2 and 17.4 (revision 2026-10): C1, C2, and the paired auxiliary contrast.
+    m = site_metrics.derive_metrics(ROOT / "artifacts" / "expB2")
+    assert m["c1_survival"] == "0.733" and m["c1_survival_hero"] == "0.73"
+    assert (m["c1_ci_lo"], m["c1_ci_hi"]) == ("0.669", "0.797")
+    assert (m["c1_predictor"], m["c1_untrained"], m["c1_l0"]) == ("0.589", "0.523", "0.559")
+    assert m["c2_survival"] == "0.613"
+    assert (m["aux_contrast"], m["aux_ci_lo"], m["aux_ci_hi"]) == ("+0.120", "+0.065", "+0.174")
+
+
 def test_derive_metrics_values_are_display_strings():
     m = site_metrics.derive_metrics(ROOT / "artifacts" / "expB2")
     assert all(isinstance(v, str) for v in m.values())

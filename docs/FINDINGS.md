@@ -15,7 +15,8 @@ reading order; there is deliberately no section 8.)*
 > a trainer whose GAE bootstrap read the critic value before an episode's final
 > transition. The trainer is corrected (`docs/CORRECTIONS.md`), the historical numbers
 > stay as recorded and are labeled by implementation in `docs/RESULTS_MANIFEST.md`, and
-> the corrected confirmation runs are reported in section 17. Claim wording is narrowed
+> the corrected confirmation runs, with readouts on their agents, are in section 17 (summary
+> in 17.12). Claim wording is narrowed
 > throughout to what each estimator measured: below-bar results "did not meet the
 > registered encoding criterion"; behavior and sensory controls name their basis and
 > model; the common garden shows that prefix condition "remains decodable after
@@ -31,9 +32,9 @@ A from-scratch agent, never paid to look, lives in a world that is either the re
 program or a copy with one substrate flaw. Whether its recurrent state separates the two
 is read out afterward with a probe, and nothing in training names the condition.
 
-**Status of the numbers.** Every survival-trained number in this summary came from the
-pre-correction trainer (banner above) and is historical. The corrected confirmation runs
-are reported in section 17.
+**Status of the numbers.** The two primary comparisons were rerun with the corrected
+trainer (banner above; section 17), and the corrected numbers lead this summary. Every
+other survival-trained number is historical, labeled as such, and kept as recorded.
 
 **Hand-authored flaws (L1, L2) did not meet the registered encoding criterion.** A
 detector that knows the true rules finds the L2 drifting coefficient almost perfectly from
@@ -45,54 +46,60 @@ so L2 was the weaker flaw. The detectability-matched contrast is L1: at an in-ba
 observation-quantization grid (Δ = 0.023, detector 0.873) the survival agent's pooled
 target is **0.533**, with 0 of 10 seeds at 0.65 (section 14.7).
 
-**A learned-law flaw (L3) met it, under one training protocol.** Survival training with
-the next-observation auxiliary, 300 updates, ten seeds, against a gate-calibrated
-fingerprint (privileged detector 0.928 at detector-side noise σ = 0.02, untrained floor at
-chance): the survival state decodes the world at **0.752** (t-based 90% CI [0.698,
-0.807]), against 0.573 for the predictor arm and 0.488 untrained. Reward leakage,
-survivorship, and a nonlinear-probe check pass. After the state is residualized in-fold on
-a per-timestep trace of speed, energy, food, and drag (linear), **0.726** remains (t-based
-90% CI [0.679, 0.772]); adding position and heading leaves 0.723 (10.4.1), and regressing
-the current and previous observation out leaves 0.731 (10.4.2). Each control removes what its basis and
-model can express and no more (10.4, 10.4.2; diagnostics on the corrected agents in
-section 17).
+**A learned-law flaw (L3) met it under one training protocol (corrected, section 17).**
+Survival training with the next-observation auxiliary, 300 updates, ten seeds, against a
+gate-calibrated fingerprint (privileged detector 0.928 at detector-side noise σ = 0.02):
+the survival state decodes the world at **0.733** (t-based 90% CI [0.669, 0.797]),
+against 0.589 for the predictor arm and 0.523 untrained, with paired margins of +0.144 and
++0.210 whose intervals clear 0.05. The L0 gate is open on the registered world-sample pair
+(0.559) and equivalent to chance across eight independent pairs (0.493), so the verdict is
+MET on the decodability clauses, conditional on L0. Without the auxiliary the survival
+state reads **0.613** [0.552, 0.675], not met; the decoder adds **+0.120** [+0.065,
++0.174]. The correction itself moved the two drift-0.45 readings by +0.003 and +0.012.
 
-Where it stops:
+What the corrected agents show about that result:
 
-- Without the auxiliary the survival state reads **0.601** [0.549, 0.654]; with it, on the
-  same CPU, **0.730** [0.668, 0.791] (section 10.8). At 300 updates the criterion was met
-  with both objectives and with neither alone. The budget curve in section 17 asks whether
-  that holds at 450.
-- At a second capacity (hidden 7) the residualized signal holds (0.722) and the
-  survival-versus-predictor margin does not (+0.023 against the registered +0.05; 10.5).
-  An independently trained fingerprint keeps the margin at a level under the bar (0.639;
-  10.9).
-- L0, authentic against authentic, reads 0.517 under the original fold partition and
-  0.539 under the explicit one, where the ten-seed equivalence test does not accept
-  (section 16). Both partitions are in `docs/GATE_TABLE.md`.
+- **The trajectories carry it, and a prediction-trained trunk keeps it.** Fed the survival
+  agent's own observation streams, a trunk trained only to predict reads the world at 0.721,
+  and one trained on exactly the survival agent's experience at 0.738, against 0.733 for the
+  survival trunk. Under one scripted policy every arm reads 0.55 to 0.58 (17.6). The
+  survival-over-predictor margin is a difference between training regimes, not of
+  objective at matched input; "survival-specific" is withdrawn.
+- **Budget.** Decodability rises with training. Without the decoder the arm reaches 0.685
+  at 450 updates; at that budget the decoder arm reads 0.821 at about equal return (17.10).
+- **Controls.** After the per-timestep behavior control 0.723 remains; the best-fitting
+  nonlinear control over observations, actions, and behavior leaves 0.620, under the bar,
+  and a decoder of the observation stream alone reads 0.724 (17.8).
+- **Memory.** Under identical input the prefix condition fades within a few steps; with the
+  recurrent state zeroed, the physical footprint of the prefix still reads 0.662 (17.7).
+- **Learnedness.** A hand-authored, temporally coherent drag of the same one-step size as
+  the Gaussian comparator is read through the original direction (0.721) and by a fresh
+  probe (0.754); white jitter is read by no arm (17.9).
+
+The historical record of the same arc (pre-correction trainer, kept as recorded): survival
+**0.752** [0.698, 0.807] on GPU and 0.730 on CPU; 0.726 after the behavior control (10.4),
+0.731 after the sensory control (10.4.2); 0.601 without the auxiliary (10.8) and 0.717
+without it at 450 updates with a failed skill match (10.8.1); a second capacity keeps the
+residual (0.722) but not the predictor margin (10.5); an independently trained fingerprint
+keeps the margin under the bar (0.639; 10.9). L0 reads 0.517 under the original fold
+partition and 0.539 under the explicit one (section 16; `docs/GATE_TABLE.md`).
 
 The follow-ups, read narrowly:
 
 - **Graded seam.** Blending the learned law back toward the authentic one lowers decoding
   step by step to chance (0.506 at the authentic end; section 14). Decoding depends on the
-  size of the dynamics difference. Every blend point is also a smaller perturbation, so
-  this does not identify a representation of learnedness.
-- **Texture knockout.** The direction fit on the learned law does not transfer to
-  matched-band Gaussian jitter (0.539 against untrained 0.542; 14.5). Whether a fresh probe
-  decodes the jitter, and whether agents raised in it develop a decodable state, are
-  separate questions (`docs/specs/2026-10-06-texture-comparator-design.md`).
+  size of the dynamics difference, which 17.9 shows need not be learned.
 - **Transfer.** The direction reads a capacity variant of the same recipe (0.773; same data
   and seed, 10.6) and a random-Fourier-features law fit on the same data (0.684, t-based
-  lower bound 0.654; 10.7). The reverse direction misses the bar (0.638).
-- **Common garden.** After differing prefixes and an identical authentic tail, tail-only
-  states still separate the prefix condition (0.666 forward, 0.684 reverse; the last 8
-  steps fall to 0.586 and 0.577; 10.6.1). Prefix condition remains decodable after
-  restoring authentic dynamics. Whether that is memory in the recurrent state or a
-  footprint the prefix left in body and world is the controlled persistence test
-  (`docs/specs/2026-10-06-controlled-persistence-design.md`).
+  lower bound 0.654; 10.7). The reverse direction misses the bar (0.638). On the corrected
+  agents it also reads the hand-authored drag (17.9).
+- **Common garden.** Tail-only states still separate the prefix condition (0.666 forward,
+  0.684 reverse; 10.6.1). Prefix condition remains decodable after restoring authentic
+  dynamics, and on the corrected agents mostly through the physical footprint (17.7).
 - **Experiment C.** Selection over 30 generations did not raise world decodability as the
-  pooled population readout measures it (contrast -0.002 [-0.013, +0.009]; 13.D). The
-  readout pools individuals and is not a per-individual test (13.E).
+  pooled population readout measures it (contrast -0.002 [-0.013, +0.009]; 13.D). That
+  readout reads 0.609 where independent known-decodable individuals average 0.649, so it is
+  attenuated rather than blind (17.11); it is not a per-individual test (13.E).
 
 ---
 

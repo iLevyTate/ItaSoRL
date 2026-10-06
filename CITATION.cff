@@ -18,21 +18,23 @@ abstract: >-
   drift) are detectable but did not meet the registered encoding criterion; at
   the L3 gate's detector noise the L2 flaws read 0.62 to 0.65, so the matched
   contrast is L1 against L3. A learned-dynamics fingerprint (L3) met the
-  criterion for survival-trained agents carrying a next-observation auxiliary at
-  the registered 300-update budget, and a per-timestep linear behavior control
-  leaves most of the signal. At that budget the agent without the auxiliary did
-  not meet it (0.601, device-controlled); the same arm at 450 updates did, with a
-  failed skill match, so the auxiliary result is bounded by budget. An
-  independently trained fingerprint keeps the survival-specific margin under the
-  bar (0.639). The direction reads a capacity variant of the same recipe and a
-  random-Fourier-features law fit on the same data; the reverse direction fails.
-  A common-garden control, re-scored with a corrected estimator, passes the
-  frozen rule on both directions (forward 0.666, reverse 0.684): prefix condition
-  remains decodable after restoring authentic dynamics, without separating
-  memory from a physical footprint (see FINDINGS section 10.6.1). All
-  survival-trained numbers above come from a trainer whose GAE truncation
-  bootstrap was corrected in October 2026; they are historical until the
-  corrected confirmation runs replace them (docs/CORRECTIONS.md).
+  decodability clauses for survival-trained agents carrying a
+  next-observation auxiliary at the registered 300-update budget, with the trainer corrected in
+  October 2026 (0.733 against 0.589 for a prediction-only arm; the L0 gate open
+  on the registered evaluation-world pair and equivalent to chance across eight
+  independent pairs). Without the auxiliary the arm reads 0.613 at 300 updates
+  and 0.685 at 450, so the auxiliary result is bounded by budget. At matched
+  evaluation input a prediction-trained trunk reads the world as well as the
+  survival trunk: the signal rides on the trajectories the foraging policy
+  produces and is kept by a trunk shaped by next-observation prediction. A
+  hand-authored, temporally coherent drag of matched one-step size is read
+  through the same direction while white jitter is not, so nothing here is
+  specific to learned dynamics. A common-garden control passes its frozen rule
+  on the historical agents (0.666, 0.684): prefix condition
+  remains decodable after restoring authentic dynamics, and on the corrected agents that is
+  carried mostly by the physical footprint of the prefix, not by memory (see
+  FINDINGS section 10.6.1 and 17.7). Corrections and what each does not
+  establish: docs/CORRECTIONS.md.
 keywords:
   - artificial-life
   - reinforcement-learning
