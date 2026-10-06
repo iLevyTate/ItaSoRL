@@ -1,0 +1,460 @@
+{
+ "generated_by": "scripts/build_corrected_verdicts.py",
+ "spec": "docs/specs/2026-10-06-corrected-trainer-confirmation-design.md",
+ "rules": {
+  "bar": 0.65,
+  "margin": 0.05,
+  "l0_tost_margin": 0.05
+ },
+ "runs": {
+  "C1": {
+   "dir": "artifacts/corrected_runs/corrected_l3_h8_wm",
+   "replaces": "L3-H8-WM-CPU",
+   "historical": "artifacts/reviewer_gaps_runs/l3_h8_wm_cpu",
+   "auxiliary": true,
+   "cells": 20,
+   "status": "complete",
+   "integrity": {
+    "gae_bootstrap": [
+     "successor"
+    ],
+    "bit_identical_to_historical": {
+     "predictor": {
+      "compared": 20,
+      "mismatches": []
+     },
+     "untrained": {
+      "compared": 20,
+      "mismatches": []
+     }
+    },
+    "pass": true
+   },
+   "gates": {
+    "engagement": {
+     "per_drift": {
+      "0.00": 10,
+      "0.45": 10
+     },
+     "pass": true
+    },
+    "l0": {
+     "mean": 0.559421,
+     "per_seed": [
+      0.572727,
+      0.550413,
+      0.56405,
+      0.573554,
+      0.538017,
+      0.53843,
+      0.594215,
+      0.560331,
+      0.552479,
+      0.55
+     ],
+     "tost_p": 0.939448,
+     "pass": false,
+     "rope": {
+      "boot_interval": [
+       0.549752,
+       0.570248
+      ],
+      "boot_share_in_rope": 0.02835,
+      "accept": false
+     }
+    },
+    "speed": {
+     "min": 0.772051,
+     "pass": true
+    },
+    "reward_leak": {
+     "max_abs_dev": 0.096281,
+     "pass": true
+    },
+    "untrained_floor": {
+     "mean": 0.522603,
+     "pass": true
+    },
+    "deaths": {
+     "total": 0,
+     "pass": true
+    },
+    "failed": [
+     "l0"
+    ]
+   },
+   "primary": {
+    "survival": {
+     "per_seed": [
+      0.632231,
+      0.804959,
+      0.691322,
+      0.743802,
+      0.661983,
+      0.522314,
+      0.884711,
+      0.782645,
+      0.867769,
+      0.73843
+     ],
+     "mean": 0.733017,
+     "t90": [
+      0.668846,
+      0.797187
+     ],
+     "seeds_at_bar": 8
+    },
+    "predictor": {
+     "per_seed": [
+      0.531818,
+      0.614463,
+      0.63719,
+      0.587603,
+      0.616529,
+      0.604132,
+      0.559504,
+      0.535124,
+      0.57438,
+      0.625207
+     ],
+     "mean": 0.588595,
+     "t90": [
+      0.56697,
+      0.61022
+     ],
+     "seeds_at_bar": 0
+    },
+    "untrained": {
+     "per_seed": [
+      0.486777,
+      0.530165,
+      0.584711,
+      0.58843,
+      0.535537,
+      0.485124,
+      0.499174,
+      0.52562,
+      0.414876,
+      0.57562
+     ],
+     "mean": 0.522603,
+     "t90": [
+      0.4914,
+      0.553806
+     ],
+     "seeds_at_bar": 0
+    },
+    "lead_over_predictor": 0.144421,
+    "lead_over_untrained": 0.210413,
+    "contrast_vs_predictor": {
+     "diff_per_seed": [
+      0.100413,
+      0.190496,
+      0.054132,
+      0.156198,
+      0.045455,
+      -0.081818,
+      0.325207,
+      0.247521,
+      0.293388,
+      0.113223
+     ],
+     "mean": 0.144421,
+     "t90": [
+      0.072173,
+      0.21667
+     ],
+     "mean_ge_margin": true,
+     "t90_lower_ge_margin": true,
+     "margin": 0.05,
+     "n": 10
+    },
+    "contrast_vs_untrained": {
+     "diff_per_seed": [
+      0.145455,
+      0.274793,
+      0.106612,
+      0.155372,
+      0.126446,
+      0.03719,
+      0.385537,
+      0.257025,
+      0.452893,
+      0.16281
+     ],
+     "mean": 0.210413,
+     "t90": [
+      0.1348,
+      0.286026
+     ],
+     "mean_ge_margin": true,
+     "t90_lower_ge_margin": true,
+     "margin": 0.05,
+     "n": 10
+    },
+    "clauses": {
+     "mean_at_bar": true,
+     "lower_bound_at_bar": true,
+     "margin_predictor": true,
+     "margin_untrained": true
+    },
+    "decodability": "MET",
+    "verdict": "MET on the decodability clauses, conditional on open gate(s): l0",
+    "met": false
+   },
+   "correction_effect": {
+    "0.00": {
+     "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "survival_target": {
+      "corrected": {
+       "per_seed": [
+        0.572727,
+        0.550413,
+        0.56405,
+        0.573554,
+        0.538017,
+        0.53843,
+        0.594215,
+        0.560331,
+        0.552479,
+        0.55
+       ],
+       "mean": 0.559421,
+       "t90": [
+        0.549332,
+        0.569511
+       ],
+       "seeds_at_bar": 0
+      },
+      "historical": {
+       "per_seed": [
+        0.512397,
+        0.568182,
+        0.46281,
+        0.536364,
+        0.545455,
+        0.511157,
+        0.584298,
+        0.514463,
+        0.532645,
+        0.520661
+       ],
+       "mean": 0.528843,
+       "t90": [
+        0.50934,
+        0.548346
+       ],
+       "seeds_at_bar": 0
+      },
+      "difference": {
+       "diff_per_seed": [
+        0.060331,
+        -0.017769,
+        0.10124,
+        0.03719,
+        -0.007438,
+        0.027273,
+        0.009917,
+        0.045868,
+        0.019835,
+        0.029339
+       ],
+       "mean": 0.030579,
+       "t90": [
+        0.010785,
+        0.050372
+       ],
+       "mean_ge_margin": true,
+       "t90_lower_ge_margin": true,
+       "margin": 0.0,
+       "n": 10
+      }
+     },
+     "engagement_return": {
+      "corrected": -0.292128,
+      "historical": -0.277199,
+      "difference": {
+       "diff_per_seed": [
+        0.029357,
+        -0.031216,
+        -0.126926,
+        0.132605,
+        -0.122557,
+        0.023121,
+        0.084323,
+        -0.04554,
+        0.009609,
+        -0.10207
+       ],
+       "mean": -0.014929,
+       "t90": [
+        -0.065521,
+        0.035662
+       ],
+       "mean_ge_margin": false,
+       "t90_lower_ge_margin": false,
+       "margin": 0.0,
+       "n": 10
+      }
+     }
+    },
+    "0.45": {
+     "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "survival_target": {
+      "corrected": {
+       "per_seed": [
+        0.632231,
+        0.804959,
+        0.691322,
+        0.743802,
+        0.661983,
+        0.522314,
+        0.884711,
+        0.782645,
+        0.867769,
+        0.73843
+       ],
+       "mean": 0.733017,
+       "t90": [
+        0.668846,
+        0.797187
+       ],
+       "seeds_at_bar": 8
+      },
+      "historical": {
+       "per_seed": [
+        0.665702,
+        0.790083,
+        0.699587,
+        0.733058,
+        0.617355,
+        0.536777,
+        0.884711,
+        0.721488,
+        0.850413,
+        0.797934
+       ],
+       "mean": 0.729711,
+       "t90": [
+        0.668052,
+        0.791369
+       ],
+       "seeds_at_bar": 8
+      },
+      "difference": {
+       "diff_per_seed": [
+        -0.033471,
+        0.014876,
+        -0.008264,
+        0.010744,
+        0.044628,
+        -0.014463,
+        0.0,
+        0.061157,
+        0.017355,
+        -0.059504
+       ],
+       "mean": 0.003306,
+       "t90": [
+        -0.017143,
+        0.023754
+       ],
+       "mean_ge_margin": true,
+       "t90_lower_ge_margin": false,
+       "margin": 0.0,
+       "n": 10
+      }
+     },
+     "engagement_return": {
+      "corrected": -0.418063,
+      "historical": -0.439326,
+      "difference": {
+       "diff_per_seed": [
+        0.006931,
+        0.12184,
+        -0.163014,
+        -0.040907,
+        -0.016262,
+        0.116366,
+        -0.039477,
+        0.011196,
+        0.094252,
+        0.121699
+       ],
+       "mean": 0.021262,
+       "t90": [
+        -0.032635,
+        0.075159
+       ],
+       "mean_ge_margin": true,
+       "t90_lower_ge_margin": false,
+       "margin": 0.0,
+       "n": 10
+      }
+     }
+    }
+   }
+  },
+  "C2": {
+   "dir": "artifacts/corrected_runs/corrected_l3_h8_nowm",
+   "replaces": "L3-H8-NOWM-CPU",
+   "historical": "artifacts/reviewer_gaps_runs/l3_h8_nowm",
+   "auxiliary": false,
+   "cells": 0,
+   "status": "incomplete: 20 of 20 cells missing"
+  }
+ },
+ "fold_partition": {
+  "scheme": "explicit",
+  "version": "explicit-v1",
+  "n_splits": 5,
+  "n_samples": 220,
+  "groups_intact": true,
+  "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+  "class_counts": [
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ],
+   [
+    22,
+    22
+   ]
+  ],
+  "matches_serialized": true
+ }
+}

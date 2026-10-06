@@ -26,5 +26,6 @@ L0 rule: TOST with margin 0.05 and alpha 0.05 on the ten drift-0 survival target
 | `L3-H10-GS1-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.521 (pass) | 20/20 | 0.833 | yes | 0.000 |
 | `L3-H8-GS2-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.550 (pass) | 20/20 | 0.814 | yes | 0.000 |
 | `L3-H8-NOWM-U450` | historical | explicit | 0.539 | 0.285 | inconclusive (not shown equivalent) | 0.736 | 0.513 (pass) | 20/20 | 0.837 | yes | 0.000 |
+| `CORRECTED-L3_H8_WM` | corrected | explicit | 0.559 | 0.939 | inconclusive (not shown equivalent) | 0.028 | 0.523 (pass) | 20/20 | 0.830 | yes | 0.000 |
 
-L0 not shown equivalent: 10 of 20 rows (`BV2-L2-AR1` legacy, `L3-H8-N10` explicit, `L3-H7-N10` explicit, `L3-H4` explicit, `L3-H8-HELDOUT` explicit, `L3-H7-REVERSE` explicit, `L1-ORGANISM` explicit, `L3-H10-GS1-GPU` explicit, `L3-H8-GS2-GPU` explicit, `L3-H8-NOWM-U450` explicit).
+L0 not shown equivalent: 11 of 21 rows (`BV2-L2-AR1` legacy, `L3-H8-N10` explicit, `L3-H7-N10` explicit, `L3-H4` explicit, `L3-H8-HELDOUT` explicit, `L3-H7-REVERSE` explicit, `L1-ORGANISM` explicit, `L3-H10-GS1-GPU` explicit, `L3-H8-GS2-GPU` explicit, `L3-H8-NOWM-U450` explicit, `CORRECTED-L3_H8_WM` explicit).

@@ -1732,6 +1732,10 @@ def main() -> int:
     import build_contrast_intervals
     check_true("contrast intervals are current (build_contrast_intervals --check)",
                build_contrast_intervals.main(["--check"]) == 0)
+    # Revision step 4: the corrected runs under the frozen decision rules.
+    import build_corrected_verdicts
+    check_true("corrected verdicts are current (build_corrected_verdicts --check)",
+               build_corrected_verdicts.main(["--check"]) == 0)
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
     print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
     _f = _read("docs/FINDINGS.md")

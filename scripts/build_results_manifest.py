@@ -15,7 +15,8 @@ that.
 Status vocabulary:
   historical  produced before the 2026-10 corrections; the number stands as a record of
               what that implementation measured and is cited as such.
-  corrected   produced by the corrected implementation (none yet; see step 4 of the plan).
+  corrected   produced by the corrected implementation (revision step 4: the confirmation
+              runs C1 and C2 and the readouts on their saved agents).
 
 GAE vocabulary (`survival_trainer` field):
   pre_transition_value   itasorl.experiment_b2.compute_gae as of 679fee6 (2026-06-28) up to
@@ -103,11 +104,11 @@ FOLDS_NOTE = {
 def run(id, title, *, experiment, artifacts, claims=(), survival_trainer="pre_transition_value",
         trains_survival=True, readout_of=None, commit_at_run=None, config=None,
         agent_seeds=None, surrogate=None, budget=None, eval_seeds=None, folds="legacy",
-        device=None, deps=None, local_run_dir=None, notes=""):
+        device=None, deps=None, local_run_dir=None, notes="", status="historical"):
     """One manifest row. Paths in `artifacts` are relative to artifacts/ (file or directory)."""
     return {
         "id": id, "title": title, "experiment": experiment, "claims": list(claims),
-        "artifacts": list(artifacts), "status": "historical",
+        "artifacts": list(artifacts), "status": status,
         "survival_trainer": (survival_trainer if trains_survival else
                              f"inherited: {survival_trainer}" if readout_of else "none"),
         "affected_by_gae_correction": bool(trains_survival or readout_of),
@@ -124,6 +125,7 @@ L3_H8 = {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0
          "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 GPU_OWNER = "owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126"
 CPU_CLOUD = "cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu"
+CPU_REVISION = "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu"
 
 RUNS = [
     # ---------------- agent-free and prediction-only arcs (no actor-critic) ----------------
@@ -361,6 +363,28 @@ RUNS = [
         eval_seeds={"standard": "800000 / 850000",
                     "independent": "(1000000 + 100000k) / (1050000 + 100000k), k < 8"},
         notes="itasorl/l0_audit.py; revision step 5."),
+    # ---------------- corrected confirmation runs (revision step 4) ----------------
+    run("C1", "Corrected trainer, next-observation auxiliary on, n = 10 (replaces L3-H8-WM-CPU)",
+        experiment="B-v2 L3", artifacts=["expB2/corrected_l3_h8_wm.json",
+                                         "corrected_runs/corrected_l3_h8_wm"],
+        claims=[41, 42], survival_trainer="successor_value", status="corrected",
+        commit_at_run="f676b95",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor",
+                "budget_extend": 450, "budget_snapshots": [100, 200]},
+        agent_seeds=S10, surrogate=L3_H8,
+        budget={"survival_updates": 300, "budget_curve": [100, 200, 300, 450],
+                "predictor_updates": 300},
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit (explicit-v1; equals legacy on this stack)",
+        device=CPU_REVISION, deps="torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+        local_run_dir="fullruns/corrected_l3_h8_wm",
+        notes="Frozen protocol: docs/specs/2026-10-06-corrected-trainer-confirmation-design.md. "
+              "The headline arm is the 300-update snapshot of a run trained to 450."),
+    run("CORRECTED-VERDICTS", "Frozen-rule verdicts, integrity, and correction effect for C1 and C2",
+        experiment="methods", artifacts=["corrected_verdicts.json"], trains_survival=False,
+        readout_of=["C1", "L3-H8-WM-CPU", "L3-H8-NOWM-CPU"], survival_trainer="successor_value",
+        status="corrected", folds="explicit",
+        notes="scripts/build_corrected_verdicts.py; rules frozen in "
+              "docs/specs/2026-10-06-corrected-trainer-confirmation-design.md."),
     # ---------------- Experiment C (neuroevolution, no actor-critic) ----------------
     run("C-EMERGENCE", "Experiment C emergence under selection, fixed-code re-run",
         experiment="C", artifacts=["expC/emergence_pilot_summary.json",
@@ -434,8 +458,8 @@ def build() -> dict:
             "pre_transition_value": "every survival-trained run from 679fee6 through "
                                     "4b6e1f3 (all runs below with survival_trainer "
                                     "'pre_transition_value')",
-            "successor_value": "the corrected bootstrap (revision step 2); no committed "
-                               "result uses it yet",
+            "successor_value": "the corrected bootstrap (revision step 2): the runs with "
+                               "status 'corrected'",
         },
         "fold_schemes": FOLDS_NOTE,
         "eval_world_note": "Evaluation worlds are fixed seed bases shared by every agent seed, "
@@ -453,9 +477,10 @@ def render_md(m: dict) -> str:
          "edit the registry and rerun. `--check` fails if this page or "
          "`artifacts/results_manifest.json` is stale, or if any file under `artifacts/` "
          "belongs to no run.*", "",
-         f"Reviewed at commit `{m['reviewed_commit']}`. Every row below is **historical**: it "
-         "records what that implementation measured. Corrected results will be added as new "
-         "rows with status `corrected`; historical rows are never overwritten.", "",
+         f"Reviewed at commit `{m['reviewed_commit']}`. Rows with status **historical** record "
+         "what the pre-correction implementation measured. Corrected results are added as new "
+         "rows with status **corrected** (trainer `successor_value`); historical rows are never "
+         "overwritten.", "",
          "## Which trainer produced each survival agent", "",
          "`pre_transition_value` is `compute_gae` as it stood from "
          f"`{m['gae_history']['padding_fix']}` (2026-06-28) to `{m['reviewed_commit']}`: an "
@@ -463,12 +488,12 @@ def render_md(m: dict) -> str:
          "last stored step, before its final transition. `none` means the run trains no "
          "actor-critic. A readout-only analysis inherits the trainer of the run whose saved "
          "agents it reads.", "",
-         "| Run | Experiment | Claims | Trainer | Readout of | Commit at run | Folds | Device |",
-         "|---|---|---|---|---|---|---|---|"]
+         "| Run | Status | Experiment | Claims | Trainer | Readout of | Commit at run | Folds | Device |",
+         "|---|---|---|---|---|---|---|---|---|"]
     for r in m["runs"]:
         claims = ", ".join(str(c) for c in r["claims"]) or "-"
         ro = ", ".join(r["readout_only_on"]) if r["readout_only_on"] else "-"
-        L.append(f"| `{r['id']}` | {r['experiment']} | {claims} | {r['survival_trainer']} | "
+        L.append(f"| `{r['id']}` | {r['status']} | {r['experiment']} | {claims} | {r['survival_trainer']} | "
                  f"{ro} | {r['commit_at_run'] or 'not recorded'} | {r['folds']} | "
                  f"{r['device'] or 'not recorded'} |")
     L += ["", "Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.",

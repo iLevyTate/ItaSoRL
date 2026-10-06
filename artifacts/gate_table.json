@@ -537,6 +537,35 @@
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
+  },
+  {
+   "run": "CORRECTED-L3_H8_WM",
+   "partition": "explicit",
+   "source": "artifacts/expB2/corrected_l3_h8_wm.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5594214876033058,
+    "sd": 0.017405367666555663,
+    "tost_p": 0.9394481311498583,
+    "equivalent": false,
+    "rope_interval": [
+     0.5497520661157025,
+     0.5702479338842974
+    ],
+    "rope_share_inside": 0.02835,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.522603305785124,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.8303314836852224,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0.0,
+   "status": "corrected"
   }
  ]
 }
