@@ -48,7 +48,7 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 |---|---|---|
 | 1 | Results manifest, provenance, claim decisions | Done 2026-10-06: `docs/RESULTS_MANIFEST.md`, `artifacts/results_manifest.json`, this file, `docs/CORRECTIONS.md` |
 | 2 | Successor-state bootstrap in `itasorl/experiment_b2.py` | Done 2026-10-06; historical trainer kept as `--gae-bootstrap pre_transition`, verified bit-identical to `4b6e1f3` |
-| 3 | Tests for the intended bootstrap semantics | Pending |
+| 3 | Tests for the intended bootstrap semantics | Done 2026-10-06: `tests/test_gae_bootstrap.py`; mutation-checked |
 | 4 | Measure the correction: diagnostic, frozen protocol, corrected confirmation runs | Pending |
 | 5 | L0 and the fold partition | Pending |
 | 6 | Arm-by-arm training and evaluation table; predictor evaluated under its own policy | Pending |

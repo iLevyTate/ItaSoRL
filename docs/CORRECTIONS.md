@@ -72,3 +72,25 @@ or mix with a historical run. Each new cell records `gae_bootstrap`.
 **What this does not establish.** Whether the published effect sizes or verdicts survive.
 That is measured in revision step 4; until then every historical number stays as published,
 labeled historical.
+
+## 2026-10-06: the GAE tests
+
+**What was wrong.** `test_compute_gae_truncation_bootstraps_last_value` expected the
+pre-transition bootstrap, so it would have failed on a correct implementation and passed on
+the bug.
+
+**Change.** `tests/test_gae_bootstrap.py` replaces it. It checks a one-step truncated episode
+(reward 1, current value 0.3, successor value 2, gamma 0.99: residual **2.68**, where the old
+rule gives 0.997); the same step ending in death, which must ignore any successor value; a
+batch of mixed lengths and endings against an independent reference written from the
+definition of GAE; padded slots holding 7, 1e30, plus or minus infinity, and NaN; a 12-step
+truncated episode against the reference; and, on a real recurrent agent and collector, that
+the stored successor observation and final action replay exactly, that the bootstrap equals
+one GRU step plus the critic, and that changing only the successor observation changes the
+bootstrap and the final advantage. Mutation checks: reverting to the current value, to a
+padded slot, to multiplicative masking, or dropping the terminal zero each make the file fail.
+
+**Hardening found by the tests.** Padded slots were masked by multiplying by zero, so an
+infinite or NaN padded value would have turned a valid advantage into NaN. `compute_gae` now
+masks by selection. On finite inputs the arithmetic is unchanged: the historical trainer is
+still bit-identical to `4b6e1f3`, re-checked on a run with deaths and padding.
