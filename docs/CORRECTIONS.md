@@ -202,3 +202,23 @@ signal under the bar (17.8), the common garden reads the physical footprint (17.
 hand-authored coherent perturbation is read like the learned one (17.9). These are recorded as
 claim decisions in `docs/REVISION_2026-10.md`.
 
+## 2026-10-06: branch history rewritten to keep the manuscript tables out of main
+
+**What.** Three commits on the revision branch had committed the LaTeX tables generated for the
+manuscript (`docs/paper_tables/*.tex`). The manuscript and everything generated for it stay
+local (`AGENTS.md`), and a regular merge would have carried those commits into main's history.
+
+**Change.** The branch was rewritten from the first commit that added the tables onward, with
+the tables removed from every commit and each rewritten commit signed again. The final tree is
+byte-identical to the one before the rewrite. The 13 earlier commits keep their hashes,
+including `f676b95`, the code every corrected-run cell records. Two later commits that the
+provenance records name changed hash; their code is identical, only the generated tables
+dropped out:
+
+| before | after | what records it |
+|---|---|---|
+| `39c1e5d` | `34e2c0d` | the C1 readouts (`commit_at_run` in the manifest) and the C1 promotion (`git_commit_at_promotion`) |
+| `0894d6c` | `7870bba` | the exploratory cross-run replay and the C2 promotion |
+
+The references were updated to the new hashes. No number changed.
+

@@ -397,7 +397,7 @@ RUNS = [
     run("C1-L0-AUDIT", "L0 across independent world-sample pairs and the balanced readout, C1 agents",
         experiment="L0 audit", artifacts=["l0_audit/corrected_l3_h8_wm.json"], trains_survival=False,
         readout_of=["C1"], survival_trainer="successor_value", status="corrected",
-        commit_at_run="39c1e5d", folds="explicit",
+        commit_at_run="34e2c0d", folds="explicit",
         eval_seeds={"standard": "800000 / 850000",
                     "independent": "(1000000 + 100000k) / (1050000 + 100000k), k < 8",
                     "balanced": "800000 + i for both pools (same world seed and initial state)"},
@@ -406,14 +406,14 @@ RUNS = [
         "exposure-matched predictor, C1 agents", experiment="B-v2 L3",
         artifacts=["policy_controls/corrected_l3_h8_wm.json"], trains_survival=False,
         readout_of=["C1"], survival_trainer="successor_value", status="corrected",
-        commit_at_run="39c1e5d", folds="explicit", eval_seeds=BV2_EVAL_SEEDS, device=CPU_REVISION,
+        commit_at_run="34e2c0d", folds="explicit", eval_seeds=BV2_EVAL_SEEDS, device=CPU_REVISION,
         notes="scripts/run_policy_controlled_readouts.py; revision step 6. Survival agents "
               "retrained with batch logging, bit-identical to the saved agents (10/10); "
               "predictor_logged trains the prediction objective on those batches."),
     run("C1-PERSISTENCE", "Controlled persistence test (replay, common state, factorial, reset), "
         "C1 agents", experiment="B-v2 L3", artifacts=["persistence/corrected_l3_h8_wm.json"],
         trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
-        status="corrected", commit_at_run="39c1e5d", folds="explicit",
+        status="corrected", commit_at_run="34e2c0d", folds="explicit",
         eval_seeds={"persistence": "980000 + p, p < 110"}, device=CPU_REVISION,
         notes="scripts/run_persistence_readout.py; revision step 7; rule frozen in "
               "docs/specs/2026-10-06-controlled-persistence-design.md."),
@@ -421,14 +421,14 @@ RUNS = [
         "readouts of the observation stream, C1 agents", experiment="B-v2 L3",
         artifacts=["control_diagnostics/corrected_l3_h8_wm.json"], trains_survival=False,
         readout_of=["C1"], survival_trainer="successor_value", status="corrected",
-        commit_at_run="39c1e5d", folds="explicit", eval_seeds=BV2_EVAL_SEEDS, device=CPU_REVISION,
+        commit_at_run="34e2c0d", folds="explicit", eval_seeds=BV2_EVAL_SEEDS, device=CPU_REVISION,
         notes="scripts/run_control_diagnostics.py; revision step 8. Pools regenerated and "
               "bit-matched to the run's state dumps."),
     run("C1-TEXTURE", "Texture comparators on the C1 agents: transfer of the original direction "
         "and a fresh probe", experiment="H2", artifacts=["texture/corrected_l3_h8_wm_gn.json",
                                                 "texture/corrected_l3_h8_wm_qd.json"],
         trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
-        status="corrected", commit_at_run="39c1e5d", folds="explicit",
+        status="corrected", commit_at_run="34e2c0d", folds="explicit",
         eval_seeds={"gn": "960000 / 970000", "qd": "1900000 / 1950000"}, device=CPU_REVISION,
         notes="scripts/run_texture_fresh_probe.py; revision step 9; wording rules frozen in "
               "docs/specs/2026-10-06-texture-comparator-design.md."),
@@ -436,7 +436,7 @@ RUNS = [
         "value of world information, C1", experiment="C",
         artifacts=["population_readout/corrected_l3_h8_wm.json"], trains_survival=False,
         readout_of=["C1"], survival_trainer="successor_value", status="corrected",
-        commit_at_run="39c1e5d", folds="explicit", eval_seeds=HELDOUT_EVAL_SEEDS, device=CPU_REVISION,
+        commit_at_run="34e2c0d", folds="explicit", eval_seeds=HELDOUT_EVAL_SEEDS, device=CPU_REVISION,
         notes="scripts/validate_population_readout.py; revision step 12."),
     run("BUDGET-CURVE", "Return and decodability against survival updates, decoder on and off",
         experiment="B-v2 L3", artifacts=["budget_curve.json"], trains_survival=False,
@@ -446,7 +446,7 @@ RUNS = [
     run("CROSS-REPLAY", "EXPLORATORY: decoder-on and decoder-off survival trunks replayed on each "
         "other's streams", experiment="B-v2 L3", artifacts=["cross_replay/corrected_c1_c2.json"],
         trains_survival=False, readout_of=["C1", "C2"], survival_trainer="successor_value",
-        status="corrected", commit_at_run="0894d6c", folds="explicit", eval_seeds=BV2_EVAL_SEEDS,
+        status="corrected", commit_at_run="7870bba", folds="explicit", eval_seeds=BV2_EVAL_SEEDS,
         device=CPU_REVISION, notes="scripts/run_cross_replay.py; post hoc, written after C1 and C2 "
                                    "were read; revision step 11."),
     run("CORRECTED-VERDICTS", "Frozen-rule verdicts, integrity, and correction effect for C1 and C2",

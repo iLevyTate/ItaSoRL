@@ -4,7 +4,7 @@
  "spec": "docs/specs/2026-10-06-corrected-trainer-confirmation-design.md",
  "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
  "execution": "revision container: 4 vCPU, 4 workers, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, ITASORL_FOLDS=explicit; code at f676b95",
- "git_commit_at_promotion": "0894d6c68a8828453a4da1808f241677887b33ea",
+ "git_commit_at_promotion": "7870bba148a201354912a12e7dca89d24c909a3f",
  "generated_by": "scripts/promote_reviewer_gaps_runs.py",
  "bars": {
   "auroc_floor": 0.65,

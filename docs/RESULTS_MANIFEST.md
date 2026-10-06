@@ -46,14 +46,14 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `L0-PRE-INTERVENTION` | historical | L0 audit | - | none | - | not recorded | explicit | not recorded |
 | `C1` | corrected | B-v2 L3 | 41, 42 | successor_value | - | f676b95 | explicit (explicit-v1; equals legacy on this stack) | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C2` | corrected | B-v2 L3 | 42 | successor_value | - | f676b95 | explicit (explicit-v1; equals legacy on this stack) | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-L0-AUDIT` | corrected | L0 audit | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-POLICY-CONTROLS` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-PERSISTENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-CONTROL-DIAG` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-TEXTURE` | corrected | H2 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-POPULATION` | corrected | C | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-L0-AUDIT` | corrected | L0 audit | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-POLICY-CONTROLS` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-PERSISTENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-CONTROL-DIAG` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-TEXTURE` | corrected | H2 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-POPULATION` | corrected | C | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `BUDGET-CURVE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | not recorded | explicit | not recorded |
-| `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 0894d6c | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 7870bba | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
@@ -519,7 +519,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: 39c1e5d
+- Commit at run: 34e2c0d
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_l0_audit.py; revision step 5; diagnostic, not a gate.
@@ -529,7 +529,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: 39c1e5d
+- Commit at run: 34e2c0d
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_policy_controlled_readouts.py; revision step 6. Survival agents retrained with batch logging, bit-identical to the saved agents (10/10); predictor_logged trains the prediction objective on those batches.
@@ -539,7 +539,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: 39c1e5d
+- Commit at run: 34e2c0d
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_persistence_readout.py; revision step 7; rule frozen in docs/specs/2026-10-06-controlled-persistence-design.md.
@@ -549,7 +549,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: 39c1e5d
+- Commit at run: 34e2c0d
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_control_diagnostics.py; revision step 8. Pools regenerated and bit-matched to the run's state dumps.
@@ -559,7 +559,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: 39c1e5d
+- Commit at run: 34e2c0d
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_texture_fresh_probe.py; revision step 9; wording rules frozen in docs/specs/2026-10-06-texture-comparator-design.md.
@@ -569,7 +569,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: 39c1e5d
+- Commit at run: 34e2c0d
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/validate_population_readout.py; revision step 12.
@@ -587,7 +587,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: 0894d6c
+- Commit at run: 7870bba
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_cross_replay.py; post hoc, written after C1 and C2 were read; revision step 11.
