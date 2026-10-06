@@ -52,7 +52,7 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 4 | Measure the correction: diagnostic, frozen protocol, corrected confirmation runs | In progress: historical cell reproduced bit for bit on this container; quick-scale diagnostic passed end to end; protocol frozen (`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`, PREREGISTRATION_L3 2026-10-06 entry); runs `C1` and `C2` launched |
 | 5 | L0 and the fold partition | Primary analysis frozen (`docs/specs/2026-10-06-primary-analysis-and-l0.md`); folds versioned and serialized; `docs/GATE_TABLE.md`; pre-intervention audit done; agent-based L0 audit waits for `C1` agents |
 | 6 | Arm-by-arm training and evaluation table; predictor evaluated under its own policy | Table done (`docs/METHODS_ARMS.md`); `itasorl/eval_protocols.py` and `scripts/run_policy_controlled_readouts.py` (scripted, replay, exposure-matched predictor) built and smoke-tested; full run waits for `C1` agents |
-| 7 | Memory: controlled persistence test or narrower claim | Pending |
+| 7 | Memory: controlled persistence test or narrower claim | Test built (`itasorl/persistence.py`: replay, common state, hidden by physical factorial, reset), rule frozen (`docs/specs/2026-10-06-controlled-persistence-design.md`); runs on `C1` agents; historical claim narrowed in step 14 |
 | 8 | Behavioral and sensory controls | Pending |
 | 9 | Texture knockout interpretation | Pending |
 | 10 | Oracle and surrogate descriptions | Pending |
