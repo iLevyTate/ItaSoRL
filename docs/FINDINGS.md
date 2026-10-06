@@ -2978,3 +2978,38 @@ surrogate-trained policy of each `C1` seed, the matched assignment minus the bet
 policy is **-0.056** return (t-based 90% CI [-0.092, -0.020], 1 of 10 seeds positive),
 against -0.043 for the historical CPU cells (13.E). Knowing the world buys these policies no
 return, which is consistent with selection having no gradient toward a detector.
+
+### 17.12 What the corrected results change
+
+1. **The primary result holds at the registered budget, with one gate open.** Under the
+   corrected trainer, with each arm's own policy driving the episodes, the survival agent
+   trained with the next-observation auxiliary reads 0.733 [0.669, 0.797], above the
+   predictor and untrained arms by margins whose intervals clear 0.05. The correction moved
+   it by +0.003. L0 is open on the registered world-sample pair (0.559) and equivalent to
+   chance across eight independent pairs (0.493). Verdict: MET on the decodability
+   clauses, conditional on L0.
+2. **The auxiliary result is bounded by budget.** At 300 updates the arm without the decoder
+   reads 0.613 and does not meet the rule; the decoder adds +0.120 [+0.065, +0.174]. With
+   more training the arm without the decoder rises to 0.685 at 450 updates, and at that
+   budget the decoder arm still reads higher at about equal return.
+3. **"Survival-specific" is withdrawn.** On the survival agent's own streams, a trunk trained
+   only to predict reads the world as well as the survival trunk (0.721 and, at matched
+   training data, 0.738, against 0.733). The survival policy's trajectories carry the
+   difference; a trunk shaped by next-observation prediction keeps it (17.6, 17.10).
+4. **The controls name what they remove.** The best-fitting nonlinear control leaves 0.620,
+   under the bar, and a decoder of the observation stream alone reads 0.724; the state
+   carries about what its own input stream carries (17.8).
+5. **The common garden reads the body, not memory.** Retention under identical input lasts
+   a few steps; with memory zeroed the prefix condition still reads 0.662 (17.7).
+6. **Nothing here is specific to learned dynamics.** A hand-authored, temporally coherent
+   drag of the same one-step size is read through the same direction; white jitter is not
+   (17.9).
+7. **The evolutionary null stays restricted** to the pooled readout, which reads 0.609
+   where independent individuals average 0.649 (17.11).
+
+The claim the corrected record supports: in this world, an agent trained with survival and
+next-observation prediction at the registered budget carries a decodable difference between
+authentic and learned-surrogate dynamics in its recurrent state; the difference rides on the
+trajectories its foraging policy produces and is kept by a trunk shaped by the prediction
+objective; and the tested agents read coherent, state-dependent deviations from the true law,
+learned or hand-written, and not white noise of the same size.

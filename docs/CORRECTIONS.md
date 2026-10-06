@@ -164,3 +164,41 @@ sigma 0.02, not a universal ceiling.
 
 **What this does not change.** No organism number. Introducing early stopping now would make
 a different fingerprint, with its own gate 0 and its own provenance.
+
+## 2026-10-06: what the bootstrap correction did to the primary comparisons
+
+**Runs.** `C1` and `C2` (`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`)
+retrained the CPU device control and the CPU no-auxiliary run with the successor bootstrap and
+nothing else changed. The original code reproduced a committed historical cell bit for bit on
+the same container first, and in both corrected runs the predictor and untrained arms, which
+train no actor-critic, came out bit-identical to the historical cells. FINDINGS 17.
+
+**Effect, paired by seed against the historical runs.**
+
+| run | quantity | corrected | historical | difference |
+|---|---|---|---|---|
+| `C1` (auxiliary on) | survival target, drift 0.45 | 0.733 | 0.730 | +0.003 [-0.017, +0.024] |
+| `C1` | survival target, drift 0 (L0) | 0.559 | 0.529 | +0.031 [+0.011, +0.050] |
+| `C2` (auxiliary off) | survival target, drift 0.45 | 0.613 | 0.601 | +0.012 [-0.019, +0.044] |
+| `C2` | survival target, drift 0 (L0) | 0.515 | 0.514 | +0.001 [-0.014, +0.016] |
+
+**Verdict changes.** One. The historical device control met its rule with every gate; the
+corrected `C1` meets the decodability clauses and leaves the L0 gate open on the registered
+world-sample pair (TOST p = 0.939), so its verdict is now conditional on L0. Across eight
+independent world-sample pairs the same agents average 0.493 at drift 0 (FINDINGS 17.5). The
+no-auxiliary run is NOT MET before and after. The auxiliary contrast is +0.120 [+0.065,
++0.174] on the corrected runs against +0.128 historically.
+
+**What this does not establish.** The other survival-trained results (L2, B-v3, L1, the
+second capacity, the transfer probes, the second and third instances, the skill-matched
+baseline, the H2 batteries) were not rerun and keep their historical label. That the
+correction barely moved the two runs that were rerun does not show it would barely move
+those.
+
+**Found alongside, not caused by the correction.** The readouts on the corrected agents
+narrowed four claims independently of the trainer: the survival-over-predictor margin is not a
+difference of objective at matched input (17.6), the strongest well-fit control leaves a
+signal under the bar (17.8), the common garden reads the physical footprint (17.7), and a
+hand-authored coherent perturbation is read like the learned one (17.9). These are recorded as
+claim decisions in `docs/REVISION_2026-10.md`.
+
