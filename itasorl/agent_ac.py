@@ -133,6 +133,17 @@ class RecurrentActorCritic(nn.Module):
         return (torch.stack(logps, 1), torch.stack(values, 1),
                 torch.stack(ents, 1), torch.stack(states, 1))
 
+    @torch.no_grad()
+    def successor_value(self, h_last: torch.Tensor, last_act: torch.Tensor,
+                        next_obs: torch.Tensor) -> torch.Tensor:
+        """Critic value of the state AFTER an episode's final recorded action, for the GAE
+        truncation bootstrap. h_last (B,H) is the recurrent state after the final stored
+        observation, last_act (B,A) the env action taken there (fed as the previous action,
+        exactly as the rollout would on the next step), next_obs (B,O) the normalized
+        successor observation. One GRU step and the critic, no gradient, no env step."""
+        h_next = self.step_state(next_obs, last_act, h_last)
+        return self.critic(h_next).squeeze(-1)
+
     def predict_next(self, states: torch.Tensor, env_act_seq: torch.Tensor) -> torch.Tensor:
         """Decoder auxiliary: predict obs_{t+1} from (h_t, env_act_t). (B,T,O)."""
         return self.decoder(torch.cat([states, env_act_seq], dim=-1))

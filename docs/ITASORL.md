@@ -46,9 +46,10 @@ ground-truth-measured version still unclaimed.
 
 ## Adjacent work
 
-Simulation detection shows up in five neighboring fields. Each has a piece.
-None runs the from-scratch, ground-truth, unrewarded measurement this project
-is built for.
+Simulation detection shows up in five neighboring fields, and latent-context
+inference in meta-RL is the closest of all (it is compared below, under "Latent-context
+inference and meta-RL"). Each supplies a piece. The specific differences are stated per
+field rather than as a blanket claim that no one has done this.
 
 ### 1. Generative social simulacra - and semantic contamination
 
@@ -109,6 +110,62 @@ Every located prior work fails at least one axis, and most fail three:
 - **Incidental-encoding probe studies** - AtariARI (Anand et al., NeurIPS 2019, arXiv:1906.08226) and Othello-GPT (Li et al., ICLR 2023, arXiv:2210.13382) established post-hoc probing of never-trained-on variables. Fails axis 3: both probe *within-world* variables of a single fixed generative process, never *which* of two processes is running.
 - **Agent-side dynamics-mismatch detection** - GalilAI (AISTATS 2022, arXiv:2110.15489) has an agent actively experiment to decide whether its dynamics changed; RAPT (2026, arXiv:2602.01515) monitors sim-to-real mismatch online on a real humanoid. Fails axes 3-4: detection is the *explicit designed objective* - these live on the oracle side of our gap, not the incidental-encoding side.
 - **Necessity-of-world-models theory** - Richens et al. (ICML 2025, arXiv:2506.01622) prove a generally-capable agent must encode an extractable model of its environment's dynamics. Single environment, no surrogate discrimination, no probes on recurrent state; the closest *theoretical* antecedent to the incidental-encoding framing.
+
+### Latent-context inference and meta-RL (added 2026-10, revision step 15)
+
+The nearest technical neighbor is meta-reinforcement learning, where an agent must infer
+which of several environments it is in and the inferred context is often decodable from its
+state. The comparison sharpens what this project measures and what it does not.
+
+- **RL^2** (Duan et al., arXiv:1611.02779) trains a recurrent policy across a distribution of
+  MDPs, so its hidden state implements task inference because the training distribution
+  rewards it. **Mikulik et al.** (NeurIPS 2020, arXiv:2010.11223) probe such meta-trained
+  agents and find their states track the Bayes-optimal task posterior. That is incidental in
+  the sense that no loss names the task, but the agent is trained across tasks, so inferring
+  the task is instrumental by construction.
+- **VariBAD** (Zintgraf et al., ICLR 2020, arXiv:1910.08348) makes the inference explicit: a
+  recurrent encoder produces a belief over a latent task, trained with a decoder that
+  reconstructs rewards and transitions, and the policy conditions on that belief. Its
+  structure, a recurrent state plus a transition-predicting decoder, resembles the
+  decoder-carrying survival agent here, which is the configuration where the L3 condition is
+  decodable (FINDINGS 10.8). The difference is the training distribution and the objective:
+  VariBAD trains across tasks with an explicit evidence lower bound on a task latent; each
+  agent here trains in one condition only and no term targets the condition.
+- **PEARL** (Rakelly et al., ICML 2019, arXiv:1903.08254) infers a probabilistic context
+  variable from transitions with an encoder trained through the critic and a KL term,
+  separating task inference from control. Explicit context inference again.
+- **RMA** (Kumar et al., RSS 2021, arXiv:2107.04034) supervises an environment-factor encoder
+  on privileged simulator parameters, then trains an adaptation module to regress that factor
+  from the state-action history. This is supervised system identification, the analogue of
+  this project's sysid ceiling control (FINDINGS 7.1), not of its headline readout.
+
+What separates this project from all four: (1) **no training distribution over conditions.**
+Every agent trains in a single world (authentic or surrogate) and is probed on both
+(`docs/METHODS_ARMS.md`), so decodability of the condition is a property of how a
+single-world representation generalizes, not of task inference the training rewarded;
+(2) **no objective term targets the condition** (readout, not reward); (3) **the condition is
+substrate authenticity** (the true law versus a learned approximation of it) rather than a
+task parameter, with a privileged detector calibrated on the same pairs. The meta-RL results
+predict that an agent trained across both worlds would come to encode the condition; the
+mixture design that would test it here is a new experiment, not one these runs performed.
+
+**What a reader learns from this measurement study.** That a privileged detector can find a
+dynamics flaw does not settle whether an agent that lives with it represents it; the gap is
+measurable and depends on how the agent was trained and where its policy takes it. In this
+world the learned-law condition is decodable from the state of agents trained with survival
+plus next-observation prediction at the registered budget (corrected trainer, FINDINGS 17),
+and hand-authored flaws that a handicapped detector finds weaker did not meet the encoding
+criterion. The corrected readouts say what carries the signal: the trajectories a foraging
+policy produces, kept by a trunk shaped by next-observation prediction. At matched input a
+prediction-only trunk reads the world as well as the survival trunk, and a hand-written
+coherent perturbation is read the same way as the learned one, so the result is about
+coherent, state-dependent deviations from the true law reaching a predictive state, not
+about learnedness or about the survival objective as such. The meta-RL comparison above
+applies directly: the agents here infer nothing they were trained to infer, and the
+condition becomes readable because their behavior exposes it. The project also contributes a
+measurement apparatus with its failure modes documented: fold-partition dependence,
+world-sample conditioning of the L0 gate, controls that name their basis, and a trainer
+defect found and corrected (`docs/CORRECTIONS.md`).
 
 **Novelty posture.** Global novelty across all historical compute paradigms cannot be
 certified; absence of prior work can only be searched for, not proven. With the
@@ -459,6 +516,13 @@ Identifiers and lead authors are given below. The recent (2025-2026) entries wer
 - Hafner, Pasukonis, Ba & Lillicrap - *Mastering Diverse Domains through World Models* (DreamerV3). arXiv:2301.04104 (2023); also Nature (2025). The world-model backbone the architecture references.
 - Lambert, Amos, Yadan & Calandra - *Objective Mismatch in Model-based Reinforcement Learning.* arXiv:2002.04523; PMLR v120 (L4DC 2020). Why predictive accuracy and the intended downstream construct can diverge.
 - Internò, Yamaguchi, Amdahl-Culleton, Olhofer, Klindt & Hammer - *The Observer Effect in World Models: Invasive Adaptation Corrupts Latent Physics.* arXiv:2602.12218 (Feb 2026). Direct support for frozen, low-capacity, non-invasive evaluation: their PhyIP protocol shows low-capacity linear probes on frozen representations recover latent physics that adaptation-based (fine-tuning / high-capacity) probing collapses.
+
+**Meta-RL and latent-context inference (added 2026-10)**
+- Duan, Schulman, Chen, Bartlett, Sutskever & Abbeel - *RL^2: Fast Reinforcement Learning via Slow Reinforcement Learning.* arXiv:1611.02779 (2016).
+- Rakelly, Zhou, Quillen, Finn & Levine - *Efficient Off-Policy Meta-Reinforcement Learning via Probabilistic Context Variables* (PEARL). arXiv:1903.08254; ICML 2019.
+- Zintgraf, Shiarlis, Igl, Schulze, Gal, Hofmann & Whiteson - *VariBAD: A Very Good Method for Bayes-Adaptive Deep RL via Meta-Learning.* arXiv:1910.08348; ICLR 2020.
+- Mikulik, Delétang, McGrath, Genewein, Martic, Legg & Ortega - *Meta-trained agents implement Bayes-optimal agents.* arXiv:2010.11223; NeurIPS 2020.
+- Kumar, Fu, Pathak & Malik - *RMA: Rapid Motor Adaptation for Legged Robots.* arXiv:2107.04034; RSS 2021.
 
 **Probing and interpretability**
 - Hewitt & Liang - *Designing and Interpreting Probes with Control Tasks.* arXiv:1909.03368; EMNLP 2019. The basis for probe selectivity and anti-overfitting controls (H4).

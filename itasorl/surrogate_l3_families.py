@@ -82,6 +82,59 @@ def make_g_gn(*, sigma_v: float, params, seed: int = 0) -> GNoise:
                   dt=float(params.dt), seed=int(seed))
 
 
+class GQuadDrag:
+    """Authentic law plus a deterministic, hand-authored quadratic drag (revision step 9):
+
+        vel_next = (1 - drag0*dt)*vel + a*dt - eps * |vel| * vel * dt
+
+    A STRUCTURED perturbation with no learned component: smooth, state-dependent, and
+    temporally coherent (it acts on the same velocity the trajectory carries), where G_gn
+    is white noise and the learned G is an approximation error. `eps` is the difficulty
+    knob, calibrated through gate 0 like every other family."""
+
+    def __init__(self, eps: float, drag0: float, dt: float) -> None:
+        self._eps, self._drag0, self._dt = float(eps), float(drag0), float(dt)
+
+    def __call__(self, vel, a, drag=None) -> np.ndarray:
+        v = np.asarray(vel, float)
+        base = (1.0 - self._drag0 * self._dt) * v + np.asarray(a, float) * self._dt
+        return base - self._eps * float(np.linalg.norm(v)) * v * self._dt
+
+
+def make_g_qd(*, eps: float, params) -> GQuadDrag:
+    """Quadratic-drag family on a uniform-drag world (same refusal as make_g_cd)."""
+    if params.k_land != params.k_water:
+        raise ValueError("make_g_qd requires a uniform-drag world (k_land == k_water)")
+    return GQuadDrag(eps=float(eps), drag0=float(params.k_land), dt=float(params.dt))
+
+
+def perturbation_profile(g, *, params, n_eps: int = 60, steps: int = 40, seed: int = 77,
+                         ray_steps: int = 5) -> dict:
+    """Magnitude and temporal structure of a family's deviation from the authentic law,
+    on held-out authentic transitions (scripted policy, seeds disjoint from G's training
+    data at seed 0): RMS one-step deviation, mean deviation (bias), the share of deviation
+    variance a linear map of (vel, a) explains, and the lag-1 autocorrelation of the
+    deviation along trajectories. Used to match perturbations (step 9) and to report the
+    surrogate's held-out error (step 10)."""
+    from .surrogate_l3 import collect_authentic_transitions
+    X, Y = collect_authentic_transitions(n_eps=n_eps, steps=steps, params=params,
+                                         ray_steps=ray_steps, seed0=seed)
+    if hasattr(g, "reseed"):
+        g.reseed(seed)
+    pred = np.stack([np.asarray(g(x[:2], x[2:], None), float) for x in X])
+    dev = pred - Y.astype(float)
+    rms = float(np.sqrt((dev ** 2).sum(1).mean()))
+    Z = np.c_[X.astype(float), np.ones(len(X))]
+    coef, *_ = np.linalg.lstsq(Z, dev, rcond=None)
+    lin_r2 = 1.0 - float(((dev - Z @ coef) ** 2).sum()) / max(float(((dev - dev.mean(0)) ** 2).sum()), 1e-30)
+    d = dev.reshape(n_eps, steps, 2)
+    num = float((d[:, 1:] * d[:, :-1]).sum())
+    den = float((d ** 2).sum())
+    return {"rms_one_step": rms, "mean_dev": dev.mean(0).tolist(),
+            "linear_explained_share": lin_r2, "lag1_autocorr": num / den if den > 0 else float("nan"),
+            "n_transitions": int(len(X))}
+
+
 class GRff:
     """Random-Fourier-features ridge velocity law: z(x) = sqrt(2/D) cos(Wx + b)
     on normalized inputs, closed-form ridge readout. Smooth global sinusoidal
@@ -124,6 +177,7 @@ def fit_g_rff(*, D: int = 32, lam: float = 1e-3, ell: float = 1.0,
 RFF_SWEEP = (8, 16, 32, 64, 128)          # spec: ascending, freeze FIRST in-band
 CD_SWEEP = (0.05, 0.1, 0.2, 0.4, 0.8)     # spec: coarse grid, then bisect
 GN_SWEEP = (0.0025, 0.005, 0.01, 0.02, 0.04)  # H2 knockout; brackets sigma_meas=0.02
+QD_SWEEP = (0.5, 1.0, 2.0, 4.0, 8.0, 16.0)    # structured knockout (revision step 9)
 
 
 def gate0_candidates(family: str, *, params, sweep=None, **fit_kwargs):
@@ -143,5 +197,8 @@ def gate0_candidates(family: str, *, params, sweep=None, **fit_kwargs):
         for sigma_v in sorted(sweep) if sweep is not None else GN_SWEEP:
             yield (("sigma_v", float(sigma_v)),
                    make_g_gn(sigma_v=float(sigma_v), params=params, seed=seed))
+    elif family == "qd":
+        for eps in sorted(sweep) if sweep is not None else QD_SWEEP:
+            yield ("eps", float(eps)), make_g_qd(eps=float(eps), params=params)
     else:
         raise ValueError(f"unknown family: {family!r}")

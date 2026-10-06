@@ -25,6 +25,7 @@ Pipeline (all knobs in run_expB2.py):
 
 from __future__ import annotations
 
+import copy
 import os
 
 import numpy as np
@@ -35,7 +36,7 @@ from .experiment_a import grouped_auroc
 from .experiment_b import (episode_features, episode_features_full, episode_features_var,
                            probe_auroc, scripted_policy)
 from .patch_of_earth import PatchOfEarthV0
-from .stats import auroc_ci
+from .stats import auroc_ci, cluster_auroc_ci
 from .world import SeedBundle, WorldParams
 
 
@@ -173,12 +174,25 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
                         n_eps: int, max_steps: int, device: str, seed_base: int,
                         ray_steps: int = 5, deterministic: bool = False, update_norm: bool = True,
                         shaping_coef: float = 0.0, gamma: float = 0.99,
-                        food_override: dict | None = None):
+                        food_override: dict | None = None, record_raw: bool = False):
     """Run n_eps parallel envs to death/max_steps. Returns padded torch tensors on
     `device` for the A2C update plus per-episode scalars. h0 is zero per episode.
 
     shaping_coef>0 adds potential-based food-approach shaping to the TRAINING reward
-    (optimal-policy-preserving); `ret`/lengths still report the TRUE task outcome."""
+    (optimal-policy-preserving); `ret`/lengths still report the TRUE task outcome.
+
+    The max_steps cutoff is a SAMPLING truncation of a continuing task: the world has no
+    horizon (death is its only terminal event) and nothing in the observation says how
+    many rollout steps remain. For every episode still alive at the cutoff the batch
+    therefore keeps what the truncation bootstrap needs: `next_obs`, the successor
+    observation after the final recorded action, and `last_env_act`, that final action.
+    Normalization convention: `next_obs` is normalized with the normalizer exactly as it
+    stood for the episode's final stored observation, and it is NOT added to the running
+    statistics (it was never fed to the agent). Both are zero for episodes that died,
+    whose bootstrap is zero.
+
+    record_raw=True also returns "obs_raw", the un-normalized observations (padded like
+    "obs"), for training another arm on these exact trajectories (revision step 6)."""
     A = agent.act_dim
     envs = [make_world(params, drift_sigma, ray_steps, food_override) for _ in range(n_eps)]
     obs = np.stack([e.reset(_seeds(seed_base + i)).obs for i, e in enumerate(envs)]).astype(np.float64)
@@ -188,6 +202,7 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
     phi_prev = np.array([_food_potential(e) for e in envs])
 
     seq_obs = [[] for _ in range(n_eps)]      # normalized obs fed to the agent
+    seq_obs_raw = [[] for _ in range(n_eps)]  # raw obs (only kept when record_raw)
     seq_actin = [[] for _ in range(n_eps)]    # prev env action fed to the GRU
     seq_raw = [[] for _ in range(n_eps)]      # raw sampled action (for log-prob)
     seq_env = [[] for _ in range(n_eps)]      # env action applied (decoder conditioning)
@@ -210,6 +225,8 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
             if not active[i]:
                 continue
             seq_obs[i].append(obs_n[i].astype(np.float32))
+            if record_raw:
+                seq_obs_raw[i].append(obs[i].astype(np.float32))
             seq_actin[i].append(prev_env_act[i].detach().cpu().numpy())
             seq_raw[i].append(raw_act[i].detach().cpu().numpy())
             seq_env[i].append(env_np[i])
@@ -236,6 +253,14 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
     lengths = np.array([len(s) for s in seq_obs])
     Tmax = int(lengths.max())
     O, Adim = agent.obs_dim, A
+    # Truncation-bootstrap inputs (see the docstring): alive at the cutoff = not terminated.
+    truncated = ~terminated
+    next_obs = np.zeros((n_eps, O), np.float32)
+    last_env_act = np.zeros((n_eps, Adim), np.float32)
+    if truncated.any():
+        next_obs[truncated] = norm(obs[truncated]).astype(np.float32)
+        for i in np.flatnonzero(truncated):
+            last_env_act[i] = seq_env[i][-1]
 
     def pad(seqs, width):
         out = np.zeros((n_eps, Tmax, width), np.float32)
@@ -264,36 +289,73 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
         "drift_w": torch.as_tensor(drift, device=device),
         "mask": torch.as_tensor(mask, device=device),
         "terminated": torch.as_tensor(terminated.astype(np.float32), device=device),
+        "next_obs": torch.as_tensor(next_obs, device=device),
+        "last_env_act": torch.as_tensor(last_env_act, device=device),
         "lengths": lengths,
         "ret": true_ret,
         "speed": np.array([np.mean(s) if s else 0.0 for s in speeds]),
     }
+    if record_raw:
+        batch["obs_raw"] = pad(seq_obs_raw, O)
     return batch
 
 
-def compute_gae(reward, value, mask, terminated, gamma, lam):
-    """Per-episode GAE. reward/value/mask (B,T); terminated (B,). Bootstrap is 0 for
-    episodes that ended in death, else the last in-episode value (truncation)."""
+GAE_BOOTSTRAPS = ("successor", "pre_transition")
+
+
+def compute_gae(reward, value, mask, terminated, gamma, lam, *, bootstrap):
+    """Per-episode GAE. reward/value/mask (B,T); terminated (B,); bootstrap (B,).
+
+    `bootstrap` is the value of each episode's SUCCESSOR state, the state after its final
+    recorded action (see truncation_bootstrap). It enters only the final valid residual,
+    r_T + gamma * bootstrap - V_T, and only for episodes alive at the cutoff: an episode
+    that ended in death bootstraps from 0 whatever is passed. Padded slots past an
+    episode's end never contribute."""
     B, T = reward.shape
     adv = torch.zeros_like(reward)
-    last_idx = mask.sum(1).long().clamp(min=1) - 1  # final valid step per episode
-    boot = torch.where(terminated > 0.5, torch.zeros(B, device=reward.device),
-                       value.gather(1, last_idx.unsqueeze(1)).squeeze(1))
+    boot = torch.where(terminated > 0.5, torch.zeros_like(bootstrap), bootstrap)
     gae = torch.zeros(B, device=reward.device)
     next_v = boot
     # next_mask = mask of step t+1 (0 at the final valid step). It gates the GAE
     # accumulator so the carry resets at the episode boundary; using the CURRENT step's
     # mask instead would leak the padded-step delta into the last valid step's advantage.
+    # Masking is by selection (torch.where), not multiplication, so a padded slot holding an
+    # extreme or non-finite value cannot reach a valid step (inf * 0 would be NaN).
     next_mask = torch.zeros(B, device=reward.device)
+    zero = torch.zeros(B, device=reward.device)
     for t in reversed(range(T)):
-        m = mask[:, t]
-        delta = reward[:, t] + gamma * next_v - value[:, t]
-        gae = delta + gamma * lam * next_mask * gae
-        adv[:, t] = gae * m
-        next_v = torch.where(m > 0.5, value[:, t], next_v)
-        next_mask = m
-    ret = adv + value
+        valid = mask[:, t] > 0.5
+        delta = torch.where(valid, reward[:, t] + gamma * next_v - value[:, t], zero)
+        gae = delta + gamma * lam * torch.where(next_mask > 0.5, gae, zero)
+        adv[:, t] = torch.where(valid, gae, zero)
+        next_v = torch.where(valid, value[:, t], next_v)
+        next_mask = mask[:, t]
+    ret = torch.where(mask > 0.5, adv + value, torch.zeros_like(value))
     return adv, ret
+
+
+@torch.no_grad()
+def truncation_bootstrap(agent: RecurrentActorCritic, batch: dict, states: torch.Tensor,
+                         value: torch.Tensor, mode: str = "successor") -> torch.Tensor:
+    """Bootstrap value per episode for compute_gae, without gradients and without another
+    environment step.
+
+    successor       (corrected, default): run the GRU once more from the state after the
+                    final stored observation, feeding the successor observation with the
+                    final env action as the previous action, and read the critic there.
+    pre_transition  (historical, 679fee6 to 4b6e1f3): the critic value at the final
+                    stored step, i.e. BEFORE the final transition. Kept only so the
+                    published runs can be reproduced bit for bit; it is wrong for a
+                    continuing task and wrong for a terminal horizon alike.
+    Terminated episodes are zeroed inside compute_gae in both modes."""
+    if mode not in GAE_BOOTSTRAPS:
+        raise ValueError(f"unknown gae bootstrap {mode!r}; expected one of {GAE_BOOTSTRAPS}")
+    B = value.shape[0]
+    last_idx = batch["mask"].sum(1).long().clamp(min=1) - 1   # final valid step per episode
+    if mode == "pre_transition":
+        return value.gather(1, last_idx.unsqueeze(1)).squeeze(1).detach()
+    h_last = states[torch.arange(B, device=states.device), last_idx].detach()
+    return agent.successor_value(h_last, batch["last_env_act"], batch["next_obs"])
 
 
 def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, updates: int = 200,
@@ -302,11 +364,34 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
                        ent_coef: float = 0.01, vf_coef: float = 0.5, wm_coef: float = 1.0,
                        shaping_coef: float = 0.5, max_steps: int = 80, ray_steps: int = 5,
                        seed: int = 0, device: str | None = None, log_every: int = 0,
-                       sysid_aux: bool = False, sysid_coef: float = 1.0):
+                       sysid_aux: bool = False, sysid_coef: float = 1.0,
+                       gae_bootstrap: str = "successor", snapshot_at=(),
+                       stats: dict | None = None, log_batches: list | None = None):
     """Train the survival actor-critic. sysid_aux adds a CEILING-control auxiliary loss
     that regresses h_t onto the scalar drag-drift - a positive control that deliberately
     breaks readout-not-reward to measure whether the trunk CAN linearly encode world
-    identity. Run it separately from the headline; never fold its target into the H_B2 verdict."""
+    identity. Run it separately from the headline; never fold its target into the H_B2 verdict.
+
+    gae_bootstrap selects the truncation bootstrap (truncation_bootstrap): "successor" is
+    the corrected value of the state after the final recorded action; "pre_transition"
+    reproduces the historical trainer that produced every survival result up to 4b6e1f3
+    (docs/CORRECTIONS.md, 2026-10-06).
+
+    snapshot_at: update counts u < updates at which a frozen copy of (agent, norm) is kept.
+    Training is sequential and deterministic, so the copy after u updates is the agent a
+    run with updates=u would return. When given, the return value gains a fourth element
+    {u: (agent, norm)} (budget curves, revision step 11). `stats`, if a dict, receives
+    "env_steps": the cumulative environment steps after each update. `log_batches`, if a
+    list, receives every training batch as numpy arrays (raw observations, env actions,
+    mask): the exact data this agent was trained on (revision step 6). Logging changes no
+    computation."""
+    if gae_bootstrap not in GAE_BOOTSTRAPS:
+        raise ValueError(f"unknown gae_bootstrap {gae_bootstrap!r}; expected one of {GAE_BOOTSTRAPS}")
+    snapshot_at = sorted({int(u) for u in snapshot_at})
+    if any(u < 1 or u >= updates for u in snapshot_at):
+        raise ValueError(f"snapshot_at must lie in [1, updates); got {snapshot_at} for updates={updates}")
+    snaps: dict = {}
+    env_steps: list[int] = []
     device = device or default_device()
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -321,11 +406,18 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
         seed_base = 100_000 + seed * 10_000 + u * n_eps
         batch = collect_episodes_ac(agent, norm, params, drift_sigma, n_eps, max_steps,
                                     device, seed_base, ray_steps, deterministic=False,
-                                    shaping_coef=shaping_coef, gamma=gamma)
+                                    shaping_coef=shaping_coef, gamma=gamma,
+                                    record_raw=log_batches is not None)
+        if log_batches is not None:
+            log_batches.append({"obs_raw": batch["obs_raw"],
+                                "env_act": batch["env_act"].detach().cpu().numpy(),
+                                "mask": batch["mask"].detach().cpu().numpy()})
         logp, value, ent, states = agent.score_actions(batch["obs"], batch["act_in"], batch["raw"],
                                                         agent.initial_state(n_eps, device))
         with torch.no_grad():
-            adv, ret = compute_gae(batch["reward"], value, batch["mask"], batch["terminated"], gamma, lam)
+            boot = truncation_bootstrap(agent, batch, states, value, gae_bootstrap)
+            adv, ret = compute_gae(batch["reward"], value, batch["mask"], batch["terminated"],
+                                   gamma, lam, bootstrap=boot)
             am = batch["mask"].sum()
             adv = (adv - (adv * batch["mask"]).sum() / am) / ((adv * batch["mask"]).std() + 1e-6)
         m = batch["mask"]
@@ -346,10 +438,18 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
         torch.nn.utils.clip_grad_norm_(agent.parameters(), 1.0)
         opt.step()
         history.append(float(batch["ret"].mean()))
+        env_steps.append((env_steps[-1] if env_steps else 0) + int(batch["lengths"].sum()))
         if log_every and (u % log_every == 0 or u == updates - 1):
             print(f"   update {u:4d}  mean_return={np.mean(history[-log_every:]):+.3f}  "
                   f"len={batch['lengths'].mean():.0f}  ent={float(entropy):.2f}")
+        if (u + 1) in snapshot_at:
+            snap_norm = copy.deepcopy(norm).freeze()
+            snaps[u + 1] = (copy.deepcopy(agent).train(False), snap_norm)
     norm.freeze()
+    if stats is not None:
+        stats["env_steps"] = env_steps
+    if snapshot_at:
+        return agent, norm, history, snaps
     return agent, norm, history
 
 
@@ -673,7 +773,8 @@ def train_predictor_only(drift_sigma, params=None, *, n_eps=16, updates=200, emb
 # length constant across pools, so length/lifetime cannot leak the label.
 # ---------------------------------------------------------------------------
 def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_base, ray_steps,
-                 return_anchors: bool = False, obs_mask=None, return_obs: bool = False):
+                 return_anchors: bool = False, obs_mask=None, return_obs: bool = False,
+                 return_index: bool = False, return_actions: bool = False):
     """Collect up to n_eps episodes of EXACTLY `steps` length (drop early deaths) with
     the frozen deterministic agent. Returns H (k,steps,Hdim), speeds (k,).
 
@@ -695,10 +796,19 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
     (k, steps, obs_dim), the exact per-step input the recurrent trunk received, as
     the last element of the tuple. Used by the sensory-echo control
     (docs/specs/2026-09-26-l3-sensory-echo-control-design.md); it changes no other
-    output."""
+    output.
+
+    `return_actions=True` appends the env action taken at every step (k, steps, act_dim);
+    the GRU's previous-action input at step t is the action of step t-1 (zeros at t = 0).
+    Inserted before the index array when both are requested (revision step 8).
+
+    `return_index=True` appends the episode indices i (world seed seed_base + i) that
+    survived to full length, so two pools drawn from the same seeds can be paired
+    (itasorl/l0_audit.py, revision step 5)."""
     if obs_mask is not None:
         obs_mask = np.asarray(obs_mask, dtype=np.float64)
     Hs, spd, energy, food, drag, reward, traces, obs_traces = [], [], [], [], [], [], [], []
+    kept, act_traces = [], []
     for i in range(n_eps):
         w = make_world(params, drift_sigma, ray_steps)
         w.reset(_seeds(seed_base + i))
@@ -708,7 +818,7 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
         if obs_mask is not None:
             obs = obs * obs_mask
         Hrow, sp, en, fd, dg, px, py, hd, died = [], [], [], [], [], [], [], [], False
-        Orow = []
+        Orow, Arow = [], []
         rw = 0.0
         for _ in range(steps):
             x_in = norm(obs)
@@ -716,7 +826,9 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             _, env_act, _, _, h = agent.act(obs_t, prev, h, deterministic=True)
             Hrow.append(h[0].detach().cpu().numpy())
             Orow.append(np.asarray(x_in, np.float32))
-            r = w.step(env_act[0].detach().cpu().numpy().astype(np.float32))
+            a_np = env_act[0].detach().cpu().numpy().astype(np.float32)
+            Arow.append(a_np)
+            r = w.step(a_np)
             sp.append(float(np.linalg.norm(w.vel)))
             en.append(float(w.E / w.Emax))
             fd.append(-_food_potential(w))           # >=0 distance to nearest pellet
@@ -733,6 +845,7 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
                 died = True
                 break
         if not died and len(Hrow) == steps:
+            kept.append(i)
             Hs.append(np.asarray(Hrow, np.float32))
             spd.append(float(np.mean(sp)))
             energy.append(float(np.mean(en)))
@@ -741,6 +854,7 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             reward.append(rw)
             traces.append(np.stack([sp, en, fd, dg, px, py, hd], axis=1).astype(np.float32))
             obs_traces.append(np.stack(Orow).astype(np.float32))
+            act_traces.append(np.stack(Arow))
     H = np.stack(Hs) if Hs else np.zeros((0, steps, agent.hidden), np.float32)
     if return_anchors:
         Bt = np.stack(traces) if traces else np.zeros((0, steps, 7), np.float32)
@@ -752,26 +866,45 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
         obs_dim = int(norm.mean.shape[0]) if hasattr(norm, "mean") else 0
         Ot = np.stack(obs_traces) if obs_traces else np.zeros((0, steps, obs_dim), np.float32)
         out = out + (Ot,)
+    if return_actions:
+        At = np.stack(act_traces) if act_traces else np.zeros((0, steps, agent.act_dim), np.float32)
+        out = out + (At,)
+    if return_index:
+        out = out + (np.asarray(kept, dtype=int),)
     return out
 
 
 def _auroc_with_ci(X, y, seed: int = 0, groups: np.ndarray | None = None) -> tuple[float, float, float]:
-    """5-fold grouped CV AUROC plus a stratified-bootstrap 95% CI from its out-of-fold
-    predictions (no model refit). `groups` defaults to one group per row (independent
-    episodes); matched-pair callers pass a shared pair id for the two members so
-    GroupKFold never splits a pair across folds."""
+    """5-fold grouped CV AUROC plus a 95% bootstrap interval from its out-of-fold predictions
+    (no model refit). `groups` defaults to one group per row (independent episodes);
+    matched-pair callers pass a shared pair id for the two members so GroupKFold never
+    splits a pair across folds.
+
+    What the interval is (revision step 13): the point estimate is the MEAN of the fold
+    AUROCs, while the interval is a bootstrap of the POOLED out-of-fold AUROC, a different
+    quantity; both are conditional on the fitted probes. With paired groups the bootstrap
+    resamples whole pairs (`cluster_auroc_ci`); before 2026-10-06 it resampled rows, treating
+    the two members of a pair as independent (historical cg_tail_lo/hi). The aligned
+    interval for the mean-of-folds estimator is `stats.fold_mean_auroc_ci`."""
     if groups is None:
         groups = np.arange(len(y))
     auc, yv, pv = grouped_auroc(X, y, groups, return_oof=True)
     if yv.size == 0:
         return auc, float("nan"), float("nan")
-    lo, hi = auroc_ci(yv, pv, seed=seed)
+    if len(np.unique(groups)) < len(groups):
+        from itasorl import folds as _folds
+        gv = np.concatenate([np.asarray(groups)[te] for _, te in _folds.split(groups)
+                             if len(np.unique(np.asarray(y)[te])) > 1])
+        lo, hi = cluster_auroc_ci(yv, pv, gv, seed=seed)
+    else:
+        lo, hi = auroc_ci(yv, pv, seed=seed)
     return auc, lo, hi
 
 
 def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray_steps=5,
                    device=None, seed=0, dump_path=None, leak_margin=0.1, return_pools=False,
-                   obs_mask=None) -> dict:
+                   obs_mask=None, seed_base_auth: int = 800_000,
+                   seed_base_surr: int = 850_000) -> dict:
     """Experiment-B-style probe: decode world identity across independent episodes.
     Reports the headline `target` (LEVEL features) with a bootstrap CI, plus two
     additive readouts that probe a VOLATILITY signature - `target_var` (dispersion
@@ -783,13 +916,17 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
     summed reward, so the headline reads the artifact not 'how much it ate'), and per-world
     survivor/death counts (`deaths_auth`/`deaths_surr`) that bound the survivorship
     asymmetry from dropping early deaths. If `dump_path` is set, persists the raw recurrent
-    states AND per-episode reward so both probes can be recomputed offline (no GPU)."""
+    states AND per-episode reward so both probes can be recomputed offline (no GPU).
+
+    The two pools are drawn from DIFFERENT world samples (seed bases 800000 and 850000 by
+    default), and every agent seed is scored on the same two samples. Other seed bases give
+    independent world samples for the L0 audit (itasorl/l0_audit.py, revision step 5)."""
     device = device or default_device()
     Ha, spa, ena, fda, dra, rwa, bta = collect_pool(agent, norm, params, 0.0, n_eps, steps,
-                                                    device, 800_000, ray_steps,
+                                                    device, seed_base_auth, ray_steps,
                                                     return_anchors=True, obs_mask=obs_mask)
     Hs, sps, ens, fds, drs, rws, bts = collect_pool(agent, norm, params, drift_sigma, n_eps,
-                                                    steps, device, 850_000, ray_steps,
+                                                    steps, device, seed_base_surr, ray_steps,
                                                     return_anchors=True, obs_mask=obs_mask)
     if dump_path is not None:
         d = os.path.dirname(dump_path)

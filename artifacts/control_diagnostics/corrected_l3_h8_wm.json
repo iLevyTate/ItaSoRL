@@ -1,0 +1,3323 @@
+{
+ "generated_by": "scripts/run_control_diagnostics.py",
+ "run_dir": "/home/user/ItaSoRL/fullruns/corrected_l3_h8_wm",
+ "config": {
+  "n_eps": 110,
+  "steps": 24,
+  "ray_steps": 5,
+  "gru_epochs": 60
+ },
+ "fold_scheme": "explicit",
+ "fold_version": "explicit-v1",
+ "all_dumps_bit_match": true,
+ "cells": [
+  {
+   "drift": 0.45,
+   "seed": 0,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5318181818181819,
+   "resid_trace_published": 0.5309917355371901,
+   "resid_obs_published": 0.5074380165289256,
+   "resid_trace": {
+    "auroc": 0.5309917355371901,
+    "nuisance_r2_heldout": 0.10337846973686368,
+    "nuisance_from_residual_r2_heldout": -0.023859145392751024,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.462396694214876,
+    "nuisance_r2_heldout": 0.3616225286039656,
+    "nuisance_from_residual_r2_heldout": -0.022475012152033756,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5074380165289256,
+    "nuisance_r2_heldout": 0.8549318108973221,
+    "nuisance_from_residual_r2_heldout": -0.02378981840348233,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.4644628099173554,
+    "nuisance_r2_heldout": -0.6090176714411536,
+    "nuisance_from_residual_r2_heldout": -0.01879384230873593,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.4805785123966942,
+    "nuisance_r2_heldout": -0.6964658695036802,
+    "nuisance_from_residual_r2_heldout": -0.018805305589964273,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5636363636363637,
+    "nuisance_r2_heldout": 0.8555828995760841,
+    "nuisance_from_residual_r2_heldout": -0.1902204150012611,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      73,
+      73,
+      67,
+      73,
+      66
+     ],
+     "final_loss": [
+      0.0068589115025179375,
+      0.0068915283040881644,
+      0.007267010484807434,
+      0.006982655963924069,
+      0.0071380536626714924
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.521900826446281,
+   "seq_gru": {
+    "auroc": 0.5628099173553719,
+    "final_train_loss": [
+     0.0003788729293525896,
+     0.0003750369148540565,
+     0.0003019645056073469,
+     0.0003828111856075173,
+     0.00029554449826140296
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5,
+   "seconds": 58.0
+  },
+  {
+   "drift": 0.45,
+   "seed": 1,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.6144628099173554,
+   "resid_trace_published": 0.6041322314049588,
+   "resid_obs_published": 0.5520661157024793,
+   "resid_trace": {
+    "auroc": 0.6037190082644628,
+    "nuisance_r2_heldout": 0.12220822705549066,
+    "nuisance_from_residual_r2_heldout": -0.021084969302756475,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.6152892561983471,
+    "nuisance_r2_heldout": 0.4104857856990998,
+    "nuisance_from_residual_r2_heldout": -0.019504594225557968,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5520661157024793,
+    "nuisance_r2_heldout": 0.8453920451993288,
+    "nuisance_from_residual_r2_heldout": -0.01579904752914709,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5886363636363636,
+    "nuisance_r2_heldout": -1.153061860528867,
+    "nuisance_from_residual_r2_heldout": -0.013286283915957719,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5710743801652893,
+    "nuisance_r2_heldout": -1.2644512317793892,
+    "nuisance_from_residual_r2_heldout": -0.013295880710504093,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5578512396694214,
+    "nuisance_r2_heldout": 0.851535232324171,
+    "nuisance_from_residual_r2_heldout": -0.11998353035387618,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      64,
+      63,
+      77,
+      70,
+      70
+     ],
+     "final_loss": [
+      0.007816179213387498,
+      0.00783938864349935,
+      0.007100629781389769,
+      0.007549257916320747,
+      0.007439805489112462
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5429752066115703,
+   "seq_gru": {
+    "auroc": 0.6194214876033057,
+    "final_train_loss": [
+     0.0002902873860545118,
+     0.0005570663700134239,
+     0.0003853972276291725,
+     0.00035409360002218324,
+     0.0002580044912809337
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5396694214876033,
+   "seconds": 54.1
+  },
+  {
+   "drift": 0.45,
+   "seed": 2,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.6371900826446282,
+   "resid_trace_published": 0.6855371900826446,
+   "resid_obs_published": 0.6454545454545454,
+   "resid_trace": {
+    "auroc": 0.6855371900826446,
+    "nuisance_r2_heldout": 0.12370136903985984,
+    "nuisance_from_residual_r2_heldout": -0.017591028405368015,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.6628099173553719,
+    "nuisance_r2_heldout": 0.39095903857325653,
+    "nuisance_from_residual_r2_heldout": -0.01626002031904141,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.6454545454545454,
+    "nuisance_r2_heldout": 0.8422543376362522,
+    "nuisance_from_residual_r2_heldout": -0.028761281395686168,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.6078512396694216,
+    "nuisance_r2_heldout": -1.2671539450346059,
+    "nuisance_from_residual_r2_heldout": -0.024471133878136576,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.575206611570248,
+    "nuisance_r2_heldout": -1.2585385829390099,
+    "nuisance_from_residual_r2_heldout": -0.02446363917713503,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5851239669421487,
+    "nuisance_r2_heldout": 0.8535124394492689,
+    "nuisance_from_residual_r2_heldout": -0.23534375347024433,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      72,
+      73,
+      77,
+      87,
+      73
+     ],
+     "final_loss": [
+      0.007541017045938424,
+      0.007586661084119702,
+      0.007447247036879776,
+      0.0070604245705495824,
+      0.007610222006574236
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.6640495867768595,
+   "seq_gru": {
+    "auroc": 0.6144628099173555,
+    "final_train_loss": [
+     0.00026277579176663,
+     0.00034723273446698755,
+     0.00026505473016930574,
+     0.00033673442984846503,
+     0.0004261907306499779
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5772727272727274,
+   "seconds": 55.7
+  },
+  {
+   "drift": 0.45,
+   "seed": 3,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.587603305785124,
+   "resid_trace_published": 0.5644628099173554,
+   "resid_obs_published": 0.5760330578512397,
+   "resid_trace": {
+    "auroc": 0.5648760330578513,
+    "nuisance_r2_heldout": 0.12985666659379982,
+    "nuisance_from_residual_r2_heldout": -0.016642177772378374,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5574380165289257,
+    "nuisance_r2_heldout": 0.3707703570702662,
+    "nuisance_from_residual_r2_heldout": -0.015832185803427868,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5760330578512397,
+    "nuisance_r2_heldout": 0.861972997869714,
+    "nuisance_from_residual_r2_heldout": -0.010255875115756652,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5826446280991735,
+    "nuisance_r2_heldout": -0.615556549355553,
+    "nuisance_from_residual_r2_heldout": -0.010241705360404918,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5483471074380165,
+    "nuisance_r2_heldout": -0.6890789043372815,
+    "nuisance_from_residual_r2_heldout": -0.010252845908017649,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5421487603305787,
+    "nuisance_r2_heldout": 0.8590384026301979,
+    "nuisance_from_residual_r2_heldout": -0.11771305979066464,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      71,
+      62,
+      63,
+      65,
+      66
+     ],
+     "final_loss": [
+      0.0065497565088826,
+      0.006962707127294315,
+      0.006925971599311941,
+      0.006844076950864708,
+      0.006842886558813934
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.6731404958677686,
+   "seq_gru": {
+    "auroc": 0.656198347107438,
+    "final_train_loss": [
+     0.0003336989214982499,
+     0.00026739291338758034,
+     0.00028625115572305566,
+     0.0002757135159547695,
+     0.00035266193497756666
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.6012396694214877,
+   "seconds": 52.0
+  },
+  {
+   "drift": 0.45,
+   "seed": 4,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.6165289256198347,
+   "resid_trace_published": 0.6330578512396694,
+   "resid_obs_published": 0.6384297520661157,
+   "resid_trace": {
+    "auroc": 0.6330578512396694,
+    "nuisance_r2_heldout": 0.12682575001729207,
+    "nuisance_from_residual_r2_heldout": -0.03009034776714632,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5640495867768595,
+    "nuisance_r2_heldout": 0.34835209697583736,
+    "nuisance_from_residual_r2_heldout": -0.027865431111874717,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.6384297520661157,
+    "nuisance_r2_heldout": 0.8666004783096891,
+    "nuisance_from_residual_r2_heldout": -0.01175733817321838,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5475206611570248,
+    "nuisance_r2_heldout": -0.5874946997367291,
+    "nuisance_from_residual_r2_heldout": -0.012060981994037068,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5429752066115702,
+    "nuisance_r2_heldout": -0.6573718016253162,
+    "nuisance_from_residual_r2_heldout": -0.012135699224330087,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5504132231404959,
+    "nuisance_r2_heldout": 0.8600363127429024,
+    "nuisance_from_residual_r2_heldout": -0.13345990347739511,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      60,
+      79,
+      62,
+      65,
+      63
+     ],
+     "final_loss": [
+      0.0077117741371510945,
+      0.006679152239830187,
+      0.007479982410839457,
+      0.007300700794282764,
+      0.007346654099532954
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5880165289256197,
+   "seq_gru": {
+    "auroc": 0.5809917355371901,
+    "final_train_loss": [
+     0.0003809388039040972,
+     0.0003571637683886696,
+     0.00031111667737026107,
+     0.00033382833829488266,
+     0.00033008449562740594
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5454545454545454,
+   "seconds": 51.2
+  },
+  {
+   "drift": 0.45,
+   "seed": 5,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.6041322314049588,
+   "resid_trace_published": 0.6016528925619836,
+   "resid_obs_published": 0.5913223140495868,
+   "resid_trace": {
+    "auroc": 0.6016528925619836,
+    "nuisance_r2_heldout": 0.1290619629461796,
+    "nuisance_from_residual_r2_heldout": -0.013697083318994174,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5619834710743802,
+    "nuisance_r2_heldout": 0.3489887670762906,
+    "nuisance_from_residual_r2_heldout": -0.013513154979580744,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5913223140495868,
+    "nuisance_r2_heldout": 0.842452868096608,
+    "nuisance_from_residual_r2_heldout": -0.02593146691274235,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.58801652892562,
+    "nuisance_r2_heldout": -1.3316311224219521,
+    "nuisance_from_residual_r2_heldout": -0.023102984109733615,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5349173553719009,
+    "nuisance_r2_heldout": -1.470935998149416,
+    "nuisance_from_residual_r2_heldout": -0.02308485972091696,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5438016528925619,
+    "nuisance_r2_heldout": 0.8572258073489716,
+    "nuisance_from_residual_r2_heldout": -0.0947839126102044,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      68,
+      73,
+      67,
+      81,
+      67
+     ],
+     "final_loss": [
+      0.0079761903881656,
+      0.007719195107936996,
+      0.00810640184592271,
+      0.007489678184756666,
+      0.008126715039140312
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.6016528925619834,
+   "seq_gru": {
+    "auroc": 0.5706611570247934,
+    "final_train_loss": [
+     0.00040459407451139254,
+     0.0005952473359436474,
+     0.0004130464989099313,
+     0.00033636666061779994,
+     0.0002859490129842677
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5966942148760331,
+   "seconds": 52.8
+  },
+  {
+   "drift": 0.45,
+   "seed": 6,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5595041322314049,
+   "resid_trace_published": 0.5710743801652892,
+   "resid_obs_published": 0.5334710743801653,
+   "resid_trace": {
+    "auroc": 0.5714876033057852,
+    "nuisance_r2_heldout": 0.1147312131039406,
+    "nuisance_from_residual_r2_heldout": -0.027436580077192917,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5301652892561984,
+    "nuisance_r2_heldout": 0.2954726925417361,
+    "nuisance_from_residual_r2_heldout": -0.025637663262001988,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5334710743801653,
+    "nuisance_r2_heldout": 0.8467887736624959,
+    "nuisance_from_residual_r2_heldout": -0.015186243415958377,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5212809917355372,
+    "nuisance_r2_heldout": -1.184964079517358,
+    "nuisance_from_residual_r2_heldout": -0.01325060773930149,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.4615702479338843,
+    "nuisance_r2_heldout": -1.3656224212554302,
+    "nuisance_from_residual_r2_heldout": -0.013283785295209637,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5785123966942148,
+    "nuisance_r2_heldout": 0.8510822820194031,
+    "nuisance_from_residual_r2_heldout": -0.11157813423873031,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      65,
+      71,
+      81,
+      69,
+      73
+     ],
+     "final_loss": [
+      0.007695046278955634,
+      0.007430359113072738,
+      0.0069687900486240534,
+      0.007578287254176917,
+      0.007201854548365715
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5838842975206612,
+   "seq_gru": {
+    "auroc": 0.5702479338842975,
+    "final_train_loss": [
+     0.00034009491950696844,
+     0.0003143592144955288,
+     0.0002930699344936081,
+     0.00037991709541529417,
+     0.000488306723789058
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.4545454545454545,
+   "seconds": 52.4
+  },
+  {
+   "drift": 0.45,
+   "seed": 7,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5351239669421487,
+   "resid_trace_published": 0.565702479338843,
+   "resid_obs_published": 0.5206611570247934,
+   "resid_trace": {
+    "auroc": 0.565702479338843,
+    "nuisance_r2_heldout": 0.1304635266869159,
+    "nuisance_from_residual_r2_heldout": -0.023672733542017488,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5371900826446281,
+    "nuisance_r2_heldout": 0.37247106626551985,
+    "nuisance_from_residual_r2_heldout": -0.021844155231493544,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5206611570247934,
+    "nuisance_r2_heldout": 0.8662756105556078,
+    "nuisance_from_residual_r2_heldout": -0.008308438509394422,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.6204545454545455,
+    "nuisance_r2_heldout": -0.8189934632756646,
+    "nuisance_from_residual_r2_heldout": -0.009420185316770047,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5787190082644627,
+    "nuisance_r2_heldout": -0.8562130528217822,
+    "nuisance_from_residual_r2_heldout": -0.009475582856450204,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5214876033057851,
+    "nuisance_r2_heldout": 0.8643484141754227,
+    "nuisance_from_residual_r2_heldout": -0.126917477805717,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      63,
+      72,
+      68,
+      72,
+      72
+     ],
+     "final_loss": [
+      0.0070739985418098094,
+      0.006616159690205515,
+      0.00677885733602031,
+      0.006616724871388317,
+      0.006628370497961749
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.6095041322314049,
+   "seq_gru": {
+    "auroc": 0.6144628099173552,
+    "final_train_loss": [
+     0.0002490021103188734,
+     0.0003018079018643634,
+     0.00025500975078268146,
+     0.0006642417283728719,
+     0.00041989243949170816
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.6388429752066116,
+   "seconds": 52.3
+  },
+  {
+   "drift": 0.45,
+   "seed": 8,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5743801652892561,
+   "resid_trace_published": 0.5380165289256199,
+   "resid_obs_published": 0.5392561983471074,
+   "resid_trace": {
+    "auroc": 0.5384297520661157,
+    "nuisance_r2_heldout": 0.1224064629827946,
+    "nuisance_from_residual_r2_heldout": -0.02866284871432283,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5384297520661157,
+    "nuisance_r2_heldout": 0.3801659635768925,
+    "nuisance_from_residual_r2_heldout": -0.0258542284915813,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5392561983471074,
+    "nuisance_r2_heldout": 0.849635023345745,
+    "nuisance_from_residual_r2_heldout": -0.018091118033884614,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.49586776859504134,
+    "nuisance_r2_heldout": -0.7748220354674106,
+    "nuisance_from_residual_r2_heldout": -0.016896507881449807,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5026859504132232,
+    "nuisance_r2_heldout": -0.8205798897259833,
+    "nuisance_from_residual_r2_heldout": -0.016923310787194046,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5830578512396695,
+    "nuisance_r2_heldout": 0.8589722842841854,
+    "nuisance_from_residual_r2_heldout": -0.11294535214701036,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      64,
+      84,
+      75,
+      68,
+      69
+     ],
+     "final_loss": [
+      0.007442590311700795,
+      0.006695170722508949,
+      0.007005478056398921,
+      0.007293463545080481,
+      0.00724916160417492
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5425619834710744,
+   "seq_gru": {
+    "auroc": 0.556611570247934,
+    "final_train_loss": [
+     0.00041539774181067264,
+     0.000367008136394857,
+     0.00028132863438010895,
+     0.0004846514096822251,
+     0.00043420348877341234
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5789256198347107,
+   "seconds": 54.9
+  },
+  {
+   "drift": 0.45,
+   "seed": 9,
+   "arm": "predictor",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.6252066115702479,
+   "resid_trace_published": 0.6223140495867769,
+   "resid_obs_published": 0.6743801652892563,
+   "resid_trace": {
+    "auroc": 0.6231404958677687,
+    "nuisance_r2_heldout": 0.12556960926743627,
+    "nuisance_from_residual_r2_heldout": -0.028169467348297506,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.575206611570248,
+    "nuisance_r2_heldout": 0.30906152691538125,
+    "nuisance_from_residual_r2_heldout": -0.02750430416557128,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.6743801652892563,
+    "nuisance_r2_heldout": 0.832076654023474,
+    "nuisance_from_residual_r2_heldout": -0.02986292561270525,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5037190082644628,
+    "nuisance_r2_heldout": -1.2697992315548752,
+    "nuisance_from_residual_r2_heldout": -0.025279099559935726,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.4964876033057851,
+    "nuisance_r2_heldout": -1.3576036968823062,
+    "nuisance_from_residual_r2_heldout": -0.02529743469314325,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.6371900826446282,
+    "nuisance_r2_heldout": 0.8502377903834697,
+    "nuisance_from_residual_r2_heldout": -0.1442920207206019,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      83,
+      83,
+      68,
+      83,
+      68
+     ],
+     "final_loss": [
+      0.006560771702151116,
+      0.006537579703190317,
+      0.007211882040987973,
+      0.006500457427411362,
+      0.007279709297284275
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.6103305785123968,
+   "seq_gru": {
+    "auroc": 0.6731404958677686,
+    "final_train_loss": [
+     0.00038784078788012266,
+     0.00038096243356862527,
+     0.000404989442110739,
+     0.000503619995222173,
+     0.00040953936827877027
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.6231404958677687,
+   "seconds": 56.3
+  },
+  {
+   "drift": 0.45,
+   "seed": 0,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.6322314049586778,
+   "resid_trace_published": 0.5942148760330579,
+   "resid_obs_published": 0.5851239669421486,
+   "resid_trace": {
+    "auroc": 0.5946280991735537,
+    "nuisance_r2_heldout": 0.08838552137255548,
+    "nuisance_from_residual_r2_heldout": -0.01277991063796744,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.575206611570248,
+    "nuisance_r2_heldout": 0.5754079612069181,
+    "nuisance_from_residual_r2_heldout": -0.012417758393399004,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5851239669421486,
+    "nuisance_r2_heldout": 0.8811731671114039,
+    "nuisance_from_residual_r2_heldout": -0.007651548689762011,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5904958677685951,
+    "nuisance_r2_heldout": 0.261100088533955,
+    "nuisance_from_residual_r2_heldout": -0.009009403077821564,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5855371900826446,
+    "nuisance_r2_heldout": 0.21365411383282035,
+    "nuisance_from_residual_r2_heldout": -0.009019312409312308,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.6272727272727272,
+    "nuisance_r2_heldout": 0.8876466921516066,
+    "nuisance_from_residual_r2_heldout": -0.02233305501599394,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      50,
+      47,
+      47,
+      49,
+      47
+     ],
+     "final_loss": [
+      0.0030560861726724705,
+      0.0031963485281832228,
+      0.003210221985189895,
+      0.0031362188972954715,
+      0.003201660329810795
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.7078512396694215,
+   "seq_gru": {
+    "auroc": 0.6442148760330578,
+    "final_train_loss": [
+     0.00029904461751522666,
+     0.0003115742583759129,
+     0.0005054983273360201,
+     0.000307582575425675,
+     0.00037558303235776043
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.6309917355371901,
+   "seconds": 52.6
+  },
+  {
+   "drift": 0.45,
+   "seed": 1,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.8049586776859504,
+   "resid_trace_published": 0.7640495867768596,
+   "resid_obs_published": 0.8132231404958677,
+   "resid_trace": {
+    "auroc": 0.7636363636363637,
+    "nuisance_r2_heldout": 0.1283527361255726,
+    "nuisance_from_residual_r2_heldout": -0.012110049887198038,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.7512396694214875,
+    "nuisance_r2_heldout": 0.6580871147027174,
+    "nuisance_from_residual_r2_heldout": -0.012032114046715846,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.8132231404958677,
+    "nuisance_r2_heldout": 0.8838197458050606,
+    "nuisance_from_residual_r2_heldout": -0.009660495545834768,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5836776859504132,
+    "nuisance_r2_heldout": -0.07056317575721653,
+    "nuisance_from_residual_r2_heldout": -0.010350953509157091,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5392561983471074,
+    "nuisance_r2_heldout": -0.17783391468239068,
+    "nuisance_from_residual_r2_heldout": -0.010349553235542519,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5884297520661157,
+    "nuisance_r2_heldout": 0.888011059437089,
+    "nuisance_from_residual_r2_heldout": 0.0031464765315812214,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      47,
+      47,
+      47,
+      51,
+      50
+     ],
+     "final_loss": [
+      0.00349138175697707,
+      0.003472866642930858,
+      0.0034257166429333026,
+      0.0032636554326147156,
+      0.0032836715774764054
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.7743801652892562,
+   "seq_gru": {
+    "auroc": 0.8359504132231406,
+    "final_train_loss": [
+     0.00024142866393297234,
+     0.0002608379899439487,
+     0.00034695208093828774,
+     0.00015982750879960474,
+     0.0002883142124946144
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.7202479338842975,
+   "seconds": 50.0
+  },
+  {
+   "drift": 0.45,
+   "seed": 2,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.6913223140495868,
+   "resid_trace_published": 0.6917355371900826,
+   "resid_obs_published": 0.684297520661157,
+   "resid_trace": {
+    "auroc": 0.6917355371900826,
+    "nuisance_r2_heldout": 0.11905314024021543,
+    "nuisance_from_residual_r2_heldout": -0.012887862687221396,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.6776859504132232,
+    "nuisance_r2_heldout": 0.5564795668176516,
+    "nuisance_from_residual_r2_heldout": -0.012284359486259434,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.684297520661157,
+    "nuisance_r2_heldout": 0.8829244090531392,
+    "nuisance_from_residual_r2_heldout": -0.008248987457547185,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.6150826446280993,
+    "nuisance_r2_heldout": -0.2687077254359024,
+    "nuisance_from_residual_r2_heldout": -0.009662926751868684,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5987603305785124,
+    "nuisance_r2_heldout": -0.4214329514929037,
+    "nuisance_from_residual_r2_heldout": -0.0096712099719924,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5826446280991735,
+    "nuisance_r2_heldout": 0.890897001170212,
+    "nuisance_from_residual_r2_heldout": -0.012340249207397336,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      49,
+      50,
+      53,
+      52,
+      51
+     ],
+     "final_loss": [
+      0.003632454239428109,
+      0.0035857384954545665,
+      0.0033879391650809545,
+      0.003455492619685843,
+      0.003473740493024929
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.6830578512396693,
+   "seq_gru": {
+    "auroc": 0.6960743801652893,
+    "final_train_loss": [
+     0.00023465470770712602,
+     0.0002612456896300004,
+     0.0004152114481919191,
+     0.0002614225866802206,
+     0.0004578580952842127
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5863636363636363,
+   "seconds": 50.7
+  },
+  {
+   "drift": 0.45,
+   "seed": 3,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.7438016528925621,
+   "resid_trace_published": 0.743801652892562,
+   "resid_obs_published": 0.6966942148760331,
+   "resid_trace": {
+    "auroc": 0.743801652892562,
+    "nuisance_r2_heldout": 0.14729880869252457,
+    "nuisance_from_residual_r2_heldout": -0.009727375484659673,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.725206611570248,
+    "nuisance_r2_heldout": 0.5662251672980798,
+    "nuisance_from_residual_r2_heldout": -0.009242525816317926,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.6966942148760331,
+    "nuisance_r2_heldout": 0.8869725682376615,
+    "nuisance_from_residual_r2_heldout": -0.008884424667371738,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.6826446280991735,
+    "nuisance_r2_heldout": -0.12516862848736385,
+    "nuisance_from_residual_r2_heldout": -0.009998649425064076,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.6415289256198348,
+    "nuisance_r2_heldout": -0.24621349190126463,
+    "nuisance_from_residual_r2_heldout": -0.009991920118119824,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5367768595041322,
+    "nuisance_r2_heldout": 0.8923892823744074,
+    "nuisance_from_residual_r2_heldout": 0.006687561496981753,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      50,
+      50,
+      54,
+      54,
+      47
+     ],
+     "final_loss": [
+      0.003187995110445431,
+      0.0032005595149334205,
+      0.0030013731980321704,
+      0.003037853042850561,
+      0.003306175214722533
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.7181818181818181,
+   "seq_gru": {
+    "auroc": 0.7119834710743802,
+    "final_train_loss": [
+     0.00031324267249808395,
+     0.00023249776727011934,
+     0.0002442482112779875,
+     0.00025548423185351896,
+     0.0002984104027167301
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.6632231404958677,
+   "seconds": 49.3
+  },
+  {
+   "drift": 0.45,
+   "seed": 4,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.66198347107438,
+   "resid_trace_published": 0.6925619834710743,
+   "resid_obs_published": 0.6140495867768595,
+   "resid_trace": {
+    "auroc": 0.6925619834710743,
+    "nuisance_r2_heldout": 0.09676469567487955,
+    "nuisance_from_residual_r2_heldout": -0.015401732345831132,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.6301652892561984,
+    "nuisance_r2_heldout": 0.5997099252111148,
+    "nuisance_from_residual_r2_heldout": -0.014547971593177422,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.6140495867768595,
+    "nuisance_r2_heldout": 0.886476560717265,
+    "nuisance_from_residual_r2_heldout": -0.008992501377334516,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.6659090909090908,
+    "nuisance_r2_heldout": 0.011279282115702217,
+    "nuisance_from_residual_r2_heldout": -0.009958543244459595,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.6264462809917356,
+    "nuisance_r2_heldout": 0.02646087529709882,
+    "nuisance_from_residual_r2_heldout": -0.009978282666631389,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.6272727272727272,
+    "nuisance_r2_heldout": 0.8746180425451857,
+    "nuisance_from_residual_r2_heldout": -0.0017383170345546706,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      52,
+      56,
+      58,
+      52,
+      52
+     ],
+     "final_loss": [
+      0.003267349912603624,
+      0.003127944804797334,
+      0.0030193569385559425,
+      0.003235173261521569,
+      0.003258435955057335
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.6549586776859504,
+   "seq_gru": {
+    "auroc": 0.6785123966942149,
+    "final_train_loss": [
+     0.00040017845193770796,
+     0.0003652495427311144,
+     0.00033961132761429656,
+     0.00037500983241691506,
+     0.00032560449538075113
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.6140495867768594,
+   "seconds": 49.0
+  },
+  {
+   "drift": 0.45,
+   "seed": 5,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5223140495867769,
+   "resid_trace_published": 0.5752066115702479,
+   "resid_obs_published": 0.4768595041322314,
+   "resid_trace": {
+    "auroc": 0.5752066115702479,
+    "nuisance_r2_heldout": 0.10848342940391317,
+    "nuisance_from_residual_r2_heldout": -0.011350234058536435,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5181818181818182,
+    "nuisance_r2_heldout": 0.6316779195730927,
+    "nuisance_from_residual_r2_heldout": -0.010729113981044813,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.4768595041322314,
+    "nuisance_r2_heldout": 0.8910566395675199,
+    "nuisance_from_residual_r2_heldout": -0.007921144276631775,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5450413223140496,
+    "nuisance_r2_heldout": -0.05401378248114106,
+    "nuisance_from_residual_r2_heldout": -0.009715282477181031,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5361570247933884,
+    "nuisance_r2_heldout": -0.1190260507761091,
+    "nuisance_from_residual_r2_heldout": -0.009715013656605098,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5413223140495868,
+    "nuisance_r2_heldout": 0.8925119918615347,
+    "nuisance_from_residual_r2_heldout": -0.023850153331810973,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      54,
+      53,
+      52,
+      52,
+      52
+     ],
+     "final_loss": [
+      0.00324428578819307,
+      0.0033082510567316397,
+      0.0033017266500234106,
+      0.003354128153596631,
+      0.0033235294716951933
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.49504132231404957,
+   "seq_gru": {
+    "auroc": 0.5483471074380166,
+    "final_train_loss": [
+     0.0005821578299880705,
+     0.0004467402256771245,
+     0.000430323419012976,
+     0.0004579291403801604,
+     0.00036781615662303835
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.525206611570248,
+   "seconds": 48.5
+  },
+  {
+   "drift": 0.45,
+   "seed": 6,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.8847107438016529,
+   "resid_trace_published": 0.8293388429752065,
+   "resid_obs_published": 0.8504132231404959,
+   "resid_trace": {
+    "auroc": 0.8293388429752065,
+    "nuisance_r2_heldout": 0.11577151312819725,
+    "nuisance_from_residual_r2_heldout": -0.02160095624656715,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.7512396694214877,
+    "nuisance_r2_heldout": 0.6008398256262016,
+    "nuisance_from_residual_r2_heldout": -0.02062833634187409,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.8504132231404959,
+    "nuisance_r2_heldout": 0.8826955458089782,
+    "nuisance_from_residual_r2_heldout": -0.008395813781840022,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.7165289256198346,
+    "nuisance_r2_heldout": -0.13901832409782655,
+    "nuisance_from_residual_r2_heldout": -0.009114144274205671,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.6299586776859505,
+    "nuisance_r2_heldout": -0.19706687736375417,
+    "nuisance_from_residual_r2_heldout": -0.009162560282073962,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.7103305785123968,
+    "nuisance_r2_heldout": 0.8879383782566176,
+    "nuisance_from_residual_r2_heldout": -0.03892742394313502,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      55,
+      54,
+      62,
+      54,
+      54
+     ],
+     "final_loss": [
+      0.003019782135096178,
+      0.003041006941769424,
+      0.002784998155747261,
+      0.0031051324763183216,
+      0.0031075374490323244
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.8202479338842975,
+   "seq_gru": {
+    "auroc": 0.8524793388429753,
+    "final_train_loss": [
+     0.0002226547248111191,
+     0.00024238108678466895,
+     0.00019521301411176947,
+     0.0002478235983289778,
+     0.0002450353878719563
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.7809917355371901,
+   "seconds": 48.9
+  },
+  {
+   "drift": 0.45,
+   "seed": 7,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.7826446280991736,
+   "resid_trace_published": 0.7995867768595042,
+   "resid_obs_published": 0.7962809917355371,
+   "resid_trace": {
+    "auroc": 0.7995867768595042,
+    "nuisance_r2_heldout": 0.13074671908039862,
+    "nuisance_from_residual_r2_heldout": -0.015912318098129364,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.7103305785123967,
+    "nuisance_r2_heldout": 0.5421795665997602,
+    "nuisance_from_residual_r2_heldout": -0.0153225418534221,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.7962809917355371,
+    "nuisance_r2_heldout": 0.87349745936597,
+    "nuisance_from_residual_r2_heldout": -0.008311973709707798,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.6919421487603307,
+    "nuisance_r2_heldout": -0.4018526205488893,
+    "nuisance_from_residual_r2_heldout": -0.00876438618000761,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.6533057851239669,
+    "nuisance_r2_heldout": -0.447410454750664,
+    "nuisance_from_residual_r2_heldout": -0.008791776115486672,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.6809917355371902,
+    "nuisance_r2_heldout": 0.8757159422417985,
+    "nuisance_from_residual_r2_heldout": 0.0019489777292257759,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      49,
+      50,
+      51,
+      47,
+      55
+     ],
+     "final_loss": [
+      0.003067654816681883,
+      0.0030222483824842764,
+      0.0029425222488243226,
+      0.003132938320827225,
+      0.0028362283768733204
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.7723140495867769,
+   "seq_gru": {
+    "auroc": 0.7797520661157025,
+    "final_train_loss": [
+     0.00035001526173966175,
+     0.000340542536419393,
+     0.00025745534697886217,
+     0.0002970349821473726,
+     0.00029962829218923366
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.715289256198347,
+   "seconds": 49.9
+  },
+  {
+   "drift": 0.45,
+   "seed": 8,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.8677685950413222,
+   "resid_trace_published": 0.8417355371900828,
+   "resid_obs_published": 0.7723140495867769,
+   "resid_trace": {
+    "auroc": 0.8417355371900828,
+    "nuisance_r2_heldout": 0.13308214072604732,
+    "nuisance_from_residual_r2_heldout": -0.007951036648408261,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.7669421487603305,
+    "nuisance_r2_heldout": 0.5885114430364725,
+    "nuisance_from_residual_r2_heldout": -0.007930774571018918,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.7723140495867769,
+    "nuisance_r2_heldout": 0.8743161319063024,
+    "nuisance_from_residual_r2_heldout": -0.009110663571723387,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.6644628099173554,
+    "nuisance_r2_heldout": -0.2832967595001027,
+    "nuisance_from_residual_r2_heldout": -0.01040338442280193,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.6491735537190083,
+    "nuisance_r2_heldout": -0.29326209874240045,
+    "nuisance_from_residual_r2_heldout": -0.010386209025690629,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.7053719008264464,
+    "nuisance_r2_heldout": 0.8889975255935217,
+    "nuisance_from_residual_r2_heldout": -0.018677386945133746,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      55,
+      59,
+      51,
+      59,
+      54
+     ],
+     "final_loss": [
+      0.003429834444396891,
+      0.003263063939010511,
+      0.003565221626433115,
+      0.0032913904897393,
+      0.0034254186887096604
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.8322314049586776,
+   "seq_gru": {
+    "auroc": 0.7925619834710743,
+    "final_train_loss": [
+     0.0004205483657477254,
+     0.0003713636436838318,
+     0.00022241248833862218,
+     0.00038435917601666665,
+     0.000246102702063085
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.7520661157024794,
+   "seconds": 52.0
+  },
+  {
+   "drift": 0.45,
+   "seed": 9,
+   "arm": "survival",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.7384297520661157,
+   "resid_trace_published": 0.697107438016529,
+   "resid_obs_published": 0.7045454545454545,
+   "resid_trace": {
+    "auroc": 0.697107438016529,
+    "nuisance_r2_heldout": 0.10735072151471721,
+    "nuisance_from_residual_r2_heldout": -0.009041925498668935,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.7008264462809918,
+    "nuisance_r2_heldout": 0.6564620348028998,
+    "nuisance_from_residual_r2_heldout": -0.009408158352551155,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.7045454545454545,
+    "nuisance_r2_heldout": 0.8821124880605555,
+    "nuisance_from_residual_r2_heldout": -0.008460489371738067,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.6440082644628099,
+    "nuisance_r2_heldout": -0.20735869437856747,
+    "nuisance_from_residual_r2_heldout": -0.009937164475629734,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.596694214876033,
+    "nuisance_r2_heldout": -0.11280846410569285,
+    "nuisance_from_residual_r2_heldout": -0.009919839225518645,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5987603305785123,
+    "nuisance_r2_heldout": 0.892253291868338,
+    "nuisance_from_residual_r2_heldout": -0.002375726086307095,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      49,
+      48,
+      58,
+      49,
+      49
+     ],
+     "final_loss": [
+      0.0033004726513363013,
+      0.0033697750571922342,
+      0.002873346096256793,
+      0.0033168765310882023,
+      0.0032853050568961155
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.6900826446280991,
+   "seq_gru": {
+    "auroc": 0.6971074380165289,
+    "final_train_loss": [
+     0.00040607635376297617,
+     0.0004153083057396791,
+     0.00036792727504772216,
+     0.00023253833536397326,
+     0.0003595543570223857
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.6210743801652893,
+   "seconds": 49.5
+  },
+  {
+   "drift": 0.45,
+   "seed": 0,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.4867768595041323,
+   "resid_trace_published": 0.509090909090909,
+   "resid_obs_published": 0.5157024793388431,
+   "resid_trace": {
+    "auroc": 0.509090909090909,
+    "nuisance_r2_heldout": 0.038436856466454096,
+    "nuisance_from_residual_r2_heldout": -0.01767516389694652,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5297520661157025,
+    "nuisance_r2_heldout": 0.3393207720095083,
+    "nuisance_from_residual_r2_heldout": -0.016953312345138728,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5157024793388431,
+    "nuisance_r2_heldout": 0.5174602262146258,
+    "nuisance_from_residual_r2_heldout": -0.010592641220324061,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5010330578512396,
+    "nuisance_r2_heldout": -2.18724047998806,
+    "nuisance_from_residual_r2_heldout": -0.01168203143876525,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.468595041322314,
+    "nuisance_r2_heldout": -2.7639614977294933,
+    "nuisance_from_residual_r2_heldout": -0.011704905661023668,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5495867768595041,
+    "nuisance_r2_heldout": -0.3002550819269192,
+    "nuisance_from_residual_r2_heldout": 0.2110535328091044,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      34,
+      34,
+      34,
+      34,
+      34
+     ],
+     "final_loss": [
+      0.0016537178535131253,
+      0.0016336615349447563,
+      0.0016368501045523833,
+      0.0016434119982094817,
+      0.001643025851857914
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5892561983471073,
+   "seq_gru": {
+    "auroc": 0.593801652892562,
+    "final_train_loss": [
+     0.00035712599161673677,
+     0.0009983593058264391,
+     0.00026550315802027893,
+     0.0003553578413133933,
+     0.0002662590863606469
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5652892561983471,
+   "seconds": 47.4
+  },
+  {
+   "drift": 0.45,
+   "seed": 1,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5301652892561983,
+   "resid_trace_published": 0.562809917355372,
+   "resid_obs_published": 0.4429752066115703,
+   "resid_trace": {
+    "auroc": 0.562809917355372,
+    "nuisance_r2_heldout": 0.08308489986287475,
+    "nuisance_from_residual_r2_heldout": -0.0169495460270495,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5454545454545455,
+    "nuisance_r2_heldout": 0.48960491142719886,
+    "nuisance_from_residual_r2_heldout": -0.01587274726508321,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.4429752066115703,
+    "nuisance_r2_heldout": 0.5975571962880786,
+    "nuisance_from_residual_r2_heldout": -0.01077254185757175,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.4615702479338843,
+    "nuisance_r2_heldout": -2.1003163253357804,
+    "nuisance_from_residual_r2_heldout": -0.011916941454095654,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.4795454545454546,
+    "nuisance_r2_heldout": -2.2938471010328927,
+    "nuisance_from_residual_r2_heldout": -0.011930323436697065,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.4491735537190083,
+    "nuisance_r2_heldout": -0.27990256378429523,
+    "nuisance_from_residual_r2_heldout": 0.20270692381695884,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      35,
+      36,
+      37,
+      36,
+      35
+     ],
+     "final_loss": [
+      0.0017072732989469304,
+      0.0016772421228752584,
+      0.001626223199461981,
+      0.0016841333662198903,
+      0.0017100563685794937
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5454545454545455,
+   "seq_gru": {
+    "auroc": 0.5566115702479338,
+    "final_train_loss": [
+     0.000269959553737532,
+     0.00035156233405525035,
+     0.0003495352125768973,
+     0.0005151292161000046,
+     0.00034580842739987105
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5330578512396695,
+   "seconds": 48.0
+  },
+  {
+   "drift": 0.45,
+   "seed": 2,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5847107438016529,
+   "resid_trace_published": 0.5797520661157025,
+   "resid_obs_published": 0.5797520661157025,
+   "resid_trace": {
+    "auroc": 0.5797520661157025,
+    "nuisance_r2_heldout": 0.08406159683210893,
+    "nuisance_from_residual_r2_heldout": -0.012260893301327602,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.6045454545454546,
+    "nuisance_r2_heldout": 0.4545919549763835,
+    "nuisance_from_residual_r2_heldout": -0.011927852122585802,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5797520661157025,
+    "nuisance_r2_heldout": 0.6287158273347982,
+    "nuisance_from_residual_r2_heldout": -0.012065732120429917,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5130165289256199,
+    "nuisance_r2_heldout": -2.151096534566451,
+    "nuisance_from_residual_r2_heldout": -0.012690136808924501,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.4820247933884298,
+    "nuisance_r2_heldout": -2.201129127183417,
+    "nuisance_from_residual_r2_heldout": -0.012673721066862598,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.4545454545454546,
+    "nuisance_r2_heldout": -0.30852527687003245,
+    "nuisance_from_residual_r2_heldout": 0.2849623222107375,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      36,
+      35,
+      36,
+      35,
+      35
+     ],
+     "final_loss": [
+      0.001729206215764624,
+      0.0017821901347543194,
+      0.001732494320662068,
+      0.0017559625474410734,
+      0.001754813900317945
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5082644628099173,
+   "seq_gru": {
+    "auroc": 0.5376033057851239,
+    "final_train_loss": [
+     0.00026720135329841554,
+     0.00031468893443657595,
+     0.0003463978831529279,
+     0.00028898659035224807,
+     0.0003306674638720737
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.556198347107438,
+   "seconds": 47.0
+  },
+  {
+   "drift": 0.45,
+   "seed": 3,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5884297520661157,
+   "resid_trace_published": 0.5735537190082646,
+   "resid_obs_published": 0.5900826446280991,
+   "resid_trace": {
+    "auroc": 0.5735537190082646,
+    "nuisance_r2_heldout": 0.15715699584325576,
+    "nuisance_from_residual_r2_heldout": -0.025636330960678234,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.587190082644628,
+    "nuisance_r2_heldout": 0.4614401041857244,
+    "nuisance_from_residual_r2_heldout": -0.023646427098073897,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5900826446280991,
+    "nuisance_r2_heldout": 0.591617965853073,
+    "nuisance_from_residual_r2_heldout": -0.009986187849759886,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.48409090909090907,
+    "nuisance_r2_heldout": -1.5537059020342407,
+    "nuisance_from_residual_r2_heldout": -0.011251476210255528,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.47314049586776863,
+    "nuisance_r2_heldout": -1.7596807265645744,
+    "nuisance_from_residual_r2_heldout": -0.011319681274188653,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5231404958677686,
+    "nuisance_r2_heldout": -0.32563076275445835,
+    "nuisance_from_residual_r2_heldout": 0.2127549939342976,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      34,
+      34,
+      34,
+      34,
+      34
+     ],
+     "final_loss": [
+      0.0016181401797131737,
+      0.0016187317157697954,
+      0.0016101345607361134,
+      0.001629571273324264,
+      0.0016315504539908144
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.6289256198347107,
+   "seq_gru": {
+    "auroc": 0.6152892561983471,
+    "final_train_loss": [
+     0.00032749478387731045,
+     0.0003030644994313744,
+     0.0003324270073790103,
+     0.0003069667198525911,
+     0.0003666265296157111
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5809917355371901,
+   "seconds": 45.8
+  },
+  {
+   "drift": 0.45,
+   "seed": 4,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5355371900826447,
+   "resid_trace_published": 0.5871900826446281,
+   "resid_obs_published": 0.5421487603305786,
+   "resid_trace": {
+    "auroc": 0.5871900826446281,
+    "nuisance_r2_heldout": 0.12624626707701161,
+    "nuisance_from_residual_r2_heldout": -0.02408201993568282,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5566115702479338,
+    "nuisance_r2_heldout": 0.3409669982175352,
+    "nuisance_from_residual_r2_heldout": -0.02382881887830828,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5421487603305786,
+    "nuisance_r2_heldout": 0.6492659571532533,
+    "nuisance_from_residual_r2_heldout": -0.011164983031084796,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5799586776859504,
+    "nuisance_r2_heldout": -2.6827457595805067,
+    "nuisance_from_residual_r2_heldout": -0.012148463164620083,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5733471074380165,
+    "nuisance_r2_heldout": -2.9282029095548054,
+    "nuisance_from_residual_r2_heldout": -0.012192082579863284,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.4900826446280992,
+    "nuisance_r2_heldout": -0.7480173424975479,
+    "nuisance_from_residual_r2_heldout": 0.24640660344113413,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      35,
+      35,
+      34,
+      35,
+      35
+     ],
+     "final_loss": [
+      0.0015680632829227867,
+      0.001537043556326874,
+      0.0015583456382014956,
+      0.0015348090196173826,
+      0.0015340182742985895
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5074380165289256,
+   "seq_gru": {
+    "auroc": 0.5309917355371901,
+    "final_train_loss": [
+     0.00035585633172145623,
+     0.000614004289011725,
+     0.0003003670744047585,
+     0.00033701038707725024,
+     0.0003326044693081216
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.4859504132231406,
+   "seconds": 45.1
+  },
+  {
+   "drift": 0.45,
+   "seed": 5,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.48512396694214877,
+   "resid_trace_published": 0.5243801652892562,
+   "resid_obs_published": 0.4677685950413223,
+   "resid_trace": {
+    "auroc": 0.5243801652892562,
+    "nuisance_r2_heldout": 0.06116612038167439,
+    "nuisance_from_residual_r2_heldout": -0.008751672006206768,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5318181818181819,
+    "nuisance_r2_heldout": 0.26000377354574844,
+    "nuisance_from_residual_r2_heldout": -0.008656703648797937,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.4677685950413223,
+    "nuisance_r2_heldout": 0.6431858617403028,
+    "nuisance_from_residual_r2_heldout": -0.011424051984153482,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5466942148760331,
+    "nuisance_r2_heldout": -3.0696141051620325,
+    "nuisance_from_residual_r2_heldout": -0.01224196925884633,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5367768595041322,
+    "nuisance_r2_heldout": -3.3158370889060875,
+    "nuisance_from_residual_r2_heldout": -0.01221164460471913,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.4752066115702479,
+    "nuisance_r2_heldout": -0.8418453682924337,
+    "nuisance_from_residual_r2_heldout": 0.33626263456374467,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      33,
+      34,
+      34,
+      34,
+      34
+     ],
+     "final_loss": [
+      0.0015432685629729649,
+      0.0014988031399148986,
+      0.00148543712351277,
+      0.001490385542119968,
+      0.0014935474660096098
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.4987603305785123,
+   "seq_gru": {
+    "auroc": 0.5574380165289256,
+    "final_train_loss": [
+     0.000295141664206643,
+     0.0003233153256587684,
+     0.00036897207610309124,
+     0.0003755959756249054,
+     0.000401163976427845
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5400826446280992,
+   "seconds": 45.1
+  },
+  {
+   "drift": 0.45,
+   "seed": 6,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.4991735537190083,
+   "resid_trace_published": 0.48636363636363633,
+   "resid_obs_published": 0.6070247933884299,
+   "resid_trace": {
+    "auroc": 0.48636363636363633,
+    "nuisance_r2_heldout": 0.14205597602649456,
+    "nuisance_from_residual_r2_heldout": -0.023714598391342358,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5165289256198348,
+    "nuisance_r2_heldout": 0.3393034297037157,
+    "nuisance_from_residual_r2_heldout": -0.023668843202664915,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.6070247933884299,
+    "nuisance_r2_heldout": 0.5930953593862356,
+    "nuisance_from_residual_r2_heldout": -0.010387343039951124,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5526859504132231,
+    "nuisance_r2_heldout": -2.2295254617719613,
+    "nuisance_from_residual_r2_heldout": -0.011507394653757119,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.590289256198347,
+    "nuisance_r2_heldout": -2.2668667950188386,
+    "nuisance_from_residual_r2_heldout": -0.011556380947843036,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.4830578512396694,
+    "nuisance_r2_heldout": -0.6529706836122263,
+    "nuisance_from_residual_r2_heldout": 0.2770043465368987,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      33,
+      34,
+      33,
+      33,
+      33
+     ],
+     "final_loss": [
+      0.0016349362275508627,
+      0.0016141929857157917,
+      0.0016429798228260357,
+      0.0016571426751980358,
+      0.001635834224956501
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5607438016528926,
+   "seq_gru": {
+    "auroc": 0.6119834710743801,
+    "final_train_loss": [
+     0.00031516287708655,
+     0.0003207442059647292,
+     0.00039123008768497544,
+     0.0004182004618500783,
+     0.00029933455781164497
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5764462809917356,
+   "seconds": 45.7
+  },
+  {
+   "drift": 0.45,
+   "seed": 7,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5256198347107438,
+   "resid_trace_published": 0.5702479338842975,
+   "resid_obs_published": 0.5140495867768596,
+   "resid_trace": {
+    "auroc": 0.5698347107438015,
+    "nuisance_r2_heldout": 0.14315709269786045,
+    "nuisance_from_residual_r2_heldout": -0.02446632467262786,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.5938016528925619,
+    "nuisance_r2_heldout": 0.3719001726248646,
+    "nuisance_from_residual_r2_heldout": -0.023303938235621536,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5140495867768596,
+    "nuisance_r2_heldout": 0.6356934404093515,
+    "nuisance_from_residual_r2_heldout": -0.010146158991233233,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.540495867768595,
+    "nuisance_r2_heldout": -2.26383109255496,
+    "nuisance_from_residual_r2_heldout": -0.01141202398706347,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5278925619834711,
+    "nuisance_r2_heldout": -2.3209115448396447,
+    "nuisance_from_residual_r2_heldout": -0.011468634273829492,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5285123966942149,
+    "nuisance_r2_heldout": -0.4711031616844917,
+    "nuisance_from_residual_r2_heldout": 0.25808456980160377,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      34,
+      34,
+      34,
+      34,
+      34
+     ],
+     "final_loss": [
+      0.001688965001805014,
+      0.0016976664237155687,
+      0.0016836574100818464,
+      0.0017049844336125585,
+      0.001732661376565764
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.615289256198347,
+   "seq_gru": {
+    "auroc": 0.6206611570247934,
+    "final_train_loss": [
+     0.0002738548500929028,
+     0.00043643502761948514,
+     0.00026850618914150715,
+     0.00038536136112683875,
+     0.0003192272534678605
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5962809917355372,
+   "seconds": 46.1
+  },
+  {
+   "drift": 0.45,
+   "seed": 8,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.41487603305785115,
+   "resid_trace_published": 0.4847107438016529,
+   "resid_obs_published": 0.5409090909090908,
+   "resid_trace": {
+    "auroc": 0.48429752066115694,
+    "nuisance_r2_heldout": 0.1301143854566083,
+    "nuisance_from_residual_r2_heldout": -0.02327005300441969,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.47727272727272735,
+    "nuisance_r2_heldout": 0.4706593320945779,
+    "nuisance_from_residual_r2_heldout": -0.02189934944992311,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5409090909090908,
+    "nuisance_r2_heldout": 0.5880571446486691,
+    "nuisance_from_residual_r2_heldout": -0.010879958515661859,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.4830578512396695,
+    "nuisance_r2_heldout": -1.4014433017364563,
+    "nuisance_from_residual_r2_heldout": -0.011906757541044932,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5080578512396695,
+    "nuisance_r2_heldout": -1.42431500952464,
+    "nuisance_from_residual_r2_heldout": -0.011953032295627386,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.47438016528925625,
+    "nuisance_r2_heldout": -0.29709472034887086,
+    "nuisance_from_residual_r2_heldout": 0.2709194758556287,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      35,
+      34,
+      34,
+      34,
+      33
+     ],
+     "final_loss": [
+      0.0016863180127324033,
+      0.0017002552893089604,
+      0.0017175535338607663,
+      0.0017310071454466776,
+      0.0017877607112096237
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.5652892561983471,
+   "seq_gru": {
+    "auroc": 0.5909090909090908,
+    "final_train_loss": [
+     0.0003100402722008188,
+     0.00039883169599554753,
+     0.0002481357422022318,
+     0.0003609321905638684,
+     0.00032869039569050074
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5685950413223141,
+   "seconds": 47.5
+  },
+  {
+   "drift": 0.45,
+   "seed": 9,
+   "arm": "untrained",
+   "dump_bit_match": true,
+   "n": 220,
+   "target": 0.5756198347107437,
+   "resid_trace_published": 0.5553719008264463,
+   "resid_obs_published": 0.5119834710743802,
+   "resid_trace": {
+    "auroc": 0.5553719008264463,
+    "nuisance_r2_heldout": 0.11405132513661005,
+    "nuisance_from_residual_r2_heldout": -0.02466412604557635,
+    "basis_dim": 21,
+    "model": "ridge"
+   },
+   "resid_trace_act": {
+    "auroc": 0.506198347107438,
+    "nuisance_r2_heldout": 0.3755095398463138,
+    "nuisance_from_residual_r2_heldout": -0.02390657113790189,
+    "basis_dim": 31,
+    "model": "ridge"
+   },
+   "resid_obs": {
+    "auroc": 0.5119834710743802,
+    "nuisance_r2_heldout": 0.5887352366701059,
+    "nuisance_from_residual_r2_heldout": -0.010603835875816259,
+    "basis_dim": 292,
+    "model": "ridge"
+   },
+   "resid_obs_hist": {
+    "auroc": 0.5353305785123967,
+    "nuisance_r2_heldout": -2.575906575133628,
+    "nuisance_from_residual_r2_heldout": -0.011794478169329903,
+    "basis_dim": 1470,
+    "model": "ridge"
+   },
+   "resid_obs_hist_beh": {
+    "auroc": 0.5320247933884297,
+    "nuisance_r2_heldout": -2.4216554772504013,
+    "nuisance_from_residual_r2_heldout": -0.011839258790129925,
+    "basis_dim": 1484,
+    "model": "ridge"
+   },
+   "resid_joint_mlp": {
+    "auroc": 0.5223140495867769,
+    "nuisance_r2_heldout": -0.7964848410339068,
+    "nuisance_from_residual_r2_heldout": 0.28505550831837206,
+    "basis_dim": 608,
+    "model": "mlp",
+    "optimizer": {
+     "n_iter": [
+      33,
+      34,
+      32,
+      33,
+      33
+     ],
+     "final_loss": [
+      0.0014665655123940885,
+      0.0014539647468061955,
+      0.0015054624320503568,
+      0.0014677844834742122,
+      0.0014662017643335009
+     ],
+     "converged_folds": 5,
+     "folds": 5
+    }
+   },
+   "obs_summary_only": 0.518595041322314,
+   "seq_gru": {
+    "auroc": 0.6115702479338843,
+    "final_train_loss": [
+     0.0006471956836652349,
+     0.000361472934442149,
+     0.00038863669297742575,
+     0.0003157657497054474,
+     0.0003568379748189314
+    ],
+    "epochs": 60,
+    "hidden": 96,
+    "embed": 64
+   },
+   "seq_flat_linear": 0.5661157024793388,
+   "seconds": 48.1
+  }
+ ],
+ "aggregate": {
+  "d=0.45 untrained target": {
+   "per_seed": [
+    0.4867768595041323,
+    0.5301652892561983,
+    0.5847107438016529,
+    0.5884297520661157,
+    0.5355371900826447,
+    0.48512396694214877,
+    0.4991735537190083,
+    0.5256198347107438,
+    0.41487603305785115,
+    0.5756198347107437
+   ],
+   "mean": 0.522603305785124,
+   "t90": [
+    0.49140019760269027,
+    0.5538064139675578
+   ]
+  },
+  "d=0.45 untrained resid_trace_published": {
+   "per_seed": [
+    0.509090909090909,
+    0.562809917355372,
+    0.5797520661157025,
+    0.5735537190082646,
+    0.5871900826446281,
+    0.5243801652892562,
+    0.48636363636363633,
+    0.5702479338842975,
+    0.4847107438016529,
+    0.5553719008264463
+   ],
+   "mean": 0.5433471074380166,
+   "t90": [
+    0.5207919630995158,
+    0.5659022517765174
+   ]
+  },
+  "d=0.45 untrained resid_obs_published": {
+   "per_seed": [
+    0.5157024793388431,
+    0.4429752066115703,
+    0.5797520661157025,
+    0.5900826446280991,
+    0.5421487603305786,
+    0.4677685950413223,
+    0.6070247933884299,
+    0.5140495867768596,
+    0.5409090909090908,
+    0.5119834710743802
+   ],
+   "mean": 0.5312396694214877,
+   "t90": [
+    0.5009956290369534,
+    0.561483709806022
+   ]
+  },
+  "d=0.45 untrained resid_trace": {
+   "per_seed": [
+    0.509090909090909,
+    0.562809917355372,
+    0.5797520661157025,
+    0.5735537190082646,
+    0.5871900826446281,
+    0.5243801652892562,
+    0.48636363636363633,
+    0.5698347107438015,
+    0.48429752066115694,
+    0.5553719008264463
+   ],
+   "mean": 0.5432644628099174,
+   "t90": [
+    0.5206873949508126,
+    0.5658415306690221
+   ],
+   "nuisance_r2_heldout_mean": 0.10795315157809529,
+   "nuisance_from_residual_r2_mean": -0.02014707282418577
+  },
+  "d=0.45 untrained resid_trace_act": {
+   "per_seed": [
+    0.5297520661157025,
+    0.5454545454545455,
+    0.6045454545454546,
+    0.587190082644628,
+    0.5566115702479338,
+    0.5318181818181819,
+    0.5165289256198348,
+    0.5938016528925619,
+    0.47727272727272735,
+    0.506198347107438
+   ],
+   "mean": 0.5449173553719009,
+   "t90": [
+    0.5211326445778246,
+    0.5687020661659772
+   ],
+   "nuisance_r2_heldout_mean": 0.39033009886315706,
+   "nuisance_from_residual_r2_mean": -0.019366456338409933
+  },
+  "d=0.45 untrained resid_obs": {
+   "per_seed": [
+    0.5157024793388431,
+    0.4429752066115703,
+    0.5797520661157025,
+    0.5900826446280991,
+    0.5421487603305786,
+    0.4677685950413223,
+    0.6070247933884299,
+    0.5140495867768596,
+    0.5409090909090908,
+    0.5119834710743802
+   ],
+   "mean": 0.5312396694214877,
+   "t90": [
+    0.5009956290369534,
+    0.561483709806022
+   ],
+   "nuisance_r2_heldout_mean": 0.6033384215698494,
+   "nuisance_from_residual_r2_mean": -0.010802343448598636
+  },
+  "d=0.45 untrained resid_obs_hist": {
+   "per_seed": [
+    0.5010330578512396,
+    0.4615702479338843,
+    0.5130165289256199,
+    0.48409090909090907,
+    0.5799586776859504,
+    0.5466942148760331,
+    0.5526859504132231,
+    0.540495867768595,
+    0.4830578512396695,
+    0.5353305785123967
+   ],
+   "mean": 0.5197933884297521,
+   "t90": [
+    0.4981835424272824,
+    0.5414032344322218
+   ],
+   "nuisance_r2_heldout_mean": -2.2215425537864077,
+   "nuisance_from_residual_r2_mean": -0.011855167268670279
+  },
+  "d=0.45 untrained resid_obs_hist_beh": {
+   "per_seed": [
+    0.468595041322314,
+    0.4795454545454546,
+    0.4820247933884298,
+    0.47314049586776863,
+    0.5733471074380165,
+    0.5367768595041322,
+    0.590289256198347,
+    0.5278925619834711,
+    0.5080578512396695,
+    0.5320247933884297
+   ],
+   "mean": 0.5171694214876033,
+   "t90": [
+    0.4925344423330174,
+    0.541804400642189
+   ],
+   "nuisance_r2_heldout_mean": -2.3696407277604794,
+   "nuisance_from_residual_r2_mean": -0.011884966493078424
+  },
+  "d=0.45 untrained resid_joint_mlp": {
+   "per_seed": [
+    0.5495867768595041,
+    0.4491735537190083,
+    0.4545454545454546,
+    0.5231404958677686,
+    0.4900826446280992,
+    0.4752066115702479,
+    0.4830578512396694,
+    0.5285123966942149,
+    0.47438016528925625,
+    0.5223140495867769
+   ],
+   "mean": 0.495,
+   "t90": [
+    0.47533149048174467,
+    0.5146685095182553
+   ],
+   "nuisance_r2_heldout_mean": -0.5021829802805182,
+   "nuisance_from_residual_r2_mean": 0.258521091128848,
+   "converged_folds": 50,
+   "folds": 50
+  },
+  "d=0.45 untrained obs_summary_only": {
+   "per_seed": [
+    0.5892561983471073,
+    0.5454545454545455,
+    0.5082644628099173,
+    0.6289256198347107,
+    0.5074380165289256,
+    0.4987603305785123,
+    0.5607438016528926,
+    0.615289256198347,
+    0.5652892561983471,
+    0.518595041322314
+   ],
+   "mean": 0.553801652892562,
+   "t90": [
+    0.526871962667667,
+    0.580731343117457
+   ]
+  },
+  "d=0.45 untrained seq_gru": {
+   "per_seed": [
+    0.593801652892562,
+    0.5566115702479338,
+    0.5376033057851239,
+    0.6152892561983471,
+    0.5309917355371901,
+    0.5574380165289256,
+    0.6119834710743801,
+    0.6206611570247934,
+    0.5909090909090908,
+    0.6115702479338843
+   ],
+   "mean": 0.5826859504132231,
+   "t90": [
+    0.5629701731299942,
+    0.6024017276964521
+   ]
+  },
+  "d=0.45 untrained seq_flat_linear": {
+   "per_seed": [
+    0.5652892561983471,
+    0.5330578512396695,
+    0.556198347107438,
+    0.5809917355371901,
+    0.4859504132231406,
+    0.5400826446280992,
+    0.5764462809917356,
+    0.5962809917355372,
+    0.5685950413223141,
+    0.5661157024793388
+   ],
+   "mean": 0.556900826446281,
+   "t90": [
+    0.5388871073549316,
+    0.5749145455376304
+   ]
+  },
+  "d=0.45 predictor target": {
+   "per_seed": [
+    0.5318181818181819,
+    0.6144628099173554,
+    0.6371900826446282,
+    0.587603305785124,
+    0.6165289256198347,
+    0.6041322314049588,
+    0.5595041322314049,
+    0.5351239669421487,
+    0.5743801652892561,
+    0.6252066115702479
+   ],
+   "mean": 0.588595041322314,
+   "t90": [
+    0.5669701544624646,
+    0.6102199281821634
+   ]
+  },
+  "d=0.45 predictor resid_trace_published": {
+   "per_seed": [
+    0.5309917355371901,
+    0.6041322314049588,
+    0.6855371900826446,
+    0.5644628099173554,
+    0.6330578512396694,
+    0.6016528925619836,
+    0.5710743801652892,
+    0.565702479338843,
+    0.5380165289256199,
+    0.6223140495867769
+   ],
+   "mean": 0.591694214876033,
+   "t90": [
+    0.5642877695572682,
+    0.6191006601947978
+   ]
+  },
+  "d=0.45 predictor resid_obs_published": {
+   "per_seed": [
+    0.5074380165289256,
+    0.5520661157024793,
+    0.6454545454545454,
+    0.5760330578512397,
+    0.6384297520661157,
+    0.5913223140495868,
+    0.5334710743801653,
+    0.5206611570247934,
+    0.5392561983471074,
+    0.6743801652892563
+   ],
+   "mean": 0.5778512396694215,
+   "t90": [
+    0.544330186389697,
+    0.6113722929491461
+   ]
+  },
+  "d=0.45 predictor resid_trace": {
+   "per_seed": [
+    0.5309917355371901,
+    0.6037190082644628,
+    0.6855371900826446,
+    0.5648760330578513,
+    0.6330578512396694,
+    0.6016528925619836,
+    0.5714876033057852,
+    0.565702479338843,
+    0.5384297520661157,
+    0.6231404958677687
+   ],
+   "mean": 0.5918595041322314,
+   "t90": [
+    0.5644820123979658,
+    0.619236995866497
+   ],
+   "nuisance_r2_heldout_mean": 0.1228203257430573,
+   "nuisance_from_residual_r2_mean": -0.02309063816412251
+  },
+  "d=0.45 predictor resid_trace_act": {
+   "per_seed": [
+    0.462396694214876,
+    0.6152892561983471,
+    0.6628099173553719,
+    0.5574380165289257,
+    0.5640495867768595,
+    0.5619834710743802,
+    0.5301652892561984,
+    0.5371900826446281,
+    0.5384297520661157,
+    0.575206611570248
+   ],
+   "mean": 0.5604958677685951,
+   "t90": [
+    0.5297706107562481,
+    0.591221124780942
+   ],
+   "nuisance_r2_heldout_mean": 0.3588349823298246,
+   "nuisance_from_residual_r2_mean": -0.02162907497421646
+  },
+  "d=0.45 predictor resid_obs": {
+   "per_seed": [
+    0.5074380165289256,
+    0.5520661157024793,
+    0.6454545454545454,
+    0.5760330578512397,
+    0.6384297520661157,
+    0.5913223140495868,
+    0.5334710743801653,
+    0.5206611570247934,
+    0.5392561983471074,
+    0.6743801652892563
+   ],
+   "mean": 0.5778512396694215,
+   "t90": [
+    0.544330186389697,
+    0.6113722929491461
+   ],
+   "nuisance_r2_heldout_mean": 0.8508380599596237,
+   "nuisance_from_residual_r2_mean": -0.01877435531019756
+  },
+  "d=0.45 predictor resid_obs_hist": {
+   "per_seed": [
+    0.4644628099173554,
+    0.5886363636363636,
+    0.6078512396694216,
+    0.5826446280991735,
+    0.5475206611570248,
+    0.58801652892562,
+    0.5212809917355372,
+    0.6204545454545455,
+    0.49586776859504134,
+    0.5037190082644628
+   ],
+   "mean": 0.5520454545454545,
+   "t90": [
+    0.521194264342453,
+    0.582896644748456
+   ],
+   "nuisance_r2_heldout_mean": -0.961249465833417,
+   "nuisance_from_residual_r2_mean": -0.01668033320644629
+  },
+  "d=0.45 predictor resid_obs_hist_beh": {
+   "per_seed": [
+    0.4805785123966942,
+    0.5710743801652893,
+    0.575206611570248,
+    0.5483471074380165,
+    0.5429752066115702,
+    0.5349173553719009,
+    0.4615702479338843,
+    0.5787190082644627,
+    0.5026859504132232,
+    0.4964876033057851
+   ],
+   "mean": 0.5292561983471075,
+   "t90": [
+    0.5051050122109967,
+    0.5534073844832182
+   ],
+   "nuisance_r2_heldout_mean": -1.0436861449019594,
+   "nuisance_from_residual_r2_mean": -0.016701834396286523
+  },
+  "d=0.45 predictor resid_joint_mlp": {
+   "per_seed": [
+    0.5636363636363637,
+    0.5578512396694214,
+    0.5851239669421487,
+    0.5421487603305787,
+    0.5504132231404959,
+    0.5438016528925619,
+    0.5785123966942148,
+    0.5214876033057851,
+    0.5830578512396695,
+    0.6371900826446282
+   ],
+   "mean": 0.5663223140495868,
+   "t90": [
+    0.5477502031828693,
+    0.5848944249163043
+   ],
+   "nuisance_r2_heldout_mean": 0.8561571864934077,
+   "nuisance_from_residual_r2_mean": -0.13872375596157055,
+   "converged_folds": 50,
+   "folds": 50
+  },
+  "d=0.45 predictor obs_summary_only": {
+   "per_seed": [
+    0.521900826446281,
+    0.5429752066115703,
+    0.6640495867768595,
+    0.6731404958677686,
+    0.5880165289256197,
+    0.6016528925619834,
+    0.5838842975206612,
+    0.6095041322314049,
+    0.5425619834710744,
+    0.6103305785123968
+   ],
+   "mean": 0.5938016528925619,
+   "t90": [
+    0.5649329718255975,
+    0.6226703339595263
+   ]
+  },
+  "d=0.45 predictor seq_gru": {
+   "per_seed": [
+    0.5628099173553719,
+    0.6194214876033057,
+    0.6144628099173555,
+    0.656198347107438,
+    0.5809917355371901,
+    0.5706611570247934,
+    0.5702479338842975,
+    0.6144628099173552,
+    0.556611570247934,
+    0.6731404958677686
+   ],
+   "mean": 0.6019008264462808,
+   "t90": [
+    0.5785210535615501,
+    0.6252805993310115
+   ]
+  },
+  "d=0.45 predictor seq_flat_linear": {
+   "per_seed": [
+    0.5,
+    0.5396694214876033,
+    0.5772727272727274,
+    0.6012396694214877,
+    0.5454545454545454,
+    0.5966942148760331,
+    0.4545454545454545,
+    0.6388429752066116,
+    0.5789256198347107,
+    0.6231404958677687
+   ],
+   "mean": 0.5655785123966942,
+   "t90": [
+    0.5327066153060724,
+    0.598450409487316
+   ]
+  },
+  "d=0.45 survival target": {
+   "per_seed": [
+    0.6322314049586778,
+    0.8049586776859504,
+    0.6913223140495868,
+    0.7438016528925621,
+    0.66198347107438,
+    0.5223140495867769,
+    0.8847107438016529,
+    0.7826446280991736,
+    0.8677685950413222,
+    0.7384297520661157
+   ],
+   "mean": 0.7330165289256197,
+   "t90": [
+    0.6688457128023877,
+    0.7971873450488518
+   ]
+  },
+  "d=0.45 survival resid_trace_published": {
+   "per_seed": [
+    0.5942148760330579,
+    0.7640495867768596,
+    0.6917355371900826,
+    0.743801652892562,
+    0.6925619834710743,
+    0.5752066115702479,
+    0.8293388429752065,
+    0.7995867768595042,
+    0.8417355371900828,
+    0.697107438016529
+   ],
+   "mean": 0.7229338842975206,
+   "t90": [
+    0.670231328377821,
+    0.7756364402172202
+   ]
+  },
+  "d=0.45 survival resid_obs_published": {
+   "per_seed": [
+    0.5851239669421486,
+    0.8132231404958677,
+    0.684297520661157,
+    0.6966942148760331,
+    0.6140495867768595,
+    0.4768595041322314,
+    0.8504132231404959,
+    0.7962809917355371,
+    0.7723140495867769,
+    0.7045454545454545
+   ],
+   "mean": 0.6993801652892562,
+   "t90": [
+    0.6322791780065844,
+    0.766481152571928
+   ]
+  },
+  "d=0.45 survival resid_trace": {
+   "per_seed": [
+    0.5946280991735537,
+    0.7636363636363637,
+    0.6917355371900826,
+    0.743801652892562,
+    0.6925619834710743,
+    0.5752066115702479,
+    0.8293388429752065,
+    0.7995867768595042,
+    0.8417355371900828,
+    0.697107438016529
+   ],
+   "mean": 0.7229338842975206,
+   "t90": [
+    0.6702809489625011,
+    0.7755868196325401
+   ],
+   "nuisance_r2_heldout_mean": 0.11752894259590212,
+   "nuisance_from_residual_r2_mean": -0.012876340159318784
+  },
+  "d=0.45 survival resid_trace_act": {
+   "per_seed": [
+    0.575206611570248,
+    0.7512396694214875,
+    0.6776859504132232,
+    0.725206611570248,
+    0.6301652892561984,
+    0.5181818181818182,
+    0.7512396694214877,
+    0.7103305785123967,
+    0.7669421487603305,
+    0.7008264462809918
+   ],
+   "mean": 0.6807024793388431,
+   "t90": [
+    0.6330740106309286,
+    0.7283309480467576
+   ],
+   "nuisance_r2_heldout_mean": 0.5975580524874908,
+   "nuisance_from_residual_r2_mean": -0.01245436544357807
+  },
+  "d=0.45 survival resid_obs": {
+   "per_seed": [
+    0.5851239669421486,
+    0.8132231404958677,
+    0.684297520661157,
+    0.6966942148760331,
+    0.6140495867768595,
+    0.4768595041322314,
+    0.8504132231404959,
+    0.7962809917355371,
+    0.7723140495867769,
+    0.7045454545454545
+   ],
+   "mean": 0.6993801652892562,
+   "t90": [
+    0.6322791780065844,
+    0.766481152571928
+   ],
+   "nuisance_r2_heldout_mean": 0.8825044715633856,
+   "nuisance_from_residual_r2_mean": -0.008563804244949126
+  },
+  "d=0.45 survival resid_obs_hist": {
+   "per_seed": [
+    0.5904958677685951,
+    0.5836776859504132,
+    0.6150826446280993,
+    0.6826446280991735,
+    0.6659090909090908,
+    0.5450413223140496,
+    0.7165289256198346,
+    0.6919421487603307,
+    0.6644628099173554,
+    0.6440082644628099
+   ],
+   "mean": 0.6399793388429752,
+   "t90": [
+    0.6082760307463142,
+    0.6716826469396362
+   ],
+   "nuisance_r2_heldout_mean": -0.12776003400373528,
+   "nuisance_from_residual_r2_mean": -0.009691483783819699
+  },
+  "d=0.45 survival resid_obs_hist_beh": {
+   "per_seed": [
+    0.5855371900826446,
+    0.5392561983471074,
+    0.5987603305785124,
+    0.6415289256198348,
+    0.6264462809917356,
+    0.5361570247933884,
+    0.6299586776859505,
+    0.6533057851239669,
+    0.6491735537190083,
+    0.596694214876033
+   ],
+   "mean": 0.6056818181818182,
+   "t90": [
+    0.5810533873676488,
+    0.6303102489959876
+   ],
+   "nuisance_r2_heldout_mean": -0.17749393146852604,
+   "nuisance_from_residual_r2_mean": -0.009698567670697345
+  },
+  "d=0.45 survival resid_joint_mlp": {
+   "per_seed": [
+    0.6272727272727272,
+    0.5884297520661157,
+    0.5826446280991735,
+    0.5367768595041322,
+    0.6272727272727272,
+    0.5413223140495868,
+    0.7103305785123968,
+    0.6809917355371902,
+    0.7053719008264464,
+    0.5987603305785123
+   ],
+   "mean": 0.619917355371901,
+   "t90": [
+    0.5836476612639554,
+    0.6561870494798465
+   ],
+   "nuisance_r2_heldout_mean": 0.887097920750031,
+   "nuisance_from_residual_r2_mean": -0.010845929580654404,
+   "converged_folds": 50,
+   "folds": 50
+  },
+  "d=0.45 survival obs_summary_only": {
+   "per_seed": [
+    0.7078512396694215,
+    0.7743801652892562,
+    0.6830578512396693,
+    0.7181818181818181,
+    0.6549586776859504,
+    0.49504132231404957,
+    0.8202479338842975,
+    0.7723140495867769,
+    0.8322314049586776,
+    0.6900826446280991
+   ],
+   "mean": 0.7148347107438016,
+   "t90": [
+    0.6583938328409636,
+    0.7712755886466395
+   ]
+  },
+  "d=0.45 survival seq_gru": {
+   "per_seed": [
+    0.6442148760330578,
+    0.8359504132231406,
+    0.6960743801652893,
+    0.7119834710743802,
+    0.6785123966942149,
+    0.5483471074380166,
+    0.8524793388429753,
+    0.7797520661157025,
+    0.7925619834710743,
+    0.6971074380165289
+   ],
+   "mean": 0.7236983471074381,
+   "t90": [
+    0.6698076889104664,
+    0.7775890053044098
+   ]
+  },
+  "d=0.45 survival seq_flat_linear": {
+   "per_seed": [
+    0.6309917355371901,
+    0.7202479338842975,
+    0.5863636363636363,
+    0.6632231404958677,
+    0.6140495867768594,
+    0.525206611570248,
+    0.7809917355371901,
+    0.715289256198347,
+    0.7520661157024794,
+    0.6210743801652893
+   ],
+   "mean": 0.6609504132231405,
+   "t90": [
+    0.614470190459469,
+    0.707430635986812
+   ]
+  }
+ }
+}

@@ -10,27 +10,31 @@ repository-code: "https://github.com/iLevyTate/ItaSoRL"
 license: MIT
 version: 1.0.0
 abstract: >-
-  ITASORL tests whether a self-supervised digital organism, trained with no
-  imported semantic knowledge, incidentally encodes whether its world is an
-  authentic base simulation or a generative surrogate. Hand-tuned dynamics
-  artifacts (L2) are readily detectable by a noiseless privileged oracle but are
-  not encoded by the agent (robust negative; at the L3 gate's detector noise the
-  L2 oracle reads 0.62 to 0.65, so the matched contrast is L1 against L3); a
-  learned-dynamics fingerprint surrogate (L3) is incidentally encoded by
-  survival-trained agents carrying a next-observation auxiliary, with a
-  behavior-independent component that clears the pre-registered bar. Neither
-  objective alone reaches the bar (0.601 without the auxiliary, device-controlled).
-  Survival-specificity holds at two of three tested fingerprints, including an
-  independently trained one that falls under the bar (0.639). A
-  cross-recipe probe shows the signal generalizes across surrogate families
-  (it also reads a random-Fourier-features law fit on the same data); a
-  same-recipe held-out probe adds capacity-variant robustness in one direction
-  only (subtle-to-coarse passes, the frozen reverse fails). A
-  common-garden control, re-scored with a corrected estimator, passes the frozen
-  rule on both directions (forward 0.666, reverse 0.684), so the signal carries a
-  modest persistent stored world-identity component the policy also expresses
-  reactively, not purely reactive tracking of the felt dynamics
-  (see FINDINGS section 10.6.1).
+  ITASORL measures whether a recurrent agent trained from scratch, with no
+  imported semantic knowledge and no reward for detection, comes to carry in its
+  state whether its world runs on authentic base dynamics or a substrate-flawed
+  surrogate, set against how detectable the flaw is to a privileged detector at a
+  stated detector-side noise. Hand-authored flaws (L1 discretization, L2 rollout
+  drift) are detectable but did not meet the registered encoding criterion; at
+  the L3 gate's detector noise the L2 flaws read 0.62 to 0.65, so the matched
+  contrast is L1 against L3. A learned-dynamics fingerprint (L3) met the
+  decodability clauses for survival-trained agents carrying a
+  next-observation auxiliary at the registered 300-update budget, with the trainer corrected in
+  October 2026 (0.733 against 0.589 for a prediction-only arm; the L0 gate open
+  on the registered evaluation-world pair and equivalent to chance across eight
+  independent pairs). Without the auxiliary the arm reads 0.613 at 300 updates
+  and 0.685 at 450, so the auxiliary result is bounded by budget. At matched
+  evaluation input a prediction-trained trunk reads the world as well as the
+  survival trunk: the signal rides on the trajectories the foraging policy
+  produces and is kept by a trunk shaped by next-observation prediction. A
+  hand-authored, temporally coherent drag of matched one-step size is read
+  through the same direction while white jitter is not, so nothing here is
+  specific to learned dynamics. A common-garden control passes its frozen rule
+  on the historical agents (0.666, 0.684): prefix condition
+  remains decodable after restoring authentic dynamics, and on the corrected agents that is
+  carried mostly by the physical footprint of the prefix, not by memory (see
+  FINDINGS section 10.6.1 and 17.7). Corrections and what each does not
+  establish: docs/CORRECTIONS.md.
 keywords:
   - artificial-life
   - reinforcement-learning

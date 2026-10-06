@@ -1,12 +1,18 @@
-"""Recompute every published L3/B-v2 number from committed artifacts.
+"""Check quoted numbers and watched wording against the committed artifacts.
 
-Publication gate: loads the committed JSONs under artifacts/expB2/ and
-recomputes, from the per-seed cell values, every quantitative claim quoted in
-README.md, docs/FINDINGS.md sections 9-10 and 14 (including the 14.5-14.7 H2
-batteries under artifacts/expH2 and artifacts/expL1), docs/PAPER_OUTLINE.md,
-and the B-v3 n=10 gate values recorded in docs/PREREGISTRATION_Bv3.md
-section 12 (artifacts/expB2/bv3_n10_gates.json). Fails loudly (non-zero exit)
-on any mismatch beyond rounding.
+What it does: loads the committed JSONs under artifacts/ and checks that the numbers
+quoted in README.md, docs/FINDINGS.md (sections 9-10, 14 to 16 and the methods notes),
+docs/PAPER_OUTLINE.md, CITATION.cff, the site, and the B-v3 gate entry of
+docs/PREREGISTRATION_Bv3.md section 12 equal values recomputed from the per-seed cells
+they come from; that generated pages (index.html, the results manifest, the gate table,
+the contrast intervals, the manuscript tables) are current; and that retired wording has
+not returned to the pages it watches. Fails loudly (non-zero exit) on any mismatch
+beyond rounding.
+
+What it does not do (revision 2026-10): it reruns no experiment, it cannot detect an error
+in the committed per-seed values themselves (the GAE bootstrap defect passed it for
+months), and it does not read the LaTeX manuscript, which lives outside git
+(`scripts/build_paper_tables.py --manuscript <dir>` checks that).
 
 Two interval types appear in the docs, both recomputed here:
   boot: seed-level percentile bootstrap of the across-seed mean
@@ -21,6 +27,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import re
 import math
 import os
 import sys
@@ -1450,8 +1457,10 @@ def main() -> int:
     # ---- derived-doc resolution guard -----------------------------------
     # The reactive-vs-persistent reading was PROVISIONAL until the section 10.6
     # re-score; it is now RESOLVED (FINDINGS 10.6.1, 2026-07-19): the corrected
-    # common-garden control passes the frozen rule on both directions, so the
-    # signal is a modest persistent world-identity component. The public-facing
+    # common-garden control passes the frozen rule on both directions. The 2026-10
+    # revision narrowed the reading to "prefix condition remains decodable after
+    # restoring authentic dynamics", since the control cannot separate memory from a
+    # physical footprint of the prefix. The public-facing
     # derived docs are hand-maintained and drifted stale before (audit fault:
     # index.html once stated the reading as final), so pin the resolved
     # references here and forbid regression to the provisional/reactive-only
@@ -1466,8 +1475,10 @@ def main() -> int:
     for relpath, needle, label in [
         ("index.html", "10.6.1",
          "index.html points at the 10.6.1 resolution"),
-        ("index.html", "modest persistent",
-         "index.html carries the resolved persistent reading"),
+        ("index.html", "remains decodable after restoring authentic dynamics",
+         "index.html carries the narrowed common-garden reading (revision 2026-10)"),
+        ("CITATION.cff", "remains decodable after restoring authentic dynamics",
+         "CITATION.cff carries the narrowed common-garden reading (revision 2026-10)"),
         ("CITATION.cff", "10.6.1",
          "CITATION.cff points at the 10.6.1 resolution"),
         ("README.md", "10.6.1",
@@ -1486,6 +1497,29 @@ def main() -> int:
                             ("CITATION.cff", "provisional pending")]:
         check_true(f"{relpath} no longer carries the provisional qualifier",
                    banned not in _read(relpath))
+    # Revision 2026-10 (docs/REVISION_2026-10.md, step 14): the common garden does not
+    # separate memory from the prefix's physical footprint, and a behavior control removes
+    # only what its basis can express. The public pages must not say otherwise.
+    for relpath in ("index.html", "CITATION.cff", "README.md"):
+        _t = _read(relpath)
+        for banned in ("persistent stored", "behavior-independent", "behaviour-independent",
+                       "H2 confirmed", "H3 resolves negative"):
+            check_true(f"{relpath} no longer says '{banned}'", banned not in _t)
+    # FINDINGS 17.6 withdrew the survival-specific reading; the phrase may appear on the public
+    # pages only in the sentence that withdraws it.
+    for relpath in ("index.html", "CITATION.cff", "README.md"):
+        _t = " ".join(_read(relpath).split())
+        _bad = [m.start() for m in re.finditer(r"survival-specific", _t)
+                if "withdrawn" not in _t[max(0, m.start() - 120): m.start() + 120]]
+        check_true(f"{relpath} uses 'survival-specific' only to withdraw it", not _bad)
+    for relpath, needle, label in [
+        ("README.md", "docs/CORRECTIONS.md", "README points at the corrections record"),
+        ("index.html", "docs/CORRECTIONS.md", "index.html points at the corrections record"),
+        ("CITATION.cff", "docs/CORRECTIONS.md", "CITATION.cff points at the corrections record"),
+        ("README.md", "VariBAD", "README compares against meta-RL"),
+        ("index.html", "VariBAD", "index.html compares against meta-RL"),
+    ]:
+        check_true(label, needle in _read(relpath))
     # and the old reactive-only claim must not reappear in index.html.
     idx = _read("index.html")
     for phrase in ("not a persistent stored representation",
@@ -1692,6 +1726,251 @@ def main() -> int:
     import build_index
     check_true("index.html is regenerable and current (build_index --check)",
                build_index.build(os.path.join(root), check=True) == 0)
+    # Revision step 1 (docs/REVISION_2026-10.md): every committed artifact belongs to a run in
+    # the results manifest, and the generated manifest pages are current.
+    import build_results_manifest
+    check_true("results manifest covers every artifact and is current "
+               "(build_results_manifest --check)",
+               build_results_manifest.main(["--check"]) == 0)
+    # Revision step 5: the gate table recomputes L0 and the floor from committed per-seed values.
+    import build_gate_table
+    check_true("gate table is current (build_gate_table --check)",
+               build_gate_table.main(["--check"]) == 0)
+    # Revision step 13: margins get intervals of the difference.
+    import build_contrast_intervals
+    check_true("contrast intervals are current (build_contrast_intervals --check)",
+               build_contrast_intervals.main(["--check"]) == 0)
+    # Revision step 4: the corrected runs under the frozen decision rules.
+    import build_corrected_verdicts
+    check_true("corrected verdicts are current (build_corrected_verdicts --check)",
+               build_corrected_verdicts.main(["--check"]) == 0)
+    # Revision step 4: FINDINGS 17 quotes the corrected runs; every number it states for a
+    # complete run is recomputed from artifacts/corrected_verdicts.json (itself checked current
+    # against the committed cells above).
+    print("\n== FINDINGS 17: corrected-trainer confirmation ==")
+    _f17 = _read("docs/FINDINGS.md")
+    _s17 = _f17[_f17.index("## 17. Corrected-trainer confirmation"):]
+    _v = _load_art("corrected_verdicts.json")
+    _c1 = _v["runs"]["C1"]
+    if _c1.get("status") == "complete":
+        _p, _g = _c1["primary"], _c1["gates"]
+        _iv = lambda t: f"[{t[0]:.3f}, {t[1]:.3f}]"
+        _sv = lambda t: f"[{t[0]:+.3f}, {t[1]:+.3f}]"
+        for label, needle in [
+            ("C1 survival", f"**{_p['survival']['mean']:.3f} {_iv(_p['survival']['t90'])}**"),
+            ("C1 predictor", f"{_p['predictor']['mean']:.3f} {_iv(_p['predictor']['t90'])}"),
+            ("C1 untrained", f"{_p['untrained']['mean']:.3f} {_iv(_p['untrained']['t90'])}"),
+            ("C1 seeds at bar", f"| {_p['survival']['seeds_at_bar']}/10 |"),
+            ("C1 margin vs predictor", f"**{_p['contrast_vs_predictor']['mean']:+.3f} {_sv(_p['contrast_vs_predictor']['t90'])}**"),
+            ("C1 margin vs untrained", f"**{_p['contrast_vs_untrained']['mean']:+.3f} {_sv(_p['contrast_vs_untrained']['t90'])}**"),
+            ("C1 per-seed survival", ", ".join(f"{x:.3f}" for x in _p["survival"]["per_seed"])),
+            ("C1 L0 mean", f"average **{_g['l0']['mean']:.3f}**"),
+            ("C1 L0 per seed", ", ".join(f"{x:.3f}" for x in _g["l0"]["per_seed"])),
+            ("C1 L0 TOST p", f"p = {_g['l0']['tost_p']:.3f}"),
+            ("C1 L0 ROPE share", f"{_g['l0']['rope']['boot_share_in_rope']:.3f} of bootstrap means"),
+            ("C1 speed min", f"at least {_g['speed']['min']:.3f}"),
+            ("C1 verdict", "MET on the decodability clauses, conditional on the open L0\ngate"
+             if _p["verdict"].endswith("l0") else _p["verdict"]),
+        ] + [(f"C1 correction {d} {q}", f"{x['corrected']['mean'] if q == 'survival_target' else x['corrected']:.3f} | "
+              f"{x['historical']['mean'] if q == 'survival_target' else x['historical']:.3f} | "
+              f"{x['difference']['mean']:+.3f} {_sv(x['difference']['t90'])}")
+             for d, blk in _c1["correction_effect"].items()
+             for q, x in blk.items() if q in ("survival_target", "engagement_return")]:
+            check_true(f"FINDINGS 17 quotes {label}", needle in _s17)
+        check_true("C1 integrity passes (successor bootstrap, baselines bit-identical)",
+                   _c1["integrity"]["pass"])
+    _c2 = _v["runs"].get("C2", {})
+    if _c2.get("status") == "complete":
+        _p2, _g2 = _c2["primary"], _c2["gates"]
+        _iv2 = lambda t: f"[{t[0]:.3f}, {t[1]:.3f}]"
+        _sv2 = lambda t: f"[{t[0]:+.3f}, {t[1]:+.3f}]"
+        _s17n2 = " ".join(_s17.split())
+        _ce = _c2["correction_effect"]
+        for label, needle in [
+            ("C2 survival", f"**{_p2['survival']['mean']:.3f} {_iv2(_p2['survival']['t90'])}**"),
+            ("C2 predictor", f"{_p2['predictor']['mean']:.3f} {_iv2(_p2['predictor']['t90'])}"),
+            ("C2 untrained", f"{_p2['untrained']['mean']:.3f} {_iv2(_p2['untrained']['t90'])}"),
+            ("C2 per-seed survival", ", ".join(f"{x:.3f}" for x in _p2["survival"]["per_seed"])),
+            ("C2 margin vs predictor", f"{_p2['contrast_vs_predictor']['mean']:+.3f} {_sv2(_p2['contrast_vs_predictor']['t90'])}"),
+            ("C2 margin vs untrained", f"{_p2['contrast_vs_untrained']['mean']:+.3f} {_sv2(_p2['contrast_vs_untrained']['t90'])}"),
+            ("C2 L0", f"average {_g2['l0']['mean']:.3f} (TOST p = {_g2['l0']['tost_p']:.3f})"),
+            ("C2 verdict", f"**Verdict: {_p2['verdict']}**"),
+            ("C2 correction 0.45", f"{_ce['0.45']['survival_target']['difference']['mean']:+.3f} "
+                                   f"{_sv2(_ce['0.45']['survival_target']['difference']['t90'])}"),
+            ("C2 correction 0.00", f"{_ce['0.00']['survival_target']['difference']['mean']:+.3f} "
+                                   f"{_sv2(_ce['0.00']['survival_target']['difference']['t90'])}"),
+        ]:
+            check_true(f"FINDINGS 17.4 quotes {label}", needle in _s17n2)
+        check_true("C2 integrity passes", _c2["integrity"]["pass"])
+        _ac = _v["auxiliary_comparison"]
+        check_true("FINDINGS 17.4 quotes the auxiliary contrast",
+                   f"**{_ac['c1_minus_c2']:+.3f}**, paired by seed **{_sv2(_ac['paired']['t90'])}**" in _s17n2)
+        check_true("FINDINGS 17.4 counts the seeds favoring the decoder",
+                   f"{sum(x > 0 for x in _ac['paired']['diff_per_seed'])} of 10 seeds favor the decoder" in _s17n2)
+        check_true("17.4 wording matches the frozen auxiliary rule (holds on decodability, not in full)",
+                   (not _ac["holds"]) and _ac["holds_on_decodability_clauses"]
+                   and "holds on the decodability clauses, conditional on `C1`'s open gate" in _s17n2)
+    _bcp = os.path.join(ARTROOT, "budget_curve.json")
+    if os.path.exists(_bcp):
+        _bc = _load_art("budget_curve.json")
+        _on = {r["updates"]: r for r in _bc["series"]["decoder on"]}
+        _off = {r["updates"]: r for r in _bc["series"]["decoder off"]}
+        for u in (100, 200, 300, 450):
+            f = lambda r, k: f"{r[k]['mean']:.3f} [{r[k]['t90'][0]:.3f}, {r[k]['t90'][1]:.3f}]"
+            row = (f"| {f(_on[u], 'return')} | {f(_off[u], 'return')} | "
+                   f"{f(_on[u], 'target')} | {f(_off[u], 'target')} |")
+            check_true(f"FINDINGS 17.10 budget row {u}", row in _s17)
+        for c in _bc["contrast"]:
+            row = (f"| {c['updates']} | {c['target']['mean']:+.3f} [{c['target']['t90'][0]:+.3f}, {c['target']['t90'][1]:+.3f}] | "
+                   f"{c['return']['mean']:+.3f} [{c['return']['t90'][0]:+.3f}, {c['return']['t90'][1]:+.3f}] |")
+            check_true(f"FINDINGS 17.10 contrast row {c['updates']}", row in _s17)
+    _xrp = os.path.join(ARTROOT, "cross_replay", "corrected_c1_c2.json")
+    if os.path.exists(_xrp):
+        _xr = _load_art("cross_replay", "corrected_c1_c2.json")
+        _xa = _xr["aggregate"]
+        g = lambda k: f"{_xa[k]['mean']:.3f} [{_xa[k]['t90'][0]:.3f}, {_xa[k]['t90'][1]:.3f}]"
+        check_true("FINDINGS 17.10 cross-replay row, decoder-on trunk",
+                   f"| decoder-on trunk | {g('a_on_a')} | {g('a_on_b')} |" in _s17)
+        check_true("FINDINGS 17.10 cross-replay row, decoder-off trunk",
+                   f"| decoder-off trunk | {g('b_on_a')} | {g('b_on_b')} |" in _s17)
+        for k, c in _xr["contrasts"].items():
+            check_true(f"FINDINGS 17.10 quotes {k.split(' ')[0]}",
+                       f"{c['mean']:+.3f} [{c['t90'][0]:+.3f}, {c['t90'][1]:+.3f}]" in _s17)
+        check_true("the cross-replay artifact is labeled exploratory", "exploratory" in _xr["status"])
+    _l0p = os.path.join(ARTROOT, "l0_audit", "corrected_l3_h8_wm.json")
+    if os.path.exists(_l0p):
+        _l0 = _load_art("l0_audit", "corrected_l3_h8_wm.json")
+        _ls = _l0["l0_summary"]
+        for r in _ls["by_pair"]:
+            check_true(f"FINDINGS 17.5 quotes L0 pair {r['bases'][0]}",
+                       f"| {r['mean']:.3f} | {r['tost_p']:.3f} | {r['first_state_mean']:.3f} |" in _s17)
+        _ti = _ls["tost_over_independent_pairs"]
+        check_true("FINDINGS 17.5 quotes the independent-pair mean and sd",
+                   f"average **{_ti['mean']:.3f}** with sd **{_ls['independent_sd_of_pair_means']:.3f}**" in _s17)
+        check_true("FINDINGS 17.5 quotes the TOST over pairs", f"(p = {_ti['p']:.3f})" in _s17)
+        _ps = _l0["paired_summary"]
+        check_true("FINDINGS 17.5 quotes the balanced survival readout",
+                   f"**{_ps['survival']['mean']:.3f}**\n[{_ps['survival']['t90'][0]:.3f}, {_ps['survival']['t90'][1]:.3f}]" in _s17
+                   or f"**{_ps['survival']['mean']:.3f}** [{_ps['survival']['t90'][0]:.3f}, {_ps['survival']['t90'][1]:.3f}]" in _s17)
+        for arm in ("predictor", "untrained"):
+            check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
+                       f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
+    _pcp = os.path.join(ARTROOT, "policy_controls", "corrected_l3_h8_wm.json")
+    if os.path.exists(_pcp):
+        from itasorl.stats import paired_contrast as _pc
+        _pcd = _load_art("policy_controls", "corrected_l3_h8_wm.json")
+        check_true("17.6: every survival retrain was bit-identical",
+                   all(c["retrain_identical"] for c in _pcd["cells"]) and len(_pcd["cells"]) == 10)
+        _agg = _pcd["aggregate"]
+        for arm in ("untrained", "predictor", "predictor_logged", "survival"):
+            row = f"| {arm} | " + " | ".join(
+                f"{_agg[f'{arm} {pr}']['mean']:.3f} [{_agg[f'{arm} {pr}']['t90'][0]:.3f}, "
+                f"{_agg[f'{arm} {pr}']['t90'][1]:.3f}]" for pr in ("own", "scripted", "replay")) + " |"
+            check_true(f"FINDINGS 17.6 table row {arm}", row in _s17)
+        _cells = sorted(_pcd["cells"], key=lambda c: c["seed"])
+        _tv = lambda arm, pr: [c["targets"][arm][pr]["target"] for c in _cells]
+        for pr in ("own", "scripted", "replay"):
+            cs = [_pc(_tv("survival", pr), _tv(b2, pr)) for b2 in ("predictor", "predictor_logged", "untrained")]
+            row = f"| {pr} | " + " | ".join(f"{c['mean']:+.3f} [{c['t90'][0]:+.3f}, {c['t90'][1]:+.3f}]" for c in cs) + " |"
+            check_true(f"FINDINGS 17.6 contrast row {pr}", row in _s17)
+    _psp = os.path.join(ARTROOT, "persistence", "corrected_l3_h8_wm.json")
+    if os.path.exists(_psp):
+        _pa = _load_art("persistence", "corrected_l3_h8_wm.json")["aggregate"]
+        check_true("17.7: every drift-0 condition reads exactly 0.5",
+                   all(v["window_mean"] == 0.5 for k, v in _pa.items() if k.startswith("d=0.00")))
+        _w = lambda arm, c: (f"{_pa[f'd=0.45 {arm} {c}']['window_mean']:.3f} "
+                             f"[{_pa[f'd=0.45 {arm} {c}']['window_t90'][0]:.3f}, "
+                             f"{_pa[f'd=0.45 {arm} {c}']['window_t90'][1]:.3f}]")
+        for c in ("replay:prefix", "common_state:prefix", "factorial:hidden", "factorial:physical",
+                  "reset_hidden:prefix"):
+            for arm in ("untrained", "predictor", "survival"):
+                check_true(f"FINDINGS 17.7 quotes {arm} {c}", _w(arm, c) in _s17)
+            check_true(f"FINDINGS 17.7 quotes survival late {c}",
+                       f"| {_pa[f'd=0.45 survival {c}']['late_mean']:.3f} |" in _s17)
+        _rp = _pa["d=0.45 survival replay:prefix"]
+        _first = next(i + 1 for i, x in enumerate(_rp["auc_by_t_mean"]) if x < 0.55)
+        check_true("17.7: the frozen replay rule is not met (mean or lower bound under 0.65)",
+                   _rp["window_mean"] < 0.65 or _rp["window_t90"][0] < 0.65)
+        check_true("FINDINGS 17.7 states the first step under 0.55 (the fifth)", _first == 5
+                   and "falls below\n0.55 at the fifth" in _s17)
+    _cdp = os.path.join(ARTROOT, "control_diagnostics", "corrected_l3_h8_wm.json")
+    if os.path.exists(_cdp):
+        _cd = _load_art("control_diagnostics", "corrected_l3_h8_wm.json")
+        check_true("17.8: regenerated pools bit-match the run's dumps", _cd["all_dumps_bit_match"])
+        _ca = _cd["aggregate"]
+        _cv = lambda arm, m: (f"{_ca[f'd=0.45 {arm} {m}']['mean']:.3f} [{_ca[f'd=0.45 {arm} {m}']['t90'][0]:.3f}, "
+                              f"{_ca[f'd=0.45 {arm} {m}']['t90'][1]:.3f}]")
+        for m in ("target", "resid_trace", "resid_trace_act", "resid_obs", "resid_obs_hist",
+                  "resid_obs_hist_beh", "resid_joint_mlp", "obs_summary_only", "seq_gru", "seq_flat_linear"):
+            row = " | ".join(_cv(arm, m) for arm in ("survival", "predictor", "untrained"))
+            check_true(f"FINDINGS 17.8 row {m}", row.replace("[", "[").replace(_cv("survival", m), _cv("survival", m)) in _s17.replace("**", ""))
+            if m.startswith("resid_"):
+                _r2 = _ca[f"d=0.45 survival {m}"]["nuisance_r2_heldout_mean"]
+                check_true(f"FINDINGS 17.8 held-out R2 {m} ({_r2:.2f})", f"| {_r2:.2f} |" in _s17)
+                check_true(f"17.8: basis not recoverable from the survival residual ({m})",
+                           _ca[f"d=0.45 survival {m}"]["nuisance_from_residual_r2_mean"] <= -0.005)
+    for _fam in ("gn", "qd"):
+        _tp = os.path.join(ARTROOT, "texture", f"corrected_l3_h8_wm_{_fam}.json")
+        if not os.path.exists(_tp):
+            continue
+        from itasorl.stats import paired_contrast as _pc2
+        _ta = _load_art("texture", f"corrected_l3_h8_wm_{_fam}.json")["aggregate"]
+        for _q in ("transfer", "fresh", "fresh_paired"):
+            _s, _u = _ta[f"survival {_q}"], _ta[f"untrained {_q}"]
+            _c = _pc2(_s["per_seed"], _u["per_seed"])
+            row = (f"{_s['mean']:.3f} [{_s['t90'][0]:.3f}, {_s['t90'][1]:.3f}] | "
+                   f"{_ta[f'predictor {_q}']['mean']:.3f} | {_u['mean']:.3f} | "
+                   f"{_c['mean']:+.3f} [{_c['t90'][0]:+.3f}, {_c['t90'][1]:+.3f}] |")
+            check_true(f"FINDINGS 17.9 quotes {_fam} {_q}", row in _s17)
+        # the frozen Q1 / Q2 rule: mean >= 0.65 and >= 0.05 above untrained
+        _s17n = " ".join(_s17.split())
+        for _q, _yes, _no in (("transfer", f"For `{_fam}`: the L3 direction reads the comparator",
+                               "the original direction does not transfer"),
+                              ("fresh", "separates the comparator when a probe is fit to it",
+                               "a fresh probe did not meet the registered criterion")):
+            _m = _ta[f"survival {_q}"]["mean"]
+            _ok = _m >= 0.65 and _m - _ta[f"untrained {_q}"]["mean"] >= 0.05
+            check_true(f"17.9 {_fam} {_q}: frozen rule {'passes' if _ok else 'fails'} and the wording says so",
+                       (_yes if _ok else _no) in _s17n)
+    _prp = os.path.join(ARTROOT, "population_readout", "corrected_l3_h8_wm.json")
+    if os.path.exists(_prp):
+        _pr = _load_art("population_readout", "corrected_l3_h8_wm.json")
+        for _arm, _lab in (("survival", "survival agents"), ("untrained", "untrained agents")):
+            _pp = _pr["panels"][_arm]
+            _n65 = sum(x >= 0.65 for x in _pp["per_individual"])
+            check_true(f"FINDINGS 17.11 quotes the {_arm} panel",
+                       f"| {_lab} | {_pp['mean']:.3f} [{_pp['t90'][0]:.3f}, {_pp['t90'][1]:.3f}] | "
+                       f"{_n65} of 10 | {_pp['pooled_probe']:.3f} |" in _s17)
+        _vi = _pr["value_of_world_information"]
+        check_true("FINDINGS 17.11 quotes the value of world information",
+                   f"**{_vi['mean']:.3f}** return (t-based 90% CI [{_vi['t90'][0]:.3f}, {_vi['t90'][1]:.3f}]"
+                   in _s17)
+    # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
+    print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
+    _f = _read("docs/FINDINGS.md")
+    _sec = _f[_f.index("### 10.1.1"):_f.index("### 10.2 Headline result")]
+    _sd = _load_art("surrogate_diagnostics.json")["surrogates"]
+    for _name, _v in _sd.items():
+        _g = _v["diagnostics"]
+        for _label, _val, _fmt in (
+                ("one-step train", _g["g_one_step"]["rms_train"], "{:.4f}"),
+                ("one-step held out", _g["g_one_step"]["rms_heldout"], "{:.4f}"),
+                ("lag-1 autocorrelation", _v["profile"]["lag1_autocorr"], "{:.2f}"),
+                ("agent-accessible detector", _v["agent_accessible_detector"]["auroc"], "{:.3f}")):
+            check_true(f"10.1.1 {_name} {_label} {_fmt.format(_val)} quoted", _fmt.format(_val) in _sec)
+    check_true("10.1.1 linear-fit held-out RMS is rounding-level (< 1e-7)",
+               all(v["diagnostics"]["linear_fit"]["rms_heldout"] < 1e-7 for v in _sd.values()))
+    # Revision step 15: the manuscript's tables are generated from the checked artifacts.
+    # The manuscript and its generated tables stay local (gitignored docs/paper/); render the
+    # tables in memory from the committed artifacts instead of comparing committed files.
+    import build_paper_tables
+    _pt = build_paper_tables.tables()
+    check_true("manuscript tables render from the committed artifacts (gate table, contrasts, "
+               "corrected verdicts)",
+               {"gate_table.tex", "contrast_intervals.tex", "corrected_runs.tex"} <= set(_pt)
+               and all("do not edit" in t for t in _pt.values()))
+    check_true("local manuscript tables, if present, are current (build_paper_tables --check)",
+               build_paper_tables.main(["--check"]) == 0)
 
     print()
     if failures:

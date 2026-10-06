@@ -2,6 +2,27 @@
 
 *Companion to the ITASORL design document. This is the concrete base world (step 1 of the Critical Path) for the maximally-rich, Earth-like configuration. The world is authored and exactly computable so it can serve as ground truth; Earth-likeness lives in its physics, ecology, and senses - never in semantics. The visualization may be fully 3D and photoreal regardless; this spec governs only the simulation and the agent's observations.*
 
+> **As implemented in v0 (stated 2026-10-06, revision step 14).** This document is the design.
+> `PatchOfEarthV0` (`itasorl/patch_of_earth.py`), which every published run used, implements a
+> subset, and the results describe that subset:
+> - **No weather and no dynamic fields.** The weather seed stream is drawn and never used;
+>   `_update_fields` does nothing, so there is no scent diffusion, no field decay, and no
+>   Ornstein-Uhlenbeck weather. Ambient temperature is a closed-form function of a day and
+>   season light cycle and terrain height. Smell is masked to zeros.
+> - **A closed unit square, not a torus.** A wall clips position to [0, 1] and sets the outward
+>   velocity component to zero (an inelastic stop, not a reflection).
+> - **One creature** with energy, hydration, and body temperature; food pellets (12 by default, 24
+>   in the B-v2 and L3 worlds) that respawn
+>   from the ecology stream; static terrain from four sinusoid basis terms.
+> - **Constant drag in world P** (`k_land = k_water = 1.5`), so the authentic velocity law is
+>   linear in velocity and acceleration.
+> - **Dissipation is not a chaos guarantee.** Drag damps velocity; that alone does not exclude
+>   sensitive dependence on initial conditions, and none was measured. The L0 control rests on
+>   determinism (bit-identical branches given seeds), not on dissipation.
+> - **Observation:** 24 vision rays of (distance, three color channels, radial velocity), 12
+>   masked smell channels, and 14 interoception channels that include velocity and the applied
+>   acceleration exactly. No channel names the world.
+
 ## 1. Non-negotiable constraints
 
 Every choice below is bound by five requirements the experiment cannot survive without:
@@ -60,7 +81,8 @@ Per creature i:
 - v ← (1 − k_drag·dt)·v + a·dt;  pos ← wrap(pos + v·dt);  φ ← φ + turn·dt.
   - *Implementation note (v0, recorded 2026-07-18):* `PatchOfEarthV0` deviates
     from the wrap spec - position is **clipped** to [0, 1] with the normal
-    velocity zeroed (a reflecting wall), and the raycast returns a wall hit at
+    velocity zeroed (an inelastic stop; "reflecting" in the 2026-07 wording was
+    wrong, since nothing is reversed), and the raycast returns a wall hit at
     the boundary. The deviation is applied identically to authentic and
     surrogate worlds, so it cannot leak world identity; every published run
     used walls. A future version should either implement wrap or promote this

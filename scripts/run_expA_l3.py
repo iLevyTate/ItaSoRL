@@ -68,7 +68,7 @@ def cfg():
     ap.add_argument("--json", type=str, default=None,
                     help="write the calibration table + selection to this path")
     ap.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
-    ap.add_argument("--family", choices=("mlp", "rff", "cd", "gn"), default="mlp",
+    ap.add_argument("--family", choices=("mlp", "rff", "cd", "gn", "qd"), default="mlp",
                     help="surrogate family to calibrate; mlp is the frozen "
                          "GMotion path and stays byte-identical to the "
                          "pre-flag behavior")
@@ -76,6 +76,8 @@ def cfg():
                     help="override the rff D sweep (bisection); default = frozen RFF_SWEEP")
     ap.add_argument("--cd-epss", type=float, nargs="+", default=None,
                     help="override the cd eps sweep (extension); default = frozen CD_SWEEP")
+    ap.add_argument("--qd-epss", type=float, nargs="+", default=None,
+                    help="quadratic-drag eps sweep (default QD_SWEEP; revision step 9)")
     ap.add_argument("--gn-sigmas", type=float, nargs="+", default=None,
                     help="override the gn sigma_v sweep (bisection); default = frozen GN_SWEEP")
     return ap.parse_args()
@@ -102,6 +104,8 @@ def main():
             sweep = a.cd_epss
         elif a.family == "gn":
             sweep = a.gn_sigmas
+        elif a.family == "qd":
+            sweep = a.qd_epss
         else:
             sweep = None
         candidates = gate0_candidates(a.family, params=P, sweep=sweep)

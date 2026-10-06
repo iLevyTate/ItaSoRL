@@ -214,3 +214,42 @@ def calibrate_l3(*, hiddens=(4, 8, 16, 32, 64), sigma_meas: float, n_pairs: int 
         out.append({"hidden": h, "oracle_auroc": auc,
                     "in_band": 0.85 <= auc <= 0.95, "leakage_pass": res["leakage_pass"]})
     return out
+
+
+def observation_law_detector(obs_auth: np.ndarray, obs_surr: np.ndarray, *, dt: float,
+                             intero_start: int = 132, seed: int = 0) -> dict:
+    """An AGENT-ACCESSIBLE detector (revision step 10): it sees only what the agent sees.
+
+    Interoception carries the velocity (channels 0-1) and the acceleration applied on the
+    previous step (channels 12-13), so the velocity law can be checked from consecutive RAW
+    observations alone: r_t = vel_{t+1} - (c_v vel_t + c_a acc_t). c_v and c_a are fit by least
+    squares on the AUTHENTIC training-fold episodes (no privileged law, no added noise), and
+    the per-episode residual statistics [mean |r|, sd r, max |r|] are probed with the standard
+    grouped-CV classifier. Inputs are raw observation traces (k, T, obs_dim)."""
+    from . import folds
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import roc_auc_score
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    O = np.concatenate([obs_auth, obs_surr]).astype(float)
+    y = np.r_[np.zeros(len(obs_auth)), np.ones(len(obs_surr))].astype(int)
+    vel = O[:, :, intero_start:intero_start + 2]
+    acc = O[:, :, intero_start + 12:intero_start + 14]
+    v_t, v_next, a_t = vel[:, :-1], vel[:, 1:], acc[:, 1:]       # acc at t+1 is the one applied on step t
+    groups = np.arange(len(y))
+    aucs = []
+    for tr, te in folds.split(groups, 5):
+        if len(np.unique(y[te])) < 2:
+            continue
+        auth_tr = tr[y[tr] == 0]
+        Zt = np.concatenate([v_t[auth_tr].reshape(-1, 2), a_t[auth_tr].reshape(-1, 2)], axis=1)
+        W, *_ = np.linalg.lstsq(Zt, v_next[auth_tr].reshape(-1, 2), rcond=None)
+        Zall = np.concatenate([v_t, a_t], axis=2)
+        r = np.linalg.norm(v_next - Zall @ W, axis=2)               # (k, T-1)
+        F = np.c_[r.mean(1), r.std(1), r.max(1)]
+        clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))
+        clf.fit(F[tr], y[tr])
+        aucs.append(roc_auc_score(y[te], clf.predict_proba(F[te])[:, 1]))
+    return {"auroc": float(np.mean(aucs)) if aucs else float("nan"),
+            "law_fit_note": "fit on authentic training-fold observations only", "dt": float(dt)}

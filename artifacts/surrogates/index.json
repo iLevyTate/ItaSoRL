@@ -1,0 +1,33 @@
+{
+ "generated_by": "scripts/export_surrogates.py",
+ "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
+ "recipe": "train_g_motion defaults: 250 x 40 authentic scripted-policy transitions, 4 -> h -> h -> 2 ReLU MLP, Adam lr 1e-3, 300 full-batch epochs, no early stopping",
+ "device": "cpu (torch CPU kernels). The CPU runs (L3-H8-WM-CPU, L3-H8-NOWM-CPU, L3-H10-GS1-CPU, the corrected C1/C2) trained G on CPU and match these files; the GPU-published runs trained G on CUDA, whose last float bits can differ, so their integrity gates regenerate G on CUDA",
+ "files": {
+  "gmotion_h8_s0.npz": {
+   "hidden": 8,
+   "g_seed": 0,
+   "sha256": "21f43dfa7d94518e700739d915d69c90463354ee14099df1dfdffb77db8eef35"
+  },
+  "gmotion_h7_s0.npz": {
+   "hidden": 7,
+   "g_seed": 0,
+   "sha256": "885a681236f92a299346471cfbc33a7ede92322098c3582508183d29bef7e3dc"
+  },
+  "gmotion_h10_s1.npz": {
+   "hidden": 10,
+   "g_seed": 1,
+   "sha256": "a0754e55775e308e04bdfcf8898be248d53d76a0c3395b7507dda2f99e84b645"
+  },
+  "gmotion_h8_s2.npz": {
+   "hidden": 8,
+   "g_seed": 2,
+   "sha256": "0741b738cfb495c922e0498fd19c56fbb8802936216ff7bdc31828d15f5b9c76"
+  },
+  "gmotion_h4_s0.npz": {
+   "hidden": 4,
+   "g_seed": 0,
+   "sha256": "49ef8146abcd95b40c876bc2180b77ce4e9a54c66b53bef82bafef2606afb6a0"
+  }
+ }
+}

@@ -27,6 +27,12 @@ from collections.abc import Iterator
 import numpy as np
 
 SCHEMES = ("explicit", "legacy")
+# Versioned generator (revision step 5). "explicit-v1" is the rule in fold_of_sample as
+# frozen 2026-09-28; any change to that rule must bump the version, and
+# artifacts/folds/explicit_v1.json (the serialized standard partitions) must then be
+# regenerated alongside, never silently overwritten. "legacy" is whatever the installed
+# scikit-learn produces, so its record carries the scikit-learn version instead.
+EXPLICIT_VERSION = "explicit-v1"
 _override: str | None = None
 
 
@@ -118,3 +124,59 @@ def class_counts(y: np.ndarray, groups: np.ndarray, n_splits: int = 5,
     y = np.asarray(y)
     return [(int((y[te] == 0).sum()), int((y[te] == 1).sum()))
             for _, te in split(groups, n_splits, scheme)]
+
+
+def fold_index(groups: np.ndarray, n_splits: int = 5, scheme: str | None = None) -> np.ndarray:
+    """Fold index per sample under `scheme` (the active scheme by default)."""
+    groups = np.asarray(groups)
+    out = np.full(len(groups), -1, dtype=int)
+    for f, (_, te) in enumerate(split(groups, n_splits, scheme)):
+        out[te] = f
+    return out
+
+
+def scheme_version(scheme: str | None = None) -> str:
+    scheme = scheme or current_scheme()
+    if scheme == "explicit":
+        return EXPLICIT_VERSION
+    import sklearn
+    return f"legacy-sklearn-{sklearn.__version__}"
+
+
+def partition_record(groups: np.ndarray, y: np.ndarray | None = None, n_splits: int = 5,
+                     scheme: str | None = None) -> dict:
+    """A serializable description of the partition actually used: scheme, generator version,
+    per-fold class counts, whether every group sits in one fold, and a sha256 of the fold
+    assignment. Two analyses share a partition exactly when their digests match."""
+    import hashlib
+    scheme = scheme or current_scheme()
+    groups = np.asarray(groups)
+    fi = fold_index(groups, n_splits, scheme)
+    rec = {"scheme": scheme, "version": scheme_version(scheme), "n_splits": int(n_splits),
+           "n_samples": int(len(groups)),
+           "groups_intact": bool(all(len(set(fi[groups == g])) == 1 for g in np.unique(groups))),
+           "sha256": hashlib.sha256(fi.astype(np.int64).tobytes()).hexdigest()}
+    if y is not None:
+        rec["class_counts"] = class_counts(y, groups, n_splits, scheme)
+    return rec
+
+
+# The standard designs whose explicit partitions are serialized in
+# artifacts/folds/explicit_v1.json: (name, groups builder, label builder).
+STANDARD_DESIGNS = {
+    "pooled_110x110": (lambda: np.arange(220), lambda: np.r_[np.zeros(110), np.ones(110)]),
+    "matched_pairs_60": (lambda: np.r_[np.arange(60), np.arange(60)],
+                         lambda: np.r_[np.zeros(60), np.ones(60)]),
+    "common_garden_110": (lambda: np.r_[np.arange(110), np.arange(110)],
+                          lambda: np.r_[np.zeros(110), np.ones(110)]),
+}
+
+
+def standard_partitions() -> dict:
+    """Serialize the explicit-v1 partition of every standard design (fold index per sample)."""
+    out = {"generator": "itasorl.folds.fold_index", "version": EXPLICIT_VERSION, "designs": {}}
+    for name, (gb, yb) in STANDARD_DESIGNS.items():
+        g, y = gb(), yb()
+        out["designs"][name] = {**partition_record(g, y, scheme="explicit"),
+                                "fold_index": fold_index(g, scheme="explicit").tolist()}
+    return out

@@ -832,6 +832,62 @@ Rigor carried from the B-v3 audit (2026-07-10):
   `artifacts/reviewer_gaps_runs/l3_h8_nowm_skill_u450/`, summary
   `artifacts/expB2/skill_matched_l3_h8_nowm_u450.json` (`skill_match` block).
 
+- **2026-10-06 - CORRECTED-TRAINER CONFIRMATION RUNS ANNOUNCED (frozen BEFORE launch; spec
+  `docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`; correction
+  `docs/CORRECTIONS.md` 2026-10-06).** The GAE truncation bootstrap of every survival run in
+  this log read the critic value before an episode's final transition; it now reads the
+  value of the successor state. The trainer is the only change: the section 9 configuration,
+  the section 7 gates, and the section 8 and 10 decision rules are unchanged. Two n = 10 runs
+  on a CPU container shown to reproduce a committed device-control cell bit for bit:
+  `C1` (auxiliary on, like for like with the 2026-09-28 device control) and `C2` (auxiliary
+  off, like for like with the 2026-09-27 architecture baseline), each extended to 450 survival
+  updates with frozen snapshots at 100, 200 and 450 for the budget curve; the headline arm is
+  the 300-update agent. Every historical number above stays as recorded and is labeled
+  historical in `docs/RESULTS_MANIFEST.md`; the results are recorded in a later entry.
+
+- **2026-10-06 - DESCRIPTION CORRECTION: THE SURROGATE AS IMPLEMENTED (revision step 10;
+  `docs/CORRECTIONS.md`).** Section 9 describes `G` as a "small recurrent predictor (GRU core)"
+  trained "to convergence (early-stop on held-out authentic MSE, patience 5)" over hidden sizes
+  {8, 16, 24, 32, 48, 64}. Every L3 result in this log used `itasorl.surrogate_l3.train_g_motion`
+  instead: a feed-forward 4 -> h -> h -> 2 ReLU MLP on (vel, a), trained full batch with Adam
+  (lr 1e-3) for a FIXED 300 epochs on 250 x 40 authentic scripted-policy transitions, with no
+  held-out set and no early stopping, at the capacities recorded in the entries above (8, 7, 4,
+  10, and the 16 / 32 / 64 ladder). Section 9 is left as frozen; this entry records that the
+  executed configuration differs from it. Introducing early stopping now would produce a
+  different fingerprint and would need its own gate 0. In world P drag is the constant 1.5, so the
+  authentic law is linear in (vel, a) and withholding drag from `G` withholds a constant; a
+  least-squares linear fit recovers the law to rounding, so the fingerprint is the approximation
+  error of this finite-trained network (`scripts/run_surrogate_diagnostics.py`,
+  `artifacts/surrogate_diagnostics.json`).
+
+- **2026-10-06 - WORDING AMENDMENT: THE 2026-07-23 H2 TEXTURE ENTRY (revision step 9; spec
+  `docs/specs/2026-10-06-texture-comparator-design.md`).** The 2026-07-23 entry headlines H2
+  as "confirmed in texture-specific form". Its measurements stand. What they show is
+  narrower: the direction fit on the learned law does not transfer to matched-band
+  Gaussian jitter, and the graded blend lowers decoding as the dynamics difference
+  shrinks. No fresh probe was fit on the jitter comparator and no agents were trained under
+  it, so a learned-texture mechanism is not established. The entry is left as written; the
+  frozen comparator spec separates the three questions and fixes the wording each result
+  earns. The hand-authored quadratic-drag comparator failed its gate 0 (amendment in that
+  spec), so the learned-texture rule cannot be met in this revision.
+
+- **2026-10-06 - CORRECTED-TRAINER CONFIRMATION RUNS: RESULTS (spec
+  `docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`; FINDINGS 17).** Integrity
+  passes on both runs: every cell records the successor bootstrap, and the predictor and
+  untrained arms equal the historical CPU cells to the bit. `C1` (auxiliary on): survival
+  0.733 [0.669, 0.797], predictor 0.589, untrained 0.523, both margins with intervals above
+  0.05; every gate passes except L0, which reads 0.559 on the registered pair (TOST
+  p = 0.939); verdict MET on the decodability clauses, conditional on the open L0 gate. `C2`
+  (auxiliary off): survival 0.613 [0.552, 0.675], predictor 0.589, untrained 0.529, every gate
+  passes; verdict NOT MET. Auxiliary comparison: `C1` minus `C2` +0.120 [+0.065, +0.174], so
+  the auxiliary-conditional reading holds on the decodability clauses, conditional on `C1`'s
+  L0 gate. Correction effect against the historical CPU runs: +0.003 and +0.012 at drift
+  0.45, +0.031 and +0.001 at drift 0. The margins were not relaxed and nothing in this entry
+  changes a frozen rule. The secondary and exploratory readouts on the corrected agents
+  (FINDINGS 17.5 to 17.11) are reported there, each against its own frozen spec where one
+  exists; the cross-run replay of 17.10 was written after these results were read and is
+  labeled exploratory.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
