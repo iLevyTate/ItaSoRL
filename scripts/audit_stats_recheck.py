@@ -1456,8 +1456,10 @@ def main() -> int:
     # ---- derived-doc resolution guard -----------------------------------
     # The reactive-vs-persistent reading was PROVISIONAL until the section 10.6
     # re-score; it is now RESOLVED (FINDINGS 10.6.1, 2026-07-19): the corrected
-    # common-garden control passes the frozen rule on both directions, so the
-    # signal is a modest persistent world-identity component. The public-facing
+    # common-garden control passes the frozen rule on both directions. The 2026-10
+    # revision narrowed the reading to "prefix condition remains decodable after
+    # restoring authentic dynamics", since the control cannot separate memory from a
+    # physical footprint of the prefix. The public-facing
     # derived docs are hand-maintained and drifted stale before (audit fault:
     # index.html once stated the reading as final), so pin the resolved
     # references here and forbid regression to the provisional/reactive-only
@@ -1472,8 +1474,10 @@ def main() -> int:
     for relpath, needle, label in [
         ("index.html", "10.6.1",
          "index.html points at the 10.6.1 resolution"),
-        ("index.html", "modest persistent",
-         "index.html carries the resolved persistent reading"),
+        ("index.html", "remains decodable after restoring authentic dynamics",
+         "index.html carries the narrowed common-garden reading (revision 2026-10)"),
+        ("CITATION.cff", "remains decodable after restoring authentic dynamics",
+         "CITATION.cff carries the narrowed common-garden reading (revision 2026-10)"),
         ("CITATION.cff", "10.6.1",
          "CITATION.cff points at the 10.6.1 resolution"),
         ("README.md", "10.6.1",
@@ -1492,6 +1496,22 @@ def main() -> int:
                             ("CITATION.cff", "provisional pending")]:
         check_true(f"{relpath} no longer carries the provisional qualifier",
                    banned not in _read(relpath))
+    # Revision 2026-10 (docs/REVISION_2026-10.md, step 14): the common garden does not
+    # separate memory from the prefix's physical footprint, and a behavior control removes
+    # only what its basis can express. The public pages must not say otherwise.
+    for relpath in ("index.html", "CITATION.cff", "README.md"):
+        _t = _read(relpath)
+        for banned in ("persistent stored", "behavior-independent", "behaviour-independent",
+                       "H2 confirmed", "H3 resolves negative"):
+            check_true(f"{relpath} no longer says '{banned}'", banned not in _t)
+    for relpath, needle, label in [
+        ("README.md", "docs/CORRECTIONS.md", "README points at the corrections record"),
+        ("index.html", "docs/CORRECTIONS.md", "index.html points at the corrections record"),
+        ("CITATION.cff", "docs/CORRECTIONS.md", "CITATION.cff points at the corrections record"),
+        ("README.md", "VariBAD", "README compares against meta-RL"),
+        ("index.html", "VariBAD", "index.html compares against meta-RL"),
+    ]:
+        check_true(label, needle in _read(relpath))
     # and the old reactive-only claim must not reappear in index.html.
     idx = _read("index.html")
     for phrase in ("not a persistent stored representation",

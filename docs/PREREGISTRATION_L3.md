@@ -860,6 +860,17 @@ Rigor carried from the B-v3 audit (2026-07-10):
   error of this finite-trained network (`scripts/run_surrogate_diagnostics.py`,
   `artifacts/surrogate_diagnostics.json`).
 
+- **2026-10-06 - WORDING AMENDMENT: THE 2026-07-23 H2 TEXTURE ENTRY (revision step 9; spec
+  `docs/specs/2026-10-06-texture-comparator-design.md`).** The 2026-07-23 entry headlines H2
+  as "confirmed in texture-specific form". Its measurements stand. What they show is
+  narrower: the direction fit on the learned law does not transfer to matched-band
+  Gaussian jitter, and the graded blend lowers decoding as the dynamics difference
+  shrinks. No fresh probe was fit on the jitter comparator and no agents were trained under
+  it, so a learned-texture mechanism is not established. The entry is left as written; the
+  frozen comparator spec separates the three questions and fixes the wording each result
+  earns. The hand-authored quadratic-drag comparator failed its gate 0 (amendment in that
+  spec), so the learned-texture rule cannot be met in this revision.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
