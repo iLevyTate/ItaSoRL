@@ -44,6 +44,8 @@ import _bootstrap  # noqa: F401
 
 import argparse
 import copy
+import glob
+import hashlib
 import json
 import os
 import subprocess
@@ -74,6 +76,64 @@ def build_population(n, *, embed, hidden, seed0):
         torch.manual_seed(seed0 + i)
         pop.append(RecurrentActorCritic(obs, act, embed=embed, hidden=hidden, world_model=False))
     return pop
+
+
+def config_fingerprint(args) -> str:
+    """Hash of the science-relevant config for ONE seed's checkpoint (mirrors
+    scripts/run_expB2.py's config_fingerprint). A checkpoint from a different
+    config never gets silently reused. --json/--resume/--checkpoint-dir are
+    paths and flags, not science; --seeds is excluded too, since requesting
+    more or fewer lineage seeds does not change what a GIVEN seed's run means."""
+    fp = {k: v for k, v in vars(args).items()
+          if k not in ("json", "resume", "checkpoint_dir", "seeds")}
+    payload = json.dumps(fp, sort_keys=True, default=float)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
+def seed_checkpoint_file(checkpoint_dir, seed: int) -> str:
+    return os.path.join(checkpoint_dir, f"seed_{seed}.json")
+
+
+def write_seed_checkpoint(checkpoint_dir, fingerprint: str, commit: str, row: dict) -> str:
+    """Atomic write: a killed process never leaves a half-written checkpoint."""
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    path = seed_checkpoint_file(checkpoint_dir, row["seed"])
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump({"fingerprint": fingerprint, "git_commit": commit, "row": row},
+                  f, indent=2, default=float)
+    os.replace(tmp, path)
+    return path
+
+
+def load_seed_checkpoints(checkpoint_dir, seeds, fingerprint: str, commit: str) -> dict:
+    """Load checkpointed seeds keyed by seed number. Hard error on a corrupt file
+    or a fingerprint mismatch (a different experiment's checkpoint never mixes
+    in silently); warning only on git-commit drift."""
+    done: dict[int, dict] = {}
+    if not os.path.isdir(checkpoint_dir):
+        return done
+    for s in seeds:
+        path = seed_checkpoint_file(checkpoint_dir, s)
+        if not os.path.isfile(path):
+            continue
+        try:
+            with open(path, encoding="utf-8") as f:
+                payload = json.load(f)
+            fp, row = payload["fingerprint"], payload["row"]
+        except Exception as exc:
+            raise SystemExit(f"Corrupt checkpoint {path}: {exc}. "
+                             "Delete this one file and rerun with --resume.")
+        if fp != fingerprint:
+            raise SystemExit(
+                f"Checkpoint {path} has fingerprint {fp}, current config is "
+                f"{fingerprint}. It belongs to a different experiment config: "
+                "use a fresh --checkpoint-dir, or delete the stale checkpoints.")
+        if payload.get("git_commit", "unknown") != commit:
+            print(f"  WARNING: {os.path.basename(path)} was produced at commit "
+                  f"{payload.get('git_commit')} (now {commit})", flush=True)
+        done[s] = row
+    return done
 
 
 def run_arm(pop0, food_override, *, generations, sigma, drift_sigma, n_eps, max_steps,
@@ -142,6 +202,15 @@ def main():
                          "generations (gates 3/4's cadence; 0 = endpoints only, "
                          "the invalid pilot's behavior). Freeze the chosen K in "
                          "the PREREGISTRATION_C amendments before the run.")
+    ap.add_argument("--checkpoint-dir", default=None,
+                    help="Where per-seed checkpoints live (default: <--json path "
+                         "without .json>_checkpoints). A kill/disconnect loses at "
+                         "most the seed in progress, not the whole run.")
+    ap.add_argument("--resume", action="store_true",
+                    help="Load any checkpointed seeds from --checkpoint-dir and "
+                         "compute only what's missing. Without this flag, a "
+                         "--checkpoint-dir that already has checkpoints is refused "
+                         "rather than silently resumed or silently overwritten.")
     args = ap.parse_args()
     if args.device == "cuda" and not torch.cuda.is_available():
         raise SystemExit("--device cuda requested but torch.cuda.is_available() is False")
@@ -190,10 +259,48 @@ def main():
                   n_eps=args.n_eps, max_steps=args.max_steps, quantile=args.q,
                   device=args.device, panel_fn=panel_fn, panel_every=args.panel_every)
 
+    # Checkpointing (per seed - a kill/disconnect costs at most the seed in
+    # progress, not the whole multi-hour run). Mirrors scripts/run_expB2.py's
+    # cell checkpoints: a config fingerprint so a different config never mixes
+    # in, an atomic write so a killed process never leaves a half-written file,
+    # and an explicit --resume so a stale --checkpoint-dir is refused rather
+    # than silently reused or silently clobbered.
+    checkpoint_dir = args.checkpoint_dir or (os.path.splitext(args.json)[0] + "_checkpoints")
+    fingerprint = config_fingerprint(args)
+    try:  # run-time provenance: the commit the run actually executed on
+        run_commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True,
+            cwd=os.path.dirname(os.path.abspath(__file__))).stdout.strip()
+    except Exception:
+        run_commit = "unknown"
+
+    existing = sorted(glob.glob(os.path.join(checkpoint_dir, "seed_*.json")))
+    if existing and not args.resume:
+        raise SystemExit(
+            f"{checkpoint_dir} already contains {len(existing)} checkpointed "
+            "seed(s). Pass --resume to continue that run, or use a fresh "
+            "--checkpoint-dir.")
+    resumed = (load_seed_checkpoints(checkpoint_dir, args.seeds, fingerprint, run_commit)
+               if args.resume else {})
+    if resumed:
+        print(f"[expC m3] resume: {len(resumed)} seed(s) loaded from {checkpoint_dir}: "
+              f"{sorted(resumed)}", flush=True)
+
     per_seed = []
     all_panels: list = []
     gen0_aurocs, final_t_aurocs, final_c_aurocs = [], [], []
     for s in args.seeds:
+        if s in resumed:
+            row = resumed[s]
+            per_seed.append(row)
+            all_panels.extend([row["panel_gen0"], *row["panels_mid_treat"], row["panel_final_treat"],
+                               *row["panels_mid_ctrl"], row["panel_final_ctrl"]])
+            gen0_aurocs.append(row["auroc_gen0"])
+            final_t_aurocs.append(row["auroc_final_treat"])
+            final_c_aurocs.append(row["auroc_final_ctrl"])
+            print(f"[expC m3] seed {s}: resumed from checkpoint, skipping recomputation", flush=True)
+            continue
+
         ts = time.time()
         pop_seed = 500 + s * 50
         seed_base = args.base_seed_base + s * 10_000
@@ -231,7 +338,7 @@ def main():
         gen0_aurocs.append(a0)
         final_t_aurocs.append(at)
         final_c_aurocs.append(ac)
-        per_seed.append({
+        row = {
             "seed": s, "threshold_treat": thr_t, "threshold_ctrl": thr_c,
             "auroc_gen0": a0, "auroc_final_treat": at, "auroc_final_ctrl": ac,
             "fit_series_treat": series_t, "fit_series_ctrl": series_c,
@@ -245,13 +352,16 @@ def main():
             "panels_mid_treat": mid_t, "panels_mid_ctrl": mid_c,
             "panel_gen0": panel_gen0, "panel_final_treat": panel_t, "panel_final_ctrl": panel_c,
             "indiv_gen0": indiv_gen0, "indiv_final_treat": indiv_t, "indiv_final_ctrl": indiv_c,
-        })
+        }
+        per_seed.append(row)
+        ckpt_path = write_seed_checkpoint(checkpoint_dir, fingerprint, run_commit, row)
         print(f"[expC m3] seed {s}: AUROC gen0={a0:.3f} treat={at:.3f} ctrl={ac:.3f} "
               f"| per-indiv mean gen0={indiv_gen0['mean']:.3f} treat={indiv_t['mean']:.3f} "
               f"ctrl={indiv_c['mean']:.3f} (>=0.65: {indiv_t['share_at_or_above_bar']:.2f} treat, "
               f"{indiv_c['share_at_or_above_bar']:.2f} ctrl) "
               f"| fit d_treat={series_t[-1]-series_t[0]:+.3f} d_ctrl={series_c[-1]-series_c[0]:+.3f} "
-              f"| thr_t={thr_t:.3f} thr_c={thr_c:.3f}  ({time.time()-ts:.0f}s)", flush=True)
+              f"| thr_t={thr_t:.3f} thr_c={thr_c:.3f}  ({time.time()-ts:.0f}s)"
+              f"  [checkpointed -> {ckpt_path}]", flush=True)
 
     est = emergence_contrast(gen0_aurocs, final_t_aurocs, final_c_aurocs,
                              rng=np.random.default_rng(0))
@@ -274,13 +384,6 @@ def main():
     _, _, series_repro, _, _ = run_arm(pop0, None, seed_base=args.base_seed_base + s0 * 10_000,
                                        rng_seed=s0, **{**arm_kw, "panel_fn": None})
     bit_repro = (series_repro == per_seed[0]["fit_series_treat"])
-
-    try:  # run-time provenance: the commit the run actually executed on
-        run_commit = subprocess.run(
-            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True,
-            cwd=os.path.dirname(os.path.abspath(__file__))).stdout.strip()
-    except Exception:
-        run_commit = "unknown"
 
     # Gate 2 in the registered per-arm form (sec. 7: fitness must increase in the
     # treatment arm): ALL seeds, per arm. The pilot's weaker any() form is kept
@@ -348,6 +451,8 @@ def main():
         "gate2_fitness_moves_ctrl": bool(gate2_ctrl),
         "determinism_bit_reproducible": bool(bit_repro),
         "wall_seconds": round(time.time() - t0, 1),
+        "checkpoint_dir": checkpoint_dir,
+        "resumed_seeds": sorted(resumed),
     }
     d = os.path.dirname(args.json)
     if d:
