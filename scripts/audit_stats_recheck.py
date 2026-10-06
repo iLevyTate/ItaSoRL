@@ -1866,6 +1866,19 @@ def main() -> int:
             _ok = _m >= 0.65 and _m - _ta[f"untrained {_q}"]["mean"] >= 0.05
             check_true(f"17.9 {_fam} {_q}: frozen rule {'passes' if _ok else 'fails'} and the wording says so",
                        (_yes if _ok else _no) in _s17n)
+    _prp = os.path.join(ARTROOT, "population_readout", "corrected_l3_h8_wm.json")
+    if os.path.exists(_prp):
+        _pr = _load_art("population_readout", "corrected_l3_h8_wm.json")
+        for _arm, _lab in (("survival", "survival agents"), ("untrained", "untrained agents")):
+            _pp = _pr["panels"][_arm]
+            _n65 = sum(x >= 0.65 for x in _pp["per_individual"])
+            check_true(f"FINDINGS 17.11 quotes the {_arm} panel",
+                       f"| {_lab} | {_pp['mean']:.3f} [{_pp['t90'][0]:.3f}, {_pp['t90'][1]:.3f}] | "
+                       f"{_n65} of 10 | {_pp['pooled_probe']:.3f} |" in _s17)
+        _vi = _pr["value_of_world_information"]
+        check_true("FINDINGS 17.11 quotes the value of world information",
+                   f"**{_vi['mean']:.3f}** return (t-based 90% CI [{_vi['t90'][0]:.3f}, {_vi['t90'][1]:.3f}]"
+                   in _s17)
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
     print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
     _f = _read("docs/FINDINGS.md")

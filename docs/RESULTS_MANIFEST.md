@@ -50,6 +50,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `C1-PERSISTENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-CONTROL-DIAG` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-TEXTURE` | corrected | H2 | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-POPULATION` | corrected | C | - | inherited: successor_value | C1 | 39c1e5d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
@@ -544,6 +545,16 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_texture_fresh_probe.py; revision step 9; wording rules frozen in docs/specs/2026-10-06-texture-comparator-design.md.
 - Artifacts: `artifacts/texture/corrected_l3_h8_wm_gn.json`, `artifacts/texture/corrected_l3_h8_wm_qd.json`
+
+### `C1-POPULATION`: Pooled versus per-individual readout on known-decodable agents, and the value of world information, C1
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 39c1e5d
+- Folds: explicit
+- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
+- Notes: scripts/validate_population_readout.py; revision step 12.
+- Artifacts: `artifacts/population_readout/corrected_l3_h8_wm.json`
 
 ### `CORRECTED-VERDICTS`: Frozen-rule verdicts, integrity, and correction effect for C1 and C2
 

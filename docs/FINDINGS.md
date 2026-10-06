@@ -2093,7 +2093,9 @@ gradient toward a detector.
 
 ## 14. H2 substrate-grounding: the graded-seam ablation (A1)
 
-**Status: CONFIRMED for the L3 rung at hidden=8.** Design spec:
+**Status: supported for the L3 rung at hidden=8 in the narrow sense of section 6
+(decoding falls with the dynamics difference); the mechanism reading is superseded by
+17.9.** Design spec:
 `docs/specs/2026-07-21-h2-substrate-grounding-ablation-design.md`. Committed
 artifact: `artifacts/expH2/summary.json`. Every number below is recomputed from
 the per-seed cells by `scripts/audit_stats_recheck.py`.
@@ -2864,3 +2866,33 @@ separate on temporal coherence and state dependence, not on learnedness. This re
 amendment alone did. Two cautions: `qd` and `gn` are matched on one-step RMS, not on
 detectability, and `qd` was not calibrated through gate 0 (no eps passed), so its larger
 untrained floor (0.612) means part of its signal is felt by any recurrent state.
+
+### 17.11 The evolutionary readout, validated on agents with a known answer (revision step 12)
+
+Experiment C's null (13.D) was measured with a pooled population probe, which can miss
+individuals that each carry the world along their own direction (13.E).
+`scripts/validate_population_readout.py` ran both estimators on the ten survival agents of
+`C1`, which were trained independently and so do not share directions, and on the ten
+untrained agents as a null (`artifacts/population_readout/corrected_l3_h8_wm.json`). The
+panel is the common-garden tail at drift 0.45, the setting Experiment C reads.
+
+| population | per-individual AUROC, mean [t 90% CI] | individuals at 0.65 | pooled probe |
+|---|---|---|---|
+| survival agents | 0.649 [0.612, 0.686] | 4 of 10 | 0.609 |
+| untrained agents | 0.569 [0.546, 0.593] | 0 of 10 | 0.536 |
+
+On independently trained individuals the pooled probe reads about 0.04 below the
+per-individual mean and stays above the untrained population. It is attenuated, not blind.
+Applied to Experiment C, a population of individuals each carrying a signal at this level
+would have read near 0.61 under the pooled probe, against the 0.509 the evolved foragers
+read; the 13.D null is therefore informative about signals of that size, and still says
+nothing about weaker or more scattered individual signals. The evolution was not rerun with
+the per-individual estimator, so the result stays restricted to the pooled readout (13.E).
+Per 17.7, this common-garden tail is carried mostly by the physical footprint, so the
+validation concerns the estimator, not memory.
+
+**Value of world information on the corrected policies.** With the authentic-trained and the
+surrogate-trained policy of each `C1` seed, the matched assignment minus the better single
+policy is **-0.056** return (t-based 90% CI [-0.092, -0.020], 1 of 10 seeds positive),
+against -0.043 for the historical CPU cells (13.E). Knowing the world buys these policies no
+return, which is consistent with selection having no gradient toward a detector.

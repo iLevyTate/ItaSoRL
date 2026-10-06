@@ -2561,6 +2561,41 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "population_readout/corrected_l3_h8_wm.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "39c1e5d",
+      "config": {},
+      "deps": null,
+      "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
+      "eval_seeds": {
+        "common_garden": "930000 + p (prefix authentic vs surrogate, tail authentic)",
+        "transfer_authentic": "860000 + i",
+        "transfer_surrogate": "870000 + i"
+      },
+      "experiment": "C",
+      "folds": "explicit",
+      "id": "C1-POPULATION",
+      "local_run_dir": null,
+      "notes": "scripts/validate_population_readout.py; revision step 12.",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "population_readout/corrected_l3_h8_wm.json": {
+          "generated_by": "scripts/validate_population_readout.py"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Pooled versus per-individual readout on known-decodable agents, and the value of world information, C1"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "corrected_verdicts.json"
       ],
       "budget": null,
