@@ -51,7 +51,7 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 3 | Tests for the intended bootstrap semantics | Done 2026-10-06: `tests/test_gae_bootstrap.py`; mutation-checked |
 | 4 | Measure the correction: diagnostic, frozen protocol, corrected confirmation runs | In progress: historical cell reproduced bit for bit on this container; quick-scale diagnostic passed end to end; protocol frozen (`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`, PREREGISTRATION_L3 2026-10-06 entry); runs `C1` and `C2` launched |
 | 5 | L0 and the fold partition | Primary analysis frozen (`docs/specs/2026-10-06-primary-analysis-and-l0.md`); folds versioned and serialized; `docs/GATE_TABLE.md`; pre-intervention audit done; agent-based L0 audit waits for `C1` agents |
-| 6 | Arm-by-arm training and evaluation table; predictor evaluated under its own policy | Pending |
+| 6 | Arm-by-arm training and evaluation table; predictor evaluated under its own policy | Table done (`docs/METHODS_ARMS.md`); `itasorl/eval_protocols.py` and `scripts/run_policy_controlled_readouts.py` (scripted, replay, exposure-matched predictor) built and smoke-tested; full run waits for `C1` agents |
 | 7 | Memory: controlled persistence test or narrower claim | Pending |
 | 8 | Behavioral and sensory controls | Pending |
 | 9 | Texture knockout interpretation | Pending |

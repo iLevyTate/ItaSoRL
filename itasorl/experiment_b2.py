@@ -174,7 +174,7 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
                         n_eps: int, max_steps: int, device: str, seed_base: int,
                         ray_steps: int = 5, deterministic: bool = False, update_norm: bool = True,
                         shaping_coef: float = 0.0, gamma: float = 0.99,
-                        food_override: dict | None = None):
+                        food_override: dict | None = None, record_raw: bool = False):
     """Run n_eps parallel envs to death/max_steps. Returns padded torch tensors on
     `device` for the A2C update plus per-episode scalars. h0 is zero per episode.
 
@@ -189,7 +189,10 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
     Normalization convention: `next_obs` is normalized with the normalizer exactly as it
     stood for the episode's final stored observation, and it is NOT added to the running
     statistics (it was never fed to the agent). Both are zero for episodes that died,
-    whose bootstrap is zero."""
+    whose bootstrap is zero.
+
+    record_raw=True also returns "obs_raw", the un-normalized observations (padded like
+    "obs"), for training another arm on these exact trajectories (revision step 6)."""
     A = agent.act_dim
     envs = [make_world(params, drift_sigma, ray_steps, food_override) for _ in range(n_eps)]
     obs = np.stack([e.reset(_seeds(seed_base + i)).obs for i, e in enumerate(envs)]).astype(np.float64)
@@ -199,6 +202,7 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
     phi_prev = np.array([_food_potential(e) for e in envs])
 
     seq_obs = [[] for _ in range(n_eps)]      # normalized obs fed to the agent
+    seq_obs_raw = [[] for _ in range(n_eps)]  # raw obs (only kept when record_raw)
     seq_actin = [[] for _ in range(n_eps)]    # prev env action fed to the GRU
     seq_raw = [[] for _ in range(n_eps)]      # raw sampled action (for log-prob)
     seq_env = [[] for _ in range(n_eps)]      # env action applied (decoder conditioning)
@@ -221,6 +225,8 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
             if not active[i]:
                 continue
             seq_obs[i].append(obs_n[i].astype(np.float32))
+            if record_raw:
+                seq_obs_raw[i].append(obs[i].astype(np.float32))
             seq_actin[i].append(prev_env_act[i].detach().cpu().numpy())
             seq_raw[i].append(raw_act[i].detach().cpu().numpy())
             seq_env[i].append(env_np[i])
@@ -289,6 +295,8 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
         "ret": true_ret,
         "speed": np.array([np.mean(s) if s else 0.0 for s in speeds]),
     }
+    if record_raw:
+        batch["obs_raw"] = pad(seq_obs_raw, O)
     return batch
 
 
@@ -358,7 +366,7 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
                        seed: int = 0, device: str | None = None, log_every: int = 0,
                        sysid_aux: bool = False, sysid_coef: float = 1.0,
                        gae_bootstrap: str = "successor", snapshot_at=(),
-                       stats: dict | None = None):
+                       stats: dict | None = None, log_batches: list | None = None):
     """Train the survival actor-critic. sysid_aux adds a CEILING-control auxiliary loss
     that regresses h_t onto the scalar drag-drift - a positive control that deliberately
     breaks readout-not-reward to measure whether the trunk CAN linearly encode world
@@ -373,7 +381,10 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
     Training is sequential and deterministic, so the copy after u updates is the agent a
     run with updates=u would return. When given, the return value gains a fourth element
     {u: (agent, norm)} (budget curves, revision step 11). `stats`, if a dict, receives
-    "env_steps": the cumulative environment steps after each update."""
+    "env_steps": the cumulative environment steps after each update. `log_batches`, if a
+    list, receives every training batch as numpy arrays (raw observations, env actions,
+    mask): the exact data this agent was trained on (revision step 6). Logging changes no
+    computation."""
     if gae_bootstrap not in GAE_BOOTSTRAPS:
         raise ValueError(f"unknown gae_bootstrap {gae_bootstrap!r}; expected one of {GAE_BOOTSTRAPS}")
     snapshot_at = sorted({int(u) for u in snapshot_at})
@@ -395,7 +406,12 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
         seed_base = 100_000 + seed * 10_000 + u * n_eps
         batch = collect_episodes_ac(agent, norm, params, drift_sigma, n_eps, max_steps,
                                     device, seed_base, ray_steps, deterministic=False,
-                                    shaping_coef=shaping_coef, gamma=gamma)
+                                    shaping_coef=shaping_coef, gamma=gamma,
+                                    record_raw=log_batches is not None)
+        if log_batches is not None:
+            log_batches.append({"obs_raw": batch["obs_raw"],
+                                "env_act": batch["env_act"].detach().cpu().numpy(),
+                                "mask": batch["mask"].detach().cpu().numpy()})
         logp, value, ent, states = agent.score_actions(batch["obs"], batch["act_in"], batch["raw"],
                                                         agent.initial_state(n_eps, device))
         with torch.no_grad():
