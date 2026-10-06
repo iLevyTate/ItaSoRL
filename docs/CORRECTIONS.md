@@ -142,3 +142,25 @@ difference between a rule met and evidence shown, and the analysis tiers.
 `paired_contrast` and `docs/CONTRAST_INTERVALS.md` give seed-paired margin intervals for
 every run. TOST stays the formal equivalence test. No decision rule used a per-cell
 interval, so no verdict moves.
+
+## 2026-10-06: the surrogate and the detector, described as implemented
+
+**What was wrong.** PREREGISTRATION_L3 section 9 describes the surrogate as a recurrent
+predictor trained to early stopping; the code is a feed-forward MLP trained for a fixed 300
+epochs with no held-out set. The surrogate's observations were said to stay "on the authentic
+manifold", which was never established. The gate-0 oracle's score was called a detectability
+ceiling, and section 4 said the agent sees raycasts, not velocity; interoception carries the
+velocity and the applied acceleration exactly.
+
+**Change.** A dated PREREGISTRATION_L3 amendment, FINDINGS 10.1.1, and corrected docstrings.
+The new measurements (`artifacts/surrogate_diagnostics.json`, audited): in world P the
+authentic law is linear with constant drag and a linear fit recovers it to rounding, so the
+fingerprint is the approximation error of a finite-trained network; the headline G errs by
+0.0349 RMS per step on held-out authentic transitions, with an open-loop rollout gap that
+compounds and then saturates; and a detector that reads only the agent's own observations,
+with no detector-side noise, scores 0.991 against every learned fingerprint and the Gaussian
+comparator. The privileged gate-0 score (0.928) is a score at a detector-side handicap of
+sigma 0.02, not a universal ceiling.
+
+**What this does not change.** No organism number. Introducing early stopping now would make
+a different fingerprint, with its own gate 0 and its own provenance.

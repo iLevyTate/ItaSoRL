@@ -679,6 +679,51 @@ bug was fixed with a regression test, gate 0 recalibrated on `P`, and the correc
 run showed a chance-level floor, which is what makes the survival-specific result
 below interpretable.
 
+### 10.1.1 What the surrogate and the detector are, measured (2026-10-06, revision step 10)
+
+**The surrogate as implemented.** `G` is a feed-forward 4 -> h -> h -> 2 ReLU MLP on
+(velocity, acceleration), trained full batch with Adam (lr 1e-3) for a **fixed 300 epochs**
+on 250 x 40 authentic scripted-policy transitions, with no held-out set and **no early
+stopping**. PREREGISTRATION_L3 section 9 described a recurrent predictor trained to early
+stopping; that is not what ran (dated amendment in its section 12). In world P drag is the
+constant 1.5, so the authentic law vel' = 0.925 vel + 0.05 a is linear with constant
+coefficients and withholding drag from `G` withholds a constant. A least-squares linear fit
+on `G`'s own training transitions recovers the law to float rounding (held-out RMS 6e-9), so
+a linear surrogate would carry no fingerprint: **the fingerprint is the approximation error
+of this particular finite-trained network.** Introducing early stopping now would make a
+different fingerprint and would need its own gate 0.
+
+**Errors on held-out authentic transitions** (`artifacts/surrogate_diagnostics.json`;
+60 x 40 scripted-policy transitions at seeds disjoint from training; RMS velocity error):
+
+| surrogate | one-step, train | one-step, held out | open-loop rollout gap at 1 / 5 / 10 / 24 steps | lag-1 autocorrelation of the deviation | agent-accessible detector |
+|---|---|---|---|---|---|
+| `G` hidden 8, seed 0 (headline) | 0.0361 | 0.0349 | 0.038 / 0.057 / 0.079 / 0.072 | 0.84 | 0.991 |
+| `G` hidden 7, seed 0 | 0.0574 | 0.0559 | 0.031 / 0.066 / 0.121 / 0.127 | 0.94 | 0.992 |
+| `G` hidden 10, seed 1 | 0.0263 | 0.0264 | 0.019 / 0.051 / 0.086 / 0.100 | 0.88 | 0.991 |
+| `G` hidden 8, seed 2 | 0.0357 | 0.0340 | 0.014 / 0.063 / 0.094 / 0.123 | 0.93 | 0.991 |
+| Gaussian jitter, sigma_v 0.01 | 0.0141 | 0.0143 | 0.013 / 0.026 / 0.033 / 0.036 | 0.00 | 0.991 |
+| quadratic drag, eps 6.0 (hand-authored) | 0.0143 | 0.0141 | 0.000 / 0.041 / 0.083 / 0.042 | 0.94 | 0.967 |
+
+One-step error and rollout divergence are different quantities: the rollout gap compounds
+the one-step error along a trajectory and, because drag damps velocity, it saturates rather
+than growing without bound. The learned fingerprints' deviations are temporally coherent
+(lag-1 autocorrelation 0.84 to 0.94); the Gaussian comparator's are white.
+
+**The detector.** The gate-0 oracle is a **privileged detector**: it reads the world's
+internal transitions and adds a **detector-side** measurement noise of sigma = 0.02 before
+scoring; the world's observations carry no such noise. Its score (0.928 for the headline
+fingerprint) is a privileged detector score at that handicap, not a universal ceiling, and
+not a statement about what the agent could detect. The **agent-accessible detector** in the
+last column sees only what the agent sees: it checks the velocity law from consecutive raw
+observations (interoception carries velocity and the applied acceleration), fits the law on
+authentic training-fold episodes, adds no noise, and is scored with the standard grouped-CV
+probe on 110 + 110 scripted-policy episodes of 24 steps. It reads **0.991** for every learned
+fingerprint and for the Gaussian comparator. Every tested surrogate is therefore close to
+perfectly detectable from the agent's own inputs; "subtle" describes the handicapped
+privileged detector only. The question the organism results answer is whether an agent whose
+objectives never ask for that check comes to represent the difference anyway.
+
 ### 10.2 Headline result (n = 10 seeds, drift 0.45)
 
 Three agents share the identical recurrent trunk and identical readout, differing

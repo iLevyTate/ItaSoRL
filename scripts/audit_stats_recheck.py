@@ -1712,6 +1712,21 @@ def main() -> int:
     import build_contrast_intervals
     check_true("contrast intervals are current (build_contrast_intervals --check)",
                build_contrast_intervals.main(["--check"]) == 0)
+    # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
+    print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
+    _f = _read("docs/FINDINGS.md")
+    _sec = _f[_f.index("### 10.1.1"):_f.index("### 10.2 Headline result")]
+    _sd = _load_art("surrogate_diagnostics.json")["surrogates"]
+    for _name, _v in _sd.items():
+        _g = _v["diagnostics"]
+        for _label, _val, _fmt in (
+                ("one-step train", _g["g_one_step"]["rms_train"], "{:.4f}"),
+                ("one-step held out", _g["g_one_step"]["rms_heldout"], "{:.4f}"),
+                ("lag-1 autocorrelation", _v["profile"]["lag1_autocorr"], "{:.2f}"),
+                ("agent-accessible detector", _v["agent_accessible_detector"]["auroc"], "{:.3f}")):
+            check_true(f"10.1.1 {_name} {_label} {_fmt.format(_val)} quoted", _fmt.format(_val) in _sec)
+    check_true("10.1.1 linear-fit held-out RMS is rounding-level (< 1e-7)",
+               all(v["diagnostics"]["linear_fit"]["rms_heldout"] < 1e-7 for v in _sd.values()))
     # Revision step 15: the manuscript's tables are generated from the checked artifacts.
     import build_paper_tables
     check_true("manuscript tables are current (build_paper_tables --check)",
