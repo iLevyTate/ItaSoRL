@@ -2772,3 +2772,49 @@ dynamics", and on the corrected agents most of that decodability is carried by t
 footprint of the prefix, not by memory. The historical common-garden numbers (0.666, 0.684)
 stay as recorded under the same narrow wording; the agents behind them are not in this
 repository, so this test cannot be run on them.
+
+### 17.8 What each behavior and sensory control removes (revision step 8)
+
+Every control regresses a named basis out of h_t in-fold and probes what is left. It shows
+that a signal remains after that basis, with that model; it shows nothing about inputs outside
+the basis. `scripts/run_control_diagnostics.py` regenerated the `C1` pools (states bit-match
+the run's dumps), widened the bases, and reports how well each control fit
+(`artifacts/control_diagnostics/corrected_l3_h8_wm.json`). "Held-out R²" is how much of h_t
+the basis explains on unseen episodes, for the survival arm; in every row the basis could not
+be predicted back from the residual (held-out R² at most -0.01 for the survival arm).
+
+| control (basis, model, dimension) | held-out R² | survival | predictor | untrained |
+|---|---|---|---|---|
+| none: the primary probe | | 0.733 [0.669, 0.797] | 0.589 [0.567, 0.610] | 0.523 [0.491, 0.554] |
+| behavior trace: speed, energy, food, drag, position, heading at t, t-1, running mean (ridge, 21) | 0.12 | 0.723 [0.670, 0.776] | 0.592 [0.564, 0.619] | 0.543 [0.521, 0.566] |
+| behavior trace plus the actions a_t, a_{t-1} (ridge, 31) | 0.60 | 0.681 [0.633, 0.728] | 0.560 [0.530, 0.591] | 0.545 [0.521, 0.569] |
+| observation x_t, x_{t-1} (ridge, 292) | 0.88 | 0.699 [0.632, 0.766] | 0.578 [0.544, 0.611] | 0.531 [0.501, 0.561] |
+| observation history x_t to x_{t-7}, traces at tau 4 and 16, actions (ridge, 1470) | -0.13 | 0.640 [0.608, 0.672] | 0.552 [0.521, 0.583] | 0.520 [0.498, 0.541] |
+| the history basis plus behavior (ridge, 1484) | -0.18 | 0.606 [0.581, 0.630] | 0.529 [0.505, 0.553] | 0.517 [0.493, 0.542] |
+| x_t, x_{t-1}, both traces, actions, behavior (64-unit MLP, 608; 50 of 50 folds converged) | 0.89 | **0.620 [0.584, 0.656]** | 0.566 [0.548, 0.585] | 0.495 [0.475, 0.515] |
+
+Readouts of the same episodes without the agent's state:
+
+| decoder on the observation stream | survival episodes | predictor episodes | untrained episodes |
+|---|---|---|---|
+| summary features of the observation trace (linear) | 0.715 [0.658, 0.771] | 0.594 [0.565, 0.623] | 0.554 [0.527, 0.581] |
+| supervised GRU on the (observation, previous action) sequence, trunk capacity | 0.724 [0.670, 0.778] | 0.602 [0.579, 0.625] | 0.583 [0.563, 0.602] |
+| linear probe on the flattened sequence after PCA | 0.661 [0.614, 0.707] | 0.566 [0.533, 0.598] | 0.557 [0.539, 0.575] |
+
+**Reading.** The published behavior and sensory controls leave the survival signal near its
+uncontrolled level (0.723, 0.699). Adding the actions the GRU received lowers it to 0.681,
+with the lower bound under the bar. The long-history linear bases do not generalize (held-out
+R² below zero): the regression fit on training folds explains held-out states worse than
+their mean, so their residual readings say more about an overfit control than about the
+state, and they are reported without interpretation. The control that fits best, a nonlinear
+map from the current and previous observation, slow sensory traces, the actions, and the
+behavior trace, explains 89% of held-out state variance and leaves **0.620** [0.584, 0.656]:
+above the untrained arm by about 0.13 and under the registered bar.
+
+The sequence readouts put a number on what 17.6 implied. A decoder given only the survival
+agent's observation and action stream, with no access to its state, reads the world at 0.724,
+and summary statistics of the observation trace alone read 0.715. The survival state reads
+0.733. On these episodes the agent's state carries about as much world information as its own
+input stream does, and the stream carries it because of where the survival policy takes the
+body. The wording "behavior-independent" is retired: the paper says which basis was
+controlled, with which model, and what remained.

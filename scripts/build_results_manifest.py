@@ -402,6 +402,13 @@ RUNS = [
         eval_seeds={"persistence": "980000 + p, p < 110"}, device=CPU_REVISION,
         notes="scripts/run_persistence_readout.py; revision step 7; rule frozen in "
               "docs/specs/2026-10-06-controlled-persistence-design.md."),
+    run("C1-CONTROL-DIAG", "Behavior and sensory controls with fit diagnostics, and sequence "
+        "readouts of the observation stream, C1 agents", experiment="B-v2 L3",
+        artifacts=["control_diagnostics/corrected_l3_h8_wm.json"], trains_survival=False,
+        readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run="39c1e5d", folds="explicit", eval_seeds=BV2_EVAL_SEEDS, device=CPU_REVISION,
+        notes="scripts/run_control_diagnostics.py; revision step 8. Pools regenerated and "
+              "bit-matched to the run's state dumps."),
     run("CORRECTED-VERDICTS", "Frozen-rule verdicts, integrity, and correction effect for C1 and C2",
         experiment="methods", artifacts=["corrected_verdicts.json"], trains_survival=False,
         readout_of=["C1", "L3-H8-WM-CPU", "L3-H8-NOWM-CPU"], survival_trainer="successor_value",

@@ -2485,6 +2485,44 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "control_diagnostics/corrected_l3_h8_wm.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "39c1e5d",
+      "config": {},
+      "deps": null,
+      "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "C1-CONTROL-DIAG",
+      "local_run_dir": null,
+      "notes": "scripts/run_control_diagnostics.py; revision step 8. Pools regenerated and bit-matched to the run's state dumps.",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "control_diagnostics/corrected_l3_h8_wm.json": {
+          "generated_by": "scripts/run_control_diagnostics.py"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Behavior and sensory controls with fit diagnostics, and sequence readouts of the observation stream, C1 agents"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "corrected_verdicts.json"
       ],
       "budget": null,

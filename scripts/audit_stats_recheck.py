@@ -1827,6 +1827,22 @@ def main() -> int:
                    _rp["window_mean"] < 0.65 or _rp["window_t90"][0] < 0.65)
         check_true("FINDINGS 17.7 states the first step under 0.55 (the fifth)", _first == 5
                    and "falls below\n0.55 at the fifth" in _s17)
+    _cdp = os.path.join(ARTROOT, "control_diagnostics", "corrected_l3_h8_wm.json")
+    if os.path.exists(_cdp):
+        _cd = _load_art("control_diagnostics", "corrected_l3_h8_wm.json")
+        check_true("17.8: regenerated pools bit-match the run's dumps", _cd["all_dumps_bit_match"])
+        _ca = _cd["aggregate"]
+        _cv = lambda arm, m: (f"{_ca[f'd=0.45 {arm} {m}']['mean']:.3f} [{_ca[f'd=0.45 {arm} {m}']['t90'][0]:.3f}, "
+                              f"{_ca[f'd=0.45 {arm} {m}']['t90'][1]:.3f}]")
+        for m in ("target", "resid_trace", "resid_trace_act", "resid_obs", "resid_obs_hist",
+                  "resid_obs_hist_beh", "resid_joint_mlp", "obs_summary_only", "seq_gru", "seq_flat_linear"):
+            row = " | ".join(_cv(arm, m) for arm in ("survival", "predictor", "untrained"))
+            check_true(f"FINDINGS 17.8 row {m}", row.replace("[", "[").replace(_cv("survival", m), _cv("survival", m)) in _s17.replace("**", ""))
+            if m.startswith("resid_"):
+                _r2 = _ca[f"d=0.45 survival {m}"]["nuisance_r2_heldout_mean"]
+                check_true(f"FINDINGS 17.8 held-out R2 {m} ({_r2:.2f})", f"| {_r2:.2f} |" in _s17)
+                check_true(f"17.8: basis not recoverable from the survival residual ({m})",
+                           _ca[f"d=0.45 survival {m}"]["nuisance_from_residual_r2_mean"] <= -0.005)
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
     print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
     _f = _read("docs/FINDINGS.md")
