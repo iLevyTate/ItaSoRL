@@ -47,6 +47,9 @@ RETIRED = [
     (r"at the agent'?s resolution", "describe the common detector-side handicap"),
     (r"early[- ]stop", "the surrogate trains for a fixed 300 epochs"),
     (r"sees raycasts, not velocity", "interoception carries velocity"),
+    (r"survival[- ]specific", "at matched input the predictor reads equally (FINDINGS 17.6); say training regimes"),
+    (r"(encoded|uniquely) by the survival objective", "the signal rides on the foraging trajectories"),
+    (r"texture[- ]specific", "coherent hand-written drag is read too (FINDINGS 17.9)"),
 ]
 
 

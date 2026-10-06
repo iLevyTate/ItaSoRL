@@ -22,7 +22,8 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      (L1, L2) that a detector finds and that did not meet the registered encoding
      criterion; (c) a learned-dynamics flaw (L3) that met it for survival plus
      next-observation prediction at the registered budget, bounded by that budget,
-     with behavior and sensory controls that name their basis; (d) a measurement
+     where the signal rides on the foraging trajectories and is kept by a trunk shaped
+     by prediction, and where a hand-written coherent flaw is read the same way; (d) a measurement
      apparatus with its failure modes documented: fold-partition dependence,
      world-sample conditioning of the L0 gate, and a trainer defect found and
      corrected (`docs/CORRECTIONS.md`).
@@ -57,33 +58,40 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      near chance across channels, horizons, and probes at L2; survival coupling 0.610
      [0.585, 0.634]; capacity ceiling 0.596; L1 organism 0.533 at the in-band grid.
      Each "did not meet the registered encoding criterion".
-   - 4.3 The L3 primary result (FINDINGS 10, 17): the corrected ten-seed run of
-     survival with the next-observation auxiliary at 300 updates, against the
-     predictor and untrained arms, with its gates under the frozen partition. The
-     historical value 0.752 [0.698, 0.807] is reported beside it, labeled with the
-     pre-correction trainer.
+   - 4.3 The L3 primary result (FINDINGS 17.2, 17.5): corrected survival with the
+     next-observation auxiliary at 300 updates reads 0.733 [0.669, 0.797] against
+     predictor 0.589 and untrained 0.523; MET on the decodability clauses, with L0
+     open on the registered world pair (0.559) and equivalent across eight independent
+     pairs (0.493). The historical 0.752 [0.698, 0.807] is reported beside it.
    - 4.4 The auxiliary contrast, bounded by budget (FINDINGS 10.8, 10.8.1, 17): the
-     corrected decoder-on minus decoder-off difference on one device with its
-     seed-paired interval, and the budget curve to 450 updates. Historical: 0.601
-     without the auxiliary against 0.730 with it on the same CPU; 0.717 without it at
-     450 updates with a failed skill match, so no mediation inference either way.
-   - 4.5 Controls, named by basis (FINDINGS 10.4, 10.4.1, 10.4.2, 17): what remains
+     corrected decoder-on minus decoder-off difference, +0.120 [+0.065, +0.174] (0.733
+     against 0.613), and the budget curve: without the decoder 0.685 at 450 updates;
+     at 450 the decoder arm reads 0.821 at about equal return. Historical: 0.601 against
+     0.730 on the same CPU; 0.717 at 450 updates with a failed skill match.
+   - 4.5 Who drives the episodes (FINDINGS 17.6, 17.10): at matched evaluation input a
+     prediction-trained trunk reads the world as well as the survival trunk; the signal
+     rides on the foraging trajectories and is kept by a trunk shaped by prediction.
+     This is the section that withdraws "survival-specific".
+   - 4.5b Controls, named by basis (FINDINGS 10.4, 10.4.1, 10.4.2, 17.8): what remains
      after per-timestep linear residualization on speed, energy, food, and drag
-     (historical 0.726), with position and heading (0.723), and after regressing out
-     the current and previous observation (0.731); the held-out nuisance R² of each
-     control and the readouts under scripted and replayed policies on the corrected
-     agents.
+     (historical 0.726; corrected 0.723 with position and heading), after regressing
+     out the current and previous observation (historical 0.731; corrected 0.699), and
+     after the best-fitting nonlinear control over observations, actions, and behavior
+     (corrected 0.620, held-out R² 0.89, under the bar); a decoder of the observation
+     stream alone reads 0.724.
    - 4.6 Secondary and exploratory (historical trainer unless stated): second capacity
      (10.5), held-out and cross-recipe transfer (10.6, 10.7), second and third
      fingerprint instances (10.9); the common garden, where prefix condition remains
      decodable after restoring authentic dynamics (0.666 forward, 0.684 reverse;
-     FINDINGS 10.6.1), with the controlled persistence test on the corrected agents
-     (17); the graded seam (14) and the texture knockout read as non-transfer of the
-     original direction (14.5), with the fresh-probe comparators on the corrected
-     agents (17); observation localization (14.6).
+     FINDINGS 10.6.1), carried mostly by the physical footprint on the corrected agents
+     (17.7: reset hidden 0.662, replay 0.561); the graded seam (14); the texture
+     comparators (17.9): a hand-authored coherent drag is read through the original
+     direction (0.721) and by a fresh probe (0.754), white jitter is not, so nothing
+     is specific to learned dynamics; observation localization (14.6).
    - 4.7 Experiment C (FINDINGS 13.D, 13.E): selection did not raise world
      decodability under the pooled population readout (contrast -0.002 [-0.013,
-     +0.009]); the readout is not a per-individual test. Out of the abstract.
+     +0.009]); the readout is not a per-individual test, and on known-decodable agents
+     it reads 0.609 where individuals average 0.649 (17.11). Out of the abstract.
 5. **Limitations** (FINDINGS 11; `docs/CORRECTIONS.md`)
    - One surrogate per run and one set of evaluation worlds: intervals over agent
      seeds condition on both. L0 depends on the world sample (`artifacts/l0_audit/`).
@@ -138,7 +146,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 28 | Sensory-echo control passes at hidden 8 | historical; secondary | `resid_obs` 0.731 [0.690, 0.772], 8/10 vs untrained 0.534; joint sensory-plus-behavior 0.670 | FINDINGS 10.4.2 | artifacts/expB2/sensory_echo_l3_h8.json | - |
 | 29 | At 300 updates the survival arm without the auxiliary did not meet the bar | historical; primary, replaced by C1 and C2 | survival without it 0.601 [0.549, 0.654], 1/10; predictor 0.589 | FINDINGS 10.8 | artifacts/expB2/arch_baseline_l3_h8_nowm.json | - |
 | 30 | Device control: the CPU is not the cause | historical; primary, replaced by C1 and C2 | survival with the auxiliary on the same CPU sandbox 0.730 [0.668, 0.791], 8/10; paired lead over 0.601 +0.128 [+0.089, +0.168] | FINDINGS 10.8 | artifacts/expB2/device_control_l3_h8_wm_cpu.json | - |
-| 31 | Second fingerprint instance: survival-specific, below the bar | historical; secondary | survival 0.639 [0.610, 0.669], 5/10 vs predictor 0.534, untrained 0.514 | FINDINGS 10.9 | artifacts/expB2/second_instance_l3_h10_gseed1.json | - |
+| 31 | Second fingerprint instance: survival above predictor, below the bar | historical; secondary | survival 0.639 [0.610, 0.669], 5/10 vs predictor 0.534, untrained 0.514 | FINDINGS 10.9 | artifacts/expB2/second_instance_l3_h10_gseed1.json | - |
 | 32 | H2 graded seam: the signal collapses to chance with the seam | historical; exploratory | 0.752 at alpha 1 to 0.506 at alpha 0 (ROPE accept), Spearman rho 1.0 | FINDINGS 14 | artifacts/expH2/summary.json | - |
 | 33 | H2 texture knockout: the original direction does not transfer to matched-band jitter (no fresh probe, no comparator-trained agents) | historical; exploratory | survival 0.539 vs untrained 0.542 (hidden 8); 0.510 vs 0.520 (hidden 7) | FINDINGS 14.5 | artifacts/expH2/texture_knockout_h8.json, texture_knockout_h7.json | - |
 | 34 | Observation-channel localization (hidden 8) | historical; exploratory | vision masked 0.686, interoception masked 0.756, all masked 0.500 | FINDINGS 14.6 | artifacts/expH2/obs_localization_h8.json, obs_localization_h7.json | - |
@@ -148,8 +156,15 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 38 | No-auxiliary survival arm at 450 updates: above the bar, skill match failed, so no mediation inference | historical; secondary | 0.717 [0.679, 0.755], 8/10; return -0.156 against the window [-0.269, -0.169] | FINDINGS 10.8.1 | artifacts/expB2/skill_matched_l3_h8_nowm_u450.json | - |
 | 39 | Agent-accessible detector on the agent's own observations reads the L3 surrogate | agent-free | AUROC 0.991 | FINDINGS 10.1.1 | artifacts/surrogate_diagnostics.json | - |
 | 40 | Hand-authored quadratic-drag comparator has no in-band gate-0 value | agent-free | detector 0.601 to 0.768 across eps 0.5 to 16; floor leaves tolerance from eps 4 | texture spec amendment | artifacts/texture/gate0_qd.json | - |
-| 41 | Corrected primary run: survival with the auxiliary, 300 updates, n = 10 | corrected; primary | pending | FINDINGS 17 | artifacts/expB2/corrected_l3_h8_wm.json | - |
-| 42 | Corrected auxiliary contrast on one device, and the budget curve to 450 updates | corrected; primary (contrast), exploratory (curve) | pending | FINDINGS 17 | artifacts/expB2/corrected_l3_h8_nowm.json; artifacts/budget_curve.json | budget_curve.png |
+| 41 | Corrected primary run: survival with the auxiliary, 300 updates, n = 10; MET on the decodability clauses, L0 open on the registered pair | corrected; primary | 0.733 [0.669, 0.797], 8/10; predictor 0.589, untrained 0.523; margins +0.144 [+0.072, +0.217], +0.210 [+0.135, +0.286]; L0 0.559 (TOST p 0.939) | FINDINGS 17.2 | artifacts/expB2/corrected_l3_h8_wm.json; artifacts/corrected_verdicts.json | - |
+| 42 | Corrected auxiliary contrast on one device, and the budget curve to 450 updates | corrected; primary (contrast), exploratory (curve) | without the auxiliary 0.613 [0.552, 0.675], NOT MET; C1 minus C2 +0.120 [+0.065, +0.174]; at 450 updates 0.821 with and 0.685 without, return difference -0.054 [-0.198, +0.090] | FINDINGS 17.4, 17.10 | artifacts/expB2/corrected_l3_h8_nowm.json; artifacts/budget_curve.json | budget_curve.png |
+| 43 | L0 across independent world-sample pairs; balanced readout | corrected; secondary | eight independent pairs average 0.493 (sd 0.049, TOST over pairs p 0.022); balanced survival readout 0.767 [0.718, 0.816] | FINDINGS 17.5 | artifacts/l0_audit/corrected_l3_h8_wm.json | - |
+| 44 | At matched evaluation input a prediction-trained trunk reads the world as well as the survival trunk | corrected; secondary | replay: survival 0.733, predictor 0.721, exposure-matched predictor 0.738; survival minus predictor_logged -0.005 [-0.038, +0.027]; scripted policy 0.55 to 0.58 for every arm | FINDINGS 17.6 | artifacts/policy_controls/corrected_l3_h8_wm.json | - |
+| 45 | Retention under identical input not shown; the common garden reads the physical footprint | corrected; exploratory | replay 0.561 [0.545, 0.577]; reset hidden 0.662 [0.638, 0.687]; factorial physical 0.658, hidden 0.569 | FINDINGS 17.7 | artifacts/persistence/corrected_l3_h8_wm.json | - |
+| 46 | The best-fitting control leaves a signal under the bar; the observation stream alone carries the world | corrected; secondary | MLP joint control 0.620 [0.584, 0.656] (held-out R^2 0.89); sequence GRU on observations 0.724 | FINDINGS 17.8 | artifacts/control_diagnostics/corrected_l3_h8_wm.json | - |
+| 47 | A hand-authored coherent drag is read; white jitter is not | corrected; exploratory | qd transfer 0.721, fresh 0.754 (+0.142 over untrained); gn transfer 0.527, fresh 0.488 | FINDINGS 17.9 | artifacts/texture/corrected_l3_h8_wm_{gn,qd}.json | - |
+| 48 | Decoder effect split between trunk and trajectories (post hoc) | corrected; exploratory | trunk effect +0.056 and +0.080; stream effect +0.039 and +0.064 | FINDINGS 17.10 | artifacts/cross_replay/corrected_c1_c2.json | - |
+| 49 | The pooled evolutionary readout is attenuated, not blind | corrected; exploratory | pooled 0.609 against per-individual 0.649 on known-decodable agents; value of world information -0.056 [-0.092, -0.020] | FINDINGS 17.11 | artifacts/population_readout/corrected_l3_h8_wm.json | - |
 
 Status: *agent-free* and *no actor-critic* results are untouched by the 2026-10
 trainer correction; *historical* results came from the pre-correction survival trainer
@@ -158,9 +173,9 @@ note 9.
 
 ## Known gaps
 
-- Rows 38 to 42 added 2026-10-06 (revision): the 450-update arm, the two agent-free
-  detector results of revision steps 9 and 10, and the corrected runs, filled when they
-  land.
+- Rows 38 to 49 added 2026-10-06 (revision): the 450-update arm, the two agent-free
+  detector results of revision steps 9 and 10, the corrected runs, and the readouts on
+  the corrected agents (FINDINGS 17).
 - Rows 28 to 37 added 2026-09-28 for the sections that resolved after July
   (10.4.2, 10.8, 10.9, 11 note 2, 14 to 14.7, 15). Row 12 is narrowed by 10.8, and
   row 27 now records the 13.D re-run. The published GPU L3 cells are not committed,
@@ -182,4 +197,5 @@ note 9.
   restoring authentic dynamics, FINDINGS §10.6.1);
   the writeup reports both as generality checks, not as a new headline. Rows 20-22 resolved 2026-07-14: the second
   capacity replicates the residual after the behavior control and bounds the
-  survival-specific claim to the subtler artifact.
+  survival-over-predictor margin to the subtler artifact (that margin is later
+  withdrawn as an objective effect, FINDINGS 17.6).

@@ -151,13 +151,21 @@ mixture design that would test it here is a new experiment, not one these runs p
 
 **What a reader learns from this measurement study.** That a privileged detector can find a
 dynamics flaw does not settle whether an agent that lives with it represents it; the gap is
-measurable and depends on the agent's objectives. In this world the learned-law condition
-becomes decodable from the state of agents trained with survival plus next-observation
-prediction at the registered budget, not from either objective alone at that budget, and
-hand-authored flaws that a handicapped detector finds weaker did not meet the encoding
-criterion. The project also contributes a measurement apparatus with its failure modes
-documented: fold-partition dependence, world-sample conditioning of the L0 gate, controls
-that name their basis, and a trainer defect found and corrected (`docs/CORRECTIONS.md`).
+measurable and depends on how the agent was trained and where its policy takes it. In this
+world the learned-law condition is decodable from the state of agents trained with survival
+plus next-observation prediction at the registered budget (corrected trainer, FINDINGS 17),
+and hand-authored flaws that a handicapped detector finds weaker did not meet the encoding
+criterion. The corrected readouts say what carries the signal: the trajectories a foraging
+policy produces, kept by a trunk shaped by next-observation prediction. At matched input a
+prediction-only trunk reads the world as well as the survival trunk, and a hand-written
+coherent perturbation is read the same way as the learned one, so the result is about
+coherent, state-dependent deviations from the true law reaching a predictive state, not
+about learnedness or about the survival objective as such. The meta-RL comparison above
+applies directly: the agents here infer nothing they were trained to infer, and the
+condition becomes readable because their behavior exposes it. The project also contributes a
+measurement apparatus with its failure modes documented: fold-partition dependence,
+world-sample conditioning of the L0 gate, controls that name their basis, and a trainer
+defect found and corrected (`docs/CORRECTIONS.md`).
 
 **Novelty posture.** Global novelty across all historical compute paradigms cannot be
 certified; absence of prior work can only be searched for, not proven. With the

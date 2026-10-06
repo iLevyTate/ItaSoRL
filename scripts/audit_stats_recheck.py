@@ -27,6 +27,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import re
 import math
 import os
 import sys
@@ -1504,6 +1505,13 @@ def main() -> int:
         for banned in ("persistent stored", "behavior-independent", "behaviour-independent",
                        "H2 confirmed", "H3 resolves negative"):
             check_true(f"{relpath} no longer says '{banned}'", banned not in _t)
+    # FINDINGS 17.6 withdrew the survival-specific reading; the phrase may appear on the public
+    # pages only in the sentence that withdraws it.
+    for relpath in ("index.html", "CITATION.cff", "README.md"):
+        _t = " ".join(_read(relpath).split())
+        _bad = [m.start() for m in re.finditer(r"survival-specific", _t)
+                if "withdrawn" not in _t[max(0, m.start() - 120): m.start() + 120]]
+        check_true(f"{relpath} uses 'survival-specific' only to withdraw it", not _bad)
     for relpath, needle, label in [
         ("README.md", "docs/CORRECTIONS.md", "README points at the corrections record"),
         ("index.html", "docs/CORRECTIONS.md", "index.html points at the corrections record"),

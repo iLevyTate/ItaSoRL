@@ -64,3 +64,9 @@ the saved one). A survival-versus-predictor difference that persists against
 matched exposure and matched evaluation input. Without that comparison, a survival-versus-
 predictor gap is a gap between two training regimes that differ in objective, policy, and
 data at once, and is described that way.
+
+**Measured on the corrected agents (FINDINGS 17.6).** On replayed survival streams the
+predictor reads 0.721 and `predictor_logged` 0.738 against 0.733 for survival; under the
+scripted protocol every arm reads 0.55 to 0.58. The survival-versus-predictor gap of the
+standard readout does not persist against `predictor_logged` under either matched protocol,
+so it is described as a difference between training regimes.

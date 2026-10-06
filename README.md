@@ -231,8 +231,9 @@ A second in-band fingerprint (hidden = 7, frozen fallback after hidden = 4
 failed its gates) leaves about the same after the behavior control: **0.722**
 (t-based 90% CI [0.672, 0.773]) vs 0.726 at hidden = 8. That coarser artifact
 is one every trained agent picks up (predictor 0.714 vs survival 0.737, misses
-the pre-registered +0.05 dissociation). The survival-specific part is
-therefore conditional on the subtler hidden = 8 artifact. Both capacities
+the pre-registered +0.05 dissociation). The survival-over-predictor margin was
+therefore conditional on the subtler hidden = 8 artifact (and on the corrected
+agents it disappears at matched input, FINDINGS §17.6). Both capacities
 leave about **0.72** after the behavior control, with reward leakage and
 survivorship clean.
 
@@ -245,7 +246,7 @@ published setup on the same machine: **0.730** [0.668, 0.791], 8 of 10. At the
 reads about 0.59, survival alone 0.601, both together 0.73 to 0.75 (FINDINGS
 §10.8). Survival alone trained to 450 updates reads 0.717, above the bar, and
 its skill match failed (§10.8.1), so the statement holds for the tested budget only. A second
-fingerprint, trained independently, keeps the survival-specific signal
+fingerprint, trained independently, keeps the survival-over-predictor margin
 (**0.639** against 0.534 for prediction-only) but lands under the bar. A third
 fingerprint at the headline capacity (new seed, hidden 8) reads **0.676**
 [0.636, 0.717] against 0.627 for prediction-only and 0.550 untrained: above the
