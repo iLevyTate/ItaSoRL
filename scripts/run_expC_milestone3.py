@@ -56,7 +56,7 @@ import torch
 import itasorl.experiment_b2 as b2
 from itasorl.agent_ac import RecurrentActorCritic
 from itasorl.experiment_c import (common_garden_panel, emergence_contrast,
-                                   mixed_world_fitness)
+                                   individual_probe_panel, mixed_world_fitness)
 from itasorl.experiment_c_gate1 import Layout, gate1_exploitability
 from itasorl.neuroevolution import evolve
 from itasorl.patch_of_earth import PatchOfEarthV0
@@ -211,6 +211,20 @@ def main():
         seed_panels = [panel_gen0, *mid_t, panel_t, *mid_c, panel_c]
         all_panels.extend(seed_panels)
 
+        # Per-individual readout (revision step 12, FINDINGS 17.11): the pooled panel above
+        # fits ONE probe on tail states pooled across the population, which 17.11 showed can
+        # read ~0.04 below the per-individual mean on agents with a known answer. 17.11 only
+        # validated the estimator on substitute agents (the L3 survival run's C1 seeds); the
+        # REAL evolved population was never scored this way. Each call below re-simulates the
+        # population (its own rollout, not reused from the pooled panel above), so this is
+        # scored only at the three generations that anchor the emergence contrast - gen 0 and
+        # both final populations - and not at every --panel-every mid-generation checkpoint,
+        # to keep the added cost to one extra full pass per arm per seed instead of
+        # multiplying it by every mid-generation checkpoint too.
+        indiv_gen0 = individual_probe_panel(pop0, **panel_kw)
+        indiv_t = individual_probe_panel(final_t, **panel_kw)
+        indiv_c = individual_probe_panel(final_c, **panel_kw)
+
         a0 = panel_gen0["cg_tail_target"]
         at = panel_t["cg_tail_target"]
         ac = panel_c["cg_tail_target"]
@@ -230,8 +244,12 @@ def main():
             "survival_final_treat": panel_t["survival"], "survival_final_ctrl": panel_c["survival"],
             "panels_mid_treat": mid_t, "panels_mid_ctrl": mid_c,
             "panel_gen0": panel_gen0, "panel_final_treat": panel_t, "panel_final_ctrl": panel_c,
+            "indiv_gen0": indiv_gen0, "indiv_final_treat": indiv_t, "indiv_final_ctrl": indiv_c,
         })
         print(f"[expC m3] seed {s}: AUROC gen0={a0:.3f} treat={at:.3f} ctrl={ac:.3f} "
+              f"| per-indiv mean gen0={indiv_gen0['mean']:.3f} treat={indiv_t['mean']:.3f} "
+              f"ctrl={indiv_c['mean']:.3f} (>=0.65: {indiv_t['share_at_or_above_bar']:.2f} treat, "
+              f"{indiv_c['share_at_or_above_bar']:.2f} ctrl) "
               f"| fit d_treat={series_t[-1]-series_t[0]:+.3f} d_ctrl={series_c[-1]-series_c[0]:+.3f} "
               f"| thr_t={thr_t:.3f} thr_c={thr_c:.3f}  ({time.time()-ts:.0f}s)", flush=True)
 
