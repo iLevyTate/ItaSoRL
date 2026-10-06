@@ -262,3 +262,70 @@ def common_garden_panel(
         "speed_control": float(speed_control),
         "speed_control_pass": bool(speed_control >= 0.75) if np.isfinite(speed_control) else False,
     }
+
+
+# ---------------------------------------------------------------------------
+# Per-individual readout (revision step 12). The pooled panel above fits ONE probe on tail
+# states pooled across individuals, so it can miss world information that each individual
+# encodes along its own direction. This readout probes every sampled individual separately
+# (held-out AUROC with pair groups), summarizes the distribution within a population, and
+# treats lineage seeds as the replication unit across populations.
+# ---------------------------------------------------------------------------
+def individual_probe_panel(population: Population, *, drift_sigma: float, n_pairs: int,
+                           prefix_steps: int, tail_steps: int, seed_base: int,
+                           params: WorldParams | None = None, ray_steps: int = 5,
+                           device: str = "cpu", norm: RunningNorm | None = None,
+                           sample_size: int | None = None, bar: float = 0.65) -> dict[str, Any]:
+    """Held-out common-garden AUROC per individual, plus the pooled-probe value on the same
+    tails for comparison. Each individual's pairs share a CV group per pair."""
+    sample = population if sample_size is None else population[:sample_size]
+    per, auth_all, surr_all = [], [], []
+    for agent in sample:
+        agent.train(False)
+        n = norm or RunningNorm(agent.obs_dim)
+        a, s = common_garden_rollout(agent, n, params, drift_sigma, n_pairs=n_pairs,
+                                     prefix_steps=prefix_steps, tail_steps=tail_steps,
+                                     ray_steps=ray_steps, device=device, seed_base=seed_base)
+        per.append(cg_probe(a, s)["cg_tail_target"])
+        auth_all.extend(a)
+        surr_all.extend(s)
+    pooled = cg_probe(auth_all, surr_all)["cg_tail_target"] if auth_all else float("nan")
+    v = np.asarray([x for x in per if np.isfinite(x)], float)
+    return {
+        "per_individual": [float(x) for x in per],
+        "n_individuals": int(len(per)), "n_scored": int(v.size),
+        "mean": float(v.mean()) if v.size else float("nan"),
+        "median": float(np.median(v)) if v.size else float("nan"),
+        "q10_q90": [float(np.quantile(v, 0.1)), float(np.quantile(v, 0.9))] if v.size else [float("nan")] * 2,
+        "max": float(v.max()) if v.size else float("nan"),
+        "share_at_or_above_bar": float((v >= bar).mean()) if v.size else float("nan"),
+        "pooled_probe_same_tails": float(pooled),
+    }
+
+
+def lineage_summary(panels: list[dict[str, Any]]) -> dict[str, Any]:
+    """Across lineage seeds (the replication unit): mean and t-based 90% CI of the
+    within-population mean individual AUROC, and of the share at or above the bar."""
+    m = np.asarray([p["mean"] for p in panels], float)
+    sh = np.asarray([p["share_at_or_above_bar"] for p in panels], float)
+    return {"n_lineages": int(m.size), "mean_individual_auroc": float(m.mean()),
+            "mean_individual_auroc_t90": list(_t_ci90(m)) if m.size > 1 else None,
+            "share_at_or_above_bar": float(sh.mean()),
+            "pooled_minus_individual": float(np.mean([p["pooled_probe_same_tails"] - p["mean"]
+                                                      for p in panels]))}
+
+
+def value_of_world_information(xeval_auth_policy: dict, xeval_surr_policy: dict) -> dict:
+    """Fitness value of knowing the world, from a cross-evaluation of an authentic-trained
+    and a surrogate-trained policy in both worlds (the B-v2 `xeval` blocks, keys "0.00" and
+    the drift). With equal priors: a policy that knows the world picks the matching policy;
+    one that does not must use a single policy in both. Value = matched mean return minus the
+    better single policy's mean return. Restricted to these two policies, so it is a lower
+    bound on what an ideal world-conditional policy could gain."""
+    keys = sorted(xeval_auth_policy, key=float)
+    a, s = keys[0], keys[-1]
+    matched = 0.5 * (xeval_auth_policy[a] + xeval_surr_policy[s])
+    single = max(0.5 * (xeval_auth_policy[a] + xeval_auth_policy[s]),
+                 0.5 * (xeval_surr_policy[a] + xeval_surr_policy[s]))
+    return {"matched_return": float(matched), "best_single_return": float(single),
+            "value_of_information": float(matched - single)}

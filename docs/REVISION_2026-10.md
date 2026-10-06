@@ -57,7 +57,7 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 9 | Texture knockout interpretation | Three questions separated and wording frozen (`docs/specs/2026-10-06-texture-comparator-design.md`); fresh-probe runner, hand-authored quadratic-drag family, perturbation profile, and comparator training (`--l3-family`) built; readouts run on `C1` agents; comparator-trained runs only if compute allows |
 | 10 | Oracle and surrogate descriptions | Pending |
 | 11 | Auxiliary-loss conclusion bounded by budget | Pending |
-| 12 | Evolutionary readout | Pending |
+| 12 | Evolutionary readout | Per-individual readout, lineage summary, and value of world information built (`itasorl/experiment_c.py`); validation on known-decodable agents (`scripts/validate_population_readout.py`) runs on `C1` agents; the evolution itself is not rerun (9.6 h for 3 lineages), so the claim is narrowed in step 14 |
 | 13 | Statistical terminology and estimators | Pending |
 | 14 | Claims and methods rewritten consistently | Pending |
 | 15 | Related work and the reproducibility package | Pending |
