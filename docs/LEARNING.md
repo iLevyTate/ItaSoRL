@@ -65,7 +65,7 @@ The four hypotheses (from `README.md`):
 
 - **H1 (detectability)**: a privileged outside inspector can tell the two worlds apart.
 - **H2 (substrate-grounding)**: the signal really lives in the computational seams, not in some side effect.
-- **H3 (emergence under selection)**: across generations, creatures whose survival depends on the difference get better at representing it. (Tested in Experiment C and resolved negative: thirty generations built no heritable detector. See Act 9's caveats in section 8.)
+- **H3 (emergence under selection)**: across generations, creatures whose survival depends on the difference get better at representing it. (Tested in Experiment C: thirty generations did not raise what the pooled population readout measures. That readout cannot see detectors that individuals carry in their own private directions, so it does not show there were none. See Act 9's caveats in section 8.)
 - **H4 (legibility, or incidental encoding)**: a from-scratch creature encodes the difference on its own, without reward. (The main event.)
 
 ---
@@ -192,10 +192,13 @@ cell, and heads on top. Code: `itasorl/agent.py` and `itasorl/agent_ac.py`.
 - **GAE (Generalized Advantage Estimation)**: a way of smoothing the coach's
   feedback so it is neither too jumpy nor too sluggish (Schulman et al., 2016;
   lambda is 0.95 here).
-- **Potential-based shaping**: a "warmer, colder" hint toward food that provably
-  never changes what the best strategy is, and is identical in both worlds.
+- **Potential-based shaping**: a "warmer, colder" hint toward food, computed the
+  same way in both worlds, designed not to change what the best strategy is.
   Precisely: reward shaping with a potential function (negative distance to the
-  nearest pellet) that leaves the optimal policy unchanged.
+  nearest pellet) that leaves the optimal policy unchanged when a terminal state has
+  potential zero and an episode cut off by the rollout limit is bootstrapped
+  correctly. The historical trainer got the second part wrong (Act 10), so for those
+  runs the hint was a training aid without the guarantee.
 - **Harsh metabolism**: the survival pressure. Energy burns fast enough that a
   non-forager starves in about 50 steps. Combined with denser food (24 pellets
   instead of 12), this makes "learn to forage or die" the real lesson.
@@ -416,10 +419,11 @@ Precisely (`itasorl/behavior_audit.py`, `scripts/audit_behavior_mediation.py`):
   temptation to adjust the analysis until a result appears.
 - **Pooled versus matched-pair readout**: two ways to grade the reader. Pooled
   (the headline) mixes all episodes from all worlds and reads identity; it
-  measures a persistent internal marker. Matched-pair uses the identical-twins
-  design; it measures whether the difference is detectable under the tightest
-  control. Detectable-when-forced-in is not the same as persistently carried,
-  which is why the pooled readout is the one that carries the claim.
+  measures one world-identity direction shared across independent episodes.
+  Matched-pair uses the identical-twins design; it measures whether the difference
+  is detectable under the tightest control. Detectable under the twins design is not
+  the same as readable across independent episodes, which is why the pooled readout
+  is the one that carries the claim.
 - **Capacity ceiling (sysid-aux)**: how loudly could this notebook say it, if we
   forced the creature to study the answer directly? Precisely: an extra head,
   trained on the drift itself, measures the most the architecture could ever
@@ -494,8 +498,8 @@ so it is not position wearing a disguise. And the control is honest on its own
 tests: the untrained creature's residual reads exact chance (0.498) even though its
 raw behavior reveals the world at 0.645.
 
-A second objection arrived later and is worth its own line. "Behavior-independent"
-does not automatically mean "input-independent": a notebook that passively mirrors
+A second objection arrived later and is worth its own line. Controlling for behavior
+does not automatically control for input: a notebook that passively mirrors
 what the creature sees would survive the behavior control, because the view under a
 different motion law is itself different. A readout-only control, frozen before it
 ran, subtracts the observation stream too. The signal holds at 0.731 (90% CI
@@ -513,7 +517,7 @@ fix. The fix: gate-0 became a committed, runnable per-capacity check, and a fres
 recalibration sweep re-froze the second capacity at hidden=7 (inspector 0.922, in
 band; floor 0.566, elevated but within tolerance). The hidden=7 run of 10 seeds
 then passed every gate. Results: the survival target is 0.737 (90% CI [0.688,
-0.780], 8 of 10 seeds), and the behavior-independent signal replicates almost
+0.780], 8 of 10 seeds), and the signal left after the behavior control replicates almost
 exactly at 0.722 versus 0.726 at hidden=8. But the predictor now also reads 0.714,
 only 0.023 behind survival, so the pre-registered "survival must beat predictor by
 0.05" requirement fails. The reading: the hidden=7 forger is a coarser, more
@@ -535,10 +539,12 @@ same thing.
 Take it away and the signal collapses. The survival creature with no decoder reads
 **0.601** (90% CI [0.549, 0.654]), under the bar, on the same machine where the
 decoder-carrying creature reads **0.730**. Prediction alone, as Act 4 already
-showed, reads 0.573. So neither job does it alone. The encoding is a property of
-the two trained together: the decoder forces the notebook to carry information
-about the sensory stream, and foraging under a flawed motion law shapes that
-information into a world-identity direction.
+showed, reads 0.573. So at this training budget neither job did it alone: at 300
+updates the signal belongs to the two trained together. One possible account is that
+the decoder makes the notebook carry information about the sensory stream, and
+foraging under a flawed motion law shapes it into a world-identity direction. That
+account was never tested, and a decoder-free creature trained half again as long did
+read above the bar, with too much skill to count as a matched comparison.
 
 The published wording "encoded by the survival objective, uniquely" was narrowed
 accordingly, and the films were corrected to match.
@@ -573,9 +579,11 @@ If the creature is reading the forger's brushstroke, then sanding the brushstrok
 off should silence it, and sanding half of it off should half-silence it. Blend the
 seam out in graded steps and the signal falls monotonically from 0.752 to 0.506,
 perfect rank correlation, while the untrained arm stays flat throughout. A texture
-knockout with a dose response and a sensory lesion point the same way. This is the
-strongest evidence that the signal is about the artifact itself rather than
-something the apparatus manufactures.
+knockout with a dose response and a sensory lesion fit the same picture. This shows
+the reading depends on the difference in the motion law, not on something the
+apparatus manufactures. It does not show the creature represents that the law was
+learned: the texture knockout only shows that the original reading direction does not
+carry over to random jitter, and no creature was ever raised in a jittered world.
 
 **Act 9: an audit of the bookkeeping, and what it moved.**
 At the very end of the work a dependency surfaced: the way episodes were split into
@@ -607,27 +615,31 @@ it, so it was left open and said out loud.
   could in principle remove more.
 - There are 10 seeds, one world family, one trunk (a 96-unit GRU), and one frozen
   oracle band. No other architecture or width has been tested.
-- Detectability at the creature's resolution is necessary but not sufficient, and
-  the matched comparison that shows it is L1 against L3, not L2 against L3 (Act 1
-  correction).
+- Detectability to a privileged inspector is not sufficient, and the matched
+  comparison that shows it is L1 against L3, not L2 against L3 (Act 1 correction).
+  The creature's own senses carry every tested flaw almost perfectly: an inspector
+  that reads only those senses scores 0.99 (FINDINGS 10.1.1).
 - The held-out and cross-recipe probes are done. The world signal transfers to a
   fingerprint the creature has never seen (0.773, rule passes) and to a forger built
   on a different recipe (0.684, rule passes). A frozen reverse test fails the bar
   (0.638), so transfer runs from subtle training artifacts and bidirectionality is
-  unresolved. A common-garden control settles what the signal is: a modest
-  persistent memory of which world the creature came from, which its policy also
-  expresses reactively (0.666 forward, 0.684 reverse, both clearing the bar; weak,
-  and decaying across the tail).
+  unresolved. A common-garden control shows that which world the creature came from
+  stays readable, weakly, after the motion law is put back to normal (0.666 forward,
+  0.684 reverse, both clearing the bar, and decaying across the tail). Each creature
+  keeps its own position and energy from the first part of the episode, so this does
+  not separate memory from the traces the first part left behind; a test that does
+  is specified and runs on the corrected creatures.
 - L4, the forger with a detective on the team, remains unbuilt. Experiment C's
-  emergence pilot resolved negative (FINDINGS 13.D): thirty generations of selection
-  built no heritable detector.
+  emergence pilot resolved negative under its pooled population readout (FINDINGS
+  13.D and 13.E): thirty generations of selection did not raise that readout.
 
 Where results live: `docs/FINDINGS.md` (the narrative), `docs/PREREGISTRATION_L3.md`
 section 12 (the dated lab log), `artifacts/expB2/*.json` (the committed numbers),
 and `fullruns/` (the full bundles, ignored by git, with the latest pointer in
-`results/LATEST_RUN.txt`). A verification script recomputes every number quoted
-above from the committed artifacts; it runs 990 checks, and it runs in CI on every
-change.
+`results/LATEST_RUN.txt`). A verification script checks the numbers quoted in the
+main documents against values recomputed from the committed per-seed results, and it
+runs in CI on every change. It cannot catch an error inside the results themselves:
+the training defect of Act 10 passed it for months.
 
 ---
 
@@ -696,7 +708,7 @@ change.
 | Patch of Earth | The terrarium: a 2.5D deterministic dissipative world with about 146 senses | `patch_of_earth.py` |
 | Per-episode control | Subtract the average behavior per episode before probing (coarse; over-subtracts) | behavior audit |
 | Per-timestep control | Subtract behavior moment by moment before probing (surgical; the deciding test) | behavior audit |
-| Pooled readout | Mix all episodes and read world identity; measures a persistent marker (the headline) | readouts |
+| Pooled readout | Mix all episodes and read world identity; measures one direction shared across independent episodes (the headline) | readouts |
 | Positive control (speed) | The reader must at least read speed (about 0.9), or the notebook is illegible and the run is void | probes |
 | Potential-based shaping | Warmer, colder food hints that provably never change the best strategy | B-v2 reward |
 | Pre-registration | Predictions sealed in an envelope before running; removes after-the-fact knob tweaking | PREREGISTRATION*.md |
