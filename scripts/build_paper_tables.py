@@ -1,15 +1,20 @@
 """Manuscript tables generated from the checked results, and a manuscript check (revision step 15).
 
-Writes LaTeX tables under docs/paper_tables/ from the committed, audited artifacts (the gate
-table, the contrast intervals, and the corrected-run summaries when present), so the
-manuscript can \\input them instead of retyping numbers. With --manuscript DIR (the LaTeX
-source, which lives outside git) it also checks that every \\input of a paper table refers to
-a current generated file, and flags wording the 2026-10 revision retired (the claim table in
-docs/REVISION_2026-10.md). It reports; the author decides each flagged line.
+Writes LaTeX tables from the committed, audited artifacts (the gate table, the contrast
+intervals, and the corrected-run verdicts), so the manuscript can \\input them instead of
+retyping numbers. The tables are manuscript material and stay LOCAL: they are written to
+docs/paper_tables/, which .gitignore excludes, beside (never inside) the gitignored manuscript
+directory docs/paper/, so generating them cannot overwrite the author's own files. The scalar
+audit renders them in memory from the committed artifacts, so CI needs no paper files.
+
+With --manuscript DIR (the LaTeX source, also local and outside git) it checks that every
+\\input of a paper table refers to a current generated file, and flags wording the 2026-10
+revision retired (the claim table in docs/REVISION_2026-10.md). It reports; the author
+decides each flagged line.
 
 Usage:
-    python scripts/build_paper_tables.py                     # write docs/paper_tables/*.tex
-    python scripts/build_paper_tables.py --check             # exit 1 if a table is stale
+    python scripts/build_paper_tables.py                     # write docs/paper_tables/*.tex (local)
+    python scripts/build_paper_tables.py --check             # exit 1 if a local table is stale
     python scripts/build_paper_tables.py --manuscript docs/paper
 """
 
@@ -26,7 +31,7 @@ import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ART = os.path.join(ROOT, "artifacts")
-OUT = os.path.join(ROOT, "docs", "paper_tables")
+OUT = os.path.join(ROOT, "docs", "paper_tables")   # gitignored; beside, not inside, docs/paper/
 
 # Retired wording (docs/REVISION_2026-10.md, step 14). A hit is a line to rewrite, not an error
 # by itself: a sentence quoting the old wording to retire it is fine.
@@ -134,7 +139,7 @@ def check_manuscript(d: str) -> int:
     issues = 0
     for p in texs:
         text = open(p, encoding="utf-8", errors="replace").read()
-        for m in re.finditer(r"\\input\{[^}]*paper_tables/([^}]+?)(\.tex)?\}", text):
+        for m in re.finditer(r"\\input\{[^}]*?(?:paper_tables|tables)/([^}]+?)(\.tex)?\}", text):
             name = m.group(1) + ".tex"
             if name not in current:
                 print(f"{os.path.relpath(p, ROOT)}: \\input of unknown table {name}")
@@ -157,6 +162,10 @@ def main(argv=None) -> int:
         return check_manuscript(a.manuscript)
     want = tables()
     if a.check:
+        if not os.path.isdir(OUT):
+            print(f"paper tables: no local {os.path.relpath(OUT, ROOT)}/ (manuscript material stays "
+                  "local); nothing to compare")
+            return 0
         stale = [n for n, w in want.items() if not os.path.exists(os.path.join(OUT, n))
                  or open(os.path.join(OUT, n), encoding="utf-8").read() != w]
         for n in stale:

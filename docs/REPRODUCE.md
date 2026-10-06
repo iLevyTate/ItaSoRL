@@ -19,13 +19,15 @@ This rebuilds, from the committed per-seed artifacts under `artifacts/`:
 - `artifacts/corrected_verdicts.json`: the frozen decision rules applied to the corrected
   runs `C1` and `C2`, with integrity checks and the correction effect;
 - `docs/paper_tables/*.tex`: the same tables for the manuscript (`scripts/build_paper_tables.py`).
+  They stay local like the manuscript: `docs/paper_tables/` and `docs/paper/` are both
+  gitignored, nothing in them is committed, and the audit renders the tables in memory.
 
 It then runs `scripts/audit_stats_recheck.py`. **What the audit checks:** that the numbers
 quoted in `README.md`, `docs/FINDINGS.md`, `docs/PAPER_OUTLINE.md`, `CITATION.cff`, the site,
 and the B-v3 preregistration's gate entry equal values recomputed from the committed per-seed
 artifacts, that the generated pages above are current, and that retired wording has not
 returned to the pages it watches. **What it does not check:** it reruns no experiment, it does
-not read the LaTeX manuscript (use `python scripts/build_paper_tables.py --manuscript <dir>`),
+not read the local LaTeX manuscript (use `python scripts/build_paper_tables.py --manuscript docs/paper`),
 and it can only be as good as the per-seed values committed.
 
 With the raw state dumps of a run (in the supplement, or `fullruns/<run>/states` after a run),

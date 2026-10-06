@@ -1961,8 +1961,15 @@ def main() -> int:
     check_true("10.1.1 linear-fit held-out RMS is rounding-level (< 1e-7)",
                all(v["diagnostics"]["linear_fit"]["rms_heldout"] < 1e-7 for v in _sd.values()))
     # Revision step 15: the manuscript's tables are generated from the checked artifacts.
+    # The manuscript and its generated tables stay local (gitignored docs/paper/); render the
+    # tables in memory from the committed artifacts instead of comparing committed files.
     import build_paper_tables
-    check_true("manuscript tables are current (build_paper_tables --check)",
+    _pt = build_paper_tables.tables()
+    check_true("manuscript tables render from the committed artifacts (gate table, contrasts, "
+               "corrected verdicts)",
+               {"gate_table.tex", "contrast_intervals.tex", "corrected_runs.tex"} <= set(_pt)
+               and all("do not edit" in t for t in _pt.values()))
+    check_true("local manuscript tables, if present, are current (build_paper_tables --check)",
                build_paper_tables.main(["--check"]) == 0)
 
     print()

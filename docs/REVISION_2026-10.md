@@ -76,8 +76,11 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 
 ## Where the manuscript lives
 
-The LaTeX manuscript (`docs/paper`) is local to the owner's checkout and is not in git. This
+The LaTeX manuscript (`docs/paper`) is local to the owner's checkout and is not in git, and
+everything generated for it stays local too: `scripts/build_paper_tables.py` writes its
+tables to the gitignored `docs/paper_tables/`, beside the manuscript directory, never inside it. This
 revision edits what is in the repository: `docs/FINDINGS.md`, `docs/PAPER_OUTLINE.md`,
 `README.md`, `CITATION.cff`, the site template, and the plain-language pages. Step 15 adds a
 check that the manuscript's tables match the committed results when the manuscript source is
-present; the owner applies the same claim table to the LaTeX source.
+present (the audit renders the tables in memory, so CI needs no paper files); the owner
+applies the same claim table to the LaTeX source.

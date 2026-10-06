@@ -174,7 +174,7 @@ def scrub(text: str, rules=None) -> str:
 
 def _files() -> list[str]:
     out = []
-    for d in INCLUDE_DIRS + ["docs/specs", "docs/paper_tables", "docs/figures"] + [
+    for d in INCLUDE_DIRS + ["docs/specs", "docs/figures"] + [
             r for r in RUN_DIRS if os.path.isdir(os.path.join(ROOT, r))]:
         for base, dirs, files in os.walk(os.path.join(ROOT, d)):
             dirs[:] = [x for x in dirs if x != "__pycache__"]

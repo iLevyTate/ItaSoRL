@@ -255,6 +255,9 @@ viz/artifacts/
 # Local working documents and tooling: keep out of the public repo.
 docs/PAPER_DRAFT*.md
 paper/
+# Tables generated for the manuscript stay local with it: scripts/build_paper_tables.py
+# writes them here, beside (not inside) the manuscript directory.
+docs/paper_tables/
 ralph/
 docs/superpowers/
 
