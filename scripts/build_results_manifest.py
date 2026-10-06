@@ -409,6 +409,13 @@ RUNS = [
         commit_at_run="39c1e5d", folds="explicit", eval_seeds=BV2_EVAL_SEEDS, device=CPU_REVISION,
         notes="scripts/run_control_diagnostics.py; revision step 8. Pools regenerated and "
               "bit-matched to the run's state dumps."),
+    run("C1-TEXTURE", "Texture comparators on the C1 agents: transfer of the original direction "
+        "and a fresh probe", experiment="H2", artifacts=["texture/corrected_l3_h8_wm_gn.json"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="39c1e5d", folds="explicit",
+        eval_seeds={"gn": "960000 / 970000", "qd": "1900000 / 1950000"}, device=CPU_REVISION,
+        notes="scripts/run_texture_fresh_probe.py; revision step 9; wording rules frozen in "
+              "docs/specs/2026-10-06-texture-comparator-design.md."),
     run("CORRECTED-VERDICTS", "Frozen-rule verdicts, integrity, and correction effect for C1 and C2",
         experiment="methods", artifacts=["corrected_verdicts.json"], trains_survival=False,
         readout_of=["C1", "L3-H8-WM-CPU", "L3-H8-NOWM-CPU"], survival_trainer="successor_value",

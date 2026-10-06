@@ -2523,6 +2523,40 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "texture/corrected_l3_h8_wm_gn.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "39c1e5d",
+      "config": {},
+      "deps": null,
+      "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
+      "eval_seeds": {
+        "gn": "960000 / 970000",
+        "qd": "1900000 / 1950000"
+      },
+      "experiment": "H2",
+      "folds": "explicit",
+      "id": "C1-TEXTURE",
+      "local_run_dir": null,
+      "notes": "scripts/run_texture_fresh_probe.py; revision step 9; wording rules frozen in docs/specs/2026-10-06-texture-comparator-design.md.",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "texture/corrected_l3_h8_wm_gn.json": {
+          "generated_by": "scripts/run_texture_fresh_probe.py"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Texture comparators on the C1 agents: transfer of the original direction and a fresh probe"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "corrected_verdicts.json"
       ],
       "budget": null,
