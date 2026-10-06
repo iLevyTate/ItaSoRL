@@ -2563,3 +2563,81 @@ stack leaves two at (21,23) and (23,21), and an imbalanced fold pulls a pooled A
 slightly. The re-score does not isolate that mechanism, so it is stated as the probable
 cause and not a measured one. The argument and the costings behind both decisions are in
 `docs/specs/2026-09-29-fold-gate-clauses-decision.md`.
+
+---
+
+## 17. Corrected-trainer confirmation (2026-10-06, revision step 4)
+
+The trainer correction (`docs/CORRECTIONS.md`, 2026-10-06) changes how a survival episode
+still alive at the 80-step cutoff is bootstrapped: from the critic value of the successor
+state instead of the value before the final transition. These runs measure what that does to
+the comparisons the paper keeps as primary. The protocol, the integrity checks, and the
+decision rules were frozen before launch
+(`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`; PREREGISTRATION_L3,
+2026-10-06 entry). Verdicts are computed by `scripts/build_corrected_verdicts.py` into
+`artifacts/corrected_verdicts.json`; the promoted summaries are
+`artifacts/expB2/corrected_*.json` and the cells `artifacts/corrected_runs/`.
+
+**Why the comparison is like for like.** The runs executed in the revision container
+(4 vCPU, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, 4 workers, code at `f676b95`).
+Before launch, the original code at `4b6e1f3` reran one committed cell of the historical CPU
+device control there and reproduced all 156 of its recorded values exactly. The only
+difference between a corrected cell and its historical CPU cell is the bootstrap. On this
+stack the explicit-v1 and legacy fold partitions coincide for the pooled design, so the
+historical CPU numbers and the corrected numbers share one partition.
+
+### 17.1 Integrity (checked before any comparison was read)
+
+Every cell of `C1` records `gae_bootstrap = successor`. The predictor and untrained arms
+train no actor-critic, and their pooled targets equal the historical CPU cells to the bit in
+all 20 (drift, seed) pairs. The stack did not move; the survival arm is the only thing that
+changed.
+
+### 17.2 C1: survival with the next-observation auxiliary, 300 updates
+
+Drift 0.45, n = 10, explicit-v1 partition, t-based 90% CIs over agent seeds (conditional on
+the one surrogate and the one set of evaluation worlds the seeds share):
+
+| arm | corrected `C1` | seeds >= 0.65 | historical `L3-H8-WM-CPU` |
+|---|---|---|---|
+| untrained | 0.523 [0.491, 0.554] | 0/10 | 0.523 (bit-identical) |
+| predictor | 0.589 [0.567, 0.610] | 0/10 | 0.589 (bit-identical) |
+| **survival** | **0.733 [0.669, 0.797]** | 8/10 | 0.730 [0.668, 0.791] |
+
+Per-seed survival: 0.632, 0.805, 0.691, 0.744, 0.662, 0.522, 0.885, 0.783, 0.868, 0.738.
+Seed-paired margins: survival minus predictor **+0.144 [+0.072, +0.217]**, survival minus
+untrained **+0.210 [+0.135, +0.286]**; both intervals clear 0.05
+(`docs/CONTRAST_INTERVALS.md`). After the per-timestep behavior control on the seven-channel
+basis (speed, energy, food, drag, position, heading; linear, in-fold), **0.723 [0.670,
+0.776]** remains, with the predictor at 0.592 and the untrained arm at 0.543 under the same
+control.
+
+**Gates.** Engagement passes in 20 of 20 cells; the speed control reads at least 0.772;
+pooled reward leakage is at most 0.096 from 0.5; the untrained floor is 0.523; no pool lost
+an episode. **The L0 gate does not pass.** The ten drift-0 survival targets average **0.559**
+(per seed 0.573, 0.550, 0.564, 0.574, 0.538, 0.538, 0.594, 0.560, 0.552, 0.550), the TOST
+against the 0.05 margin gives p = 0.939, and 0.028 of bootstrap means fall inside the ROPE.
+The margin is not relaxed.
+
+**Verdict under the frozen rule: MET on the decodability clauses, conditional on the open L0
+gate.** The survival mean and its lower bound clear 0.65 and both margins clear 0.05. The
+claim that the drift-0.45 reading reflects the dynamics rather than the evaluation-world
+sample rests on the L0 gate, which is open; what the agent-based L0 audit shows about it is
+in section 17.5.
+
+### 17.3 What the correction changed
+
+Paired by seed against `L3-H8-WM-CPU`:
+
+| quantity | corrected | historical | corrected minus historical |
+|---|---|---|---|
+| survival target, drift 0.45 | 0.733 | 0.730 | +0.003 [-0.017, +0.024] |
+| survival target, drift 0 (L0) | 0.559 | 0.529 | +0.031 [+0.011, +0.050] |
+| engagement return, drift 0.45 | -0.418 | -0.439 | +0.021 [-0.033, +0.075] |
+| engagement return, drift 0 | -0.292 | -0.277 | -0.015 [-0.066, +0.036] |
+
+At the condition the headline reads, the correction moved nothing that this design can see.
+At drift 0 it raised the survival arm's separation of the two authentic world samples by
+about 0.03, which is enough to move the historical L0 pass (0.529, p = 0.039) to an open
+gate. The historical device-control verdict (MET with every gate) therefore does not carry
+over unchanged: the corrected run meets the decodability clauses and leaves L0 open.

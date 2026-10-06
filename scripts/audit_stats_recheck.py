@@ -1736,6 +1736,41 @@ def main() -> int:
     import build_corrected_verdicts
     check_true("corrected verdicts are current (build_corrected_verdicts --check)",
                build_corrected_verdicts.main(["--check"]) == 0)
+    # Revision step 4: FINDINGS 17 quotes the corrected runs; every number it states for a
+    # complete run is recomputed from artifacts/corrected_verdicts.json (itself checked current
+    # against the committed cells above).
+    print("\n== FINDINGS 17: corrected-trainer confirmation ==")
+    _f17 = _read("docs/FINDINGS.md")
+    _s17 = _f17[_f17.index("## 17. Corrected-trainer confirmation"):]
+    _v = _load_art("corrected_verdicts.json")
+    _c1 = _v["runs"]["C1"]
+    if _c1.get("status") == "complete":
+        _p, _g = _c1["primary"], _c1["gates"]
+        _iv = lambda t: f"[{t[0]:.3f}, {t[1]:.3f}]"
+        _sv = lambda t: f"[{t[0]:+.3f}, {t[1]:+.3f}]"
+        for label, needle in [
+            ("C1 survival", f"**{_p['survival']['mean']:.3f} {_iv(_p['survival']['t90'])}**"),
+            ("C1 predictor", f"{_p['predictor']['mean']:.3f} {_iv(_p['predictor']['t90'])}"),
+            ("C1 untrained", f"{_p['untrained']['mean']:.3f} {_iv(_p['untrained']['t90'])}"),
+            ("C1 seeds at bar", f"| {_p['survival']['seeds_at_bar']}/10 |"),
+            ("C1 margin vs predictor", f"**{_p['contrast_vs_predictor']['mean']:+.3f} {_sv(_p['contrast_vs_predictor']['t90'])}**"),
+            ("C1 margin vs untrained", f"**{_p['contrast_vs_untrained']['mean']:+.3f} {_sv(_p['contrast_vs_untrained']['t90'])}**"),
+            ("C1 per-seed survival", ", ".join(f"{x:.3f}" for x in _p["survival"]["per_seed"])),
+            ("C1 L0 mean", f"average **{_g['l0']['mean']:.3f}**"),
+            ("C1 L0 per seed", ", ".join(f"{x:.3f}" for x in _g["l0"]["per_seed"])),
+            ("C1 L0 TOST p", f"p = {_g['l0']['tost_p']:.3f}"),
+            ("C1 L0 ROPE share", f"{_g['l0']['rope']['boot_share_in_rope']:.3f} of bootstrap means"),
+            ("C1 speed min", f"at least {_g['speed']['min']:.3f}"),
+            ("C1 verdict", "MET on the decodability clauses, conditional on the open L0\ngate"
+             if _p["verdict"].endswith("l0") else _p["verdict"]),
+        ] + [(f"C1 correction {d} {q}", f"{x['corrected']['mean'] if q == 'survival_target' else x['corrected']:.3f} | "
+              f"{x['historical']['mean'] if q == 'survival_target' else x['historical']:.3f} | "
+              f"{x['difference']['mean']:+.3f} {_sv(x['difference']['t90'])}")
+             for d, blk in _c1["correction_effect"].items()
+             for q, x in blk.items() if q in ("survival_target", "engagement_return")]:
+            check_true(f"FINDINGS 17 quotes {label}", needle in _s17)
+        check_true("C1 integrity passes (successor bootstrap, baselines bit-identical)",
+                   _c1["integrity"]["pass"])
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
     print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
     _f = _read("docs/FINDINGS.md")
