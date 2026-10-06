@@ -1692,6 +1692,12 @@ def main() -> int:
     import build_index
     check_true("index.html is regenerable and current (build_index --check)",
                build_index.build(os.path.join(root), check=True) == 0)
+    # Revision step 1 (docs/REVISION_2026-10.md): every committed artifact belongs to a run in
+    # the results manifest, and the generated manifest pages are current.
+    import build_results_manifest
+    check_true("results manifest covers every artifact and is current "
+               "(build_results_manifest --check)",
+               build_results_manifest.main(["--check"]) == 0)
 
     print()
     if failures:
