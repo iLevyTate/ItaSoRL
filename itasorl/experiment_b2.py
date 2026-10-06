@@ -774,7 +774,7 @@ def train_predictor_only(drift_sigma, params=None, *, n_eps=16, updates=200, emb
 # ---------------------------------------------------------------------------
 def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_base, ray_steps,
                  return_anchors: bool = False, obs_mask=None, return_obs: bool = False,
-                 return_index: bool = False):
+                 return_index: bool = False, return_actions: bool = False):
     """Collect up to n_eps episodes of EXACTLY `steps` length (drop early deaths) with
     the frozen deterministic agent. Returns H (k,steps,Hdim), speeds (k,).
 
@@ -798,13 +798,17 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
     (docs/specs/2026-09-26-l3-sensory-echo-control-design.md); it changes no other
     output.
 
+    `return_actions=True` appends the env action taken at every step (k, steps, act_dim);
+    the GRU's previous-action input at step t is the action of step t-1 (zeros at t = 0).
+    Inserted before the index array when both are requested (revision step 8).
+
     `return_index=True` appends the episode indices i (world seed seed_base + i) that
     survived to full length, so two pools drawn from the same seeds can be paired
     (itasorl/l0_audit.py, revision step 5)."""
     if obs_mask is not None:
         obs_mask = np.asarray(obs_mask, dtype=np.float64)
     Hs, spd, energy, food, drag, reward, traces, obs_traces = [], [], [], [], [], [], [], []
-    kept = []
+    kept, act_traces = [], []
     for i in range(n_eps):
         w = make_world(params, drift_sigma, ray_steps)
         w.reset(_seeds(seed_base + i))
@@ -814,7 +818,7 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
         if obs_mask is not None:
             obs = obs * obs_mask
         Hrow, sp, en, fd, dg, px, py, hd, died = [], [], [], [], [], [], [], [], False
-        Orow = []
+        Orow, Arow = [], []
         rw = 0.0
         for _ in range(steps):
             x_in = norm(obs)
@@ -822,7 +826,9 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             _, env_act, _, _, h = agent.act(obs_t, prev, h, deterministic=True)
             Hrow.append(h[0].detach().cpu().numpy())
             Orow.append(np.asarray(x_in, np.float32))
-            r = w.step(env_act[0].detach().cpu().numpy().astype(np.float32))
+            a_np = env_act[0].detach().cpu().numpy().astype(np.float32)
+            Arow.append(a_np)
+            r = w.step(a_np)
             sp.append(float(np.linalg.norm(w.vel)))
             en.append(float(w.E / w.Emax))
             fd.append(-_food_potential(w))           # >=0 distance to nearest pellet
@@ -848,6 +854,7 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             reward.append(rw)
             traces.append(np.stack([sp, en, fd, dg, px, py, hd], axis=1).astype(np.float32))
             obs_traces.append(np.stack(Orow).astype(np.float32))
+            act_traces.append(np.stack(Arow))
     H = np.stack(Hs) if Hs else np.zeros((0, steps, agent.hidden), np.float32)
     if return_anchors:
         Bt = np.stack(traces) if traces else np.zeros((0, steps, 7), np.float32)
@@ -859,6 +866,9 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
         obs_dim = int(norm.mean.shape[0]) if hasattr(norm, "mean") else 0
         Ot = np.stack(obs_traces) if obs_traces else np.zeros((0, steps, obs_dim), np.float32)
         out = out + (Ot,)
+    if return_actions:
+        At = np.stack(act_traces) if act_traces else np.zeros((0, steps, agent.act_dim), np.float32)
+        out = out + (At,)
     if return_index:
         out = out + (np.asarray(kept, dtype=int),)
     return out
