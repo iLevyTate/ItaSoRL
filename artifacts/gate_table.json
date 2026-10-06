@@ -1,0 +1,542 @@
+{
+ "generated_by": "scripts/build_gate_table.py",
+ "floor_tol": 0.1,
+ "l0_rule": "TOST margin 0.05 alpha 0.05 on per-seed drift-0 survival targets",
+ "world_sample_note": "every L0 row conditions on one pair of evaluation-world samples shared by all agent seeds (artifacts/l0_audit/)",
+ "rows": [
+  {
+   "run": "BV2-L2-AR1",
+   "partition": "legacy",
+   "source": "artifacts/expB2/expB2_results.json",
+   "l0": {
+    "n": 3,
+    "mean": 0.5202479338842975,
+    "sd": 0.04936071057684485,
+    "tost_p": 0.203043333951657,
+    "equivalent": false,
+    "rope_interval": [
+     0.4644628099173554,
+     0.5582644628099173
+    ],
+    "rope_share_inside": 0.854,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.47575757575757577,
+    "ok": true,
+    "status": "pass"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "BV3-REGIME-N10",
+   "partition": "legacy",
+   "source": "artifacts/expB2/bv3_n10_gates.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5166482726759407,
+    "sd": 0.037341960680529425,
+    "tost_p": 0.009952286234440779,
+    "equivalent": true,
+    "rope_interval": [
+     0.4945179063360882,
+     0.538244432609551
+    ],
+    "rope_share_inside": 0.99915,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.5003848193966771,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.7837325034198864,
+   "status": "historical"
+  },
+  {
+   "run": "L3-H8-N10",
+   "partition": "legacy",
+   "source": "artifacts/fold_rescore/l3_h8_traces.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5166482726759407,
+    "sd": 0.037341960680529425,
+    "tost_p": 0.009952286234440779,
+    "equivalent": true,
+    "rope_interval": [
+     0.4945179063360882,
+     0.538244432609551
+    ],
+    "rope_share_inside": 0.99915,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.4878491008332905,
+    "ok": true,
+    "status": "pass"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L3-H8-N10",
+   "partition": "explicit",
+   "source": "artifacts/fold_rescore/l3_h8_traces.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5392561983471074,
+    "sd": 0.03968185449487218,
+    "tost_p": 0.20705542804611274,
+    "equivalent": false,
+    "rope_interval": [
+     0.5161983471074381,
+     0.5624803719008264
+    ],
+    "rope_share_inside": 0.8164,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.5129752066115703,
+    "ok": true,
+    "status": "pass"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L3-H7-N10",
+   "partition": "legacy",
+   "source": "artifacts/fold_rescore/l3_h7_traces.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5166482726759407,
+    "sd": 0.037341960680529425,
+    "tost_p": 0.009952286234440779,
+    "equivalent": true,
+    "rope_interval": [
+     0.4945179063360882,
+     0.538244432609551
+    ],
+    "rope_share_inside": 0.99915,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.5856261656656915,
+    "ok": true,
+    "status": "pass"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L3-H7-N10",
+   "partition": "explicit",
+   "source": "artifacts/fold_rescore/l3_h7_traces.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5392561983471074,
+    "sd": 0.03968185449487218,
+    "tost_p": 0.20705542804611274,
+    "equivalent": false,
+    "rope_interval": [
+     0.5161983471074381,
+     0.5624803719008264
+    ],
+    "rope_share_inside": 0.8164,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.5999586776859505,
+    "ok": true,
+    "status": "pass"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L3-H4",
+   "partition": "legacy",
+   "source": "artifacts/fold_rescore/l3_h4_traces.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5166482726759407,
+    "sd": 0.037341960680529425,
+    "tost_p": 0.009952286234440779,
+    "equivalent": true,
+    "rope_interval": [
+     0.4945179063360882,
+     0.538244432609551
+    ],
+    "rope_share_inside": 0.99915,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.8913570487483531,
+    "ok": false,
+    "status": "fail"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L3-H4",
+   "partition": "explicit",
+   "source": "artifacts/fold_rescore/l3_h4_traces.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5392561983471074,
+    "sd": 0.03968185449487218,
+    "tost_p": 0.20705542804611274,
+    "equivalent": false,
+    "rope_interval": [
+     0.5161983471074381,
+     0.5624803719008264
+    ],
+    "rope_share_inside": 0.8164,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.8930991735537189,
+    "ok": false,
+    "status": "fail"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L3-H8-HELDOUT",
+   "partition": "legacy",
+   "source": "artifacts/fold_rescore/l3_h8_heldout.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5166482726759407,
+    "sd": 0.037341960680529425,
+    "tost_p": 0.009952286234440779,
+    "equivalent": true,
+    "rope_interval": [
+     0.4945179063360882,
+     0.538244432609551
+    ],
+    "rope_share_inside": 0.99915,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.4878491008332905,
+    "ok": true,
+    "status": "pass"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L3-H8-HELDOUT",
+   "partition": "explicit",
+   "source": "artifacts/fold_rescore/l3_h8_heldout.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5392561983471074,
+    "sd": 0.03968185449487218,
+    "tost_p": 0.20705542804611274,
+    "equivalent": false,
+    "rope_interval": [
+     0.5161983471074381,
+     0.5624803719008264
+    ],
+    "rope_share_inside": 0.8164,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.5129752066115703,
+    "ok": true,
+    "status": "pass"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L3-H7-REVERSE",
+   "partition": "legacy",
+   "source": "artifacts/fold_rescore/l3_h7_heldout.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5166482726759407,
+    "sd": 0.037341960680529425,
+    "tost_p": 0.009952286234440779,
+    "equivalent": true,
+    "rope_interval": [
+     0.4945179063360882,
+     0.538244432609551
+    ],
+    "rope_share_inside": 0.99915,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.5856261656656915,
+    "ok": true,
+    "status": "pass"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L3-H7-REVERSE",
+   "partition": "explicit",
+   "source": "artifacts/fold_rescore/l3_h7_heldout.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5392561983471074,
+    "sd": 0.03968185449487218,
+    "tost_p": 0.20705542804611274,
+    "equivalent": false,
+    "rope_interval": [
+     0.5161983471074381,
+     0.5624803719008264
+    ],
+    "rope_share_inside": 0.8164,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.5999586776859505,
+    "ok": true,
+    "status": "pass"
+   },
+   "status": "historical"
+  },
+  {
+   "run": "L1-ORGANISM",
+   "partition": "legacy",
+   "source": "artifacts/fold_rescore/l1_heldout.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5221199288195336,
+    "sd": 0.04044313465712683,
+    "tost_p": 0.02858897804037677,
+    "equivalent": true,
+    "rope_interval": [
+     0.4986286402990948,
+     0.546182891877556
+    ],
+    "rope_share_inside": 0.9891,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.49432523997741384,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.7785650764532603,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0,
+   "status": "historical"
+  },
+  {
+   "run": "L1-ORGANISM",
+   "partition": "explicit",
+   "source": "artifacts/fold_rescore/l1_heldout.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5463636363636364,
+    "sd": 0.03471118107206319,
+    "tost_p": 0.3740073826594641,
+    "equivalent": false,
+    "rope_interval": [
+     0.5254545454545455,
+     0.5661570247933885
+    ],
+    "rope_share_inside": 0.62845,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.5132231404958678,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.7785650764532603,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0,
+   "status": "historical"
+  },
+  {
+   "run": "L3-H8-NOWM-CPU",
+   "partition": "explicit (= legacy on that stack)",
+   "source": "artifacts/expB2/arch_baseline_l3_h8_nowm.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5144628099173554,
+    "sd": 0.03573205590543465,
+    "tost_p": 0.00591589049059699,
+    "equivalent": true,
+    "rope_interval": [
+     0.49359504132231413,
+     0.5352479338842976
+    ],
+    "rope_share_inside": 0.99965,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.5294214876033058,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.8348087690234614,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0.0,
+   "status": "historical"
+  },
+  {
+   "run": "L3-H8-WM-CPU",
+   "partition": "explicit (= legacy on that stack)",
+   "source": "artifacts/expB2/device_control_l3_h8_wm_cpu.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5288429752066117,
+    "sd": 0.033643684210701214,
+    "tost_p": 0.038985085977746255,
+    "equivalent": true,
+    "rope_interval": [
+     0.5087603305785124,
+     0.5483884297520663
+    ],
+    "rope_share_inside": 0.98315,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.522603305785124,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.8303314836852224,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0.0,
+   "status": "historical"
+  },
+  {
+   "run": "L3-H10-GS1-CPU",
+   "partition": "explicit (= legacy on that stack)",
+   "source": "artifacts/expB2/second_instance_l3_h10_gseed1.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5288429752066117,
+    "sd": 0.033643684210701214,
+    "tost_p": 0.038985085977746255,
+    "equivalent": true,
+    "rope_interval": [
+     0.5087603305785124,
+     0.5483884297520663
+    ],
+    "rope_share_inside": 0.98315,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.5136363636363637,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.8303314836852224,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0.0,
+   "status": "historical"
+  },
+  {
+   "run": "L3-H10-GS1-GPU",
+   "partition": "explicit",
+   "source": "artifacts/expB2/second_instance_l3_h10_gseed1_gpu.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5392561983471074,
+    "sd": 0.03968185449487218,
+    "tost_p": 0.20705542804611274,
+    "equivalent": false,
+    "rope_interval": [
+     0.5161983471074381,
+     0.5624803719008264
+    ],
+    "rope_share_inside": 0.8164,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.5212396694214876,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.8329777482461619,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0.0,
+   "status": "historical"
+  },
+  {
+   "run": "L3-H8-GS2-GPU",
+   "partition": "explicit",
+   "source": "artifacts/expB2/second_seed_l3_h8_gseed2_gpu.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5392561983471074,
+    "sd": 0.03968185449487218,
+    "tost_p": 0.20705542804611274,
+    "equivalent": false,
+    "rope_interval": [
+     0.5161983471074381,
+     0.5624803719008264
+    ],
+    "rope_share_inside": 0.8164,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.5499586776859504,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.8135812336542937,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0.0,
+   "status": "historical"
+  },
+  {
+   "run": "L3-H8-NOWM-U450",
+   "partition": "explicit",
+   "source": "artifacts/expB2/skill_matched_l3_h8_nowm_u450.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.5390495867768595,
+    "sd": 0.05874078333854971,
+    "tost_p": 0.2850100672700223,
+    "equivalent": false,
+    "rope_interval": [
+     0.5066931818181817,
+     0.5764462809917356
+    ],
+    "rope_share_inside": 0.73585,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.5129752066115703,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.836869845890986,
+   "pool_leak_clean_all": true,
+   "deaths_total": 0.0,
+   "status": "historical"
+  }
+ ]
+}

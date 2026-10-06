@@ -50,7 +50,7 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 2 | Successor-state bootstrap in `itasorl/experiment_b2.py` | Done 2026-10-06; historical trainer kept as `--gae-bootstrap pre_transition`, verified bit-identical to `4b6e1f3` |
 | 3 | Tests for the intended bootstrap semantics | Done 2026-10-06: `tests/test_gae_bootstrap.py`; mutation-checked |
 | 4 | Measure the correction: diagnostic, frozen protocol, corrected confirmation runs | In progress: historical cell reproduced bit for bit on this container; quick-scale diagnostic passed end to end; protocol frozen (`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`, PREREGISTRATION_L3 2026-10-06 entry); runs `C1` and `C2` launched |
-| 5 | L0 and the fold partition | Pending |
+| 5 | L0 and the fold partition | Primary analysis frozen (`docs/specs/2026-10-06-primary-analysis-and-l0.md`); folds versioned and serialized; `docs/GATE_TABLE.md`; pre-intervention audit done; agent-based L0 audit waits for `C1` agents |
 | 6 | Arm-by-arm training and evaluation table; predictor evaluated under its own policy | Pending |
 | 7 | Memory: controlled persistence test or narrower claim | Pending |
 | 8 | Behavioral and sensory controls | Pending |

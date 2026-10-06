@@ -1698,6 +1698,10 @@ def main() -> int:
     check_true("results manifest covers every artifact and is current "
                "(build_results_manifest --check)",
                build_results_manifest.main(["--check"]) == 0)
+    # Revision step 5: the gate table recomputes L0 and the floor from committed per-seed values.
+    import build_gate_table
+    check_true("gate table is current (build_gate_table --check)",
+               build_gate_table.main(["--check"]) == 0)
 
     print()
     if failures:

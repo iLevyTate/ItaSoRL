@@ -1,0 +1,387 @@
+{
+ "generated_by": "itasorl.l0_audit.pre_intervention_probe (revision step 5)",
+ "probe": "grouped_auroc on the reset observation (standard scaler + logistic, explicit folds)",
+ "n_per_pool": 110,
+ "standard": {
+  "bases": [
+   800000,
+   850000
+  ],
+  "n_per_pool": 110,
+  "target": 0.45289256198347105,
+  "oof_ci95": [
+   0.3822314049586777,
+   0.532245867768595
+  ],
+  "partition": {
+   "scheme": "explicit",
+   "version": "explicit-v1",
+   "n_splits": 5,
+   "n_samples": 220,
+   "groups_intact": true,
+   "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+   "class_counts": [
+    [
+     22,
+     22
+    ],
+    [
+     22,
+     22
+    ],
+    [
+     22,
+     22
+    ],
+    [
+     22,
+     22
+    ],
+    [
+     22,
+     22
+    ]
+   ]
+  }
+ },
+ "independent_pairs": [
+  {
+   "bases": [
+    1000000,
+    1050000
+   ],
+   "n_per_pool": 110,
+   "target": 0.5512396694214876,
+   "oof_ci95": [
+    0.4623925619834711,
+    0.6167231404958676
+   ],
+   "partition": {
+    "scheme": "explicit",
+    "version": "explicit-v1",
+    "n_splits": 5,
+    "n_samples": 220,
+    "groups_intact": true,
+    "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+    "class_counts": [
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ]
+    ]
+   }
+  },
+  {
+   "bases": [
+    1100000,
+    1150000
+   ],
+   "n_per_pool": 110,
+   "target": 0.5070247933884298,
+   "oof_ci95": [
+    0.43188429752066115,
+    0.5832293388429751
+   ],
+   "partition": {
+    "scheme": "explicit",
+    "version": "explicit-v1",
+    "n_splits": 5,
+    "n_samples": 220,
+    "groups_intact": true,
+    "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+    "class_counts": [
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ]
+    ]
+   }
+  },
+  {
+   "bases": [
+    1200000,
+    1250000
+   ],
+   "n_per_pool": 110,
+   "target": 0.5024793388429752,
+   "oof_ci95": [
+    0.4261012396694215,
+    0.5796714876033057
+   ],
+   "partition": {
+    "scheme": "explicit",
+    "version": "explicit-v1",
+    "n_splits": 5,
+    "n_samples": 220,
+    "groups_intact": true,
+    "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+    "class_counts": [
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ]
+    ]
+   }
+  },
+  {
+   "bases": [
+    1300000,
+    1350000
+   ],
+   "n_per_pool": 110,
+   "target": 0.4706611570247934,
+   "oof_ci95": [
+    0.3943780991735537,
+    0.5474400826446281
+   ],
+   "partition": {
+    "scheme": "explicit",
+    "version": "explicit-v1",
+    "n_splits": 5,
+    "n_samples": 220,
+    "groups_intact": true,
+    "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+    "class_counts": [
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ]
+    ]
+   }
+  },
+  {
+   "bases": [
+    1400000,
+    1450000
+   ],
+   "n_per_pool": 110,
+   "target": 0.4450413223140496,
+   "oof_ci95": [
+    0.3602438016528926,
+    0.513892561983471
+   ],
+   "partition": {
+    "scheme": "explicit",
+    "version": "explicit-v1",
+    "n_splits": 5,
+    "n_samples": 220,
+    "groups_intact": true,
+    "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+    "class_counts": [
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ]
+    ]
+   }
+  },
+  {
+   "bases": [
+    1500000,
+    1550000
+   ],
+   "n_per_pool": 110,
+   "target": 0.41942148760330583,
+   "oof_ci95": [
+    0.3382603305785124,
+    0.4853760330578512
+   ],
+   "partition": {
+    "scheme": "explicit",
+    "version": "explicit-v1",
+    "n_splits": 5,
+    "n_samples": 220,
+    "groups_intact": true,
+    "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+    "class_counts": [
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ]
+    ]
+   }
+  },
+  {
+   "bases": [
+    1600000,
+    1650000
+   ],
+   "n_per_pool": 110,
+   "target": 0.4301652892561984,
+   "oof_ci95": [
+    0.34652685950413226,
+    0.4997520661157025
+   ],
+   "partition": {
+    "scheme": "explicit",
+    "version": "explicit-v1",
+    "n_splits": 5,
+    "n_samples": 220,
+    "groups_intact": true,
+    "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+    "class_counts": [
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ]
+    ]
+   }
+  },
+  {
+   "bases": [
+    1700000,
+    1750000
+   ],
+   "n_per_pool": 110,
+   "target": 0.6123966942148761,
+   "oof_ci95": [
+    0.5333863636363636,
+    0.6824834710743801
+   ],
+   "partition": {
+    "scheme": "explicit",
+    "version": "explicit-v1",
+    "n_splits": 5,
+    "n_samples": 220,
+    "groups_intact": true,
+    "sha256": "5213ed1294bbd3ac29eb4cf6b994b2c0114c84c2abaf72c8fa87b4eeea83129e",
+    "class_counts": [
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      22,
+      22
+     ]
+    ]
+   }
+  }
+ ],
+ "independent_mean": 0.4923037190082645,
+ "independent_sd": 0.06556475637775522
+}

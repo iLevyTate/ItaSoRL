@@ -140,6 +140,30 @@ def auroc_ci(y_true, y_score, level: float = 0.95, n_boot: int = 2000,
     return (float(np.nanpercentile(aucs, 100 * a)), float(np.nanpercentile(aucs, 100 * (1 - a))))
 
 
+def cluster_auroc_ci(y_true, y_score, clusters, level: float = 0.95, n_boot: int = 2000,
+                     seed: int = 0) -> tuple[float, float]:
+    """Percentile bootstrap CI for one AUROC that resamples CLUSTERS (e.g. the two members
+    of a matched pair, which share a world seed) with replacement and keeps every member of
+    a drawn cluster, so dependence inside a pair is preserved. auroc_ci treats every sample
+    as independent and is only right when they are. Conditional on the fitted probe scores
+    (no refit)."""
+    y_true = np.asarray(y_true).astype(int)
+    y_score = np.asarray(y_score, dtype=float)
+    clusters = np.asarray(clusters)
+    uniq, inv = np.unique(clusters, return_inverse=True)
+    members = [np.flatnonzero(inv == k) for k in range(len(uniq))]
+    if len(np.unique(y_true)) < 2 or len(uniq) < 2:
+        return (float("nan"), float("nan"))
+    rng = np.random.default_rng(seed)
+    aucs = np.empty(n_boot)
+    for b in range(n_boot):
+        pick = rng.integers(0, len(uniq), len(uniq))
+        idx = np.concatenate([members[k] for k in pick])
+        aucs[b] = auroc(y_true[idx], y_score[idx])
+    a = (1.0 - level) / 2.0
+    return (float(np.nanpercentile(aucs, 100 * a)), float(np.nanpercentile(aucs, 100 * (1 - a))))
+
+
 def mean_ci(values, level: float = 0.90, n_boot: int = 10000,
             seed: int = 0) -> tuple[float, float, float]:
     """Bootstrap CI of the across-seed mean. Seeds are the replication unit for a null

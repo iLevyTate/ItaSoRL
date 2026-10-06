@@ -27,7 +27,7 @@ Reviewed at commit `4b6e1f3`. Every row below is **historical**: it records what
 | `L3-H8-NOWM-CPU` | B-v2 L3 | 29 | pre_transition_value | - | a641ca0 | legacy (= explicit on this stack) | cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu |
 | `L3-H8-WM-CPU` | B-v2 L3 | 30 | pre_transition_value | - | 3f36cc2 | legacy (= explicit on this stack) | cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu |
 | `L3-H10-GS1-CPU` | B-v2 L3 | 31 | pre_transition_value | - | a641ca0 | legacy (= explicit on this stack) | cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu |
-| `L3-H10-GS1-GPU` | B-v2 L3 | 31 | pre_transition_value | - | 283f3ab | legacy | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
+| `L3-H10-GS1-GPU` | B-v2 L3 | 31 | pre_transition_value | - | 283f3ab | explicit (the itasorl.folds default at 283f3ab) | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
 | `L3-H8-GS2-GPU` | B-v2 L3 | 31 | pre_transition_value | - | d67dd51 | explicit | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126, ITASORL_FOLDS=explicit |
 | `L3-H8-NOWM-U450` | B-v2 L3 | - | pre_transition_value | - | 9d5d047 / 80948ff (cells span both) | explicit | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126, ITASORL_FOLDS=explicit |
 | `ENGAGE-MARGIN` | B-v2 | 37 | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-NOWM-CPU, L3-H10-GS1-CPU, L3-H8-WM-CPU | not recorded | n/a | not recorded |
@@ -37,6 +37,9 @@ Reviewed at commit `4b6e1f3`. Every row below is **historical**: it records what
 | `H2-OBSLOC` | H2 | 34 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | not recorded |
 | `L1-H2` | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | not recorded | legacy | not recorded |
 | `SENSORY-ECHO` | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
+| `FOLDS-EXPLICIT-V1` | methods | - | none | - | not recorded | explicit | not recorded |
+| `GATE-TABLE` | methods | - | inherited: pre_transition_value | BV2-L2-AR1, BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
+| `L0-PRE-INTERVENTION` | L0 audit | - | none | - | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
 Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.
@@ -316,7 +319,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Commit at run: 283f3ab
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 10, "g_seed": 1, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
-- Folds: legacy
+- Folds: explicit (the itasorl.folds default at 283f3ab)
 - Device: owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126
 - Config (beyond the standard protocol): {"drift_mode": "l3"}
 - Artifacts: `artifacts/expB2/second_instance_l3_h10_gseed1_gpu.json`, `artifacts/reviewer_gaps_runs/l3_h10_gseed1_gpu`, `artifacts/reviewer_gaps_runs/l3_gate0_seed1_gpu`
@@ -404,6 +407,30 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: cuda
 - Notes: Basis is [x_t, x_{t-1}] (and cummean in the secondary variant); the five previous-action channels fed to the GRU are not in the basis.
 - Artifacts: `artifacts/expB2/sensory_echo_l3_h8.json`, `artifacts/expB2/sensory_echo_l3_h8_mlp.json`, `artifacts/expB2/sensory_echo_l3_h7.json`
+
+### `FOLDS-EXPLICIT-V1`: Serialized explicit-v1 partitions of the standard designs
+
+- Status: historical
+- Trainer: none
+- Folds: explicit
+- Notes: itasorl.folds.standard_partitions(); tests/test_l0_audit.py regenerates and compares.
+- Artifacts: `artifacts/folds/explicit_v1.json`
+
+### `GATE-TABLE`: Gate table, historical and corrected runs, both partitions
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Folds: both
+- Notes: scripts/build_gate_table.py; docs/GATE_TABLE.md.
+- Artifacts: `artifacts/gate_table.json`
+
+### `L0-PRE-INTERVENTION`: Pool membership decoded from the reset observation (agent free)
+
+- Status: historical
+- Trainer: none
+- Folds: explicit
+- Notes: itasorl/l0_audit.py; revision step 5.
+- Artifacts: `artifacts/l0_audit/pre_intervention.json`
 
 ### `C-EMERGENCE`: Experiment C emergence under selection, fixed-code re-run
 

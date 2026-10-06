@@ -1497,7 +1497,7 @@
         "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
       },
       "experiment": "B-v2 L3",
-      "folds": "legacy",
+      "folds": "explicit (the itasorl.folds default at 283f3ab)",
       "id": "L3-H10-GS1-GPU",
       "local_run_dir": null,
       "notes": "",
@@ -2022,6 +2022,109 @@
       "surrogate": null,
       "survival_trainer": "inherited: pre_transition_value",
       "title": "Sensory-echo controls (hidden 8 linear and MLP, hidden 7)"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
+        "folds/explicit_v1.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "explicit",
+      "id": "FOLDS-EXPLICIT-V1",
+      "local_run_dir": null,
+      "notes": "itasorl.folds.standard_partitions(); tests/test_l0_audit.py regenerates and compares.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "folds/explicit_v1.json": {}
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Serialized explicit-v1 partitions of the standard designs"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "gate_table.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "both",
+      "id": "GATE-TABLE",
+      "local_run_dir": null,
+      "notes": "scripts/build_gate_table.py; docs/GATE_TABLE.md.",
+      "readout_only_on": [
+        "BV2-L2-AR1",
+        "BV3-REGIME-N10",
+        "L3-H8-N10",
+        "L3-H7-N10",
+        "L3-H4",
+        "L3-H8-HELDOUT",
+        "L3-H7-REVERSE",
+        "L1-ORGANISM",
+        "L3-H8-NOWM-CPU",
+        "L3-H8-WM-CPU",
+        "L3-H10-GS1-CPU",
+        "L3-H10-GS1-GPU",
+        "L3-H8-GS2-GPU",
+        "L3-H8-NOWM-U450"
+      ],
+      "recorded_provenance": {
+        "gate_table.json": {
+          "generated_by": "scripts/build_gate_table.py"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "inherited: pre_transition_value",
+      "title": "Gate table, historical and corrected runs, both partitions"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
+        "l0_audit/pre_intervention.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": {
+        "independent": "(1000000 + 100000k) / (1050000 + 100000k), k < 8",
+        "standard": "800000 / 850000"
+      },
+      "experiment": "L0 audit",
+      "folds": "explicit",
+      "id": "L0-PRE-INTERVENTION",
+      "local_run_dir": null,
+      "notes": "itasorl/l0_audit.py; revision step 5.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "l0_audit/pre_intervention.json": {
+          "generated_by": "itasorl.l0_audit.pre_intervention_probe (revision step 5)"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Pool membership decoded from the reset observation (agent free)"
     },
     {
       "affected_by_gae_correction": false,

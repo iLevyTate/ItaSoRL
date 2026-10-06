@@ -757,7 +757,8 @@ def train_predictor_only(drift_sigma, params=None, *, n_eps=16, updates=200, emb
 # length constant across pools, so length/lifetime cannot leak the label.
 # ---------------------------------------------------------------------------
 def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_base, ray_steps,
-                 return_anchors: bool = False, obs_mask=None, return_obs: bool = False):
+                 return_anchors: bool = False, obs_mask=None, return_obs: bool = False,
+                 return_index: bool = False):
     """Collect up to n_eps episodes of EXACTLY `steps` length (drop early deaths) with
     the frozen deterministic agent. Returns H (k,steps,Hdim), speeds (k,).
 
@@ -779,10 +780,15 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
     (k, steps, obs_dim), the exact per-step input the recurrent trunk received, as
     the last element of the tuple. Used by the sensory-echo control
     (docs/specs/2026-09-26-l3-sensory-echo-control-design.md); it changes no other
-    output."""
+    output.
+
+    `return_index=True` appends the episode indices i (world seed seed_base + i) that
+    survived to full length, so two pools drawn from the same seeds can be paired
+    (itasorl/l0_audit.py, revision step 5)."""
     if obs_mask is not None:
         obs_mask = np.asarray(obs_mask, dtype=np.float64)
     Hs, spd, energy, food, drag, reward, traces, obs_traces = [], [], [], [], [], [], [], []
+    kept = []
     for i in range(n_eps):
         w = make_world(params, drift_sigma, ray_steps)
         w.reset(_seeds(seed_base + i))
@@ -817,6 +823,7 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
                 died = True
                 break
         if not died and len(Hrow) == steps:
+            kept.append(i)
             Hs.append(np.asarray(Hrow, np.float32))
             spd.append(float(np.mean(sp)))
             energy.append(float(np.mean(en)))
@@ -836,6 +843,8 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
         obs_dim = int(norm.mean.shape[0]) if hasattr(norm, "mean") else 0
         Ot = np.stack(obs_traces) if obs_traces else np.zeros((0, steps, obs_dim), np.float32)
         out = out + (Ot,)
+    if return_index:
+        out = out + (np.asarray(kept, dtype=int),)
     return out
 
 
@@ -855,7 +864,8 @@ def _auroc_with_ci(X, y, seed: int = 0, groups: np.ndarray | None = None) -> tup
 
 def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray_steps=5,
                    device=None, seed=0, dump_path=None, leak_margin=0.1, return_pools=False,
-                   obs_mask=None) -> dict:
+                   obs_mask=None, seed_base_auth: int = 800_000,
+                   seed_base_surr: int = 850_000) -> dict:
     """Experiment-B-style probe: decode world identity across independent episodes.
     Reports the headline `target` (LEVEL features) with a bootstrap CI, plus two
     additive readouts that probe a VOLATILITY signature - `target_var` (dispersion
@@ -867,13 +877,17 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
     summed reward, so the headline reads the artifact not 'how much it ate'), and per-world
     survivor/death counts (`deaths_auth`/`deaths_surr`) that bound the survivorship
     asymmetry from dropping early deaths. If `dump_path` is set, persists the raw recurrent
-    states AND per-episode reward so both probes can be recomputed offline (no GPU)."""
+    states AND per-episode reward so both probes can be recomputed offline (no GPU).
+
+    The two pools are drawn from DIFFERENT world samples (seed bases 800000 and 850000 by
+    default), and every agent seed is scored on the same two samples. Other seed bases give
+    independent world samples for the L0 audit (itasorl/l0_audit.py, revision step 5)."""
     device = device or default_device()
     Ha, spa, ena, fda, dra, rwa, bta = collect_pool(agent, norm, params, 0.0, n_eps, steps,
-                                                    device, 800_000, ray_steps,
+                                                    device, seed_base_auth, ray_steps,
                                                     return_anchors=True, obs_mask=obs_mask)
     Hs, sps, ens, fds, drs, rws, bts = collect_pool(agent, norm, params, drift_sigma, n_eps,
-                                                    steps, device, 850_000, ray_steps,
+                                                    steps, device, seed_base_surr, ray_steps,
                                                     return_anchors=True, obs_mask=obs_mask)
     if dump_path is not None:
         d = os.path.dirname(dump_path)

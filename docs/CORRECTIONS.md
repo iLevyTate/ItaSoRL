@@ -94,3 +94,29 @@ padded slot, to multiplicative masking, or dropping the terminal zero each make 
 infinite or NaN padded value would have turned a valid advantage into NaN. `compute_gae` now
 masks by selection. On finite inputs the arithmetic is unchanged: the historical trainer is
 still bit-identical to `4b6e1f3`, re-checked on a run with deaths and padding.
+
+## 2026-10-06: fold partition, gate table, and what L0 conditions on
+
+**What was wrong.** The partition was frozen as a rule (`itasorl.folds`) but not versioned or
+serialized, so a later change to the rule would have moved every number silently. No single
+table showed the gates of every run under both partitions, and the manifest marked the
+hidden 10 GPU re-measure as scored on the legacy partition; it was scored on explicit, the
+`itasorl.folds` default at its run commit `283f3ab` (the gate table exposed the mismatch).
+Every L0 statement treated the ten agent seeds as independent replications, although all ten
+are scored on one fixed pair of world samples.
+
+**Change.** `itasorl.folds` gains a version string (`explicit-v1`), `fold_index`, and
+`partition_record` (scheme, version, class counts, whether groups stay intact, a digest);
+`artifacts/folds/explicit_v1.json` serializes the standard designs and a test regenerates it.
+`scripts/build_gate_table.py` writes `docs/GATE_TABLE.md`: L0 TOST and ROPE and the untrained
+floor recomputed from committed per-seed values for every run and partition, other gates
+carried from the summaries. Ten of its twenty rows do not show L0 equivalence; they read
+"inconclusive". `itasorl/l0_audit.py` adds the pre-intervention probe, the world-sample
+rescoring, and a balanced paired-seed readout with a pair-level bootstrap
+(`itasorl.stats.cluster_auroc_ci`). The primary analysis is frozen in
+`docs/specs/2026-10-06-primary-analysis-and-l0.md`.
+
+**What the audit found so far.** From the reset observation alone the standard world-sample
+pair reads 0.453 (chance). Across eight independent pairs the same probe reads 0.419 to 0.612,
+sd 0.066, larger than the 0.05 equivalence margin. A seed-level L0 interval is therefore
+conditional on the fixed world pair.
