@@ -61,6 +61,38 @@ SURVIVAL_FOOD = {"n_pellets": 24, "reach": 0.08, "pellet_r": 0.03}
 # lifetime saturates at this food density. Frozen from the de-risk (see engagement_metric).
 ENGAGE_MARGIN = 0.15
 LIFE_TOL = 2.0
+# Goal-and-stakes spec (docs/specs/2026-10-07-goal-and-stakes-design.md). OBJECTIVE is the
+# reward the TRAINED arm is optimized for: "survival" is the world's homeostatic reward;
+# "touch" is 1.0 on a step where a pellet was eaten, else 0.0, with energy cost ignored.
+# MORTAL=False switches the world's death check off. Both are patched in place by
+# run_expB2.py (parent AND each worker), mirroring DRIFT_MODE and the SURVIVAL_* overrides.
+# The engagement margin ENGAGE_MARGIN was calibrated on the survival reward's scale, so
+# the touch objective uses a scale-free ratio over the better baseline instead.
+OBJECTIVE = "survival"
+OBJECTIVES = ("survival", "touch")
+MORTAL = True
+TOUCH_ENGAGE_RATIO = 1.5
+
+
+def task_reward(r) -> float:
+    """Per-step reward of the trained arm under the current OBJECTIVE (see above)."""
+    if OBJECTIVE == "touch":
+        return 1.0 if r.info.get("ate") else 0.0
+    return float(r.reward)
+
+
+def engagement_rule(*, trained_ret: float, rnd_ret: float, scr_ret: float,
+                    trained_len: float, rnd_len: float) -> tuple[bool, bool]:
+    """(better_return, not_worse_life) of the engagement gate under the current OBJECTIVE."""
+    best = max(rnd_ret, scr_ret)
+    if OBJECTIVE == "touch":
+        better_return = trained_ret > 0.0 and trained_ret >= TOUCH_ENGAGE_RATIO * best
+    else:
+        better_return = trained_ret >= best + ENGAGE_MARGIN
+    not_worse_life = trained_len >= rnd_len - LIFE_TOL
+    return bool(better_return), bool(not_worse_life)
+
+
 # Surrogate coupling mode for every world the B-v2/B-v3 pipeline builds. "ar1" is the
 # pre-registered B-v2 volatility surrogate; "regime" is the B-v3 per-episode constant
 # drag offset (identifiable + policy-relevant); "l3" is the learned-dynamics surrogate
@@ -115,6 +147,7 @@ def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int,
     # byte-identical to the frozen SURVIVAL_FOOD layout every other experiment depends on.
     for k, v in {**SURVIVAL_METAB, **SURVIVAL_FOOD, **(food_override or {})}.items():
         setattr(w, k, v)
+    w.mortal = MORTAL
     if DRIFT_MODE == "l3" and drift_sigma > 0.0 and _L3_GMOTION is not None:
         w._g_motion = _L3_GMOTION  # surrogate (drift_sigma>0) uses learned dynamics; authentic does not
     return w
@@ -231,13 +264,14 @@ def collect_episodes_ac(agent: RecurrentActorCritic, norm: RunningNorm, params, 
             seq_raw[i].append(raw_act[i].detach().cpu().numpy())
             seq_env[i].append(env_np[i])
             r = envs[i].step(env_np[i].astype(np.float32))
-            shaped = r.reward
+            base = task_reward(r)
+            shaped = base
             if shaping_coef:
                 phi_new = 0.0 if r.terminated else _food_potential(envs[i])
-                shaped = r.reward + shaping_coef * (gamma * phi_new - phi_prev[i])
+                shaped = base + shaping_coef * (gamma * phi_new - phi_prev[i])
                 phi_prev[i] = phi_new
             seq_rew[i].append(shaped)
-            seq_true[i].append(r.reward)
+            seq_true[i].append(base)
             seq_drift[i].append(float(envs[i]._drift_w))   # drag-drift used for this step
             speeds[i].append(float(np.linalg.norm(envs[i].vel)))
             obs[i] = r.obs
@@ -470,7 +504,7 @@ def _baseline_return(kind: str, params, drift_sigma, n_eps, max_steps, ray_steps
             else:
                 a = scripted_policy(rng)
             r = w.step(a)
-            R += r.reward
+            R += task_reward(r)
             t += 1
             if r.terminated:
                 break
@@ -493,9 +527,11 @@ def engagement_metric(agent, norm, params, drift_sigma, *, n_eps: int = 64, max_
     # ~68/80), so requiring strictly-longer lifetime flips on ~1 step of noise. The margin
     # cleanly separates a real forager (de-risk: +0.43 over random) from a non-learner
     # (the v2 pilot: +0.04). Calibrated on de-risk data, frozen for the confirmatory run.
-    better_return = trained_ret >= max(rnd_ret, scr_ret) + ENGAGE_MARGIN
-    not_worse_life = trained_len >= rnd_len - LIFE_TOL
+    better_return, not_worse_life = engagement_rule(trained_ret=trained_ret, rnd_ret=rnd_ret,
+                                                    scr_ret=scr_ret, trained_len=trained_len,
+                                                    rnd_len=rnd_len)
     return {
+        "objective": OBJECTIVE,
         "trained_return": trained_ret, "random_return": rnd_ret, "scripted_return": scr_ret,
         "trained_len": trained_len, "random_len": rnd_len, "scripted_len": scr_len,
         "better_return": better_return, "not_worse_life": not_worse_life,
