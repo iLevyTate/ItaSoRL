@@ -50,8 +50,9 @@ def test_immortal_world_step_never_terminates_and_never_pays_the_death_penalty()
 
 
 class _R:
-    def __init__(self, reward, ate):
-        self.reward, self.info = reward, {"ate": ate, "intake": 0.1 if ate else 0.0}
+    def __init__(self, reward, consumed, ate=True):
+        self.reward = reward
+        self.info = {"ate": ate, "intake": 0.1 if ate else 0.0, "consumed": consumed}
 
 
 def test_task_reward_follows_the_objective(monkeypatch):
@@ -60,7 +61,8 @@ def test_task_reward_follows_the_objective(monkeypatch):
     assert b2.task_reward(_R(-0.03, True)) == pytest.approx(-0.03)
     monkeypatch.setattr(b2, "OBJECTIVE", "touch")
     assert b2.task_reward(_R(-0.03, True)) == 1.0
-    assert b2.task_reward(_R(0.5, False)) == 0.0
+    assert b2.task_reward(_R(0.5, False)) == 0.0          # eating without finishing: 0
+    assert b2.task_reward(_R(0.5, False, ate=False)) == 0.0
 
 
 def test_make_world_applies_mortal_knob(monkeypatch):
@@ -80,6 +82,9 @@ def test_engagement_rule_survival_uses_absolute_margin(monkeypatch):
     better, _ = b2.engagement_rule(trained_ret=-0.1, rnd_ret=-0.3, scr_ret=-0.2,
                                    trained_len=70.0, rnd_len=68.0)
     assert better is False                      # +0.10 < ENGAGE_MARGIN 0.15
+    better, _ = b2.engagement_rule(trained_ret=-0.2 + b2.ENGAGE_MARGIN, rnd_ret=-0.3,
+                                   scr_ret=-0.2, trained_len=70.0, rnd_len=68.0)
+    assert better is True                       # exact boundary: best + ENGAGE_MARGIN passes
 
 
 def test_engagement_rule_touch_uses_ratio(monkeypatch):
@@ -96,7 +101,38 @@ def test_engagement_rule_touch_uses_ratio(monkeypatch):
     assert better is False                      # zero touches never passes
 
 
-def test_collector_true_return_is_touch_count_under_touch_objective(monkeypatch):
+def test_consumed_fires_once_when_a_parked_eater_finishes_a_pellet(monkeypatch):
+    """A creature parked on a pellet with eat pressed depletes it by food_gain * dt per
+    step (0.1 at the registered 2.0 and 0.05): info["consumed"] is False while it eats and
+    True exactly once, on the step the amount reaches zero. The touch reward is that
+    event; the survival reward is untouched by it."""
+    import itasorl.experiment_b2 as b2
+    monkeypatch.setattr(b2, "MORTAL", False)
+    w = _world()
+    eat = np.array([0.0, 0.0, 1.0, 0.0, 0.0], np.float32)
+    steps_per_pellet = int(round(1.0 / (w.food_gain * w.params.dt)))     # 10 at 2.0 and 0.05
+    consumed_steps = []
+    for t in range(1, 3 * steps_per_pellet + 1):
+        if not consumed_steps:
+            # Park on the pellet (terrain gravity would slide the creature out of reach).
+            w.pos = w.pellets[0].copy()
+            w.vel[:] = 0.0
+        r = w.step(eat)
+        monkeypatch.setattr(b2, "OBJECTIVE", "touch")
+        if r.info["consumed"]:
+            consumed_steps.append(t)
+            assert w.pellet_amt[0] == 1.0                   # respawned, full again
+            assert b2.task_reward(r) == 1.0
+            monkeypatch.setattr(b2, "OBJECTIVE", "survival")
+            assert b2.task_reward(r) == r.reward
+        else:
+            assert b2.task_reward(r) == 0.0
+            if not consumed_steps:
+                assert r.info["ate"] is True              # eating, but not yet finished
+    assert consumed_steps == [steps_per_pellet]           # exactly once, when the amount hit zero
+
+
+def test_collector_true_return_is_consumption_count_under_touch_objective(monkeypatch):
     pytest.importorskip("torch")
     import itasorl.experiment_b2 as b2
     monkeypatch.setattr(b2, "OBJECTIVE", "touch")
@@ -106,8 +142,11 @@ def test_collector_true_return_is_touch_count_under_touch_objective(monkeypatch)
     batch = b2.collect_episodes_ac(agent, norm, P, 0.0, n_eps=3, max_steps=12, device="cpu",
                                    seed_base=5, ray_steps=5, deterministic=True)
     assert np.all(batch["lengths"] == 12)                      # immortal: no early end
-    assert np.all(batch["ret"] >= 0.0)                         # touches are never negative
+    assert np.all(batch["ret"] >= 0.0)                         # consumptions are never negative
     assert np.all(batch["ret"] == np.round(batch["ret"]))      # integer counts
+    # Consuming a pellet needs ten consecutive eating steps, so a positive sum is not
+    # guaranteed for an untrained agent; only non-negativity is.
+    assert batch["ret"].sum() >= 0.0
 
 
 import run_expB2  # noqa: E402

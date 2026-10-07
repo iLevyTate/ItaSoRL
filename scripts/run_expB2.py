@@ -103,7 +103,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--n_pellets", type=int, default=None, help="override pellet count (scarcity)")
     ap.add_argument("--objective", choices=b2.OBJECTIVES, default="survival",
                     help="reward of the TRAINED arm: survival (the homeostatic reward) or "
-                         "touch (+1 per pellet eaten, cost ignored); goal-and-stakes spec "
+                         "touch (+1 per pellet consumed, cost ignored); goal-and-stakes spec "
                          "docs/specs/2026-10-07-goal-and-stakes-design.md")
     ap.add_argument("--mortal", choices=("on", "off"), default="on",
                     help="off: the world's death check is switched off for every arm and "
@@ -187,11 +187,13 @@ def _finalize(a: argparse.Namespace) -> argparse.Namespace:
     return a
 
 
-def cfg_from_argv(argv):
+def cfg_from_argv(argv: list[str]) -> argparse.Namespace:
+    """Parse an explicit argv list (tests) and apply the post-parse overrides."""
     return _finalize(build_parser().parse_args(argv))
 
 
-def cfg():
+def cfg() -> argparse.Namespace:
+    """Parse sys.argv and apply the post-parse overrides."""
     return _finalize(build_parser().parse_args())
 
 
@@ -221,7 +223,7 @@ def config_fingerprint(base: dict) -> str:
         fp.pop("l3_family_param", None)
     if fp.get("objective", "survival") == "survival":
         fp.pop("objective", None)
-    if fp.get("mortal", True) is True:
+    if bool(fp.get("mortal", True)):
         fp.pop("mortal", None)
     if not fp.get("budget_snapshots"):
         fp.pop("budget_snapshots", None)

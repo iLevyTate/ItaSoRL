@@ -205,7 +205,7 @@ class PatchOfEarthV0(PatchOfEarth):
     def _resolve_ecology(self, action: np.ndarray) -> dict:
         eat = float(np.clip(action[2], 0.0, 1.0))
         drink = float(np.clip(action[3], 0.0, 1.0))
-        intake, ate = 0.0, False
+        intake, ate, consumed = 0.0, False, False
         if eat > 0.5:
             d2 = np.sum((self.pellets - self.pos) ** 2, axis=1)
             j = int(np.argmin(d2))
@@ -219,8 +219,11 @@ class PatchOfEarthV0(PatchOfEarth):
                 self.pellet_amt[j] -= gain
                 intake, ate = gain, True
                 if self.pellet_amt[j] <= 1e-9:
+                    # The pellet is finished: respawn it. `consumed` is the goal-and-stakes
+                    # touch reward's event (docs/specs/2026-10-07-goal-and-stakes-design.md).
                     self.pellets[j] = self._spawn_pellet()
                     self.pellet_amt[j] = 1.0
+                    consumed = True
         T = self._ambient_T(self.pos[0], self.pos[1])
         if drink > 0.5 and self._wetness(self.pos[0], self.pos[1]) > self.water_thresh:
             self.Hyd = min(self.Hydmax, self.Hyd + self.drink_rate * drink * self.params.dt)
@@ -236,7 +239,7 @@ class PatchOfEarthV0(PatchOfEarth):
             # steps past termination must not collect -1 on every subsequent step.
             self._reward -= 1.0
             self.alive = False
-        return {"ate": ate, "intake": intake}
+        return {"ate": ate, "intake": intake, "consumed": consumed}
 
     def _observe(self) -> np.ndarray:
         light = self._sun_light()
