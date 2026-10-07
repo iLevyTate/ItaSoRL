@@ -888,6 +888,25 @@ Rigor carried from the B-v3 audit (2026-07-10):
   exists; the cross-run replay of 17.10 was written after these results were read and is
   labeled exploratory.
 
+- **2026-10-07 - GOAL AND STAKES RUNS: PREREGISTERED (spec
+  `docs/specs/2026-10-07-goal-and-stakes-design.md`).** Three runs on the corrected trainer,
+  cell for cell against `C1`, frozen before any cell exists. `T-touch`: the trained arm is
+  rewarded +1 per pellet eaten with death off (a goal without stakes). `S-immortal`: the
+  survival reward with death off. `S-scarce`: the survival reward at a pellet count chosen by
+  a frozen calibration rule (scripted-walker 80-step death rate in [0.40, 0.60] at drift 0,
+  within 0.10 of the drift 0.45 rate, zero deaths inside the 24-step pooled window), to be
+  recorded here as a dated amendment before launch. Two runner flags (`--objective`,
+  `--mortal`) default to the registered behavior and are excluded from the config fingerprint
+  at their defaults, so no historical checkpoint changes hash. Frozen wording: `T-touch`
+  meeting the primary rule reads "a pellet-directed goal without survival stakes produces
+  walks from which the condition is decodable; survival is not required"; the stakes claim
+  needs `S-immortal` < `C1` < `S-scarce` with the paired `S-scarce` minus `S-immortal` contrast
+  at least +0.05 and its 90% interval excluding zero; no survival-specific wording returns
+  on any outcome beyond "pellet-seeking alone was not enough in this world". Engagement for
+  the touch objective is a 1.5x ratio over the better baseline, since the registered
+  absolute margin was calibrated on the survival reward's scale. Everything else is the
+  registered rule set.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
