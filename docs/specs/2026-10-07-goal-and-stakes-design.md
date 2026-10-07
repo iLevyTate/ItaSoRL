@@ -48,7 +48,7 @@ No budget extension: the headline arm is the 300-update agent and nothing else i
 | Run | Reward of the trained arm | Death | Food | Flags beyond the protocol |
 |---|---|---|---|---|
 | `C1` (exists) | survival: intake minus cost | on | registered (24 pellets, basal 0.4) | none |
-| `T-touch` | +1 per step on which a pellet was eaten; energy cost ignored | off | registered | `--objective touch --mortal off` |
+| `T-touch` | +1 per pellet consumed (the step on which a pellet's amount reaches zero and it respawns); energy cost ignored | off | registered | `--objective touch --mortal off` |
 | `S-immortal` | survival | off | registered | `--mortal off` |
 | `S-scarce` | survival | on | scarce (calibrated below) | `--n_pellets <calibrated>` |
 
@@ -61,9 +61,20 @@ trained on the same scripted episodes as `C1` and must equal `C1`'s arms to the 
 Two flags on `scripts/run_expB2.py`, threaded through the per-cell config:
 
 - `--objective {survival,touch}`, default `survival`. `touch` remaps the per-step training
-  reward in the episode collector to 1.0 when the ecology step reports `ate`, else 0.0.
-  The world, its observation, and the potential-based food shaping are untouched. The
-  engagement gate scores the trained arm and the baselines on this same reward.
+  reward in the episode collector to 1.0 on a step where the ecology step reports a pellet
+  `consumed` (its amount reached zero and it respawned), else 0.0. The world's dynamics,
+  its observation, and the potential-based food shaping are untouched; the ecology step
+  gains one boolean in its info dict. The engagement gate scores the trained arm and the
+  baselines on this same reward.
+
+  *Amendment 2026-10-07, pre-launch (no cell of any run existed).* The first draft of this
+  section rewarded every step on which eating occurred. A pellet takes ten consecutive
+  eating steps to consume at the registered food gain, and at the registered density an
+  untrained deterministic agent already collects 6 to 10 eating steps in a 12-step episode,
+  so the per-step reward would sit near its ceiling for every arm and the ratio gate would
+  fail for scale, not for lack of engagement. Per pellet consumed keeps the reward sparse,
+  rewards finishing a pellet and moving to the next (the structure of foraging), and leaves
+  the ratio gate meaningful. The decision rules are unchanged.
 - `--mortal {on,off}`, default `on`. `off` sets one attribute on the world so the death
   check returns false; energy, hydration, and temperature still evolve and are still
   observed. Death is the only terminal event, so an immortal episode always runs to the
