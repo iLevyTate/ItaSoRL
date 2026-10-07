@@ -101,7 +101,7 @@ class RecurrentActorCritic(nn.Module):
     def act_from_state(self, h: torch.Tensor, deterministic: bool = False):
         """Policy head only: (raw_act, env_act, logp, value) from an already-updated state h.
         act() is step_state() followed by this; callers that modify h between the two
-        (the goal-and-stakes intervention readout) use the pair explicitly."""
+        steps use the pair explicitly."""
         cont, bino = self._dist(h)
         if deterministic:
             raw_c = cont.mean

@@ -29,6 +29,14 @@ def test_probe_direction_points_toward_the_surrogate_pool():
     assert s > 0
 
 
+def test_probe_direction_degenerate_on_identical_pools():
+    rng = np.random.default_rng(1)
+    Ha = rng.normal(size=(30, 6, 5))
+    with pytest.warns(UserWarning, match="degenerate probe direction"):
+        u, s = mr.probe_direction(Ha, Ha.copy())
+    assert np.isnan(s) and np.all(u == 0.0) and u.shape == (5,)
+
+
 def test_sham_direction_is_unit_and_orthogonal():
     u = np.array([1.0, 0, 0, 0])
     v = mr.sham_direction(u, seed=3)
@@ -46,6 +54,11 @@ def test_gap_closed_scores():
     assert mr.gap_closed(b_auth, b_surr, half, scale)[0] == pytest.approx(0.5)
     score, gap = mr.gap_closed(b_auth, b_auth, half, scale)
     assert np.isnan(score) and gap == 0.0
+    score, gap = mr.gap_closed(b_auth, b_surr[:0], half, scale)       # empty pool
+    assert np.isnan(score) and np.isnan(gap)
+    assert np.all(np.isnan(mr.behavior_scale(b_auth[:0], b_surr[:0])))
+    assert all(np.isnan(v) for v in mr.adaptation(np.zeros((0, 2)), np.ones((3, 2))).values())
+    assert all(np.isnan(v) for v in mr.behavior_difference(b_auth[:0], b_surr, scale).values())
 
 
 def test_surprise_summaries_and_correlation():
@@ -56,6 +69,15 @@ def test_surprise_summaries_and_correlation():
     H = np.zeros((4, 10, 3)); H[:, :, 1] = np.linspace(0.0, 1.0, 10)   # projection tracks error
     u = np.array([0.0, 1.0, 0.0])
     assert mr.direction_error_correlation(H, E, u) == pytest.approx(1.0)
+
+
+def test_surprise_auroc_separable_null_and_nan():
+    rng = np.random.default_rng(5)
+    Ea = rng.uniform(0.0, 0.2, size=(100, 9))
+    assert mr.surprise_auroc(Ea, Ea + 1.0) > 0.9                      # separable
+    Eb = rng.uniform(0.0, 0.2, size=(100, 9))
+    assert 0.2 < mr.surprise_auroc(Ea, Eb) < 0.8                      # same distribution
+    assert np.isnan(mr.surprise_auroc(Ea, np.full((100, 9), np.nan)))  # no decoder
 
 
 def test_surprise_summaries_nan_row_does_not_raise():
@@ -90,8 +112,10 @@ def test_rollout_behavior_shapes_and_nudge_changes_states():
     agent, norm = b2.untrained_agent(P, 0.0, 5, hidden=8, embed=8, world_model=True,
                                      device="cpu", seed=0)
     r0 = mr.rollout_behavior(agent, norm, P, 0.0, n_eps=3, steps=10, seed_base=7, ray_steps=5)
-    assert r0["B"].shape == (3, 7) and r0["H"].shape == (3, 10, 8)
-    assert r0["E"].shape == (3, 9) and r0["halves"].shape == (3, 2)
+    k = r0["B"].shape[0]
+    assert r0["B"].shape[1] == 7 and 0 < k <= 3 and len(r0["kept"]) == k
+    assert r0["H"].shape == (k, 10, 8) and r0["E"].shape == (k, 9) and r0["halves"].shape == (k, 2)
+    assert r0["E"].dtype == np.float32
     u = np.zeros(8); u[0] = 1.0
     r1 = mr.rollout_behavior(agent, norm, P, 0.0, n_eps=3, steps=10, seed_base=7, ray_steps=5,
                              nudge=0.5 * u)

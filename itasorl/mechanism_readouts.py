@@ -18,6 +18,8 @@ five are the spec's measures, the last two the action-variability extras of read
 
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 
 from itasorl.experiment_a import grouped_auroc
@@ -26,6 +28,8 @@ from itasorl.experiment_b import episode_features, scripted_policy
 BEHAVIOR_NAMES = ("speed", "abs_turn", "thrust", "intake_rate", "near_food",
                   "std_thrust", "std_turn")
 N_MEASURES = 5   # the spec's behavior vector; the two std columns are readout-7 extras
+ACT_DIM = 5      # env action: thrust, turn, eat, drink, rest (scripted_policy's length)
+MIN_AUROC_ROWS = 5   # surprise_auroc needs at least this many finite rows per class
 
 
 def aggregate_behavior(R: np.ndarray) -> np.ndarray:
@@ -47,7 +51,10 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
     recorded state, the decoder input, and the next GRU step all read the nudged state.
     Returns B (k, 7) behavior per episode, halves (k, 2) intake rate in the first and second
     half, H (k, steps, hidden) the (nudged) states, E (k, steps-1) squared next-observation
-    prediction error of the decoder (nan if the agent has none), kept episode indices."""
+    prediction error of the decoder (nan if the agent has none), kept episode indices.
+    Callers comparing variants (nudged vs unnudged, authentic vs surrogate) should intersect
+    `kept` across them before taking means, so survivor selection cannot masquerade as a
+    behavior shift."""
     import torch
 
     from itasorl.experiment_b2 import _seeds, make_world
@@ -94,7 +101,7 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
         B.append(aggregate_behavior(np.asarray(rows)))
         halves.append([float(np.mean(intake[:half])), float(np.mean(intake[half:]))])
         Hs.append(np.stack(hs))
-        Es.append(np.asarray(es) if es else np.full(steps - 1, np.nan))
+        Es.append(np.asarray(es, np.float32) if es else np.full(steps - 1, np.nan, np.float32))
         kept.append(i)
     hid = agent.hidden
     return {"B": np.asarray(B).reshape(-1, len(BEHAVIOR_NAMES)),
@@ -109,7 +116,8 @@ def probe_direction(Ha: np.ndarray, Hs: np.ndarray) -> tuple[np.ndarray, float]:
     [mean h, final h]) on every episode and return (u, s): u the unit direction in RAW state
     space along which a constant shift most increases the surrogate score (mean-block plus
     final-block coefficients, each divided by its scaler scale), s the standard deviation of
-    all pooled per-step states projected onto u."""
+    all pooled per-step states projected onto u. A degenerate probe (zero coefficient
+    vector, e.g. identical pools) returns u = zeros, s = nan, and warns."""
     from sklearn.linear_model import LogisticRegression
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
@@ -120,12 +128,16 @@ def probe_direction(Ha: np.ndarray, Hs: np.ndarray) -> tuple[np.ndarray, float]:
     clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000)).fit(X, y)
     coef = clf[-1].coef_[0] / clf[0].scale_
     w = coef[:hid] + coef[hid:]
-    u = w / (np.linalg.norm(w) + 1e-12)
+    if np.linalg.norm(w) < 1e-9:
+        warnings.warn("degenerate probe direction", stacklevel=2)
+        return np.zeros(hid, np.float64), float("nan")
+    u = w / np.linalg.norm(w)
     proj = np.concatenate([Ha, Hs]).reshape(-1, hid) @ u
     return u.astype(np.float64), float(proj.std())
 
 
 def sham_direction(u: np.ndarray, seed: int) -> np.ndarray:
+    """A unit direction orthogonal to u, drawn once per seed from a fixed RNG (the sham)."""
     rng = np.random.default_rng(1_000_003 + seed)
     v = rng.normal(size=u.shape)
     v = v - (v @ u) * u
@@ -133,24 +145,36 @@ def sham_direction(u: np.ndarray, seed: int) -> np.ndarray:
 
 
 def behavior_scale(b_auth: np.ndarray, b_surr: np.ndarray) -> np.ndarray:
-    return np.concatenate([b_auth, b_surr]).std(0) + 1e-8
+    """Pooled across-world per-column standard deviation (the spec's standardization);
+    all-NaN when both pools are empty."""
+    both = np.concatenate([b_auth, b_surr])
+    if len(both) == 0:
+        return np.full(both.shape[1:], np.nan)
+    return both.std(0) + 1e-8
 
 
 def gap_closed(b_auth: np.ndarray, b_surr: np.ndarray, b_nudged: np.ndarray,
                scale: np.ndarray) -> tuple[float, float]:
     """(score, gap): score is the fraction of the standardized authentic-to-surrogate
     behavior gap (first N_MEASURES columns) that the nudged behavior closes; gap is the
-    standardized gap norm (the spec's informativeness threshold applies to it)."""
+    standardized gap norm (the spec's informativeness threshold applies to it). An empty
+    pool yields a NaN gap; a zero or NaN gap yields a NaN score."""
     m = N_MEASURES
+    if min(len(b_auth), len(b_surr), len(b_nudged)) == 0:
+        return float("nan"), float("nan")
     ga = (b_surr[:, :m].mean(0) - b_auth[:, :m].mean(0)) / scale[:m]
     gn = (b_nudged[:, :m].mean(0) - b_auth[:, :m].mean(0)) / scale[:m]
     gap = float(np.linalg.norm(ga))
-    if gap == 0.0:
-        return float("nan"), 0.0
+    if not np.isfinite(gap) or gap == 0.0:
+        return float("nan"), float(gap)
     return float(gn @ ga / gap ** 2), gap
 
 
 def behavior_difference(b_auth: np.ndarray, b_surr: np.ndarray, scale: np.ndarray) -> dict:
+    """Standardized surrogate-minus-authentic mean of every BEHAVIOR_NAMES column
+    (readout 7); NaNs when either pool is empty."""
+    if len(b_auth) == 0 or len(b_surr) == 0:
+        return {name: float("nan") for name in BEHAVIOR_NAMES}
     d = (b_surr.mean(0) - b_auth.mean(0)) / scale
     return {name: float(v) for name, v in zip(BEHAVIOR_NAMES, d)}
 
@@ -164,8 +188,15 @@ def surprise_summaries(E: np.ndarray) -> np.ndarray:
 
 
 def surprise_auroc(Ea: np.ndarray, Es: np.ndarray) -> float:
+    """Readout 8(a): grouped-CV AUROC of the registered probe on per-episode surprise
+    summaries, authentic (0) vs surrogate (1). Rows with non-finite summaries are dropped;
+    NaN if fewer than MIN_AUROC_ROWS finite rows remain in either class."""
     X = np.concatenate([surprise_summaries(Ea), surprise_summaries(Es)])
     y = np.r_[np.zeros(len(Ea)), np.ones(len(Es))].astype(int)
+    ok = np.isfinite(X).all(axis=1)
+    X, y = X[ok], y[ok]
+    if (y == 0).sum() < MIN_AUROC_ROWS or (y == 1).sum() < MIN_AUROC_ROWS:
+        return float("nan")
     return float(grouped_auroc(X, y, np.arange(len(y))))
 
 
@@ -180,6 +211,12 @@ def direction_error_correlation(H: np.ndarray, E: np.ndarray, u: np.ndarray) -> 
 
 
 def adaptation(halves_auth: np.ndarray, halves_surr: np.ndarray) -> dict:
+    """Readout 9: gap = authentic minus surrogate intake rate per half; adaptation =
+    first-half gap minus second-half gap, positive when the gap narrows. NaNs when either
+    input has zero rows."""
+    if len(halves_auth) == 0 or len(halves_surr) == 0:
+        return {"gap_first": float("nan"), "gap_second": float("nan"),
+                "adaptation": float("nan")}
     g1 = float(halves_auth[:, 0].mean() - halves_surr[:, 0].mean())
     g2 = float(halves_auth[:, 1].mean() - halves_surr[:, 1].mean())
     return {"gap_first": g1, "gap_second": g2, "adaptation": g1 - g2}
@@ -188,8 +225,9 @@ def adaptation(halves_auth: np.ndarray, halves_surr: np.ndarray) -> dict:
 def scripted_observation_streams(norm, params, drift_sigma: float, *, n_eps: int, steps: int,
                                  seed_base: int, ray_steps: int,
                                  policy_seed_base: int = 600_000) -> tuple[np.ndarray, np.ndarray]:
-    """Agent-free walks under the scripted policy: normalized observations (k, steps, O) and
-    the previous action (k, steps, A) for full-length survivors."""
+    """The agent-free observation stream for the scripted-walk decoder (the cell FINDINGS
+    17.8 left missing): walks under the scripted policy, returning normalized observations
+    (k, steps, O) and the previous action (k, steps, ACT_DIM) for full-length survivors."""
     from itasorl.experiment_b2 import _seeds, make_world
 
     O, A = [], []
@@ -197,7 +235,7 @@ def scripted_observation_streams(norm, params, drift_sigma: float, *, n_eps: int
         w = make_world(params, drift_sigma, ray_steps)
         obs = w.reset(_seeds(seed_base + i)).obs.astype(np.float64)
         rng = np.random.default_rng(policy_seed_base + i)
-        prev = np.zeros(5, np.float32)
+        prev = np.zeros(ACT_DIM, np.float32)
         o_rows, a_rows, alive = [], [], True
         for _ in range(steps):
             o_rows.append(norm(obs[None])[0].astype(np.float32))
@@ -212,5 +250,5 @@ def scripted_observation_streams(norm, params, drift_sigma: float, *, n_eps: int
         if alive:
             O.append(np.stack(o_rows))
             A.append(np.stack(a_rows))
-    return (np.stack(O) if O else np.zeros((0, steps, 0), np.float32),
-            np.stack(A) if A else np.zeros((0, steps, 5), np.float32))
+    return (np.stack(O) if O else np.zeros((0, steps, norm.mean.shape[0]), np.float32),
+            np.stack(A) if A else np.zeros((0, steps, ACT_DIM), np.float32))
