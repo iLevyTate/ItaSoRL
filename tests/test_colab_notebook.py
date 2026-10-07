@@ -60,18 +60,29 @@ def test_copy_guard_is_the_first_code_cell():
 
 
 def test_copy_guard_blocks_when_unverifiable():
-    # An unverifiable result from Colab's internal name check is not proof of a
-    # safe copy, so the guard must raise in that case too, not wave it through -
-    # it is only skipped entirely off-Colab, or when the person explicitly ticks
-    # I_MADE_A_COPY.
+    # A GitHub open, the original filename, and an unverifiable result are not
+    # a Drive copy. The guard raises in each of those cases. It continues only
+    # off-Colab, on positive Drive evidence, or when I_MADE_A_COPY is set in
+    # the cell. The skip is not a form checkbox.
     nb = _load()
     guard = _src(_code_cells(nb)[0])
     assert "_in_colab" in guard
     assert "Continuing anyway" not in guard
-    assert "_nb_name is None" in guard
-    # two distinct blocking paths: the confirmed-original case and the
-    # cannot-verify case, both via the same raise.
+    assert '"/github/"' in guard
+    assert '"/drive/"' in guard
+    assert "Copy of " in guard
+    assert "file_id" in guard
+    assert "_status is False" in guard
+    assert "_status is None" in guard
+    assert "I_MADE_A_COPY = False  # @param" not in guard
     assert guard.count("raise RuntimeError") >= 2
+
+
+def test_every_later_code_cell_requires_the_copy():
+    nb = _load()
+    code = _code_cells(nb)
+    for i, cell in enumerate(code[1:], start=1):
+        assert "COPY_CHECK_PASSED" in _src(cell), f"code cell {i} can run before the copy check"
 
 
 def test_copy_guard_sets_a_sentinel_other_cells_can_check():
@@ -103,6 +114,22 @@ def test_heavy_cells_require_the_copy_guard_to_have_passed():
                 assert "COPY_CHECK_PASSED" in src, (
                     f"the {label} does not check the copy guard's sentinel")
     assert found == set(markers), f"could not locate: {set(markers) - found}"
+
+
+def test_run_cell_picks_up_the_last_unfinished_drive_folder():
+    # A disconnect wipes the VM. The run cell has to find the newest unfinished
+    # folder already mirrored under the Drive results root and pass it to
+    # --resume, instead of starting a second run beside it.
+    nb = _load()
+    cells = [_src(c) for c in _code_cells(nb)]
+    run = next(s for s in cells if "scripts/run_e2e.py" in s and "--profile" in s)
+    assert "finished_at_utc" in run
+    assert "manifest.json" in run
+    assert "Picking up Drive run" in run
+    assert "FORCE_FRESH" in run
+    extras = next(s for s in cells if "def run_extra(" in s)
+    assert "Restoring" in extras
+    assert "_mirror_extra_to_drive" in extras
 
 
 def test_intro_documents_make_a_copy_first():
