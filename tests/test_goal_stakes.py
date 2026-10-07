@@ -208,3 +208,22 @@ def test_calibration_choice_rule():
     assert cs.choose(rows)["n_pellets"] == 8           # 12 is out of tolerance (0.15 gap)
     rows = [row(24, 0.05, 0.06), row(12, 0.45, 0.47, e0=0.01)]
     assert cs.choose(rows) is None                     # an early death disqualifies
+
+
+def test_death_stats_counts_deaths_and_early_deaths(monkeypatch):
+    """A basal burn far above the starting energy starves the creature within a few steps:
+    every episode dies, every death is early for a window that covers the death step, and
+    none is early for a window that ends just before it. Drift 0 needs no surrogate."""
+    import calibrate_scarcity as cs
+    import itasorl.experiment_b2 as b2
+    monkeypatch.setitem(b2.SURVIVAL_METAB, "basal_E", 400.0)
+    r = cs.death_stats("scripted", 0.0, n_eps=2, max_steps=10, ray_steps=5, seed_base=3, window=3)
+    assert r["death_rate"] == 1.0
+    assert r["early_death_rate"] == 1.0
+    assert r["mean_len"] <= 3
+    death_step = int(round(r["mean_len"]))
+    assert death_step >= 1
+    r2 = cs.death_stats("scripted", 0.0, n_eps=2, max_steps=10, ray_steps=5, seed_base=3,
+                        window=death_step - 1)
+    assert r2["death_rate"] == 1.0
+    assert r2["early_death_rate"] == 0.0

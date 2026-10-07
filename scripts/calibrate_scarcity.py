@@ -6,6 +6,8 @@ authentic, drift 0.45 learned surrogate), the 80-step death rate of the scripted
 random walker and the rate of deaths inside the first `--window` steps (the pooled readout
 length). Chooses the largest n_pellets whose scripted death rate at drift 0 lies in the
 band, whose drift-0.45 rate is within the tolerance of it, and with no early deaths.
+If `chosen` is null, rerun with `--basal 0.5` to a second output file; if still null the
+rung is reported as uncalibrated.
 
     python scripts/calibrate_scarcity.py --out artifacts/goal_stakes/calibration.json
 """
@@ -20,17 +22,19 @@ import os
 
 import numpy as np
 
+from itasorl.world import WorldParams  # noqa: E402
+
 BAND = (0.40, 0.60)
 TOL = 0.10
+P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 
 
 def death_stats(kind: str, drift: float, n_eps: int, max_steps: int, ray_steps: int,
                 seed_base: int, window: int) -> dict:
     import itasorl.experiment_b2 as b2
     from itasorl.experiment_b import scripted_policy
-    from itasorl.world import WorldParams
-    P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
-    rng = np.random.default_rng(seed_base)
+    # The policy stream is seeded apart from the world seeds so the two never alias.
+    rng = np.random.default_rng(seed_base + 500_000)
     died = early = 0
     lens = []
     for i in range(n_eps):
@@ -53,10 +57,11 @@ def death_stats(kind: str, drift: float, n_eps: int, max_steps: int, ray_steps: 
             "mean_len": float(np.mean(lens))}
 
 
-def choose(rows: list[dict], band=BAND, tol=TOL) -> dict | None:
-    """rows ordered by descending n_pellets; the first row meeting the frozen rule wins."""
-    for row in rows:
-        s0, s1 = row["scripted"]["0.00"], row["scripted"]["0.45"]
+def choose(rows: list[dict], band=BAND, tol=TOL, surrogate_key: str = "0.45") -> dict | None:
+    """The largest n_pellets whose row meets the frozen rule, or None. Rows are sorted here
+    (descending n_pellets) so the guarantee does not depend on the caller's order."""
+    for row in sorted(rows, key=lambda r: -r["n_pellets"]):
+        s0, s1 = row["scripted"]["0.00"], row["scripted"][surrogate_key]
         in_band = band[0] <= s0["death_rate"] <= band[1]
         matched = abs(s1["death_rate"] - s0["death_rate"]) <= tol
         no_early = s0["early_death_rate"] == 0.0 and s1["early_death_rate"] == 0.0
@@ -79,11 +84,12 @@ def main() -> int:
     a = ap.parse_args()
 
     import itasorl.experiment_b2 as b2
-    from itasorl.world import WorldParams
-    P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
-    b2.DRIFT_MODE = "l3"
-    b2.setup_l3_surrogate(hidden=8, device="cpu", seed=0, params=P)
+    surrogate = {"drift_mode": "l3", "hidden": 8, "seed": 0}
+    b2.DRIFT_MODE = surrogate["drift_mode"]
+    b2.setup_l3_surrogate(hidden=surrogate["hidden"], device="cpu", seed=surrogate["seed"],
+                          params=P)
     b2.SURVIVAL_METAB["basal_E"] = a.basal
+    dk = f"{a.drift:.2f}"
     rows = []
     for n in sorted(a.pellets, reverse=True):
         b2.SURVIVAL_FOOD["n_pellets"] = n
@@ -94,12 +100,13 @@ def main() -> int:
                                                     a.seed_base, a.window)
         s = row["scripted"]
         print(f"n_pellets={n:3d}  scripted death 0.00={s['0.00']['death_rate']:.2f} "
-              f"0.45={s['0.45']['death_rate']:.2f}  early={s['0.00']['early_death_rate']:.2f}/"
-              f"{s['0.45']['early_death_rate']:.2f}", flush=True)
+              f"{dk}={s[dk]['death_rate']:.2f}  early={s['0.00']['early_death_rate']:.2f}/"
+              f"{s[dk]['early_death_rate']:.2f}", flush=True)
         rows.append(row)
-    chosen = choose(rows)
-    out = {"rule": {"band": BAND, "tol": TOL, "window": a.window, "basal_E": a.basal},
-           "rows": rows, "chosen": chosen}
+    chosen = choose(rows, surrogate_key=dk)
+    out = {"rule": {"band": BAND, "tol": TOL, "window": a.window, "basal_E": a.basal,
+                    "drift": a.drift},
+           "config": vars(a), "surrogate": surrogate, "rows": rows, "chosen": chosen}
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1)
