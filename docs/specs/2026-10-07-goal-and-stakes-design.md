@@ -106,6 +106,66 @@ reported; the matched-pair channel already handles survivorship asymmetry by des
 
 Pools are regenerated from the saved agents, as 17.8 did; no state dumps are shipped.
 
+## Mechanism readouts (frozen 2026-10-07, before any run; applied to every run and to `C1`)
+
+Each runs on the saved trained arm of a run, seed by seed, in a cloud session after the
+run's cells exist. Fresh evaluation worlds use seed bases disjoint from the pooled and
+matched-pair bases (`docs/RESULTS_MANIFEST.md`); the bases are fixed in the readout script
+and recorded with the result. Behavior is the vector `b` of five per-episode means: speed,
+absolute turn action, thrust action, intake per step, and the fraction of steps within
+eat reach of a pellet, standardized per seed by the pooled across-world standard deviation.
+Every rule below is seed-paired, n = 10, t-based 90% intervals, and reported beside its
+untrained-arm counterpart as the floor.
+
+**6. Intervention: is the decoded direction behaviorally live?** Fit the registered pooled
+probe on the 24-step pools and take its unit direction `u` in state space, with `s` the
+standard deviation of the pooled states' projections onto `u`. Run 64 fresh authentic
+episodes of 80 steps under the agent's own policy, adding `+1.0 s u` to the hidden state
+after every GRU step (the sign that increases the probe's surrogate score). Sham: the same
+magnitude along one random unit direction orthogonal to `u`, drawn once per seed from a
+fixed RNG. Unnudged authentic and unnudged surrogate episodes on the same world seeds give
+`b_auth` and `b_surr`. Score = the fraction of the authentic-to-surrogate behavior gap the
+nudge closes, `((b_nudged - b_auth) . (b_surr - b_auth)) / |b_surr - b_auth|^2`; the sham
+score likewise. The reverse direction (surrogate episodes nudged by `-1.0 s u`) is reported
+the same way. Rule: real minus sham score at least +0.10 with its interval excluding zero,
+in the forward direction. Pass: "pushing the state along the decoded direction moves
+real-world behavior toward fake-world behavior; the direction is behaviorally live." Fail:
+"the decoded direction did not move behavior under the tested nudge." If
+`|b_surr - b_auth|` for a seed is under 0.25 in standardized units the seed is reported as
+uninformative and excluded, and the rule needs at least 7 informative seeds.
+
+**7. Probing behavior: does the walk differ between worlds?** From the same unnudged
+authentic and surrogate episodes, the per-seed difference `b_surr - b_auth` on each of the
+five measures, plus the within-episode standard deviation of thrust and of turn (action
+variability). A measure differs if its paired interval excludes zero. Wording is
+descriptive only: "the trained arm's walk differs between worlds in [measures]" or "no
+behavioral difference between worlds was detected." Higher action variability in the
+surrogate is reported as consistent with probing, never as evidence of intent.
+
+**8. Surprise: does the direction track the agent's own prediction error?** The trained
+arm carries the next-observation decoder. Per step, `e_t` is the squared error of
+`predict_next(h_t, a_t)` against the next normalized observation. Two numbers per seed:
+(a) the AUROC of a probe on per-episode summaries of `e_t` (mean, maximum, slope) under
+the registered folds, and (b) the within-world Pearson correlation, over pooled steps,
+between the projection of `h_t` onto `u` and `e_t`, averaged over the two worlds. Rule:
+(a) at least 0.65 and (b) at least 0.20 in absolute value with the interval excluding zero:
+"the decoded direction tracks the agent's own prediction error." (a) met and (b) not:
+"the surrogate is surprising to the agent, but the decoded direction is not explained by
+that surprise." Neither: "prediction error does not separate the worlds for this agent."
+The predictor arm is reported beside it as the objective-free reference.
+
+**9. Within-lifetime adaptation: does foraging in the fake world recover?** From the 80-step
+episodes, intake per step in steps 1 to 40 and 41 to 80, per world. Gap = authentic minus
+surrogate intake rate in each half; adaptation = first-half gap minus second-half gap.
+The readout is informative only if the first-half gap's interval excludes zero (the fake
+world has to cost something before recovery can be measured); otherwise it is reported as
+"uninformative: the surrogate does not reduce intake in this run." Rule when informative:
+adaptation positive with its interval excluding zero: "foraging in the fake world recovers
+within a lifetime." Otherwise: "no within-lifetime recovery was detected."
+
+These four readouts are mechanism questions. None of them changes the primary verdict or
+the stakes rule, and no wording from them is combined with "survival-specific".
+
 ## Integrity checks (before any comparison is read)
 
 1. Every cell records `gae_bootstrap = successor`, and its `objective` and `mortal` values.

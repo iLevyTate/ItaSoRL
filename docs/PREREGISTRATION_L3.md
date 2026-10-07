@@ -905,7 +905,15 @@ Rigor carried from the B-v3 audit (2026-07-10):
   on any outcome beyond "pellet-seeking alone was not enough in this world". Engagement for
   the touch objective is a 1.5x ratio over the better baseline, since the registered
   absolute margin was calibrated on the survival reward's scale. Everything else is the
-  registered rule set.
+  registered rule set. Four mechanism readouts are frozen in the same spec and applied to
+  every run and to `C1` on the saved trained arm: an intervention test (state nudged by one
+  standard deviation along the decoded direction against a sham direction; passes if it
+  closes at least 0.10 more of the authentic-to-surrogate behavior gap than the sham, paired
+  interval excluding zero), a descriptive between-world behavior comparison, a
+  prediction-error channel (surprise probe at least 0.65 and a within-world correlation with
+  the decoded direction of at least 0.20), and a within-lifetime foraging-recovery test that
+  is reported as uninformative unless the surrogate reduces intake in the first half of an
+  episode. None of these changes the primary verdict or the stakes rule.
 
 ## 13. How to run (milestones, in order)
 
