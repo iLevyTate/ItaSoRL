@@ -3,6 +3,7 @@
 
   rollout_behavior               own-policy episodes with an optional constant state nudge;
                                  returns behavior means, intake halves, states, prediction error
+  aggregate_behavior             per-episode behavior row from raw per-step rows
   probe_direction                the registered pooled probe's unit direction in state space
   sham_direction                 a fixed-RNG unit direction orthogonal to it
   gap_closed                     fraction of the authentic-to-surrogate behavior gap a nudge closes
@@ -25,6 +26,16 @@ from itasorl.experiment_b import episode_features, scripted_policy
 BEHAVIOR_NAMES = ("speed", "abs_turn", "thrust", "intake_rate", "near_food",
                   "std_thrust", "std_turn")
 N_MEASURES = 5   # the spec's behavior vector; the two std columns are readout-7 extras
+
+
+def aggregate_behavior(R: np.ndarray) -> np.ndarray:
+    """Per-episode behavior row (7,) from raw per-step rows R (steps, 6):
+    [speed, |turn|, thrust, intake, near_food, signed turn]. The first five columns are
+    averaged (the spec's measures); the extras are the within-episode std of thrust and of
+    the SIGNED turn action, so alternating left/right at constant magnitude counts as
+    variable."""
+    R = np.asarray(R, dtype=np.float64)
+    return np.r_[R[:, :N_MEASURES].mean(0), R[:, 2].std(), R[:, 5].std()]
 
 
 def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, steps: int,
@@ -69,7 +80,8 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
                 es.append(float(((pred - nxt) ** 2).mean()))
             d2 = float(np.min(np.sum((w.pellets - w.pos) ** 2, axis=1)))
             rows.append([float(np.linalg.norm(w.vel)), abs(float(a[1])), float(a[0]),
-                         float(r.info.get("intake", 0.0)), float(d2 < w.reach ** 2)])
+                         float(r.info.get("intake", 0.0)), float(d2 < w.reach ** 2),
+                         float(a[1])])
             intake.append(float(r.info.get("intake", 0.0)))
             hs.append(h[0].detach().cpu().numpy().copy())
             prev = env_act
@@ -79,8 +91,7 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
                 break
         if not alive:
             continue
-        R = np.asarray(rows)
-        B.append(np.r_[R.mean(0), R[:, 2].std(), R[:, 1].std()])
+        B.append(aggregate_behavior(np.asarray(rows)))
         halves.append([float(np.mean(intake[:half])), float(np.mean(intake[half:]))])
         Hs.append(np.stack(hs))
         Es.append(np.asarray(es) if es else np.full(steps - 1, np.nan))

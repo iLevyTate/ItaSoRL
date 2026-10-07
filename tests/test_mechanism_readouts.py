@@ -64,6 +64,18 @@ def test_surprise_summaries_nan_row_does_not_raise():
     assert np.all(np.isfinite(S[0])) and np.all(np.isnan(S[1]))
 
 
+def test_aggregate_behavior_uses_signed_turn_for_variability():
+    turn = np.array([0.5, -0.5] * 4)                      # alternating left/right
+    R = np.c_[np.ones(8), np.abs(turn), np.full(8, 0.3), np.zeros(8), np.zeros(8), turn]
+    b = mr.aggregate_behavior(R)
+    assert b.shape == (7,)
+    names = dict(zip(mr.BEHAVIOR_NAMES, b))
+    assert names["abs_turn"] == pytest.approx(0.5)
+    assert names["std_turn"] == pytest.approx(0.5)
+    assert names["std_thrust"] == pytest.approx(0.0)
+    assert names["thrust"] == pytest.approx(0.3) and names["speed"] == pytest.approx(1.0)
+
+
 def test_adaptation_sign():
     ha = np.array([[1.0, 1.0]] * 5); hs = np.array([[0.5, 0.9]] * 5)   # gap narrows
     out = mr.adaptation(ha, hs)
