@@ -108,3 +108,50 @@ def test_collector_true_return_is_touch_count_under_touch_objective(monkeypatch)
     assert np.all(batch["lengths"] == 12)                      # immortal: no early end
     assert np.all(batch["ret"] >= 0.0)                         # touches are never negative
     assert np.all(batch["ret"] == np.round(batch["ret"]))      # integer counts
+
+
+import run_expB2  # noqa: E402
+
+BASE = {"updates": 1, "n_eps": 1, "max_steps": 8, "hidden": 8, "ray_steps": 5,
+        "shaping_coef": 1.0, "pool_n": 4, "pool_steps": 4, "mp_pairs": 2, "mp_prefix": 2,
+        "mp_branch": 2, "basal_e": None, "n_pellets": None, "reach": None,
+        "dump_states": None, "sysid_aux": False, "sysid_coef": 1.0, "drift_mode": "l3",
+        "l3_hidden": 8, "l1_delta": 1 / 64, "sensor_sigma": 0.01, "l3_seed": 0,
+        "world_model": True, "drifts": [0.0, 0.45], "device": "cpu", "out_dir": ".",
+        "save_agents": False}
+
+
+def test_fingerprint_unchanged_at_default_objective_and_mortal():
+    a = run_expB2.config_fingerprint(BASE)
+    assert run_expB2.config_fingerprint({**BASE, "objective": "survival", "mortal": True}) == a
+
+
+def test_fingerprint_changes_with_touch_or_immortal():
+    a = run_expB2.config_fingerprint(BASE)
+    assert run_expB2.config_fingerprint({**BASE, "objective": "touch"}) != a
+    assert run_expB2.config_fingerprint({**BASE, "mortal": False}) != a
+    assert (run_expB2.config_fingerprint({**BASE, "objective": "touch", "mortal": False})
+            != run_expB2.config_fingerprint({**BASE, "objective": "touch"}))
+
+
+def test_cli_defaults_and_choices():
+    a = run_expB2.cfg_from_argv(["--drift-mode", "l3"])
+    assert a.objective == "survival" and a.mortal == "on"
+    a = run_expB2.cfg_from_argv(["--drift-mode", "l3", "--objective", "touch", "--mortal", "off"])
+    assert a.objective == "touch" and a.mortal == "off"
+    with pytest.raises(SystemExit):
+        run_expB2.cfg_from_argv(["--objective", "beacon"])
+
+
+def test_c1_fingerprint_reproduces():
+    """The recorded C1 config (artifacts/corrected_runs/corrected_l3_h8_wm/cells/
+    cell_d0.00_s0.json) hashes as it did before the objective and mortal knobs."""
+    c1 = {"updates": 300, "n_eps": 16, "max_steps": 80, "hidden": 96, "ray_steps": 5,
+          "shaping_coef": 1.0, "pool_n": 110, "pool_steps": 24, "mp_pairs": 60, "mp_prefix": 20,
+          "mp_branch": 24, "basal_e": None, "n_pellets": None, "reach": None, "dump_states": "x",
+          "sysid_aux": False, "sysid_coef": 1.0, "drift_mode": "l3", "l3_hidden": 8,
+          "l1_delta": 1 / 64, "sensor_sigma": 0.01, "l3_seed": 0, "world_model": True,
+          "survival_updates": None, "gae_bootstrap": "successor", "budget_extend": 450,
+          "budget_snapshots": [100, 200], "l3_family": "gmotion", "l3_family_param": None,
+          "drifts": [0.0, 0.45], "device": "cpu", "out_dir": "x", "save_agents": True}
+    assert run_expB2.config_fingerprint(c1) == "98dfbde61e361984"
