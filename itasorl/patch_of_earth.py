@@ -97,6 +97,10 @@ class PatchOfEarthV0(PatchOfEarth):
         self.mu_T, self.heat_met, self.lapse = 0.2, 0.05, 0.3
         self.T_base, self.T_amp = 0.45, 0.2
         self._reward = 0.0
+        # Goal-and-stakes spec (docs/specs/2026-10-07-goal-and-stakes-design.md): when
+        # False the death check is off. Energy, hydration and temperature still evolve
+        # and are still observed; nothing else changes.
+        self.mortal = True
 
     # --- terrain (static smooth field, analytic gradient) -------------------
     def _H_and_grad(self, x: float, y: float):
@@ -284,6 +288,8 @@ class PatchOfEarthV0(PatchOfEarth):
         return float(self._reward)
 
     def _focal_dead(self) -> bool:
+        if not self.mortal:
+            return False
         return (self.E <= 0.0) or (self.Hyd <= 0.0) or (self.Tb < self.Tmin) or (self.Tb > self.Tmax) or (self.age > self.age_max)
 
     # --- snapshot / restore (exact, incl. RNG bit-states; spec sec. 11/12) --
