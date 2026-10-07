@@ -185,3 +185,47 @@ def test_driver_quick_on_a_smoke_run(tmp_path):
                                        "n_common_surr"}
     assert "n_seeds" in d["summary"]
     assert d["summary"]["n_seeds"] == len(d["per_seed"])
+
+
+def _summary(real_sham=(0.2, 0.05, 0.35), n_inf=8, s_auc=0.7, s_corr=(0.3, 0.1, 0.5),
+             gap1=(0.02, 0.01, 0.03), adapt=(0.01, 0.002, 0.02)):
+    def pk(m, lo, hi):
+        return {"n": n_inf, "mean": m, "ci90": [lo, hi]}
+    return {"n_seeds": 10, "n_informative": n_inf,
+            "intervention_real_minus_sham": pk(*real_sham),
+            "surprise_auroc": pk(s_auc, s_auc - 0.05, s_auc + 0.05),
+            "surprise_corr": pk(*s_corr),
+            "adaptation_gap_first": pk(*gap1), "adaptation": pk(*adapt)}
+
+
+def test_decide_intervention_rule():
+    import decide_goal_stakes as dg
+    assert dg.intervention_verdict(_summary())["pass"] is True
+    assert dg.intervention_verdict(_summary(real_sham=(0.2, -0.01, 0.4)))["pass"] is False
+    assert dg.intervention_verdict(_summary(real_sham=(0.08, 0.02, 0.14)))["pass"] is False
+    assert dg.intervention_verdict(_summary(n_inf=6))["pass"] is False      # needs 7 seeds
+
+
+def test_decide_surprise_rule():
+    import decide_goal_stakes as dg
+    assert dg.surprise_verdict(_summary())["wording"].startswith("the decoded direction tracks")
+    v = dg.surprise_verdict(_summary(s_corr=(0.1, -0.1, 0.3)))
+    assert v["wording"].startswith("the surrogate is surprising")
+    v = dg.surprise_verdict(_summary(s_auc=0.55))
+    assert v["wording"].startswith("prediction error does not")
+
+
+def test_decide_adaptation_rule():
+    import decide_goal_stakes as dg
+    assert dg.adaptation_verdict(_summary())["wording"].startswith("foraging in the fake world recovers")
+    assert dg.adaptation_verdict(_summary(gap1=(0.0, -0.01, 0.01)))["wording"].startswith("uninformative")
+    assert dg.adaptation_verdict(_summary(adapt=(0.01, -0.002, 0.02)))["wording"].startswith("no within-lifetime")
+
+
+def test_decide_stakes_rule():
+    import decide_goal_stakes as dg
+    means = {"S-immortal": 0.60, "C1": 0.733, "S-scarce": 0.80}
+    contrast = {"mean": 0.20, "ci90": [0.08, 0.32]}
+    assert dg.stakes_verdict(means, contrast)["pass"] is True
+    assert dg.stakes_verdict({**means, "S-immortal": 0.75}, contrast)["pass"] is False  # order
+    assert dg.stakes_verdict(means, {"mean": 0.04, "ci90": [0.01, 0.07]})["pass"] is False
