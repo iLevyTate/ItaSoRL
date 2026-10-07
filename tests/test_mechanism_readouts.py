@@ -58,6 +58,12 @@ def test_surprise_summaries_and_correlation():
     assert mr.direction_error_correlation(H, E, u) == pytest.approx(1.0)
 
 
+def test_surprise_summaries_nan_row_does_not_raise():
+    E = np.vstack([np.linspace(0.0, 1.0, 9), np.full(9, np.nan)])
+    S = mr.surprise_summaries(E)
+    assert np.all(np.isfinite(S[0])) and np.all(np.isnan(S[1]))
+
+
 def test_adaptation_sign():
     ha = np.array([[1.0, 1.0]] * 5); hs = np.array([[0.5, 0.9]] * 5)   # gap narrows
     out = mr.adaptation(ha, hs)
@@ -79,6 +85,24 @@ def test_rollout_behavior_shapes_and_nudge_changes_states():
                              nudge=0.5 * u)
     assert not np.allclose(r0["H"], r1["H"])
     assert np.allclose(r0["H"][:, 0, 1:], r1["H"][:, 0, 1:])   # first step differs only on u
+
+
+@pytest.mark.filterwarnings("ignore:Mean of empty slice:RuntimeWarning")
+@pytest.mark.filterwarnings("ignore:invalid value encountered in scalar divide:RuntimeWarning")
+def test_nudge_changes_the_action_at_the_same_step():
+    """The policy head reads the nudged state at step t (not one step late): a one-step
+    rollout's action columns (abs_turn, thrust) move under a large nudge. (A one-step
+    episode has an empty first half, so its `halves` entry is NaN by design.)"""
+    pytest.importorskip("torch")
+    import itasorl.experiment_b2 as b2
+    agent, norm = b2.untrained_agent(P, 0.0, 5, hidden=8, embed=8, world_model=True,
+                                     device="cpu", seed=0)
+    u = np.zeros(8); u[0] = 1.0
+    kw = dict(n_eps=3, steps=1, seed_base=7, ray_steps=5)
+    r0 = mr.rollout_behavior(agent, norm, P, 0.0, **kw)
+    r1 = mr.rollout_behavior(agent, norm, P, 0.0, nudge=50.0 * u, **kw)
+    assert r0["B"].shape == (3, 7)
+    assert not np.allclose(r0["B"][:, 1:3], r1["B"][:, 1:3])
 
 
 def test_scripted_streams_shapes():

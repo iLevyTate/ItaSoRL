@@ -32,7 +32,8 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
                      device: str = "cpu") -> dict:
     """Deterministic own-policy episodes of exactly `steps` steps (an episode that dies
     earlier is dropped, as collect_pool does). `nudge` (hidden,) is added to the hidden
-    state after every GRU step, so the policy head and the next step read the nudged state.
+    state after every GRU update and before the policy head, so the action at step t, the
+    recorded state, the decoder input, and the next GRU step all read the nudged state.
     Returns B (k, 7) behavior per episode, halves (k, 2) intake rate in the first and second
     half, H (k, steps, hidden) the (nudged) states, E (k, steps-1) squared next-observation
     prediction error of the decoder (nan if the agent has none), kept episode indices."""
@@ -55,9 +56,10 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
         for t in range(steps):
             obs_t = torch.as_tensor(norm(obs[None]), dtype=torch.float32, device=device)
             with torch.no_grad():
-                _, env_act, _, _, h = agent.act(obs_t, prev, h, deterministic=True)
+                h = agent.step_state(obs_t, prev, h)
                 if nudge_t is not None:
                     h = h + nudge_t
+                _, env_act, _, _ = agent.act_from_state(h, deterministic=True)
             a = env_act[0].detach().cpu().numpy().astype(np.float32)
             r = w.step(a)
             if agent.world_model and t < steps - 1 and not r.terminated:
@@ -143,9 +145,10 @@ def behavior_difference(b_auth: np.ndarray, b_surr: np.ndarray, scale: np.ndarra
 
 
 def surprise_summaries(E: np.ndarray) -> np.ndarray:
-    """Per-episode [mean, max, slope] of the prediction-error trace."""
+    """Per-episode [mean, max, slope] of the prediction-error trace. A row with any
+    non-finite value (an agent without a decoder) yields NaNs rather than a polyfit error."""
     t = np.arange(E.shape[1])
-    slope = np.array([np.polyfit(t, e, 1)[0] for e in E])
+    slope = np.array([np.polyfit(t, e, 1)[0] if np.all(np.isfinite(e)) else np.nan for e in E])
     return np.c_[E.mean(1), E.max(1), slope]
 
 
