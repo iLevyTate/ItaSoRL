@@ -194,3 +194,17 @@ def test_c1_fingerprint_reproduces():
           "budget_snapshots": [100, 200], "l3_family": "gmotion", "l3_family_param": None,
           "drifts": [0.0, 0.45], "device": "cpu", "out_dir": "x", "save_agents": True}
     assert run_expB2.config_fingerprint(c1) == "98dfbde61e361984"
+
+
+def test_calibration_choice_rule():
+    import calibrate_scarcity as cs
+    def row(n, s0, s1, e0=0.0, e1=0.0):
+        return {"n_pellets": n,
+                "scripted": {"0.00": {"death_rate": s0, "early_death_rate": e0},
+                             "0.45": {"death_rate": s1, "early_death_rate": e1}}}
+    rows = [row(24, 0.05, 0.06), row(16, 0.30, 0.33), row(12, 0.45, 0.50), row(8, 0.55, 0.70)]
+    assert cs.choose(rows)["n_pellets"] == 12          # first in band, within tolerance
+    rows = [row(24, 0.05, 0.06), row(12, 0.45, 0.60), row(8, 0.52, 0.58)]
+    assert cs.choose(rows)["n_pellets"] == 8           # 12 is out of tolerance (0.15 gap)
+    rows = [row(24, 0.05, 0.06), row(12, 0.45, 0.47, e0=0.01)]
+    assert cs.choose(rows) is None                     # an early death disqualifies
