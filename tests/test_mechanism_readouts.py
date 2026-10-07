@@ -148,3 +148,40 @@ def test_scripted_streams_shapes():
                                  device="cpu", seed=0)
     O, A = mr.scripted_observation_streams(norm, P, 0.0, n_eps=4, steps=6, seed_base=11, ray_steps=5)
     assert O.shape[0] == A.shape[0] <= 4 and O.shape[1] == 6 and A.shape[2] == 5
+
+
+def test_common_rows_restricts_to_the_shared_survivors():
+    from run_mechanism_readouts import common_rows
+    r1 = {"B": np.arange(8.0).reshape(4, 2), "kept": np.array([0, 1, 2, 3])}
+    r2 = {"B": np.arange(6.0).reshape(3, 2) + 100, "kept": np.array([1, 2, 5])}
+    r3 = {"B": np.arange(4.0).reshape(2, 2) + 200, "kept": np.array([2, 1])}
+    b1, b2, b3 = common_rows(r1, r2, r3)
+    # every output is restricted to episodes {1, 2}, in the same (sorted) order
+    np.testing.assert_array_equal(b1, [[2, 3], [4, 5]])
+    np.testing.assert_array_equal(b2, [[100, 101], [102, 103]])
+    np.testing.assert_array_equal(b3, [[202, 203], [200, 201]])
+    assert common_rows(r1, {"B": np.zeros((0, 2)), "kept": np.array([], int)})[0].shape == (0, 2)
+
+
+def test_driver_quick_on_a_smoke_run(tmp_path):
+    """End to end on a quick-scale run directory produced by run_expB2 --quick."""
+    pytest.importorskip("torch")
+    import subprocess
+    run_dir = tmp_path / "run"
+    subprocess.run([sys.executable, "scripts/run_expB2.py", "--quick", "--drift-mode", "l3",
+                    "--seeds", "0", "--drifts", "0.0", "0.45", "--workers", "1", "--device", "cpu",
+                    "--save-agents", "--out-dir", str(run_dir)], check=True, cwd=ROOT)
+    out = tmp_path / "mech.json"
+    subprocess.run([sys.executable, "scripts/run_mechanism_readouts.py", "--run-dir", str(run_dir),
+                    "--out", str(out), "--quick"], check=True, cwd=ROOT)
+    import json
+    d = json.loads(out.read_text())
+    s0 = d["per_seed"][0]
+    for key in ("intervention", "behavior", "surprise", "adaptation", "scripted_stream",
+                "value_of_world_information"):
+        assert key in s0, key
+    assert set(s0["intervention"]) >= {"score_real", "score_sham", "gap", "score_real_reverse",
+                                       "score_sham_reverse", "informative", "n_common_auth",
+                                       "n_common_surr"}
+    assert "n_seeds" in d["summary"]
+    assert d["summary"]["n_seeds"] == len(d["per_seed"])
