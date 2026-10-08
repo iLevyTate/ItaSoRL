@@ -61,7 +61,11 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
-Commits recorded off main: `4d57253`, `80550ca`, `80948ff`, `9d5d047`, `d67dd51` live only on the branch `feat/remaining-research`. Recorded by the 2026-09 runs (second instances on GPU, the skill-matched baseline, the hidden 7 sensory echo). Their content reached main through the squash merge 21ed4df (#111), so the commits themselves are reachable only from the branch feat/remaining-research. Keep that branch, or tag its head 55afc72, or these provenance hashes stop resolving.
+Commits recorded by artifacts that are not ancestors of main (squash merges); each lives only on the branch named, so keep that branch or tag its head:
+
+- `feat/remaining-research` (head `55afc72`): `4d57253`, `80550ca`, `80948ff`, `9d5d047`, `d67dd51`. Recorded by the 2026-09 runs (second instances on GPU, the skill-matched baseline, the hidden 7 sensory echo). Their content reached main through the squash merge 21ed4df (#111).
+- `claude/affectionate-carson-azhxt2` (head `fb4dfa5`): `f676b95`, `34e2c0d`, `7870bba`, `2606e7f`. Recorded by the 2026-10 corrected-trainer confirmation runs (every C1 and C2 cell records f676b95), the verdict builder and readout promotions (34e2c0d), the exploratory cross-run replay (7870bba), and the set-aside T-qd comparator run (2606e7f, FINDINGS 17.9 addendum). Their content reached main through the squash merges 6d85438 (#116) and 552be24 (#117).
+- `claude/colab-guard-and-checkpointing` (head `06ecc10`): `06ecc10`. Recorded by the Experiment C per-individual rerun checkpoints (FINDINGS 13.F). Its content reached main through the squash merge 329dfb7 (#119); the tree at 06ecc10 is identical to main at 329dfb7.
 
 Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.
 
@@ -402,7 +406,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: inherited: pre_transition_value
 - Folds: legacy
-- Notes: Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9).
+- Notes: Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). No gn-trained run exists.
 - Artifacts: `artifacts/expH2/texture_knockout_h8.json`, `artifacts/expH2/texture_knockout_h7.json`
 
 ### `H2-OBSLOC`: Observation-channel localization (A2)

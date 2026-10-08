@@ -161,6 +161,22 @@ sysid-aux CEILING (PR #14) as the capacity reference.
   read, and the survival per-seed list in the gate artifact is byte-identical
   to `bv3_n10_summary.json`.
 
+- **2026-10-07 - CORRECTION: the GAE truncation bootstrap used the pre-transition value
+  (revision step 2; `docs/CORRECTIONS.md`; mirrors the 2026-10-06 entries in
+  `docs/PREREGISTRATION.md` and `docs/PREREGISTRATION_L3.md`).** Every survival run under this
+  document, the pre-registered n = 3 run and the `BV3-REGIME-N10` power extension
+  (`docs/RESULTS_MANIFEST.md`, trainer `pre_transition_value`), bootstrapped an episode alive
+  at the 80-step rollout cutoff from V(h_T), the critic value at its last stored step, so the
+  final term read r_T + gamma V(h_T) - V(h_T) instead of r_T + gamma V(h_{T+1}) - V(h_T). The
+  cutoff is a sampling truncation of a continuing task, so the correct bootstrap is the value
+  of the successor state; `itasorl/experiment_b2.py` now computes it from one extra GRU step on
+  the successor observation. The predictor and untrained arms do not use GAE and are
+  unaffected. The B-v3 numbers above stay as recorded and are labeled historical in the
+  manifest; no corrected-trainer B-v3 run has been executed (the 2026-10 revision reran the L3
+  confirmation only, revision step 4), so the B-v3 verdict is a historical-trainer result until
+  one is. The historical trainer stays available as `--gae-bootstrap pre_transition` for exact
+  reproduction.
+
 ## 13. How to run
 
     # confirmatory (3 seeds), regime mode, dumping states for offline re-probing:

@@ -7,10 +7,12 @@ docs/paper_tables/, which .gitignore excludes, beside (never inside) the gitigno
 directory docs/paper/, so generating them cannot overwrite the author's own files. The scalar
 audit renders them in memory from the committed artifacts, so CI needs no paper files.
 
-With --manuscript DIR (the LaTeX source, also local and outside git) it checks that every
-\\input of a paper table refers to a current generated file, and flags wording the 2026-10
-revision retired (the claim table in docs/REVISION_2026-10.md). It reports; the author
-decides each flagged line.
+With --manuscript DIR (the LaTeX source, also local and outside git) it checks that at least
+one generated table is \\input and every such \\input refers to a current generated file,
+that every headline number of artifacts/corrected_verdicts.json is quoted somewhere, and it
+flags wording the 2026-10 revision retired (the claim table in docs/REVISION_2026-10.md;
+matched after LaTeX markup is stripped) and any pre-correction headline that appears without a
+historical label. It reports; the author decides each flagged line.
 
 Usage:
     python scripts/build_paper_tables.py                     # write docs/paper_tables/*.tex (local)
@@ -55,7 +57,59 @@ RETIRED = [
     (r"survival[- ]specific", "at matched input the predictor reads equally (FINDINGS 17.6); say training regimes"),
     (r"(encoded|uniquely) by the survival objective", "the signal rides on the foraging trajectories"),
     (r"texture[- ]specific", "coherent hand-written drag is read too (FINDINGS 17.9)"),
+    # Added by the 2026-10-07 revision audit (item 2):
+    (r"stored component", "the common garden does not separate memory from the prefix's footprint"),
+    (r"\bpersists\b", "retention under identical input is not shown (FINDINGS 17.7)"),
+    (r"modestly persistent", "remains decodable after restoring authentic dynamics"),
+    (r"loads on the learned texture", "temporally coherent, state-dependent deviation; nothing specific to learned dynamics"),
+    (r"which objective does the encoding", "at matched input it is not a difference of objective"),
+    (r"property of the two objectives", "a difference between training regimes"),
+    (r"not incidentally encoded", "did not meet the registered encoding criterion"),
+    (r"did not encode\b", "did not meet the registered encoding criterion"),
+    (r"encoded neither", "did not meet the registered encoding criterion"),
+    (r"every number reported here is recomputed", "say which artifacts and documents are checked"),
+    (r"recomputes every number", "say which artifacts and documents are checked"),
 ]
+
+# Headline numbers of the pre-correction trainer that may appear only with a historical label.
+HISTORICAL_HEADLINES = ("0.752",)       # L3-H8-N10, the published GPU headline
+HISTORICAL_LABEL = re.compile(r"historical|pre-?correction|labeled", re.I)
+
+
+def strip_tex(s: str) -> str:
+    """Drop LaTeX commands but keep their argument text, so 'survival-\\emph{specific}' reads
+    'survival-specific' for the wording patterns."""
+    prev = None
+    while prev != s:
+        prev = s
+        s = re.sub(r"\\[A-Za-z]+\*?(?:\[[^\]]*\])?\{([^{}]*)\}", r"\1", s)
+    s = re.sub(r"\\[A-Za-z]+\*?", "", s)
+    return re.sub(r"[ \t]+", " ", s).strip()
+
+
+def headline_numbers() -> list[tuple[str, float]]:
+    """The numbers the manuscript must quote, read from artifacts/corrected_verdicts.json."""
+    with open(os.path.join(ART, "corrected_verdicts.json"), encoding="utf-8") as fh:
+        v = json.load(fh)
+    out = []
+    for run in ("C1", "C2"):
+        r = v["runs"].get(run, {})
+        if r.get("status") != "complete":
+            continue
+        s = r["primary"]["survival"]
+        out += [(f"{run} survival mean", s["mean"]), (f"{run} survival t90 lower", s["t90"][0]),
+                (f"{run} survival t90 upper", s["t90"][1])]
+        if run == "C1":
+            out += [("C1 predictor mean", r["primary"]["predictor"]["mean"]),
+                    ("C1 untrained mean", r["primary"]["untrained"]["mean"]),
+                    ("C1 L0 mean", r["gates"]["l0"]["mean"]),
+                    ("C1 L0 TOST p", r["gates"]["l0"]["tost_p"])]
+    ac = v.get("auxiliary_comparison")
+    if ac:
+        c = ac["paired"]
+        out += [("C1 minus C2 paired mean", c["mean"]), ("C1 minus C2 t90 lower", c["t90"][0]),
+                ("C1 minus C2 t90 upper", c["t90"][1])]
+    return out
 
 
 def _tex_escape(s: str) -> str:
@@ -134,21 +188,48 @@ def tables() -> dict[str, str]:
 
 
 def check_manuscript(d: str) -> int:
+    """Three guards, each a reviewable item: the manuscript must \\input at least one generated
+    table (never retype them), must quote every headline number of artifacts/corrected_verdicts.json
+    somewhere, and must not use retired wording (matched after LaTeX markup is stripped) or quote
+    a pre-correction headline without a historical label."""
     texs = sorted(glob.glob(os.path.join(d, "**", "*.tex"), recursive=True))
     current = tables()
     issues = 0
+    inputs = 0
+    full = []
     for p in texs:
+        rel = os.path.relpath(p, ROOT)
         text = open(p, encoding="utf-8", errors="replace").read()
+        full.append(text)
         for m in re.finditer(r"\\input\{[^}]*?(?:paper_tables|tables)/([^}]+?)(\.tex)?\}", text):
             name = m.group(1) + ".tex"
             if name not in current:
-                print(f"{os.path.relpath(p, ROOT)}: \\input of unknown table {name}")
+                print(f"{rel}: \\input of unknown table {name}")
                 issues += 1
-        for i, line in enumerate(text.splitlines(), 1):
+            else:
+                inputs += 1
+        for i, raw in enumerate(text.splitlines(), 1):
+            line = strip_tex(raw)
             for pat, fix in RETIRED:
                 if re.search(pat, line, re.I):
-                    print(f"{os.path.relpath(p, ROOT)}:{i}: retired wording /{pat}/ -> {fix}")
+                    print(f"{rel}:{i}: retired wording /{pat}/ -> {fix}")
                     issues += 1
+            for h in HISTORICAL_HEADLINES:
+                if h in line and not HISTORICAL_LABEL.search(line):
+                    print(f"{rel}:{i}: historical headline {h} without a historical or "
+                          "pre-correction label")
+                    issues += 1
+    if texs and not inputs:
+        print(f"{d}: no generated table is \\input (docs/paper_tables/{{{', '.join(sorted(current))}}})")
+        issues += 1
+    if texs:
+        joined = "\n".join(full)
+        for label, value in headline_numbers():
+            s = f"{abs(value):.3f}"
+            if s not in joined:
+                print(f"{d}: headline number {s} ({label}, artifacts/corrected_verdicts.json) "
+                      "not found in the manuscript")
+                issues += 1
     print(f"manuscript check: {len(texs)} .tex files, {issues} item(s) to review")
     return 1 if issues else 0
 

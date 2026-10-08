@@ -1,15 +1,37 @@
 {
-  "commits_off_main": {
-    "branch": "feat/remaining-research",
-    "commits": [
-      "4d57253",
-      "80550ca",
-      "80948ff",
-      "9d5d047",
-      "d67dd51"
-    ],
-    "note": "Recorded by the 2026-09 runs (second instances on GPU, the skill-matched baseline, the hidden 7 sensory echo). Their content reached main through the squash merge 21ed4df (#111), so the commits themselves are reachable only from the branch feat/remaining-research. Keep that branch, or tag its head 55afc72, or these provenance hashes stop resolving."
-  },
+  "commits_off_main": [
+    {
+      "branch": "feat/remaining-research",
+      "commits": [
+        "4d57253",
+        "80550ca",
+        "80948ff",
+        "9d5d047",
+        "d67dd51"
+      ],
+      "head": "55afc72",
+      "note": "Recorded by the 2026-09 runs (second instances on GPU, the skill-matched baseline, the hidden 7 sensory echo). Their content reached main through the squash merge 21ed4df (#111)."
+    },
+    {
+      "branch": "claude/affectionate-carson-azhxt2",
+      "commits": [
+        "f676b95",
+        "34e2c0d",
+        "7870bba",
+        "2606e7f"
+      ],
+      "head": "fb4dfa5",
+      "note": "Recorded by the 2026-10 corrected-trainer confirmation runs (every C1 and C2 cell records f676b95), the verdict builder and readout promotions (34e2c0d), the exploratory cross-run replay (7870bba), and the set-aside T-qd comparator run (2606e7f, FINDINGS 17.9 addendum). Their content reached main through the squash merges 6d85438 (#116) and 552be24 (#117)."
+    },
+    {
+      "branch": "claude/colab-guard-and-checkpointing",
+      "commits": [
+        "06ecc10"
+      ],
+      "head": "06ecc10",
+      "note": "Recorded by the Experiment C per-individual rerun checkpoints (FINDINGS 13.F). Its content reached main through the squash merge 329dfb7 (#119); the tree at 06ecc10 is identical to main at 329dfb7."
+    }
+  ],
   "eval_world_note": "Evaluation worlds are fixed seed bases shared by every agent seed, so across-seed intervals condition on one sample of evaluation worlds and on the single trained surrogate of each run.",
   "fold_schemes": {
     "both": "scored under both; see artifacts/fold_rescore and FINDINGS methods note 8",
@@ -1872,7 +1894,7 @@
       "folds": "legacy",
       "id": "H2-TEXTURE",
       "local_run_dir": null,
-      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9).",
+      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). No gn-trained run exists.",
       "readout_only_on": [
         "L3-H8-HELDOUT",
         "L3-H7-REVERSE"

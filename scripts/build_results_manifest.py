@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import subprocess
 import json
 import os
 import sys
@@ -305,7 +306,11 @@ RUNS = [
         artifacts=["expH2/texture_knockout_h8.json", "expH2/texture_knockout_h7.json"],
         claims=[33], trains_survival=False, readout_of=["L3-H8-HELDOUT", "L3-H7-REVERSE"],
         folds="legacy", notes="Transfer of the ORIGINAL direction only; no fresh Gaussian "
-                              "probe and no Gaussian-trained agents (revision step 9)."),
+                              "probe and no Gaussian-trained agents (revision step 9). A "
+                              "qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored "
+                              "fullruns/T_qd_l3_h8_wm) was executed and set aside: its family "
+                              "failed gate 0, so it is not promoted and bears on no rule "
+                              "(FINDINGS 17.9 addendum). No gn-trained run exists."),
     run("H2-OBSLOC", "Observation-channel localization (A2)", experiment="H2",
         artifacts=["expH2/obs_localization_h8.json", "expH2/obs_localization_h7.json"],
         claims=[34], trains_survival=False, readout_of=["L3-H8-HELDOUT", "L3-H7-REVERSE"],
@@ -511,14 +516,56 @@ RUNS = [
 ]
 
 
+# Commits that artifacts record but that are not ancestors of main (their branches were
+# squash-merged). Each group names the branch that still holds them; keep those branches or
+# tag their heads, or these provenance hashes stop resolving.
+COMMITS_OFF_MAIN = [
+    {"branch": "feat/remaining-research", "head": "55afc72",
+     "commits": ["4d57253", "80550ca", "80948ff", "9d5d047", "d67dd51"],
+     "note": "Recorded by the 2026-09 runs (second instances on GPU, the skill-matched baseline, "
+             "the hidden 7 sensory echo). Their content reached main through the squash merge "
+             "21ed4df (#111)."},
+    {"branch": "claude/affectionate-carson-azhxt2", "head": "fb4dfa5",
+     "commits": ["f676b95", "34e2c0d", "7870bba", "2606e7f"],
+     "note": "Recorded by the 2026-10 corrected-trainer confirmation runs (every C1 and C2 cell "
+             "records f676b95), the verdict builder and readout promotions (34e2c0d), the "
+             "exploratory cross-run replay (7870bba), and the set-aside T-qd comparator run "
+             "(2606e7f, FINDINGS 17.9 addendum). Their content reached main through the squash "
+             "merges 6d85438 (#116) and 552be24 (#117)."},
+    {"branch": "claude/colab-guard-and-checkpointing", "head": "06ecc10",
+     "commits": ["06ecc10"],
+     "note": "Recorded by the Experiment C per-individual rerun checkpoints (FINDINGS 13.F). Its "
+             "content reached main through the squash merge 329dfb7 (#119); the tree at 06ecc10 "
+             "is identical to main at 329dfb7."},
+]
+
+
+def _git_listed_artifacts() -> list[str] | None:
+    """Files under artifacts/ as git sees them: tracked plus untracked-but-not-ignored. A
+    gitignored scratch directory (artifacts/clip_audit/) then cannot fail the check on a
+    developer machine, while a new artifact that is not yet added still does. None when git
+    is unavailable or this is not a checkout (an extracted supplement)."""
+    try:
+        res = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard",
+                              "--", "artifacts"], cwd=ROOT, capture_output=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    names = [n.decode("utf-8", errors="replace") for n in res.stdout.split(b"\0") if n]
+    return [n[len("artifacts/"):] for n in names if n.startswith("artifacts/")]
+
+
 def _rel_files() -> list[str]:
+    listed = _git_listed_artifacts()
+    if listed is None:
+        listed = [os.path.relpath(p, ART).replace(os.sep, "/")
+                  for p in glob.glob(os.path.join(ART, "**", "*"), recursive=True)]
     out = []
-    for p in glob.glob(os.path.join(ART, "**", "*"), recursive=True):
-        if os.path.isfile(p) and "__pycache__" not in p:
-            rel = os.path.relpath(p, ART).replace(os.sep, "/")
-            if rel != "results_manifest.json" and os.path.basename(rel) != "README.md":
-                out.append(rel)
-    return sorted(out)
+    for rel in listed:
+        if "__pycache__" in rel or not os.path.isfile(os.path.join(ART, rel)):
+            continue
+        if rel != "results_manifest.json" and os.path.basename(rel) != "README.md":
+            out.append(rel)
+    return sorted(set(out))
 
 
 def _owner(rel: str) -> list[str]:
@@ -576,15 +623,7 @@ def build() -> dict:
                                "status 'corrected'",
         },
         "fold_schemes": FOLDS_NOTE,
-        "commits_off_main": {
-            "branch": "feat/remaining-research",
-            "commits": ["4d57253", "80550ca", "80948ff", "9d5d047", "d67dd51"],
-            "note": "Recorded by the 2026-09 runs (second instances on GPU, the skill-matched "
-                    "baseline, the hidden 7 sensory echo). Their content reached main through the "
-                    "squash merge 21ed4df (#111), so the commits themselves are reachable only from "
-                    "the branch feat/remaining-research. Keep that branch, or tag its head 55afc72, "
-                    "or these provenance hashes stop resolving.",
-        },
+        "commits_off_main": COMMITS_OFF_MAIN,
         "eval_world_note": "Evaluation worlds are fixed seed bases shared by every agent seed, "
                            "so across-seed intervals condition on one sample of evaluation "
                            "worlds and on the single trained surrogate of each run.",
@@ -619,9 +658,11 @@ def render_md(m: dict) -> str:
         L.append(f"| `{r['id']}` | {r['status']} | {r['experiment']} | {claims} | {r['survival_trainer']} | "
                  f"{ro} | {r['commit_at_run'] or 'not recorded'} | {r['folds']} | "
                  f"{r['device'] or 'not recorded'} |")
-    off = m["commits_off_main"]
-    L += ["", f"Commits recorded off main: {', '.join('`' + c + '`' for c in off['commits'])} live only on "
-          f"the branch `{off['branch']}`. {off['note']}"]
+    L += ["", "Commits recorded by artifacts that are not ancestors of main (squash merges); each "
+          "lives only on the branch named, so keep that branch or tag its head:", ""]
+    for g in m["commits_off_main"]:
+        L.append(f"- `{g['branch']}` (head `{g['head']}`): "
+                 f"{', '.join('`' + c + '`' for c in g['commits'])}. {g['note']}")
     L += ["", "Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.",
           "", "## Evaluation worlds and seeds", "",
           m["eval_world_note"], "",

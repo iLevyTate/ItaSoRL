@@ -405,3 +405,42 @@ binding, because there is no re-run to bind: the DRAFT marker is retained on
 purpose to record that no run was launched under this section. Re-opening
 Experiment C requires the section-8 richer-controller redesign, at which point
 these amendments are the starting methodology.
+
+**Section-12 amendment (2026-10-07, recorded AFTER the launch it describes):
+per-individual readout rerun of the milestone-3 evolution.** The revision ground
+rules (`docs/REVISION_2026-10.md`, "Frozen preregistrations are not edited") require a
+dated amendment or a spec before any run under this document. This run was launched
+without one, under the section-14 NO LAUNCH disposition above; the omission is recorded
+here as a deviation, not corrected after the fact.
+
+- What changed in the registered runner since the 2026-07-19 re-run (13.D): a
+  per-individual decodability readout (`itasorl.experiment_c.individual_probe_panel`,
+  one held-out probe per policy with pair groups, summarized within the population;
+  PR #117) and per-seed checkpointing with `--resume` (PR #118). The evolution, the
+  estimand, the fixed configuration (section 9) and the matched per-arm thresholds are
+  unchanged; fitness series and thresholds reproduce the 13.D run bit for bit.
+- Launch: 2026-10-06 20:46 local, `scripts/run_expC_milestone3.py` N=48, G=30,
+  seeds 0 1 2, device cpu, `--resume`, output
+  `fullruns/expC_milestone3/emergence_pilot_per_individual.json` (gitignored). A first
+  attempt at 13:40 the same day was killed by memory exhaustion and lost, which is why
+  checkpointing was added. Code commit `06ecc10` (branch
+  `claude/colab-guard-and-checkpointing`, squash-merged as #119); its tree is identical
+  to main at `329dfb7`.
+- Known before launch: gate 1 (section 7) prints `passes=False` at the registered
+  geometry (treatment gap 0.00228, 90% CI [0.00109, 0.00377], control gap 0; margin
+  0.005), as the 2026-07-20 sweep already showed, and every common-garden panel's speed
+  control reads 0.53 to 0.63 against the 0.75 bar (gate 5). The run was therefore
+  expected to route UNINFORMATIVE under the section-8 matrix, and it did.
+- Premise: the section-14 framing "does selection AMPLIFY a modest persistent detector"
+  rests on the common-garden reading that FINDINGS 17.7 has since narrowed to the
+  prefix's physical footprint (retention under identical input not shown). The
+  amplification framing is not used for this run's write-up.
+- Result (finished 2026-10-07 19:19 local, 81183 s wall, exit 0, determinism
+  bit-reproducible): routing UNINFORMATIVE (gates 1 and 5 fail; gates 2, 3, 4 pass).
+  Per-individual means in the final treatment populations are 0.535, 0.539 and 0.537
+  (seeds 0, 1, 2) against 0.527, 0.521 and 0.527 at generation 0; no individual in any
+  population reaches the 0.65 bar. The pooled estimand reproduces 13.D (mean contrast
+  -0.002, both 90% intervals cross 0, mean final treatment AUROC 0.510). Full record in
+  FINDINGS 13.F. The output is not promoted to `artifacts/`; the claim in FINDINGS 13.E
+  stays restricted to the pooled readout.
+
