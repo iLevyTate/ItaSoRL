@@ -153,3 +153,14 @@ def test_recomputes_every_number_is_flagged_when_unscoped(tmp_path, capsys):
     assert rc == 1
     assert "recomputes every number" in out
 
+
+
+def test_the_title_is_a_name_not_a_claim_and_is_not_matched_for_retired_wording(tmp_path, capsys):
+    """"Detectable Is Not Encoded" names the paper's contrast; the prose guard still applies."""
+    text = (r"\title{Detectable Is Not Encoded: Incidental Encoding \ of Simulator Authenticity%" + "\n"
+            + GOOD.replace("HEAD", _headline_sentence())
+            + "the L2 artifact is not encoded in the state\n")
+    rc = bpt.check_manuscript(_write(tmp_path, text))
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert out.count("retired wording") == 1 and ":4:" in out
