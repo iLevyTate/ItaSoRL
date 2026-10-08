@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "itasorl"
-version = "1.0.0"
+version = "1.1.0"
 description = "Incidental detection of surrogate worlds by a from-scratch digital organism (ALife / RL experiments)"
 readme = "README.md"
 license = { text = "MIT" }

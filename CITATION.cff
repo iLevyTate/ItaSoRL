@@ -8,7 +8,8 @@ authors:
     orcid: "https://orcid.org/0009-0009-1337-0709"
 repository-code: "https://github.com/iLevyTate/ItaSoRL"
 license: MIT
-version: 1.0.0
+version: 1.1.0
+date-released: "2026-10-08"
 abstract: >-
   ITASORL measures whether a recurrent agent trained from scratch, with no
   imported semantic knowledge and no reward for detection, comes to carry in its
