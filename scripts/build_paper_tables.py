@@ -12,7 +12,9 @@ one generated table is \\input and every such \\input refers to a current genera
 that every headline number of artifacts/corrected_verdicts.json is quoted somewhere, and it
 flags wording the 2026-10 revision retired (the claim table in docs/REVISION_2026-10.md;
 matched after LaTeX markup is stripped) and any pre-correction headline that appears without a
-historical label. It reports; the author decides each flagged line.
+historical label in its section. A sentence that withdraws a retired reading may quote it, and
+a historical label anywhere in the enclosing sectioning block covers the numbers inside it. It
+reports; the author decides each flagged line.
 
 Usage:
     python scripts/build_paper_tables.py                     # write docs/paper_tables/*.tex (local)
@@ -45,7 +47,8 @@ RETIRED = [
     (r"learned[- ]texture (mechanism|specific)", "only after the comparator experiments"),
     (r"heritable detector", "restrict to the pooled population readout and budget"),
     (r"every decision (was|is) pre-?registered", "separate prospective protocols, amendments, exploration, corrections"),
-    (r"every number (recomputes|is recomputed)", "say which artifacts and documents are checked"),
+    (r"every number (recomputes|is recomputed)(?![^.]*\b(document|inventory|findings)\b)",
+     "say which artifacts and documents are checked"),
     (r"(live|lives|living) in both worlds", "each cell trains in one condition and is evaluated in two"),
     (r"never (enters|in) the observation", "no explicit world label is supplied"),
     (r"authentic manifold", "reachability is not established"),
@@ -68,12 +71,38 @@ RETIRED = [
     (r"did not encode\b", "did not meet the registered encoding criterion"),
     (r"encoded neither", "did not meet the registered encoding criterion"),
     (r"every number reported here is recomputed", "say which artifacts and documents are checked"),
-    (r"recomputes every number", "say which artifacts and documents are checked"),
+    (r"recomputes every number(?![^.]*\b(document|inventory|findings)\b)",
+     "say which artifacts and documents are checked"),
 ]
 
 # Headline numbers of the pre-correction trainer that may appear only with a historical label.
+# The label counts when it appears anywhere in the enclosing sectioning block (a paragraph
+# headed "The historical headline" labels every number inside it), not only on the same line.
 HISTORICAL_HEADLINES = ("0.752",)       # L3-H8-N10, the published GPU headline
 HISTORICAL_LABEL = re.compile(r"historical|pre-?correction|labeled", re.I)
+SECTIONING = re.compile(r"^\\(?:sub)*(?:section|paragraph)\*?\{")
+
+# A sentence that withdraws a retired reading may quote it (the RETIRED note above). These
+# markers, appearing in the same sentence before the phrase, mean the line is already correct.
+WITHDRAWN = re.compile(r"does not support|do not support|is withdrawn|are withdrawn|no longer|"
+                       r"we do not claim|is not claimed|retired in favor|withdrawn in favor", re.I)
+
+
+def _block_starts(lines: list[str]) -> list[int]:
+    """For each line, the index where its sectioning block begins."""
+    out, start = [], 0
+    for i, line in enumerate(lines):
+        if SECTIONING.match(line):
+            start = i
+        out.append(start)
+    return out
+
+
+def _withdrawn_before(text: str, at: int) -> bool:
+    """True when the sentence containing position `at` withdraws the phrase before quoting it."""
+    before = text[:at]
+    cut = max(before.rfind(". "), before.rfind("! "), before.rfind("? "))
+    return bool(WITHDRAWN.search(before[cut + 1:] if cut >= 0 else before))
 
 
 def strip_tex(s: str) -> str:
@@ -201,6 +230,8 @@ def check_manuscript(d: str) -> int:
         rel = os.path.relpath(p, ROOT)
         text = open(p, encoding="utf-8", errors="replace").read()
         full.append(text)
+        raw_lines = text.splitlines()
+        blocks = _block_starts(raw_lines)
         for m in re.finditer(r"\\input\{[^}]*?(?:paper_tables|tables)/([^}]+?)(\.tex)?\}", text):
             name = m.group(1) + ".tex"
             if name not in current:
@@ -208,17 +239,20 @@ def check_manuscript(d: str) -> int:
                 issues += 1
             else:
                 inputs += 1
-        for i, raw in enumerate(text.splitlines(), 1):
+        for i, raw in enumerate(raw_lines, 1):
             line = strip_tex(raw)
             for pat, fix in RETIRED:
-                if re.search(pat, line, re.I):
+                m = re.search(pat, line, re.I)
+                if m and not _withdrawn_before(line, m.start()):
                     print(f"{rel}:{i}: retired wording /{pat}/ -> {fix}")
                     issues += 1
-            for h in HISTORICAL_HEADLINES:
-                if h in line and not HISTORICAL_LABEL.search(line):
-                    print(f"{rel}:{i}: historical headline {h} without a historical or "
-                          "pre-correction label")
-                    issues += 1
+            if any(h in line for h in HISTORICAL_HEADLINES):
+                block = "\n".join(raw_lines[blocks[i - 1]:i])
+                for h in HISTORICAL_HEADLINES:
+                    if h in line and not HISTORICAL_LABEL.search(block):
+                        print(f"{rel}:{i}: historical headline {h} without a historical or "
+                              "pre-correction label in its section")
+                        issues += 1
     if texs and not inputs:
         print(f"{d}: no generated table is \\input (docs/paper_tables/{{{', '.join(sorted(current))}}})")
         issues += 1
