@@ -2,6 +2,57 @@
 
 Produced by a 208-agent audit run against main at 329dfb7: ten independent auditors, three adversarial verifiers per finding, a completeness critic, and a synthesizer. Findings are listed only if at least two of three verifiers re-established them from the files. The manuscript under docs/paper was read, never edited. This file is not committed; it is the hand-off record for the next agent.
 
+## Progress since this audit ran (appended 2026-10-08; findings above are unchanged)
+
+The findings and verdict above are the 2026-10-07 snapshot and are left as written. What has
+been done against the hand-off list since:
+
+- **Items 0, 3, 4** (PR #121): the Experiment C per-individual rerun finished 2026-10-07 19:19
+  and is recorded (dated PREREGISTRATION_C section-12 amendment, new FINDINGS 13.F, routing
+  UNINFORMATIVE on gates 1 and 5); the set-aside T-qd run is recorded descriptively; the eight
+  "not run" and "not rerun" statements are corrected. Nothing promoted.
+- **Items 2, 5, 6, 7** (PR #122): rounded dumps and a git-aware manifest file list (local audit
+  now 1188/1188 on Windows); the supplement follows `git ls-files`, scrubs every text member,
+  and passes its own tests and audit when extracted; all off-main commits listed with the
+  branches holding them; readout scripts stamp `git_commit`; Bv3 GAE amendment added; the
+  manuscript checker tightened.
+- **Item 2 correction** (PR #123): the tightened checker reported 5 false positives on the real
+  manuscript (a line-scoped historical label, a sentence that withdraws a retired phrase, a
+  properly scoped claim). Fixed with paired tests that keep the guard biting.
+- **Item 1** (manuscript): finding F1-F14/F16-F20/F49 was already STALE when this audit was
+  written. `docs/paper/main.tex` had been revised on 2026-10-07 14:42 to the corrected `C1`
+  record, it `\input`s the generated corrected-runs table, and `make_figures.py` already reads
+  the corrected artifacts and already annotates the historical rows. The five genuine leftovers
+  were pre-correction `0.752` used as a bit-reproduction anchor (four readout-only sections plus
+  one table cell); each is now labeled historical in place. The checker reports 0 items and the
+  PDF rebuilds clean. Note: replacing those five with the corrected 0.733 would be false, since
+  0.752 is the historical value the regenerated pools bit-match.
+- **Item 10** (partly in #122, rest here): its "or narrow REVISION:74" branch was taken (row 14
+  names the three guarded files). Smoke tests now exist for `build_paper_tables.py`,
+  `build_gate_table.py`, `build_contrast_intervals.py`, `build_results_manifest.py`,
+  `build_budget_curve.py`, `run_texture_fresh_probe.py`, `run_l0_audit.py` and
+  `validate_population_readout.py`, and F56's negative self-test for
+  `audit_stats_recheck.py` exists (`tests/test_audit_selftest.py`): flipping one artifact cell
+  value or one stored aggregate mean records a FAIL. Each new test file was mutation-checked by
+  breaking the guard it covers and confirming the test fails.
+- **Items 8 and 9** (2026-10-08): the FINDINGS and public-page sweep is done. FINDINGS carries
+  in-place historical labels and section-17 pointers at all nine named locations (section 1
+  ladder, H4 and H2, 7.2, 10.6.1, 10.9, note 7, section 12, 14.5, 17.9), section 12 names the
+  historical trainer flag and the three reproduction entry points, and 17.9's gn lag-1
+  autocorrelation is corrected from 0.02 to 0.0014 with each RMS now attributed to its sample
+  (F40). The eps-1 calibration was MEASURED rather than copied from the spec
+  (`scripts/run_surrogate_diagnostics.py --qd-eps 1.0`): qd deviates by 0.002356 against gn's
+  0.0142, a ratio of 6.02, confirming the frozen eps 6.0; stored as
+  `artifacts/texture/qd_eps1_calibration.json` and registered as run QD-EPS1-CAL. README,
+  LEARNING, ITASORL, CORRECTIONS (eleven of twenty-two rows), the figures README and the
+  September status page are updated, and "behavior-independent" now survives only in the
+  sentences that retire it and in the frozen preregistration, specs and audit records, which
+  are left as written. Item 9 was taken as a relabel per the owner's decision, recorded in
+  `docs/REVISION_2026-10.md`; the social-preview card remains an OWNER action, since no script
+  or source for it exists in the repository.
+- **Still open**: item 11 (version bump, release tag, and the plain-language paper page), and
+  the social-preview card re-upload.
+
 ## Verdict: FAIL
 
 The repository-side revision (steps 1 to 15) is substantiated, artifact-traced and internally consistent, but the manuscript docs/paper/main.tex is still at its pre-revision state (0.752 headline as current, L0 reported closed, survival-specific / learned-texture / persistent-memory readings intact, no corrected number anywhere, no historical labels), the public films and social preview still broadcast the withdrawn survival-specific reading, and two post-revision runs (T-qd finished, Experiment C per-individual rerun in progress) contradict the written record; handing the paper to another agent now would ship retired claims.

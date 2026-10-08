@@ -15,8 +15,9 @@
  * n = 10 seeds, read out never rewarded):
  *   untrained mind        0.488  (chance floor)
  *   pre-registered bar    0.65   ("past this line = it can tell")
- *   survival-trained mind 0.726  (behaviour-independent component, section
- *                                 10.4; 90% CI [0.685, 0.765], 9/10 seeds)
+ *   survival-trained mind 0.726  (section 10.4 residual after the four behavior
+ *                                 channels are regressed out; 90% CI [0.685,
+ *                                 0.765], 9/10 seeds)
  *   outside watcher gate  0.928  (oracle, a different quantity from the probe)
  * The raw pooled target is 0.752, and so are the masked-sense figures
  * (0.686 / 0.500). Neither appears as a number on screen: they belong to the
@@ -1171,8 +1172,9 @@ function drawMind(panel, t) {
 
 // REAL canonical numbers (docs/FINDINGS.md, L3, n = 10 seeds).
 //
-// The peak is 0.726, NOT the 0.752 headline: 0.726 is the behaviour-independent
-// component from section 10.4 (90% CI [0.685, 0.765], 9/10 seeds over the bar),
+// The peak is 0.726, NOT the 0.752 headline: 0.726 is the section 10.4 residual
+// after the four behavior channels are regressed out (90% CI [0.685, 0.765],
+// 9/10 seeds over the bar),
 // which is the number the write-up and the post both quote. 0.752 is the raw
 // pooled target before behaviour is residualised out. Mixing the two is what
 // put "75%" on screen under a post that said 73%.

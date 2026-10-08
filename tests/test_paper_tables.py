@@ -26,8 +26,10 @@ def _write(d, text: str, name: str = "main.tex") -> str:
     return str(d)
 
 
+# No 0.752 and no "historical" here: each test adds its own, in its own section, so the
+# fixture cannot label a number that the test means to be unlabeled.
 GOOD = (r"\input{../paper_tables/corrected_runs}" + "\n"
-        "The survival agent reads HEAD. Historical 0.752 is labeled historical here.\n")
+        "The survival agent reads HEAD.\n")
 
 
 def test_headline_numbers_come_from_the_verdict_artifact():
@@ -82,7 +84,8 @@ def test_newly_retired_phrases_are_flagged(tmp_path, capsys):
 
 
 def test_unlabeled_historical_headline_is_flagged(tmp_path, capsys):
-    text = GOOD.replace("HEAD", _headline_sentence()) + "the signal reads 0.752 on GPU\n"
+    text = GOOD.replace("HEAD", _headline_sentence())
+    text += "\n\\subsection{Results}\nthe signal reads 0.752 on GPU\n"
     rc = bpt.check_manuscript(_write(tmp_path, text))
     out = capsys.readouterr().out
     assert rc == 1
@@ -92,3 +95,61 @@ def test_unlabeled_historical_headline_is_flagged(tmp_path, capsys):
 def test_strip_tex_removes_commands_but_keeps_their_text():
     assert bpt.strip_tex(r"survival-\emph{specific} and \textbf{bold} \cite{x}") == \
         "survival-specific and bold x"
+
+
+def test_historical_headline_is_accepted_when_its_paragraph_carries_the_label(tmp_path, capsys):
+    """A paragraph headed "The historical headline" labels every number inside it; the label
+    need not repeat on the line that quotes the number."""
+    text = GOOD.replace("HEAD", _headline_sentence())
+    text += ("\n\\paragraph{The historical headline.} The pre-registered run read\n"
+             "survival & \\textbf{0.752} & 8/10\n")
+    rc = bpt.check_manuscript(_write(tmp_path, text))
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "0.752" not in out
+
+
+def test_historical_headline_is_still_flagged_in_an_unlabeled_paragraph(tmp_path, capsys):
+    text = GOOD.replace("HEAD", _headline_sentence())
+    text += "\n\\subsection{Cross-recipe transfer}\nthe pools reproduce 0.752 exactly\n"
+    rc = bpt.check_manuscript(_write(tmp_path, text))
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "0.752" in out
+
+
+def test_a_retired_phrase_is_not_flagged_where_the_sentence_withdraws_it(tmp_path, capsys):
+    text = GOOD.replace("HEAD", _headline_sentence())
+    text += ("\nthe evidence does not support that it loads on the learned texture rather than\n"
+             "on coherent deviation from the true law\n")
+    rc = bpt.check_manuscript(_write(tmp_path, text))
+    out = capsys.readouterr().out
+    assert rc == 0, out
+
+
+def test_the_same_retired_phrase_is_flagged_when_asserted(tmp_path, capsys):
+    text = GOOD.replace("HEAD", _headline_sentence())
+    text += "\nthe signal loads on the learned texture\n"
+    rc = bpt.check_manuscript(_write(tmp_path, text))
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "loads on the learned texture" in out
+
+
+def test_recomputes_every_number_is_accepted_when_the_scope_is_named(tmp_path, capsys):
+    text = GOOD.replace("HEAD", _headline_sentence())
+    text += ("\na verification script recomputes every number in the project's findings document\n"
+             "and claims inventory from those artifacts\n")
+    rc = bpt.check_manuscript(_write(tmp_path, text))
+    out = capsys.readouterr().out
+    assert rc == 0, out
+
+
+def test_recomputes_every_number_is_flagged_when_unscoped(tmp_path, capsys):
+    text = GOOD.replace("HEAD", _headline_sentence())
+    text += "\na verification script recomputes every number in the project\n"
+    rc = bpt.check_manuscript(_write(tmp_path, text))
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "recomputes every number" in out
+

@@ -5,7 +5,7 @@
   "numbers": {
     "oracle_l2": { "display": "99%", "source": "docs/FINDINGS.md sec 2.2 (L2, 0.993); sec 15: the L3 fingerprint the 73% creature lives with reads 1.000 at the same low detector noise" },
     "probe_chance": { "display": "50%", "source": "artifacts h8 untrained target 0.488 / L0 0.517" },
-    "probe_survival": { "display": "73%", "source": "artifacts h8 survival resid_trace 0.726 / h7 0.722" }
+    "probe_survival": { "display": "73%", "source": "artifacts h8 survival resid_trace 0.726 / h7 0.722; PRE-CORRECTION TRAINER (docs/CORRECTIONS.md). A residual after the four behavior channels, not independence from behavior: on the corrected agents the best-fitting control leaves 0.620, under the bar (FINDINGS 17.8). The reading that credited the survival objective is withdrawn (FINDINGS 17.6)." }
   },
   "beats": [
     {
@@ -118,14 +118,14 @@
       "t1": 90000,
       "world": { "mode": "none" },
       "endcard": {
-        "headline": "The fake was detectable all along. The creature only noticed when survival made it matter.",
+        "headline": "The fake was detectable all along. Its own mind showed it only after a life spent foraging in the copy.",
         "recap": [
           { "label": "outside watcher", "pct": "99%" },
           { "label": "its mind, idle", "pct": "50%" },
           { "label": "its mind, surviving", "pct": "73%" }
         ],
         "url": "ilevytate.github.io/ItaSoRL",
-        "foot": "Real runs, 10 each. 50% = coin flip, 100% = always right. Read out, never rewarded."
+        "foot": "Real runs, 10 each. 50% = coin flip, 100% = always right. Read out, never rewarded. Numbers from the pre-correction trainer (docs/CORRECTIONS.md)."
       }
     }
   ]
