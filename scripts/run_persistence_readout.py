@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import _bootstrap  # noqa: F401
 
+from itasorl.results_io import git_head  # noqa: E402
+
 import argparse
 import json
 import os
@@ -105,7 +107,7 @@ def main() -> int:
                     "window_t90": [float(x) for x in t_ci90(win)] if len(win) > 1 else None,
                     "late_mean": float(np.nanmean(late)),
                     "auc_by_t_mean": curves.mean(0).tolist() if curves.size else []}
-    out = {"generated_by": "scripts/run_persistence_readout.py", "agents_dir": a.agents_dir,
+    out = {"generated_by": "scripts/run_persistence_readout.py", "git_commit": git_head(), "agents_dir": a.agents_dir,
            "config": {k: getattr(a, k) for k in ("n_pairs", "prefix", "tail", "ray_steps",
                                                  "l3_hidden", "l3_seed")},
            "seed_base": 980_000, "fold_scheme": folds.current_scheme(),

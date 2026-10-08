@@ -31,6 +31,8 @@ from __future__ import annotations
 
 import _bootstrap  # noqa: F401
 
+from itasorl.results_io import git_head  # noqa: E402
+
 import argparse
 import json
 import os
@@ -179,7 +181,7 @@ def main() -> int:
                 entry["converged_folds"] = int(sum(x["optimizer"]["converged_folds"] for x in diag))
                 entry["folds"] = int(sum(x["optimizer"]["folds"] for x in diag))
             agg[f"d={dmax:.2f} {g} {m}"] = entry
-    out = {"generated_by": "scripts/run_control_diagnostics.py", "run_dir": a.run_dir,
+    out = {"generated_by": "scripts/run_control_diagnostics.py", "git_commit": git_head(), "run_dir": a.run_dir,
            "config": {k: getattr(a, k) for k in ("n_eps", "steps", "ray_steps", "gru_epochs")},
            "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
            "all_dumps_bit_match": all(r.get("dump_bit_match", False) for r in results),

@@ -180,12 +180,30 @@ def render_md(t: dict) -> str:
     return "\n".join(L)
 
 
+def _rounded(x):
+    """Round finite floats to 6 decimals before dumping so the committed JSON is byte-stable
+    across platforms (Windows and Linux differ in the last ulp of a few statistics); NaN and
+    ints pass through unchanged."""
+    if isinstance(x, (float, np.floating)):
+        x = float(x)
+        return round(x, 6) if np.isfinite(x) else x
+    if isinstance(x, dict):
+        return {k: _rounded(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return [_rounded(v) for v in x]
+    return x
+
+
+def dump_json(t: dict) -> str:
+    return json.dumps(_rounded(t), indent=1, default=float) + "\n"
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args(argv)
     t = build()
-    want_json = json.dumps(t, indent=1, default=float) + "\n"
+    want_json = dump_json(t)
     want_md = render_md(t)
     if a.check:
         stale = []
