@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import _bootstrap  # noqa: F401
 
+from itasorl.results_io import git_head  # noqa: E402
+
 import argparse
 import glob
 import json
@@ -62,7 +64,7 @@ def main() -> int:
         cells[(float(c["drift"]), int(c["seed"]))] = c
     dmax = max(d for d, _ in cells)
     seeds = sorted(s for d, s in cells if d == dmax)
-    out = {"generated_by": "scripts/validate_population_readout.py", "run_dir": a.run_dir,
+    out = {"generated_by": "scripts/validate_population_readout.py", "git_commit": git_head(), "run_dir": a.run_dir,
            "drift": dmax, "seeds": seeds, "panels": {}}
     for arm in ("survival", "untrained"):
         pop, norms = [], []

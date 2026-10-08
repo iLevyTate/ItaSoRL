@@ -27,6 +27,8 @@ from __future__ import annotations
 
 import _bootstrap  # noqa: F401
 
+from itasorl.results_io import git_head  # noqa: E402
+
 import argparse
 import json
 import os
@@ -158,7 +160,7 @@ def main() -> int:
             if v:
                 agg[f"{g} {pr}"] = {"per_seed": v, "mean": float(np.mean(v)),
                                    "t90": [float(x) for x in t_ci90(v)] if len(v) > 1 else None}
-    out = {"generated_by": "scripts/run_policy_controlled_readouts.py", "run_dir": a.run_dir,
+    out = {"generated_by": "scripts/run_policy_controlled_readouts.py", "git_commit": git_head(), "run_dir": a.run_dir,
            "config": base, "fold_scheme": folds.current_scheme(),
            "fold_version": folds.scheme_version(), "cells": results, "aggregate": agg}
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)

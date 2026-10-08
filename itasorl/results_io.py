@@ -71,6 +71,12 @@ def _git_head() -> str | None:
         return None
 
 
+def git_head() -> str | None:
+    """Short hash of HEAD for provenance fields, or None outside a git checkout (for example
+    an extracted supplement)."""
+    return _git_head()
+
+
 def _device_info() -> dict[str, Any]:
     info: dict[str, Any] = {"python": sys.version.split()[0]}
     try:

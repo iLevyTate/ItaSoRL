@@ -10,20 +10,20 @@
    "source": "artifacts/expB2/expB2_results.json",
    "l0": {
     "n": 3,
-    "mean": 0.5202479338842975,
-    "sd": 0.04936071057684485,
-    "tost_p": 0.203043333951657,
+    "mean": 0.520248,
+    "sd": 0.049361,
+    "tost_p": 0.203043,
     "equivalent": false,
     "rope_interval": [
-     0.4644628099173554,
-     0.5582644628099173
+     0.464463,
+     0.558264
     ],
     "rope_share_inside": 0.854,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.47575757575757577,
+    "mean": 0.475758,
     "ok": true,
     "status": "pass"
    },
@@ -35,25 +35,25 @@
    "source": "artifacts/expB2/bv3_n10_gates.json",
    "l0": {
     "n": 10,
-    "mean": 0.5166482726759407,
-    "sd": 0.037341960680529425,
-    "tost_p": 0.009952286234440779,
+    "mean": 0.516648,
+    "sd": 0.037342,
+    "tost_p": 0.009952,
     "equivalent": true,
     "rope_interval": [
-     0.4945179063360882,
-     0.538244432609551
+     0.494518,
+     0.538244
     ],
     "rope_share_inside": 0.99915,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.5003848193966771,
+    "mean": 0.500385,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.7837325034198864,
+   "speed_min": 0.783733,
    "status": "historical"
   },
   {
@@ -62,20 +62,20 @@
    "source": "artifacts/fold_rescore/l3_h8_traces.json",
    "l0": {
     "n": 10,
-    "mean": 0.5166482726759407,
-    "sd": 0.037341960680529425,
-    "tost_p": 0.009952286234440779,
+    "mean": 0.516648,
+    "sd": 0.037342,
+    "tost_p": 0.009952,
     "equivalent": true,
     "rope_interval": [
-     0.4945179063360882,
-     0.538244432609551
+     0.494518,
+     0.538244
     ],
     "rope_share_inside": 0.99915,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.4878491008332905,
+    "mean": 0.487849,
     "ok": true,
     "status": "pass"
    },
@@ -87,20 +87,20 @@
    "source": "artifacts/fold_rescore/l3_h8_traces.json",
    "l0": {
     "n": 10,
-    "mean": 0.5392561983471074,
-    "sd": 0.03968185449487218,
-    "tost_p": 0.20705542804611274,
+    "mean": 0.539256,
+    "sd": 0.039682,
+    "tost_p": 0.207055,
     "equivalent": false,
     "rope_interval": [
-     0.5161983471074381,
-     0.5624803719008264
+     0.516198,
+     0.56248
     ],
     "rope_share_inside": 0.8164,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.5129752066115703,
+    "mean": 0.512975,
     "ok": true,
     "status": "pass"
    },
@@ -112,20 +112,20 @@
    "source": "artifacts/fold_rescore/l3_h7_traces.json",
    "l0": {
     "n": 10,
-    "mean": 0.5166482726759407,
-    "sd": 0.037341960680529425,
-    "tost_p": 0.009952286234440779,
+    "mean": 0.516648,
+    "sd": 0.037342,
+    "tost_p": 0.009952,
     "equivalent": true,
     "rope_interval": [
-     0.4945179063360882,
-     0.538244432609551
+     0.494518,
+     0.538244
     ],
     "rope_share_inside": 0.99915,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.5856261656656915,
+    "mean": 0.585626,
     "ok": true,
     "status": "pass"
    },
@@ -137,20 +137,20 @@
    "source": "artifacts/fold_rescore/l3_h7_traces.json",
    "l0": {
     "n": 10,
-    "mean": 0.5392561983471074,
-    "sd": 0.03968185449487218,
-    "tost_p": 0.20705542804611274,
+    "mean": 0.539256,
+    "sd": 0.039682,
+    "tost_p": 0.207055,
     "equivalent": false,
     "rope_interval": [
-     0.5161983471074381,
-     0.5624803719008264
+     0.516198,
+     0.56248
     ],
     "rope_share_inside": 0.8164,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.5999586776859505,
+    "mean": 0.599959,
     "ok": true,
     "status": "pass"
    },
@@ -162,20 +162,20 @@
    "source": "artifacts/fold_rescore/l3_h4_traces.json",
    "l0": {
     "n": 10,
-    "mean": 0.5166482726759407,
-    "sd": 0.037341960680529425,
-    "tost_p": 0.009952286234440779,
+    "mean": 0.516648,
+    "sd": 0.037342,
+    "tost_p": 0.009952,
     "equivalent": true,
     "rope_interval": [
-     0.4945179063360882,
-     0.538244432609551
+     0.494518,
+     0.538244
     ],
     "rope_share_inside": 0.99915,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.8913570487483531,
+    "mean": 0.891357,
     "ok": false,
     "status": "fail"
    },
@@ -187,20 +187,20 @@
    "source": "artifacts/fold_rescore/l3_h4_traces.json",
    "l0": {
     "n": 10,
-    "mean": 0.5392561983471074,
-    "sd": 0.03968185449487218,
-    "tost_p": 0.20705542804611274,
+    "mean": 0.539256,
+    "sd": 0.039682,
+    "tost_p": 0.207055,
     "equivalent": false,
     "rope_interval": [
-     0.5161983471074381,
-     0.5624803719008264
+     0.516198,
+     0.56248
     ],
     "rope_share_inside": 0.8164,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.8930991735537189,
+    "mean": 0.893099,
     "ok": false,
     "status": "fail"
    },
@@ -212,20 +212,20 @@
    "source": "artifacts/fold_rescore/l3_h8_heldout.json",
    "l0": {
     "n": 10,
-    "mean": 0.5166482726759407,
-    "sd": 0.037341960680529425,
-    "tost_p": 0.009952286234440779,
+    "mean": 0.516648,
+    "sd": 0.037342,
+    "tost_p": 0.009952,
     "equivalent": true,
     "rope_interval": [
-     0.4945179063360882,
-     0.538244432609551
+     0.494518,
+     0.538244
     ],
     "rope_share_inside": 0.99915,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.4878491008332905,
+    "mean": 0.487849,
     "ok": true,
     "status": "pass"
    },
@@ -237,20 +237,20 @@
    "source": "artifacts/fold_rescore/l3_h8_heldout.json",
    "l0": {
     "n": 10,
-    "mean": 0.5392561983471074,
-    "sd": 0.03968185449487218,
-    "tost_p": 0.20705542804611274,
+    "mean": 0.539256,
+    "sd": 0.039682,
+    "tost_p": 0.207055,
     "equivalent": false,
     "rope_interval": [
-     0.5161983471074381,
-     0.5624803719008264
+     0.516198,
+     0.56248
     ],
     "rope_share_inside": 0.8164,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.5129752066115703,
+    "mean": 0.512975,
     "ok": true,
     "status": "pass"
    },
@@ -262,20 +262,20 @@
    "source": "artifacts/fold_rescore/l3_h7_heldout.json",
    "l0": {
     "n": 10,
-    "mean": 0.5166482726759407,
-    "sd": 0.037341960680529425,
-    "tost_p": 0.009952286234440779,
+    "mean": 0.516648,
+    "sd": 0.037342,
+    "tost_p": 0.009952,
     "equivalent": true,
     "rope_interval": [
-     0.4945179063360882,
-     0.538244432609551
+     0.494518,
+     0.538244
     ],
     "rope_share_inside": 0.99915,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.5856261656656915,
+    "mean": 0.585626,
     "ok": true,
     "status": "pass"
    },
@@ -287,20 +287,20 @@
    "source": "artifacts/fold_rescore/l3_h7_heldout.json",
    "l0": {
     "n": 10,
-    "mean": 0.5392561983471074,
-    "sd": 0.03968185449487218,
-    "tost_p": 0.20705542804611274,
+    "mean": 0.539256,
+    "sd": 0.039682,
+    "tost_p": 0.207055,
     "equivalent": false,
     "rope_interval": [
-     0.5161983471074381,
-     0.5624803719008264
+     0.516198,
+     0.56248
     ],
     "rope_share_inside": 0.8164,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.5999586776859505,
+    "mean": 0.599959,
     "ok": true,
     "status": "pass"
    },
@@ -312,25 +312,25 @@
    "source": "artifacts/fold_rescore/l1_heldout.json",
    "l0": {
     "n": 10,
-    "mean": 0.5221199288195336,
-    "sd": 0.04044313465712683,
-    "tost_p": 0.02858897804037677,
+    "mean": 0.52212,
+    "sd": 0.040443,
+    "tost_p": 0.028589,
     "equivalent": true,
     "rope_interval": [
-     0.4986286402990948,
-     0.546182891877556
+     0.498629,
+     0.546183
     ],
     "rope_share_inside": 0.9891,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.49432523997741384,
+    "mean": 0.494325,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.7785650764532603,
+   "speed_min": 0.778565,
    "pool_leak_clean_all": true,
    "deaths_total": 0,
    "status": "historical"
@@ -341,25 +341,25 @@
    "source": "artifacts/fold_rescore/l1_heldout.json",
    "l0": {
     "n": 10,
-    "mean": 0.5463636363636364,
-    "sd": 0.03471118107206319,
-    "tost_p": 0.3740073826594641,
+    "mean": 0.546364,
+    "sd": 0.034711,
+    "tost_p": 0.374007,
     "equivalent": false,
     "rope_interval": [
-     0.5254545454545455,
-     0.5661570247933885
+     0.525455,
+     0.566157
     ],
     "rope_share_inside": 0.62845,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.5132231404958678,
+    "mean": 0.513223,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.7785650764532603,
+   "speed_min": 0.778565,
    "pool_leak_clean_all": true,
    "deaths_total": 0,
    "status": "historical"
@@ -370,25 +370,25 @@
    "source": "artifacts/expB2/arch_baseline_l3_h8_nowm.json",
    "l0": {
     "n": 10,
-    "mean": 0.5144628099173554,
-    "sd": 0.03573205590543465,
-    "tost_p": 0.00591589049059699,
+    "mean": 0.514463,
+    "sd": 0.035732,
+    "tost_p": 0.005916,
     "equivalent": true,
     "rope_interval": [
-     0.49359504132231413,
-     0.5352479338842976
+     0.493595,
+     0.535248
     ],
     "rope_share_inside": 0.99965,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.5294214876033058,
+    "mean": 0.529421,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.8348087690234614,
+   "speed_min": 0.834809,
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -399,25 +399,25 @@
    "source": "artifacts/expB2/device_control_l3_h8_wm_cpu.json",
    "l0": {
     "n": 10,
-    "mean": 0.5288429752066117,
-    "sd": 0.033643684210701214,
-    "tost_p": 0.038985085977746255,
+    "mean": 0.528843,
+    "sd": 0.033644,
+    "tost_p": 0.038985,
     "equivalent": true,
     "rope_interval": [
-     0.5087603305785124,
-     0.5483884297520663
+     0.50876,
+     0.548388
     ],
     "rope_share_inside": 0.98315,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.522603305785124,
+    "mean": 0.522603,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.8303314836852224,
+   "speed_min": 0.830331,
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -428,25 +428,25 @@
    "source": "artifacts/expB2/second_instance_l3_h10_gseed1.json",
    "l0": {
     "n": 10,
-    "mean": 0.5288429752066117,
-    "sd": 0.033643684210701214,
-    "tost_p": 0.038985085977746255,
+    "mean": 0.528843,
+    "sd": 0.033644,
+    "tost_p": 0.038985,
     "equivalent": true,
     "rope_interval": [
-     0.5087603305785124,
-     0.5483884297520663
+     0.50876,
+     0.548388
     ],
     "rope_share_inside": 0.98315,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.5136363636363637,
+    "mean": 0.513636,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.8303314836852224,
+   "speed_min": 0.830331,
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -457,25 +457,25 @@
    "source": "artifacts/expB2/second_instance_l3_h10_gseed1_gpu.json",
    "l0": {
     "n": 10,
-    "mean": 0.5392561983471074,
-    "sd": 0.03968185449487218,
-    "tost_p": 0.20705542804611274,
+    "mean": 0.539256,
+    "sd": 0.039682,
+    "tost_p": 0.207055,
     "equivalent": false,
     "rope_interval": [
-     0.5161983471074381,
-     0.5624803719008264
+     0.516198,
+     0.56248
     ],
     "rope_share_inside": 0.8164,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.5212396694214876,
+    "mean": 0.52124,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.8329777482461619,
+   "speed_min": 0.832978,
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -486,25 +486,25 @@
    "source": "artifacts/expB2/second_seed_l3_h8_gseed2_gpu.json",
    "l0": {
     "n": 10,
-    "mean": 0.5392561983471074,
-    "sd": 0.03968185449487218,
-    "tost_p": 0.20705542804611274,
+    "mean": 0.539256,
+    "sd": 0.039682,
+    "tost_p": 0.207055,
     "equivalent": false,
     "rope_interval": [
-     0.5161983471074381,
-     0.5624803719008264
+     0.516198,
+     0.56248
     ],
     "rope_share_inside": 0.8164,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.5499586776859504,
+    "mean": 0.549959,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.8135812336542937,
+   "speed_min": 0.813581,
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -515,25 +515,25 @@
    "source": "artifacts/expB2/skill_matched_l3_h8_nowm_u450.json",
    "l0": {
     "n": 10,
-    "mean": 0.5390495867768595,
-    "sd": 0.05874078333854971,
-    "tost_p": 0.2850100672700223,
+    "mean": 0.53905,
+    "sd": 0.058741,
+    "tost_p": 0.28501,
     "equivalent": false,
     "rope_interval": [
-     0.5066931818181817,
-     0.5764462809917356
+     0.506693,
+     0.576446
     ],
     "rope_share_inside": 0.73585,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.5129752066115703,
+    "mean": 0.512975,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.836869845890986,
+   "speed_min": 0.83687,
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -544,25 +544,25 @@
    "source": "artifacts/expB2/corrected_l3_h8_nowm.json",
    "l0": {
     "n": 10,
-    "mean": 0.5150826446280992,
-    "sd": 0.025837555003007096,
-    "tost_p": 0.0010347236528882233,
+    "mean": 0.515083,
+    "sd": 0.025838,
+    "tost_p": 0.001035,
     "equivalent": true,
     "rope_interval": [
-     0.5002479338842976,
-     0.5305371900826445
+     0.500248,
+     0.530537
     ],
     "rope_share_inside": 1.0,
     "rope_accept": true,
     "status": "pass"
    },
    "untrained_floor": {
-    "mean": 0.5294214876033058,
+    "mean": 0.529421,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.8348087690234614,
+   "speed_min": 0.834809,
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "corrected"
@@ -573,25 +573,25 @@
    "source": "artifacts/expB2/corrected_l3_h8_wm.json",
    "l0": {
     "n": 10,
-    "mean": 0.5594214876033058,
-    "sd": 0.017405367666555663,
-    "tost_p": 0.9394481311498583,
+    "mean": 0.559421,
+    "sd": 0.017405,
+    "tost_p": 0.939448,
     "equivalent": false,
     "rope_interval": [
-     0.5497520661157025,
-     0.5702479338842974
+     0.549752,
+     0.570248
     ],
     "rope_share_inside": 0.02835,
     "rope_accept": false,
     "status": "inconclusive (not shown equivalent)"
    },
    "untrained_floor": {
-    "mean": 0.522603305785124,
+    "mean": 0.522603,
     "ok": true,
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.8303314836852224,
+   "speed_min": 0.830331,
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "corrected"

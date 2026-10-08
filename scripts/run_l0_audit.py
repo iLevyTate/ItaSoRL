@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import _bootstrap  # noqa: F401
 
+from itasorl.results_io import git_head  # noqa: E402
+
 import argparse
 import json
 import os
@@ -61,7 +63,7 @@ def main() -> int:
         cells = [c for c in cells if c[1] < 2]
     dmax = max(c[0] for c in cells)
     bases = (STANDARD_BASES,) + AUDIT_BASES[: a.pairs]
-    out = {"agents_dir": a.agents_dir, "generated_by": "scripts/run_l0_audit.py",
+    out = {"agents_dir": a.agents_dir, "generated_by": "scripts/run_l0_audit.py", "git_commit": git_head(),
            "bases": [list(b) for b in bases], "n_eps": a.n_eps, "steps": a.steps,
            "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
            "l0": [], "paired": []}

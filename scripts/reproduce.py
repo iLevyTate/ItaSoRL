@@ -72,10 +72,20 @@ def _run(cmd: list[str]) -> int:
     return subprocess.call(cmd, cwd=ROOT)
 
 
+BUILDERS = ("build_results_manifest.py", "build_gate_table.py", "build_contrast_intervals.py",
+            "build_corrected_verdicts.py", "build_paper_tables.py")
+
+
 def tables(dumps: list[str]) -> int:
+    # Say first whether the committed pages already match what the builders produce here, so a
+    # rewrite that changes a tracked file is visible as such rather than silently dirtying it.
+    stale = 0
+    for script in BUILDERS:
+        stale |= _run([PY, os.path.join("scripts", script), "--check"])
+    print("committed tables and pages: " + ("current" if not stale else "stale here; rewriting"),
+          flush=True)
     rc = 0
-    for script in ("build_results_manifest.py", "build_gate_table.py", "build_contrast_intervals.py",
-                   "build_corrected_verdicts.py", "build_paper_tables.py"):
+    for script in BUILDERS:
         rc |= _run([PY, os.path.join("scripts", script)])
     rc |= _run([PY, os.path.join("scripts", "audit_stats_recheck.py")])
     for d in dumps:
@@ -109,9 +119,11 @@ def retrain(run: str, execute: bool) -> int:
 
 
 # Text scrubbing for the anonymized supplement. Identity terms are read at build time from
-# CITATION.cff (excluded from the archive) and the git remote, so this file names no one.
+# CITATION.cff and the git remote, so this file names no one. CITATION.cff itself is packaged
+# (the scalar audit's wording guards read it) and scrubbed like every other text file.
 GENERIC_SCRUB = [
-    (re.compile(r"[A-Za-z]:[/\\]Users[/\\][^/\\\s\"']+", re.I), "<local-path>"),
+    # One or more separators: a Windows path inside a JSON string carries doubled backslashes.
+    (re.compile(r"[A-Za-z]:[/\\]+Users[/\\]+[^/\\\s\"']+", re.I), "<local-path>"),
     (re.compile(r"/home/[^/\s\"']+"), "<local-path>"),
     (re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+"), "<email>"),
     (re.compile(r"orcid\.org/[\d-]+X?", re.I), "orcid.org/<orcid>"),
@@ -149,7 +161,18 @@ def scrub_rules() -> list:
     return rules
 
 
-TEXT_EXT = {".py", ".md", ".json", ".txt", ".sh", ".toml", ".ini", ".cfg", ".log", ".yml", ".yaml"}
+TEXT_EXT = {".py", ".md", ".json", ".txt", ".sh", ".toml", ".ini", ".cfg", ".log", ".yml", ".yaml",
+            ".cff", ".html", ".js", ".css", ".err", ".tex", ".bib", ".csv", ".ipynb"}
+
+
+def is_text(name: str) -> bool:
+    """Scrubbed and scanned as text: a known text extension, or no extension at all (LICENSE,
+    SHA256SUMS)."""
+    base = os.path.basename(name)
+    ext = os.path.splitext(base)[1]
+    return ext.lower() in TEXT_EXT or (ext == "" and "." not in base)
+
+
 INCLUDE_DIRS = ["itasorl", "scripts", "tests", "artifacts"]
 INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "pytest.ini",
                  "ruff.toml", "LICENSE",
@@ -162,7 +185,9 @@ INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "
                  "docs/STATUS_2026-09-27.md", "docs/AUDIT_2026-07.md",
                  # read by the scalar audit's wording guards and the site check:
                  "README.md", "CITATION.cff", "index.html", "index.template.html",
-                 "viz/player/brain/brain.js"]
+                 "viz/player/brain/brain.js",
+                 # imported by tests/test_viz_collect.py and tests/test_colab_notebook.py:
+                 "viz/collect.py", "notebooks/colab_gpu.ipynb"]
 RUN_DIRS = ["fullruns/corrected_l3_h8_wm", "fullruns/corrected_l3_h8_nowm"]
 
 
@@ -172,16 +197,43 @@ def scrub(text: str, rules=None) -> str:
     return text
 
 
-def _files() -> list[str]:
+def _git_files() -> list[str] | None:
+    """Every path git would commit: tracked plus untracked-but-not-ignored. None outside a
+    checkout (an extracted supplement rebuilding itself)."""
+    try:
+        res = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+                             cwd=ROOT, capture_output=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return [n.decode("utf-8", errors="replace") for n in res.stdout.split(b"\0") if n]
+
+
+def _walk(d: str) -> list[str]:
     out = []
-    for d in INCLUDE_DIRS + ["docs/specs", "docs/figures"] + [
-            r for r in RUN_DIRS if os.path.isdir(os.path.join(ROOT, r))]:
-        for base, dirs, files in os.walk(os.path.join(ROOT, d)):
-            dirs[:] = [x for x in dirs if x != "__pycache__"]
-            for f in files:
-                out.append(os.path.relpath(os.path.join(base, f), ROOT).replace(os.sep, "/"))
+    for base, dirs, files in os.walk(os.path.join(ROOT, d)):
+        dirs[:] = [x for x in dirs if x != "__pycache__"]
+        for f in files:
+            out.append(os.path.relpath(os.path.join(base, f), ROOT).replace(os.sep, "/"))
+    return out
+
+
+def _files() -> list[str]:
+    """The archive's file list follows git, not the filesystem, so gitignored scratch output
+    under the included directories (artifacts/clip_audit/, about 400 MB) never ships. The
+    corrected runs' cells, agents and state dumps (RUN_DIRS) are gitignored by design and are
+    walked when present."""
+    roots = INCLUDE_DIRS + ["docs/specs", "docs/figures"]
+    listed = _git_files()
+    if listed is None:
+        out = [f for d in roots for f in _walk(d)]
+    else:
+        out = [f for f in listed if "__pycache__" not in f
+               and any(f == d or f.startswith(d + "/") for d in roots)]
+    for r in RUN_DIRS:
+        if os.path.isdir(os.path.join(ROOT, r)):
+            out += _walk(r)
     out += [f for f in INCLUDE_FILES if os.path.exists(os.path.join(ROOT, f))]
-    return sorted(set(out))
+    return sorted({f for f in set(out) if os.path.isfile(os.path.join(ROOT, f))})
 
 
 def supplement(out: str) -> int:
@@ -192,7 +244,7 @@ def supplement(out: str) -> int:
         for rel in _files():
             with open(os.path.join(ROOT, rel), "rb") as fh:
                 data = fh.read()
-            if os.path.splitext(rel)[1] in TEXT_EXT:
+            if is_text(rel):
                 data = scrub(data.decode("utf-8", errors="replace"), rules).encode("utf-8")
             z.writestr(rel, data)
             sums.append(f"{hashlib.sha256(data).hexdigest()}  {rel}")
@@ -204,7 +256,7 @@ def supplement(out: str) -> int:
     leaks = []
     with zipfile.ZipFile(os.path.join(ROOT, out)) as z:
         for n in z.namelist():
-            if os.path.splitext(n)[1] in TEXT_EXT:
+            if is_text(n):
                 t = z.read(n).decode("utf-8", errors="replace")
                 if any(p.search(t) for p, _ in rules):
                     leaks.append(n)

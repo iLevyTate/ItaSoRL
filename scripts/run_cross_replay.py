@@ -25,6 +25,8 @@ from __future__ import annotations
 
 import _bootstrap  # noqa: F401
 
+from itasorl.results_io import git_head  # noqa: E402
+
 import argparse
 import json
 import os
@@ -98,7 +100,7 @@ def main() -> int:
         "stream_effect_in_a_trunk (a_on_a - a_on_b)": paired_contrast(v["a_on_a"], v["a_on_b"], 0.0),
         "stream_effect_in_b_trunk (b_on_a - b_on_b)": paired_contrast(v["b_on_a"], v["b_on_b"], 0.0),
     }
-    out = {"generated_by": "scripts/run_cross_replay.py", "status": "exploratory (post hoc)",
+    out = {"generated_by": "scripts/run_cross_replay.py", "git_commit": git_head(), "status": "exploratory (post hoc)",
            "config": base, "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
            "cells": results, "aggregate": agg, "contrasts": contrasts}
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
