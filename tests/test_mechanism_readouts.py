@@ -196,14 +196,23 @@ def test_driver_quick_on_a_smoke_run(tmp_path):
 
 
 def _summary(real_sham=(0.2, 0.05, 0.35), n_inf=8, s_auc=0.7, s_corr=(0.3, 0.1, 0.5),
-             gap1=(0.02, 0.01, 0.03), adapt=(0.01, 0.002, 0.02)):
+             gap1=(0.02, 0.01, 0.03), adapt=(0.01, 0.002, 0.02),
+             floor=(0.01, -0.05, 0.07), floor_n=8, with_floors=True):
     def pk(m, lo, hi):
         return {"n": n_inf, "mean": m, "ci90": [lo, hi]}
-    return {"n_seeds": 10, "n_informative": n_inf,
-            "intervention_real_minus_sham": pk(*real_sham),
-            "surprise_auroc": pk(s_auc, s_auc - 0.05, s_auc + 0.05),
-            "surprise_corr": pk(*s_corr),
-            "adaptation_gap_first": pk(*gap1), "adaptation": pk(*adapt)}
+
+    def block(rs, n):
+        return {"n_informative": n, "intervention_real_minus_sham": pk(*rs),
+                "surprise_auroc": pk(0.5, 0.45, 0.55), "surprise_corr": pk(0.0, -0.1, 0.1),
+                "adaptation_gap_first": pk(0.0, -0.01, 0.01), "adaptation": pk(0.0, -0.01, 0.01)}
+    s = {"n_seeds": 10, "n_informative": n_inf,
+         "intervention_real_minus_sham": pk(*real_sham),
+         "surprise_auroc": pk(s_auc, s_auc - 0.05, s_auc + 0.05),
+         "surprise_corr": pk(*s_corr),
+         "adaptation_gap_first": pk(*gap1), "adaptation": pk(*adapt)}
+    if with_floors:
+        s["floors"] = {"untrained": block(floor, floor_n), "predictor": block((0.03, -0.02, 0.08), 9)}
+    return s
 
 
 def test_decide_intervention_rule():
@@ -237,3 +246,61 @@ def test_decide_stakes_rule():
     assert dg.stakes_verdict(means, contrast)["pass"] is True
     assert dg.stakes_verdict({**means, "S-immortal": 0.75}, contrast)["pass"] is False  # order
     assert dg.stakes_verdict(means, {"mean": 0.04, "ci90": [0.01, 0.07]})["pass"] is False
+
+
+def test_decide_intervention_floor_condition():
+    import decide_goal_stakes as dg
+    # trained passes, untrained floor does not meet the 0.10 rule: pass, floors reported
+    v = dg.intervention_verdict(_summary())
+    assert v["pass"] is True and v["floor_met"] is False
+    assert v["floor"]["mean"] == 0.01 and v["predictor"]["mean"] == 0.03 and "note" not in v
+    # trained passes but the untrained floor meets the rule too: fail with the floor wording
+    v = dg.intervention_verdict(_summary(floor=(0.15, 0.05, 0.25)))
+    assert v["pass"] is False and v["floor_met"] is True
+    assert v["wording"].startswith("the trained arm's nudge moved behavior, but not separably")
+    # a floor with too few informative seeds, or a lower bound at or below zero, is not met
+    assert dg.intervention_verdict(_summary(floor=(0.15, 0.05, 0.25), floor_n=6))["pass"] is True
+    assert dg.intervention_verdict(_summary(floor=(0.15, -0.01, 0.31)))["pass"] is True
+    # trained fails: the fail wording regardless of the floor
+    v = dg.intervention_verdict(_summary(real_sham=(0.05, 0.01, 0.09), floor=(0.15, 0.05, 0.25)))
+    assert v["pass"] is False and v["wording"].startswith("the decoded direction did not move")
+    # older JSON without floors: pass with a note, floor None
+    v = dg.intervention_verdict(_summary(with_floors=False))
+    assert v["pass"] is True and v["floor"] is None and v["predictor"] is None
+    assert v["note"] == "no floor recorded"
+
+
+def test_decide_touch_wording_and_survival_note():
+    import decide_goal_stakes as dg
+    assert dg.touch_wording(True, True).startswith("a pellet-directed goal without survival stakes")
+    for met, gates in ((False, True), (True, False), (None, True), (True, None), (False, False)):
+        assert dg.touch_wording(met, gates).startswith("pellet-seeking without stakes did not meet")
+    assert dg.survival_note(False, True) == "pellet-seeking alone was not enough in this world"
+    assert dg.survival_note(True, True) is None
+    assert dg.survival_note(False, False) is None
+    assert dg.survival_note(None, True) is None      # unknown T-touch earns no survival wording
+    assert dg.survival_note(True, False) is None
+
+
+def test_decide_touch_primary_reads_the_promoted_layout():
+    import json
+    import decide_goal_stakes as dg
+    # the committed C1 artifact is the exact layout promote_reviewer_gaps_runs.py writes
+    r = json.loads((ROOT / "artifacts" / "expB2" / "corrected_l3_h8_wm.json").read_text(encoding="utf-8"))
+    assert dg.primary_met(r["decision"]) is True
+    g = dg.gates_pass(r["gates"])
+    assert set(g["per_gate"]) == {"engagement", "l0_equivalence", "speed", "reward_leak",
+                                  "untrained_floor", "deaths"}
+    assert g["per_gate"]["engagement"] is True and g["per_gate"]["deaths"] is True
+    assert g["per_gate"]["l0_equivalence"] is False        # C1's L0 TOST did not accept equivalence
+    assert g["all"] is False and g["failed"] == ["l0_equivalence"] and g["not_shown"] == []
+    # missing clauses and gates read as unknown, never as passed
+    assert dg.primary_met({k: True for k in dg._PRIMARY_CLAUSES if k != "pass_bar"}) is None
+    assert dg.primary_met({**{k: True for k in dg._PRIMARY_CLAUSES}, "t90_excludes_bar": False}) is False
+    g = dg.gates_pass({"pool_leak_clean_all": True})
+    assert g["all"] is None and g["failed"] == [] and len(g["not_shown"]) == 5
+    assert dg.gates_pass({})["all"] is None
+    t = dg.touch_primary(str(ROOT / "artifacts" / "expB2" / "corrected_l3_h8_wm.json"))
+    assert t["met"] is True and t["gates_pass"] is False
+    assert t["wording"].startswith("pellet-seeking without stakes did not meet")
+    assert t["zone"].startswith("ENCODING INDUCED")
