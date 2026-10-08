@@ -61,7 +61,7 @@ P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 AG = ("untrained", "predictor", "survival")
 
 
-def cfg():
+def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser()
     ap.add_argument("--quick", action="store_true", help="fast sanity pass (tiny scale)")
     ap.add_argument("--drifts", type=float, nargs="+", default=[0.0, 0.45])
@@ -101,6 +101,13 @@ def cfg():
     # SURVIVAL_METAB/SURVIVAL_FOOD; setting these sweeps how hard survival bites.
     ap.add_argument("--basal_e", type=float, default=None, help="override survival basal energy burn")
     ap.add_argument("--n_pellets", type=int, default=None, help="override pellet count (scarcity)")
+    ap.add_argument("--objective", choices=b2.OBJECTIVES, default="survival",
+                    help="reward of the TRAINED arm: survival (the homeostatic reward) or "
+                         "touch (+1 per pellet consumed, cost ignored); goal-and-stakes spec "
+                         "docs/specs/2026-10-07-goal-and-stakes-design.md")
+    ap.add_argument("--mortal", choices=("on", "off"), default="on",
+                    help="off: the world's death check is switched off for every arm and "
+                         "baseline (energy still evolves and is observed); goal-and-stakes spec")
     ap.add_argument("--reach", type=float, default=None, help="override eat reach radius")
     # B-v3 coupling: "ar1" = the pre-registered volatility surrogate; "regime" = a per-episode
     # CONSTANT drag offset (identifiable + policy-relevant), the "make it work as intended" arm.
@@ -156,7 +163,11 @@ def cfg():
                     help="continue an interrupted run: load matching cell "
                          "checkpoints from <out-dir>/cells and run only the "
                          "missing (drift, seed) cells")
-    a = ap.parse_args()
+    return ap
+
+
+def _finalize(a: argparse.Namespace) -> argparse.Namespace:
+    """Post-parse scale overrides and validation shared by cfg() and cfg_from_argv()."""
     if a.quick:
         a.drifts, a.seeds, a.updates, a.n_eps, a.max_steps = [0.0, 0.45], [0, 1], 60, 8, 40
         a.hidden, a.ray_steps, a.pool_n, a.pool_steps = 64, 4, 40, 16
@@ -174,6 +185,16 @@ def cfg():
                 f"--drift-mode l1 requires exactly one non-zero --drifts value "
                 f"equal to --l1-delta ({a.l1_delta}); got {a.drifts}")
     return a
+
+
+def cfg_from_argv(argv: list[str]) -> argparse.Namespace:
+    """Parse an explicit argv list (tests) and apply the post-parse overrides."""
+    return _finalize(build_parser().parse_args(argv))
+
+
+def cfg() -> argparse.Namespace:
+    """Parse sys.argv and apply the post-parse overrides."""
+    return _finalize(build_parser().parse_args())
 
 
 def survival_update_budget(k: dict) -> int:
@@ -200,6 +221,10 @@ def config_fingerprint(base: dict) -> str:
     if fp.get("l3_family", "gmotion") == "gmotion":
         fp.pop("l3_family", None)
         fp.pop("l3_family_param", None)
+    if fp.get("objective", "survival") == "survival":
+        fp.pop("objective", None)
+    if bool(fp.get("mortal", True)):
+        fp.pop("mortal", None)
     if not fp.get("budget_snapshots"):
         fp.pop("budget_snapshots", None)
     payload = json.dumps(fp, sort_keys=True, default=float)
@@ -393,6 +418,8 @@ def run_cell(task: dict) -> dict:
         b2.SURVIVAL_FOOD["n_pellets"] = k["n_pellets"]
     if k.get("reach") is not None:
         b2.SURVIVAL_FOOD["reach"] = k["reach"]
+    b2.OBJECTIVE = k.get("objective", "survival")
+    b2.MORTAL = bool(k.get("mortal", True))
     if k.get("drift_mode"):
         b2.DRIFT_MODE = k["drift_mode"]
     if k.get("drift_mode") == "l1":
@@ -438,6 +465,9 @@ def run_cell(task: dict) -> dict:
     a_ns = argparse.Namespace(**k)               # evaluate_agent reads attrs off a namespace
     out = {"drift": d, "seed": s, "eng": eng, "xeval": xev, "agents": {},
            "gae_bootstrap": k.get("gae_bootstrap", "successor"),
+           "objective": k.get("objective", "survival"), "mortal": bool(k.get("mortal", True)),
+           "knobs": {key: k.get(key) for key in ("n_pellets", "basal_e", "reach", "drift_mode",
+                                                 "l3_hidden", "l3_seed", "l3_family")},
            "survival_train": {"updates": head, "env_steps": tstats["env_steps"][head - 1]}}
     for g in AG:
         pool, mp, ho = evaluate_agent(agents[g][0], agents[g][1], d, a_ns, dev, s, g)
@@ -560,6 +590,8 @@ def main():
         b2.SURVIVAL_FOOD["n_pellets"] = a.n_pellets
     if a.reach is not None:
         b2.SURVIVAL_FOOD["reach"] = a.reach
+    b2.OBJECTIVE = a.objective
+    b2.MORTAL = a.mortal == "on"
     b2.DRIFT_MODE = a.drift_mode
     if a.drift_mode == "l1":
         b2.L1_DELTA = a.l1_delta
@@ -568,7 +600,7 @@ def main():
     results_path = os.path.join(a.out_dir, "expB2_results.json")
     print(f"Experiment B-v2 full run  (device={dev}, drifts={a.drifts}, seeds={a.seeds}, "
           f"updates={a.updates}, survival_updates={a.survival_updates}, workers={a.workers}, "
-          f"gae_bootstrap={a.gae_bootstrap})")
+          f"gae_bootstrap={a.gae_bootstrap}, objective={a.objective}, mortal={a.mortal})")
     print(f"  survival metabolism={b2.SURVIVAL_METAB}  food={b2.SURVIVAL_FOOD}  drift_mode={b2.DRIFT_MODE}")
     if a.drift_mode == "regime":
         print("  drift_mode=regime: surrogate = per-episode CONSTANT drag offset "
@@ -610,6 +642,7 @@ def main():
                                        "survival_updates", "gae_bootstrap", "budget_extend",
                                        "budget_snapshots", "l3_family", "l3_family_param")}
     base.update(drifts=a.drifts, device=dev, out_dir=a.out_dir, save_agents=a.save_agents)
+    base.update(objective=a.objective, mortal=(a.mortal == "on"))
     if a.heldout_evals:
         base.update(heldout_evals=True, heldout_hidden=a.heldout_hidden,
                     cg_prefix=a.cg_prefix, cg_steps=a.cg_steps)

@@ -94,6 +94,14 @@ class RecurrentActorCritic(nn.Module):
             deterministic: bool = False):
         """One control step. Returns (raw_act, env_act, logp, value, h')."""
         h = self.step_state(obs, prev_act, h)
+        raw_act, env_act, logp, value = self.act_from_state(h, deterministic)
+        return raw_act, env_act, logp, value, h
+
+    @torch.no_grad()
+    def act_from_state(self, h: torch.Tensor, deterministic: bool = False):
+        """Policy head only: (raw_act, env_act, logp, value) from an already-updated state h.
+        act() is step_state() followed by this; callers that modify h between the two
+        steps use the pair explicitly."""
         cont, bino = self._dist(h)
         if deterministic:
             raw_c = cont.mean
@@ -105,7 +113,7 @@ class RecurrentActorCritic(nn.Module):
         value = self.critic(h).squeeze(-1)
         raw_act = torch.cat([raw_c, b], dim=-1)
         env_act = self.to_env_action(raw_c, b)
-        return raw_act, env_act, logp, value, h
+        return raw_act, env_act, logp, value
 
     # --- training (recompute over a stored trajectory) ----------------------
     def score_actions(self, obs_seq: torch.Tensor, act_in_seq: torch.Tensor,

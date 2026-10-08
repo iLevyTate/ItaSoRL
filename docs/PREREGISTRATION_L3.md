@@ -888,6 +888,32 @@ Rigor carried from the B-v3 audit (2026-07-10):
   exists; the cross-run replay of 17.10 was written after these results were read and is
   labeled exploratory.
 
+- **2026-10-07 - GOAL AND STAKES RUNS: PREREGISTERED (spec
+  `docs/specs/2026-10-07-goal-and-stakes-design.md`).** Three runs on the corrected trainer,
+  cell for cell against `C1`, frozen before any cell exists. `T-touch`: the trained arm is
+  rewarded +1 per pellet eaten with death off (a goal without stakes). `S-immortal`: the
+  survival reward with death off. `S-scarce`: the survival reward at a pellet count chosen by
+  a frozen calibration rule (scripted-walker 80-step death rate in [0.40, 0.60] at drift 0,
+  within 0.10 of the drift 0.45 rate, zero deaths inside the 24-step pooled window), to be
+  recorded here as a dated amendment before launch. Two runner flags (`--objective`,
+  `--mortal`) default to the registered behavior and are excluded from the config fingerprint
+  at their defaults, so no historical checkpoint changes hash. Frozen wording: `T-touch`
+  meeting the primary rule reads "a pellet-directed goal without survival stakes produces
+  walks from which the condition is decodable; survival is not required"; the stakes claim
+  needs `S-immortal` < `C1` < `S-scarce` with the paired `S-scarce` minus `S-immortal` contrast
+  at least +0.05 and its 90% interval excluding zero; no survival-specific wording returns
+  on any outcome beyond "pellet-seeking alone was not enough in this world". Engagement for
+  the touch objective is a 1.5x ratio over the better baseline, since the registered
+  absolute margin was calibrated on the survival reward's scale. Everything else is the
+  registered rule set. Four mechanism readouts are frozen in the same spec and applied to
+  every run and to `C1` on the saved trained arm: an intervention test (state nudged by one
+  standard deviation along the decoded direction against a sham direction; passes if it
+  closes at least 0.10 more of the authentic-to-surrogate behavior gap than the sham, paired
+  interval excluding zero), a descriptive between-world behavior comparison, a
+  prediction-error channel (surprise probe at least 0.65 and a within-world correlation with
+  the decoded direction of at least 0.20), and a within-lifetime foraging-recovery test that
+  is reported as uninformative unless the surrogate reduces intake in the first half of an
+  episode. None of these changes the primary verdict or the stakes rule.
 - **2026-10-07 - COMPARATOR-TRAINED `qd` RUN RECORDED AS EXECUTED AND SET ASIDE (FINDINGS
   17.9 addendum).** The 2026-10-06 entries above and the comparator spec say the
   comparator-trained run `T-qd` is not run. One was in fact executed on 2026-10-06 (commit
