@@ -2810,6 +2810,57 @@ separation then comes from the dynamics, not from the world sample. Survival **0
 dropped. The survival reading does not depend on the two pools being different world
 samples.
 
+### 17.5.1 Drift-0.45 world-sample sensitivity (2026-10-08, historical hidden-8 held-out agents)
+
+Section 17.5 measured the world-sample component at drift 0 only. A design frozen before the
+run (`docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md`; announced in
+`docs/PREREGISTRATION_L3.md` section 12 on 2026-10-08) carries the same eight independent
+pairs to drift 0.45, where the headline is read. The corrected `C1` agents are not in the
+repository, so the ten saved survival agents at drift 0.45 of the historical hidden-8 held-out
+run (`L3-H8-HELDOUT`, pre-correction trainer, the only in-band hidden-8 instance with saved
+weights) are scored instead (`scripts/run_world_sample_sensitivity.py`,
+`artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`). The run was scored in two
+sessions on the owner's laptop CPU: eight seeds at code commit `65d47ed`, then, after the
+session's memory guard stopped the process, the last two seeds from the per-seed
+checkpoints at `865b842`; the readout code is byte-identical at both commits, the artifact
+records the resumed session's commit and only its wall time, and `fullruns/d045_world_samples/`
+holds the checkpoints and both logs. The
+result measures the structural sensitivity of this estimator to the evaluation-world draw. It
+is **not** a re-measurement of the corrected headline, and it changes no gate, margin, or
+registered verdict.
+
+**Integrity gate, checked first.** Rescoring the registered pair on CPU reproduces the run's
+recorded explicit-partition per-seed targets on every seed, worst |dev| 0.0037 against the
+0.01 tolerance (`artifacts/fold_rescore/l3_h8_heldout.json`), so the readout transfers and the
+run is valid.
+
+**The nine draws.** Per draw, the pooled survival target averaged over the ten agent seeds.
+The means are signed and never folded: at drift 0.45 there is a real, consistently signed
+effect, and folding would turn a low draw into a high number.
+
+| draw | seed bases (authentic / surrogate) | mean over 10 agents |
+|---|---|---|
+| registered | 800000 / 850000 | 0.774 |
+| independent 1 | 1000000 / 1050000 | 0.860 |
+| independent 2 | 1100000 / 1150000 | 0.728 |
+| independent 3 | 1200000 / 1250000 | 0.807 |
+| independent 4 | 1300000 / 1350000 | 0.791 |
+| independent 5 | 1400000 / 1450000 | 0.750 |
+| independent 6 | 1500000 / 1550000 | 0.787 |
+| independent 7 | 1600000 / 1650000 | 0.749 |
+| independent 8 | 1700000 / 1750000 | 0.766 |
+
+The registered **0.774** ranks **5** of 9 (1 is the largest); the independent draws
+**0.728** to **0.860**, sd **0.042**, t-based 90% interval over the
+eight draw means [0.752, 0.808]; **8 of 8** independent draws at or
+above the 0.65 bar. Under the rule frozen in the spec (SECURE if every independent draw is at
+or above 0.65 and the registered draw ranks 5 or lower; DRAW-DEPENDENT if any independent draw
+is below 0.65; INDETERMINATE otherwise) the verdict **SECURE**. Every independent draw clears the bar and the registered draw sits at or below the median of the nine, so the level this estimator reads is not a product of a favourable draw.
+For comparison, the drift-0 between-draw sd on the corrected agents is 0.049 (17.5); on these
+historical agents the drift-0.45 between-draw sd is 0.042, so the draw
+moves the reading by a comparable amount at the condition the headline is read, and every
+interval reported on a single-pair pooled target remains conditional on its draw.
+
 ### 17.6 Who drives the evaluation episodes (revision step 6)
 
 The standard readout scores each arm on episodes its own actor head generates. The three arms
