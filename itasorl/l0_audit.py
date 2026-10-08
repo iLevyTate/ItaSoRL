@@ -29,7 +29,7 @@ from . import folds
 from .experiment_a import grouped_auroc
 from .experiment_b import episode_features
 from .experiment_b2 import _seeds, collect_pool, make_world, pooled_readout
-from .stats import auroc_ci, cluster_auroc_ci
+from .stats import auroc_ci, cluster_auroc_ci, t_ci90
 
 STANDARD_BASES = (800_000, 850_000)
 # Independent world-sample pairs for the L0 audit, disjoint from every seed base the
@@ -61,19 +61,76 @@ def pre_intervention_probe(params, bases=STANDARD_BASES, n: int = 110, ray_steps
             "partition": folds.partition_record(g, y)}
 
 
+def world_sample_scan(agent, norm, params, drift_sigma: float, *, bases=AUDIT_BASES,
+                      n_eps: int = 110, steps: int = 24, ray_steps: int = 5,
+                      device: str = "cpu", seed: int = 0,
+                      first_state: bool = False) -> list[dict]:
+    """Pooled target of one agent on each pair of independent world samples, at any drift.
+
+    At drift 0 both pools are authentic and this measures how separable two finite samples
+    of worlds look (the L0 use, via `l0_world_samples`). At drift > 0 it measures how much
+    the headline reading itself moves with the draw of evaluation worlds, which is the
+    question frozen in docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md.
+    """
+    rows = []
+    for a, b in bases:
+        r = pooled_readout(agent, norm, params, drift_sigma=drift_sigma, n_eps=n_eps,
+                           steps=steps, ray_steps=ray_steps, device=device, seed=seed,
+                           seed_base_auth=a, seed_base_surr=b)
+        row = {"bases": [a, b], "target": r["target"], "n": r["n"]}
+        if first_state:
+            row["first_state_target"] = _first_state_target(agent, norm, params, a, b,
+                                                            n_eps, ray_steps, device)
+        rows.append(row)
+    return rows
+
+
 def l0_world_samples(agent, norm, params, *, bases=AUDIT_BASES, n_eps: int = 110,
                      steps: int = 24, ray_steps: int = 5, device: str = "cpu",
                      seed: int = 0) -> list[dict]:
     """L0 target of one drift-0 agent on each pair of independent world samples."""
-    rows = []
-    for a, b in bases:
-        r = pooled_readout(agent, norm, params, 0.0, n_eps=n_eps, steps=steps,
-                           ray_steps=ray_steps, device=device, seed=seed,
-                           seed_base_auth=a, seed_base_surr=b)
-        rows.append({"bases": [a, b], "target": r["target"], "n": r["n"],
-                     "first_state_target": _first_state_target(agent, norm, params, a, b,
-                                                               n_eps, ray_steps, device)})
-    return rows
+    return world_sample_scan(agent, norm, params, 0.0, bases=bases, n_eps=n_eps,
+                             steps=steps, ray_steps=ray_steps, device=device, seed=seed,
+                             first_state=True)
+
+
+def world_sample_summary(independent_means, registered_mean: float, *,
+                         bar: float = 0.65) -> dict:
+    """Adjudicate the drift-0.45 world-sample scan under the rule frozen on 2026-10-08.
+
+    The means are SIGNED and are never folded about chance. Folding is the conservative
+    choice at drift 0, where the null is chance and a reading of 0.406 is as much
+    separation as 0.594; where a real signed effect exists it is anti-conservative,
+    because it converts a weak draw into a strong number and would manufacture a pass.
+
+    Three outcomes, mutually exclusive and jointly exhaustive. Let m be the independent
+    draw means and r the registered draw's rank among all nine, 1 being the largest:
+      DRAW-DEPENDENT  min(m) < bar
+      SECURE          min(m) >= bar and r >= 5   (registered at or below the median)
+      INDETERMINATE   min(m) >= bar and r <= 4   (registered above the median)
+    """
+    m = np.asarray(list(independent_means), dtype=float)
+    if m.size == 0:
+        raise ValueError("world_sample_summary needs at least one independent draw")
+    allm = np.append(m, float(registered_mean))
+    rank = int((allm > float(registered_mean)).sum()) + 1
+    below = bool(m.min() < bar)
+    verdict = "DRAW-DEPENDENT" if below else ("SECURE" if rank >= 5 else "INDETERMINATE")
+    lo, hi = t_ci90(m) if m.size > 1 else (float("nan"), float("nan"))
+    return {
+        "n_draws": int(m.size),
+        "per_draw": [float(x) for x in m],
+        "registered": float(registered_mean),
+        "registered_rank": rank,
+        "min": float(m.min()),
+        "max": float(m.max()),
+        "mean": float(m.mean()),
+        "between_draw_sd": float(m.std(ddof=1)) if m.size > 1 else float("nan"),
+        "t90_over_draws": [float(lo), float(hi)],
+        "bar": float(bar),
+        "n_at_or_above_bar": int((m >= bar).sum()),
+        "verdict": verdict,
+    }
 
 
 def _first_state_target(agent, norm, params, base_a, base_b, n, ray_steps, device) -> float:
