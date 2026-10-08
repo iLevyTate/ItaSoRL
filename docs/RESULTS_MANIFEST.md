@@ -52,6 +52,10 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `C1-CONTROL-DIAG` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-TEXTURE` | corrected | H2 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-POPULATION` | corrected | C | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `T-TOUCH` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `S-IMMORTAL` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `S-SCARCE` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-MECHANISM` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `BUDGET-CURVE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | not recorded | explicit | not recorded |
 | `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 7870bba | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
@@ -576,6 +580,61 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/validate_population_readout.py; revision step 12.
 - Artifacts: `artifacts/population_readout/corrected_l3_h8_wm.json`
+
+### `T-TOUCH`: Pellet-touch objective, death off, registered food, n = 10 (goal-and-stakes)
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: pending
+- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Budget: {"survival_updates": 300, "predictor_updates": 300}
+- Folds: explicit
+- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
+- Local run directory (not in git): artifacts/goal_stakes/T-touch
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. Cells committed from the cloud session as they land; mechanism.json from scripts/run_mechanism_readouts.py. Directory registered ahead of the run (.gitkeep placeholder until cells land).
+- Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "objective": "touch", "mortal": false}
+- Artifacts: `artifacts/goal_stakes/T-touch`
+
+### `S-IMMORTAL`: Survival objective, death off, registered food, n = 10 (goal-and-stakes)
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: pending
+- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Budget: {"survival_updates": 300, "predictor_updates": 300}
+- Folds: explicit
+- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
+- Local run directory (not in git): artifacts/goal_stakes/S-immortal
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. Directory registered ahead of the run (.gitkeep placeholder until cells land).
+- Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "mortal": false}
+- Artifacts: `artifacts/goal_stakes/S-immortal`
+
+### `S-SCARCE`: Survival objective, death on, scarce food (calibrated), n = 10 (goal-and-stakes)
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: pending
+- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Budget: {"survival_updates": 300, "predictor_updates": 300}
+- Folds: explicit
+- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
+- Local run directory (not in git): artifacts/goal_stakes/S-scarce
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; pellet count by the frozen calibration rule, recorded as a dated PREREGISTRATION_L3 amendment. The calibration output artifacts/goal_stakes/calibration.json (scripts/calibrate_scarcity.py) does not exist yet; add it to this row's artifacts when it lands, or --check reports it as unowned. Directory registered ahead of the run (.gitkeep placeholder until cells land).
+- Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "n_pellets": "calibrated (artifacts/goal_stakes/calibration.json)"}
+- Artifacts: `artifacts/goal_stakes/S-scarce`
+
+### `C1-MECHANISM`: Mechanism readouts 6 to 9 and the scripted-walk stream decoder, C1 agents
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: pending
+- Folds: explicit
+- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
+- Notes: scripts/run_mechanism_readouts.py; goal-and-stakes spec. Output lands as artifacts/goal_stakes/C1/mechanism.json; the directory is registered ahead of the readout (.gitkeep placeholder) and owns the file by prefix.
+- Artifacts: `artifacts/goal_stakes/C1`
 
 ### `BUDGET-CURVE`: Return and decodability against survival updates, decoder on and off
 
