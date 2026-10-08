@@ -145,6 +145,18 @@ real-world behavior toward fake-world behavior; the direction is behaviorally li
 `|b_surr - b_auth|` for a seed is under 0.25 in standardized units the seed is reported as
 uninformative and excluded, and the rule needs at least 7 informative seeds.
 
+*Amendment 2026-10-07, pre-launch (no cell of any run existed).* Two clarifications from
+building the readout. (a) The unnudged authentic and surrogate episodes share world seeds
+(one base, disjoint from the pooled and matched-pair bases), and survivors are intersected
+across all six rollout variants before any mean is taken, so a nudge that changes who dies
+cannot pass as a behavior shift. (b) The pass rule gains a floor condition: the untrained
+arm, scored by the identical procedure on its own probe direction, must NOT itself meet the
+0.10 rule. A nudge along a direction fit on a trunk that carries no world signal has no
+business moving behavior toward the surrogate; if it does, the score is measuring the
+geometry of the nudge, not the content of the direction, and the trained arm's pass is
+reported as "not separable from the untrained floor". The predictor arm's score is reported
+beside both.
+
 **7. Probing behavior: does the walk differ between worlds?** From the same unnudged
 authentic and surrogate episodes, the per-seed difference `b_surr - b_auth` on each of the
 five measures, plus the within-episode standard deviation of thrust and of turn (action
