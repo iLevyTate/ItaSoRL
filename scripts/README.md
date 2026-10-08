@@ -125,6 +125,8 @@ python scripts/run_expB2.py --drift-mode l3 --l3-hidden 8 \
 Then run `audit_behavior_mediation.py` on each `states/` directory. Decision
 rule (fixed in advance, see
 `docs/specs/2026-07-12-l3-behavior-audit-design.md`): survival
-`resid_trace` mean >= 0.65 strengthens the behavior-independent claim;
-[0.60, 0.65) weakens it to a below-bar trace; < 0.60 means the L3 signal is
-largely behavior-mediated.
+`resid_trace` mean >= 0.65 strengthens the claim that the signal is not
+explained by the controlled behavior channels; [0.60, 0.65) weakens it to a
+below-bar trace; < 0.60 means the L3 signal is largely behavior-mediated. The
+residual is relative to that basis and that model, not independence from behavior
+in general: name both when reporting it (FINDINGS 17.8).

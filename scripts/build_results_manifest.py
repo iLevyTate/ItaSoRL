@@ -357,6 +357,16 @@ RUNS = [
         trains_survival=False, survival_trainer="none", folds="explicit",
         config={"runner": "scripts/run_surrogate_diagnostics.py"},
         notes="Agent free: G instances retrained deterministically from their recipe."),
+    run("QD-EPS1-CAL", "Deviation calibration of the quadratic-drag comparator at eps 1",
+        experiment="methods", artifacts=["texture/qd_eps1_calibration.json"],
+        trains_survival=False, survival_trainer="none", folds="explicit",
+        config={"runner": "scripts/run_surrogate_diagnostics.py --qd-eps 1.0 --gn-sigma 0.01"},
+        commit_at_run="82ef5d6", device="cpu",
+        notes="Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the "
+              "eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived "
+              "only in the comparator spec. Measured here: qd at eps 1 deviates by 0.002356 and "
+              "gn by 0.0142 on the same 60-episode profile, a ratio of 6.02 (FINDINGS 17.9). "
+              "The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds)."),
     run("SURROGATES", "Frozen L3 fingerprints (G_motion instances), serialized",
         experiment="methods", artifacts=["surrogates"], trains_survival=False,
         survival_trainer="none", folds="n/a",

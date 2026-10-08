@@ -128,7 +128,7 @@ state. The comparison sharpens what this project measures and what it does not.
   reconstructs rewards and transitions, and the policy conditions on that belief. Its
   structure, a recurrent state plus a transition-predicting decoder, resembles the
   decoder-carrying survival agent here, which is the configuration where the L3 condition is
-  decodable (FINDINGS 10.8). The difference is the training distribution and the objective:
+  decodable (FINDINGS 17.4 for the corrected result; 10.8 for the historical device control). The difference is the training distribution and the objective:
   VariBAD trains across tasks with an explicit evidence lower bound on a task latent; each
   agent here trains in one condition only and no term targets the condition.
 - **PEARL** (Rakelly et al., ICML 2019, arXiv:1903.08254) infers a probabilistic context

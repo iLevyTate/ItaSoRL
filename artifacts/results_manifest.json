@@ -2242,6 +2242,37 @@
       "affected_by_gae_correction": false,
       "agent_seeds": null,
       "artifacts": [
+        "texture/qd_eps1_calibration.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "82ef5d6",
+      "config": {
+        "runner": "scripts/run_surrogate_diagnostics.py --qd-eps 1.0 --gn-sigma 0.01"
+      },
+      "deps": null,
+      "device": "cpu",
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "explicit",
+      "id": "QD-EPS1-CAL",
+      "local_run_dir": null,
+      "notes": "Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived only in the comparator spec. Measured here: qd at eps 1 deviates by 0.002356 and gn by 0.0142 on the same 60-episode profile, a ratio of 6.02 (FINDINGS 17.9). The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds).",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "texture/qd_eps1_calibration.json": {
+          "generated_by": "scripts/run_surrogate_diagnostics.py"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Deviation calibration of the quadratic-drag comparator at eps 1"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
         "surrogates"
       ],
       "budget": null,

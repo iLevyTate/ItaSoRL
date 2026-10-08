@@ -12,6 +12,7 @@ is updated in the same commit.
 | `expB_incidental.png` | `scripts/run_expB_full.py` | Recurrent-state probe across the drift sweep | FINDINGS.md sec. 3 |
 | `expB_channels.png` | `scripts/run_expB_surprise.py` | Recurrent-state vs prediction-error channels | FINDINGS.md sec. 3 |
 | `expB_kstep.png` | `scripts/run_expB_kstep.py` | Effect of open-loop horizon on encoding | FINDINGS.md sec. 3.3 (regenerated 2026-07-13 with the table; log `fullruns/kstep_rerun_20260713.log`) |
+| `budget_curve.png` | `scripts/build_budget_curve.py` | The corrected arms' survival return and world-identity target against the training budget | FINDINGS.md sec. 17.10 (from `artifacts/budget_curve.json`) |
 
 Regenerate all of the above in one recorded pass:
 
