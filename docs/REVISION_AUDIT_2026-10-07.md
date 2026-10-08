@@ -35,9 +35,23 @@ been done against the hand-off list since:
   `audit_stats_recheck.py` exists (`tests/test_audit_selftest.py`): flipping one artifact cell
   value or one stored aggregate mean records a FAIL. Each new test file was mutation-checked by
   breaking the guard it covers and confirming the test fails.
-- **Still open**: item 8 (FINDINGS and public-page sweep), item 9 (films, player and social
-  preview; the owner chose to relabel as pre-correction trainer rather than rebuild), item 11
-  (version bump, release tag, and the plain-language paper page).
+- **Items 8 and 9** (2026-10-08): the FINDINGS and public-page sweep is done. FINDINGS carries
+  in-place historical labels and section-17 pointers at all nine named locations (section 1
+  ladder, H4 and H2, 7.2, 10.6.1, 10.9, note 7, section 12, 14.5, 17.9), section 12 names the
+  historical trainer flag and the three reproduction entry points, and 17.9's gn lag-1
+  autocorrelation is corrected from 0.02 to 0.0014 with each RMS now attributed to its sample
+  (F40). The eps-1 calibration was MEASURED rather than copied from the spec
+  (`scripts/run_surrogate_diagnostics.py --qd-eps 1.0`): qd deviates by 0.002356 against gn's
+  0.0142, a ratio of 6.02, confirming the frozen eps 6.0; stored as
+  `artifacts/texture/qd_eps1_calibration.json` and registered as run QD-EPS1-CAL. README,
+  LEARNING, ITASORL, CORRECTIONS (eleven of twenty-two rows), the figures README and the
+  September status page are updated, and "behavior-independent" now survives only in the
+  sentences that retire it and in the frozen preregistration, specs and audit records, which
+  are left as written. Item 9 was taken as a relabel per the owner's decision, recorded in
+  `docs/REVISION_2026-10.md`; the social-preview card remains an OWNER action, since no script
+  or source for it exists in the repository.
+- **Still open**: item 11 (version bump, release tag, and the plain-language paper page), and
+  the social-preview card re-upload.
 
 ## Verdict: FAIL
 

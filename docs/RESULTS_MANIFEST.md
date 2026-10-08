@@ -42,6 +42,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `CONTRAST-INTERVALS` | historical | methods | - | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
 | `QD-GATE0` | historical | methods | - | none | - | not recorded | explicit | not recorded |
 | `SURROGATE-DIAG` | historical | methods | - | none | - | not recorded | explicit | not recorded |
+| `QD-EPS1-CAL` | historical | methods | - | none | - | 82ef5d6 | explicit | cpu |
 | `SURROGATES` | historical | methods | - | none | - | not recorded | n/a | cpu |
 | `L0-PRE-INTERVENTION` | historical | L0 audit | - | none | - | not recorded | explicit | not recorded |
 | `C1` | corrected | B-v2 L3 | 41, 42 | successor_value | - | f676b95 | explicit (explicit-v1; equals legacy on this stack) | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
@@ -474,6 +475,17 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: Agent free: G instances retrained deterministically from their recipe.
 - Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py"}
 - Artifacts: `artifacts/surrogate_diagnostics.json`
+
+### `QD-EPS1-CAL`: Deviation calibration of the quadratic-drag comparator at eps 1
+
+- Status: historical
+- Trainer: none
+- Commit at run: 82ef5d6
+- Folds: explicit
+- Device: cpu
+- Notes: Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived only in the comparator spec. Measured here: qd at eps 1 deviates by 0.002356 and gn by 0.0142 on the same 60-episode profile, a ratio of 6.02 (FINDINGS 17.9). The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds).
+- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py --qd-eps 1.0 --gn-sigma 0.01"}
+- Artifacts: `artifacts/texture/qd_eps1_calibration.json`
 
 ### `SURROGATES`: Frozen L3 fingerprints (G_motion instances), serialized
 

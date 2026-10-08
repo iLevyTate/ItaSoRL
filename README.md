@@ -146,7 +146,7 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 | Experiment A, L2 | **done** |
 | Experiment B (incidental detection), L2 arc | **done: did not meet the registered encoding criterion** |
 | Experiment B, L1 organism + H2 battery | **done: did not meet it at in-band Δ=0.023 (survival 0.533; FINDINGS §14.7)** |
-| Experiment B, L3 (learned-dynamics) | **met the decodability clauses at n=10** with survival plus the next-observation auxiliary at 300 updates, corrected trainer: 0.733 against predictor 0.589 and untrained 0.523, L0 gate open on the registered world pair. Without the auxiliary 0.613, not met (FINDINGS §17). Historical: 0.752 on GPU, 0.730 and 0.601 on CPU (§10.8); an independently trained fingerprint 0.639 (§10.9); prefix condition remains decodable after restoring authentic dynamics (FINDINGS §10.6.1). Details in [Key result](#key-result) |
+| Experiment B, L3 (learned-dynamics) | **met the decodability clauses at n=10** with survival plus the next-observation auxiliary at 300 updates, corrected trainer: 0.733 against predictor 0.589 and untrained 0.523, L0 gate open on the registered world pair. Without the auxiliary 0.613, not met (FINDINGS §17). Historical: 0.752 on GPU, 0.730 and 0.601 on CPU (§10.8); an independently trained fingerprint 0.639 (§10.9); prefix condition remains decodable after restoring authentic dynamics, carried mostly by the physical footprint the prefix leaves rather than by memory, and retention under identical input is not shown (FINDINGS §17.7, §10.6.1). Details in [Key result](#key-result) |
 | Trainer correction (2026-10) | **done**: GAE truncation bootstrap fixed; both primary runs rerun; effect +0.003 and +0.012 ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), FINDINGS §17) |
 | Experiment C (emergence under selection) | **validated null** under the pooled population readout on the fixed-code re-run (FINDINGS §13.D, §13.E) |
 | Ladder L4 (adversarially-hardened surrogate) | not started |
@@ -267,8 +267,10 @@ prefix world above the frozen bar on both directions (**0.666** forward,
 **0.684** reverse). The last-8-step late tail decays toward chance (0.586 /
 0.577). Prefix condition stays decodable, weakly, after authentic dynamics are
 restored. This control cannot tell memory in the state from a footprint the
-prefix left in body and world; the test that can is specified in
-[`docs/specs/2026-10-06-controlled-persistence-design.md`](docs/specs/2026-10-06-controlled-persistence-design.md).
+prefix left in body and world. The test that can has been run, on the corrected agents:
+retention under identical input is not shown (replay 0.561), and with memory zeroed the tail
+still reads 0.662, so this signal is mostly the footprint (FINDINGS §17.7; spec
+[`docs/specs/2026-10-06-controlled-persistence-design.md`](docs/specs/2026-10-06-controlled-persistence-design.md)).
 The original common-garden number, 0.557, used a since-fixed biased estimator
 and is overturned; FINDINGS §10.6.1. Transfer numbers were unaffected.
 
@@ -385,6 +387,8 @@ run scripts:
 - `expB_incidental.png`: recurrent-state probe across the drift sweep (target vs negative control).
 - `expB_channels.png`: two incidental-detection channels (recurrent state vs prediction error).
 - `expB_kstep.png`: effect of a longer-horizon objective on encoding.
+- `budget_curve.png`: the corrected arms against the training budget, from
+  `scripts/build_budget_curve.py` and `artifacts/budget_curve.json`.
 
 To regenerate all of them in one recorded pass, run `python scripts/run_e2e.py --quick`
 from the repo root; each `scripts/run_exp*.py` runner rewrites only its own figure.

@@ -74,6 +74,34 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 14 | Claims and methods rewritten consistently | Done 2026-10-06: FINDINGS (banner, TL;DR, narrowed sections, section 17), README, CITATION.cff, the site (numbers generated from the corrected artifacts), PAPER_OUTLINE (status column, rows 38 to 49), LEARNING (Act 10), ITASORL.md, METHODS_ARMS, the world spec; retired phrasings guarded by the audit on `README.md`, `index.html` and `CITATION.cff`; the manuscript checker (`scripts/build_paper_tables.py --manuscript`, tightened 2026-10-07) requires at least one generated table to be `\input`, requires every headline number of `artifacts/corrected_verdicts.json` to be quoted, matches retired wording after LaTeX markup is stripped, and flags any pre-correction headline without a historical label; it reports, the author decides |
 | 15 | Related work and the reproducibility package | Done 2026-10-06. Meta-RL comparison (RL^2, Mikulik et al., VariBAD, PEARL, RMA) in `docs/ITASORL.md`; `docs/REPRODUCE.md`; `scripts/reproduce.py` (tables without training, retrain recipes, anonymized supplement); frozen surrogates in `artifacts/surrogates/`; manuscript tables and check (`scripts/build_paper_tables.py`); the audit's stated purpose corrected. 2026-10-07: the 2026-10-06 claim that the extracted supplement passed its tests and audit did not hold (it shipped 483 gitignored files and the author's name in five files, and two tests failed to collect); the file list now follows `git ls-files`, every text member is scrubbed including `.cff`, `.html`, `.js` and extensionless files, `viz/collect.py` and the Colab notebook are packaged, and the extracted archive was re-verified on 2026-10-07 to pass the test suite and the 1188-check audit; `reproduce.py tables` reports whether the committed pages were already current before rewriting them |
 
+## The films, the player and the social-preview card (2026-10-08)
+
+The 2026-10 revision corrected the repository's prose but touched nothing under `viz/player`,
+so the two outreach films and the web player kept the withdrawn reading on the most-viewed
+public surface. The run owner's decision was to relabel rather than re-render.
+
+What was done. The live player's end card no longer says the creature noticed only when
+survival made it matter, which is the reading FINDINGS 17.6 withdrew; its footer and the
+source note behind the 73% both name the pre-correction trainer, and the note records that
+0.726 is a residual after the four behavior channels rather than independence from behavior.
+The film block on the site carries the same label and links to 17.6 and to the corrections
+record. `assets/film/README.md` and `docs/LEARNING.md` now say plainly that the rendered mp4
+files keep their original end card and are labeled where they are published.
+
+What is still open, and why it needs the owner. The GitHub social-preview card is a
+rasterized image uploaded by hand to a GitHub attachment URL (`README.md` line 3). No script
+in this repository generates it and no source file for it exists, so its text cannot be
+regenerated or checked by `scripts/audit_stats_recheck.py`. Replacing it means re-making the
+image with the README's own numbers (87% detector, 53% agent state, 73% learned fake) and a
+caption that does not credit survival on its own, then re-uploading it and changing the
+repository's social-preview setting. Both of those are owner actions. Until then the card is
+the one public surface still carrying the pre-revision framing unlabeled.
+
+`docs/BRAND_IDENTITY_BRIEF.md` is gitignored and lives only in the owner's checkout. Its
+early-finding copy (an organism "near chance" with survival adding "a faint trace ~60%")
+predates the whole L3 arc and should be rewritten from the current claim table before any of
+it is reused.
+
 ## Where the manuscript lives
 
 The LaTeX manuscript (`docs/paper`) is local to the owner's checkout and is not in git, and

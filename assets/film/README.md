@@ -75,11 +75,21 @@ computes from the saved held-out state pools: the representative brain is the
 seed closest to the 0.752 pooled survival mean, and ring strength is that
 unit's measured rank AUROC between worlds. Numbers on screen are canonical
 FINDINGS values only, and one chapter carries the live meter: 0.488 floor
-(49%), 0.65 bar, 0.726 survival (73%, the behaviour-independent component of
-section 10.4, 90% CI 0.685 to 0.765), 0.928 watcher gate (93%). The pooled
+(49%), 0.65 bar, 0.726 survival (73%, the residual of section 10.4 after the
+four behavior channels are regressed out, 90% CI 0.685 to 0.765), 0.928 watcher
+gate (93%). Those are historical-trainer numbers, and the residual is what that
+basis and that model could not explain, not independence from behavior; on the
+corrected agents the best-fitting control leaves 0.620, under the bar
+(FINDINGS 17.8). The pooled
 0.752 and the masked-sense figures (0.686, 0.500) belong to the uncontrolled
 family and are not shown as numbers; the senses chapter states that direction
 in words.
+
+The live player's end card was reworded on 2026-10-08 to drop the reading that
+credited survival on its own (withdrawn in FINDINGS 17.6), and its footer now
+names the pre-correction trainer. The rendered mp4 files keep the original end
+card: they are not re-rendered, and the pages that publish them carry the label
+instead.
 
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
 the same way as film one and replace `two-minds-web.mp4` in place so the site

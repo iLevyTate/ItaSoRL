@@ -276,16 +276,22 @@ Setup: the same pipeline with `--drift-mode regime`. Pre-registered in
 `docs/PREREGISTRATION_Bv3.md`.
 
 **The L3 arc (this branch's work): swap the hand-made fake for the forger's fake.**
-Question: hand-tuned knobs (L1, L2) never got encoded; does a structurally
-different world, a learned imitation with a generative fingerprint, change the
-answer?
+Question: hand-tuned knobs (L1, L2) never met the registered encoding
+criterion; does a structurally different world, a learned imitation with a generative
+fingerprint, change the answer?
 Setup: the B-v2 pipeline with `--drift-mode l3 --l3-hidden 8` (or 7), after G
 passes gate-0. Pre-registered in `docs/PREREGISTRATION_L3.md`. It includes the
 second-capacity replication and the behavior-mediation audit (section 6).
 
-**Experiment C: evolution (not started).**
+**Experiment C: evolution (run, and the answer was no).**
 Question: across many generations of creatures that live, die, and reproduce,
-does detection ability strengthen when survival depends on it (H3)?
+does detection ability strengthen when survival depends on it (H3)? It was run:
+48 policies, 30 generations, three lineages. Under the pooled population readout
+selection did not raise world-condition decodability, and a rerun with a
+per-individual readout did not change that (FINDINGS 13.D and 13.F). The design's
+own gates say the contrast is not interpretable at that geometry, so the honest
+summary is that this particular setup could not answer the question, not that
+evolution cannot.
 One planned control worth knowing now: the **common-garden assay**. To compare
 offspring fairly, you test them all in the same kitchen, not each in their own
 home kitchen. Precisely: freeze each generation and test everyone on the same
@@ -549,7 +555,9 @@ account was never tested, and a decoder-free creature trained half again as long
 read above the bar, with too much skill to count as a matched comparison.
 
 The published wording "encoded by the survival objective, uniquely" was narrowed
-accordingly, and the films were corrected to match.
+accordingly. The live player and the film pages were corrected to match; the rendered
+mp4 files keep their original end card and are labeled where they are published, as
+pre-correction trainer.
 
 One confound stayed open. The decoder-carrying creatures also forage better, so the
 decoder's effect on the notebook is not separated from its effect through a better
@@ -729,7 +737,7 @@ the training defect of Act 10 passed it for months.
 | Episode | One life segment (about 80 to 110 steps); the unit for probing statistics | everywhere |
 | Experiment A | The agent-free inspector: how catchable is each fake? | `experiment_a.py` |
 | Experiment B | The daydreamer's diary check: prediction-only incidental encoding | `experiment_b.py` |
-| Experiment C | Evolution across generations (H3); not started | ITASORL.md |
+| Experiment C | Evolution across generations (H3); run, null under the pooled and the per-individual readout (FINDINGS 13.D, 13.F) | ITASORL.md |
 | Fingerprint (generative) | The forger's signature flaws: blur, missing detail, mode collapse, learned noise | L3 |
 | fullruns/ | Git-ignored folders holding complete run bundles; pointer in `results/LATEST_RUN.txt` | outputs |
 | G (G_motion) | The forger: a small frozen network imitating real motion, swapped in as L3 physics | `surrogate_l3.py` |

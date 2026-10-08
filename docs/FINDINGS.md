@@ -115,7 +115,7 @@ substrate). Detection is measured against a **surrogate ladder**:
 | L0 | Identical re-implementation (control, must be at chance) | tested |
 | L1 | Observation discretization (a lattice / quantization tell) | tested (survival did not meet the registered encoding criterion at in-band Δ=0.023: 0.533; section 14.7) |
 | L2 | Rollout drift (a slowly drifting dynamics coefficient) | tested |
-| L3 | Learned world-model surrogate (a generative fingerprint) | tested (positive at the registered 300-update budget with the next-observation auxiliary, n=10, historical trainer; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
+| L3 | Learned world-model surrogate (a generative fingerprint) | tested. Corrected trainer (section 17): `C1` **0.733** [0.669, 0.797] met the decodability clauses, and the L0 authentic-versus-authentic gate is **open** on the registered world pair (0.559, TOST p 0.939) while equivalent to chance across eight independent pairs (17.5); the best-fitting behavior and sensory control leaves **0.620**, under the bar (17.8); at matched input a prediction-trained trunk reads the same streams as well (17.6); the common-garden tail is carried mostly by the prefix's physical footprint, and retention under identical input is not shown (17.7). Historical trainer, as recorded: (positive at the registered 300-update budget with the next-observation auxiliary, n=10; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
 | L4 | Adversarially-hardened surrogate | not started |
 
 Three experiments were planned. This cycle completed Experiment A for L1 and L2
@@ -389,12 +389,15 @@ inducing it (if possible) requires something more deliberate.
 - **H4 (legibility / incidental encoding).** Conditionally supported. Not supported
   at L2 under any lever pulled (sections 3, 9): a hand-tuned dynamics artifact did
   not meet the registered encoding criterion even under survival pressure at scale.
-  Supported at L3 (section 10), with the historical trainer: a learned-dynamics
+  Supported at L3 (section 10), with the historical trainer; superseded by 17.4, 17.6, 17.7 and 17.8 for the corrected record: a learned-dynamics
   fingerprint is decodable from the state of survival-trained agents that also carry
   the next-observation auxiliary, at the registered 300-update budget, above the
   predictor and untrained arms, and the signal that remains after controlling for the
-  named behavior channels clears the registered bar. Corrected-trainer results:
-  section 17. The condition that flips the result is the
+  named behavior channels   clears the registered bar. Corrected-trainer results: section 17, where `C1` reads 0.733
+  on the decodability clauses with the L0 gate open (17.4), the best-fitting control leaves
+  0.620 under the bar (17.8), and at matched evaluation input a prediction-trained trunk reads
+  the survival agent's own streams as well as the survival trunk does, so the margin is a
+  difference between training regimes and not of objective (17.6). The condition that flips the result is the
   artifact's character (a generative fingerprint that survival must cope with), not
   probe power, capacity, or objective horizon. A held-out probe (section 10.6)
   qualifies the *nature* of the encoding: it transfers to a capacity variant of
@@ -409,8 +412,10 @@ inducing it (if possible) requires something more deliberate.
   bound 0.654), fit on the same authentic data as `G`. Two 2026-09-27 boundary checks
   (10.8, 10.9) narrow the conditional support: the positive requires the
   next-observation auxiliary alongside survival (0.601 without it), and an
-  independently trained fingerprint reproduces the survival-specific
-  dissociation at 0.639, below the bar.
+  independently trained fingerprint reproduces the dissociation between training
+  regimes at 0.639, below the bar. Both are historical-trainer readings; the corrected
+  auxiliary comparison is 17.4 (`C2` 0.613, `C1` minus `C2` +0.120) and the objective
+  reading is withdrawn in 17.6.
 - **H2 (substrate-grounding via ablations).** Supported for the L3 rung at hidden=8 in
   the narrow sense stated at the end of this item (sections 14 and 14.5). Section 14 (A1) shows a graded neutralization
   of the one substrate seam (the learned velocity law, blended
@@ -426,7 +431,11 @@ inducing it (if possible) requires something more deliberate.
   original L3 direction does not transfer to matched-band white noise (A2). They do
   not establish that decoding loads on the learned *texture*: no fresh probe was fit
   on the Gaussian comparator and no agents were trained under it (scope:
-  `docs/specs/2026-10-06-texture-comparator-design.md`). The survival-specificity part
+  `docs/specs/2026-10-06-texture-comparator-design.md`). Superseded by 17.9, which ran the
+  two missing questions on the corrected agents: a hand-authored, temporally coherent drag
+  at matched one-step size IS read through the same direction (transfer 0.721, fresh
+  0.754) while white jitter is not, so what the tested classes separate on is temporal
+  coherence, not learnedness. The survival-specificity part
   remains conditional on the subtler hidden=8 artifact (section 10.5). The same
   H2 battery on the L1 discretization rung (section 14.7) finds that survival does
   **not meet the registered encoding criterion** at the matched in-band grid (0.533), so L1 does not
@@ -511,8 +520,10 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    control (0.723 once absolute position and heading join the basis, section 10.4.1).
    The second in-band capacity is now tested (section 10.5): the
    behavior-controlled signal replicates (0.722), but the survival-vs-predictor
-   dissociation does not, making the survival-specific verdict conditional on the
-   subtler hidden = 8 artifact. The held-out fingerprint probe (section 10.6) is
+   dissociation does not, making that verdict conditional on the
+   subtler hidden = 8 artifact. The objective reading is withdrawn outright in 17.6: at
+   matched evaluation input a prediction-trained trunk reads the survival agent's streams as
+   well as the survival trunk does, so the margin is a difference between training regimes. The held-out fingerprint probe (section 10.6) is
    now run and reported below.
 2. **Held-out / common-garden probe: TESTED, POSITIVE (section 10.6).** Two channels
    on one hidden = 8 run. Transfer is POSITIVE: the world-identity direction fit
@@ -526,8 +537,11 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    Prefix condition therefore remains modestly decodable after the dynamics are
    equalized, decaying along the tail. Because each tail keeps its prefix's physical
    state as well as its hidden state, this does not separate internal memory from
-   the footprint the prefix left in the world (controlled test:
-   `docs/specs/2026-10-06-controlled-persistence-design.md`). *(The original
+   the footprint the prefix left in the world. That controlled test has since been RUN on the
+   corrected agents (17.7, spec
+   `docs/specs/2026-10-06-controlled-persistence-design.md`): retention under identical input
+   is not shown (replay 0.561), and with memory zeroed the tail still reads 0.662, so the
+   common-garden signal is mostly the prefix's physical footprint. *(The original
    common-garden read as NEGATIVE, survival 0.557 below the bar, was scored with
    the since-fixed biased estimator of section 13.C; the re-score of the saved tail
    dumps overturned it, see section 10.6.1. The transfer channel was unaffected.)*
@@ -535,7 +549,8 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    against the saved hidden = 8 agents. The direction fit against the trained MLP
    fingerprint reads a gate-calibrated random-Fourier-features ridge law the agent
    never lived with (survival 0.684 vs untrained 0.548; pre-registered rule passes,
-   machine-checked), survival-specifically. The secondary constant-drag family
+   machine-checked). Historical trainer; the arm comparison is a difference between training
+   regimes, not of objective (17.6). The secondary constant-drag family
    proved uncalibratable (empty gate-0 window) and was dropped per the pre-stated
    rule. The direction thus reads a second surrogate family fit on the same training
    data: transfer across two function classes, not across independent data.
@@ -1184,7 +1199,10 @@ decodable, weakly, and fades". This supersedes the "resolves toward reactive"
 conclusion in the body above. It does not resolve the reactive-vs-representational
 ambiguity (§7.2, §9 caveats): each tail keeps its prefix's physical state as well as
 its hidden state, so memory and the external footprint are confounded. The
-controlled test is `docs/specs/2026-10-06-controlled-persistence-design.md`.
+controlled test (spec `docs/specs/2026-10-06-controlled-persistence-design.md`) has since
+been RUN on the corrected agents: see **section 17.7**, which finds retention under identical
+input not shown (replay 0.561) and the tail still at 0.662 with memory zeroed, so this
+common-garden signal is carried mostly by the prefix's physical footprint.
 
 ### 10.7 Cross-recipe transfer probe
 
@@ -1431,7 +1449,7 @@ window is narrower than the noise. (3) Stage 1's three seeds are the first three
 2's ten, so stage 1 is not an independent pre-test of the budget. The rule reads the
 n = 10 return, which is what is quoted and adjudicated above.
 
-### 10.9 Second fingerprint instance: survival-specific, below the bar (2026-09-27)
+### 10.9 Second fingerprint instance: a training-regime dissociation, below the bar (2026-09-27, historical trainer; objective reading withdrawn per 17.6)
 
 Methods note 4: `G` was a single frozen instance trained at seed 0. The held-out
 probes (10.6, 10.7) show the world-identity DIRECTION transfers to other
@@ -1650,7 +1668,12 @@ Stated once, plainly, with pointers into the code.
    direct sensory control that regresses the instantaneous observation basis
    out of `h_t` leaves the survival signal at 0.731 (rule passes); the joint
    sensory-plus-behavior control leaves 0.670. **A nonlinear (MLP) joint control leaves 0.654 [0.621, 0.687],
-   rule passing at the mean (2026-09-28, 10.4.2 addendum).**
+   rule passing at the mean (2026-09-28, 10.4.2 addendum).** All of those are historical-trainer
+   readings. On the corrected agents the battery is wider and each control reports how well its
+   basis fits the state (**17.8**): the best-fitting control, a 64-unit MLP on observations,
+   sensory traces, actions and the behavior trace, explains 89% of held-out state variance and
+   leaves **0.620**, under the bar, and a decoder of the observation stream alone reads 0.724.
+   The phrase "behavior-independent" is retired for that reason.
 8. **Cross-validation folds depended on the software stack (found 2026-09-28;
    re-scored 2026-09-29).** Every grouped probe splits episodes with a 5-fold
    GroupKFold, and scikit-learn before its stable sort ordered equal-sized groups
@@ -1810,7 +1833,7 @@ All experiments are deterministic given their seeds. Dependencies: `numpy`,
 | B, nonlinear probe | `scripts/run_expB_nonlinear.py` | random-forest probe on the recurrent states |
 | B-v2, survival-coupled | `scripts/run_expB2.py` | A2C+GAE agent, harsh metabolism, drift [0,0.45], 3 seeds, 300 updates (`--quick` for a fast pass) |
 | B-v2, compare runs | `scripts/compare_expB2_artifacts.py` | Side-by-side survival @ drift 0.45 vs canonical / lab JSON (no GPU) |
-| L3, organism run | `scripts/run_expB2.py --drift-mode l3 --l3-hidden 8 --seeds 0 1 2 3 4 5 6 7 8 9` | learned-fingerprint surrogate, frozen gate 0, `--dump-states` for the audit |
+| L3, organism run | `scripts/run_expB2.py --drift-mode l3 --l3-hidden 8 --seeds 0 1 2 3 4 5 6 7 8 9` | learned-fingerprint surrogate, frozen gate 0, `--dump-states` for the audit. Add `--gae-bootstrap pre_transition` to reproduce a historical run bit for bit; the default is the corrected successor-state bootstrap (`docs/CORRECTIONS.md`) |
 | L3, behavior audit | `scripts/audit_behavior_mediation.py <states-dir> --json <out>` | per-episode and per-timestep behavior controls on dumped states |
 
 Core modules live under `itasorl/` (`world.py`, `patch_of_earth.py`, `agent.py`,
@@ -1823,6 +1846,13 @@ document are local-only archives (gitignored); every published number is
 promoted from them into the committed `artifacts/` JSONs, and
 `scripts/audit_stats_recheck.py` re-verifies the doc-to-artifact
 correspondence.
+
+One entry point drives the whole reproduction: `scripts/reproduce.py tables` rebuilds the
+manifest, the gate table, the contrast intervals and the verdicts from the committed per-seed
+artifacts and then runs that audit, with no training; `scripts/reproduce.py retrain RUN` prints
+the exact commands for any run; and `scripts/reproduce.py supplement` builds the anonymized
+archive. `docs/REPRODUCE.md` is the walkthrough, and `docs/RESULTS_MANIFEST.md` records which
+trainer, fold partition, commit and device produced each artifact.
 
 ---
 
@@ -2277,7 +2307,8 @@ comparator at hidden=8.
 
 *Hidden=7 result:* survival `transfer_gn_target` = **0.510**, untrained floor
 **0.520**, predictor **0.539**. The positive rule also fails both clauses; the
-texture-specificity holds at the second capacity as well.
+non-transfer holds at the second capacity as well. Historical trainer; superseded by 17.9,
+which fit the missing fresh probe on both comparators.
 
 **Channel 2, dose-response titration (SECONDARY).** Same frozen direction scored
 on same-recipe GMotion at hidden {16, 32, 64}; these capacities are intentionally
@@ -2298,9 +2329,10 @@ at either in-band capacity. It does not show that the Gaussian condition cannot 
 encoded (no fresh probe was fit on it) or that agents trained under it would not
 encode it (none were trained), so it does not establish that the signal is driven by
 the learned structure of the surrogate. The three questions and the wording each
-licenses are in `docs/specs/2026-10-06-texture-comparator-design.md`. The survival-
-specificity part remains conditional on the subtler hidden=8 artifact (section
-10.5).
+licenses are in `docs/specs/2026-10-06-texture-comparator-design.md`. The dissociation between training regimes
+remains conditional on the subtler hidden=8 artifact (section 10.5), and the reading that
+credited the survival objective is withdrawn in 17.6. For what the comparators do show once a
+fresh probe is fit on them, see **17.9**.
 
 ## 14.6 A2 observation-channel localization
 
@@ -2922,10 +2954,17 @@ comparators were scored on the `C1` agents at drift 0.45 (`scripts/run_texture_f
 `artifacts/texture/corrected_l3_h8_wm_{gn,qd}.json`):
 
 - `gn`: the authentic law plus white velocity noise, sigma_v 0.01 (the published gate-0
-  value). One-step RMS deviation 0.0142, lag-1 autocorrelation of the deviation 0.02.
+  value). On the 60-episode deviation profile of `artifacts/surrogate_diagnostics.json`, one-step
+  RMS deviation 0.0142 and lag-1 autocorrelation of the deviation **0.0014**, i.e. white to
+  within rounding (10.1.1 prints the same value as 0.00 at two decimals). The same table's
+  held-out authentic transitions give 0.0143 and its training transitions 0.0141: the three
+  figures are one quantity measured on three samples, not a disagreement.
 - `qd`: the authentic law minus a hand-authored quadratic drag, eps 6.0. Gate 0 found no
   in-band eps (amendment in the spec), so eps was fixed to match `gn` on one-step RMS
-  deviation; the deviation is deterministic, smooth, state-dependent, and temporally
+  deviation, on the same 60-episode profile: at eps 1 the `qd` deviation is 0.002356 and the
+  dependence on eps is linear, which puts the match to `gn`'s 0.0142 at eps 6.0. That
+  calibration is now recorded in `artifacts/texture/qd_eps1_calibration.json` rather than only
+  in the spec. The deviation is deterministic, smooth, state-dependent, and temporally
   coherent (lag-1 autocorrelation 0.94). Its untrained floor sits outside tolerance, as the
   amendment anticipated, so the survival-minus-untrained margin is the comparison that
   carries meaning.
