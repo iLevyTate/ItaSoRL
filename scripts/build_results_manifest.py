@@ -438,6 +438,50 @@ RUNS = [
         readout_of=["C1"], survival_trainer="successor_value", status="corrected",
         commit_at_run="34e2c0d", folds="explicit", eval_seeds=HELDOUT_EVAL_SEEDS, device=CPU_REVISION,
         notes="scripts/validate_population_readout.py; revision step 12."),
+    # ---------------- goal and stakes runs (docs/specs/2026-10-07-goal-and-stakes-design.md) ----------------
+    run("T-TOUCH", "Pellet-touch objective, death off, registered food, n = 10 (goal-and-stakes)",
+        experiment="B-v2 L3", artifacts=["goal_stakes/T-touch"], claims=[],
+        survival_trainer="successor_value", status="corrected", commit_at_run="pending",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor",
+                "objective": "touch", "mortal": False},
+        agent_seeds=S10, surrogate=L3_H8, budget={"survival_updates": 300, "predictor_updates": 300},
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CPU_REVISION,
+        local_run_dir="artifacts/goal_stakes/T-touch",
+        notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. Cells committed from the "
+              "cloud session as they land; mechanism.json from scripts/run_mechanism_readouts.py. "
+              "Directory registered ahead of the run (.gitkeep placeholder until cells land)."),
+    run("S-IMMORTAL", "Survival objective, death off, registered food, n = 10 (goal-and-stakes)",
+        experiment="B-v2 L3", artifacts=["goal_stakes/S-immortal"], claims=[],
+        survival_trainer="successor_value", status="corrected", commit_at_run="pending",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor", "mortal": False},
+        agent_seeds=S10, surrogate=L3_H8, budget={"survival_updates": 300, "predictor_updates": 300},
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CPU_REVISION,
+        local_run_dir="artifacts/goal_stakes/S-immortal",
+        notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. Directory registered "
+              "ahead of the run (.gitkeep placeholder until cells land)."),
+    run("S-SCARCE", "Survival objective, death on, scarce food (calibrated), n = 10 (goal-and-stakes)",
+        experiment="B-v2 L3", artifacts=["goal_stakes/S-scarce"],
+        claims=[], survival_trainer="successor_value", status="corrected", commit_at_run="pending",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor",
+                "n_pellets": "calibrated (artifacts/goal_stakes/calibration.json)"},
+        agent_seeds=S10, surrogate=L3_H8, budget={"survival_updates": 300, "predictor_updates": 300},
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CPU_REVISION,
+        local_run_dir="artifacts/goal_stakes/S-scarce",
+        notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; pellet count by the "
+              "frozen calibration rule, recorded as a dated PREREGISTRATION_L3 amendment. "
+              "The calibration output artifacts/goal_stakes/calibration.json "
+              "(scripts/calibrate_scarcity.py) does not exist yet; add it to this row's artifacts "
+              "when it lands, or --check reports it as unowned. Directory registered ahead of the "
+              "run (.gitkeep placeholder until cells land)."),
+    run("C1-MECHANISM", "Mechanism readouts 6 to 9 and the scripted-walk stream decoder, C1 agents",
+        experiment="B-v2 L3", artifacts=["goal_stakes/C1"], trains_survival=False,
+        readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run="pending", folds="explicit",
+        eval_seeds={"mechanism": "1400000 + i (authentic) / 1450000 + i (surrogate), i < 64"},
+        device=CPU_REVISION,
+        notes="scripts/run_mechanism_readouts.py; goal-and-stakes spec. Output lands as "
+              "artifacts/goal_stakes/C1/mechanism.json; the directory is registered ahead of the "
+              "readout (.gitkeep placeholder) and owns the file by prefix."),
     run("BUDGET-CURVE", "Return and decodability against survival updates, decoder on and off",
         experiment="B-v2 L3", artifacts=["budget_curve.json"], trains_survival=False,
         readout_of=["C1", "C2"], survival_trainer="successor_value", status="corrected",
