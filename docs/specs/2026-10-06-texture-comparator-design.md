@@ -85,3 +85,17 @@ comparison that carries meaning is the survival-minus-untrained margin. The comp
 run `T-qd` is **not run**: its family fails gate 0, and a run on an uncalibrated family could
 not support the matched-detectability condition of the learned-texture rule. That rule
 therefore cannot be met in this revision, and the paper keeps the narrow wording.
+
+## Amendment (2026-10-07, after the fact): `T-qd` was run and set aside
+
+The line above that fixes `T-qd` as not run was overtaken on the day it was written: a
+`qd`-trained survival run (eps 6.0, hidden 8, n = 10, 300 updates, corrected successor
+bootstrap, CPU) was executed on 2026-10-06 at commit `2606e7f` and finished at 13:38
+local, output `fullruns/T_qd_l3_h8_wm/` (gitignored). Nothing in this spec authorized it
+and no artifact of it is promoted. The ruling stands: the family failed gate 0, so the
+run cannot support the matched-detectability condition and the learned-texture rule is
+not met in this revision. The run is recorded descriptively in FINDINGS 17.9 (survival
+0.580 [0.542, 0.615] at drift 0.45, predictor 0.573, untrained 0.608 above both,
+engagement in 6 of 10 seeds) so that the record says what happened. `T-gn` was never
+run.
+

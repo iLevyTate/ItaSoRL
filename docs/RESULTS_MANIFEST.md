@@ -398,7 +398,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: inherited: pre_transition_value
 - Folds: legacy
-- Notes: Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9).
+- Notes: Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). No gn-trained run exists.
 - Artifacts: `artifacts/expH2/texture_knockout_h8.json`, `artifacts/expH2/texture_knockout_h7.json`
 
 ### `H2-OBSLOC`: Observation-channel localization (A2)

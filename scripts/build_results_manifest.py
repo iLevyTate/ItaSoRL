@@ -305,7 +305,11 @@ RUNS = [
         artifacts=["expH2/texture_knockout_h8.json", "expH2/texture_knockout_h7.json"],
         claims=[33], trains_survival=False, readout_of=["L3-H8-HELDOUT", "L3-H7-REVERSE"],
         folds="legacy", notes="Transfer of the ORIGINAL direction only; no fresh Gaussian "
-                              "probe and no Gaussian-trained agents (revision step 9)."),
+                              "probe and no Gaussian-trained agents (revision step 9). A "
+                              "qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored "
+                              "fullruns/T_qd_l3_h8_wm) was executed and set aside: its family "
+                              "failed gate 0, so it is not promoted and bears on no rule "
+                              "(FINDINGS 17.9 addendum). No gn-trained run exists."),
     run("H2-OBSLOC", "Observation-channel localization (A2)", experiment="H2",
         artifacts=["expH2/obs_localization_h8.json", "expH2/obs_localization_h7.json"],
         claims=[34], trains_survival=False, readout_of=["L3-H8-HELDOUT", "L3-H7-REVERSE"],

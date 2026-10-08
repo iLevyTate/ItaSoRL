@@ -1872,7 +1872,7 @@
       "folds": "legacy",
       "id": "H2-TEXTURE",
       "local_run_dir": null,
-      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9).",
+      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). No gn-trained run exists.",
       "readout_only_on": [
         "L3-H8-HELDOUT",
         "L3-H7-REVERSE"

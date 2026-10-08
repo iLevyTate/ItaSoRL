@@ -888,6 +888,17 @@ Rigor carried from the B-v3 audit (2026-07-10):
   exists; the cross-run replay of 17.10 was written after these results were read and is
   labeled exploratory.
 
+- **2026-10-07 - COMPARATOR-TRAINED `qd` RUN RECORDED AS EXECUTED AND SET ASIDE (FINDINGS
+  17.9 addendum).** The 2026-10-06 entries above and the comparator spec say the
+  comparator-trained run `T-qd` is not run. One was in fact executed on 2026-10-06 (commit
+  `2606e7f`, trainer and `itasorl/` identical to main; family `qd` at eps 6.0, hidden 8,
+  n = 10, successor bootstrap; output `fullruns/T_qd_l3_h8_wm/`, gitignored). Its gate 0
+  had already failed (untrained floor deviation 0.108 outside the 0.1 tolerance; drag
+  ceiling undefined), so it bears on no rule in this document. Descriptive outcome at
+  drift 0.45: survival 0.580 (90% CI [0.542, 0.615]), predictor 0.573, untrained 0.608,
+  engagement in 6 of 10 seeds. It is not promoted and is not counted as a negative. No
+  `gn`-trained run was executed. The learned-texture rule remains unmet in this revision.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

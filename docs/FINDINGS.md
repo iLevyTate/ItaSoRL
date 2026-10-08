@@ -2086,7 +2086,8 @@ a held-out AUROC per individual with pair groups, summarized within a population
 lineages as the replication unit across populations, `lineage_summary`), and
 `scripts/validate_population_readout.py` checks both estimators on populations whose
 answer is known (independently trained survival agents, and untrained agents as a
-null). The evolution itself was not rerun (about 9.6 hours for three lineages).
+null). The evolution itself was not rerun for this entry (about 9.6 hours for three
+lineages); it was rerun with the per-individual readout on 2026-10-07, see 13.F.
 
 Whether detection would pay is measurable from the B-v2 cross-evaluation cells
 (`experiment_c.value_of_world_information`): with the authentic-trained and the
@@ -2097,6 +2098,61 @@ auxiliary). With those policies, knowing the world buys no return. This is a low
 bound on what an ideal world-conditional policy could gain, measured in the B-v2
 setting rather than Experiment C's, and it is consistent with selection having no
 gradient toward a detector.
+
+### 13.F The evolution rerun with the per-individual readout: UNINFORMATIVE (2026-10-07)
+
+The milestone-3 evolution was rerun with the per-individual estimator of 13.E and the
+full section-7 gate battery of `docs/PREREGISTRATION_C.md`. It was launched on
+2026-10-06 20:46 local under the standing NO LAUNCH disposition and without the dated
+amendment the revision ground rules require; the amendment was appended to the
+preregistration after the fact and records that deviation. Runner
+`scripts/run_expC_milestone3.py`, N=48, G=30, seeds 0, 1, 2, CPU, with per-seed
+checkpointing and `--resume` (PRs #117 and #118). Code commit `06ecc10` (tree identical
+to main at `329dfb7`). Wall time 81183 s (22.6 hours; one seed about 7.5 hours), exit
+0, determinism bit-reproducible. Output
+`fullruns/expC_milestone3/emergence_pilot_per_individual.json` (gitignored, not
+promoted). The console was not captured by the launcher; the log file beside the
+output is a summary reconstructed from the JSON.
+
+**Same evolution as 13.D.** Fitness series and per-arm thresholds are bit-identical to
+the `a0cb850` run recorded in `artifacts/expC/emergence_pilot_summary.json`. Pooled
+panel AUROCs differ from it by up to 0.006 (seed 0 generation 0: 0.4932 then, 0.4992
+now) because the fold partition moved from GroupKFold to `itasorl.folds` (`0406e97`)
+and the gate-4 and gate-5 panels were added; the pooled estimand reproduces 13.D:
+per-seed treatment-minus-control contrast +0.0021, -0.0097, +0.0012 (mean -0.0021),
+t-based 90% interval [-0.0132, +0.0090], bootstrap [-0.0061, +0.0018], mean final
+treatment AUROC 0.510, `emergence_claim` False.
+
+**Gate battery and routing.** Gate 1 (exploitability) fails: treatment gap 0.00228, 90%
+CI [0.00109, 0.00377], control gap exactly 0, against the 0.005 margin, as the
+2026-07-20 bias-guarded sweep said it would at this geometry. Gate 2 (fitness moves)
+passes in both arms. Gate 3 (L0 shuffle, TOST, n = 21 panels) passes at mean 0.500.
+Gate 4 (reward leakage) passes with worst deviation 0.026. Gate 5 (speed control)
+fails: minimum 0.527 against the 0.75 bar, with the final treatment panels at 0.576,
+0.631 and 0.612. The runner routes the result **UNINFORMATIVE: contrast not
+interpretable** (section 8 of the preregistration).
+
+**Per-individual readout.** Every individual is scored (48 of 48 per population).
+Means at generation 0 are 0.527, 0.521 and 0.527 (seeds 0, 1, 2); in the final
+treatment populations 0.535, 0.539 and 0.537; in the final control populations
+0.540, 0.530 and 0.522. The best single individual in any population reads 0.649; the
+share at or above the 0.65 bar is 0.0 everywhere. The pooled probe on the same tails
+reads 0.499 to 0.511. Per 17.11, a population whose members each carried a 0.65
+signal would read about 0.61 under the pooled probe; these populations read 0.51, and
+the individuals average 0.535. The per-individual result therefore does not change
+13.E: under either estimator, selection did not raise world-condition decodability at
+this budget.
+
+**Reconciling 13.D with the gate battery.** The `a0cb850` run checked gate 2, the
+determinism rerun and the authentic/surrogate death symmetry; gates 1, 3, 4 and 5 were
+not computed by that runner. Gate 1 had been certified separately in 2026-07 as a weak
+positive under the qualitative section-7 reading and as sub-margin under the 0.005
+margin, which is what this run prints. So "validated null" in 13.D stands as a
+description of the pooled estimand on fixed code, and the full battery adds that the
+contrast is not interpretable at this geometry: the registered payoff for knowing the
+world is too small, and the panel's speed control is below bar. This is the
+section-14 disposition restated by the run itself. Re-opening Experiment C still
+requires the section-8 richer-controller redesign.
 
 ## 14. H2 substrate-grounding: the graded-seam ablation (A1)
 
@@ -2888,9 +2944,26 @@ Survival arm, n = 10, t-based 90% CIs, with the seed-paired margin over the untr
 **Frozen wording.** For `gn`: the original direction does not transfer to the comparator,
 and a fresh probe did not meet the registered criterion on it. For `qd`: the L3 direction
 reads the comparator, and the existing agent's state separates the comparator when a probe is
-fit to it. Question 3 (agents raised in each comparator) was not run: `qd` failed its gate 0,
-so a comparator-trained run could not meet the matched-detectability condition, and the
-learned-texture rule cannot be met in this revision.
+fit to it. Question 3 (agents raised in each comparator) was not run for this entry: `qd`
+failed its gate 0, so a comparator-trained run could not meet the matched-detectability
+condition, and the learned-texture rule cannot be met in this revision.
+
+**Addendum (2026-10-07): a `qd`-trained run was executed and set aside.** Against the
+spec's "not run" line, a comparator-trained survival run in the `qd` family (`T-qd`:
+`--drift-mode l3`, family `qd` at eps 6.0, hidden 8, n = 10, 300 updates, corrected
+successor bootstrap, CPU) was executed on 2026-10-06 at commit `2606e7f` (branch
+`claude/affectionate-carson-azhxt2`, squash-merged as #117; `scripts/run_expB2.py` and
+`itasorl/` identical to main) and finished at 13:38 local; output
+`fullruns/T_qd_l3_h8_wm/` (gitignored). Descriptive outcome at drift 0.45: survival
+pooled target 0.580 (90% CI [0.542, 0.615]), predictor 0.573 [0.549, 0.595], untrained
+0.608 [0.584, 0.630]; engagement passed in 6 of 10 seeds at drift 0.45 (16 of 20 cells);
+the untrained floor's deviation 0.108 lies outside the 0.1 tolerance; the drag ceiling is
+undefined for this family; L0 at drift 0 reads 0.523 (TOST p 0.020, equivalent to chance);
+reward leakage clean in every seed; no survivorship asymmetry. Because its family failed
+gate 0 and the untrained arm reads above the survival arm, this run is excluded from the
+learned-texture rule and is not a clean negative; it is reported here descriptively only,
+is not promoted to `artifacts/`, and changes no wording above. No `gn`-trained run was
+ever executed and no output for one exists.
 
 **Reading.** At the same one-step magnitude, a hand-authored perturbation that is coherent
 over time and depends on the state is read by the survival agent's state, through the very
@@ -2975,8 +3048,10 @@ per-individual mean and stays above the untrained population. It is attenuated, 
 Applied to Experiment C, a population of individuals each carrying a signal at this level
 would have read near 0.61 under the pooled probe, against the 0.509 the evolved foragers
 read; the 13.D null is therefore informative about signals of that size, and still says
-nothing about weaker or more scattered individual signals. The evolution was not rerun with
-the per-individual estimator, so the result stays restricted to the pooled readout (13.E).
+nothing about weaker or more scattered individual signals. The evolution was rerun with
+the per-individual estimator on 2026-10-07 (13.F): individuals average 0.535 to 0.539 in
+the final treatment populations, none reaches the bar, and the gate battery routes the run
+UNINFORMATIVE, so the result stays restricted to the pooled readout (13.E).
 Per 17.7, this common-garden tail is carried mostly by the physical footprint, so the
 validation concerns the estimator, not memory.
 
