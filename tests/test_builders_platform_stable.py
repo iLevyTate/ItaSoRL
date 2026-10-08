@@ -46,6 +46,9 @@ def test_committed_gate_table_and_contrast_intervals_are_current():
 
 
 def test_manifest_file_list_skips_gitignored_files_but_sees_untracked_ones():
+    if brm._git_listed_artifacts() is None:
+        import pytest
+        pytest.skip("needs a git checkout (an extracted archive walks the filesystem)")
     ignored = os.path.join(ROOT, "artifacts", "clip_audit", "_probe_ignored.json")
     unowned = os.path.join(ROOT, "artifacts", "expB2", "_probe_unowned.json")
     os.makedirs(os.path.dirname(ignored), exist_ok=True)
@@ -102,7 +105,12 @@ def test_readout_scripts_record_the_commit_they_ran_at():
         assert "git_head()" not in src, name
 
 
-def test_git_head_helper_returns_the_short_hash():
+def test_git_head_helper_returns_the_short_hash_or_none_outside_a_checkout():
     from itasorl.results_io import git_head
-    head = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True).strip()
+    try:
+        head = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True,
+                                       stderr=subprocess.DEVNULL).strip()
+    except (OSError, subprocess.CalledProcessError):
+        assert git_head() is None     # an extracted archive is not a checkout
+        return
     assert git_head() == head

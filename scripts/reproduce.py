@@ -121,12 +121,14 @@ def retrain(run: str, execute: bool) -> int:
 # Text scrubbing for the anonymized supplement. Identity terms are read at build time from
 # CITATION.cff and the git remote, so this file names no one. CITATION.cff itself is packaged
 # (the scalar audit's wording guards read it) and scrubbed like every other text file.
+# The patterns are assembled from pieces so that none of them matches its own source: this
+# file is packaged and scrubbed too, and a rule that matched itself would ship as a placeholder.
 GENERIC_SCRUB = [
     # One or more separators: a Windows path inside a JSON string carries doubled backslashes.
-    (re.compile(r"[A-Za-z]:[/\\]+Users[/\\]+[^/\\\s\"']+", re.I), "<local-path>"),
-    (re.compile(r"/home/[^/\s\"']+"), "<local-path>"),
-    (re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+"), "<email>"),
-    (re.compile(r"orcid\.org/[\d-]+X?", re.I), "orcid.org/<orcid>"),
+    (re.compile(r"[A-Za-z]:[/\\]+" + "Users" + r"[/\\]+[^/\\\s\"']+", re.I), "<local-path>"),
+    (re.compile("/ho" + "me/" + r"[^/\s\"']+"), "<local-path>"),
+    (re.compile(r"[\w.+-]+" + "@" + r"[\w-]+\.[\w.]+"), "<email>"),
+    (re.compile("orc" + r"id\.org/[\d-]+X?", re.I), "orcid.org/<orcid>"),
 ]
 
 
@@ -146,12 +148,15 @@ def identity_terms() -> list[str]:
             terms.append(m.group(1))
     except Exception:
         pass
+    # A scrubbed CITATION.cff (an extracted archive rebuilding itself) yields the placeholders
+    # themselves; they are not identity terms, or every scrubbed file would report as a leak.
+    terms = [t for t in terms if not (t.startswith("<") and t.endswith(">"))]
     return sorted({t for t in terms if len(t) >= 3}, key=len, reverse=True)
 
 
 def scrub_rules() -> list:
     """Generic rules plus one rule per identity term. A term matches only as a whole word
-    and with its own capitalization (a case-insensitive "Tate" would also hit "state");
+    and with its own capitalization (a case-insensitive "Vale" would also hit "valence");
     a mixed-case handle (e.g. a GitHub owner) also matches in lower case, as in URLs."""
     rules = list(GENERIC_SCRUB)
     for t in identity_terms():
