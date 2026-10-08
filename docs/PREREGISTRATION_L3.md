@@ -925,6 +925,22 @@ Rigor carried from the B-v3 audit (2026-07-10):
   engagement in 6 of 10 seeds. It is not promoted and is not counted as a negative. No
   `gn`-trained run was executed. The learned-texture rule remains unmet in this revision.
 
+- **2026-10-08 - DRIFT-0.45 WORLD-SAMPLE SENSITIVITY, ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md`).** The pooled readout
+  draws its authentic and surrogate pools from different evaluation-world seed bases, and how
+  much that draw contributes has been measured at drift zero only, where it moves the reading
+  with a between-draw standard deviation of 0.049 against a between-seed deviation of 0.017.
+  This diagnostic carries the same eight independent pairs to drift 0.45, on the ten saved
+  survival agents of the historical hidden-8 held-out run, because the corrected C1 agents are
+  not in the repository. It is a readout on pre-correction agents and measures the estimator's
+  sensitivity to the draw, not the corrected headline. The statistic is the signed per-draw
+  mean with the draw as the unit of inference; folding to an absolute deviation is conservative
+  at drift zero but anti-conservative where a real signed effect exists, so it is prohibited
+  here. The decision rule, the three outcome labels, the integrity gate against the recorded
+  per-seed values, and the exact wording written in each of the three cases are all fixed in
+  the spec before the run. Section 5's readout, section 6's bar and margins, and every gate in
+  section 7 are unchanged, and this diagnostic cannot overturn a registered verdict.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
