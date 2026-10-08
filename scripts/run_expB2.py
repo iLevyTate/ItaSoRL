@@ -466,7 +466,8 @@ def run_cell(task: dict) -> dict:
     out = {"drift": d, "seed": s, "eng": eng, "xeval": xev, "agents": {},
            "gae_bootstrap": k.get("gae_bootstrap", "successor"),
            "objective": k.get("objective", "survival"), "mortal": bool(k.get("mortal", True)),
-           "knobs": {"n_pellets": k.get("n_pellets"), "basal_e": k.get("basal_e")},
+           "knobs": {key: k.get(key) for key in ("n_pellets", "basal_e", "reach", "drift_mode",
+                                                 "l3_hidden", "l3_seed", "l3_family")},
            "survival_train": {"updates": head, "env_steps": tstats["env_steps"][head - 1]}}
     for g in AG:
         pool, mp, ho = evaluate_agent(agents[g][0], agents[g][1], d, a_ns, dev, s, g)

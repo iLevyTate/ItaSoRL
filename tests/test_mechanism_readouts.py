@@ -161,6 +161,11 @@ def test_common_rows_restricts_to_the_shared_survivors():
     np.testing.assert_array_equal(b2, [[100, 101], [102, 103]])
     np.testing.assert_array_equal(b3, [[202, 203], [200, 201]])
     assert common_rows(r1, {"B": np.zeros((0, 2)), "kept": np.array([], int)})[0].shape == (0, 2)
+    # any per-episode array pairs the same way
+    r1["halves"], r2["halves"] = np.arange(4.0)[:, None], np.arange(3.0)[:, None] + 10
+    h1, h2 = common_rows(r1, r2, key="halves")
+    np.testing.assert_array_equal(h1.ravel(), [1, 2])
+    np.testing.assert_array_equal(h2.ravel(), [10, 11])
 
 
 def test_driver_quick_on_a_smoke_run(tmp_path):
@@ -169,7 +174,7 @@ def test_driver_quick_on_a_smoke_run(tmp_path):
     import subprocess
     run_dir = tmp_path / "run"
     subprocess.run([sys.executable, "scripts/run_expB2.py", "--quick", "--drift-mode", "l3",
-                    "--seeds", "0", "--drifts", "0.0", "0.45", "--workers", "1", "--device", "cpu",
+                    "--drifts", "0.0", "0.45", "--workers", "1", "--device", "cpu",
                     "--save-agents", "--out-dir", str(run_dir)], check=True, cwd=ROOT)
     out = tmp_path / "mech.json"
     subprocess.run([sys.executable, "scripts/run_mechanism_readouts.py", "--run-dir", str(run_dir),
@@ -182,9 +187,12 @@ def test_driver_quick_on_a_smoke_run(tmp_path):
         assert key in s0, key
     assert set(s0["intervention"]) >= {"score_real", "score_sham", "gap", "score_real_reverse",
                                        "score_sham_reverse", "informative", "n_common_auth",
-                                       "n_common_surr"}
+                                       "n_common_surr", "n_common", "u", "v", "s"}
+    assert "n_paired" in s0["behavior"] and "n_paired" in s0["adaptation"]
     assert "n_seeds" in d["summary"]
     assert d["summary"]["n_seeds"] == len(d["per_seed"])
+    assert set(d["summary"]["floors"]) == {"untrained", "predictor"}
+    assert "surprise_auroc" in d["summary"]["floors"]["untrained"]
 
 
 def _summary(real_sham=(0.2, 0.05, 0.35), n_inf=8, s_auc=0.7, s_corr=(0.3, 0.1, 0.5),
