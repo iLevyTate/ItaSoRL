@@ -164,3 +164,23 @@ def test_the_title_is_a_name_not_a_claim_and_is_not_matched_for_retired_wording(
     out = capsys.readouterr().out
     assert rc == 1
     assert out.count("retired wording") == 1 and ":4:" in out
+
+
+def test_the_generated_verdict_table_does_not_lead_with_met_for_a_run_whose_rule_is_not_met():
+    """C1's verdict string starts "MET on the decodability clauses"; a reader skimming the
+    rendered column sees MET for a run the registered rule is not met on. The table must say
+    both things in their own columns, derived from the artifact's own fields."""
+    with open(os.path.join(ROOT, "artifacts", "corrected_verdicts.json"), encoding="utf-8") as fh:
+        v = json.load(fh)
+    tex = bpt.corrected_table()
+    assert tex is not None
+    assert "Registered rule" in tex and "Decodability" in tex
+    for name, r in v["runs"].items():
+        if r.get("status") != "complete":
+            continue
+        row = next(ln for ln in tex.splitlines() if ln.startswith(name + " &"))
+        assert not r["primary"]["met"], "fixture assumes neither corrected run meets the rule"
+        assert "NOT MET" in row, name
+        assert not row.split("&")[-2].strip().startswith("MET on"), name
+        for g in r["gates"]["failed"]:
+            assert g.upper() in row.upper(), (name, g)
