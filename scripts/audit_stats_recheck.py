@@ -1855,6 +1855,52 @@ def main() -> int:
         for arm in ("predictor", "untrained"):
             check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
                        f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
+    _s13 = _f17[_f17.index("## 13. Experiment C"):_f17.index("## 14.")]
+    _pip = os.path.join(ARTROOT, "expC", "emergence_pilot_per_individual_summary.json")
+    if os.path.exists(_pip):
+        _pi = _load_art("expC", "emergence_pilot_per_individual_summary.json")
+        _g1 = _pi["gates"]["gate1_exploitability"]
+        check_true("13.F: gate 1 (exploitability) fails", not _g1["passes_gate1"])
+        _g1txt = (f"treatment gap {_g1['treatment_gap_mean']:.5f}, 90%\n"
+                  f"CI [{_g1['treatment_ci90'][0]:.5f}, {_g1['treatment_ci90'][1]:.5f}]")
+        check_true("13.F quotes the gate-1 payoff and interval", _g1txt in _s13)
+        _g5 = _pi["gates"]["gate5_speed_control"]
+        check_true("13.F: gate 5 (speed positive control) fails", not _g5["pass"])
+        check_true("13.F quotes the worst speed-control reading",
+                   f"minimum {_g5['min']:.3f} against the 0.75 bar" in _s13)
+        check_true("13.F records the uninformative routing",
+                   "UNINFORMATIVE" in _pi["gates"]["routing"] and "UNINFORMATIVE" in _s13)
+        _ind = [c[k] for c in _pi["cells"]
+                for k in ("indiv_gen0", "indiv_final_treat", "indiv_final_ctrl")]
+        check_int("13.F: 48 individuals scored per population",
+                  sorted({x["n_individuals"] for x in _ind})[0], 48)
+        check_true("13.F: no individual reaches the bar in any population",
+                   all(x["share_at_or_above_bar"] == 0.0 for x in _ind))
+        def _three(key):
+            v = [f"{c[key]['mean']:.3f}" for c in _pi["cells"]]
+            return f"{v[0]}, {v[1]} and {v[2]}"
+        check_true("13.F quotes the generation-0 per-individual means",
+                   f"Means at generation 0 are {_three('indiv_gen0')}" in _s13)
+        check_true("13.F quotes the final treatment per-individual means",
+                   f"treatment populations {_three('indiv_final_treat')}" in _s13)
+        check_true("13.F quotes the final control per-individual means",
+                   f"control populations\n{_three('indiv_final_ctrl')}" in _s13)
+    _xevp = os.path.join(ARTROOT, "corrected_runs", "corrected_l3_h8_wm", "cells")
+    if os.path.isdir(_xevp):
+        _xv = {}
+        for _fn in sorted(os.listdir(_xevp)):
+            with open(os.path.join(_xevp, _fn), encoding="utf-8") as _fh:
+                _c = json.load(_fh)["cell"]
+            if _c.get("xeval"):
+                _xv.setdefault(float(_c["drift"]), []).append(_c["xeval"])
+        for _td in sorted(_xv):
+            _rows = _xv[_td]
+            check_int(f"17.2.1: ten cells trained at drift {_td}", len(_rows), 10)
+            _cells = " | ".join(f"{float(np.mean([r[_ed] for r in _rows])):+.3f}"
+                                for _ed in sorted(_rows[0]))
+            _lab = "authentic (drift 0)" if _td == 0.0 else f"surrogate (drift {_td})"
+            check_true(f"17.2.1 quotes the cross-evaluation row for {_lab}",
+                       f"| {_lab} | {_cells} |" in _s17)
     _wsp = os.path.join(ARTROOT, "l0_audit", "d045_world_samples_l3_h8_heldout.json")
     if os.path.exists(_wsp):
         from itasorl.l0_audit import world_sample_summary as _wss

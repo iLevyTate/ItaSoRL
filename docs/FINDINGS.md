@@ -2163,8 +2163,8 @@ fails: minimum 0.527 against the 0.75 bar, with the final treatment panels at 0.
 interpretable** (section 8 of the preregistration).
 
 **Per-individual readout.** Every individual is scored (48 of 48 per population).
-Means at generation 0 are 0.527, 0.521 and 0.527 (seeds 0, 1, 2); in the final
-treatment populations 0.535, 0.539 and 0.537; in the final control populations
+Means at generation 0 are 0.526, 0.521 and 0.527 (seeds 0, 1, 2); in the final
+treatment populations 0.534, 0.539 and 0.536; in the final control populations
 0.540, 0.530 and 0.522. The best single individual in any population reads 0.649; the
 share at or above the 0.65 bar is 0.0 everywhere. The pooled probe on the same tails
 reads 0.499 to 0.511. Per 17.11, a population whose members each carried a 0.65
@@ -2721,6 +2721,31 @@ gate.** The survival mean and its lower bound clear 0.65 and both margins clear 
 claim that the drift-0.45 reading reflects the dynamics rather than the evaluation-world
 sample rests on the L0 gate, which is open; what the agent-based L0 audit shows about it is
 in section 17.5.
+
+### 17.2.1 Which world each arm is raised in, and what the policies are worth across worlds
+
+Recorded here because the manuscript's methods now state it and a reviewer asked for it. Every
+`(drift, seed)` cell of Experiment B and of every L3 run raises its three arms in that cell's world
+and in no other (`scripts/run_expB2.py` `run_cell` calls `train_actor_critic(d, ...)` at the cell's
+drift). At drift 0.45 the predictor and survival arms train, and the untrained arm's normalizer warms
+up, inside the surrogate; at drift 0 all three do so in the authentic world. The readout then scores
+the frozen agent on two independent pools, authentic at evaluation-world seed base 800000 and the
+cell's drift at 850000 (`itasorl.experiment_b2.pooled_readout`). So the drift-0.45 probe separates the
+law the agent was raised under from a law it never lived in. The one exception in the project is the
+Experiment C population, which lives a mixed authentic-plus-surrogate lifetime by design (section 13).
+
+The cross-evaluation returns of the corrected `C1` cells say the surrogate-raised policy is not merely
+a policy that works in the copy (`artifacts/corrected_runs/corrected_l3_h8_wm/cells/*.json`, field
+`xeval`, mean over the ten seeds):
+
+| trained in | mean return, evaluated authentic | mean return, evaluated at drift 0.45 |
+|---|---|---|
+| authentic (drift 0) | +0.200 | -0.382 |
+| surrogate (drift 0.45) | +0.158 | -0.340 |
+
+The surrogate-raised arm earns four fifths of the authentic-raised arm's return in the authentic
+world, so the state difference the probe reads is not the signature of a policy that has stopped
+working outside its training world.
 
 ### 17.3 What the correction changed
 

@@ -37,6 +37,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `H2-OBSLOC` | historical | H2 | 34 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | not recorded |
 | `L1-H2` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | not recorded | legacy | not recorded |
 | `SENSORY-ECHO` | historical | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
+| `EXPC-M3-PER-INDIVIDUAL` | historical | C | 28 | none | - | 3c6f0aa | n/a | owner's laptop CPU |
 | `H8-HELDOUT-D045-WORLD-SAMPLES` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 865b842 | explicit | owner's laptop CPU, one thread per readout |
 | `FOLDS-EXPLICIT-V1` | historical | methods | - | none | - | not recorded | explicit | not recorded |
 | `GATE-TABLE` | historical | methods | - | inherited: pre_transition_value | BV2-L2-AR1, BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
@@ -434,6 +435,17 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: cuda
 - Notes: Basis is [x_t, x_{t-1}] (and cummean in the secondary variant); the five previous-action channels fed to the GRU are not in the basis.
 - Artifacts: `artifacts/expB2/sensory_echo_l3_h8.json`, `artifacts/expB2/sensory_echo_l3_h8_mlp.json`, `artifacts/expB2/sensory_echo_l3_h7.json`
+
+### `EXPC-M3-PER-INDIVIDUAL`: Experiment C milestone 3 rerun with the per-individual readout (2026-10-07)
+
+- Status: historical
+- Trainer: none
+- Commit at run: 3c6f0aa
+- Folds: n/a
+- Device: owner's laptop CPU
+- Local run directory (not in git): fullruns/expC_milestone3
+- Notes: scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates (gate 1 exploitability, gate 5 speed positive control), so neither estimator yields a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.
+- Artifacts: `artifacts/expC/emergence_pilot_per_individual_summary.json`
 
 ### `H8-HELDOUT-D045-WORLD-SAMPLES`: Drift-0.45 world-sample sensitivity on the historical hidden-8 held-out agents (frozen 2026-10-08)
 

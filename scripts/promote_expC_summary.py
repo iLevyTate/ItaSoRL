@@ -65,6 +65,13 @@ def main() -> int:
             "death_rate_auth_final_ctrl": sc["death_rate_auth"],
             "death_rate_surr_gen0": sg["death_rate_surr"],
         })
+        # The per-individual rerun adds one probe per individual on the same panel.
+        # Only the summary travels; the 48 per-individual values stay in the run bundle.
+        for tag in ("indiv_gen0", "indiv_final_treat", "indiv_final_ctrl"):
+            if tag in ps:
+                cells[-1][tag] = {"mean": ps[tag]["mean"],
+                                  "n_individuals": len(ps[tag]["per_individual"]),
+                                  "share_at_or_above_bar": ps[tag]["share_at_or_above_bar"]}
 
     est = run["estimand"]
     out = {
