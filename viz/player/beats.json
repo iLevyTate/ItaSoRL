@@ -125,7 +125,7 @@
           { "label": "its mind, surviving", "pct": "73%" }
         ],
         "url": "ilevytate.github.io/ItaSoRL",
-        "foot": "Real runs, 10 each. 50% = coin flip, 100% = always right. Read out, never rewarded. Numbers from the pre-correction trainer (docs/CORRECTIONS.md)."
+        "foot": "Real runs, 10 each. 50% = coin flip, 100% = always right. Read out, never rewarded. Pre-correction trainer. The survival-only reading is withdrawn: a mind trained only to predict reads the same senses as well (FINDINGS 17.6). Corrected trainer: 0.733, the registered rule not met on its authentic-versus-authentic gate, and the level stable across nine draws of evaluation worlds (0.728 to 0.860, FINDINGS 17.5.1). docs/CORRECTIONS.md."
       }
     }
   ]

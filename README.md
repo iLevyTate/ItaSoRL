@@ -171,7 +171,7 @@ reads **0.733** (t-based 90% CI **[0.669, 0.797]**, 8 of 10 seeds at the 0.65
 bar), the predictor arm 0.589 and the untrained arm 0.523, with paired margins
 of +0.144 and +0.210 whose intervals clear the registered 0.05. The L0 gate
 (both pools authentic) is open on the registered pair of evaluation worlds
-(0.559) and equivalent to chance across eight independent pairs (0.493), so
+(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the historical hidden-8 agents, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so
 the verdict is met on the decodability clauses, conditional on L0. Without the
 auxiliary the same protocol reads **0.613** [0.552, 0.675], not met; the
 decoder adds **+0.120** [+0.065, +0.174]. The bootstrap fix moved these two
