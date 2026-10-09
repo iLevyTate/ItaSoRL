@@ -28,11 +28,74 @@ from itasorl.results_io import git_head  # noqa: E402
 from itasorl.stats import equivalence_test, paired_contrast, t_ci90  # noqa: E402
 
 ARMS = ("untrained", "predictor", "survival")
+# The full section 7 battery. Named here so a gate cannot go missing from a promoted artifact
+# without the audit noticing: an absent gate is not a passed gate.
+REGISTERED_GATES = ("gate0_oracle_band", "engagement", "l0_tost", "speed_positive_control",
+                    "reward_leakage", "survivorship", "untrained_floor")
 BAR = 0.65
 MARGIN = 0.05
 SPEED_GATE = 0.75          # preregistration section 7, gate 3
 LEAK_TOL = 0.1             # gate 4
 L0_ROPE = 0.05             # gate 2 margin
+
+
+def speed_gate(run: dict, threshold: float = SPEED_GATE) -> dict:
+    """Gate 3, scored over every pool at every drift.
+
+    Preregistration section 7 gate 3 carries no arm restriction, and the project's convention
+    (scripts/promote_bv3_gates.py) is "speed probe >= 0.75 in every pool". Scoring the survival
+    arm alone understates a failure that sits in a baseline arm, and the baseline arms are what
+    the registered margins are measured against, so an unprobeable baseline is exactly the case
+    the positive control exists to catch.
+    """
+    pools, below = [], {}
+    surv = []
+    for drift, cells in run.items():
+        for arm in ARMS:
+            if arm not in cells:
+                continue
+            for x in cells[arm]["pool_speed"]:
+                x = float(x)
+                pools.append(x)
+                if arm == "survival":
+                    surv.append(x)
+                if x < threshold:
+                    below.setdefault(arm, {}).setdefault(str(float(drift)), 0)
+                    below[arm][str(float(drift))] += 1
+    n_below = sum(c for a in below.values() for c in a.values())
+    return {"threshold": threshold, "n_pools": len(pools), "n_below": n_below,
+            "min_all_pools": min(pools) if pools else float("nan"),
+            "mean_all_pools": sum(pools) / len(pools) if pools else float("nan"),
+            "min_survival": min(surv) if surv else float("nan"),
+            "mean_survival": sum(surv) / len(surv) if surv else float("nan"),
+            "below_by_arm_drift": below,
+            "pass": bool(pools) and n_below == 0}
+
+
+def engagement_gate(cells_dir: str | None) -> dict:
+    """Gate 1, read from the run's per-cell records.
+
+    Engagement is the one gate the registered matrix explicitly routes on, so it must be
+    verifiable from the repository rather than asserted in prose. A missing cells directory is
+    a failed gate, never an absent one.
+    """
+    out = {"cells_dir": cells_dir, "n_cells": 0, "n_engaged": 0, "per_cell": [], "pass": False}
+    if not cells_dir or not os.path.isdir(cells_dir):
+        out["note"] = "cells directory not found; engagement cannot be verified"
+        return out
+    for name in sorted(os.listdir(cells_dir)):
+        if not name.endswith(".json"):
+            continue
+        with open(os.path.join(cells_dir, name), encoding="utf-8") as fh:
+            c = json.load(fh)
+        c = c.get("cell", c)
+        eng = c.get("eng") or {}
+        ok = bool(eng.get("engaged"))
+        out["per_cell"].append({"drift": c.get("drift"), "seed": c.get("seed"), "engaged": ok})
+        out["n_cells"] += 1
+        out["n_engaged"] += int(ok)
+    out["pass"] = out["n_cells"] > 0 and out["n_engaged"] == out["n_cells"]
+    return out
 
 
 def _agg(v):
@@ -51,6 +114,8 @@ def main() -> int:
     ap.add_argument("--family", required=True)
     ap.add_argument("--family-param", type=float, required=True)
     ap.add_argument("--gate0", default=None, help="artifact holding this family's gate-0 row")
+    ap.add_argument("--cells", default=None,
+                    help="the run's cells/ directory, which carries the engagement records")
     ap.add_argument("--drift", type=float, default=0.45)
     a = ap.parse_args()
 
@@ -64,8 +129,6 @@ def main() -> int:
     l0 = {arm: _agg(v0[arm]["pool_target"]) for arm in ARMS if arm in v0}
 
     eq = equivalence_test(v0["survival"]["pool_target"])
-    sp_min = min(float(x) for arm in ARMS for x in v[arm]["pool_speed"])
-    sp_min_surv = min(float(x) for x in v["survival"]["pool_speed"])
     leak = max(abs(float(x) - 0.5) for arm in ARMS for x in v[arm]["pool_reward_leak"])
     deaths = sum(int(x) for arm in ARMS
                  for k2 in ("pool_deaths_auth", "pool_deaths_surr") for x in v[arm][k2])
@@ -73,8 +136,8 @@ def main() -> int:
     gates = {
         "l0_tost": {"mean": eq.mean, "p": eq.p_value, "margin": L0_ROPE,
                     "pass": bool(eq.equivalent)},
-        "speed_positive_control": {"threshold": SPEED_GATE, "min_all_arms": sp_min,
-                                   "min_survival": sp_min_surv, "pass": sp_min_surv >= SPEED_GATE},
+        "speed_positive_control": speed_gate(run),
+        "engagement": engagement_gate(a.cells),
         "reward_leakage": {"tolerance": LEAK_TOL, "max_abs_dev": leak, "pass": leak <= LEAK_TOL},
         "survivorship": {"total_deaths": deaths, "pass": deaths == 0},
         "untrained_floor": {"mean": primary["untrained"]["mean"],
@@ -90,6 +153,9 @@ def main() -> int:
                                           "mech_leak_pass": row["mech_leak_pass"],
                                           "pass": bool(row["in_band"] and row["mech_leak_pass"]),
                                           "source": a.gate0}
+    missing = [k for k in REGISTERED_GATES if k not in gates]
+    if missing:
+        raise SystemExit(f"refusing to promote with gates unscored: {missing}")
     failed = sorted(k for k, g in gates.items() if not g["pass"])
 
     clauses = {

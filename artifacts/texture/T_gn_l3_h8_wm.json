@@ -1,7 +1,7 @@
 {
  "source_run": "../../fullruns/T_gn_l3_h8_wm/expB2_results.json",
  "generated_by": "scripts/promote_texture_trained.py",
- "git_commit_at_promotion": "fe849ac",
+ "git_commit_at_promotion": "df7ccf3",
  "spec": "docs/specs/2026-10-09-gn-comparator-trained-design.md",
  "family": "gn",
  "family_param": 0.01,
@@ -171,9 +171,130 @@
   },
   "speed_positive_control": {
    "threshold": 0.75,
-   "min_all_arms": 0.686213768115942,
+   "n_pools": 60,
+   "n_below": 9,
+   "min_all_pools": 0.686213768115942,
+   "mean_all_pools": 0.8178930032340684,
    "min_survival": 0.7454496330696021,
+   "mean_survival": 0.8435759161662968,
+   "below_by_arm_drift": {
+    "untrained": {
+     "0.0": 3,
+     "0.45": 5
+    },
+    "survival": {
+     "0.45": 1
+    }
+   },
    "pass": false
+  },
+  "engagement": {
+   "cells_dir": "../../fullruns/T_gn_l3_h8_wm/cells",
+   "n_cells": 20,
+   "n_engaged": 20,
+   "per_cell": [
+    {
+     "drift": 0.0,
+     "seed": 0,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 1,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 2,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 3,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 4,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 5,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 6,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 7,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 8,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 9,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 0,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 1,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 2,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 3,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 4,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 5,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 6,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 7,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 8,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 9,
+     "engaged": true
+    }
+   ],
+   "pass": true
   },
   "reward_leakage": {
    "tolerance": 0.1,

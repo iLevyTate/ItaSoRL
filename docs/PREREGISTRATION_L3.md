@@ -1004,6 +1004,24 @@ Rigor carried from the B-v3 audit (2026-07-10):
   -0.030 [-0.051, -0.008]. Every other gate passes, including
   the drift-zero L0 equivalence the corrected headline run does not.
 
+- **2026-10-09 - CORRECTION TO THE WHITE-JITTER GATE SCORING (the outcome entry above is left
+  as written, per the append-only rule).** The positive control reported in that entry was scored
+  on the **survival arm only**, which understated the failure. Section 7 gate 3 carries no arm
+  restriction and the project's own convention, written into `scripts/promote_bv3_gates.py`, is
+  "speed probe at least 0.75 in every pool". Rescored that way across both drift slices and all
+  three arms, the control is short in **9 of 60** arm-by-cell pools, worst
+  **0.6862** (short by 0.0638), all-pool mean
+  0.8179; the shortfall is 3 of 10 untrained cells at drift 0, 5 of 10 untrained
+  cells at drift 0.45, and 1 of 10 survival cells at drift 0.45. The survival-arm figures quoted in
+  the entry above (0.74545, 19 of 20) are correct for that arm and are retained as
+  a recorded field. The promoter (`scripts/promote_texture_trained.py`) and the audit are corrected,
+  and the promoter now refuses to write an artifact with any registered gate unscored, which also
+  closed a second gap: engagement had not been recorded at all and is now read from the run's cells
+  (20 of 20 engaged). **The verdict is unchanged, UNINFORMATIVE, and no margin was relaxed in either
+  direction.** The correction makes the failure larger, not smaller: the shortfall sits mainly in
+  the untrained arm, the baseline the registered margins are measured against, so the run does not
+  establish that its own comparator is probeable in this family.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

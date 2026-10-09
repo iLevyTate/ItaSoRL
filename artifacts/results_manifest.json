@@ -2190,7 +2190,7 @@
       "recorded_provenance": {
         "texture/T_gn_l3_h8_wm.json": {
           "generated_by": "scripts/promote_texture_trained.py",
-          "git_commit_at_promotion": "fe849ac",
+          "git_commit_at_promotion": "df7ccf3",
           "source_run": "../../fullruns/T_gn_l3_h8_wm/expB2_results.json",
           "spec": "docs/specs/2026-10-09-gn-comparator-trained-design.md"
         }

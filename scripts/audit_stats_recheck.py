@@ -1865,8 +1865,31 @@ def main() -> int:
                    _gn["gates_failed"] == ["speed_positive_control"])
         check_true("14.5.1: the registered rule is not met", not _gn["rule_met"])
         check_true("14.5.1: it routes uninformative", _gn["routing"].startswith("UNINFORMATIVE"))
-        check_true("14.5.1 quotes the failing speed value",
+        check_true("14.5.1 quotes the worst pool, over every arm not just survival",
+                   f"**{_sp['min_all_pools']:.4f}**" in _s14)
+        check_true("14.5.1 quotes how many pools are short",
+                   f"**{_sp['n_below']} of the {_sp['n_pools']}**" in _s14)
+        check_true("14.5.1 still records the survival-arm worst",
                    f"{_sp['min_survival']:.5f}" in _s14)
+        check_true("14.5.1: the gate is scored over every pool",
+                   _sp["n_pools"] == 60 and _sp["min_all_pools"] < _sp["min_survival"])
+        check_true("14.5.1: engagement is verified from the cells, not asserted",
+                   _gn["gates"]["engagement"]["n_cells"] == 20
+                   and _gn["gates"]["engagement"]["n_engaged"] == 20)
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from promote_texture_trained import REGISTERED_GATES as _REG
+        check_true("14.5.1: every registered gate is scored in the artifact",
+                   set(_gn["gates"]) == set(_REG))
+        # The matched forward margin, recomputed, so the like-for-like comparison cannot drift.
+        _fw = {}
+        for _c in _load_art("fold_rescore", "l3_h8_heldout.json")["cells"]:
+            if float(_c["drift"]) == 0.45 and "explicit" in _c:
+                _fw.setdefault(_c["agent"], []).append(float(_c["explicit"]["target"]))
+        _mfwd = float(np.mean(_fw["survival"]) - np.mean(_fw["untrained"]))
+        check_true("17.5.2 quotes the matched forward margin",
+                   f"that is {_mfwd:+.3f}" in _s17)
+        check_true("17.5.2 no longer claims the reverse margin is the larger one",
+                   "larger than the forward direction" not in _s17)
         for _arm in ("untrained", "predictor", "survival"):
             _a = _gn["primary"][_arm]
             _iv = f"[{_a['t90'][0]:.3f}, {_a['t90'][1]:.3f}]"

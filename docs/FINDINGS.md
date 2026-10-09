@@ -2357,9 +2357,14 @@ failed. Registered L3 configuration with the surrogate family switched: ten seed
 (`artifacts/texture/T_gn_l3_h8_wm.json`).
 
 **The gate that does not pass.** The registered positive control (section 7, gate 3: speed probe
-at least 0.75) reads **0.74545** on the survival arm at drift 0.45, seed 2. It
-misses by 0.00455. Nineteen of the twenty cells pass and the
-mean is about 0.84, but the margin is not relaxed after the fact. Section 8's two verdicts both
+at least 0.75) is short in **9 of the 60** arm-by-cell pools of
+this run. The worst reads **0.6862**, short by 0.0638, against an
+all-pool mean of 0.8179. The shortfall is concentrated in the untrained arm (3 of 10
+cells at drift 0 and 5 of 10 at drift 0.45), with one survival cell at drift 0.45
+(0.74545); on the survival arm alone 19 of 20 pass, with a mean of
+0.8436. The untrained arm is the baseline the registered margins are measured
+against, so this run does not establish that its own comparator is probeable at all, which is
+exactly what a positive control exists to catch. The margin is not relaxed after the fact. Section 8's two verdicts both
 require every gate to pass, so neither is reached; and the matrix routes only a gate-0 or
 engagement failure to *uninformative*, so it names no cell for this outcome, the same structural
 gap recorded for the L0 failure in 17.2. **The run is therefore uninformative, it is not counted
@@ -2988,8 +2993,13 @@ learned to seek out its error regions. The reading survives that objection.
 
 Third, it **sharpens the dissociation rather than blurring it**. The untrained arm reads
 0.505 and the predictor 0.570 against survival's 0.760, so what
-matters is being a trained forager, and the margin here (+0.255) is
-larger than the forward direction's. At the same time the reading does move the result closer to
+matters is being a trained forager. Compared like for like, against the forward direction on these
+same ten agents, the same pools and the same explicit partition
+(`artifacts/fold_rescore/l3_h8_heldout.json`, the file this run's integrity gate reads), the
+forward margin is 0.774 minus 0.513, that is +0.261, so the reverse margin of +0.255 is 0.006
+**smaller** rather than larger. It is not compared against the corrected `C1` margin, which comes
+from a different trainer, different agents and a different partition baseline. At the same time
+the reading does move the result closer to
 out-of-distribution detection than the manuscript previously framed it, and the related-work
 positioning was revised accordingly, as the frozen spec required for this outcome.
 
