@@ -52,7 +52,7 @@ gate-calibrated fingerprint (privileged detector 0.928 at detector-side noise σ
 the survival state decodes the world at **0.733** (t-based 90% CI [0.669, 0.797]),
 against 0.589 for the predictor arm and 0.523 untrained, with paired margins of +0.144 and
 +0.210 whose intervals clear 0.05. The L0 gate is open on the registered world-sample pair
-(0.559) and equivalent to chance across eight independent pairs (0.493), so the verdict is
+(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the historical hidden-8 agents, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so the verdict is
 MET on the decodability clauses, conditional on L0. Without the auxiliary the survival
 state reads **0.613** [0.552, 0.675], not met; the decoder adds **+0.120** [+0.065,
 +0.174]. The correction itself moved the two drift-0.45 readings by +0.003 and +0.012.
@@ -3157,8 +3157,9 @@ return, which is consistent with selection having no gradient toward a detector.
    corrected trainer, with each arm's own policy driving the episodes, the survival agent
    trained with the next-observation auxiliary reads 0.733 [0.669, 0.797], above the
    predictor and untrained arms by margins whose intervals clear 0.05. The correction moved
-   it by +0.003. L0 is open on the registered world-sample pair (0.559) and equivalent to
-   chance across eight independent pairs (0.493). Verdict: MET on the decodability
+   it by +0.003. L0 is open on the registered world-sample pair (0.559), the largest of nine draws
+   on record (absolute deviation from chance 0.037 on average across eight independent pairs,
+   gate accepting on two; at drift 0.45 every independent draw clears the bar, 17.5.1). Verdict: MET on the decodability
    clauses, conditional on L0.
 2. **The auxiliary result is bounded by budget.** At 300 updates the arm without the decoder
    reads 0.613 and does not meet the rule; the decoder adds +0.120 [+0.065, +0.174]. With

@@ -91,6 +91,15 @@ names the pre-correction trainer. The rendered mp4 files keep the original end
 card: they are not re-rendered, and the pages that publish them carry the label
 instead.
 
+On 2026-10-09 the caveats were extended on every surface that publishes the films
+(the site film block, the live player's end-card footer, and this file) with the corrected
+record: the survival state reads 0.733 under the corrected trainer with the registered rule
+as a whole not met, because the authentic-versus-authentic gate is open on the registered
+pair of evaluation worlds (0.559, the largest of nine draws on record), and the level is not
+a product of that draw, since every one of eight independent draws at drift 0.45 clears the
+bar (0.728 to 0.860, SECURE under a rule frozen before the run; FINDINGS 17.5.1). The mp4
+files are unchanged; the caveats sit beside them, never inside them.
+
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
 the same way as film one and replace `two-minds-web.mp4` in place so the site
 and the player pick it up without a markup change.
