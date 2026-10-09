@@ -136,3 +136,21 @@ def test_intro_documents_make_a_copy_first():
     nb = _load()
     markdown = "\n".join(_src(c) for c in nb["cells"] if c["cell_type"] == "markdown")
     assert "Save a copy in Drive" in markdown
+
+
+def test_world_sample_sensitivity_extra_resolves_and_verifies_the_saved_agents_first():
+    # The saved agents are gitignored. The extra must go through the resolver (which checks
+    # every sha256 against the committed artifact) before scoring, must checkpoint inside
+    # the Drive-mirrored folder, and must be readable against the committed result.
+    nb = _load()
+    code = "\n".join(_src(c) for c in _code_cells(nb))
+    assert "RUN_WORLD_SAMPLE_SENSITIVITY" in code
+    assert "AGENTS_ARCHIVE_URL" in code and "AGENTS_DRIVE_DIR" in code
+    assert "scripts/fetch_saved_agents.py" in code
+    assert "scripts/run_world_sample_sensitivity.py" in code
+    assert '"--checkpoint-dir", "fullruns/d045_world_samples/checkpoints"' in code
+    run_cell = next(_src(c) for c in _code_cells(nb) if "def run_extra(" in _src(c))
+    assert run_cell.index("_saved_agents_dir()") < run_cell.index('"scripts/run_world_sample_sensitivity.py"')
+    read_cell = next(_src(c) for c in _code_cells(nb) if "Read the extras" in _src(c))
+    assert "artifacts/l0_audit" in read_cell or "d045_world_samples_l3_h8_heldout.json" in read_cell
+    assert "verdict" in read_cell

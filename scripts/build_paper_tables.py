@@ -241,7 +241,12 @@ def check_manuscript(d: str) -> int:
                 inputs += 1
         for i, raw in enumerate(raw_lines, 1):
             line = strip_tex(raw)
+            # The title names the paper's contrast ("Detectable Is Not Encoded"); it is not a
+            # claim about a run, so the prose guard does not read it.
+            is_title = raw.lstrip().startswith("\\title{")
             for pat, fix in RETIRED:
+                if is_title:
+                    break
                 m = re.search(pat, line, re.I)
                 if m and not _withdrawn_before(line, m.start()):
                     print(f"{rel}:{i}: retired wording /{pat}/ -> {fix}")

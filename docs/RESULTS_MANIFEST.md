@@ -37,6 +37,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `H2-OBSLOC` | historical | H2 | 34 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | not recorded |
 | `L1-H2` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | not recorded | legacy | not recorded |
 | `SENSORY-ECHO` | historical | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
+| `H8-HELDOUT-D045-WORLD-SAMPLES` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 865b842 | explicit | owner's laptop CPU, one thread per readout |
 | `FOLDS-EXPLICIT-V1` | historical | methods | - | none | - | not recorded | explicit | not recorded |
 | `GATE-TABLE` | historical | methods | - | inherited: pre_transition_value | BV2-L2-AR1, BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
 | `CONTRAST-INTERVALS` | historical | methods | - | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
@@ -433,6 +434,17 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: cuda
 - Notes: Basis is [x_t, x_{t-1}] (and cummean in the secondary variant); the five previous-action channels fed to the GRU are not in the basis.
 - Artifacts: `artifacts/expB2/sensory_echo_l3_h8.json`, `artifacts/expB2/sensory_echo_l3_h8_mlp.json`, `artifacts/expB2/sensory_echo_l3_h7.json`
+
+### `H8-HELDOUT-D045-WORLD-SAMPLES`: Drift-0.45 world-sample sensitivity on the historical hidden-8 held-out agents (frozen 2026-10-08)
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Commit at run: 865b842
+- Folds: explicit
+- Device: owner's laptop CPU, one thread per readout
+- Local run directory (not in git): fullruns/d045_world_samples
+- Notes: scripts/run_world_sample_sensitivity.py; spec docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md; FINDINGS 17.5.1. Diagnostic, not a gate: the nine per-draw survival means at drift 0.45 are signed and never folded. Integrity gate (registered draw reproduces the recorded explicit-partition targets within 0.01 on every seed) passed, worst abs dev 0.0037. Verdict under the frozen rule: SECURE. These are pre-correction-trainer agents; this measures the estimator's sensitivity to the evaluation-world draw, not the corrected headline.
+- Artifacts: `artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`
 
 ### `FOLDS-EXPLICIT-V1`: Serialized explicit-v1 partitions of the standard designs
 

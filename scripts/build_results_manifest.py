@@ -327,6 +327,20 @@ RUNS = [
         folds="legacy", device="cuda",
         notes="Basis is [x_t, x_{t-1}] (and cummean in the secondary variant); the five "
               "previous-action channels fed to the GRU are not in the basis."),
+    run("H8-HELDOUT-D045-WORLD-SAMPLES", "Drift-0.45 world-sample sensitivity on the historical "
+        "hidden-8 held-out agents (frozen 2026-10-08)", experiment="L0 audit",
+        artifacts=["l0_audit/d045_world_samples_l3_h8_heldout.json"], trains_survival=False,
+        readout_of=["L3-H8-HELDOUT"], commit_at_run="865b842", folds="explicit",
+        eval_seeds={"registered": "800000 / 850000",
+                    "independent": "(1000000 + 100000k) / (1050000 + 100000k), k < 8"},
+        device="owner's laptop CPU, one thread per readout", local_run_dir="fullruns/d045_world_samples",
+        notes="scripts/run_world_sample_sensitivity.py; spec docs/specs/2026-10-08-drift-045-"
+              "world-sample-sensitivity-design.md; FINDINGS 17.5.1. Diagnostic, not a gate: the "
+              "nine per-draw survival means at drift 0.45 are signed and never folded. Integrity "
+              "gate (registered draw reproduces the recorded explicit-partition targets within "
+              "0.01 on every seed) passed, worst abs dev 0.0037. Verdict under the frozen rule: "
+              "SECURE. These are pre-correction-trainer agents; this measures the estimator's "
+              "sensitivity to the evaluation-world draw, not the corrected headline."),
     # ---------------- revision 2026-10 methods artifacts ----------------
     run("FOLDS-EXPLICIT-V1", "Serialized explicit-v1 partitions of the standard designs",
         experiment="methods", artifacts=["folds/explicit_v1.json"], trains_survival=False,

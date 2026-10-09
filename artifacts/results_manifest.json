@@ -2057,6 +2057,42 @@
       "title": "Sensory-echo controls (hidden 8 linear and MLP, hidden 7)"
     },
     {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "l0_audit/d045_world_samples_l3_h8_heldout.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "865b842",
+      "config": {},
+      "deps": null,
+      "device": "owner's laptop CPU, one thread per readout",
+      "eval_seeds": {
+        "independent": "(1000000 + 100000k) / (1050000 + 100000k), k < 8",
+        "registered": "800000 / 850000"
+      },
+      "experiment": "L0 audit",
+      "folds": "explicit",
+      "id": "H8-HELDOUT-D045-WORLD-SAMPLES",
+      "local_run_dir": "fullruns/d045_world_samples",
+      "notes": "scripts/run_world_sample_sensitivity.py; spec docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md; FINDINGS 17.5.1. Diagnostic, not a gate: the nine per-draw survival means at drift 0.45 are signed and never folded. Integrity gate (registered draw reproduces the recorded explicit-partition targets within 0.01 on every seed) passed, worst abs dev 0.0037. Verdict under the frozen rule: SECURE. These are pre-correction-trainer agents; this measures the estimator's sensitivity to the evaluation-world draw, not the corrected headline.",
+      "readout_only_on": [
+        "L3-H8-HELDOUT"
+      ],
+      "recorded_provenance": {
+        "l0_audit/d045_world_samples_l3_h8_heldout.json": {
+          "generated_by": "scripts/run_world_sample_sensitivity.py",
+          "git_commit": "865b842",
+          "spec": "docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "inherited: pre_transition_value",
+      "title": "Drift-0.45 world-sample sensitivity on the historical hidden-8 held-out agents (frozen 2026-10-08)"
+    },
+    {
       "affected_by_gae_correction": false,
       "agent_seeds": null,
       "artifacts": [

@@ -438,6 +438,8 @@ pytest -q
 
 **Local Jupyter / VS Code:** open [`notebooks/colab_gpu.ipynb`](notebooks/colab_gpu.ipynb) from this repo; it auto-detects local mode (no Drive/download cells).
 
+**Readout-only reruns on the saved agents:** the ten hidden-8 survival agents behind the world-sample sensitivity result (FINDINGS 17.5.1) are gitignored and are published with the paper's archive record. `python scripts/fetch_saved_agents.py --url <archive link>` downloads them and checks every file's sha256 against `artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`; the Colab notebook's Extra checks section does the same from a form field and then runs `scripts/run_world_sample_sensitivity.py`, comparing its per-draw means and verdict against the committed artifact.
+
 ---
 
 ## What to read first

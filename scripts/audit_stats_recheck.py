@@ -1855,6 +1855,36 @@ def main() -> int:
         for arm in ("predictor", "untrained"):
             check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
                        f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
+    _wsp = os.path.join(ARTROOT, "l0_audit", "d045_world_samples_l3_h8_heldout.json")
+    if os.path.exists(_wsp):
+        from itasorl.l0_audit import world_sample_summary as _wss
+        _ws = _load_art("l0_audit", "d045_world_samples_l3_h8_heldout.json")
+        _wsum = _ws["summary"]["survival"]
+        _wcells = sorted(_ws["cells"], key=lambda c: c["seed"])
+        check_int("17.5.1: ten survival agents scored", len(_wcells), 10)
+        check_true("17.5.1: the integrity gate passed", bool(_ws["integrity"]["pass"]))
+        check_true("17.5.1 quotes the integrity gate's worst deviation",
+                   f"worst |dev| {_ws['integrity']['worst_abs_dev']:.4f}" in _s17)
+        _wm = [sum(c["rows"][k]["target"] for c in _wcells) / len(_wcells)
+               for k in range(len(_ws["bases"]))]
+        for k, (b, m) in enumerate(zip(_ws["bases"], _wm)):
+            _lab = "registered" if k == 0 else f"independent {k}"
+            check_true(f"17.5.1 quotes the drift-0.45 draw {b[0]}",
+                       f"| {_lab} | {b[0]} / {b[1]} | {m:.3f} |" in _s17)
+        _re = _wss(_wm[1:], _wm[0], bar=_ws["bar"])
+        check_true("17.5.1: the verdict recomputes from the cells under the frozen rule",
+                   _re["verdict"] == _wsum["verdict"] and _re["registered_rank"] == _wsum["registered_rank"])
+        check("17.5.1: registered draw mean", _wsum["registered"], _wm[0])
+        check_true("17.5.1 quotes the registered mean and rank",
+                   f"registered **{_wsum['registered']:.3f}** ranks **{_wsum['registered_rank']}** of 9" in _s17)
+        check_true("17.5.1 quotes the independent range and sd",
+                   f"**{_wsum['min']:.3f}** to **{_wsum['max']:.3f}**, sd "
+                   f"**{_wsum['between_draw_sd']:.3f}**" in _s17)
+        check_true("17.5.1 quotes the t-based interval over draws",
+                   f"[{_wsum['t90_over_draws'][0]:.3f}, {_wsum['t90_over_draws'][1]:.3f}]" in _s17)
+        check_true("17.5.1 quotes the count at or above the bar",
+                   f"**{_wsum['n_at_or_above_bar']} of {_wsum['n_draws']}** independent draws" in _s17)
+        check_true("17.5.1 quotes the verdict", f"verdict **{_wsum['verdict']}**" in _s17)
     _pcp = os.path.join(ARTROOT, "policy_controls", "corrected_l3_h8_wm.json")
     if os.path.exists(_pcp):
         from itasorl.stats import paired_contrast as _pc
