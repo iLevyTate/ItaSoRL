@@ -1855,6 +1855,31 @@ def main() -> int:
         for arm in ("predictor", "untrained"):
             check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
                        f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
+    _l1p = os.path.join(ARTROOT, "control_diagnostics", "l1_stream_readout.json")
+    if os.path.exists(_l1p):
+        _f14b = _read("docs/FINDINGS.md")
+        _s147 = _f14b[_f14b.index("### 14.7.1"):_f14b.index("## 15. Matched-handicap")]
+        _l1 = _load_art("control_diagnostics", "l1_stream_readout.json")
+        _la = _l1["aggregate"]
+        check_true("14.7.1: every state pool bit-matches the run's dumps",
+                   bool(_l1["all_dumps_bit_match"]))
+        check_int("14.7.1: thirty cells scored", len(_l1["cells"]), 30)
+        for _k, _lab in (("target", "state probe (h_t)"),
+                         ("obs_summary_only", "observation summary features"),
+                         ("seq_flat_linear", "flattened sequence, linear"),
+                         ("seq_gru", "supervised GRU on the stream")):
+            _r = "| " + _lab + " | " + " | ".join(
+                f"{_la[f'd=0.02 {_a} {_k}']['mean']:.3f} "
+                f"[{_la[f'd=0.02 {_a} {_k}']['t90'][0]:.3f}, "
+                f"{_la[f'd=0.02 {_a} {_k}']['t90'][1]:.3f}]"
+                for _a in ("survival", "predictor", "untrained")) + " |"
+            check_true(f"14.7.1 table row {_k}", _r in _s147)
+        _dmax = max(_la["d=0.02 survival obs_summary_only"]["mean"],
+                    _la["d=0.02 survival seq_gru"]["mean"])
+        check_true("14.7.1: branch S1, the larger stream decoder clears the bar", _dmax >= 0.65)
+        check_true("14.7.1: the state does not clear the bar",
+                   _la["d=0.02 survival target"]["mean"] < 0.65)
+        check_true("14.7.1 quotes the larger stream decoder", f"**{_dmax:.3f}**" in _s147)
     _gnp = os.path.join(ARTROOT, "texture", "T_gn_l3_h8_wm.json")
     if os.path.exists(_gnp):
         _f14 = _read("docs/FINDINGS.md")

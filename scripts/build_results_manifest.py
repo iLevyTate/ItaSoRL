@@ -343,6 +343,18 @@ RUNS = [
               "(gate 1 exploitability, gate 5 speed positive control), so neither estimator yields "
               "a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not "
               "apply to it."),
+    run("L1-STREAM-READOUT", "L1 stream and control readout on the saved L1 agents "
+        "(frozen 2026-10-09)", experiment="H2",
+        artifacts=["control_diagnostics/l1_stream_readout.json"], claims=[35],
+        trains_survival=False, readout_of=["L1-ORGANISM"], commit_at_run="5666f59",
+        folds="explicit", device="owner's laptop CPU, 4 workers",
+        local_run_dir="fullruns/l1_stream_readout",
+        notes="scripts/run_control_diagnostics.py --drift-mode l1 --l1-delta 0.023 --l1-sigma "
+              "0.01; spec docs/specs/2026-10-09-l1-stream-readout-design.md; FINDINGS 14.7.1. "
+              "Asks whether the quantization seam reaches the agent's own observation stream. "
+              "Integrity gate passed: all 30 regenerated state pools bit-match the run's dumps "
+              "and every per-seed target reproduces the explicit-partition record exactly. "
+              "Branch S1: the stream carries it. Pre-correction-trainer agents."),
     run("T-GN-TRAINED", "Comparator-trained run on the white-jitter family (frozen 2026-10-09)",
         experiment="B-v2 L3", artifacts=["texture/T_gn_l3_h8_wm.json"],
         survival_trainer="successor_value", status="corrected", commit_at_run="60eb355",

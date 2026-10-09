@@ -2124,6 +2124,40 @@
     },
     {
       "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "control_diagnostics/l1_stream_readout.json"
+      ],
+      "budget": null,
+      "claims": [
+        35
+      ],
+      "commit_at_run": "5666f59",
+      "config": {},
+      "deps": null,
+      "device": "owner's laptop CPU, 4 workers",
+      "eval_seeds": null,
+      "experiment": "H2",
+      "folds": "explicit",
+      "id": "L1-STREAM-READOUT",
+      "local_run_dir": "fullruns/l1_stream_readout",
+      "notes": "scripts/run_control_diagnostics.py --drift-mode l1 --l1-delta 0.023 --l1-sigma 0.01; spec docs/specs/2026-10-09-l1-stream-readout-design.md; FINDINGS 14.7.1. Asks whether the quantization seam reaches the agent's own observation stream. Integrity gate passed: all 30 regenerated state pools bit-match the run's dumps and every per-seed target reproduces the explicit-partition record exactly. Branch S1: the stream carries it. Pre-correction-trainer agents.",
+      "readout_only_on": [
+        "L1-ORGANISM"
+      ],
+      "recorded_provenance": {
+        "control_diagnostics/l1_stream_readout.json": {
+          "generated_by": "scripts/run_control_diagnostics.py",
+          "git_commit": "5666f59"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "inherited: pre_transition_value",
+      "title": "L1 stream and control readout on the saved L1 agents (frozen 2026-10-09)"
+    },
+    {
+      "affected_by_gae_correction": true,
       "agent_seeds": [
         0,
         1,

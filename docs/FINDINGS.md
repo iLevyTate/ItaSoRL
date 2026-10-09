@@ -2511,6 +2511,57 @@ computational character matters.
 
 ---
 
+### 14.7.1 The L1 stream: the seam reaches the senses and the state does not keep it (2026-10-09)
+
+The L1 negative of 14.7 is a negative **on the state**. Every stream-only decoder and
+behavior-trace readout in this project had been scored on the corrected L3 agents, so two very
+different explanations of that negative were indistinguishable: the seam might not change where
+the policy goes, leaving nothing in the agent's own stream for the trunk to keep, or the stream
+might carry it and the trunk not keep it. Only the second is an encoding failure in the sense the
+title claims. A design frozen before the run
+(`docs/specs/2026-10-09-l1-stream-readout-design.md`, announced in `docs/PREREGISTRATION_L3.md`
+section 12 the same day) settles it by running the existing control battery at the L1 rung on the
+sixty saved agents of the historical L1 held-out run (grid spacing 0.023, sensor noise 0.01;
+`artifacts/control_diagnostics/l1_stream_readout.json`).
+
+**Integrity gate, checked first.** All 30 regenerated state pools bit-match the run's saved dumps,
+and every per-seed state target reproduces the recorded explicit-partition value exactly (worst
+absolute deviation 0.0000 over 30 cells, against the 0.01 tolerance). The state probe reads
+0.552 here against the published 0.533 because the published figure is scored
+under the legacy partition and this battery uses the stack-independent one; that shift of about
+0.02 on every arm is the documented partition effect of methods note 8, not a disagreement.
+
+| readout | survival | predictor | untrained |
+|---|---|---|---|
+| state probe (h_t) | 0.552 [0.530, 0.574] | 0.525 [0.505, 0.545] | 0.513 [0.494, 0.533] |
+| observation summary features | 0.795 [0.760, 0.829] | 0.751 [0.733, 0.769] | 0.804 [0.771, 0.836] |
+| flattened sequence, linear | 0.795 [0.781, 0.809] | 0.785 [0.766, 0.805] | 0.830 [0.807, 0.854] |
+| supervised GRU on the stream | 0.590 [0.547, 0.633] | 0.573 [0.556, 0.590] | 0.604 [0.568, 0.639] |
+| behavior-trace control | 0.537 [0.515, 0.558] | 0.513 [0.502, 0.524] | 0.504 [0.485, 0.523] |
+| observation control | 0.563 [0.536, 0.590] | 0.558 [0.530, 0.586] | 0.531 [0.499, 0.562] |
+| best-fitting MLP control | 0.543 [0.521, 0.566] | 0.545 [0.519, 0.570] | 0.531 [0.496, 0.565] |
+
+**Branch S1 of the frozen spec: the stream carries it.** The larger of the two stream decoders on
+the survival arm reads **0.795**, far above the 0.65 bar, while that agent's recurrent state
+reads **0.552**. The seam is plainly present in what the agent sees and is plainly
+absent from what its trunk keeps.
+
+Two features make the reading sharper than the headline rung's. First, the stream decoders read
+about the same on every arm, including the untrained one
+(0.804 on summary features and
+0.830 on the flattened sequence), which is what an
+observation-level seam should do: it is a property of the observations rather than of anything the
+agent learned. Second, this is the opposite pattern to L3, where the stream decoder (0.724) and the
+state (0.733) agree. At L1 the information is available and discarded; at L3 it is available and
+kept.
+
+**What this licenses.** The L1 negative is an encoding failure in the strong sense: the artifact
+reached the agent's senses at 0.795 and its state did not carry it. The alternative reading,
+that the seam never reaches the stream, is excluded. The L1 case therefore becomes a materially
+stronger leg of the sufficiency argument than it was, and the limitation recording that the stream
+had been measured on the corrected L3 agents only is discharged. The L1 run's own adjudication
+(the registered encoding criterion not met) stands exactly as recorded.
+
 ## 15. Matched-handicap oracle ceilings across rungs (2026-09-27)
 
 **Status: MEASURED; it qualifies the cross-rung comparison, it does not change

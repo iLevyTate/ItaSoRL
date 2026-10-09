@@ -39,6 +39,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `L1-H2` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | not recorded | legacy | not recorded |
 | `SENSORY-ECHO` | historical | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
 | `EXPC-M3-PER-INDIVIDUAL` | historical | C | 28 | none | - | 3c6f0aa | n/a | owner's laptop CPU |
+| `L1-STREAM-READOUT` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | 5666f59 | explicit | owner's laptop CPU, 4 workers |
 | `T-GN-TRAINED` | corrected | B-v2 L3 | - | successor_value | - | 60eb355 | explicit | owner's laptop CPU, 4 workers |
 | `H8-HELDOUT-REVERSE-DIRECTION` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 8aa2b9f | explicit | owner's laptop CPU, one thread per readout |
 | `H8-HELDOUT-D045-WORLD-SAMPLES` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 865b842 | explicit | owner's laptop CPU, one thread per readout |
@@ -457,6 +458,17 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Local run directory (not in git): fullruns/expC_milestone3
 - Notes: scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates (gate 1 exploitability, gate 5 speed positive control), so neither estimator yields a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.
 - Artifacts: `artifacts/expC/emergence_pilot_per_individual_summary.json`
+
+### `L1-STREAM-READOUT`: L1 stream and control readout on the saved L1 agents (frozen 2026-10-09)
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Commit at run: 5666f59
+- Folds: explicit
+- Device: owner's laptop CPU, 4 workers
+- Local run directory (not in git): fullruns/l1_stream_readout
+- Notes: scripts/run_control_diagnostics.py --drift-mode l1 --l1-delta 0.023 --l1-sigma 0.01; spec docs/specs/2026-10-09-l1-stream-readout-design.md; FINDINGS 14.7.1. Asks whether the quantization seam reaches the agent's own observation stream. Integrity gate passed: all 30 regenerated state pools bit-match the run's dumps and every per-seed target reproduces the explicit-partition record exactly. Branch S1: the stream carries it. Pre-correction-trainer agents.
+- Artifacts: `artifacts/control_diagnostics/l1_stream_readout.json`
 
 ### `T-GN-TRAINED`: Comparator-trained run on the white-jitter family (frozen 2026-10-09)
 
