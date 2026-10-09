@@ -44,10 +44,53 @@ import numpy as np
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 
 
+def setup_rung(task: dict) -> None:
+    """Install the surrogate rung this task is scored at, in this process.
+
+    Workers are spawned, so each one installs the rung from its own task payload. L3 trains the
+    learned velocity law once per process; L1 needs no surrogate, only the grid spacing and the
+    sensor noise the run used.
+    """
+    import itasorl.experiment_b2 as b2
+    from itasorl.world import WorldParams
+
+    mode = task.get("drift_mode", "l3")
+    b2.DRIFT_MODE = mode
+    if mode == "l1":
+        b2.L1_DELTA = float(task["l1_delta"])
+        b2.SENSOR_SIGMA = float(task["l1_sigma"])
+        return
+    if b2._L3_GMOTION is None:
+        b2.setup_l3_surrogate(hidden=task["l3_hidden"], device="cpu", seed=task["l3_seed"],
+                              params=WorldParams(k_land=1.5, k_water=1.5, gravity=0.4))
+
+
+def build_parser():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--run-dir", required=True)
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--workers", type=int, default=1)
+    ap.add_argument("--n-eps", type=int, default=110)
+    ap.add_argument("--steps", type=int, default=24)
+    ap.add_argument("--ray-steps", type=int, default=5)
+    ap.add_argument("--gru-epochs", type=int, default=60)
+    ap.add_argument("--l3-hidden", type=int, default=8)
+    ap.add_argument("--l3-seed", type=int, default=0)
+    ap.add_argument("--drift-mode", choices=("l3", "l1"), default="l3",
+                    help="which rung the saved agents live on; l3 is the default and is "
+                         "unchanged. l1 scores the observation-quantization rung and needs "
+                         "--l1-delta and --l1-sigma to match the run that trained them.")
+    ap.add_argument("--l1-delta", type=float, default=0.023,
+                    help="L1 grid spacing (fullruns/l1_heldout used 0.023)")
+    ap.add_argument("--l1-sigma", type=float, default=0.01,
+                    help="L1 observation sensor noise (fullruns/l1_heldout used 0.01)")
+    ap.add_argument("--quick", action="store_true")
+    return ap
+
+
 def run_one(task: dict) -> dict:
     import torch
 
-    import itasorl.experiment_b2 as b2
     from itasorl.behavior_audit import _trace_phi, sensory_residual_probe_auroc, trace_residual_probe_auroc
     from itasorl.control_diagnostics import (flat_sequence_linear_auroc, history_basis,
                                              residual_probe_with_diagnostics, sequence_gru_auroc)
@@ -57,9 +100,7 @@ def run_one(task: dict) -> dict:
 
     torch.set_num_threads(1)
     P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
-    b2.DRIFT_MODE = "l3"
-    if b2._L3_GMOTION is None:
-        b2.setup_l3_surrogate(hidden=task["l3_hidden"], device="cpu", seed=task["l3_seed"], params=P)
+    setup_rung(task)
     t0 = time.time()
     d, s, g = task["drift"], task["seed"], task["arm"]
     agent, norm = load_agent_bundle(task["path"], "cpu")
@@ -116,18 +157,7 @@ def _scalar(v):
 def main() -> int:
     from itasorl import folds
     from itasorl.stats import t_ci90
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--run-dir", required=True)
-    ap.add_argument("--out", required=True)
-    ap.add_argument("--workers", type=int, default=1)
-    ap.add_argument("--n-eps", type=int, default=110)
-    ap.add_argument("--steps", type=int, default=24)
-    ap.add_argument("--ray-steps", type=int, default=5)
-    ap.add_argument("--gru-epochs", type=int, default=60)
-    ap.add_argument("--l3-hidden", type=int, default=8)
-    ap.add_argument("--l3-seed", type=int, default=0)
-    ap.add_argument("--quick", action="store_true")
-    a = ap.parse_args()
+    a = build_parser().parse_args()
     if a.quick:
         a.n_eps, a.steps, a.ray_steps, a.gru_epochs = 40, 16, 4, 10
     agents_dir = os.path.join(a.run_dir, "agents")
@@ -142,7 +172,8 @@ def main() -> int:
     tasks = [{"path": os.path.join(agents_dir, nm), "drift": d, "seed": s, "arm": g,
               "states_dir": os.path.join(a.run_dir, "states"), "n_eps": a.n_eps,
               "steps": a.steps, "ray_steps": a.ray_steps, "gru_epochs": a.gru_epochs,
-              "l3_hidden": a.l3_hidden, "l3_seed": a.l3_seed}
+              "l3_hidden": a.l3_hidden, "l3_seed": a.l3_seed,
+              "drift_mode": a.drift_mode, "l1_delta": a.l1_delta, "l1_sigma": a.l1_sigma}
              for d, s, g, nm in cells if d == dmax]
     results = []
     if a.workers > 1:

@@ -972,6 +972,23 @@ Rigor carried from the B-v3 audit (2026-07-10):
   the rule is MET and the paper's sufficiency claim must therefore be withdrawn in its current
   form, is fixed in the spec before the run.
 
+- **2026-10-09 - L1 STREAM AND CONTROL READOUT, ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-09-l1-stream-readout-design.md`).** The L1 negative is a negative on the
+  state: agents raised under the observation-quantization seam read 0.533 while the oracle reads
+  the seam at 0.873 in band under its own grid oracle. Every stream-only decoder and behavior-trace
+  readout in this project was scored on the corrected L3 agents, so two explanations of that
+  negative are currently indistinguishable: the seam may not change where the policy goes, leaving
+  nothing in the agent's own stream for the trunk to keep, or the stream may carry it and the trunk
+  not keep it. Only the second is an encoding failure in the sense the sufficiency claim needs.
+  This diagnostic runs the existing control battery on the sixty saved agents of the historical L1
+  held-out run at that run's own rung (grid spacing 0.023, sensor noise 0.01). The battery does not
+  change; the only new code makes the rung selectable, with the L3 default unchanged. The integrity
+  gate is that the state probe reproduces the L1 run's recorded per-seed targets within 0.01 and
+  that regenerated pools bit-match the saved dumps, or the run is void. The two readings (S1, the
+  stream carries it; S2, it does not) and the wording written in each case are fixed in the spec
+  before the run. The L1 run's own adjudication stands as recorded whatever the stream reads, and
+  no gate, margin, or registered verdict changes.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
