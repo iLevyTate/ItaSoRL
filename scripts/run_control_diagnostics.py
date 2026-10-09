@@ -44,6 +44,44 @@ import numpy as np
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 
 
+def checkpoint_path(ckpt_dir: str, cell: dict) -> str:
+    """One file per (drift, seed, arm). The name is the cell's identity, so a resume is a
+    directory listing rather than a parse of partial output."""
+    return os.path.join(ckpt_dir,
+                        f"d{float(cell['drift']):.2f}_s{int(cell['seed'])}_{cell['arm']}.json")
+
+
+def save_checkpoint(ckpt_dir: str, cell: dict) -> str:
+    os.makedirs(ckpt_dir, exist_ok=True)
+    path = checkpoint_path(ckpt_dir, cell)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(cell, fh, indent=1, default=float)
+    os.replace(tmp, path)      # atomic, so a kill mid-write cannot leave a half cell
+    return path
+
+
+def load_checkpoints(ckpt_dir: str | None) -> list:
+    if not ckpt_dir or not os.path.isdir(ckpt_dir):
+        return []
+    out = []
+    for name in sorted(os.listdir(ckpt_dir)):
+        if not name.endswith(".json"):
+            continue
+        with open(os.path.join(ckpt_dir, name), encoding="utf-8") as fh:
+            out.append(json.load(fh))
+    return out
+
+
+def split_resumable(tasks: list, ckpt_dir: str | None):
+    """(still to do, already done). A cell is done when its checkpoint file exists."""
+    done = load_checkpoints(ckpt_dir)
+    have = {(f"{float(c['drift']):.2f}", int(c["seed"]), c["arm"]) for c in done}
+    todo = [t for t in tasks
+            if (f"{float(t['drift']):.2f}", int(t["seed"]), t["arm"]) not in have]
+    return todo, done
+
+
 def setup_rung(task: dict) -> None:
     """Install the surrogate rung this task is scored at, in this process.
 
@@ -84,6 +122,8 @@ def build_parser():
                     help="L1 grid spacing (fullruns/l1_heldout used 0.023)")
     ap.add_argument("--l1-sigma", type=float, default=0.01,
                     help="L1 observation sensor noise (fullruns/l1_heldout used 0.01)")
+    ap.add_argument("--checkpoint-dir", default=None,
+                    help="one JSON per (drift, seed, arm); finished cells are skipped on a rerun")
     ap.add_argument("--quick", action="store_true")
     return ap
 
@@ -175,18 +215,26 @@ def main() -> int:
               "l3_hidden": a.l3_hidden, "l3_seed": a.l3_seed,
               "drift_mode": a.drift_mode, "l1_delta": a.l1_delta, "l1_sigma": a.l1_sigma}
              for d, s, g, nm in cells if d == dmax]
-    results = []
+    tasks, results = split_resumable(tasks, a.checkpoint_dir)
+    if results:
+        print(f"resumed {len(results)} cell(s) from {a.checkpoint_dir}; {len(tasks)} to go",
+              flush=True)
+    results = list(results)
     if a.workers > 1:
         import multiprocessing as mp
         with mp.get_context("spawn").Pool(a.workers) as pool:
             for r in pool.imap_unordered(run_one, tasks):
                 results.append(r)
+                if a.checkpoint_dir:
+                    save_checkpoint(a.checkpoint_dir, r)
                 print(f"  s{r['seed']} {r['arm']}: target {r.get('target', float('nan')):.3f} "
                       f"bit_match={r.get('dump_bit_match')} ({r.get('seconds')} s)", flush=True)
     else:
         for t in tasks:
             r = run_one(t)
             results.append(r)
+            if a.checkpoint_dir:
+                save_checkpoint(a.checkpoint_dir, r)
             print(f"  s{r['seed']} {r['arm']}: target {r.get('target', float('nan')):.3f} "
                   f"bit_match={r.get('dump_bit_match')} ({r.get('seconds')} s)", flush=True)
     results.sort(key=lambda r: (r["arm"], r["seed"]))

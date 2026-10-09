@@ -82,3 +82,40 @@ def test_the_rung_reaches_every_worker_through_the_task_payload():
     build = inspect.getsource(run_control_diagnostics.main)
     for key in ("drift_mode", "l1_delta", "l1_sigma"):
         assert key in build, f"{key} must be put into the task payload"
+
+
+def test_the_battery_checkpoints_each_cell_so_a_crash_costs_one_cell():
+    """Thirty cells at about twenty minutes each is too long to restart from zero. A Windows
+    console-close event killed all four workers six cells in on 2026-10-09; with per-cell
+    checkpoints that would have cost one cell, not six."""
+    import inspect
+
+    src = inspect.getsource(run_control_diagnostics)
+    assert "--checkpoint-dir" in src, "the battery must be able to checkpoint"
+    main = inspect.getsource(run_control_diagnostics.main)
+    # The resume must narrow the task list before any worker is dispatched, and both dispatch
+    # paths must save each finished cell.
+    assert main.index("split_resumable") < main.index("imap_unordered"), "resume before dispatch"
+    assert main.count("save_checkpoint(a.checkpoint_dir, r)") == 2, "both paths must save"
+
+
+def test_a_checkpoint_round_trips_a_cell(tmp_path):
+    cell = {"drift": 0.45, "seed": 3, "arm": "survival", "target": 0.52}
+    p = run_control_diagnostics.checkpoint_path(str(tmp_path), cell)
+    run_control_diagnostics.save_checkpoint(str(tmp_path), cell)
+    assert p.endswith(".json")
+    got = run_control_diagnostics.load_checkpoints(str(tmp_path))
+    assert got == [cell]
+    assert run_control_diagnostics.load_checkpoints(str(tmp_path / "missing")) == []
+
+
+def test_resuming_skips_only_the_cells_already_done(tmp_path):
+    done = [{"drift": 0.45, "seed": 0, "arm": "survival"},
+            {"drift": 0.45, "seed": 1, "arm": "untrained"}]
+    for c in done:
+        run_control_diagnostics.save_checkpoint(str(tmp_path), c)
+    tasks = [{"drift": 0.45, "seed": s, "arm": a}
+             for s in (0, 1) for a in ("survival", "untrained")]
+    todo, resumed = run_control_diagnostics.split_resumable(tasks, str(tmp_path))
+    assert len(resumed) == 2 and len(todo) == 2
+    assert {(t["seed"], t["arm"]) for t in todo} == {(0, "untrained"), (1, "survival")}
