@@ -89,7 +89,13 @@ def tables(dumps: list[str]) -> int:
         rc |= _run([PY, os.path.join("scripts", script)])
     rc |= _run([PY, os.path.join("scripts", "audit_stats_recheck.py")])
     for d in dumps:
-        rc |= _run([PY, os.path.join("scripts", "rescore_fold_split.py"), d])
+        # rescore_fold_split.py declares --json required, so the path exits 2 without it.
+        # Name the output after the dump directory, normalised first so a trailing separator
+        # does not collapse every run onto "states.json". dist/ is gitignored.
+        tag = os.path.basename(os.path.normpath(d)) or "states"
+        out_json = os.path.join("dist", f"fold_rescore_{tag}.json")
+        rc |= _run([PY, os.path.join("scripts", "rescore_fold_split.py"), d,
+                    "--json", out_json])
         rc |= _run([PY, os.path.join("scripts", "audit_behavior_mediation.py"), d])
     return rc
 
@@ -127,7 +133,11 @@ GENERIC_SCRUB = [
     # One or more separators: a Windows path inside a JSON string carries doubled backslashes.
     (re.compile(r"[A-Za-z]:[/\\]+" + "Users" + r"[/\\]+[^/\\\s\"']+", re.I), "<local-path>"),
     (re.compile("/ho" + "me/" + r"[^/\s\"']+"), "<local-path>"),
-    (re.compile(r"[\w.+-]+" + "@" + r"[\w-]+\.[\w.]+"), "<email>"),
+    # The final label must be alphabetic. Without that, the project's own condition notation
+    # ("train@0.45", "eval@0.45") and pinned package versions ("react@18.3.1") read as
+    # addresses, and the anonymized archive shipped the frozen preregistration with its
+    # conditions replaced by the placeholder.
+    (re.compile(r"[\w.+-]+" + "@" + r"[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}"), "<email>"),
     (re.compile("orc" + r"id\.org/[\d-]+X?", re.I), "orcid.org/<orcid>"),
 ]
 

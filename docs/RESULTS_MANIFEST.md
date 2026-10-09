@@ -481,7 +481,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: explicit
 - Device: owner's laptop CPU, 4 workers
 - Local run directory (not in git): fullruns/T_gn_l3_h8_wm
-- Notes: scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. UNINFORMATIVE: the registered positive control (speed probe at least 0.75) reads 0.74545 on one of twenty cells, so the matrix's two verdicts, which both require every gate to pass, are not reached, and the matrix names no cell for this failure. Not promoted as a negative; it strengthens no claim. The descriptive outcome is recorded because the preregistration log and the manuscript quote it.
+- Notes: scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. UNINFORMATIVE: the registered positive control (speed probe at least 0.75, scored in every pool as the project does) is short in 9 of 60 arm-by-cell pools, worst 0.6862, with 8 of the 9 in the untrained arm the registered margins are measured against, so the matrix's two verdicts, which both require every gate to pass, are not reached, and the matrix names no cell for this failure. Not promoted as a negative; it strengthens no claim. The descriptive outcome is recorded because the preregistration log and the manuscript quote it.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01}
 - Artifacts: `artifacts/texture/T_gn_l3_h8_wm.json`
 

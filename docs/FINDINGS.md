@@ -2521,7 +2521,9 @@ might carry it and the trunk not keep it. Only the second is an encoding failure
 title claims. A design frozen before the run
 (`docs/specs/2026-10-09-l1-stream-readout-design.md`, announced in `docs/PREREGISTRATION_L3.md`
 section 12 the same day) settles it by running the existing control battery at the L1 rung on the
-sixty saved agents of the historical L1 held-out run (grid spacing 0.023, sensor noise 0.01;
+thirty drift-0.023 cells of the historical L1 held-out run, every arm and seed at that run's
+strongest drift, which is the slice `run_control_diagnostics.py` scores by construction and the
+one the frozen spec's integrity gate names (grid spacing 0.023, sensor noise 0.01;
 `artifacts/control_diagnostics/l1_stream_readout.json`).
 
 **Integrity gate, checked first.** All 30 regenerated state pools bit-match the run's saved dumps,
@@ -2541,23 +2543,32 @@ under the legacy partition and this battery uses the stack-independent one; that
 | observation control | 0.563 [0.536, 0.590] | 0.558 [0.530, 0.586] | 0.531 [0.499, 0.562] |
 | best-fitting MLP control | 0.543 [0.521, 0.566] | 0.545 [0.519, 0.570] | 0.531 [0.496, 0.565] |
 
-**Branch S1 of the frozen spec: the stream carries it.** The larger of the two stream decoders on
-the survival arm reads **0.795**, far above the 0.65 bar, while that agent's recurrent state
-reads **0.552**. The seam is plainly present in what the agent sees and is plainly
-absent from what its trunk keeps.
+**Branch S1 of the frozen spec: the stream carries it.** The rule adjudicates on the larger of
+the two decoders the spec names, and that is the summary-feature reader at **0.795**, far above
+the 0.65 bar, while the agent's recurrent state reads **0.552**. The other named decoder, the
+supervised GRU at the trunk's own capacity, reads 0.590 [0.547, 0.633],
+below the bar, and it is reported here because the spec requires the measured stream numbers beside
+the state number wherever the L1 negative appears. So the seam is plainly present in what the agent
+sees to an offline reader, and a reader shaped like the agent's own trunk finds much less of it.
 
 Two features make the reading sharper than the headline rung's. First, the stream decoders read
 about the same on every arm, including the untrained one
 (0.804 on summary features and
 0.830 on the flattened sequence), which is what an
 observation-level seam should do: it is a property of the observations rather than of anything the
-agent learned. Second, this is the opposite pattern to L3, where the stream decoder (0.724) and the
-state (0.733) agree. At L1 the information is available and discarded; at L3 it is available and
-kept.
+agent learned. Second, matched decoder for decoder the two rungs agree rather than opposing each other. The
+capacity-matched GRU reads 0.590 from the L1 stream against a state of 0.552
+(+0.038), and 0.724 from the L3 stream against a state of
+0.733 (-0.009): at both rungs the trunk holds about what a reader
+of its own capacity extracts. What separates the rungs is the offline readers, 0.795 and
+0.795 at L1 against 0.715 and 0.661 at L3.
 
-**What this licenses.** The L1 negative is an encoding failure in the strong sense: the artifact
-reached the agent's senses at 0.795 and its state did not carry it. The alternative reading,
-that the seam never reaches the stream, is excluded. The L1 case therefore becomes a materially
+**What this licenses.** The alternative reading, that the seam never reaches the agent's stream,
+is excluded: offline readers find it there at 0.795. What is not licensed is the stronger
+claim that a trunk of this capacity could have kept it, because the capacity-matched reader of the
+same stream gets only 0.590. The defensible statement is that what the trunk keeps tracks
+what a reader of its capacity extracts, and that a differently shaped reader can take more from the
+same stream than any of these agents hold. The L1 case therefore becomes a materially
 stronger leg of the sufficiency argument than it was, and the limitation recording that the stream
 had been measured on the corrected L3 agents only is discharged. The L1 run's own adjudication
 (the registered encoding criterion not met) stands exactly as recorded.

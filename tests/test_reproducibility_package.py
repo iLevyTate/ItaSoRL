@@ -164,3 +164,55 @@ def test_reproduce_tables_checks_the_committed_pages_before_rewriting(monkeypatc
     assert checks and writes
     assert calls.index(checks[-1]) < calls.index(writes[0])
 
+
+
+def test_the_email_rule_leaves_the_project_s_own_condition_labels_alone():
+    """The record, the append-only deviation log and a frozen decision rule all write
+    conditions as "train@0.45" and "eval@0.45". An earlier rule treated those as addresses and
+    shipped the anonymized archive with the numbers stripped of the conditions they belong to.
+    Fixtures are assembled at runtime so this file's own text is not scrubbed when packaged."""
+    import reproduce
+    rules = [(p, r) for p, r in reproduce.GENERIC_SCRUB]
+    at = "@"
+    keep = ["train" + at + "0.45", "eval" + at + "0.45", "react" + at + "18.3.1",
+            "react-dom" + at + "18.3.1", "numpy" + at + "1.26"]
+    for s in keep:
+        assert reproduce.scrub(s, rules) == s, f"{s} must survive the scrub"
+
+    strip = ["a" + at + "b.co", "first.last+tag" + at + "sub.example.com",
+             "chain" + at + "itasorl.local", "me" + at + "1password.com",
+             "12345" + at + "gmail.com"]
+    for s in strip:
+        assert reproduce.scrub(s, rules) == "<email>", f"{s} must be scrubbed"
+
+
+def test_the_email_rule_still_scrubs_an_address_inside_a_sentence():
+    import reproduce
+    rules = [(p, r) for p, r in reproduce.GENERIC_SCRUB]
+    at = "@"
+    text = "write to someone" + at + "example.org about train" + at + "0.45"
+    assert reproduce.scrub(text, rules) == "write to <email> about train" + at + "0.45"
+
+
+def test_tables_dumps_passes_the_output_path_rescore_fold_split_requires(monkeypatch, tmp_path):
+    """scripts/rescore_fold_split.py declares --json required=True, so the one documented
+    reanalysis path exited 2 without it and had never run."""
+    import reproduce
+
+    calls = []
+    monkeypatch.setattr(reproduce, "_run", lambda cmd, **kw: calls.append(cmd) or 0)
+    monkeypatch.setattr(reproduce, "BUILDERS", [])
+    d = tmp_path / "run" / "artifacts" / "states"
+    d.mkdir(parents=True)
+    reproduce.tables([str(d)])
+
+    rescore = [c for c in calls if any("rescore_fold_split" in str(x) for x in c)]
+    assert len(rescore) == 1, calls
+    assert "--json" in rescore[0], rescore[0]
+    out = rescore[0][rescore[0].index("--json") + 1]
+    assert out.endswith(".json") and "dist" in out
+    # A trailing separator must not collapse every run's output onto one name.
+    calls.clear()
+    reproduce.tables([str(d) + os.sep])
+    other = [c for c in calls if any("rescore_fold_split" in str(x) for x in c)][0]
+    assert other[other.index("--json") + 1] == out

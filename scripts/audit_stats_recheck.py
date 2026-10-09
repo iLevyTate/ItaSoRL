@@ -1947,9 +1947,11 @@ def main() -> int:
             check_true(f"17.5.2 table row {_arm}",
                        f"| {_arm} | {_a['mean']:.3f} [{_a['t90'][0]:.3f}, {_a['t90'][1]:.3f}] | "
                        f"{_b['mean']:.3f} [{_b['t90'][0]:.3f}, {_b['t90'][1]:.3f}] |" in _s17)
+        check("17.5.2: the artifact carries the registered bar", _rd["bar"], BAR)
+        check("17.5.2: the artifact carries the registered margin", _rd["margin"], 0.05)
         _re = _radj(survival=_rs["standard"]["survival"]["mean"],
                     untrained=_rs["standard"]["untrained"]["mean"],
-                    bar=_rd["bar"], margin=_rd["margin"])
+                    bar=BAR, margin=0.05)
         check_true("17.5.2: the verdict recomputes under the frozen rule",
                    _re["verdict"] == _rs["verdict"])
         check_true("17.5.2 quotes the verdict",
@@ -2016,7 +2018,9 @@ def main() -> int:
             _lab = "registered" if k == 0 else f"independent {k}"
             check_true(f"17.5.1 quotes the drift-0.45 draw {b[0]}",
                        f"| {_lab} | {b[0]} / {b[1]} | {m:.3f} |" in _s17)
-        _re = _wss(_wm[1:], _wm[0], bar=_ws["bar"])
+        check("17.5.1: the artifact carries the registered bar", _ws["bar"], BAR)
+        check("17.5.1: the summary carries the registered bar", _wsum["bar"], BAR)
+        _re = _wss(_wm[1:], _wm[0], bar=BAR)
         check_true("17.5.1: the verdict recomputes from the cells under the frozen rule",
                    _re["verdict"] == _wsum["verdict"] and _re["registered_rank"] == _wsum["registered_rank"])
         check("17.5.1: registered draw mean", _wsum["registered"], _wm[0])
