@@ -38,6 +38,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `L1-H2` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | not recorded | legacy | not recorded |
 | `SENSORY-ECHO` | historical | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
 | `EXPC-M3-PER-INDIVIDUAL` | historical | C | 28 | none | - | 3c6f0aa | n/a | owner's laptop CPU |
+| `H8-HELDOUT-REVERSE-DIRECTION` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 8aa2b9f | explicit | owner's laptop CPU, one thread per readout |
 | `H8-HELDOUT-D045-WORLD-SAMPLES` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 865b842 | explicit | owner's laptop CPU, one thread per readout |
 | `FOLDS-EXPLICIT-V1` | historical | methods | - | none | - | not recorded | explicit | not recorded |
 | `GATE-TABLE` | historical | methods | - | inherited: pre_transition_value | BV2-L2-AR1, BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
@@ -446,6 +447,17 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Local run directory (not in git): fullruns/expC_milestone3
 - Notes: scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates (gate 1 exploitability, gate 5 speed positive control), so neither estimator yields a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.
 - Artifacts: `artifacts/expC/emergence_pilot_per_individual_summary.json`
+
+### `H8-HELDOUT-REVERSE-DIRECTION`: Reverse-direction readout: drift-0 agents probed against a surrogate they never lived in (frozen 2026-10-09)
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Commit at run: 8aa2b9f
+- Folds: explicit
+- Device: owner's laptop CPU, one thread per readout
+- Local run directory (not in git): fullruns/reverse_direction
+- Notes: scripts/reverse_direction.py; spec docs/specs/2026-10-09-reverse-direction-readout-design.md; FINDINGS 17.5.2. The agents are the DRIFT-0 ones of the held-out run and the readout drift is 0.45, the opposite pairing from every other cell. Integrity gate (the same agents rescored at drift 0 reproduce the recorded drift-0 targets within 0.01) passed on all 30 cells, worst abs dev 0.0012. Verdict under the frozen rule: CARRIED. Pre-correction-trainer agents; this measures the direction-dependence of the estimator, not the corrected headline.
+- Artifacts: `artifacts/l0_audit/reverse_direction_l3_h8_heldout.json`
 
 ### `H8-HELDOUT-D045-WORLD-SAMPLES`: Drift-0.45 world-sample sensitivity on the historical hidden-8 held-out agents (frozen 2026-10-08)
 

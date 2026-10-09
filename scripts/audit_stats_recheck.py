@@ -1855,6 +1855,33 @@ def main() -> int:
         for arm in ("predictor", "untrained"):
             check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
                        f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
+    _rdp = os.path.join(ARTROOT, "l0_audit", "reverse_direction_l3_h8_heldout.json")
+    if os.path.exists(_rdp):
+        from scripts.reverse_direction import adjudicate as _radj
+        _rd = _load_art("l0_audit", "reverse_direction_l3_h8_heldout.json")
+        _rs = _rd["summary"]
+        check_true("17.5.2: the agents scored are the drift-0 ones",
+                   _rd["agent_drift"] == 0.0 and _rd["readout_drift"] == 0.45)
+        check_true("17.5.2: the integrity gate passed", bool(_rd["integrity"]["pass"]))
+        check_int("17.5.2: thirty cells checked by the gate", _rd["integrity"]["n_checked"], 30)
+        check_true("17.5.2 quotes the gate's worst deviation",
+                   f"worst abs dev {_rd['integrity']['worst_abs_dev']:.4f}" in _s17)
+        for _arm in ("untrained", "predictor", "survival"):
+            _a, _b = _rs["standard"][_arm], _rs["balanced"][_arm]
+            _per = [c["target"] for c in sorted(_rd["cells"], key=lambda c: c["seed"])
+                    if c["arm"] == _arm]
+            check("17.5.2: " + _arm + " mean recomputes from the cells",
+                  _a["mean"], float(np.mean(_per)))
+            check_true(f"17.5.2 table row {_arm}",
+                       f"| {_arm} | {_a['mean']:.3f} [{_a['t90'][0]:.3f}, {_a['t90'][1]:.3f}] | "
+                       f"{_b['mean']:.3f} [{_b['t90'][0]:.3f}, {_b['t90'][1]:.3f}] |" in _s17)
+        _re = _radj(survival=_rs["standard"]["survival"]["mean"],
+                    untrained=_rs["standard"]["untrained"]["mean"],
+                    bar=_rd["bar"], margin=_rd["margin"])
+        check_true("17.5.2: the verdict recomputes under the frozen rule",
+                   _re["verdict"] == _rs["verdict"])
+        check_true("17.5.2 quotes the verdict",
+                   f"frozen before the run: {_rs['verdict']}" in _s17)
     _s13 = _f17[_f17.index("## 13. Experiment C"):_f17.index("## 14.")]
     _pip = os.path.join(ARTROOT, "expC", "emergence_pilot_per_individual_summary.json")
     if os.path.exists(_pip):

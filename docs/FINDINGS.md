@@ -2886,6 +2886,63 @@ historical agents the drift-0.45 between-draw sd is 0.042, so the draw
 moves the reading by a comparable amount at the condition the headline is read, and every
 interval reported on a single-pair pooled target remains conditional on its draw.
 
+### 17.5.2 The reverse direction: agents raised in the authentic world (2026-10-09)
+
+Every positive on record is in one direction. The agent is raised inside the surrogate and the
+probe separates the law it was raised under from the authentic law it never lived in. The other
+direction had never been measured, and it is the direction the project's framing describes. A
+design frozen before the run (`docs/specs/2026-10-09-reverse-direction-readout-design.md`,
+announced in `docs/PREREGISTRATION_L3.md` section 12 the same day) measures it.
+
+The ten saved **drift-0** agents of each arm of the historical hidden-8 held-out run are scored at
+readout drift 0.45, which is the opposite pairing from every other cell in the project: the agent
+trained in the authentic world and the probe is asked to separate it from a learned surrogate it
+never experienced. The two evaluation pools are the same ones every L3 cell uses (authentic 800000
+at drift 0, surrogate 850000 at drift 0.45). These are pre-correction-trainer agents, for the same
+reason as 17.5.1: the corrected `C1` agents are not in the repository.
+(`scripts/reverse_direction.py`, `artifacts/l0_audit/reverse_direction_l3_h8_heldout.json`,
+code commit `8aa2b9f`.)
+
+**Integrity gate, checked first.** Rescoring the same agents at drift 0 reproduces this run's
+recorded explicit-partition drift-0 targets on all 30 cells, worst abs dev 0.0012 against the
+0.01 tolerance, so the readout transfers from the GPU stack that trained them.
+
+| arm | standard pooled target | balanced (same world seed) |
+|---|---|---|
+| untrained | 0.505 [0.478, 0.531] | 0.522 [0.490, 0.554] |
+| predictor | 0.570 [0.547, 0.594] | 0.613 [0.593, 0.633] |
+| survival | 0.760 [0.716, 0.804] | 0.796 [0.755, 0.838] |
+
+Survival per seed: 0.863, 0.737, 0.720, 0.862, 0.769, 0.636, 0.673, 0.818, 0.729, 0.793;
+9 of 10 at or above the 0.65 bar. The seed-paired margin over the
+untrained arm is +0.255 and over the predictor
++0.189.
+
+**Verdict under the rule frozen before the run: CARRIED.** The survival arm clears the bar with
+its whole t-based interval above it and exceeds the untrained arm by more than the registered 0.05
+margin. An agent raised in the authentic world separates a surrogate it never lived in.
+
+Three readings follow, and the paper takes all three.
+
+First, rearing in the surrogate is **not necessary**. The claim is about what a trained forager's
+state carries when the dynamics it is scored under differ from the ones it is scored against, not
+about having grown up on the wrong side of that difference.
+
+Second, this **weakens the model-exploitation reading** of the forward result. A policy trained
+inside a learned model is known to drift toward the states where that model is wrong, and that
+mechanism cannot operate here: these agents never trained in the surrogate and so could not have
+learned to seek out its error regions. The reading survives that objection.
+
+Third, it **sharpens the dissociation rather than blurring it**. The untrained arm reads
+0.505 and the predictor 0.570 against survival's 0.760, so what
+matters is being a trained forager, and the margin here (+0.255) is
+larger than the forward direction's. At the same time the reading does move the result closer to
+out-of-distribution detection than the manuscript previously framed it, and the related-work
+positioning was revised accordingly, as the frozen spec required for this outcome.
+
+The drift-0 readings that make up the integrity gate are the same L0 control as elsewhere, so the
+open-gate caveat of 17.5 applies to this run too.
+
 ### 17.6 Who drives the evaluation episodes (revision step 6)
 
 The standard readout scores each arm on episodes its own actor head generates. The three arms

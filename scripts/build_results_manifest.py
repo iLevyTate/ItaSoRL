@@ -338,6 +338,21 @@ RUNS = [
               "(gate 1 exploitability, gate 5 speed positive control), so neither estimator yields "
               "a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not "
               "apply to it."),
+    run("H8-HELDOUT-REVERSE-DIRECTION", "Reverse-direction readout: drift-0 agents probed "
+        "against a surrogate they never lived in (frozen 2026-10-09)", experiment="L0 audit",
+        artifacts=["l0_audit/reverse_direction_l3_h8_heldout.json"], trains_survival=False,
+        readout_of=["L3-H8-HELDOUT"], commit_at_run="8aa2b9f", folds="explicit",
+        eval_seeds={"authentic pool": "800000 at drift 0",
+                    "surrogate pool": "850000 at drift 0.45"},
+        device="owner's laptop CPU, one thread per readout",
+        local_run_dir="fullruns/reverse_direction",
+        notes="scripts/reverse_direction.py; spec docs/specs/2026-10-09-reverse-direction-readout-"
+              "design.md; FINDINGS 17.5.2. The agents are the DRIFT-0 ones of the held-out run and "
+              "the readout drift is 0.45, the opposite pairing from every other cell. Integrity "
+              "gate (the same agents rescored at drift 0 reproduce the recorded drift-0 targets "
+              "within 0.01) passed on all 30 cells, worst abs dev 0.0012. Verdict under the "
+              "frozen rule: CARRIED. Pre-correction-trainer agents; this measures the "
+              "direction-dependence of the estimator, not the corrected headline."),
     run("H8-HELDOUT-D045-WORLD-SAMPLES", "Drift-0.45 world-sample sensitivity on the historical "
         "hidden-8 held-out agents (frozen 2026-10-08)", experiment="L0 audit",
         artifacts=["l0_audit/d045_world_samples_l3_h8_heldout.json"], trains_survival=False,
