@@ -989,6 +989,21 @@ Rigor carried from the B-v3 audit (2026-07-10):
   before the run. The L1 run's own adjudication stands as recorded whatever the stream reads, and
   no gate, margin, or registered verdict changes.
 
+- **2026-10-09 - OUTCOME OF THE WHITE-JITTER COMPARATOR-TRAINED RUN: UNINFORMATIVE.** The run
+  announced above executed at the registered configuration (`artifacts/texture/T_gn_l3_h8_wm.json`,
+  FINDINGS 14.5.1). Section 7 gate 3, the speed positive control at 0.75, reads
+  0.74545 on the survival arm at drift 0.45, seed 2, missing by
+  0.00455 on one of twenty cells. Section 8's two verdicts both
+  require every gate to pass, so neither is reached, and the matrix names no cell for a
+  positive-control failure. The margin is not relaxed. The run is uninformative, is not counted as
+  a negative, and strengthens no claim; the learned-texture rule remains unmet. Descriptive
+  outcome at drift 0.45, recorded because this log and the manuscript quote it: survival
+  0.522 (90% CI [0.502, 0.542]),
+  predictor 0.511, untrained 0.552,
+  0 of 10 seeds at the bar, survival minus untrained
+  -0.030 [-0.051, -0.008]. Every other gate passes, including
+  the drift-zero L0 equivalence the corrected headline run does not.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

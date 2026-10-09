@@ -343,6 +343,22 @@ RUNS = [
               "(gate 1 exploitability, gate 5 speed positive control), so neither estimator yields "
               "a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not "
               "apply to it."),
+    run("T-GN-TRAINED", "Comparator-trained run on the white-jitter family (frozen 2026-10-09)",
+        experiment="B-v2 L3", artifacts=["texture/T_gn_l3_h8_wm.json"],
+        survival_trainer="successor_value", status="corrected", commit_at_run="60eb355",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01},
+        agent_seeds=S10, surrogate={"family": "G_gn (iid velocity jitter on the authentic law)",
+                                    "sigma_v": 0.01, "gate0": "oracle 0.8653 in band, floor 0.4479"},
+        budget={"survival_updates": 300}, eval_seeds=BV2_EVAL_SEEDS, folds="explicit",
+        device="owner's laptop CPU, 4 workers",
+        local_run_dir="fullruns/T_gn_l3_h8_wm",
+        notes="scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec "
+              "docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. "
+              "UNINFORMATIVE: the registered positive control (speed probe at least 0.75) reads "
+              "0.74545 on one of twenty cells, so the matrix's two verdicts, which both require "
+              "every gate to pass, are not reached, and the matrix names no cell for this "
+              "failure. Not promoted as a negative; it strengthens no claim. The descriptive "
+              "outcome is recorded because the preregistration log and the manuscript quote it."),
     run("H8-HELDOUT-REVERSE-DIRECTION", "Reverse-direction readout: drift-0 agents probed "
         "against a surrogate they never lived in (frozen 2026-10-09)", experiment="L0 audit",
         artifacts=["l0_audit/reverse_direction_l3_h8_heldout.json"], trains_survival=False,

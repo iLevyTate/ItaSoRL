@@ -2342,6 +2342,51 @@ remains conditional on the subtler hidden=8 artifact (section 10.5), and the rea
 credited the survival objective is withdrawn in 17.6. For what the comparators do show once a
 fresh probe is fit on them, see **17.9**.
 
+### 14.5.1 Comparator-trained run on the white jitter: UNINFORMATIVE (2026-10-09)
+
+The 2026-10-08 texture entry recorded that no `gn`-trained run had been executed and that the
+learned-texture rule remained unmet. This is that run, frozen beforehand in
+`docs/specs/2026-10-09-gn-comparator-trained-design.md` and announced in
+`docs/PREREGISTRATION_L3.md` section 12. Unlike the diagnostics of 17.5.1 and 17.5.2 it is
+**confirmatory**: section 6's rule and section 7's gates apply verbatim to agents raised inside
+an in-band unstructured perturbation. `G_gn` at `sigma_v = 0.01` had passed gate 0 on world `P`
+before the spec was written (oracle 0.8653 in band, mechanical leakage clean, untrained floor
+0.4479 within tolerance), which is what separates it from the quadratic drag of 14.5 whose gate 0
+failed. Registered L3 configuration with the surrogate family switched: ten seeds, drifts 0 and
+0.45, 300 updates, three arms, corrected successor-value trainer, CPU
+(`artifacts/texture/T_gn_l3_h8_wm.json`).
+
+**The gate that does not pass.** The registered positive control (section 7, gate 3: speed probe
+at least 0.75) reads **0.74545** on the survival arm at drift 0.45, seed 2. It
+misses by 0.00455. Nineteen of the twenty cells pass and the
+mean is about 0.84, but the margin is not relaxed after the fact. Section 8's two verdicts both
+require every gate to pass, so neither is reached; and the matrix routes only a gate-0 or
+engagement failure to *uninformative*, so it names no cell for this outcome, the same structural
+gap recorded for the L0 failure in 17.2. **The run is therefore uninformative, it is not counted
+as a negative, and no claim anywhere rests on it.**
+
+Every other gate passes: engagement in 20 of 20 cells; the drift-zero L0 control accepts
+equivalence to chance on the survival arm (mean 0.5228,
+TOST p = 0.0202), which is the clause the corrected headline run does not pass;
+reward leakage at most 0.089 from chance against the 0.1
+tolerance; zero deaths in every pool; untrained floor 0.552.
+
+**The descriptive outcome**, recorded because the preregistration log and the manuscript quote
+it, and for no other purpose. At drift 0.45, pooled target with t-based 90% intervals over ten
+seeds: untrained 0.552 [0.529, 0.575], predictor
+0.511 [0.484, 0.539], survival **0.522**
+[0.502, 0.542], with 0 of 10 seeds at or
+above the 0.65 bar. The seed-paired survival-minus-untrained contrast is
+-0.030 [-0.051, -0.008], so the survival arm reads below the
+untrained arm rather than above it. Had the positive control passed, this configuration would
+have routed to *strengthened negative*. It did not, and the project does not read a verdict off a
+run whose gates are open.
+
+**What this does not license.** It is not evidence that agents raised in an unstructured
+perturbation fail to encode it, and the sufficiency claim gains nothing from it. The limitation
+that no comparator-trained run supports that claim stands. A usable trained case would require a
+new run under a specification written before it, not a reinterpretation of this one.
+
 ## 14.6 A2 observation-channel localization
 
 **Status: COMPLETE for the L3 rung at hidden=8 and hidden=7.** Design and runner:

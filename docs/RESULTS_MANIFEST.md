@@ -39,6 +39,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `L1-H2` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | not recorded | legacy | not recorded |
 | `SENSORY-ECHO` | historical | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
 | `EXPC-M3-PER-INDIVIDUAL` | historical | C | 28 | none | - | 3c6f0aa | n/a | owner's laptop CPU |
+| `T-GN-TRAINED` | corrected | B-v2 L3 | - | successor_value | - | 60eb355 | explicit | owner's laptop CPU, 4 workers |
 | `H8-HELDOUT-REVERSE-DIRECTION` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 8aa2b9f | explicit | owner's laptop CPU, one thread per readout |
 | `H8-HELDOUT-D045-WORLD-SAMPLES` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 865b842 | explicit | owner's laptop CPU, one thread per readout |
 | `FOLDS-EXPLICIT-V1` | historical | methods | - | none | - | not recorded | explicit | not recorded |
@@ -456,6 +457,21 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Local run directory (not in git): fullruns/expC_milestone3
 - Notes: scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates (gate 1 exploitability, gate 5 speed positive control), so neither estimator yields a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.
 - Artifacts: `artifacts/expC/emergence_pilot_per_individual_summary.json`
+
+### `T-GN-TRAINED`: Comparator-trained run on the white-jitter family (frozen 2026-10-09)
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: 60eb355
+- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Surrogate: {"family": "G_gn (iid velocity jitter on the authentic law)", "sigma_v": 0.01, "gate0": "oracle 0.8653 in band, floor 0.4479"}
+- Budget: {"survival_updates": 300}
+- Folds: explicit
+- Device: owner's laptop CPU, 4 workers
+- Local run directory (not in git): fullruns/T_gn_l3_h8_wm
+- Notes: scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. UNINFORMATIVE: the registered positive control (speed probe at least 0.75) reads 0.74545 on one of twenty cells, so the matrix's two verdicts, which both require every gate to pass, are not reached, and the matrix names no cell for this failure. Not promoted as a negative; it strengthens no claim. The descriptive outcome is recorded because the preregistration log and the manuscript quote it.
+- Config (beyond the standard protocol): {"drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01}
+- Artifacts: `artifacts/texture/T_gn_l3_h8_wm.json`
 
 ### `H8-HELDOUT-REVERSE-DIRECTION`: Reverse-direction readout: drift-0 agents probed against a surrogate they never lived in (frozen 2026-10-09)
 

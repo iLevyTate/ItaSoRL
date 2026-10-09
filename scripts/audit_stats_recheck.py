@@ -1855,6 +1855,30 @@ def main() -> int:
         for arm in ("predictor", "untrained"):
             check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
                        f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
+    _gnp = os.path.join(ARTROOT, "texture", "T_gn_l3_h8_wm.json")
+    if os.path.exists(_gnp):
+        _f14 = _read("docs/FINDINGS.md")
+        _s14 = _f14[_f14.index("## 14. H2 substrate-grounding"):_f14.index("## 15.")]
+        _gn = _load_art("texture", "T_gn_l3_h8_wm.json")
+        _sp = _gn["gates"]["speed_positive_control"]
+        check_true("14.5.1: the gn run fails exactly the speed positive control",
+                   _gn["gates_failed"] == ["speed_positive_control"])
+        check_true("14.5.1: the registered rule is not met", not _gn["rule_met"])
+        check_true("14.5.1: it routes uninformative", _gn["routing"].startswith("UNINFORMATIVE"))
+        check_true("14.5.1 quotes the failing speed value",
+                   f"{_sp['min_survival']:.5f}" in _s14)
+        for _arm in ("untrained", "predictor", "survival"):
+            _a = _gn["primary"][_arm]
+            _iv = f"[{_a['t90'][0]:.3f}, {_a['t90'][1]:.3f}]"
+            # The survival mean is bolded and may wrap before its interval.
+            check_true(f"14.5.1 quotes the {_arm} reading",
+                       any(f"{_m} {_iv}" in _s14 or f"{_m}\n{_iv}" in _s14
+                           for _m in (f"{_a['mean']:.3f}", f"**{_a['mean']:.3f}**")))
+        check_int("14.5.1: no seed reaches the bar",
+                  _gn["primary"]["survival"]["seeds_at_or_above_bar"], 0)
+        check_true("14.5.1: every other gate passes",
+                   all(g["pass"] for k, g in _gn["gates"].items()
+                       if k != "speed_positive_control"))
     _rdp = os.path.join(ARTROOT, "l0_audit", "reverse_direction_l3_h8_heldout.json")
     if os.path.exists(_rdp):
         from scripts.reverse_direction import adjudicate as _radj
