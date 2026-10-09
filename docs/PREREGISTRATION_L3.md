@@ -941,6 +941,22 @@ Rigor carried from the B-v3 audit (2026-07-10):
   the spec before the run. Section 5's readout, section 6's bar and margins, and every gate in
   section 7 are unchanged, and this diagnostic cannot overturn a registered verdict.
 
+- **2026-10-09 - REVERSE-DIRECTION READOUT, ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-09-reverse-direction-readout-design.md`).** Every positive on record is in
+  one direction: the agent is raised inside the surrogate and the probe separates the law it was
+  raised under from the authentic law. The other direction, an agent raised in the authentic world
+  probed against a learned surrogate it never lived in, has never been measured, and it is the
+  direction the project's own framing describes. This diagnostic scores the ten saved drift-0
+  agents of each arm of the historical hidden-8 held-out run with the standard pooled readout at
+  drift 0.45 and with the balanced same-world-seed readout, because the corrected C1 agents are not
+  in the repository. It is a readout on pre-correction agents and measures the direction-dependence
+  of the estimator, not the corrected headline. The integrity gate is that the same agents rescored
+  at drift 0 reproduce this run's recorded explicit-partition drift-0 targets within 0.01 on every
+  seed and arm, or the run is void. The three outcome labels (CARRIED, NOT CARRIED, AMBIGUOUS),
+  their thresholds, and the exact wording written in each case are fixed in the spec before the run.
+  Section 5's readout, section 6's bar and margins, and every gate in section 7 are unchanged, and
+  this diagnostic cannot overturn a registered verdict.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
