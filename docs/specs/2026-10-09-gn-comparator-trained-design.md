@@ -48,6 +48,14 @@ Three arms (untrained, predictor, survival), ten seeds, both drift levels, the r
 updates, the registered pooled readout at 110 episodes per class and 24 steps. The corrected
 successor-value trainer, which is the trainer the manuscript describes.
 
+**Device, fixed here before the run: CPU, four workers** (`--device cpu --workers 4`). The run
+exists to be compared against the corrected learned-fingerprint run `C1`, which executed on CPU,
+and the project has a recorded CPU-versus-GPU shift of about 0.022 for a full retrain. Running this
+one on the idle GPU would be faster and would put a device difference inside the one cross-run
+comparison the result is for. The within-run margins the registered rule adjudicates are unaffected
+by the choice, since all three arms share the device; the cross-run comparison is the reason the
+slower option is taken.
+
 ## The decision rule: the registered one, unchanged
 
 From `docs/PREREGISTRATION_L3.md` section 6, applied verbatim: encoding is claimed only if the
