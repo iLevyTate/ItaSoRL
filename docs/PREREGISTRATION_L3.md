@@ -957,6 +957,21 @@ Rigor carried from the B-v3 audit (2026-07-10):
   Section 5's readout, section 6's bar and margins, and every gate in section 7 are unchanged, and
   this diagnostic cannot overturn a registered verdict.
 
+- **2026-10-09 - COMPARATOR-TRAINED RUN ON THE WHITE-JITTER FAMILY, ANNOUNCED BEFORE THE RUN
+  (spec `docs/specs/2026-10-09-gn-comparator-trained-design.md`).** The 2026-10-08 texture entry
+  above records that no `gn`-trained run was executed and that the learned-texture rule remains
+  unmet. This is that run. `G_gn` at `sigma_v = 0.01` already passed gate 0 on world `P` before
+  this entry (oracle 0.8653, in band; mechanical leakage clean; untrained floor 0.4479, inside
+  tolerance; `artifacts/expH2/texture_knockout_h8.json`), which is what distinguishes it from the
+  hand-authored quadratic drag whose gate 0 failed. Unlike the two diagnostics announced on
+  2026-10-08 and earlier on 2026-10-09, this run is **confirmatory**: it applies section 6's rule
+  and section 7's gates verbatim, with nothing relaxed, to agents raised inside an in-band
+  unstructured perturbation. The configuration is the registered L3 one with the surrogate family
+  switched (ten seeds, drifts 0 and 0.45, 300 updates, three arms, corrected successor-value
+  trainer, agents saved). The wording written in each of the three cases, including the case where
+  the rule is MET and the paper's sufficiency claim must therefore be withdrawn in its current
+  form, is fixed in the spec before the run.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
