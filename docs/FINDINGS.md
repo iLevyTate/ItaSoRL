@@ -1622,7 +1622,15 @@ Stated once, plainly, with pointers into the code.
    cell passes at margins 0.05, 0.10, and 0.15. From 0.20 to 0.30 one cell fails,
    the no-auxiliary run at drift 0.45, whose trained return clears the better
    baseline by 0.182. The published GPU L3 cells are not committed, so this sweep
-   does not cover them.
+   does not cover them. **Extended 2026-10-09 to the corrected cells**
+   (`scripts/audit_engagement_margin.py` on `artifacts/corrected_runs/*/cells`, 40 cells,
+   `artifacts/engagement_margin_corrected.json`): `C1` passes 10 of 10 at every margin from
+   0.05 to 0.30 at both drifts, smallest gap over the better baseline **0.390** at drift
+   0.45; `C2` passes 10 of 10 up to 0.20, **9 of 10** at 0.25 and **8 of 10** at
+   0.30, smallest gap **0.230**. The registered matrix routes an engagement failure to
+   uninformative, so a margin of 0.25 or more would change `C2`'s gate status; under either
+   reading `C2` does not reach the bar, and `C1`'s engagement gate is unaffected at any swept
+   margin.
 3. **One primary readout; everything else is a control or exploratory.** The
    pre-registered decision uses only the pooled LEVEL `target` against the 0.65 bar
    and the 0.05 SESOI. The volatility readouts (`target_var`, `target_full`),

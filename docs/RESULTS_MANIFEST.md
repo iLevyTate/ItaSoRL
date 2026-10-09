@@ -31,6 +31,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `L3-H8-GS2-GPU` | historical | B-v2 L3 | 31 | pre_transition_value | - | d67dd51 | explicit | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126, ITASORL_FOLDS=explicit |
 | `L3-H8-NOWM-U450` | historical | B-v2 L3 | - | pre_transition_value | - | 9d5d047 / 80948ff (cells span both) | explicit | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126, ITASORL_FOLDS=explicit |
 | `ENGAGE-MARGIN` | historical | B-v2 | 37 | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-NOWM-CPU, L3-H10-GS1-CPU, L3-H8-WM-CPU | not recorded | n/a | not recorded |
+| `ENGAGE-MARGIN-CORRECTED` | corrected | B-v2 | 37 | inherited: successor_value | C1, C2 | not recorded | n/a | not recorded |
 | `L3-CROSSRECIPE` | historical | B-v2 L3 | 26 | inherited: pre_transition_value | L3-H8-HELDOUT | a5c46ff | legacy | local GPU |
 | `H2-GRADED-SEAM` | historical | H2 | 32 | inherited: pre_transition_value | L3-H8-HELDOUT | c4e4417 | legacy | cuda |
 | `H2-TEXTURE` | historical | H2 | 33 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | not recorded |
@@ -385,6 +386,14 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Trainer: inherited: pre_transition_value
 - Folds: n/a
 - Artifacts: `artifacts/expB2/engagement_margin_cloud_runs.json`
+
+### `ENGAGE-MARGIN-CORRECTED`: Engagement-margin sweep on the corrected cells
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Folds: n/a
+- Notes: scripts/audit_engagement_margin.py on the committed corrected cells; offline, no compute. FINDINGS methods note 2. Extends ENGAGE-MARGIN, which covered historical cells only.
+- Artifacts: `artifacts/engagement_margin_corrected.json`
 
 ### `L3-CROSSRECIPE`: Cross-recipe transfer probe (RFF ridge family)
 

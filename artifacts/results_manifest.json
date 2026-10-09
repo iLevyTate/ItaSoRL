@@ -1792,6 +1792,38 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "engagement_margin_corrected.json"
+      ],
+      "budget": null,
+      "claims": [
+        37
+      ],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "B-v2",
+      "folds": "n/a",
+      "id": "ENGAGE-MARGIN-CORRECTED",
+      "local_run_dir": null,
+      "notes": "scripts/audit_engagement_margin.py on the committed corrected cells; offline, no compute. FINDINGS methods note 2. Extends ENGAGE-MARGIN, which covered historical cells only.",
+      "readout_only_on": [
+        "C1",
+        "C2"
+      ],
+      "recorded_provenance": {
+        "engagement_margin_corrected.json": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Engagement-margin sweep on the corrected cells"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "l3_crossrecipe/summary.json"
       ],
       "budget": null,

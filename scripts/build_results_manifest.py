@@ -292,6 +292,11 @@ RUNS = [
         artifacts=["expB2/engagement_margin_cloud_runs.json"], claims=[37],
         readout_of=["BV3-REGIME-N10", "L3-H8-NOWM-CPU", "L3-H10-GS1-CPU", "L3-H8-WM-CPU"],
         trains_survival=False, folds="n/a"),
+    run("ENGAGE-MARGIN-CORRECTED", "Engagement-margin sweep on the corrected cells",
+        experiment="B-v2", artifacts=["engagement_margin_corrected.json"], claims=[37],
+        readout_of=["C1", "C2"], survival_trainer="successor_value", status="corrected",
+        trains_survival=False, folds="n/a",
+        notes="scripts/audit_engagement_margin.py on the committed corrected cells; offline, no compute. FINDINGS methods note 2. Extends ENGAGE-MARGIN, which covered historical cells only."),
     # ---------------- readout-only analyses on saved survival agents ----------------
     run("L3-CROSSRECIPE", "Cross-recipe transfer probe (RFF ridge family)", experiment="B-v2 L3",
         artifacts=["l3_crossrecipe/summary.json"], claims=[26], trains_survival=False,
