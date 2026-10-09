@@ -327,6 +327,17 @@ RUNS = [
         folds="legacy", device="cuda",
         notes="Basis is [x_t, x_{t-1}] (and cummean in the secondary variant); the five "
               "previous-action channels fed to the GRU are not in the basis."),
+    run("EXPC-M3-PER-INDIVIDUAL", "Experiment C milestone 3 rerun with the per-individual "
+        "readout (2026-10-07)", experiment="C",
+        artifacts=["expC/emergence_pilot_per_individual_summary.json"], claims=[28],
+        trains_survival=False, survival_trainer="none", commit_at_run="3c6f0aa", folds="n/a",
+        device="owner's laptop CPU", local_run_dir="fullruns/expC_milestone3",
+        notes="scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. "
+              "Identical configuration to the re-run pilot, with one probe per individual added on "
+              "the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates "
+              "(gate 1 exploitability, gate 5 speed positive control), so neither estimator yields "
+              "a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not "
+              "apply to it."),
     run("H8-HELDOUT-D045-WORLD-SAMPLES", "Drift-0.45 world-sample sensitivity on the historical "
         "hidden-8 held-out agents (frozen 2026-10-08)", experiment="L0 audit",
         artifacts=["l0_audit/d045_world_samples_l3_h8_heldout.json"], trains_survival=False,

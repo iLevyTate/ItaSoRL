@@ -2057,6 +2057,40 @@
       "title": "Sensory-echo controls (hidden 8 linear and MLP, hidden 7)"
     },
     {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
+        "expC/emergence_pilot_per_individual_summary.json"
+      ],
+      "budget": null,
+      "claims": [
+        28
+      ],
+      "commit_at_run": "3c6f0aa",
+      "config": {},
+      "deps": null,
+      "device": "owner's laptop CPU",
+      "eval_seeds": null,
+      "experiment": "C",
+      "folds": "n/a",
+      "id": "EXPC-M3-PER-INDIVIDUAL",
+      "local_run_dir": "fullruns/expC_milestone3",
+      "notes": "scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates (gate 1 exploitability, gate 5 speed positive control), so neither estimator yields a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "expC/emergence_pilot_per_individual_summary.json": {
+          "generated_by": "scripts/promote_expC_summary.py",
+          "git_commit_at_promotion": "177605f9dd41bc27d91da4b0a17a103473902b24",
+          "git_commit_at_run": "06ecc10d8f7c60cbe1a428581f92f6b2308336e0",
+          "source_run": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/expC_milestone3/emergence_pilot_per_individual.json"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Experiment C milestone 3 rerun with the per-individual readout (2026-10-07)"
+    },
+    {
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
