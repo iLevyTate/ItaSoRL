@@ -5,20 +5,24 @@
 I raised a small agent from nothing and asked whether it would notice it was
 living in a fake world. Nobody paid it to look. A detector that knows the true
 rules catches a hand-made fake **87%** of the time. The agent's own state reads
-**53%**, a coin flip. A learned fake reads **73%**, in agents trained both to
-survive and to predict what they will sense next. Drop the prediction task and
-it reads **61%**.
+**53%**, barely above a coin flip and well under the 65% bar I set in advance.
+A learned fake reads **73%**, in agents trained both to survive and to predict
+what they will sense next. Drop the prediction task and it reads **61%**. The
+73% does not meet the rule I registered, because one honesty check fails: with
+both worlds real it should read a coin flip, and on the registered pair of
+worlds it reads 56%.
 
 Then I checked what was doing the noticing. A brain trained only to predict,
-fed the exact senses the surviving agent lived through, reads the fake just as
-well. What finds the fake is where the agent goes. A brain shaped to predict
-keeps what it saw there.
+fed the exact senses the surviving agent lived through, reads the fake within
+about a point of the survival brain (72% against 73%). What finds the fake is
+where the agent goes. A brain shaped to predict keeps what it saw there.
 
-The 73% and the 61% come from a corrected trainer, and the 53% from the
-original one, since that run was not repeated. A review in October 2026 found a
-bug in how the trainer valued the last step of an episode. Fixing it moved the
-headline by less than a point, and the record of what changed, and what did not
-get rerun, is in [`docs/CORRECTIONS.md`](docs/CORRECTIONS.md).
+The agent numbers above come from a corrected trainer, except the 53%, which
+comes from the original one, since that run was not repeated. A review in
+October 2026 found a bug in how the trainer valued the last step of an episode.
+Fixing it moved the headline by less than a point, and the record of what
+changed, and what did not get rerun, is in
+[`docs/CORRECTIONS.md`](docs/CORRECTIONS.md).
 
 The 90-second film is the one to watch. Voice and music are in. Nothing clipped
 out. [ilevytate.github.io/ItaSoRL](https://ilevytate.github.io/ItaSoRL/)
@@ -27,8 +31,8 @@ Two films play on that page, both made on the original trainer before the
 correction. *Detectable All Along* is the 90-second story, released 24 August
 2026 with the voice and music track. Its closing line, that the creature
 noticed because survival made it matter, is withdrawn: a brain trained only to
-predict, fed the same senses, reads the fake as well
-([FINDINGS §17.6](docs/FINDINGS.md#176-who-drives-the-evaluation-episodes-revision-step-6)).
+predict, fed the same senses, reads the fake within about 0.01 of the survival
+brain ([FINDINGS §17.6](docs/FINDINGS.md#176-who-drives-the-evaluation-episodes-revision-step-6)).
 *Two Minds* goes inside the creature's head: one brain, two worlds, one flaw,
 every dot named after a real sensor, unit, or motor head, and the clue cells
 ringed from measured data. Its motion is illustrative, and its 49% and 73% are
@@ -74,10 +78,10 @@ At L3 the fake is a learned-dynamics fingerprint: a small net standing in for
 the velocity law. Agents trained to survive and to predict their next
 observation then carry a world signal of about **0.73**. Survival training
 without the prediction task reads 0.61, under the bar. The signal rides on the
-paths the foraging creature takes, where the fake physics part from the real
-ones, and a brain trained to predict holds on to it. A hand-written fake that
-drifts the same coherent way gets read too; white noise of the same size does
-not.
+paths the foraging creature takes, and a brain trained to predict holds on to
+it; why those paths carry more of the difference than scripted ones has not
+been measured. A hand-written fake that drifts the same coherent way gets read
+too; white noise of the same size does not.
 
 ### Hasn't this been done before?
 
@@ -143,7 +147,7 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 - **H1 (detectability)**: a privileged detector distinguishes the surrogate from the authentic world. **Supported** at L1, L2, and L3; at one shared detector noise the L2 flaws read weaker than L3 (FINDINGS §15).
 - **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference (FINDINGS §14). A hand-authored, temporally coherent drag of matched one-step size is read as well, white jitter is not, so nothing here is specific to learned dynamics (§17.9). At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
 - **H3 (emergence under selection)**: selection raises world decodability. **Flat contrast, registered verdict uninformative.** Over 3 lineages and 30 generations the contrast is flat under both the pooled and the per-individual readout, but the speed control (gate 5) fails, and the preregistration interprets no contrast unless every gate passes, so neither readout yields a verdict. The payoff for knowing the world (gate 1) is weak and falls short only of a draft margin that was never ratified (FINDINGS §13.F; the earlier record is §13.D, §13.E).
-- **H4 (incidental encoding)**: the condition is decodable from a from-scratch agent's state without reward. At L3 the three **decodability clauses are met** for survival with the next-observation auxiliary at 300 updates, corrected trainer: 0.733. The registered rule as a whole is not met, because the L0 (authentic-versus-authentic) gate does not pass on the registered world pair, 0.559 (FINDINGS §17). Not met at L1 or L2.
+- **H4 (incidental encoding)**: the condition is decodable from a from-scratch agent's state without reward. At L3 the registered rule is **not met**, because the L0 (authentic-versus-authentic) gate does not pass on the registered world pair, 0.559; its three **decodability clauses are met** for survival with the next-observation auxiliary at 300 updates, corrected trainer: 0.733 (FINDINGS §17). Not met at L1 or L2.
 
 ### Current status
 
@@ -156,7 +160,7 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 | Experiment A, L2 | **done** |
 | Experiment B (incidental detection), L2 arc | **done: did not meet the registered encoding criterion** |
 | Experiment B, L1 organism + H2 battery | **done: did not meet it at in-band Δ=0.023 (survival 0.533; FINDINGS §14.7)** |
-| Experiment B, L3 (learned-dynamics) | **met the decodability clauses at n=10** with survival plus the next-observation auxiliary at 300 updates, corrected trainer: 0.733 against predictor 0.589 and untrained 0.523, L0 gate open on the registered world pair. Without the auxiliary 0.613, not met (FINDINGS §17). Historical: 0.752 on GPU, 0.730 and 0.601 on CPU (§10.8); an independently trained fingerprint 0.639 (§10.9); prefix condition remains decodable after restoring authentic dynamics, carried mostly by the physical footprint the prefix leaves rather than by memory, and retention under identical input is not shown (FINDINGS §17.7, §10.6.1). Details in [Key result](#key-result) |
+| Experiment B, L3 (learned-dynamics) | **registered rule not met (L0 gate open on the registered world pair); decodability clauses met at n=10** with survival plus the next-observation auxiliary at 300 updates, corrected trainer: 0.733 against predictor 0.589 and untrained 0.523. Without the auxiliary 0.613, not met (FINDINGS §17). Historical: 0.752 on GPU, 0.730 and 0.601 on CPU (§10.8); an independently trained fingerprint 0.639 (§10.9); prefix condition remains decodable after restoring authentic dynamics, carried mostly by the physical footprint the prefix leaves rather than by memory, and retention under identical input is not shown (FINDINGS §17.7, §10.6.1). Details in [Key result](#key-result) |
 | Trainer correction (2026-10) | **done**: GAE truncation bootstrap fixed; both primary runs rerun; effect +0.003 and +0.012 ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), FINDINGS §17) |
 | Experiment C (emergence under selection) | **done: flat contrast, registered verdict uninformative.** The speed control (gate 5) fails and the preregistration interprets no contrast unless every gate passes, so neither the pooled nor the per-individual readout yields a verdict; gate 1 falls short only of a draft margin that was never ratified (FINDINGS §13.F) |
 | Ladder L4 (adversarially-hardened surrogate) | not started |
@@ -181,8 +185,13 @@ reads **0.733** (t-based 90% CI **[0.669, 0.797]**, 8 of 10 seeds at the 0.65
 bar), the predictor arm 0.589 and the untrained arm 0.523, with paired margins
 of +0.144 and +0.210 whose intervals clear the registered 0.05. The L0 gate
 (both pools authentic) is open on the registered pair of evaluation worlds
-(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the agents of the historical hidden-8 run, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so
-the verdict is met on the decodability clauses, conditional on L0. Without the
+(0.559, the largest of nine draws on record). Across eight independent pairs
+the absolute deviation from chance averages 0.037, a TOST over pairs accepts
+equivalence (p = 0.022), and the gate accepts on two pairs individually. On the
+agents of the historical hidden-8 run at drift 0.45, all eight independent
+draws clear the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9),
+SECURE under a rule frozen before the run. The registered verdict is therefore
+not met (L0 gate open), while the decodability clauses are met. Without the
 auxiliary the same protocol reads **0.613** [0.552, 0.675], not met; the
 decoder adds **+0.120** [+0.065, +0.174]. The bootstrap fix moved these two
 readings by +0.003 and +0.012.
@@ -191,7 +200,8 @@ readings by +0.003 and +0.012.
 a trunk trained only to predict reads the world at 0.721, and one trained on
 exactly the survival agent's experience at 0.738, against 0.733 for the
 survival trunk. Driven by one scripted policy, every arm reads 0.55 to 0.58.
-A decoder that never sees the brain, only the senses, reads 0.724. So the
+A decoder that never sees the brain, only the senses and the actions, reads
+0.724, and summary statistics of the senses alone read 0.715. So the
 signal rides on where the survival policy takes the body, and a trunk trained
 to predict keeps it; at matched input the survival objective adds nothing
 measurable, and "survival-specific" is withdrawn. A replay across the two
@@ -464,7 +474,7 @@ pytest -q
 
 **Local Jupyter / VS Code:** open [`notebooks/colab_gpu.ipynb`](notebooks/colab_gpu.ipynb) from this repo; it auto-detects local mode (no Drive/download cells).
 
-**Readout-only reruns on the saved agents:** the ten survival agents of the historical hidden-8 held-out run (96-unit trunk; 8 is the surrogate's capacity) behind the world-sample sensitivity result (FINDINGS 17.5.1) are gitignored, so git does not carry them; they ship in the anonymized review supplement, beside the hidden-8 seed-2 run's agents and, when the archive is built where they were trained, the corrected runs' folders (`docs/REPRODUCE.md`). `python scripts/fetch_saved_agents.py --local-dir <folder>` finds them in a folder you hold (`--drive-dir` for a mounted Drive folder, `--url` for a zip or tar of them) and checks every file's sha256 against `artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`; the Colab notebook's Extra checks section does the same from a form field and then runs `scripts/run_world_sample_sensitivity.py`, comparing its per-draw means and verdict against the committed artifact.
+**Readout-only reruns on the saved agents:** the ten survival agents of the historical hidden-8 held-out run (96-unit trunk; 8 is the surrogate's capacity) behind the world-sample sensitivity result (FINDINGS 17.5.1) are gitignored, so git does not carry them; they ship in the anonymized review supplement, beside the hidden-8 seed-2 run's agents and, when the archive is built where they were trained, the corrected runs' folders (`docs/REPRODUCE.md`). `python scripts/fetch_saved_agents.py --local-dir <folder>` finds them in a folder you hold (`--drive-dir` for a mounted Drive folder, `--url` for a zip or tar of them) and checks every file's sha256 against `artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`; the Colab notebook's Extra checks section does the same from a form field and then runs `scripts/run_world_sample_sensitivity.py` and compares its per-draw means and verdict with the committed artifact.
 
 ---
 

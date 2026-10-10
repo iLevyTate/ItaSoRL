@@ -159,11 +159,13 @@ dynamics flaw does not settle whether an agent that lives with it represents it;
 measurable and depends on how the agent was trained and where its policy takes it. In this
 world the learned-law condition is decodable from the state of agents trained with survival
 plus next-observation prediction at the registered budget (corrected trainer, FINDINGS 17),
-and hand-authored flaws that a handicapped detector finds weaker did not meet the encoding
-criterion. The corrected readouts say what carries the signal: the trajectories a foraging
-policy produces, kept by a trunk shaped by next-observation prediction. At matched input a
-prediction-only trunk reads the world as well as the survival trunk, and a hand-written
-coherent perturbation is read the same way as the learned one, so the result is about
+though the registered rule as a whole is not met, because the L0 gate is open on the
+registered world pair (0.559). Hand-authored flaws that a handicapped detector finds weaker
+did not meet the encoding criterion. The corrected readouts say what carries the signal: the
+trajectories a foraging policy produces, kept by a trunk shaped by next-observation
+prediction. At matched input a prediction-only trunk reads the world within about 0.01 of
+the survival trunk (0.721 against 0.733), and a hand-written coherent perturbation is read
+the same way as the learned one, so the result is about
 coherent, state-dependent deviations from the true law reaching a predictive state, not
 about learnedness or about the survival objective as such. The meta-RL comparison above
 applies directly: the agents here infer nothing they were trained to infer, and the

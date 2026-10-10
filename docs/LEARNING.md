@@ -466,9 +466,10 @@ L2 smears read 0.646 and 0.618 while the L3 forger reads 0.928; the L2 artifacts
 only reach 1.000 when the detector is a hundred times sharper. So the project no
 longer says "L2 is more detectable than L3 yet only L3 is encoded". The clean
 matched comparison is L1 against L3: an L1 seam sitting inside the same band
-(0.873 to the inspector) leaves the creature at chance (0.533), while an in-band
-forger is encoded. Detectable at the creature's own resolution turns out to be
-necessary but not sufficient.
+(0.873 to the inspector) leaves the creature just above chance (0.533) and far
+under the bar, while an in-band forger is read (Act 10 has the corrected
+reading). Detectable at the creature's own resolution turns out to be necessary
+but not sufficient.
 
 **Act 2: the daydreamer does not care (Experiment B).**
 The prediction-only creature, living in a world whose ink smears (L2), writes
@@ -631,12 +632,13 @@ prediction-only and untrained creatures never touch that trainer and came out id
 to the bit. One honesty check did move. With both worlds real, the fixed creature reads
 0.559 instead of 0.529, so the equivalence test no longer passes on the one pair of
 evaluation worlds every seed shares. Rescored on eight other pairs of real worlds, the
-same creatures average 0.493. The gate is still reported as open, because that is the
-rule.
+same creatures average 0.493. The gate is still reported as open, as the registered
+procedure requires, so the rule set in advance is not met as a whole. Its other parts, the 0.65 bar
+with its interval and both 0.05 margins, are met.
 
 Then the fixed creatures went through four new tests, and each one narrowed the story.
 
-- *Same senses, same answer.* Feed the prediction-only creature the exact stream of
+- *Same senses, nearly the same answer.* Feed the prediction-only creature the exact stream of
   senses the survival creature lived through, and it reads the world at 0.721. One
   trained on exactly the survival creature's practice data reads 0.738. The survival
   creature reads 0.733. Drive every creature with the same scripted policy and none of
@@ -665,11 +667,14 @@ Then the fixed creatures went through four new tests, and each one narrowed the 
   them.
 
 With more practice the gap narrows but holds. At 450 updates the creature without the
-imagination job reads 0.685, and the one with it 0.821, while both forage about equally
-well.
+imagination job reads 0.685, and the one with it 0.821, while both collect about the
+same reward, which is a coarse measure and not a skill match.
 
 **Honest caveats, current scoreboard:**
 
+- At L3 the registered rule is not met as a whole: the honesty check with both
+  worlds real stays open on the registered pair of evaluation worlds (0.559). The
+  0.65 bar and both 0.05 margins are met (Act 10).
 - At 300 updates the positive needs both jobs: with the fixed trainer, survival alone
   reads 0.613 and both together 0.733 (Act 10). A replay across the two runs puts about
   half of the imagination job's effect in the brain and half in where the creature goes.
@@ -679,9 +684,13 @@ well.
   survival-specific. The size of the effect depends on the individual forger (Act 7).
 - Behavior is highly world-distinguishing on its own (0.803 at hidden=8). On the fixed
   creatures 0.723 survives the per-timestep control and 0.620 survives the strongest
-  well-fitting control, which is under the bar; the senses alone read 0.724 (Act 10).
-- There are 10 seeds, one world family, one trunk (a 96-unit GRU), and one frozen
-  oracle band. No other architecture or width has been tested.
+  well-fitting control, which is under the bar; the senses and actions alone read
+  0.724 (Act 10).
+- There are 10 seeds, one world family, and one frozen oracle band. The positive
+  comes from one trunk width, a 96-unit GRU. The only other width that was run is
+  8 units, in the two comparator-trained texture runs and in Experiment C's evolved
+  creatures, and none of those runs was designed to test width or gave a usable
+  verdict. No other architecture has been tested.
 - Detectability to a privileged inspector is not sufficient, and the matched
   comparison that shows it is L1 against L3, not L2 against L3 (Act 1 correction).
   The creature's own senses carry every tested flaw almost perfectly: an inspector
