@@ -67,7 +67,7 @@ The four hypotheses (from `README.md`):
 
 - **H1 (detectability)**: a privileged outside inspector can tell the two worlds apart.
 - **H2 (substrate-grounding)**: the signal really lives in the computational seams, not in some side effect.
-- **H3 (emergence under selection)**: across generations, creatures whose survival depends on the difference get better at representing it. (Tested in Experiment C: flat contrast, registered verdict uninformative. Thirty generations of selection raised neither the pooled population readout nor the per-individual one, but two of the design's own gates fail, so neither readout yields a verdict on H3; FINDINGS 13.F and the caveats at the end of section 8.)
+- **H3 (emergence under selection)**: across generations, creatures whose survival depends on the difference get better at representing it. (Tested in Experiment C: flat contrast, registered verdict uninformative. Thirty generations of selection raised neither the pooled population readout nor the per-individual one, but the design's speed check (gate 5) fails, and the preregistration interprets no contrast unless every gate passes, so neither readout yields a verdict on H3; FINDINGS 13.F and the caveats at the end of section 8.)
 - **H4 (legibility, or incidental encoding)**: a from-scratch creature encodes the difference on its own, without reward. (The main event.)
 
 ---
@@ -291,9 +291,10 @@ does detection ability strengthen when survival depends on it (H3)? It was run:
 48 policies, 30 generations, three lineages. Under the pooled population readout
 selection did not raise world-condition decodability, and a rerun with a
 per-individual readout did not change that (FINDINGS 13.D and 13.F). The design's
-own gates say the contrast is not interpretable at that geometry: knowing the world
-paid too little (gate 1), and the readout's speed check fell below its bar (gate 5).
-The registered verdict is therefore uninformative. This setup could not answer the
+own gates say the contrast cannot be read: the readout's speed check fell below its bar
+(gate 5), and the preregistration interprets no contrast unless every gate passes.
+Knowing the world paid little (gate 1), though it falls short only of a draft margin
+that was never ratified. The registered verdict is therefore uninformative. This setup could not answer the
 question in either direction.
 One control the run used is worth knowing now: the **common-garden assay**. To
 compare offspring fairly, you test them all in the same kitchen, not each in their
@@ -696,9 +697,9 @@ well.
   (Act 10).
 - L4, the forger with a detective on the team, remains unbuilt. Experiment C's
   evolution run has a flat contrast and an uninformative registered verdict (FINDINGS
-  13.F): gates 1 and 5 fail, so the preregistration's section-8 table routes it to
-  UNINFORMATIVE. Both readouts, pooled and one by one, are flat, and neither yields a
-  verdict. Tested on creatures known to carry the signal, the pooled readout comes in
+  13.F): the speed control (gate 5) fails, and the preregistration interprets no
+  contrast unless every gate passes. Both readouts, pooled and one by one, are flat, and
+  neither yields a verdict. Tested on creatures known to carry the signal, the pooled readout comes in
   a little low (0.609 against 0.649 one by one) but does not go blind.
 
 Where results live: `docs/FINDINGS.md` (the narrative), `docs/PREREGISTRATION_L3.md`
@@ -748,7 +749,7 @@ the training defect of Act 10 passed it for months.
 | Episode | One life segment (about 80 to 110 steps); the unit for probing statistics | everywhere |
 | Experiment A | The agent-free inspector: how catchable is each fake? | `experiment_a.py` |
 | Experiment B | The daydreamer's diary check: prediction-only incidental encoding | `experiment_b.py` |
-| Experiment C | Evolution across generations (H3); run, flat contrast, registered verdict uninformative: gates 1 and 5 fail, and neither the pooled nor the per-individual readout yields a verdict (FINDINGS 13.F) | ITASORL.md |
+| Experiment C | Evolution across generations (H3); run, flat contrast, registered verdict uninformative: the speed control (gate 5) fails and no contrast is interpreted unless every gate passes, so neither the pooled nor the per-individual readout yields a verdict (FINDINGS 13.F) | ITASORL.md |
 | Fingerprint (generative) | The forger's signature flaws: blur, missing detail, mode collapse, learned noise | L3 |
 | fullruns/ | Git-ignored folders holding complete run bundles; pointer in `results/LATEST_RUN.txt` | outputs |
 | G (G_motion) | The forger: a small frozen network imitating real motion, swapped in as L3 physics | `surrogate_l3.py` |

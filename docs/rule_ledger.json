@@ -2497,7 +2497,8 @@
       "path": "gates/gate1_exploitability/passes_gate1"
      },
      "reading": null,
-     "role": "gate"
+     "role": "gate",
+     "note": "the runner applies a 0.005 margin that appears only in the unratified section 14 draft (items 3 and 4); frozen section 7 gives gate 1 no number, and against its wording the treatment gap, 0.00228 with 90% CI [0.00109, 0.00377] and a control gap of 0, is a weak positive"
     },
     {
      "clause": "gate 5, speed control",
@@ -2514,10 +2515,10 @@
    ],
    "clauses_hold": false,
    "gates_hold": false,
-   "outcome": "UNINFORMATIVE: gates 1 and 5 fail; the contrast is not interpretable",
+   "outcome": "UNINFORMATIVE: the speed control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the unratified section-14 margin",
    "outcome_class": "uninformative",
-   "recorded_in": "PREREGISTRATION_C sec. 14; FINDINGS 13.F",
-   "note": "The pooled re-run of 2026-07-18 (FINDINGS 13.D) fails every clause as well."
+   "recorded_in": "PREREGISTRATION_C sec. 7 and 2026-10-10 amendment; FINDINGS 13.F",
+   "note": "The pooled re-run of 2026-07-18 (FINDINGS 13.D) fails every clause as well. The gate-1 clause reads the runner's verdict, which applies the 0.005 margin of the unratified section-14 draft; frozen section 7 gives gate 1 no number, and against its wording the treatment gap (0.00228, 90% CI [0.00109, 0.00377], control gap 0) is a weak positive. The routing rests on gate 5 (2026-10-10)."
   }
  ]
 }

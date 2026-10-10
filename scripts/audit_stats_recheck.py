@@ -1683,7 +1683,13 @@ def main() -> int:
     ]:
         check_true(label, needle in _read(relpath))
     for relpath, banned in [("index.html", "EXP C · next"),
-                            ("index.html", "no matter how loud the artifact")]:
+                            ("index.html", "no matter how loud the artifact"),
+                            ("index.html", "loop-idle-clouds"), ("index.html", "loop-survival-clouds"),
+                            ("index.html", "loop-race"), ("index.html", "loop-brain-pair"),
+                            ("viz/player/index.html", "loop-race"),
+                            ("viz/player/index.html", "loop-brain-pair"),
+                            ("index.html", "training progress"),
+                            ("index.html", "survival pressure applied")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
     # 2026-10-10: Experiment C's registered verdict is UNINFORMATIVE (FINDINGS 13.F). Section 7
     # of PREREGISTRATION_C interprets no contrast unless every gate passes and the speed control
@@ -1714,6 +1720,8 @@ def main() -> int:
             if _where == "index.html" and _banned == "validated null":
                 _hits = [i for i in _hits if "13.F supersedes" not in _flat[i:i + 120]]
             check_true(f"{_where} no longer says '{_banned}'", not _hits)
+        check_true(f"{_where} does not say gates 1 and 5 decide the routing (13.F, second note)",
+                   "gates 1 and 5 fail" not in _flat.lower())
     # PAPER_OUTLINE row 40: where the quadratic-drag floor first leaves its tolerance,
     # recomputed from the gate-0 sweep rather than copied (it once said eps 4).
     _q0 = _load_art("texture", "gate0_qd.json")
