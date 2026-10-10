@@ -248,6 +248,26 @@ def test_decide_stakes_rule():
     assert dg.stakes_verdict(means, {"mean": 0.04, "ci90": [0.01, 0.07]})["pass"] is False
 
 
+def test_decide_stakes_untestable_when_calibration_chose_the_registered_density(tmp_path):
+    import json
+    import decide_goal_stakes as dg
+    v = dg.stakes_untestable({"S-immortal": 0.6, "C1": 0.7})
+    assert v["pass"] is False and v["testable"] is False
+    assert v["wording"].startswith("not testable")
+    assert dg.survival_note(False, v["pass"]) is None     # no survival wording without the rule
+    cal = tmp_path / "calibration.json"
+    assert dg.calibration_chose_registered(str(cal)) is False   # missing file
+    cal.write_text(json.dumps({"chosen": {"n_pellets": 24, "basal_E": 0.4}}), encoding="utf-8")
+    assert dg.calibration_chose_registered(str(cal)) is True
+    cal.write_text(json.dumps({"chosen": {"n_pellets": 16, "basal_E": 0.4}}), encoding="utf-8")
+    assert dg.calibration_chose_registered(str(cal)) is False
+    cal.write_text(json.dumps({"chosen": None}), encoding="utf-8")
+    assert dg.calibration_chose_registered(str(cal)) is False
+    # the committed calibration output is the case the 2026-10-10 amendment records
+    committed = ROOT / "artifacts" / "goal_stakes" / "calibration.json"
+    assert dg.calibration_chose_registered(str(committed)) is True
+
+
 def test_decide_intervention_floor_condition():
     import decide_goal_stakes as dg
     # trained passes, untrained floor does not meet the 0.10 rule: pass, floors reported

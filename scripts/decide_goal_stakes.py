@@ -8,6 +8,8 @@ Inputs per run directory: expB2_results.json (per-seed survival targets), mechan
 (run_mechanism_readouts, with the untrained and predictor floors). The T-touch primary
 wording reads the promoted T-touch artifact's decision and gates blocks. The stakes
 contrast is the seed-paired S-scarce minus S-immortal survival target (t-based 90% CI).
+When calibration.json in --runs chose the registered density (PREREGISTRATION_L3,
+2026-10-10), S-scarce is not run and the stakes rule is reported as not testable.
 """
 
 from __future__ import annotations
@@ -28,6 +30,9 @@ INTERVENTION_MIN_SEEDS = 7
 SURPRISE_AUROC_MIN = 0.65
 SURPRISE_CORR_MIN = 0.20
 SPEED_MIN = 0.75
+# The registered food setting of C1 (PREREGISTRATION_L3 sec. 9: 24 pellets, basal burn 0.4).
+REGISTERED_N_PELLETS = 24
+REGISTERED_BASAL_E = 0.4
 
 _CELL_NAME = re.compile(r"^cell_d(?P<drift>[0-9.]+)_s(?P<seed>\d+)\.json$")
 _PRIMARY_CLAUSES = ("pass_bar", "t90_excludes_bar", "pass_margin_predictor", "pass_margin_untrained")
@@ -108,6 +113,24 @@ def stakes_verdict(means: dict, contrast: dict) -> dict:
     return {"pass": bool(ok), "ordered": bool(ordered), "contrast": contrast,
             "wording": ("the reading grows with the stakes" if ok else
                         "within the tested range, stakes do not change the reading")}
+
+
+def stakes_untestable(means: dict) -> dict:
+    """PREREGISTRATION_L3 2026-10-10: the frozen calibration chose the registered density, so
+    S-scarce is not run and the ordering S-immortal < C1 < S-scarce cannot be formed. Neither
+    stakes wording is written; the two survival means that exist are descriptive only."""
+    return {"pass": False, "testable": False, "descriptive_means": means,
+            "wording": ("not testable: the frozen calibration chose the registered density, "
+                        "so no scarcer rung exists")}
+
+
+def calibration_chose_registered(path: str) -> bool:
+    if not os.path.exists(path):
+        return False
+    with open(path, encoding="utf-8") as fh:
+        chosen = json.load(fh).get("chosen")
+    return bool(chosen) and chosen.get("n_pellets") == REGISTERED_N_PELLETS \
+        and chosen.get("basal_E") == REGISTERED_BASAL_E
 
 
 def touch_wording(primary_met, gates_pass) -> str:
@@ -241,7 +264,9 @@ def main() -> int:
     report = {}
     for name in ("T-touch", "S-immortal", "S-scarce"):
         d = os.path.join(a.runs, name)
-        if not os.path.isdir(d):
+        # A registered directory holds a .gitkeep before any cell lands, so the results file,
+        # not the directory, is what marks a run as run.
+        if not os.path.exists(os.path.join(d, "expB2_results.json")):
             report[name] = "not run"
             continue
         with open(os.path.join(d, "mechanism.json"), encoding="utf-8") as fh:
@@ -269,6 +294,11 @@ def main() -> int:
         note = survival_note(touch_met, report["stakes"]["pass"])
         if note:
             report["survival_note"] = note
+    elif os.path.exists(im) and calibration_chose_registered(os.path.join(a.runs, "calibration.json")):
+        t_im, t_c1 = _survival_targets(im), _survival_targets(a.c1)
+        seeds = sorted(set(t_im) & set(t_c1))
+        report["stakes"] = stakes_untestable({"S-immortal": float(np.mean([t_im[s] for s in seeds])),
+                                              "C1": float(np.mean([t_c1[s] for s in seeds]))})
     print(json.dumps(report, indent=1, default=float))
     return 0
 

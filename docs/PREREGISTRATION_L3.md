@@ -1043,6 +1043,53 @@ Rigor carried from the B-v3 audit (2026-07-10):
   learned-texture rule remains unmet, and a usable trained case still requires a new run under a
   new frozen specification, at the registered trunk width.**
 
+- **2026-10-10 - S-SCARCE CALIBRATION: THE FROZEN RULE CHOOSES THE REGISTERED DENSITY, SO
+  `S-scarce` IS NOT RUN (spec `docs/specs/2026-10-07-goal-and-stakes-design.md`, "Calibration of
+  the scarce rung"; output `artifacts/goal_stakes/calibration.json`).** The calibration ran as
+  frozen: `python scripts/calibrate_scarcity.py --out artifacts/goal_stakes/calibration.json`,
+  basal burn 0.4, 200 scripted and 200 random episodes of 80 steps per world per setting, on a
+  local Windows CPU (the rule fixes no device; it trains nothing). Scripted-walker 80-step death
+  rates at drift 0 and drift 0.45, by pellet count: 24 pellets 0.535 and 0.515; 16 pellets 0.68
+  and 0.625; 12 pellets 0.72 and 0.73; 8 pellets 0.815 and 0.825; 6 pellets 0.885 and 0.87; 4
+  pellets 0.885 and 0.895. No setting had a death inside the 24-step pooled window in either
+  world. The largest pellet count in the [0.40, 0.60] band is 24, its drift-0.45 rate is within
+  0.10 of its drift-0 rate, and it has no early deaths, so the rule chooses 24. That is the
+  registered density `C1` already uses. The spec assumed the registered density carried low
+  stakes and that the rule would choose a scarcer one; for the scripted walker it already sits
+  in the band, and every scarcer setting overshoots it. The basal-0.5 fallback applies only when
+  no setting lands in the band, so it does not apply. **`S-scarce` at the chosen setting would
+  be a rerun of `C1`'s configuration, so it is not run, and no other pellet count is substituted
+  after seeing these rates.** The stakes rule needs `S-immortal` < `C1` < `S-scarce`, so it
+  cannot be tested in this world. The decision output records the stakes rule as "not testable:
+  the frozen calibration chose the registered density, so no scarcer rung exists", writes neither
+  stakes wording, and reports the `S-immortal` and `C1` survival means descriptively with no
+  threshold. The survival-specificity wording stays unavailable, because it needs the stakes rule
+  met. `T-touch`, `S-immortal`, every gate, and every other frozen rule are unchanged.
+
+- **2026-10-10 - GOAL AND STAKES: THE PREDICTOR ARM INHERITED `--mortal off`, SO INTEGRITY
+  CHECK 2 COULD NOT PASS; FIXED, AND BOTH RUNS RESTART (spec
+  `docs/specs/2026-10-07-goal-and-stakes-design.md`, integrity check 2).** The spec states
+  that the predictor and untrained arms are objective-free and, in `T-touch` and `S-immortal`,
+  equal `C1`'s arms to the bit. The implementation applied the `--mortal` switch to every world
+  `make_world` builds, including the 80-step scripted episodes the predictor arm trains on. In
+  `C1` the scripted walker dies in about half of those episodes (0.535 at the registered density,
+  the calibration above), so with death off the predictor trained on longer episodes and
+  different normalizer statistics. Both cloud runs completed all 20 cells this way. In every cell
+  of both runs the untrained target equals `C1`'s to the bit (20 of 20 per run) and the predictor
+  target does not (0 of 20; on the four drift-0 seeds `C1` reads 0.431, 0.554, 0.607, 0.483 and
+  both runs read 0.470, 0.497, 0.492, 0.476). `T-touch` and `S-immortal` agree with each other
+  to the bit, and a first step on an unpinned torch gave the same predictor values as the
+  pinned step, so neither the device nor the library version is the cause. Under check 2 a
+  mismatch stops the comparison, so **no cell of either run is read.** The predictor's scripted
+  collector now always builds mortal worlds, whatever `--mortal` says; the switch acts on the
+  trained arm's world only, which is what the spec describes. A test trains the predictor with
+  the switch on and off and requires identical weights, on a batch shown to contain deaths
+  inside 80 steps, and it fails on the old code. At the default (`--mortal on`) nothing changes,
+  so no recorded run and no fingerprint moves. Both runs' cells move to
+  `artifacts/goal_stakes/quarantine/` on their run branches, and both runs restart from zero
+  cells on the fixed code, pinned to `C1`'s torch 2.14.1, numpy 2.4.6 and scikit-learn 1.9.1.
+  Every gate, margin, and frozen wording is unchanged.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
