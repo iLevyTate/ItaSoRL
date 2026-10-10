@@ -300,5 +300,301 @@
    }
   }
  },
- "wall_seconds": 247.0
+ "wall_seconds": 247.0,
+ "disjoint_heldout": {
+  "date": "2026-10-10",
+  "note": "The per-surrogate `diagnostics` above were scored with the held-out sample at seed 77 (episodes 77 to 136, inside every G's training range) and the train column at seed 0 for every G. This block rescores them with the held-out sample disjoint from every training range and each G's train column on its own training seed, and adds the deviation profile on the same held-out sample. The seed-77 profiles and the detector scores are unchanged and stay where they are.",
+  "heldout_seed": 100000,
+  "train_seed_by_surrogate": {
+   "gmotion_h8_s0": 0,
+   "gmotion_h7_s0": 0,
+   "gmotion_h10_s1": 1,
+   "gmotion_h8_s2": 2,
+   "gn_sigma0.01": 0,
+   "qd_eps6": 0
+  },
+  "determinism": {
+   "detector_auroc_exact": true,
+   "profile_max_abs_diff": 6.539103403202517e-08,
+   "profile_tol": 1e-06
+  },
+  "environment": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "torch": "2.7.0+cu126"
+  },
+  "wall_seconds": 296.4,
+  "surrogates": {
+   "gmotion_h8_s0": {
+    "diagnostics": {
+     "uniform_drag": true,
+     "authentic_law": {
+      "vel_coef": 0.925,
+      "acc_coef": 0.05
+     },
+     "linear_fit": {
+      "coef_vel_x": [
+       0.9250000000565543,
+       1.7788361482757062e-10
+      ],
+      "coef_acc_x": [
+       0.049999999928937895,
+       -4.628408767359815e-12
+      ],
+      "rms_train": 6.021613995757985e-09,
+      "rms_heldout": 5.897691732846096e-09
+     },
+     "g_one_step": {
+      "rms_train": 0.036084921511112804,
+      "rms_heldout": 0.03535217982146866
+     },
+     "n_train": 10000,
+     "n_heldout": 2400,
+     "train_seed": 0,
+     "heldout_seed": 100000,
+     "rollout_rms_velocity_gap": {
+      "1": 0.038127659568581,
+      "5": 0.06048830957417237,
+      "10": 0.07852596430679132,
+      "24": 0.07599435880634946
+     }
+    },
+    "profile_heldout": {
+     "rms_one_step": 0.03535217982146866,
+     "mean_dev": [
+      -0.000962580683080887,
+      -0.0010793529149202641
+     ],
+     "linear_explained_share": 0.5940022868233914,
+     "lag1_autocorr": 0.83334902820354,
+     "n_transitions": 2400
+    }
+   },
+   "gmotion_h7_s0": {
+    "diagnostics": {
+     "uniform_drag": true,
+     "authentic_law": {
+      "vel_coef": 0.925,
+      "acc_coef": 0.05
+     },
+     "linear_fit": {
+      "coef_vel_x": [
+       0.9250000000565543,
+       1.7788361482757062e-10
+      ],
+      "coef_acc_x": [
+       0.049999999928937895,
+       -4.628408767359815e-12
+      ],
+      "rms_train": 6.021613995757985e-09,
+      "rms_heldout": 5.897691732846096e-09
+     },
+     "g_one_step": {
+      "rms_train": 0.05740373312439075,
+      "rms_heldout": 0.0558273586464125
+     },
+     "n_train": 10000,
+     "n_heldout": 2400,
+     "train_seed": 0,
+     "heldout_seed": 100000,
+     "rollout_rms_velocity_gap": {
+      "1": 0.03185232092214968,
+      "5": 0.07619593359856797,
+      "10": 0.11425335281614353,
+      "24": 0.12797237387646856
+     }
+    },
+    "profile_heldout": {
+     "rms_one_step": 0.0558273586464125,
+     "mean_dev": [
+      -6.867318158280493e-05,
+      0.000580197772601044
+     ],
+     "linear_explained_share": 0.8117829097957294,
+     "lag1_autocorr": 0.9416560949272021,
+     "n_transitions": 2400
+    }
+   },
+   "gmotion_h10_s1": {
+    "diagnostics": {
+     "uniform_drag": true,
+     "authentic_law": {
+      "vel_coef": 0.925,
+      "acc_coef": 0.05
+     },
+     "linear_fit": {
+      "coef_vel_x": [
+       0.9250000000762237,
+       1.606179480284787e-10
+      ],
+      "coef_acc_x": [
+       0.04999999991788072,
+       4.021005750587392e-12
+      ],
+      "rms_train": 6.0172546243293095e-09,
+      "rms_heldout": 5.897708290990892e-09
+     },
+     "g_one_step": {
+      "rms_train": 0.02629045376853769,
+      "rms_heldout": 0.025763716069160364
+     },
+     "n_train": 10000,
+     "n_heldout": 2400,
+     "train_seed": 1,
+     "heldout_seed": 100000,
+     "rollout_rms_velocity_gap": {
+      "1": 0.020994052147343577,
+      "5": 0.0492371224871491,
+      "10": 0.08327702345421809,
+      "24": 0.10784507974639308
+     }
+    },
+    "profile_heldout": {
+     "rms_one_step": 0.025763716069160364,
+     "mean_dev": [
+      -0.0014193161778409073,
+      0.0009615681793347145
+     ],
+     "linear_explained_share": 0.17755183241455874,
+     "lag1_autocorr": 0.8709868988382723,
+     "n_transitions": 2400
+    }
+   },
+   "gmotion_h8_s2": {
+    "diagnostics": {
+     "uniform_drag": true,
+     "authentic_law": {
+      "vel_coef": 0.925,
+      "acc_coef": 0.05
+     },
+     "linear_fit": {
+      "coef_vel_x": [
+       0.925000000090222,
+       1.908701652490501e-10
+      ],
+      "coef_acc_x": [
+       0.04999999990694852,
+       -1.7268964036531997e-11
+      ],
+      "rms_train": 6.010802234160941e-09,
+      "rms_heldout": 5.89773543282413e-09
+     },
+     "g_one_step": {
+      "rms_train": 0.03564901109569142,
+      "rms_heldout": 0.034156276730610016
+     },
+     "n_train": 10000,
+     "n_heldout": 2400,
+     "train_seed": 2,
+     "heldout_seed": 100000,
+     "rollout_rms_velocity_gap": {
+      "1": 0.014130346813839166,
+      "5": 0.06082778533056793,
+      "10": 0.11221104021840456,
+      "24": 0.12716622563401989
+     }
+    },
+    "profile_heldout": {
+     "rms_one_step": 0.034156276730610016,
+     "mean_dev": [
+      -0.0019269753934956194,
+      0.001425399134033114
+     ],
+     "linear_explained_share": 0.5115064143380748,
+     "lag1_autocorr": 0.931751159578181,
+     "n_transitions": 2400
+    }
+   },
+   "gn_sigma0.01": {
+    "diagnostics": {
+     "uniform_drag": true,
+     "authentic_law": {
+      "vel_coef": 0.925,
+      "acc_coef": 0.05
+     },
+     "linear_fit": {
+      "coef_vel_x": [
+       0.9250000000565543,
+       1.7788361482757062e-10
+      ],
+      "coef_acc_x": [
+       0.049999999928937895,
+       -4.628408767359815e-12
+      ],
+      "rms_train": 6.021613995757985e-09,
+      "rms_heldout": 5.897691732846096e-09
+     },
+     "g_one_step": {
+      "rms_train": 0.014149161304203977,
+      "rms_heldout": 0.01429342662096389
+     },
+     "n_train": 10000,
+     "n_heldout": 2400,
+     "train_seed": 0,
+     "heldout_seed": 100000,
+     "rollout_rms_velocity_gap": {
+      "1": 0.013264203985474902,
+      "5": 0.025809096805752586,
+      "10": 0.032860350153250714,
+      "24": 0.03597893696385094
+     }
+    },
+    "profile_heldout": {
+     "rms_one_step": 0.013862297036279538,
+     "mean_dev": [
+      -1.3869284603444543e-05,
+      -7.938603286657351e-06
+     ],
+     "linear_explained_share": 0.002558871524557249,
+     "lag1_autocorr": 0.014266482186363852,
+     "n_transitions": 2400
+    }
+   },
+   "qd_eps6": {
+    "diagnostics": {
+     "uniform_drag": true,
+     "authentic_law": {
+      "vel_coef": 0.925,
+      "acc_coef": 0.05
+     },
+     "linear_fit": {
+      "coef_vel_x": [
+       0.9250000000565543,
+       1.7788361482757062e-10
+      ],
+      "coef_acc_x": [
+       0.049999999928937895,
+       -4.628408767359815e-12
+      ],
+      "rms_train": 6.021613995757985e-09,
+      "rms_heldout": 5.897691732846096e-09
+     },
+     "g_one_step": {
+      "rms_train": 0.01434839511583285,
+      "rms_heldout": 0.014810660993969648
+     },
+     "n_train": 10000,
+     "n_heldout": 2400,
+     "train_seed": 0,
+     "heldout_seed": 100000,
+     "rollout_rms_velocity_gap": {
+      "1": 0.0,
+      "5": 0.029956327816364366,
+      "10": 0.08462155060711353,
+      "24": 0.044633340555928554
+     }
+    },
+    "profile_heldout": {
+     "rms_one_step": 0.014810660993969648,
+     "mean_dev": [
+      -0.0004516630725820342,
+      7.779749570115589e-05
+     ],
+     "linear_explained_share": 0.85585808153224,
+     "lag1_autocorr": 0.9470394545472655,
+     "n_transitions": 2400
+    }
+   }
+  }
+ }
 }
