@@ -1,0 +1,257 @@
+{
+  "0.0": {
+    "untrained": {
+      "pool_target": [
+        0.5338842975206611
+      ],
+      "pool_target_lo": [
+        0.45651652892561984
+      ],
+      "pool_target_hi": [
+        0.6116673553719008
+      ],
+      "pool_target_var": [
+        0.4409090909090909
+      ],
+      "pool_target_full": [
+        0.4694214876033058
+      ],
+      "pool_selectivity": [
+        0.0036737578805695614
+      ],
+      "pool_selectivity_var": [
+        -0.04194837103997917
+      ],
+      "pool_selectivity_full": [
+        -0.029319732516187358
+      ],
+      "pool_speed": [
+        0.7943501842678045
+      ],
+      "pool_shuffled": [
+        0.5302105396400916
+      ],
+      "pool_anchor_energy": [
+        0.8315166568267356
+      ],
+      "pool_anchor_food": [
+        0.8460640732265444
+      ],
+      "pool_ceiling_drag": [
+        NaN
+      ],
+      "pool_reward_leak": [
+        0.540495867768595
+      ],
+      "pool_leak_clean": [
+        true
+      ],
+      "pool_deaths_auth": [
+        0
+      ],
+      "pool_deaths_surr": [
+        0
+      ],
+      "mp_target": [
+        0.5
+      ],
+      "mp_leak_clean": [
+        true
+      ],
+      "xeval_return": []
+    },
+    "predictor": {
+      "pool_target": [
+        0.6074380165289256
+      ],
+      "pool_target_lo": [
+        0.535948347107438
+      ],
+      "pool_target_hi": [
+        0.6863677685950413
+      ],
+      "pool_target_var": [
+        0.4351239669421488
+      ],
+      "pool_target_full": [
+        0.49504132231404957
+      ],
+      "pool_selectivity": [
+        0.09720476302115788
+      ],
+      "pool_selectivity_var": [
+        -0.025764563769423376
+      ],
+      "pool_selectivity_full": [
+        0.04138550232829602
+      ],
+      "pool_speed": [
+        0.8928362703219163
+      ],
+      "pool_shuffled": [
+        0.5102332535077677
+      ],
+      "pool_anchor_energy": [
+        0.8076157302842086
+      ],
+      "pool_anchor_food": [
+        0.7973132290732406
+      ],
+      "pool_ceiling_drag": [
+        NaN
+      ],
+      "pool_reward_leak": [
+        0.49256198347107444
+      ],
+      "pool_leak_clean": [
+        true
+      ],
+      "pool_deaths_auth": [
+        0
+      ],
+      "pool_deaths_surr": [
+        0
+      ],
+      "mp_target": [
+        0.5
+      ],
+      "mp_leak_clean": [
+        true
+      ],
+      "xeval_return": []
+    },
+    "survival": {
+      "pool_target": [
+        0.49504132231404957
+      ],
+      "pool_target_lo": [
+        0.4207396694214876
+      ],
+      "pool_target_hi": [
+        0.5735619834710743
+      ],
+      "pool_target_var": [
+        0.4570247933884297
+      ],
+      "pool_target_full": [
+        0.4458677685950413
+      ],
+      "pool_selectivity": [
+        -0.03097134088075454
+      ],
+      "pool_selectivity_var": [
+        -0.02781505549186264
+      ],
+      "pool_selectivity_full": [
+        -0.05165994253117279
+      ],
+      "pool_speed": [
+        0.954659417137886
+      ],
+      "pool_shuffled": [
+        0.5260126631948041
+      ],
+      "pool_anchor_energy": [
+        0.8184980555785891
+      ],
+      "pool_anchor_food": [
+        0.8422211287516312
+      ],
+      "pool_ceiling_drag": [
+        NaN
+      ],
+      "pool_reward_leak": [
+        0.5309917355371901
+      ],
+      "pool_leak_clean": [
+        true
+      ],
+      "pool_deaths_auth": [
+        0
+      ],
+      "pool_deaths_surr": [
+        0
+      ],
+      "mp_target": [
+        0.5
+      ],
+      "mp_leak_clean": [
+        true
+      ],
+      "xeval_return": [
+        {
+          "0.00": 1.203125,
+          "0.45": 1.078125
+        }
+      ]
+    }
+  },
+  "0.45": {
+    "untrained": {
+      "pool_target": [],
+      "pool_target_lo": [],
+      "pool_target_hi": [],
+      "pool_target_var": [],
+      "pool_target_full": [],
+      "pool_selectivity": [],
+      "pool_selectivity_var": [],
+      "pool_selectivity_full": [],
+      "pool_speed": [],
+      "pool_shuffled": [],
+      "pool_anchor_energy": [],
+      "pool_anchor_food": [],
+      "pool_ceiling_drag": [],
+      "pool_reward_leak": [],
+      "pool_leak_clean": [],
+      "pool_deaths_auth": [],
+      "pool_deaths_surr": [],
+      "mp_target": [],
+      "mp_leak_clean": [],
+      "xeval_return": []
+    },
+    "predictor": {
+      "pool_target": [],
+      "pool_target_lo": [],
+      "pool_target_hi": [],
+      "pool_target_var": [],
+      "pool_target_full": [],
+      "pool_selectivity": [],
+      "pool_selectivity_var": [],
+      "pool_selectivity_full": [],
+      "pool_speed": [],
+      "pool_shuffled": [],
+      "pool_anchor_energy": [],
+      "pool_anchor_food": [],
+      "pool_ceiling_drag": [],
+      "pool_reward_leak": [],
+      "pool_leak_clean": [],
+      "pool_deaths_auth": [],
+      "pool_deaths_surr": [],
+      "mp_target": [],
+      "mp_leak_clean": [],
+      "xeval_return": []
+    },
+    "survival": {
+      "pool_target": [],
+      "pool_target_lo": [],
+      "pool_target_hi": [],
+      "pool_target_var": [],
+      "pool_target_full": [],
+      "pool_selectivity": [],
+      "pool_selectivity_var": [],
+      "pool_selectivity_full": [],
+      "pool_speed": [],
+      "pool_shuffled": [],
+      "pool_anchor_energy": [],
+      "pool_anchor_food": [],
+      "pool_ceiling_drag": [],
+      "pool_reward_leak": [],
+      "pool_leak_clean": [],
+      "pool_deaths_auth": [],
+      "pool_deaths_surr": [],
+      "mp_target": [],
+      "mp_leak_clean": [],
+      "xeval_return": []
+    }
+  }
+}
