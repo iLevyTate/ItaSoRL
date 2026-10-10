@@ -82,12 +82,16 @@ def test_json_escaped_windows_paths_are_scrubbed():
 
 
 def _in_git_checkout() -> bool:
+    """True when ROOT is the top of a git checkout (an extracted archive placed inside some
+    other repository is still an extracted archive)."""
     import subprocess
     try:
-        return subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=ROOT,
-                              capture_output=True, text=True).stdout.strip() == "true"
+        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=ROOT,
+                             capture_output=True, text=True).stdout.strip()
     except OSError:
         return False
+    return bool(top) and os.path.normcase(os.path.realpath(top)) == \
+        os.path.normcase(os.path.realpath(ROOT))
 
 
 def test_package_file_list_follows_git_not_the_filesystem():

@@ -293,12 +293,16 @@ _NUMBER_WORDS = ("one", "two", "three", "four", "five", "six", "seven", "eight",
 def film_slugs() -> list[str]:
     """Slugs of the publicly released films, read at build time from the names of the served
     film files (assets/film/<slug>-web.mp4, <slug>-poster.jpg), so this file names no film.
-    Empty outside a checkout that carries them (an extracted archive)."""
-    d = os.path.join(ROOT, "assets", "film")
-    try:
-        names = os.listdir(d)
-    except OSError:
-        return []
+    In a git checkout only the committed files count, so a local, unpublished render in the
+    same folder adds no name. Empty where neither exists (an extracted archive)."""
+    listed = _git_files()
+    if listed is not None:
+        names = [posixpath.basename(f) for f in listed if f.startswith("assets/film/")]
+    else:
+        try:
+            names = os.listdir(os.path.join(ROOT, "assets", "film"))
+        except OSError:
+            return []
     return sorted({m.group(1) for n in names for m in [_FILM_FILE.match(n)] if m})
 
 
@@ -715,7 +719,8 @@ def provenance_rows(rels: list[str]):
     when the history is not there to read: outside a git checkout, or in a shallow clone,
     whose oldest commit is the clone boundary and not when a file entered the history.
     Committer dates in UTC, no names or e-mail addresses."""
-    if (_git(["rev-parse", "--is-inside-work-tree"]) or "").strip() != "true":
+    top = (_git(["rev-parse", "--show-toplevel"]) or "").strip()
+    if not top or os.path.normcase(os.path.realpath(top)) != os.path.normcase(os.path.realpath(ROOT)):
         return None, "the archive was not built from a git checkout"
     if (_git(["rev-parse", "--is-shallow-repository"]) or "").strip() == "true":
         return None, "the archive was built from a shallow clone, whose history is incomplete"

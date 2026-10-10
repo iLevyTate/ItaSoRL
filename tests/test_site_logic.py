@@ -38,11 +38,14 @@ RETIRED_LOOPS = ("loop-idle-clouds", "loop-survival-clouds", "loop-race", "loop-
 
 
 def _in_git_checkout() -> bool:
+    """True when ROOT is the top of a git checkout (an extracted archive placed inside some
+    other repository is still an extracted archive)."""
     try:
-        return subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=ROOT,
-                              capture_output=True, text=True).stdout.strip() == "true"
+        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=ROOT,
+                             capture_output=True, text=True).stdout.strip()
     except OSError:
         return False
+    return bool(top) and Path(top).resolve() == ROOT
 
 
 def _site_text(relpath: str) -> str:
