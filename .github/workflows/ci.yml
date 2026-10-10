@@ -1,8 +1,10 @@
 name: CI
 
 on:
+  # Pushes to main only: a PR branch is covered by pull_request, and building it on
+  # push as well ran every PR twice. deploy-pages below still runs on a push to main.
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -20,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
@@ -29,18 +31,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Install the project + dev tooling if the repo declares any.
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-          if ls pyproject.toml setup.py setup.cfg >/dev/null 2>&1; then pip install -e . || true; fi
-          # ruff is pinned (requirements-dev.txt): unpinned installs let a new
-          # ruff release (0.16.0) fail CI on untouched code.
-          pip install "ruff==0.15.20" pytest
+          # requirements-dev.txt pulls in requirements.txt and pins ruff (a newer ruff
+          # release flags new errors on untouched code), so it is the one install line.
+          pip install -r requirements-dev.txt
+          # A broken editable install must fail CI: it is the path pyproject promises.
+          pip install -e .
 
       - name: Lint (ruff)
         run: |
@@ -74,7 +76,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
       - name: Install dependencies
         run: |
