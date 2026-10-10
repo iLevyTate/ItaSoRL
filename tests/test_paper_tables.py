@@ -56,6 +56,13 @@ def test_manuscript_that_inputs_no_generated_table_is_flagged(tmp_path, capsys):
     assert "no generated table" in out
 
 
+def test_a_manuscript_path_with_no_tex_files_fails(tmp_path, capsys):
+    """A mistyped or empty --manuscript directory checked nothing and used to return 0."""
+    assert bpt.check_manuscript(str(tmp_path)) == 1
+    assert bpt.check_manuscript(str(tmp_path / "no-such-dir")) == 1
+    assert "no .tex files" in capsys.readouterr().out
+
+
 def test_manuscript_with_tables_and_numbers_and_clean_wording_passes(tmp_path, capsys):
     rc = bpt.check_manuscript(_write(tmp_path, GOOD.replace("HEAD", _headline_sentence())))
     out = capsys.readouterr().out
@@ -163,8 +170,9 @@ def test_recomputes_every_number_is_flagged_when_unscoped(tmp_path, capsys):
 
 
 def test_the_title_is_a_name_not_a_claim_and_is_not_matched_for_retired_wording(tmp_path, capsys):
-    """"Detectable Is Not Encoded" names the paper's contrast; the prose guard still applies."""
-    text = (r"\title{Detectable Is Not Encoded: Incidental Encoding \ of Simulator Authenticity%" + "\n"
+    """A title line is a name, not a claim, so the retired-wording guard skips it even when it
+    holds a retired phrase. The prose below the title is still checked."""
+    text = (r"\title{A Placeholder Name That Is Not Encoded: A Neutral Subtitle%" + "\n"
             + GOOD.replace("HEAD", _headline_sentence())
             + "the L2 artifact is not encoded in the state\n")
     rc = bpt.check_manuscript(_write(tmp_path, text))

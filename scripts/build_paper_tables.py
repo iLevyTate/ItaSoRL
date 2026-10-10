@@ -837,6 +837,10 @@ def check_manuscript(d: str) -> int:
     the corrected primary-run paragraph; and must not use retired wording (matched after LaTeX
     markup is stripped) or quote a pre-correction headline without a historical label."""
     texs = sorted(glob.glob(os.path.join(d, "**", "*.tex"), recursive=True))
+    if not texs:
+        # A mistyped or empty --manuscript path must not read as a clean manuscript.
+        print(f"manuscript check: no .tex files under {d}; nothing was checked")
+        return 1
     current = tables()
     v = _verdicts()
     issues = 0
