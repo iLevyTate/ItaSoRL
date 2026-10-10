@@ -96,3 +96,13 @@ Experiments A, B, C, the oracle gates, and the predictor-only arms do not use th
 actor-critic. The remaining survival-trained results (L2, B-v3, L1, second capacity,
 held-out and cross-recipe transfer, second instances, the skill-matched baseline, the H2
 batteries) stay historical and are labeled with the pre-correction trainer.
+
+## Note (2026-10-10): the reproduction check of the machine
+
+The section "Why this machine gives a like-for-like comparison" says the rerun at `4b6e1f3`
+"reproduced all 156 recorded values of the committed cell exactly". The rerun cell was not
+saved, and no local bundle or log holds it, so the count is not recoverable. The committed cell
+it was compared with (`artifacts/reviewer_gaps_runs/l3_h8_wm_cpu/cells/cell_d0.45_s0.json`)
+has 157 leaves under `cell`: 139 numbers, 3 of them NaN, and 18 booleans. The two values the
+section quotes, survival target 0.66570 and engagement return -0.65194, match that cell. The
+section above stays as written; `docs/CORRECTIONS.md` (2026-10-10) records the correction.

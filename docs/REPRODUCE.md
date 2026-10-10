@@ -74,9 +74,11 @@ Measured cost on a 4-vCPU cloud container (torch 2.14.1+cpu), one cell (three ar
 drift and seed, 300 survival updates): about 22 CPU-minutes uncontended, of which survival
 training is about 9 and predictor training about 7. A 20-cell run on 4 workers takes about
 two to three hours; the corrected runs, which extend the survival arm to 450 updates for the
-budget curve, take longer. On this container the original code at `4b6e1f3` reproduced a
-committed historical CPU cell bit for bit (156 of 156 values), so CPU reruns can be compared
-with the historical CPU runs exactly.
+budget curve, take longer. On this container the original code at `4b6e1f3` reran a committed
+historical CPU cell and reproduced its recorded values, including survival target 0.66570 and
+engagement return -0.65194, so CPU reruns can be compared with the historical CPU runs. The
+rerun cell was not saved, so how many values were compared cannot be shown
+(`docs/CORRECTIONS.md`, 2026-10-10).
 
 The readout-only follow-ups on a run's saved agents (L0 world-sample audit, policy-controlled
 readouts, controlled persistence, control diagnostics, both texture comparators, population
@@ -102,25 +104,36 @@ on CUDA, whose last bits can also differ, so their integrity gates regenerate G 
 ## Anonymized supplement
 
 ```bash
-python scripts/reproduce.py supplement --out dist/itasorl_supplement.zip
+python scripts/reproduce.py supplement --out dist/supplement.zip
 ```
 
 The archive holds the code, the tests, every committed artifact (the per-seed results, and
 the corrected runs' cell records under `artifacts/corrected_runs/`), and the method and
-correction documents, with a `SHA256SUMS` file. When they are present on the build machine it
-also holds the saved agents of the historical hidden-8 held-out run
-(`fullruns/l3_h8_heldout/agents`) and of the hidden-8 seed-2 run
-(`fullruns/l3_h8_gseed2_gpu/agents`). It holds no state dumps, and no saved agents of the
-corrected runs `C1` and `C2`; those exist only after a retrain (section 2). The saved agents
+correction documents, with a `SHA256SUMS` file. It also holds the run folders listed in
+`RUN_DIRS` in `scripts/reproduce.py` that are present under the runs root (`--runs-root`,
+default `fullruns/`):
+
+- `fullruns/corrected_l3_h8_wm` and `fullruns/corrected_l3_h8_nowm`, the whole run folders of
+  the corrected runs `C1` and `C2` (cells, saved agents and state dumps). They exist only on the
+  machine where those runs were trained; built anywhere else, the archive carries no saved
+  agents or state dumps of `C1` and `C2`, which then exist only after a retrain (section 2).
+- `fullruns/l3_h8_heldout/agents`, the saved agents of the historical hidden-8 held-out run.
+- `fullruns/l3_h8_gseed2_gpu/agents`, the saved agents of the hidden-8 seed-2 run.
+
+The console and `README_SUPPLEMENT.md` name every folder that was absent. The saved agents
 are not committed to git; for review they ship only in this supplement, and a DOI archive
 record for them comes only after the review decision.
 
 Author names, handles, e-mail addresses, ORCID identifiers, and local paths are scrubbed from
 text files; the identity terms are read at build time from `CITATION.cff` and the git
 remote, so the builder names no one. The build fails if any identity term survives in a
-text file. The scrub and that check read text files only, so binary members (the saved
-agents and the images) need a separate check before the archive is shared.
-The project and package name (`itasorl`) is not anonymized; rename it if a venue requires that.
+text file. The check also scans every binary member, the decompressed members of the agent and
+array files included, and fails on any image whose exact bytes are not on the reviewed list in
+`scripts/reproduce.py` (`REVIEWED_IMAGES`), because a name drawn into a figure is pixels that
+no pattern can find. A new or redrawn figure ships only after someone views it and adds its
+SHA-256. The project and package name is replaced by a neutral one in text and in file names
+(`anonpkg` by default; `--anon-name` picks another, and `--keep-name` ships the original
+name, so that archive is not anonymous).
 Inside the extracted archive the test suite and the full scalar audit pass.
 
 ## Corrections and provenance

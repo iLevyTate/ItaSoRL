@@ -3178,7 +3178,10 @@ decision rules were frozen before launch
 **Why the comparison is like for like.** The runs executed in the revision container
 (4 vCPU, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, 4 workers, code at `f676b95`).
 Before launch, the original code at `4b6e1f3` reran one committed cell of the historical CPU
-device control there and reproduced all 156 of its recorded values exactly. The only
+device control there and reproduced the committed cell's recorded values, including survival
+target 0.66570 and engagement return -0.65194; the rerun cell was not saved. (Corrected
+2026-10-10: this sentence said "all 156 of its recorded values exactly", a count that the
+committed cell, with 157 leaves, cannot back; `docs/CORRECTIONS.md`.) The only
 difference between a corrected cell and its historical CPU cell is the bootstrap. On this
 stack the explicit-v1 and legacy fold partitions coincide for the pooled design, so the
 historical CPU numbers and the corrected numbers share one partition.

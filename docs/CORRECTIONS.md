@@ -429,6 +429,22 @@ every run's two figures, and `docs/PREREGISTRATION_L3.md` a dated entry.
 was not met before; with its positive control short in one pool, its readings are descriptive.
 The 0.75 threshold is not relaxed, and the corrected verdicts already used per-pool values.
 
+## 2026-10-10: the 156-value reproduction check cannot be backed
+
+**What was wrong.** FINDINGS 17, `docs/REPRODUCE.md` and the corrected-trainer spec say that
+the original code at `4b6e1f3`, rerun in the revision container on one committed cell of the
+historical CPU device control, reproduced all 156 of its recorded values. The rerun cell was
+not saved, and no local bundle or log holds it. The committed cell
+(`artifacts/reviewer_gaps_runs/l3_h8_wm_cpu/cells/cell_d0.45_s0.json`) has 157 leaves under
+`cell`, 139 numbers (3 of them NaN) and 18 booleans, so the count cannot be rebuilt from it.
+
+**Change.** FINDINGS 17 and `docs/REPRODUCE.md` say the rerun reproduced the committed cell's
+recorded values, including survival target 0.66570 and engagement return -0.65194, and that
+the rerun cell was not saved. The frozen spec has a dated note.
+
+**What this does not change.** The two quoted values match the committed cell. Whether every
+other value matched cannot be shown without a new rerun at `4b6e1f3`.
+
 ## 2026-10-10: what the Experiment C payoff comparison measures, and what the record left unlabeled
 
 **What was wrong.** FINDINGS 13.E and 17.11 called the matched assignment minus the better
