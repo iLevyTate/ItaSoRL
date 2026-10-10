@@ -150,14 +150,14 @@ its five commits, and they live only there. Before `origin/claude/wizardly-euler
 deleted, its head (`7276243`) should be tagged so the citations keep resolving; both are owner
 actions.
 
-**Commits recorded before this revision's review branch was merged (2026-10-10).** Three
-artifacts record a commit of the review branch itself, which `main` will not contain after a
-squash merge: `artifacts/expA/l2_inconfig_oracle.json` (`git_commit`),
-`artifacts/texture/T_gn_l3_h8_wm.json` and `artifacts/expH2/summary_h7.json`
-(`git_commit_at_promotion`), and `artifacts/results_manifest.json` copies all three. That
-commit holds the provenance code for the round-2 findings. The fields stay as recorded, since
-they are provenance facts, and the commit stays reachable through the pull request that merges
-the branch; `docs/RESULTS_MANIFEST.md` notes it beside the commits that are not on `main`.
+**A review-branch commit recorded by artifacts (2026-10-10).**
+`artifacts/expA/l2_inconfig_oracle.json` (`git_commit`), `artifacts/texture/T_gn_l3_h8_wm.json`
+and `artifacts/expH2/summary_h7.json` (`git_commit_at_promotion`) record a commit of the
+2026-10-10 review branch, the one that holds the provenance code for the round-2 findings, and
+`artifacts/results_manifest.json` copies those fields. A squash merge leaves that commit off
+`main`. The fields stay as recorded, since they are provenance facts, and the branch's commits
+stay reachable through its pull request; `docs/RESULTS_MANIFEST.md` says so beside the commits
+that are not on `main`.
 
 ## Where the manuscript lives
 

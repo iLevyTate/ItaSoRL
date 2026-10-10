@@ -56,8 +56,8 @@ the survival state decodes the world at **0.733** (t-based 90% CI [0.669, 0.797]
 0.589 for the predictor arm and 0.523 untrained, with paired margins of +0.144 and +0.210
 whose intervals clear 0.05. The L0 gate is open on the registered world-sample pair
 (0.559), the largest of nine draws on record. Across eight independent pairs the absolute
-deviation from chance averages 0.037, a TOST over pairs accepts equivalence to chance (p =
-0.022), and the gate accepts on two pairs individually. On the agents of the historical
+deviation from chance averages 0.037, a TOST over pairs accepts equivalence to chance
+(p = 0.022), and the gate accepts on two pairs individually. On the agents of the historical
 hidden-8 run at drift 0.45, all eight independent draws clear the bar (0.728 to 0.860; the
 registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run. The
 registered verdict is therefore NOT MET, because the L0 gate is open; the decodability
@@ -3659,11 +3659,12 @@ controlled, with which model, and what remained.
 **How well the stream decoder fits (added 2026-10-10).** The supervised GRU reads the
 sequence through two 64-unit ReLU layers into a 96-unit GRU and trains for 60 epochs with
 Adam at 1e-3 and batch 32, with no validation split and no weight decay
-(`docs/METHODS_ARMS.md`). Its final training cross-entropy is below 0.001 in every fold of
-this artifact and of the L1 stream readout (`artifacts/control_diagnostics/l1_stream_readout.json`,
-14.7.1), 150 folds in each. It fits its roughly 176 training episodes per fold almost exactly,
-so its held-out score is read as limited by the number of training episodes, not as a bound
-on what a decoder of this capacity could reach.
+(`docs/METHODS_ARMS.md`). Its final training cross-entropy is below 0.001 in every fold,
+150 folds in each of `artifacts/control_diagnostics/corrected_l3_h8_wm.json` and the L1
+stream readout's `artifacts/control_diagnostics/l1_stream_readout.json` (14.7.1). It fits
+its roughly 176 training episodes per fold almost exactly, so its held-out score is read as
+limited by the number of training episodes, not as a bound on what a decoder of this
+capacity could reach.
 
 **Paired contrasts (post hoc, added 2026-10-10).** Seed-paired differences between the
 survival state and a readout of the same survival episodes at drift 0.45, n = 10, each with its
