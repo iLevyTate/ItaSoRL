@@ -482,7 +482,11 @@ RUN_NOTES = {
 # Reproduction needs none of them. Patterns are fnmatch patterns on the repository path.
 SUPPLEMENT_EXCLUDE = [
     # Outreach and film-production specs: audience, voice and music briefs for the public films.
+    # The second pattern catches the film VO and music spec without naming the film: this file
+    # ships scrubbed, and the leak scan reads the film titles. Inside an archive
+    # (README_SUPPLEMENT.md present) the scalar audit skips its one check on that spec.
     ("docs/specs/*outreach-video*", "outreach and film-production specs"),
+    ("docs/specs/*vo-music*", "outreach and film-production specs"),
     # Figures a run script drew inside a run bundle. Text drawn into an image is pixels that no
     # scrub can see, and no one has viewed these for names (REVIEWED_IMAGES); the numbers they
     # plot are in the JSON files beside them.

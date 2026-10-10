@@ -124,17 +124,31 @@ The console and `README_SUPPLEMENT.md` name every folder that was absent. The sa
 are not committed to git; for review they ship only in this supplement, and a DOI archive
 record for them comes only after the review decision.
 
-Author names, handles, e-mail addresses, ORCID identifiers, and local paths are scrubbed from
-text files; the identity terms are read at build time from `CITATION.cff` and the git
-remote, so the builder names no one. The build fails if any identity term survives in a
-text file. The check also scans every binary member, the decompressed members of the agent and
-array files included, and fails on any image whose exact bytes are not on the reviewed list in
-`scripts/reproduce.py` (`REVIEWED_IMAGES`), because a name drawn into a figure is pixels that
-no pattern can find. A new or redrawn figure ships only after someone views it and adds its
-SHA-256. The project and package name is replaced by a neutral one in text and in file names
-(`anonpkg` by default; `--anon-name` picks another, and `--keep-name` ships the original
-name, so that archive is not anonymous).
-Inside the extracted archive the test suite and the full scalar audit pass.
+Author names, handles, e-mail addresses, ORCID identifiers, and local paths (Windows, Git Bash,
+WSL, macOS and Linux forms) are scrubbed from text files; the identity terms are read at build
+time from `CITATION.cff` and the git remote, so the builder names no one. The build fails if
+any identity term survives in a text file. The check also scans every binary member, the
+decompressed members of the agent and array files included, and fails on any image whose exact
+bytes are not on the reviewed list in `scripts/reproduce.py` (`REVIEWED_IMAGES`), because a
+name drawn into a figure is pixels that no pattern can find. A new or redrawn figure ships only
+after someone views it and adds its SHA-256. The project and package name is replaced by a
+neutral one in text and in file names (`anonpkg` by default; `--anon-name` picks another, and
+`--keep-name` ships the original name, so that archive is not anonymous).
+
+The titles of the project's public films become Film One and Film Two in text and in file
+names, and a release date written after "released" reads `<date>`. The builder reads the titles
+at build time from the names of the served film files, so it spells none of them. The outreach
+and film-production specs are left out, and so is any figure a run script drew inside a run
+bundle (under `artifacts/goal_stakes/` or `fullruns/`), since no one has viewed those for
+names. A Markdown link to the repository placeholder or to a file the archive does not carry
+becomes plain text. `PROVENANCE.md` lists the first and last commit of every preregistration
+and spec in the archive, with UTC committer dates and short hashes, read from git at build
+time. It is left out, with the reason in `README_SUPPLEMENT.md`, when the build runs outside a
+git checkout or from a shallow clone. `--require-runs` stops the build with nothing written
+when a run bundle in `RUN_DIRS` is absent.
+
+Inside the extracted archive the test suite and the full scalar audit pass. The audit skips its
+one check on the film VO and music spec, which the archive leaves out.
 
 ## Corrections and provenance
 

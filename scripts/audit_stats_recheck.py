@@ -1537,6 +1537,17 @@ def main() -> int:
         with open(os.path.join(root, relpath), encoding="utf-8") as fh:
             return fh.read()
 
+    # The anonymized supplement leaves out the film VO and music spec (SUPPLEMENT_EXCLUDE in
+    # scripts/reproduce.py). Only there may a file this guard reads be absent: a checkout has
+    # no README_SUPPLEMENT.md, so in CI a missing file still raises.
+    _in_supplement = os.path.exists(os.path.join(root, "README_SUPPLEMENT.md"))
+
+    def _read_or_skip(relpath: str) -> str | None:
+        if _in_supplement and not os.path.exists(os.path.join(root, relpath)):
+            print(f"  [skip] {relpath}: not shipped in the anonymized supplement")
+            return None
+        return _read(relpath)
+
     for relpath, needle, label in [
         ("index.html", "10.6.1",
          "index.html points at the 10.6.1 resolution"),
@@ -1668,8 +1679,10 @@ def main() -> int:
     # The film ships silent. If a voiced cut is ever committed, the VO script in
     # docs/specs/2026-10-01-two-minds-vo-music.md has to be re-read against 10.8
     # first, so pin the spec's own warning rather than let it be recorded blind.
-    check_true("the Two Minds VO spec records that its survival-alone line has a shelf life",
-               "The one line with a shelf life" in _read("docs/specs/2026-10-01-two-minds-vo-music.md"))
+    _vo = _read_or_skip("docs/specs/2026-10-01-two-minds-vo-music.md")
+    if _vo is not None:
+        check_true("the Two Minds VO spec records that its survival-alone line has a shelf life",
+                   "The one line with a shelf life" in _vo)
 
     # ---- derived-doc guard: sensory echo (10.4.2), H2 (14), Exp C (13.D) -------
     # The site carried Experiment C as "next" for two months after 13.D closed it,
