@@ -43,11 +43,11 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `H2-OBSLOC` | historical | H2 | 34 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | not recorded |
 | `L1-H2` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | not recorded | legacy | not recorded |
 | `SENSORY-ECHO` | historical | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
-| `EXPC-M3-PER-INDIVIDUAL` | historical | C | 28 | none | - | 3c6f0aa (curated) | n/a | owner's laptop CPU |
-| `L1-STREAM-READOUT` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | 5666f59 | explicit | owner's laptop CPU, 4 workers |
-| `T-GN-TRAINED` | corrected | B-v2 L3 | - | successor_value | - | 60eb355 (curated) | explicit | owner's laptop CPU, 4 workers |
-| `H8-HELDOUT-REVERSE-DIRECTION` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 8aa2b9f | explicit | owner's laptop CPU, one thread per readout |
-| `H8-HELDOUT-D045-WORLD-SAMPLES` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 865b842 | explicit | owner's laptop CPU, one thread per readout |
+| `EXPC-M3-PER-INDIVIDUAL` | historical | C | 27 | none | - | 06ecc10 | explicit | owner's laptop CPU |
+| `L1-STREAM-READOUT` | historical | H2 | 35, 53 | inherited: pre_transition_value | L1-ORGANISM | 5666f59 | explicit | owner's laptop CPU, 4 workers |
+| `T-GN-TRAINED` | corrected | B-v2 L3 | 52 | successor_value | - | 60eb355 (curated) | explicit | owner's laptop CPU, 4 workers |
+| `H8-HELDOUT-REVERSE-DIRECTION` | historical | L0 audit | 51 | inherited: pre_transition_value | L3-H8-HELDOUT | 8aa2b9f | explicit | owner's laptop CPU, one thread per readout |
+| `H8-HELDOUT-D045-WORLD-SAMPLES` | historical | L0 audit | 50 | inherited: pre_transition_value | L3-H8-HELDOUT | 865b842 | explicit | owner's laptop CPU, one thread per readout |
 | `FOLDS-EXPLICIT-V1` | historical | methods | - | none | - | not recorded | explicit | not recorded |
 | `GATE-TABLE` | historical | methods | - | inherited: pre_transition_value | BV2-L2-AR1, BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
 | `CONTRAST-INTERVALS` | historical | methods | - | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
@@ -101,7 +101,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 ## Fold partitions
 
-- `legacy`: installed scikit-learn GroupKFold on the run's own stack (published GPU numbers: (24,20),(22,22),(21,23),(21,23),(22,22) for 110+110)
+- `legacy`: installed scikit-learn GroupKFold on the run's own stack (published GPU numbers: (22,22),(22,22),(22,22),(21,23),(23,21) for 110+110, as measured by the 2026-09-29 re-score; the split first inferred from fold means, (24,20),(22,22),(21,23),(21,23),(22,22), is superseded)
 - `explicit`: itasorl.folds explicit partition (five 22/22 folds for 110+110), stack-independent; equal to current scikit-learn
 - `both`: scored under both; see artifacts/fold_rescore and FINDINGS methods note 8
 - `n/a`: no grouped CV probe
@@ -503,12 +503,12 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: historical
 - Trainer: none
-- Commit at run: 3c6f0aa
-- Commit source: curated: the artifacts record 06ecc10 instead
-- Folds: n/a
+- Commit at run: 06ecc10
+- Commit source: recorded
+- Folds: explicit
 - Device: owner's laptop CPU
 - Local run directory (not in git): fullruns/expC_milestone3
-- Notes: scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates (gate 1 exploitability, gate 5 speed positive control), so neither estimator yields a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.
+- Notes: scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE: the speed positive control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.
 - Artifacts: `artifacts/expC/emergence_pilot_per_individual_summary.json`
 
 ### `L1-STREAM-READOUT`: L1 stream and control readout on the saved L1 agents (frozen 2026-10-09)

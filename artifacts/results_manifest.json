@@ -36,7 +36,7 @@
   "fold_schemes": {
     "both": "scored under both; see artifacts/fold_rescore and FINDINGS methods note 8",
     "explicit": "itasorl.folds explicit partition (five 22/22 folds for 110+110), stack-independent; equal to current scikit-learn",
-    "legacy": "installed scikit-learn GroupKFold on the run's own stack (published GPU numbers: (24,20),(22,22),(21,23),(21,23),(22,22) for 110+110)",
+    "legacy": "installed scikit-learn GroupKFold on the run's own stack (published GPU numbers: (22,22),(22,22),(22,22),(21,23),(23,21) for 110+110, as measured by the 2026-09-29 re-score; the split first inferred from fold means, (24,20),(22,22),(21,23),(21,23),(22,22), is superseded)",
     "n/a": "no grouped CV probe"
   },
   "gae_history": {
@@ -2217,19 +2217,19 @@
       ],
       "budget": null,
       "claims": [
-        28
+        27
       ],
-      "commit_at_run": "3c6f0aa",
-      "commit_at_run_source": "curated: the artifacts record 06ecc10 instead",
+      "commit_at_run": "06ecc10",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": null,
       "device": "owner's laptop CPU",
       "eval_seeds": null,
       "experiment": "C",
-      "folds": "n/a",
+      "folds": "explicit",
       "id": "EXPC-M3-PER-INDIVIDUAL",
       "local_run_dir": "fullruns/expC_milestone3",
-      "notes": "scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates (gate 1 exploitability, gate 5 speed positive control), so neither estimator yields a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.",
+      "notes": "scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE: the speed positive control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.",
       "readout_only_on": null,
       "recorded_provenance": {
         "expC/emergence_pilot_per_individual_summary.json": {
@@ -2252,7 +2252,8 @@
       ],
       "budget": null,
       "claims": [
-        35
+        35,
+        53
       ],
       "commit_at_run": "5666f59",
       "commit_at_run_source": "recorded",
@@ -2299,7 +2300,9 @@
       "budget": {
         "survival_updates": 300
       },
-      "claims": [],
+      "claims": [
+        52
+      ],
       "commit_at_run": "60eb355",
       "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {
@@ -2370,7 +2373,9 @@
         "l0_audit/reverse_direction_l3_h8_heldout.json"
       ],
       "budget": null,
-      "claims": [],
+      "claims": [
+        51
+      ],
       "commit_at_run": "8aa2b9f",
       "commit_at_run_source": "recorded",
       "config": {},
@@ -2407,7 +2412,9 @@
         "l0_audit/d045_world_samples_l3_h8_heldout.json"
       ],
       "budget": null,
-      "claims": [],
+      "claims": [
+        50
+      ],
       "commit_at_run": "865b842",
       "commit_at_run_source": "recorded",
       "config": {},

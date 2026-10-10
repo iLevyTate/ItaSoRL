@@ -99,7 +99,9 @@ BV2_PROTOCOL = {
 
 FOLDS_NOTE = {
     "legacy": "installed scikit-learn GroupKFold on the run's own stack (published GPU "
-              "numbers: (24,20),(22,22),(21,23),(21,23),(22,22) for 110+110)",
+              "numbers: (22,22),(22,22),(22,22),(21,23),(23,21) for 110+110, as measured by "
+              "the 2026-09-29 re-score; the split first inferred from fold means, "
+              "(24,20),(22,22),(21,23),(21,23),(22,22), is superseded)",
     "explicit": "itasorl.folds explicit partition (five 22/22 folds for 110+110), stack-"
                 "independent; equal to current scikit-learn",
     "both": "scored under both; see artifacts/fold_rescore and FINDINGS methods note 8",
@@ -381,18 +383,19 @@ RUNS = [
               "previous-action channels fed to the GRU are not in the basis."),
     run("EXPC-M3-PER-INDIVIDUAL", "Experiment C milestone 3 rerun with the per-individual "
         "readout (2026-10-07)", experiment="C",
-        artifacts=["expC/emergence_pilot_per_individual_summary.json"], claims=[28],
-        trains_survival=False, survival_trainer="none", commit_at_run="3c6f0aa", folds="n/a",
+        artifacts=["expC/emergence_pilot_per_individual_summary.json"], claims=[27],
+        trains_survival=False, survival_trainer="none", commit_at_run="06ecc10", folds="explicit",
         device="owner's laptop CPU", local_run_dir="fullruns/expC_milestone3",
         notes="scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. "
               "Identical configuration to the re-run pilot, with one probe per individual added on "
-              "the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates "
-              "(gate 1 exploitability, gate 5 speed positive control), so neither estimator yields "
-              "a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not "
-              "apply to it."),
+              "the same common-garden panel. Routes UNINFORMATIVE: the speed positive control (gate 5) "
+              "fails and section 7 interprets no contrast unless every gate passes; gate 1 fails "
+              "only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, "
+              "second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE "
+              "correction does not apply to it."),
     run("L1-STREAM-READOUT", "L1 stream and control readout on the saved L1 agents "
         "(frozen 2026-10-09)", experiment="H2",
-        artifacts=["control_diagnostics/l1_stream_readout.json"], claims=[35],
+        artifacts=["control_diagnostics/l1_stream_readout.json"], claims=[35, 53],
         trains_survival=False, readout_of=["L1-ORGANISM"], commit_at_run="5666f59",
         folds="explicit", device="owner's laptop CPU, 4 workers",
         local_run_dir="fullruns/l1_stream_readout",
@@ -403,7 +406,7 @@ RUNS = [
               "and every per-seed target reproduces the explicit-partition record exactly. "
               "Branch S1: the stream carries it. Pre-correction-trainer agents."),
     run("T-GN-TRAINED", "Comparator-trained run on the white-jitter family (frozen 2026-10-09)",
-        experiment="B-v2 L3", artifacts=["texture/T_gn_l3_h8_wm.json"],
+        experiment="B-v2 L3", artifacts=["texture/T_gn_l3_h8_wm.json"], claims=[52],
         survival_trainer="successor_value", status="corrected", commit_at_run="60eb355",
         config={**BV2_PROTOCOL, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01,
                 "hidden": 8, "hidden_deviation": "the registered trunk is 96; the frozen "
@@ -432,7 +435,7 @@ RUNS = [
               "outcome is recorded because the preregistration log and the manuscript quote it."),
     run("H8-HELDOUT-REVERSE-DIRECTION", "Reverse-direction readout: drift-0 agents probed "
         "against a surrogate they never lived in (frozen 2026-10-09)", experiment="L0 audit",
-        artifacts=["l0_audit/reverse_direction_l3_h8_heldout.json"], trains_survival=False,
+        artifacts=["l0_audit/reverse_direction_l3_h8_heldout.json"], claims=[51], trains_survival=False,
         readout_of=["L3-H8-HELDOUT"], commit_at_run="8aa2b9f", folds="explicit",
         eval_seeds={"authentic pool": "800000 at drift 0",
                     "surrogate pool": "850000 at drift 0.45"},
@@ -447,7 +450,7 @@ RUNS = [
               "direction-dependence of the estimator, not the corrected headline."),
     run("H8-HELDOUT-D045-WORLD-SAMPLES", "Drift-0.45 world-sample sensitivity on the historical "
         "hidden-8 held-out agents (frozen 2026-10-08)", experiment="L0 audit",
-        artifacts=["l0_audit/d045_world_samples_l3_h8_heldout.json"], trains_survival=False,
+        artifacts=["l0_audit/d045_world_samples_l3_h8_heldout.json"], claims=[50], trains_survival=False,
         readout_of=["L3-H8-HELDOUT"], commit_at_run="865b842", folds="explicit",
         eval_seeds={"registered": "800000 / 850000",
                     "independent": "(1000000 + 100000k) / (1050000 + 100000k), k < 8"},

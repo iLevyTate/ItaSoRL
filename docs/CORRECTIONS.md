@@ -455,3 +455,17 @@ recomputes both best-of-two values from the committed cells and checks both runs
 
 **What this does not change.** No verdict moves. Experiment C stays uninformative on gate 5, and
 -0.043 and -0.056 stand as measured.
+
+## 2026-10-10: the results manifest's note on the legacy fold split
+
+**What was wrong.** The legacy entry of `FOLDS_NOTE` in `scripts/build_results_manifest.py`
+gave the published GPU numbers' split as (24,20), (22,22), (21,23), (21,23), (22,22), the split
+first inferred from fold means. The 2026-09-29 re-score measured (22,22), (22,22), (22,22),
+(21,23), (23,21) (`partition_110_110.legacy` in `artifacts/fold_rescore/`), and the explicit
+CV-folds spec and the `itasorl/folds.py` docstring already say the measurement supersedes the
+inference.
+
+**Change.** The note gives the measured split and calls the inferred one superseded;
+`docs/RESULTS_MANIFEST.md` is regenerated.
+
+**What this does not change.** No number. The note describes a partition the re-score records.
