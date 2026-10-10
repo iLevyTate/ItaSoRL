@@ -44,7 +44,8 @@ the bar (FINDINGS 17.8). From 45 s to the end, picture and voice credit
 survival for the creature noticing ("It learned because its life depended on
 it"; the end card's "The creature only noticed when survival made it matter").
 That reading is withdrawn (FINDINGS 17.6): fed the survival agent's own
-senses, a brain trained only to predict reads the world as well. The caveat
+senses, a brain trained only to predict reads the world within about 0.01 of the
+survival brain (0.721 against 0.733). The caveat
 sits beside the player and the download link on the site. A downloaded copy
 carries none of it, so a clean cut needs a new edit of the master (two VO lines
 and the end card).
@@ -123,7 +124,8 @@ FINDINGS 17.6), and its footer names the pre-correction trainer
 (`viz/player/beats.json`). On 2026-10-10 its end-card tiles were relabeled
 "untrained mind" and "trained mind" (they read "its mind, idle" and "its mind,
 surviving"), and the 45 to 80 s beats still tell the survival story in their
-captions; rewriting those beats is left to the owner. Since 2026-10-10 the Two Minds live renderer
+captions; rewriting those beats is left to the owner. Until then a line under the
+site's links to the two live cuts says so. Since 2026-10-10 the Two Minds live renderer
 (`viz/player/brain/`) carries a footer on its end card as well, naming the
 pre-correction trainer and the 300-update budget, because its line about
 dropping the second job holds at that budget only: at 450 updates the arm
@@ -137,8 +139,10 @@ On 2026-10-09 the caveats were extended on every surface that publishes the film
 record: the survival state reads 0.733 under the corrected trainer with the registered rule
 as a whole not met, because the authentic-versus-authentic gate is open on the registered
 pair of evaluation worlds (0.559, the largest of nine draws on record), and the level is not
-a product of that draw, since every one of eight independent draws at drift 0.45 clears the
-bar (0.728 to 0.860, SECURE under a rule frozen before the run; FINDINGS 17.5.1). The mp4
+a product of that draw: on the agents of the historical hidden-8 run, every one of eight
+independent draws at drift 0.45 clears the bar (0.728 to 0.860, SECURE under a rule frozen
+before the run; FINDINGS 17.5.1). The corrected agents are not in the repository, so the
+draws were not scored on them; the live player's footer says so since 2026-10-10. The mp4
 files are unchanged; the caveats sit beside them, never inside them.
 
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
@@ -161,7 +165,7 @@ ffmpeg -ss 2 -i assets/film/clips/two-minds-tour.mp4 -frames:v 1 \
 Until 2026-10-10 the site's "More ways to see it" row autoplayed four short
 loops: `loop-idle-clouds.mp4`, `loop-survival-clouds.mp4`, `loop-race.mp4` and
 `loop-brain-pair.mp4`. They were July 2026 demo renders of an early short run,
-eight frames each at under one frame a second, opening on a title card. Their
+eight frames each at under one frame a second, and each opened on a title card. Their
 burned-in text stated readings the record no longer supports: "YES. It knows
 this world is fake." over two clouds that mostly overlap, a race whose perfect
 copy "never learns" and whose brain "is taught", and a detection score climbing

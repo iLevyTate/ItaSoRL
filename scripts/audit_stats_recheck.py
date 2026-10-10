@@ -1722,8 +1722,10 @@ def main() -> int:
             if _where == "index.html" and _banned == "validated null":
                 _hits = [i for i in _hits if "13.F supersedes" not in _flat[i:i + 120]]
             check_true(f"{_where} no longer says '{_banned}'", not _hits)
+        # Any listing of gates 1 and 5 together ("gates 1 and 5 fail", "gates 1, 5"), so a
+        # card footer cannot bring back the retired routing in a shorter form.
         check_true(f"{_where} does not say gates 1 and 5 decide the routing (13.F, second note)",
-                   "gates 1 and 5 fail" not in _flat.lower())
+                   not re.search(r"gates?\s*1\s*(?:,|and|&|&amp;)\s*5", _flat.lower()))
     # PAPER_OUTLINE row 40: where the quadratic-drag floor first leaves its tolerance,
     # recomputed from the gate-0 sweep rather than copied (it once said eps 4).
     _q0 = _load_art("texture", "gate0_qd.json")
