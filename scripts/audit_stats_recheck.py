@@ -2137,6 +2137,31 @@ def main() -> int:
             _lab = "authentic (drift 0)" if _td == 0.0 else f"surrogate (drift {_td})"
             check_true(f"17.2.1 quotes the cross-evaluation row for {_lab}",
                        f"| {_lab} | {_cells} |" in _s17)
+        # 17.2.1 note (2026-10-10): what the surrogate costs each policy, paired by seed: return
+        # evaluated authentic minus return evaluated at drift 0.45, per cell, for each training
+        # world. The manuscript quotes both gaps; they are recomputed here from the same cells.
+        from itasorl.stats import paired_contrast as _pcx
+        _s17f = " ".join(_s17.split())
+        for _td, _pin, _who, _txt in (
+                (0.0, 0.582, "authentic-raised",
+                 "is {m} for the authentic-raised policy (t-based 90% CI [{lo}, {hi}])"),
+                (0.45, 0.498, "surrogate-raised",
+                 "and {m} for the surrogate-raised policy ([{lo}, {hi}])")):
+            _rows = _xv.get(_td, [])
+            _ek = sorted(_rows[0], key=float) if _rows else ["0.00", "0.45"]
+            _g = _pcx([r[_ek[0]] for r in _rows], [r[_ek[-1]] for r in _rows]) if _rows else None
+            if _g is None:
+                check_true(f"17.2.1 note: cells trained at drift {_td} present", False)
+                continue
+            check(f"17.2.1 note: {_who} policy, paired return gap authentic minus drift 0.45 "
+                  f"({_pin:+.3f})", _g["mean"], _pin)
+            check_int(f"17.2.1 note: seeds where the {_who} policy returns less at drift 0.45",
+                      sum(x > 0 for x in _g["diff_per_seed"]), 10)
+            check_true(f"17.2.1 quotes the {_who} policy's paired return gap and interval",
+                       _txt.format(m=f"{_g['mean']:+.3f}", lo=f"{_g['t90'][0]:+.3f}",
+                                   hi=f"{_g['t90'][1]:+.3f}") in _s17f)
+        check_true("17.2.1 quotes the seed count of the paired return gaps",
+                   "each policy returns less at drift 0.45 in 10 of 10 seeds" in _s17f)
     _wsp = os.path.join(ARTROOT, "l0_audit", "d045_world_samples_l3_h8_heldout.json")
     if os.path.exists(_wsp):
         from itasorl.l0_audit import world_sample_summary as _wss

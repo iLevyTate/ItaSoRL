@@ -62,7 +62,9 @@ hidden-8 run at drift 0.45, all eight independent draws clear the bar (0.728 to 
 registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run. The
 registered verdict is therefore NOT MET, because the L0 gate is open; the decodability
 clauses are met. Without the auxiliary the survival state reads **0.613** [0.552, 0.675],
-not met; the decoder adds **+0.120** [+0.065, +0.174]. The correction itself moved the two
+not met; the decoder adds **+0.120** [+0.065, +0.174]. The registered auxiliary rule asks
+`C1` to meet its primary rule, so it is NOT MET as registered; the lead holds on the
+decodability clauses (added 2026-10-10, 17.4). The correction itself moved the two
 drift-0.45 readings by +0.003 and +0.012.
 
 What the corrected agents show about that result:
@@ -3280,6 +3282,12 @@ The surrogate-raised arm earns four fifths of the authentic-raised arm's return 
 world, so the state difference the probe reads is not the signature of a policy that has stopped
 working outside its training world.
 
+(Added 2026-10-10.) Paired by seed, the surrogate costs each policy about half a unit of 80-step
+return. Return evaluated authentic minus return evaluated at drift 0.45 is +0.582 for the
+authentic-raised policy (t-based 90% CI [+0.523, +0.640]) and +0.498 for the surrogate-raised
+policy ([+0.421, +0.574]), and each policy returns less at drift 0.45 in 10 of 10 seeds. Both
+gaps come from the same `xeval` fields.
+
 ### 17.3 What the correction changed
 
 Paired by seed against `L3-H8-WM-CPU`:
@@ -3882,7 +3890,9 @@ populations.
    because L0 is open; the decodability clauses are met (wording changed 2026-10-10 from
    "MET on the decodability clauses, conditional on L0", which led with MET; 17.2).
 2. **The auxiliary result is bounded by budget.** At 300 updates the arm without the decoder
-   reads 0.613 and does not meet the rule; the decoder adds +0.120 [+0.065, +0.174]. With
+   reads 0.613 and does not meet the rule; the decoder adds +0.120 [+0.065, +0.174]. The
+   registered auxiliary rule is NOT MET as registered, because `C1` does not meet its primary
+   rule; the lead holds on the decodability clauses (added 2026-10-10, 17.4). With
    more training the arm without the decoder rises to 0.685 at 450 updates, and at that
    budget the decoder arm still reads higher at about equal return.
 3. **"Survival-specific" is withdrawn.** On the survival agent's own streams, a trunk trained
