@@ -71,6 +71,31 @@ def test_make_world_applies_mortal_knob(monkeypatch):
     assert _world().mortal is False
     monkeypatch.setattr(b2, "MORTAL", True)
     assert _world().mortal is True
+    monkeypatch.setattr(b2, "MORTAL", False)
+    assert b2.make_world(P, 0.0, 5, mortal=True).mortal is True    # per-world override
+
+
+def test_predictor_arm_trains_on_mortal_episodes_whatever_mortal_says(monkeypatch):
+    """Integrity check 2 needs the objective-free predictor arm to equal C1's under
+    --mortal off. Its scripted training episodes must stop at death as C1's did."""
+    pytest.importorskip("torch")
+    import torch
+    import itasorl.experiment_b2 as b2
+    kw = dict(n_eps=8, updates=2, hidden=16, embed=16, max_steps=80, ray_steps=5, seed=3,
+              device="cpu")
+    # The test bites: in this batch some scripted episodes die inside 80 steps, so an
+    # immortal world would hand the predictor longer episodes than C1's predictor saw.
+    probe = b2.make_world(P, 0.0, 5)
+    agent = b2.RecurrentActorCritic(probe.obs_spec.size, probe.action_spec.size, 16, 16, True)
+    _, _, _, mask = b2._collect_scripted(agent, b2.RunningNorm(probe.obs_spec.size),
+                                         P, 0.0, 8, 80, "cpu", 200_000 + 3 * 9000, 5)
+    assert int(mask.sum(dim=-1).min()) < 80
+    monkeypatch.setattr(b2, "MORTAL", True)
+    a_mortal, _ = b2.train_predictor_only(0.0, P, **kw)
+    monkeypatch.setattr(b2, "MORTAL", False)
+    a_off, _ = b2.train_predictor_only(0.0, P, **kw)
+    for p, q in zip(a_mortal.state_dict().values(), a_off.state_dict().values()):
+        assert torch.equal(p, q)
 
 
 def test_engagement_rule_survival_uses_absolute_margin(monkeypatch):
