@@ -252,3 +252,25 @@ detector (0.991, and 0.967 for the quadratic drag) reads neither sample and is u
 
 **What this does not change.** No organism number, no gate and no verdict. The surrogates
 are the same frozen nets, and the gate-0 oracle never read this sample.
+
+## 2026-10-10: both comparator-trained runs had an 8-unit agent trunk
+
+**What was wrong.** Two comparator-trained runs were executed: `T-qd` (quadratic drag,
+2026-10-06, set aside in FINDINGS 17.9) and `T-gn` (white jitter, 2026-10-08 and 09, FINDINGS
+14.5.1). The record said that only `T-gn` had an 8-unit agent trunk, that its launch command
+caused it, and that every other run in the project had the registered 96-unit trunk. All 60
+saved agents of `T-qd` also have `cell.weight_hh` `(24, 8)`, its recorded config fingerprint
+reproduces only with `--hidden 8`, and its speed positive control is short in 8 of 60 pools
+(worst 0.7018), which no document reported. The error was written into the specs before either
+run: the 2026-10-06 texture comparator spec calls the protocol a "hidden 8 trunk", and the
+frozen command block of the 2026-10-09 `gn` spec reads `--l3-hidden 8 --hidden 8`.
+
+**Change.** Dated corrections under FINDINGS 14.5.1 and the 17.9 addendum, a dated entry in
+PREREGISTRATION_L3 section 12, and dated notes at the end of both specs; no frozen text is
+rewritten. The 17.9 addendum's seed-bootstrap interval for `T-qd` now has the t-based interval
+beside it, [0.537, 0.624], computed from the local run bundle.
+
+**What this does not change.** No verdict. `T-gn` was already uninformative and `T-qd` already
+excluded, and no claim rests on either. Runs whose agents were not kept cannot be checked from
+their weights; the other seven saved agent sets checked on 2026-10-10 all have the registered
+trunk.

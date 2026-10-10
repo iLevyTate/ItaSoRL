@@ -1090,6 +1090,32 @@ Rigor carried from the B-v3 audit (2026-07-10):
   cells on the fixed code, pinned to `C1`'s torch 2.14.1, numpy 2.4.6 and scikit-learn 1.9.1.
   Every gate, margin, and frozen wording is unchanged.
 
+- **2026-10-10 - THIRD CORRECTION TO THE WHITE-JITTER RUN, AND ONE FOR THE QUADRATIC-DRAG RUN:
+  BOTH COMPARATOR-TRAINED RUNS HAD AN 8-UNIT TRUNK, AND THE FROZEN SPECS CARRIED THE ERROR (the
+  2026-10-09 entries above stand as written, per the append-only rule).** The second correction
+  above places the error in "the launch command". It was in the frozen design. The command block
+  of `docs/specs/2026-10-09-gn-comparator-trained-design.md` (line 44, committed in `d341091`
+  before the run and unchanged since) reads `--l3-hidden 8 --hidden 8`, and the launch copied
+  it, so the spec's own sentence that the run is "the registered L3 configuration ... and
+  nothing else changed" contradicted its command. The conflation began in the 2026-10-06 texture
+  comparator spec, which describes the comparator-trained protocol as "corrected trainer,
+  auxiliary on, hidden 8 trunk". The same entry's "`(288, 96)` for every other run in the
+  project" is also wrong. The quadratic-drag comparator-trained run (`T-qd`, executed on
+  2026-10-06 against that spec's "not run" line and set aside in FINDINGS 17.9) has
+  `cell.weight_hh` `(24, 8)` on all 60 saved agents, and its recorded config fingerprint
+  `23a620e51d4e26fd` is reproduced by its flags with `--hidden 8` only (`--hidden 96` gives
+  `f947a5bce5be281b`). Its speed positive control is short in 8 of 60 pools, worst 0.7018
+  (untrained, drift 0, seed 2), which no entry reported, and its three short untrained drift-0
+  pools equal the white-jitter run's to every digit; at drift 0 no surrogate is installed, so
+  that fits the trunk-width reading. The other saved agent sets checked from their weights on
+  2026-10-10 all have `(288, 96)`: `l1_heldout`, `l3_h7_heldout`, `l3_h8_heldout`,
+  `l3_h8_gseed2_gpu`, `l3_h10_gseed1_gpu`, `l3_h8_nowm` and `l3_h8_nowm_skill_u450`. Runs whose
+  agents were not kept cannot be checked this way. **No verdict changes**: the white-jitter run
+  was already UNINFORMATIVE, `T-qd` was already excluded from the learned-texture rule, and
+  neither supports any claim. Any later comparator-trained run needs a new frozen spec whose
+  command states `--hidden 96`. FINDINGS 14.5.1 and 17.9 carry dated corrections; both specs
+  carry dated notes at their end; `docs/CORRECTIONS.md`, 2026-10-10.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

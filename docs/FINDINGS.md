@@ -2431,6 +2431,29 @@ cell in this paper, and they should not be read as a reading of the jitter at al
 that no comparator-trained run supports that claim stands. A usable trained case would require a
 new run under a specification written before it, not a reinterpretation of this one.
 
+**Correction (2026-10-10): the error was in the frozen spec, and the `qd`-trained run had it
+too.** Two statements above are corrected here and left as written. First, the run "was
+launched with `--hidden 8`" reads as if the launch introduced the error. The frozen spec's own
+command block (`docs/specs/2026-10-09-gn-comparator-trained-design.md`, committed in `d341091`
+before the run) already reads `--l3-hidden 8 --hidden 8`, and the launch copied it. The
+conflation began in the 2026-10-06 texture comparator spec, which describes the
+comparator-trained protocol as a "hidden 8 trunk". Second, "`(288, 96)` for every other run in
+the project" is wrong. The `qd`-trained run set aside in 17.9 (`fullruns/T_qd_l3_h8_wm/`) has
+`cell.weight_hh` `(24, 8)` on all 60 saved agents, and its recorded config fingerprint
+`23a620e51d4e26fd` is reproduced by its flags with `--hidden 8` and not with 96 (which gives
+`f947a5bce5be281b`). The saved agent sets checked from their weights on 2026-10-10 that do have
+the registered trunk, `(288, 96)`, are `l1_heldout`, `l3_h7_heldout`, `l3_h8_heldout`,
+`l3_h8_gseed2_gpu`, `l3_h10_gseed1_gpu`, `l3_h8_nowm` (six files) and `l3_h8_nowm_skill_u450`.
+Runs whose agents were not kept, the corrected `C1` and `C2` among them, cannot be checked this
+way. Both comparator-trained runs were therefore 8-unit runs. The `qd` run's speed positive
+control is also short, in **8 of 60** pools, worst 0.7018 (untrained, drift 0, seed 2), and its
+three short untrained drift-0 pools equal this run's to every digit (0.7449, 0.7062, 0.7018).
+No surrogate is installed at drift 0, and the untrained agents of the two runs share their seeds
+and the 8-unit trunk, so equal values there point at the trunk width and not at either
+perturbation. No verdict changes: this run was already uninformative, the `qd` run was already
+excluded, and no claim rests on either. Dated entries: `docs/PREREGISTRATION_L3.md` section 12
+and `docs/CORRECTIONS.md`, 2026-10-10.
+
 ## 14.6 A2 observation-channel localization
 
 **Status: COMPLETE for the L3 rung at hidden=8 and hidden=7.** Design and runner:
@@ -3304,6 +3327,16 @@ gate 0 and the untrained arm reads above the survival arm, this run is excluded 
 learned-texture rule and is not a clean negative; it is reported here descriptively only,
 is not promoted to `artifacts/`, and changes no wording above. No `gn`-trained run was
 ever executed and no output for one exists.
+
+*(Note 2026-10-10: "hidden 8" in this addendum was the surrogate's capacity and, through the
+`--hidden 8` conflation recorded in 14.5.1, the agent trunk's width as well: all 60 saved
+agents of `T-qd` have an 8-unit GRU, not the registered 96-unit one. The run's speed positive
+control is also short in 8 of its 60 pools (worst 0.7018), which this addendum did not report.
+The intervals quoted above are seed-bootstrap intervals; the t-based 90% interval of the same
+ten survival values is [0.537, 0.624], computed from the local, unpromoted
+`fullruns/T_qd_l3_h8_wm/expB2_results.json`. The exclusion stands and no reading changes; see
+the 14.5.1 correction of the same date. The last sentence above was overtaken on 2026-10-08,
+when the `gn`-trained run of 14.5.1 was executed.)*
 
 **Reading.** At the same one-step magnitude, a hand-authored perturbation that is coherent
 over time and depends on the state is read by the survival agent's state, through the very

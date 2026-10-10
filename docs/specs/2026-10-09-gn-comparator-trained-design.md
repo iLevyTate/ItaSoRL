@@ -97,3 +97,14 @@ the readout-only batteries can be repeated on them.
 Ten seeds, two drift levels, three arms at 300 updates. The comparable historical run took about
 6.5 hours on the owner's laptop GPU; on CPU with two workers expect roughly 8 to 12 hours. The run
 is resumable (`--resume` skips finished cells), so an interruption costs at most one cell.
+
+## Correction (2026-10-10)
+
+The command block under "What is run" carries `--hidden 8`, which sets the agent's GRU width,
+beside `--l3-hidden 8`, which sets the surrogate's. The registered trunk is 96 units, so the
+block contradicts the sentence above it ("the registered L3 configuration ... and nothing else
+changed"). The block was in this spec when it was frozen (`d341091`), and the launch copied it.
+The run therefore executed with an 8-unit trunk and is uninformative for that reason as well as
+for its positive control (FINDINGS 14.5.1). The block is left as frozen. Any later run of this
+family needs a new frozen spec whose command states `--hidden 96`. Dated entry:
+`docs/PREREGISTRATION_L3.md` section 12, 2026-10-10.

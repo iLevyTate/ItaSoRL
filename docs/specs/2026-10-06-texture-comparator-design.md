@@ -99,3 +99,16 @@ not met in this revision. The run is recorded descriptively in FINDINGS 17.9 (su
 engagement in 6 of 10 seeds) so that the record says what happened. `T-gn` was never
 run.
 
+## Correction (2026-10-10)
+
+"Hidden 8 trunk" in item 2 under "Runs" is wrong. The declared protocol of `C1` has a 96-unit
+agent trunk; 8 is the capacity of the surrogate `G`. The phrase was carried into the
+`qd`-trained run of 2026-10-06 and into the frozen command block of
+`docs/specs/2026-10-09-gn-comparator-trained-design.md`, so both comparator-trained runs ran with
+an 8-unit trunk: `cell.weight_hh` is `(24, 8)` on all 60 saved agents of each. Neither run
+supports a claim, and the ruling above stands. Separately, the "held-out authentic transitions"
+and the "60 held-out authentic episodes" of the matching paragraphs are the seed-77 calibration
+sample of FINDINGS 10.1.1, whose episodes lie inside every learned `G`'s training data. The
+untrained `gn` and `qd` have no training data for that sample to overlap, so the eps-6.0 match
+stands as calibrated. The text above is left as frozen. Dated entries:
+`docs/PREREGISTRATION_L3.md` section 12 and `docs/CORRECTIONS.md`, 2026-10-10.
