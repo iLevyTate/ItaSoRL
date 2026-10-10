@@ -2,13 +2,23 @@
 ITASORL - World protocol, observation/action specs, and the surrogate ladder.
 
 Companion to docs/ITASORL_world_spec.md ("A Patch of Earth"). This module defines the
-*contract* (the World protocol + byte-identical obs/action specs) and the
-*surrogate ladder* (L0-L4) as composable wrappers, plus the matched-pair
-shared-world rollout that is the keystone confound control (spec sec. 11).
+*contract* (the World protocol + byte-identical obs/action specs), a sketch of the
+*surrogate ladder* (L0-L4) as composable wrappers, and a matched-pair shared-world
+rollout over those wrappers (spec sec. 11).
 
-Heavy simulation internals (the sec. 3-8 dynamics) and the learned/adversarial
-surrogates (L3/L4) are left as documented stubs. The structural skeleton, the
-spec-identity guarantee, L0/L1, and the matched-pair harness are complete.
+Where the published numbers come from. The ladder that produced every published result
+is implemented inside `patch_of_earth.PatchOfEarthV0`, not here: its `drift_mode` selects
+the rung ("ar1" and "regime" perturb drag for L2, "l1" quantizes and adds sensor noise to
+the observation, "l3" replaces the velocity law with a learned G_motion; see
+`PatchOfEarthV0._integrate_motion` and `PatchOfEarthV0._observe`), and the production
+matched-pair harness is `experiment_b2.matched_pair_recurrent_rollout`. PatchOfEarthV0
+also fills in the sec. 3-8 bodies that the `PatchOfEarth` base class below leaves as
+stubs.
+
+In this module, L0Identity, L1Discretize and `matched_pair_rollout` are complete and
+covered by tests/test_world.py. L2RolloutDrift, L3LearnedModel and L4Adversarial are
+superseded: they still raise NotImplementedError and are kept only as the protocol sketch
+(L4Adversarial subclasses L3LearnedModel). No experiment uses them.
 """
 
 from __future__ import annotations
@@ -199,6 +209,7 @@ class PatchOfEarth:
     drift model can intercept cleanly:
         _advance_time -> _integrate_motion -> _update_fields -> _resolve_ecology -> _observe
     The heavy bodies are stubs; the signatures and their ordering are the contract.
+    patch_of_earth.PatchOfEarthV0 implements them.
     """
 
     def __init__(
@@ -372,8 +383,9 @@ class L2RolloutDrift(SurrogateWrapper):
     constant). Detection is invariant-based (energy / scent-mass / regrowth-
     equilibrium / momentum-decay) for chaos-robustness.
 
-    Intervention point: install a drifting transition on the base via
-    base.dynamics_override. Stub until that hook is implemented.
+    Superseded, kept for the protocol sketch: the implemented L2 rung is
+    PatchOfEarthV0 with drift_mode "ar1" or "regime" (module docstring). This wrapper
+    still raises NotImplementedError and no experiment uses it.
     """
     level = Level.L2
 
@@ -389,6 +401,11 @@ class L2RolloutDrift(SurrogateWrapper):
 class L3LearnedModel(SurrogateWrapper):
     """L3 - a trained neural simulator of this world replaces the dynamics.
     Tell: smoothing/blur, mode collapse (rare events vanish), missing fine detail.
+
+    Superseded, kept for the protocol sketch: the implemented L3 rung is PatchOfEarthV0
+    with drift_mode "l3" and a learned G_motion (surrogate_l3.train_g_motion, installed by
+    experiment_b2.setup_l3_surrogate). This wrapper still raises NotImplementedError and no
+    experiment uses it.
     """
     level = Level.L3
 
@@ -399,7 +416,9 @@ class L3LearnedModel(SurrogateWrapper):
 
 
 class L4Adversarial(L3LearnedModel):
-    """L4 - the L3 surrogate trained adversarially to match authentic statistics."""
+    """L4 - the L3 surrogate trained adversarially to match authentic statistics.
+
+    Superseded sketch like its base class: no L4 rung was implemented or run."""
     level = Level.L4
 
 
@@ -445,6 +464,9 @@ def matched_pair_rollout(
 ) -> PairedEpisode:
     """Run a shared authentic prefix, snapshot, then branch into authentic and
     surrogate continuations from an IDENTICAL world state, in randomized order.
+
+    This is the wrapper-based harness, exercised by tests/test_world.py. The readouts
+    behind the published numbers use experiment_b2.matched_pair_recurrent_rollout.
 
     L0 branches stay identical (the chance control); L1-L4 branches diverge ONLY
     because of the artifact. This neutralizes ecological, reward, and weather
