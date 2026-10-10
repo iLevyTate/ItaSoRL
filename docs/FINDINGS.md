@@ -154,6 +154,17 @@ implemented world.
 promoted from the recorded `fullruns/06302026` e2e bundle by
 `scripts/promote_ab_summaries.py`.)*
 
+*(Figure provenance, noted 2026-10-10. Until 2026-10-10 the four figures in sections 2 and 3
+(`figures/expA_ceiling.png`, `figures/expA_L2_ceiling.png`, `figures/expB_incidental.png`,
+`figures/expB_channels.png`) were the ones drawn by run `fullruns/07042026` (commit `888eb3e`,
+the owner's RTX 4050 laptop GPU), while the numbers in the text and tables of both sections
+come from the promoted run `fullruns/06302026` (commit `4c16be6`, Tesla T4). The two runs
+differ at every point that is not saturated, and the largest gap is 0.055, at the L1
+calibration point delta 0.015 (0.457 plotted, 0.402 recorded). The 07042026 run used
+`--quick`, which shortens only the B-v2 step, so the gap comes from the different run and
+stack, not from quick mode. The figures are now redrawn from the committed artifacts by
+`scripts/plot_record_figures.py`, so they plot the numbers quoted here.)*
+
 **Method.** An external discriminator on full trajectory logs, run *before* any
 agent exists, to (a) measure how detectable each rung is and (b) prove the signal
 is not riding on a confound. Trajectories are generated in **matched pairs** (a
@@ -211,7 +222,9 @@ leakage audit must be read with this in mind.
 *(Section-3 numbers are committed in `artifacts/expB/summary.json`,
 promoted from the recorded `fullruns/06302026` e2e bundle plus the 2026-07-13
 k-step rerun log by `scripts/promote_ab_summaries.py` - with one exception: the
-3.4 engagement figures, see the 2026-07-18 correction note there.)*
+3.4 engagement figures, see the 2026-07-18 correction note there. The two figures of this
+section were drawn from a different run until 2026-10-10; see the figure provenance note at
+the head of section 2.)*
 
 **The apparatus.** A compact recurrent world model (RSSM-lite: encoder → GRU →
 next-observation decoder) trained **only** to predict its own sensory stream. It
