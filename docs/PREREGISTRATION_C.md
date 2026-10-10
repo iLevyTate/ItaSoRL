@@ -444,3 +444,61 @@ here as a deviation, not corrected after the fact.
   FINDINGS 13.F. The output is not promoted to `artifacts/`; the claim in FINDINGS 13.E
   stays restricted to the pooled readout.
 
+**Section-12 amendment (2026-10-10): what a review of the rerun found (a record; no earlier
+text is edited and the routing is not re-adjudicated).** Each point was checked against
+`fullruns/expC_milestone3/emergence_pilot_per_individual.json`, the promoted summaries under
+`artifacts/expC/` and the runner at `06ecc10`. FINDINGS 13.F (second note of 2026-10-10)
+carries the same points with their numbers.
+
+- *Gate 1 has no registered margin.* Section 7 gate 1 asks that the surrogate-specific payoff
+  be exploitable only through world identity and gives no number. The 0.005 margin appears
+  only in section 14 (items 3 and 4), which the 2026-07-20 disposition left unratified. The
+  2026-10-07 amendment's "gate 1 (section 7) prints `passes=False`" reports the runner, which
+  applies the draft margin. Against the frozen wording the treatment gap of 0.00228 (90% CI
+  [0.00109, 0.00377], control gap 0) is a weak positive.
+- *The routing rests on gate 5.* Section 7 interprets no contrast unless every gate passes,
+  and section 8's strengthened-negative row needs every gate to pass. The panel speed control
+  reads 0.527 to 0.631 across the 21 panels against 0.75, so the contrast is not interpreted
+  and the verdict stays uninformative. The 2026-10-07 amendment's "routing UNINFORMATIVE
+  (gates 1 and 5 fail ...)" is restated on that basis.
+- *Gate 3 is satisfied by construction.* The L0 sub-panel runs both members of every pair on
+  the authentic law from the same seeds under a deterministic policy, so all 21 panels read
+  exactly 0.500. Section 5 gives the sub-panel the job of proving that emergence is not drift
+  in the apparatus, and identical branches cannot do that job. A re-opening would draw the two
+  authentic members from different world samples.
+- *Statements in the 2026-10-07 amendment that the record corrects.* "The output is not
+  promoted": the summary was promoted as
+  `artifacts/expC/emergence_pilot_per_individual_summary.json` (recorded promotion commit
+  `177605f`, on `main` since `7e97cf4`). "The pooled estimand reproduces 13.D": per-seed
+  contrasts and final AUROCs moved by up to 0.006, from the change of fold partition alone.
+  "Per-individual means in the final treatment populations are 0.535, 0.539 and 0.537 ...
+  against 0.527, 0.521 and 0.527 at generation 0": the promoted summary gives 0.534, 0.539 and
+  0.536 against 0.526, 0.521 and 0.527 (`docs/CORRECTIONS.md`, 2026-10-10). "Determinism
+  bit-reproducible": the check compares fitness series rounded to 8 decimals, the
+  "reproducible to 8 decimals" of section 14 item 9.
+- *Deviations from this preregistration on record, now four.* (1) Each arm's reproduction
+  threshold is its own generation-0 median (FINDINGS 13). Its justification, disjoint fitness
+  regimes, was measured on the invalidated pilot's wrong world, and the runs keep only each
+  arm's median and mean generation-0 fitness, so the section-14 item 2(a) overlap contingency
+  could not be evaluated. (2) The mutation scale 0.03 was recorded late (section 14 item 6).
+  (3) The per-individual rerun was launched without a dated amendment (the 2026-10-07 entry
+  above). (4) Found in this review: section 4 specifies a mixed-world lifetime with the world
+  drawn per episode by a keyed stream, while the runner scores every lifetime as 2 authentic
+  and then 2 surrogate episodes of 80 steps on the same two layouts per lineage (seed base
+  320000 plus 10000 per lineage seed), identical across individuals, generations and arms
+  (`itasorl/experiment_c.py`, `mixed_world_fitness`; `scripts/run_expC_milestone3.py`).
+  Selection can therefore tune to two layouts, and the fitness rise of gate 2 is measured on
+  them.
+- *Recorded for the design of any re-opening.* The fixed generation-0 threshold saturates: 90%
+  or more of a population qualifies from generation 3 to 7 onward. The separate survival series
+  of section 5 runs two fixed layouts for 44 steps and records no death, while the panel drops
+  6.0% to 6.5% of its pairs at generation 0. The per-individual readout was scored at
+  generation 0 and at the final generations only.
+- *In-place edits to this document.* `8f649e4` (2026-07-18 17:48 local, about an hour after
+  the `a0cb850` commit the 13.D re-run ran on, and not its ancestor) rewrote the status header written at `0887200` ("DESIGN-COMPLETE, not yet committed" became "FROZEN at
+  commit `0887200` ..."), made the section 9 horizon line name `ray_steps = 5`, and replaced the
+  first section-14 draft with the current one. `75c49a2` (2026-07-20) changed "RTX 4050 host"
+  to "local GPU host" in section 9. `8eb9174` (2026-08-23) added the reader note in section 1
+  and dropped one word from section 14 item 4. Apart from naming the ray-step value in section
+  9, none of these changed a number, a rule, a gate or a verdict.
+

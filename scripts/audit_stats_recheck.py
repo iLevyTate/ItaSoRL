@@ -7,17 +7,19 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are (62 of 1345 on 2026-10-10). It also checks that the generated pages
+many there are (62 of 1401 on 2026-10-10). It also checks that the generated pages
 (index.html, the results manifest, the gate table, the contrast intervals, the manuscript
 tables) match a fresh render, and that retired wording has not returned to the pages it
 watches. Fails loudly (non-zero exit) on any mismatch beyond rounding.
 
 What it reads from the documents. Numbers in the document text are compared with artifact
 values, recomputed where per-seed values exist, for FINDINGS 3.1, 10.1.1, 13.F, 14.5.1,
-14.7, 14.7.1 and section 17, the Experiment C lines of the FINDINGS summary, and
-PAPER_OUTLINE rows 27, 40 and 46. In README.md, CITATION.cff, the site, the rest of
-PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only, a few of which
-contain a number; a number edited outside those phrases is not caught.
+14.7, 14.7.1 and section 17, the Experiment C lines of the FINDINGS summary, the dated notes
+of 2026-10-10 in FINDINGS 3.4, 9, 10.5, 12, 13.F, 14, 14.6 and 16 (where they quote a
+committed artifact), and PAPER_OUTLINE rows 27, 40, 44 and 46. In README.md, CITATION.cff,
+the site, the rest of PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only,
+a few of which contain a number; a number edited outside those phrases is not caught. Numbers
+the notes take from gitignored run bundles under fullruns/ are not checked.
 
 What it does not do (revision 2026-10): it reruns no experiment, it cannot detect an error
 in the committed per-seed values themselves (the GAE bootstrap defect passed it for
@@ -656,8 +658,9 @@ def main() -> int:
     check_true("H2 L0 anchor accepts equivalence to chance (ROPE)", h2rr.accept)
     check_true("H2 L0 anchor recompute matches stored accept",
                h2rr.accept == bool(h2["l0_anchor_alpha0"]["accept_equiv"]))
-    # untrained floor control: flat near chance at EVERY alpha, so the collapse is
-    # specific to the learned survival signal, not an artifact of the graded world.
+    # untrained floor control: flat near chance at EVERY alpha at hidden 8, so there the
+    # collapse is specific to the learned survival signal. At hidden 7 the floor rises with
+    # the seam (FINDINGS 14, note of 2026-10-10; that bundle is not promoted).
     untr_means = [float(np.mean(h2_untr[f"a{al:.2f}"]["per_seed"])) for al in h2_alphas]
     check("H2 untrained floor at alpha=1 (0.488)", untr_means[-1], 0.488)
     check_true("H2 untrained floor flat/below bar at every alpha (max mean < 0.55)",
@@ -1680,26 +1683,35 @@ def main() -> int:
     for relpath, banned in [("index.html", "EXP C · next"),
                             ("index.html", "no matter how loud the artifact")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
-    # 2026-10-10: Experiment C's registered verdict is UNINFORMATIVE (FINDINGS 13.F; section 8
-    # of PREREGISTRATION_C routes a gate-1 failure there), so "validated null" is no longer the
-    # verdict wording and the pin that required it on index.html is retired. The summary
-    # surfaces state the uninformative verdict with a pointer to 13.F and may not use the old
-    # phrases. The 13.D heading, the 13.F reconciliation and the frozen PREREGISTRATION_C keep
-    # the historical phrase and are not watched. README.md, index.html and docs/LEARNING.md
-    # are reworded in a separate pass; add them to _expc_surfaces once their wording lands.
+    # 2026-10-10: Experiment C's registered verdict is UNINFORMATIVE (FINDINGS 13.F). Section 7
+    # of PREREGISTRATION_C interprets no contrast unless every gate passes and the speed control
+    # (gate 5) fails; gate 1 fails only against the 0.005 margin of the unratified section-14
+    # draft (13.F, second note of 2026-10-10). "Validated null" is no longer the verdict wording
+    # and the pin that required it on index.html is retired. The summary surfaces state the
+    # uninformative verdict with a pointer to 13.F and may not use the old phrases. The 13.D
+    # heading, the 13.F reconciliation and the frozen PREREGISTRATION_C keep the historical
+    # phrase and are not watched. index.html keeps one "validated null", in the sentence that
+    # says 13.F supersedes it, so there the phrase is allowed only with "13.F supersedes" right
+    # after it.
     _fx = _read("docs/FINDINGS.md")
     _expc_surfaces = {
         "FINDINGS banner, TL;DR and section 1": _fx[:_fx.index("## 2. Experiment A")],
         "FINDINGS section 6": _fx[_fx.index("## 6. Status against"):_fx.index("## 7. Levers")],
         "FINDINGS 17.12": _fx[_fx.index("### 17.12"):],
         "docs/PAPER_OUTLINE.md": _read("docs/PAPER_OUTLINE.md"),
+        "README.md": _read("README.md"),
+        "index.html": _read("index.html"),
+        "docs/LEARNING.md": _read("docs/LEARNING.md"),
     }
     for _where, _txt in _expc_surfaces.items():
         _flat = " ".join(_txt.split())
         check_true(f"{_where} states the Exp C verdict as uninformative with a 13.F pointer",
                    "uninformative" in _flat and "13.F" in _flat)
         for _banned in ("validated null", "open test", "evolutionary null"):
-            check_true(f"{_where} no longer says '{_banned}'", _banned not in _flat)
+            _hits = _find_all(_flat, _banned)
+            if _where == "index.html" and _banned == "validated null":
+                _hits = [i for i in _hits if "13.F supersedes" not in _flat[i:i + 120]]
+            check_true(f"{_where} no longer says '{_banned}'", not _hits)
     # PAPER_OUTLINE row 40: where the quadratic-drag floor first leaves its tolerance,
     # recomputed from the gate-0 sweep rather than copied (it once said eps 4).
     _q0 = _load_art("texture", "gate0_qd.json")
@@ -2243,6 +2255,201 @@ def main() -> int:
         check_true("FINDINGS 17.11 quotes the value of world information",
                    f"**{_vi['mean']:.3f}** return (t-based 90% CI [{_vi['t90'][0]:.3f}, {_vi['t90'][1]:.3f}]"
                    in _s17)
+    # 2026-10-10 record notes: every number the dated notes of that day quote from a committed
+    # artifact is recomputed here from per-seed or per-cell values and looked up in the text,
+    # whitespace-flattened. Numbers the notes take from gitignored run bundles (the hidden-7
+    # graded seam, the gate-0 recalibration, the Experiment C run file) are not read.
+    print("\n== 2026-10-10 record notes (FINDINGS 3.4, 9, 10.5, 12, 13.F, 14, 14.6, 16, 17) ==")
+    from itasorl.stats import paired_contrast as _pc2
+    _fx2 = _read("docs/FINDINGS.md")
+    _fl = lambda s: " ".join(s.split())
+    _sec = lambda a, b: _fl(_fx2[_fx2.index(a):_fx2.index(b)])
+    _ivs = lambda c: f"[{c['t90'][0]:+.3f}, {c['t90'][1]:+.3f}]"
+    # FINDINGS 17.5: the drift-zero arms of C1 and the C1 minus C2 drift-zero gap, built from
+    # artifacts/corrected_verdicts.json runs.<run>.drift_zero.
+    _s175 = _sec("### 17.5 The L0 gate", "### 17.5.1")
+    _dz1, _dz2 = _v["runs"]["C1"]["drift_zero"], _v["runs"]["C2"]["drift_zero"]
+    check_true("C1 drift-zero survival cells are the L0 gate's cells",
+               _dz1["survival"]["per_seed"] == _v["runs"]["C1"]["gates"]["l0"]["per_seed"])
+    for _arm in ("untrained", "predictor"):
+        _b = _dz1[_arm]
+        check("17.5: C1 drift-zero " + _arm + " mean recomputes from its seeds",
+              _seed_mean(_b), _b["mean"])
+        check_true(f"17.5 quotes the C1 drift-zero {_arm} arm",
+                   f"{_arm} arm of `C1` reads {_b['mean']:.3f} [{_b['t90'][0]:.3f}, {_b['t90'][1]:.3f}]"
+                   in _s175 or f"{_arm} {_b['mean']:.3f} [{_b['t90'][0]:.3f}, {_b['t90'][1]:.3f}]" in _s175)
+    _b2 = _dz2["survival"]
+    check_true("17.5 quotes the C2 drift-zero survival agents",
+               f"read {_b2['mean']:.3f} [{_b2['t90'][0]:.3f}, {_b2['t90'][1]:.3f}]" in _s175)
+    _gap = _pc2(_dz1["survival"]["per_seed"], _b2["per_seed"])
+    _sd1 = float(np.std(_dz1["survival"]["per_seed"], ddof=1))
+    check_true(f"17.5 quotes the C1 minus C2 drift-zero gap ({_gap['mean']:+.3f})",
+               f"read {_gap['mean']:.3f} higher at drift zero (paired by seed {_ivs(_gap)})" in _s175)
+    check_true(f"17.5 quotes C1's drift-zero between-seed sd ({_sd1:.3f})",
+               f"between-seed sd of {_sd1:.3f} for `C1`" in _s175)
+    # FINDINGS 17.2: the worst reward-leak pool and the survival arm's drift-0.45 pools.
+    _s172 = _sec("### 17.2 C1", "### 17.2.1")
+    _lk = []
+    _cdir = os.path.join(ARTROOT, "corrected_runs", "corrected_l3_h8_wm", "cells")
+    for _fn in sorted(os.listdir(_cdir)):
+        with open(os.path.join(_cdir, _fn), encoding="utf-8") as _fh:
+            _c = json.load(_fh)["cell"]
+        for _arm, _a in _c["agents"].items():
+            _lk.append((float(_c["drift"]), int(_c["seed"]), _arm, float(_a["pool"]["pool_reward_leak"])))
+    _w = max(_lk, key=lambda r: abs(r[3] - 0.5))
+    check("17.2: worst pooled reward leak equals the verdict artifact's gate value",
+          abs(_w[3] - 0.5), _v["runs"]["C1"]["gates"]["reward_leak"]["max_abs_dev"], tol=1e-6)
+    check_true(f"17.2 names the worst reward-leak pool ({_w[2]}, drift {_w[0]}, seed {_w[1]}, {_w[3]:.3f})",
+               f"the worst reward-leak pool is the {_w[2]} arm's at drift {_w[0]:.2f}, seed {_w[1]}, "
+               f"at {_w[3]:.3f}, within {0.1 - abs(_w[3] - 0.5):.3f} of the tolerance" in _s172)
+    _sl = [r[3] for r in _lk if r[2] == "survival" and r[0] == 0.45]
+    check_true("17.2 quotes the survival arm's drift-0.45 reward-leak pools",
+               len(_sl) == 10 and f"pools average {np.mean(_sl):.3f} and range from {min(_sl):.3f} to "
+               f"{max(_sl):.3f}" in _s172)
+    # FINDINGS 17.6: the contrasts against the untrained arm, and their echo in PAPER_OUTLINE row 44.
+    _pcd2 = _load_art("policy_controls", "corrected_l3_h8_wm.json")
+    _pcells = sorted(_pcd2["cells"], key=lambda c: c["seed"])
+    _tv2 = lambda arm, pr: [c["targets"][arm][pr]["target"] for c in _pcells]
+    _fm = lambda c: f"{c['mean']:+.3f} {_ivs(c)}"
+    for _pr in ("own", "scripted", "replay"):
+        _row = (f"| {_pr} | {_fm(_pc2(_tv2('predictor', _pr), _tv2('untrained', _pr)))} | "
+                f"{_fm(_pc2(_tv2('predictor_logged', _pr), _tv2('untrained', _pr)))} |")
+        check_true(f"FINDINGS 17.6 contrast against the untrained arm, {_pr}", _row in _s17)
+    _rp = {b: _pc2(_tv2("survival", "replay"), _tv2(b, "replay"))
+           for b in ("predictor", "predictor_logged", "untrained")}
+    _rpl = _pc2(_tv2("predictor_logged", "replay"), _tv2("untrained", "replay"))
+    _s176 = _sec("### 17.6 Who drives", "### 17.7")
+    check_true("17.6 quotes survival minus predictor on replay",
+               f"survival minus predictor {_fm(_rp['predictor'])} on replay" in _s176)
+    check_true("17.6 quotes the trained arms' lead over the untrained one on replay",
+               f"({_rp['untrained']['mean']:+.3f} for survival and {_rpl['mean']:+.3f} for "
+               f"`predictor_logged`)" in _s176)
+    check_true("PAPER_OUTLINE row 44 quotes the replay contrasts of 17.6",
+               f"survival minus predictor {_fm(_rp['predictor'])}, minus predictor_logged "
+               f"{_fm(_rp['predictor_logged'])}, minus untrained {_fm(_rp['untrained'])}; "
+               f"predictor_logged minus untrained {_fm(_rpl)}" in _fl(_read("docs/PAPER_OUTLINE.md")))
+    # FINDINGS 12: retrain time against cell time, from the policy-controls cells.
+    _rs = [c["retrain_seconds"] for c in _pcells]
+    _cs = [c["seconds"] for c in _pcells]
+    check_true("12 quotes the survival retrain time per seed",
+               f"{min(_rs) / 60:.1f} to {max(_rs) / 60:.1f} minutes per seed (`retrain_seconds`, "
+               f"{min(_rs):.0f} to {max(_rs):.0f} s)" in _fl(_fx2))
+    check_true("12 quotes the whole policy-controls cell time",
+               f"took {min(_cs) / 60:.1f} to {max(_cs) / 60:.1f} minutes (`seconds`, "
+               f"{min(_cs):.0f} to {max(_cs):.0f} s)" in _fl(_fx2))
+    # FINDINGS 13.F second note and 17.11: the per-individual contrast and means, gate 3, and the
+    # attribution of each estimand to its run.
+    _s13n = _fl(_s13)
+    _pi2 = _load_art("expC", "emergence_pilot_per_individual_summary.json")
+    _cl = sorted(_pi2["cells"], key=lambda c: c["seed"])
+    _ft2 = [c["indiv_final_treat"]["mean"] for c in _cl]
+    _fc2 = [c["indiv_final_ctrl"]["mean"] for c in _cl]
+    _ic = [a - b for a, b in zip(_ft2, _fc2)]
+    _icp = _pc2(_ft2, _fc2)
+    check_true("13.F second note quotes the per-individual contrast",
+               f"{_ic[0]:+.3f}, {_ic[1]:+.3f} and {_ic[2]:+.3f} (seeds 0, 1, 2), mean {_icp['mean']:+.3f}, "
+               f"t-based 90% interval [{_icp['t90'][0]:+.3f}, {_icp['t90'][1]:+.3f}]" in _s13n)
+    check_true("13.F second note quotes the final treatment individuals' average",
+               f"average {np.mean(_ft2):.3f} (mean of the three population means)" in _s13n)
+    check_true("17.11 quotes the final treatment per-individual range",
+               f"individuals average {min(_ft2):.3f} to {max(_ft2):.3f} in the final treatment populations"
+               in _fl(_s17))
+    _g3 = _pi2["gates"]["gate3_l0_tost"]
+    check_true("13.F second note: gate 3 reads exactly 0.500 on all 21 panels (by construction)",
+               _g3["mean"] == 0.5 and _g3["n"] == 21 and "all 21 panels read exactly 0.500" in _s13n)
+    check_true("13.F second note quotes the lowest speed-control panel",
+               f"speed control reads {_pi2['gates']['gate5_speed_control']['min']:.3f} to" in _s13n)
+    _est = _pi2["estimand"]
+    check_true("13.F second note attributes the 06ecc10 estimand",
+               _pi2["git_commit_at_run"].startswith("06ecc10")
+               and (", ".join(f"{x:+.3f}" for x in _est["contrast"]) + f" (mean {_est['mean_contrast']:+.3f}, "
+                    f"t-based [{_est['t_ci90'][0]:+.3f}, {_est['t_ci90'][1]:+.3f}]) with final treatment "
+                    f"{_est['mean_final_treat_auroc']:.3f} ("
+                    + ", ".join(f"{c['final_treat_auroc']:.3f}" for c in _cl) + ")") in _s13n)
+    _pd = _load_art("expC", "emergence_pilot_summary.json")
+    check_true("13.F second note attributes the a0cb850 estimand",
+               _pd["git_commit_at_run"].startswith("a0cb850")
+               and ("per-seed contrast " + ", ".join(f"{x:+.3f}" for x in _pd["estimand"]["contrast"])
+                    + "; final treatment " + ", ".join(f"{c['final_treat_auroc']:.3f}" for c in
+                                                       sorted(_pd["cells"], key=lambda c: c["seed"])))
+               in _s13n)
+    # FINDINGS 3.4: the random-forest probe values.
+    _nl = {r["drift"]: r for r in _load_art("expB", "summary.json")["expB_nonlinear"]["drift_sweep_with_std"]}
+    check_true("3.4 quotes the random-forest probe as stored",
+               f"**{_nl[0.0]['mean']:.3f} ± {_nl[0.0]['std']:.3f}** control and "
+               f"**{_nl[0.45]['mean']:.3f} ± {_nl[0.45]['std']:.3f}** drift 0.45" in _fl(_fx2))
+    # FINDINGS 9: the speed control's pool range, and the tables' population standard deviations.
+    _s9 = _sec("## 9. Experiment B-v2", "## 10. Experiment B, L3")
+    _b2r = load("expB2_results.json")
+    _sp = [(float(x), d, a) for d, v in _b2r.items() if isinstance(v, dict)
+           for a, b in v.items() if isinstance(b, dict) and "pool_speed" in b for x in b["pool_speed"]]
+    _am = [float(np.mean(b["pool_speed"])) for v in _b2r.values() if isinstance(v, dict)
+           for b in v.values() if isinstance(b, dict) and "pool_speed" in b]
+    _lo = min(_sp)
+    check_true("9 quotes the B-v2 speed range over pools and arm means",
+               f"run from {_lo[0]:.3f} ({_lo[2]}, drift {float(_lo[1]):g}) to {max(_sp)[0]:.3f} and the arm "
+               f"means from {min(_am):.3f} to {max(_am):.3f}" in _s9)
+    for _name, _art in (("replication", _b2r), ("confirmatory", load("expB2_results_confirmatory_n3.json"))):
+        for _arm in ("untrained", "predictor", "survival"):
+            _cell = lambda d: (f"{np.mean(_art[d][_arm]['pool_target']):.3f} ± "
+                               f"{np.std(_art[d][_arm]['pool_target']):.3f}")
+            _bold = "**" if _arm == "survival" else ""
+            check_true(f"9 {_name} table row {_arm} uses population standard deviations",
+                       f"| {_bold}{_arm}{_bold} | {_cell('0.0')} | {_bold}{_cell('0.45')}{_bold} |" in _s9)
+    _u0 = _b2r["0.0"]["untrained"]["pool_target"]
+    check_true("9 note compares sample and population standard deviations",
+               f"{np.std(_u0, ddof=1):.3f} rather than {np.std(_u0):.3f}" in _s9)
+    # FINDINGS 10.5: the hidden-7 reward leak counted over every arm.
+    _s105 = _sec("### 10.5 Second in-band", "### 10.6 Held-out")
+    _h7r = _load_art("expB2", "heldout_l3_h7_reverse_summary.json")
+    _bad = [c for c in _h7r["cells"] if not c["pool_leak_clean"]]
+    _sv45 = [c["pool_reward_leak"] for c in _h7r["cells"] if c["agent"] == "survival" and c["drift"] == "0.45"]
+    check_true("10.5: survival reward leak at drift 0.45 averages the quoted 0.567, clean 10/10",
+               f"{np.mean(_sv45):.3f}" == "0.567" and all(abs(x - 0.5) < 0.1 for x in _sv45))
+    check_true("10.5 names the one hidden-7 pool outside the leakage tolerance",
+               len(_bad) == 1 and len(_h7r["cells"]) == 60
+               and f"one pool of the 60 lies outside the 0.1 tolerance: {_bad[0]['agent']}, drift "
+                   f"{_bad[0]['drift']}, seed {_bad[0]['seed']}, at {_bad[0]['pool_reward_leak']:.3f}" in _s105)
+    # FINDINGS 14: the hidden-8 alpha-0 TOST and the survival-minus-untrained margins.
+    _s14 = _sec("## 14. H2 substrate-grounding", "## 14.5 H2 texture")
+    _et = equivalence_test(h2_surv["a0.00"]["per_seed"], 0.5, 0.05)
+    check_true(f"14 note quotes the hidden-8 alpha-0 TOST (p = {_et.p_value:.3f}, accepted)",
+               _et.equivalent and f"accepts at hidden 8 (p = {_et.p_value:.3f})" in _s14)
+    check_true("section 6 quotes the same TOST", f"TOST p = {_et.p_value:.3f}, and the bootstrap ROPE" in
+               _sec("## 6. Status against", "## 7. Levers"))
+    _m1 = _pc2(h2_surv["a1.00"]["per_seed"], h2_untr["a1.00"]["per_seed"])
+    _m0 = _pc2(h2_surv["a0.00"]["per_seed"], h2_untr["a0.00"]["per_seed"])
+    check_true("14 note quotes the hidden-8 survival-minus-untrained margins",
+               f"at hidden 8 from {_fm(_m1)} to {_fm(_m0)}, where the untrained arm sits below 0.5 "
+               f"({np.mean(h2_untr['a0.00']['per_seed']):.3f})" in _s14)
+    # FINDINGS 14.6: what the masks do to the untrained arm at hidden 7.
+    _s146 = _sec("## 14.6 A2 observation-channel", "## 14.7 A3 L1")
+    _o7 = _load_art("expH2", "obs_localization_h7.json")["masks"]
+    _om = lambda mk: _pc2(_o7[mk]["survival"]["per_seed_full"], _o7[mk]["untrained"]["per_seed_full"])
+    check_true("14.6 note quotes the hidden-7 untrained arm under each single-channel mask",
+               f"{_o7['vision']['untrained']['mean']:.3f} under the vision mask "
+               f"({_o7['vision']['untrained']['n_ge_065']} of 10 seeds at the bar) and "
+               f"{_o7['intero']['untrained']['mean']:.3f} under the interoception mask "
+               f"({_o7['intero']['untrained']['n_ge_065']} of 10)" in _s146)
+    check_true("14.6 note quotes the hidden-7 paired margins under the masks",
+               f"{_fm(_om('vision'))} under the vision mask and {_fm(_om('intero'))} under the "
+               f"interoception mask, against {_fm(_om('none'))} unmasked" in _s146)
+    check_true("14.6: the all-mask row reads exactly 0.500 for every arm and seed",
+               all(x == 0.5 for _h in ("h7", "h8")
+                   for _a in _load_art("expH2", f"obs_localization_{_h}.json")["masks"]["all"].values()
+                   if isinstance(_a, dict) and "per_seed_full" in _a for x in _a["per_seed_full"]))
+    # FINDINGS 16: rows of the gate table that share one set of drift-zero agents.
+    _gt = _load_art("gate_table.json")["rows"]
+    _key = lambda r: tuple(round(r["l0"][k], 6) for k in ("n", "mean", "sd", "tost_p"))
+    _xh = [r for r in _gt if r["status"] == "historical" and r["partition"].startswith("explicit")]
+    _words = {5: "five", 10: "10", 12: "twelve", 22: "22"}
+    _nset, _nxh, _nxs = len({_key(r) for r in _gt}), len(_xh), len({_key(r) for r in _xh})
+    check_true(f"16 note counts {_nset} drift-zero sets over {len(_gt)} gate-table rows, "
+               f"{_nxs} over the {_nxh} explicit-partition historical rows",
+               f"the {_words.get(len(_gt))} rows hold {_words.get(_nset)} distinct sets. The "
+               f"{_words.get(_nxh)} explicit-partition historical rows hold {_words.get(_nxs)}"
+               in _sec("## 16. Fold-split", "## 17. Corrected-trainer"))
+
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
     # 2026-10-10: the per-surrogate `diagnostics` were scored on a seed-77 sample that lies
     # inside every G's training episodes. They stay quoted, relabeled as the calibration
@@ -2308,7 +2515,8 @@ def main() -> int:
                "corrected verdicts)",
                {"gate_table.tex", "contrast_intervals.tex", "corrected_runs.tex"} <= set(_pt)
                and all("do not edit" in t for t in _pt.values()))
-    check_true("local manuscript tables, if present, are current (build_paper_tables --check)",
+    check_true("rule ledger matches its artifacts, and local manuscript tables, if present, are "
+               "current (build_paper_tables --check)",
                build_paper_tables.main(["--check"]) == 0)
 
     print()

@@ -307,3 +307,105 @@ table giving the old values, and the audit checks all twelve stored values (targ
 standard deviation, shuffled mean, speed mean, at each drift).
 
 **What this does not change.** Every reading stays at chance, and no verdict moves.
+
+## 2026-10-10: the random-forest control value in FINDINGS 3.4
+
+**What was wrong.** FINDINGS 3.4 gave the random-forest probe's drift-0 target as 0.459 plus or
+minus 0.009. That mean is the linear probe's (3.1). The random-forest value is 0.460 plus or
+minus 0.009 in `artifacts/expB/summary.json` (`expB_nonlinear`) and in the run log.
+
+**Change.** FINDINGS 3.4 quotes 0.460 with a dated note, which also says that the speed
+standard deviations of the 3.1 table, like its shuffled ones, exist only in the gitignored run
+log. The audit compares the 3.4 values with the artifact.
+
+**What this does not change.** The reading is at chance either way; no verdict moves.
+
+## 2026-10-10: per-individual means of the Experiment C rerun quoted off by 0.001
+
+**What was wrong.** The 2026-10-07 amendment in `docs/PREREGISTRATION_C.md` gives the final
+treatment per-individual means as 0.535, 0.539 and 0.537 and the generation-0 means as 0.527,
+0.521 and 0.527. The promoted summary (`artifacts/expC/emergence_pilot_per_individual_summary.json`)
+and the run file give 0.534, 0.539 and 0.536 and 0.526, 0.521 and 0.527. FINDINGS 17.11 gave
+the final treatment range as 0.535 to 0.539, and FINDINGS 13.F says the individuals "average
+0.535", which no grouping of the stored means reproduces; the final treatment populations
+average 0.537.
+
+**Change.** FINDINGS 17.11 quotes 0.534 to 0.539 with a dated note. The 13.F figure and the
+amendment's values are corrected by the second 2026-10-10 note under 13.F and a dated entry in
+`docs/PREREGISTRATION_C.md`; neither earlier text is edited. The audit recomputes the 17.11
+range.
+
+**What this does not change.** No individual reaches 0.65 in any population, and the run's
+routing does not move.
+
+## 2026-10-10: which gate makes Experiment C uninformative, and what the run record claimed
+
+**What was wrong.** The summary surfaces of FINDINGS, `docs/PAPER_OUTLINE.md` and the 13.F note
+said the verdict is uninformative because "gates 1 and 5 fail" and that the preregistration
+"routes a gate-1 failure to uninformative". Section 7 of `docs/PREREGISTRATION_C.md`, the frozen
+text, gives gate 1 no numeric margin. The 0.005 margin is in section 14, which was never
+ratified, and against the frozen wording the treatment gap (0.00228, 90% CI [0.00109, 0.00377])
+is a weak positive. The routing rests on gate 5, the speed positive control (0.527 to 0.631
+against 0.75), because section 7 interprets no contrast unless every gate passes. A review of
+the run file and the runner found more. Gate 3 is satisfied by construction (identical
+branches, every panel 0.500). The pooled-AUROC shift from 13.D comes from the fold partition
+alone. The rerun's summary was promoted although 13.F and the amendment say it was not.
+"Bit-reproducible" means reproducible to 8 decimals. The reproduction threshold saturates
+within three to seven generations. Every lifetime is scored on the same two layouts, against
+the per-episode keyed draw of section 4, a fourth deviation from the preregistration. The
+separate survival series uses two fixed layouts for 44 steps and records no death while the
+panel drops about 6% of its pairs.
+
+**Change.** The FINDINGS summary surfaces (TL;DR, section 1, section 6, 17.12) and
+`docs/PAPER_OUTLINE.md` (section 4.7, row 27) name gate 5 and the draft margin. A second dated
+note under FINDINGS 13.F records each point with its numbers and attributes the estimand and
+the gates to their two runs (`a0cb850` and `06ecc10`), and adds the descriptive per-individual
+contrast, +0.006 [-0.012, +0.024]. A dated section-12 amendment in `docs/PREREGISTRATION_C.md`
+records the same points, the fourth deviation and the in-place edits to that file.
+
+**What this does not change.** The verdict stays uninformative, now on gate 5 under section 7.
+No number of the estimand moves.
+
+## 2026-10-10: H2 readings narrowed (graded seam at hidden 7, observation masks, L1 calibration)
+
+**What was wrong.** FINDINGS 14 argued specificity from a flat untrained floor and said the
+graded-seam result holds at both capacities. At hidden 7 the untrained floor rises with the
+seam, from 0.474 to 0.586 (local run bundle), and the predictor from 0.500 to 0.714. The
+alpha-0 equivalence rested on the bootstrap ROPE check; the TOST accepts at hidden 8 (p = 0.005)
+and not at hidden 7 (p = 0.086). In FINDINGS 14.6 and the two 2026-07-24 entries of
+`docs/PREREGISTRATION_L3.md`, the all-mask collapse to 0.500 was read as a sanity check,
+although a constant input makes every probe read 0.500, the positive controls included. A
+masked channel enters the trunk as the constant -mean/sd (as far as 31.8 sd out for the
+interoceptive channels), so the single-channel masks are constant-input lesions. At hidden 7
+they lift the untrained arm to 0.724 (vision) and 0.646 (interoception). FINDINGS 14.7's "leakage
+clean" for the L1 calibrations cannot fail, because both members of each pair come from one
+fixed-policy trajectory.
+
+**Change.** Dated notes under FINDINGS 14, 14.6 and 14.7, a dated entry in PREREGISTRATION_L3,
+and section 6 of FINDINGS adds the TOST. The audit recomputes the hidden-8 TOST, the hidden-8
+margins and the hidden-7 mask readings from committed artifacts; the hidden-7 graded-seam
+numbers live only in the gitignored run bundle.
+
+**What this does not change.** The survival-minus-untrained margin falls with the seam at both
+capacities, and the hidden-8 collapse and its TOST stand. No run is repeated.
+
+## 2026-10-10: gate statements narrowed (hidden 7, the hidden-8 regression check, B-v2, the supervised control)
+
+**What was wrong.** The hidden-7 run's reward-leak (0.567, clean 10/10) and speed (0.959)
+figures in FINDINGS 10.5 and the 2026-07-14 entry are the survival arm's; counted over every
+arm, one predictor pool (drift 0.45, seed 8) reads 0.616, outside the 0.1 tolerance. The hidden-8
+gate-0 regression is called "exact", while it is a tolerance check whose floor, 0.482, is a
+three-seed mean against a frozen seed-0 value of 0.483. FINDINGS 9 gave the B-v2 speed control
+as 0.84 to 0.96 (the pools run from 0.790 to 0.968) and did not say its plus-or-minus values are
+population standard deviations. FINDINGS 7.1 quoted the supervised control's matched-pair
+channel at about 0.70 without saying it was scored by the pre-fix matched-pair estimator, whose
+drift-zero floors read 0.137 in that run; the B-v3 matched-pair leakage audit used the same
+grouping.
+
+**Change.** Dated notes under FINDINGS 7.1, 9 and 10.5, and dated entries in
+`docs/PREREGISTRATION_L3.md` and `docs/PREREGISTRATION_Bv3.md`. The audit recomputes the
+hidden-7 leakage count, the B-v2 speed range and the population standard deviations.
+
+**What this does not change.** Every gate named still passes on the survival arm, the B-v2
+speed control passes in every pool, and the B-v3 pooled verdict does not use the matched-pair
+channel. No verdict moves.

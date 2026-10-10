@@ -1176,6 +1176,48 @@ Rigor carried from the B-v3 audit (2026-07-10):
   band appear in no preregistration. They are the defaults of `itasorl.stats.equivalence_test`
   and `itasorl.stats.rope_test`, applied as the project's reporting convention.
 
+- **2026-10-10 - OBSERVATION-CHANNEL LOCALIZATION: WHAT THE TWO 2026-07-24 ENTRIES CAN SHOW
+  (a record; those entries stay as written and no verdict is re-adjudicated).** Both entries
+  say the positive controls (speed, energy, food) "remain readable in every mask condition, so
+  the chance collapse is not a dead-probe artifact". That holds for the single-channel masks
+  only. With all 146 dimensions masked the trunk receives a constant input and, under the
+  deterministic policy, its own constant previous action, so every episode in both pools
+  produces the same state sequence and every probe reads exactly 0.500: speed and energy read
+  0.500 in all 30 all-mask cells of `fullruns/l3_h8_obs_localization/cells.json` and of the
+  hidden-7 counterpart. The all-mask collapse is true by construction and tests nothing. A
+  masked channel is zeroed before the frozen normalizer, so it enters the trunk as the constant
+  -mean/sd: for the hidden-8 seed-0 survival agent at drift 0.45 the interoceptive channels sit
+  as far as 31.8 sd below their training mean, the vision channels at a median of 1.0 sd. The
+  single-channel masks are constant-input lesions, so the hidden-8 entry's "VISUAL, NOT
+  INTEROCEPTIVE" reading is narrowed to what such a lesion shows. At hidden 7 the masks also
+  lift the untrained arm (0.724 under the vision mask with 8 of 10 seeds at the bar, 0.646
+  under the interoception mask with 5 of 10); paired by seed, survival minus untrained is
+  +0.041 [-0.017, +0.098] and +0.096 [+0.024, +0.169] against +0.151 [+0.099, +0.202] unmasked
+  (`artifacts/expH2/obs_localization_h7.json`). The hidden-7 entry's "ROBUST TO SINGLE-CHANNEL
+  MASKING" therefore describes a reading that is not specific to training, and its clause
+  that the coarser surrogate's artifacts propagate into both streams is withdrawn. FINDINGS
+  14.6 carries the same note.
+
+- **2026-10-10 - THE HIDDEN = 7 GATES, COUNTED OVER EVERY ARM, AND THE HIDDEN = 8 REGRESSION
+  CHECK (a record; the 2026-07-13 and 2026-07-14 entries stay as written).** The 2026-07-14
+  hidden = 7 entry reports "ALL gates passing" with "speed positive control 0.959, pooled
+  reward-leak 0.567 clean in 10/10 seeds". Those two figures are the survival arm's at drift
+  0.45. Section 7 gate 4 ("reward-sum / length / lifetime each within 0.1 of 0.5") names no
+  arm, and the comparator-trained runs are scored over every arm
+  (`scripts/promote_texture_trained.py`). Counted that way, one pool of the 60 is outside the
+  tolerance: predictor, drift 0.45, seed 8, reward-sum AUROC 0.616
+  (`fullruns/l3_h7_traces`; the same value in `artifacts/expB2/heldout_l3_h7_reverse_summary.json`).
+  The other 59 pools are clean. The speed control's minimum over every pool is 0.784 (untrained,
+  drift 0, seed 0), which passes. The hidden = 7 claims are historical and secondary and none
+  rests on the predictor pool; the exception is recorded rather than rounded away, as the
+  B-v3 gate entry of 2026-09-26 does for its one leakage cell. Separately, the 2026-07-13 entry
+  calls the hidden = 8 regression "EXACT (oracle 0.928, floor 0.482)". `scripts/run_expA_l3.py`
+  passes that check when the oracle is within 0.05 of 0.928 and the floor within 0.1 of 0.483.
+  The recalibration's floor, 0.482, is the mean of three floor seeds (0.4831, 0.4140, 0.5487),
+  while the 0.483 frozen on 2026-07-10 matches the seed-0 floor; the oracle reads 0.9278. The
+  check passed within its tolerances, which is what "EXACT" should have said. FINDINGS 10.5
+  carries both notes.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
