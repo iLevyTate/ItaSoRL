@@ -321,5 +321,8 @@
  "gates_failed": [
   "speed_positive_control"
  ],
- "routing": "UNINFORMATIVE: the registered matrix requires every gate to pass for either verdict, and it names no cell for a failure of speed_positive_control; the run is not promoted as a negative and strengthens no claim"
+ "routing": "UNINFORMATIVE: the registered matrix requires every gate to pass for either verdict, and it names no cell for a failure of speed_positive_control; the run is not promoted as a negative and strengthens no claim",
+ "trunk_hidden": 8,
+ "registered_trunk_hidden": 96,
+ "configuration_deviation": "The agent trunk was 8 units, not the registered 96: the run was launched with --hidden 8, which sets the AGENT's GRU width, conflated with --l3-hidden 8, which sets the surrogate's. Verified from the saved weights (cell.weight_hh is (24, 8) on all three arms). This is a second and more fundamental reason the run is uninformative, independent of the positive control it also misses, and it is the likely cause of that miss."
 }

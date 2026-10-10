@@ -358,13 +358,18 @@ RUNS = [
     run("T-GN-TRAINED", "Comparator-trained run on the white-jitter family (frozen 2026-10-09)",
         experiment="B-v2 L3", artifacts=["texture/T_gn_l3_h8_wm.json"],
         survival_trainer="successor_value", status="corrected", commit_at_run="60eb355",
-        config={**BV2_PROTOCOL, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01},
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01,
+                "hidden": 8, "hidden_deviation": "the registered trunk is 96; this run was "
+                "launched with --hidden 8, conflating the agent trunk with --l3-hidden"},
         agent_seeds=S10, surrogate={"family": "G_gn (iid velocity jitter on the authentic law)",
                                     "sigma_v": 0.01, "gate0": "oracle 0.8653 in band, floor 0.4479"},
         budget={"survival_updates": 300}, eval_seeds=BV2_EVAL_SEEDS, folds="explicit",
         device="owner's laptop CPU, 4 workers",
         local_run_dir="fullruns/T_gn_l3_h8_wm",
-        notes="scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec "
+        notes="NOT THE REGISTERED CONFIGURATION: the agent trunk was 8 units, not 96, because "
+              "--hidden 8 was passed alongside --l3-hidden 8. Uninformative for that reason "
+              "independently of the gate below. scripts/run_expB2.py --l3-family gn then "
+              "scripts/promote_texture_trained.py; spec "
               "docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. "
               "UNINFORMATIVE: the registered positive control (speed probe at least 0.75, "
               "scored in every pool as the project does) is short in 9 of 60 arm-by-cell pools, "

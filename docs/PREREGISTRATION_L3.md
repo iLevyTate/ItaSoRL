@@ -1022,6 +1022,27 @@ Rigor carried from the B-v3 audit (2026-07-10):
   the untrained arm, the baseline the registered margins are measured against, so the run does not
   establish that its own comparator is probeable in this family.
 
+- **2026-10-09 - SECOND CORRECTION TO THE WHITE-JITTER RUN: IT WAS NOT THE REGISTERED
+  CONFIGURATION (the two entries above stand as written, per the append-only rule).** The frozen
+  spec said the run would execute "the registered L3 configuration with the surrogate family
+  switched". It did not. The agent trunk was **8 units wide, not the registered 96**: the launch
+  command carried `--hidden 8`, which sets the agent's GRU width, conflated with `--l3-hidden 8`,
+  which sets the surrogate's and is the correct gate-0 value. The same conflation was in the
+  Colab notebook's extras cell, which ships in the supplement; it is fixed there now. Verified
+  from the saved weights, `cell.weight_hh` is `(24, 8)` on all three arms against `(288, 96)` for
+  every other run in the project. Found on 2026-10-09 while investigating why the positive
+  control failed.
+
+  This is a second and more fundamental reason the run is uninformative, independent of the
+  positive control recorded above, and it is the likely cause of that failure: the control is low
+  in every arm at both drifts, including the drift-0 cells where no surrogate is installed, which
+  no property of the jitter could produce. A trunk a twelfth of the registered width also makes
+  the descriptive numbers incomparable to every other cell in this project, so they should not be
+  read as a reading of the white jitter at all. **Nothing changes in the verdict or anywhere else:
+  the run was already UNINFORMATIVE, already supported no claim, and still does. The
+  learned-texture rule remains unmet, and a usable trained case still requires a new run under a
+  new frozen specification, at the registered trunk width.**
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

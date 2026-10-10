@@ -2352,9 +2352,21 @@ learned-texture rule remained unmet. This is that run, frozen beforehand in
 an in-band unstructured perturbation. `G_gn` at `sigma_v = 0.01` had passed gate 0 on world `P`
 before the spec was written (oracle 0.8653 in band, mechanical leakage clean, untrained floor
 0.4479 within tolerance), which is what separates it from the quadratic drag of 14.5 whose gate 0
-failed. Registered L3 configuration with the surrogate family switched: ten seeds, drifts 0 and
-0.45, 300 updates, three arms, corrected successor-value trainer, CPU
-(`artifacts/texture/T_gn_l3_h8_wm.json`).
+failed. Ten seeds, drifts 0 and 0.45, 300 updates, three arms, corrected successor-value trainer,
+CPU (`artifacts/texture/T_gn_l3_h8_wm.json`).
+
+**The configuration was not the registered one, found 2026-10-09 after the run.** The agent
+trunk was **8 units wide, not the registered 96**. The run was launched with `--hidden 8`, which
+sets the agent's GRU width, conflated with `--l3-hidden 8`, which sets the surrogate's and is the
+correct gate-0 value; the same conflation is in the Colab notebook's extras cell, now fixed.
+Verified from the saved weights: `cell.weight_hh` is `(24, 8)` on all three arms, against
+`(288, 96)` for every other run in the project. This is a second and more fundamental reason the
+run is uninformative, independent of the gate below: whatever it measured, it was not the
+registered protocol with the surrogate family switched, and a trunk a twelfth of the registered
+width is not the trunk any other result in this paper is about. It is also the likely cause of
+the gate failure, since the positive control is low in **every arm at both drifts**, including
+the drift-0 cells where no surrogate is installed at all, which a property of the jitter could
+not produce.
 
 **The gate that does not pass.** The registered positive control (section 7, gate 3: speed probe
 at least 0.75) is short in **9 of the 60** arm-by-cell pools of
@@ -2388,7 +2400,9 @@ have routed to *strengthened negative*. It did not, and the project does not rea
 run whose gates are open.
 
 **What this does not license.** It is not evidence that agents raised in an unstructured
-perturbation fail to encode it, and the sufficiency claim gains nothing from it. The limitation
+perturbation fail to encode it, and the sufficiency claim gains nothing from it. With the trunk
+at a twelfth of the registered width the descriptive numbers are not comparable to any other
+cell in this paper, and they should not be read as a reading of the jitter at all. The limitation
 that no comparator-trained run supports that claim stands. A usable trained case would require a
 new run under a specification written before it, not a reinterpretation of this one.
 
