@@ -502,3 +502,35 @@ carries the same points with their numbers.
   and dropped one word from section 14 item 4. Apart from naming the ray-step value in section
   9, none of these changed a number, a rule, a gate or a verdict.
 
+**Section-12 amendment (2026-10-10, second entry): departures that the record names and this
+document does not label (a record; nothing above is edited and no routing is re-adjudicated).**
+Checked against `scripts/run_expC_milestone3.py`, `itasorl/experiment_c.py`,
+`itasorl/neuroevolution.py` and the configurations stored in `artifacts/expC/`. They come in
+addition to the four deviations of the entry above.
+
+- *Trunk width and lifetime.* Both runs used policy networks with an 8-unit embedding and an
+  8-unit GRU, and a lifetime of 2 authentic plus 2 surrogate episodes (`n_eps` 2). Sections 1 to
+  13 fix neither; both appear only in section 14 item 6, which was never ratified. Every
+  gradient-trained agent elsewhere in the project has a 96-unit trunk.
+- *Episode worlds.* Episode seeds are fixed per lineage (deviation 4 above), where section 4
+  calls for a keyed per-episode draw.
+- *Reproduction cost.* Section 4 specifies reproduction above an energy threshold "with an
+  energy cost". `itasorl.neuroevolution.reproduce` spawns each qualifier's offspring without
+  charging the parent.
+- *Panel cadence.* Section 5 runs the panel every generation, and gate 3 reads it across all
+  generations. The 2026-07 re-run (`a0cb850`) scored it at generation 0 and at each arm's final
+  generation only. The 2026-10 rerun (`06ecc10`) added generations 10 and 20, the cadence of the
+  unratified section 14 item 5.
+- *Analysis.* Section 10 makes the per-lineage generational AUROC curve primary and asks for the
+  untrained floor on the panel every generation. Neither run reports the curve, and neither
+  scored an untrained population on the panel.
+- *Scope of two gates.* Gate 2's fitness delta ends at generation 29, the last population whose
+  fitness `evolve` scores, while the panel scores the population after the 30th reproduction.
+  The pooled probe groups its folds by pooled row, so related individuals' pairs on the same
+  world seed can fall in different folds (FINDINGS 13.F, third note of 2026-10-10).
+- *For the design of any re-opening.* Score survival on the panel's own layouts at the full
+  80-step horizon and record deaths per leg (the panel now only drops a pair when either member
+  dies); draw each generation's lifetime layouts from a keyed stream; evaluate the final
+  population's fitness once after the last reproduction, so gate 2 describes the population the
+  panel scores; and group the pooled probe's folds by world seed across individuals.
+

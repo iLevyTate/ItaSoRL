@@ -428,3 +428,30 @@ every run's two figures, and `docs/PREREGISTRATION_L3.md` a dated entry.
 **What this does not change.** Every other run passes in every pool. The GPU re-measure's rule
 was not met before; with its positive control short in one pool, its readings are descriptive.
 The 0.75 threshold is not relaxed, and the corrected verdicts already used per-pool values.
+
+## 2026-10-10: what the Experiment C payoff comparison measures, and what the record left unlabeled
+
+**What was wrong.** FINDINGS 13.E and 17.11 called the matched assignment minus the better
+single policy (-0.043 on the historical CPU cells, -0.056 on `C1`) a value of world
+information, and the docstring of `itasorl.experiment_c.value_of_world_information` called it
+a lower bound on what an ideal world-conditional policy could gain. The quantity is negative
+whenever one policy returns more in both worlds, so it bounds nothing. The best-of-two value,
+which cannot be negative, is +0.013 on the historical cells and +0.003 on `C1` (zero in 8 and
+in 9 of 10 seeds). Both comparisons, and the 17.11 validation behind the estimate of 0.61 under
+the pooled probe, use 96-unit gradient-trained agents; the evolved Experiment C policies have an
+8-unit trunk. `docs/PREREGISTRATION_C.md` does not label that trunk width, the 2 + 2 episode
+lifetime, the missing energy cost of reproduction, the panel cadence, or the missing
+generational curve and untrained floor. The results manifest row for the per-individual rerun
+recorded a commit, `3c6f0aa`, that is not a revision of this repository (the artifact and the
+checkpoints record `06ecc10`), named claims row 28 (the sensory-echo row) and gave its fold
+scheme as n/a. The site gave the individuals' average as 0.535, the figure the second 13.F note
+of 2026-10-10 corrects to 0.537.
+
+**Change.** Dated notes under FINDINGS 13.E, 13.F (third note) and 17.11, and a second
+2026-10-10 entry in `docs/PREREGISTRATION_C.md`. The docstring is corrected and the function's
+output is unchanged. `docs/PAPER_OUTLINE.md` row 49 names the quantity. The manifest row records
+`06ecc10`, claims row 27 and the explicit partition, and the site says 0.537. The audit
+recomputes both best-of-two values from the committed cells and checks both runs' wall times.
+
+**What this does not change.** No verdict moves. Experiment C stays uninformative on gate 5, and
+-0.043 and -0.056 stand as measured.

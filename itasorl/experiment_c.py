@@ -330,12 +330,20 @@ def lineage_summary(panels: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def value_of_world_information(xeval_auth_policy: dict, xeval_surr_policy: dict) -> dict:
-    """Fitness value of knowing the world, from a cross-evaluation of an authentic-trained
-    and a surrogate-trained policy in both worlds (the B-v2 `xeval` blocks, keys "0.00" and
-    the drift). With equal priors: a policy that knows the world picks the matching policy;
-    one that does not must use a single policy in both. Value = matched mean return minus the
-    better single policy's mean return. Restricted to these two policies, so it is a lower
-    bound on what an ideal world-conditional policy could gain."""
+    """Matched assignment minus the better single policy, from a cross-evaluation of an
+    authentic-trained and a surrogate-trained policy in both worlds (the B-v2 `xeval` blocks,
+    keys "0.00" and the drift), with equal priors on the two worlds. `value_of_information`
+    is the mean return of running each policy in the world it was trained in, minus the mean
+    return of the better single policy used in both worlds.
+
+    Despite the key's name, this is not the value of knowing the world and not a lower bound
+    on it. It asks whether rearing in a world gives a policy an advantage there, and it is
+    negative whenever one policy returns more in both worlds. An agent that knew the world
+    would run the better of the two policies in each world; that value over these two
+    policies, 0.5 * (max over policies in the authentic world + max in the surrogate world)
+    minus the better single policy, is never negative and is not computed here (FINDINGS 13.E
+    and 17.11, notes of 2026-10-10). The keys are kept as they are because committed
+    artifacts store them."""
     keys = sorted(xeval_auth_policy, key=float)
     a, s = keys[0], keys[-1]
     matched = 0.5 * (xeval_auth_policy[a] + xeval_surr_policy[s])

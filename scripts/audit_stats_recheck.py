@@ -2375,6 +2375,40 @@ def main() -> int:
                     + "; final treatment " + ", ".join(f"{c['final_treat_auroc']:.3f}" for c in
                                                        sorted(_pd["cells"], key=lambda c: c["seed"])))
                in _s13n)
+    # Experiment C compute: both runs' wall times, as 13.D and 13.F quote them.
+    _wd, _wi = _pd["wall_seconds"], _pi2["wall_seconds"]
+    check("pinned: Exp C fixed-code re-run wall_seconds (34561.7)", _wd, 34561.7, tol=0.05)
+    check("pinned: Exp C per-individual rerun wall_seconds (81183.2)", _wi, 81183.2, tol=0.05)
+    check_true("13.D quotes the re-run's wall time", f"Wall time was {_wd / 3600:.1f} hours" in _s13n)
+    check_true("13.F quotes the rerun's wall time", f"Wall time {_wi:.0f} s ({_wi / 3600:.1f} hours" in _s13n)
+
+    # FINDINGS 13.E and 17.11 notes: the matched assignment minus the better single policy is not
+    # a value of information; the best of the two policies per world is, over these two policies.
+    # Both recomputed from the cross-evaluation cells.
+    def _best_of_two(run_dir: str) -> list[float]:
+        out = []
+        for _sd in range(10):
+            _a = _load_art(run_dir, "cells", f"cell_d0.00_s{_sd}.json")["cell"]["xeval"]
+            _s = _load_art(run_dir, "cells", f"cell_d0.45_s{_sd}.json")["cell"]["xeval"]
+            _k0, _k1 = sorted(_a, key=float)[0], sorted(_a, key=float)[-1]
+            _single = max(0.5 * (_a[_k0] + _a[_k1]), 0.5 * (_s[_k0] + _s[_k1]))
+            out.append(0.5 * (max(_a[_k0], _s[_k0]) + max(_a[_k1], _s[_k1])) - _single)
+        return out
+    _bh = _best_of_two(os.path.join("reviewer_gaps_runs", "l3_h8_wm_cpu"))
+    _bc = _best_of_two(os.path.join("corrected_runs", "corrected_l3_h8_wm"))
+    check_true("best-of-two values are never negative", min(_bh + _bc) >= 0.0)
+    check("Exp C 13.E note: historical best-of-two (+0.013)", float(np.mean(_bh)), 0.013)
+    check_true("13.E note quotes the historical best-of-two value and its zero seeds",
+               f"On these historical CPU cells it is {np.mean(_bh):+.3f} (zero in "
+               f"{sum(x == 0 for x in _bh)} of 10 seeds)" in _s13n)
+    _bci = _pc2(_bc, [0.0] * len(_bc))
+    _nz = [(i, x) for i, x in enumerate(_bc) if x != 0]
+    check("Exp C 17.11 note: corrected best-of-two (+0.003)", float(np.mean(_bc)), 0.003)
+    check_true("17.11 note quotes the corrected best-of-two value, interval and zero seeds",
+               f"Choosing the better policy in each world gains {_bci['mean']:+.3f} return (t-based 90% CI "
+               f"[{_bci['t90'][0]:+.3f}, {_bci['t90'][1]:+.3f}]): in {10 - len(_nz)} of 10 seeds one policy "
+               f"returns more in both worlds" in _fl(_s17)
+               and all(f"seed {i} gains {x:+.3f}" in _fl(_s17) for i, x in _nz))
     # FINDINGS 3.4: the random-forest probe values.
     _nl = {r["drift"]: r for r in _load_art("expB", "summary.json")["expB_nonlinear"]["drift_sweep_with_std"]}
     check_true("3.4 quotes the random-forest probe as stored",

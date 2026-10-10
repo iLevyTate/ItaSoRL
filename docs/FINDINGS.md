@@ -2303,6 +2303,19 @@ bound on what an ideal world-conditional policy could gain, measured in the B-v2
 setting rather than Experiment C's, and it is consistent with selection having no
 gradient toward a detector.
 
+*Note (2026-10-10): what -0.043 measures.* The quantity above is the matched assignment
+(each policy in the world it was raised in) minus the better single policy. It shows whether
+rearing in a world gives a policy an advantage there, and it is negative whenever one policy
+returns more in both worlds. It is not the value of knowing the world, and it is not a lower
+bound on that value. An agent that knew the world would run the better of the two policies in
+each world; that best-of-two value, half the sum of the two per-world maxima minus the better
+single policy, cannot be negative. On these historical CPU cells it is +0.013 (zero in 8 of 10
+seeds). The policies are 96-unit gradient-trained survival agents in the B-v2 setting, not the
+8-unit evolved policies of Experiment C, so neither figure measures what detection would pay
+there. The docstring of `itasorl.experiment_c.value_of_world_information` called the quantity a
+lower bound and is corrected; the function's output is unchanged. 17.11 gives the same
+comparison on the corrected cells.
+
 ### 13.F The evolution rerun with the per-individual readout: UNINFORMATIVE (2026-10-07)
 
 The milestone-3 evolution was rerun with the per-individual estimator of 13.E and the
@@ -2434,6 +2447,32 @@ promoted summaries under `artifacts/expC/`, and the runner at `06ecc10`.
   0.054, 6.045 and 6.147 in control; means -1.470, -0.540 and -0.935 against 2.033, 2.621 and
   2.633. The overlap of the two distributions was never measured, so the section-14 item 2(a)
   contingency could not be evaluated.
+
+**Third note (2026-10-10): what else the run record does not show.** Checked against the
+runner and `itasorl/` at `06ecc10` and the two promoted summaries. The code now carries the
+first two points as comments (`itasorl/experiment_b2.py` `cg_probe`,
+`scripts/run_expC_milestone3.py`); no behavior changed.
+
+- *The pooled probe's folds.* The panel pools every individual's 110 pairs, drawn on the same
+  110 world seeds for each individual, and the probe groups its cross-validation folds by
+  pooled row. Pairs on the same world seed from two related individuals can then fall in
+  different folds, which can lift the pooled AUROC as the population grows more related. The
+  tails were not saved, so the size of this effect cannot be checked without a rerun, and the
+  contrast cancels it only as far as relatedness is equal across arms.
+- *Which population gate 2 describes.* `evolve` scores fitness before each reproduction, so the
+  last value of the fitness series belongs to generation 29. The panel scores the population
+  the 30th reproduction produced, whose fitness is never evaluated. `fit_delta` and gate 2
+  describe a different population from the one in the estimand.
+- *The trunk width.* The evolved policies have an 8-unit GRU behind an 8-unit embedding
+  (`embed` and `hidden` 8 in both summaries' configurations), against the 96-unit trunk of every
+  gradient-trained agent in this document. The pooled speed control reads 0.527 to 0.631 here,
+  which fits a narrow trunk, and the 17.11 validation behind the 0.61 estimate used 96-unit
+  agents (17.11, note of the same date).
+- *What was registered.* The 8-unit trunk and the lifetime of 2 authentic plus 2 surrogate
+  episodes appear only in the unratified section 14 (item 6). The second 2026-10-10 entry in
+  `docs/PREREGISTRATION_C.md` lists these and the other departures the preregistration does not
+  label (no energy cost of reproduction, the panel cadence, the unreported generational curve
+  and untrained floor).
 
 ## 14. H2 substrate-grounding: the graded-seam ablation (A1)
 
@@ -3768,6 +3807,18 @@ surrogate-trained policy of each `C1` seed, the matched assignment minus the bet
 policy is **-0.056** return (t-based 90% CI [-0.092, -0.020], 1 of 10 seeds positive),
 against -0.043 for the historical CPU cells (13.E). Knowing the world buys these policies no
 return, which is consistent with selection having no gradient toward a detector.
+
+*Note (2026-10-10).* The -0.056 above is the quantity 13.E reports as -0.043: the matched
+assignment minus the better single policy. It shows that rearing in a world gives these
+policies no specialist advantage there; it is not a value of information (13.E, note of the
+same date). Choosing the better policy in each world gains +0.003 return (t-based 90% CI
+[-0.002, +0.008]): in 9 of 10 seeds one policy returns more in both worlds, so the gain is
+zero, and seed 6 gains +0.029. The agents of this section are also not Experiment C's. The
+validation ran on 96-unit survival agents, whose probe reads 192 features, while the evolved
+policies have an 8-unit trunk and give the probe 16. The estimate that a population of
+individuals at this level would read near 0.61 under the pooled probe was measured on the
+wider agents, and the per-individual readout has no positive control of its own on the evolved
+populations.
 
 ### 17.12 What the corrected results change
 

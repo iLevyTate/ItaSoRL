@@ -10,9 +10,11 @@ answer is known:
             under the common garden (the published per-seed common-garden reading);
   null      the untrained agents of the same run.
 
-It also reports the value of world information for that run from its cross-evaluation cells
-(`experiment_c.value_of_world_information`): whether knowing the world would raise fitness
-with the policies the run produced.
+It also reports, under the key `value_of_world_information`, the matched assignment minus the
+better single policy from the run's cross-evaluation cells
+(`experiment_c.value_of_world_information`): whether rearing in a world gives the run's
+policies an advantage there. That is not the value of knowing the world (see that function's
+docstring).
 
 Usage:
     python scripts/validate_population_readout.py --run-dir fullruns/corrected_l3_h8_wm \\
