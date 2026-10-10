@@ -218,3 +218,90 @@ def test_relabel_refuses_when_a_recorded_number_disagrees(tmp_path):
     with pytest.raises(SystemExit, match="disagrees"):
         prg.relabel(str(art))
     assert json.loads(art.read_text(encoding="utf-8"))["decision"]["zone"] == "ENCODING INDUCED (all clauses)"
+
+
+# ---- Q38: gate 3 reads every pool, not the lowest arm mean ----
+
+def _set_pool(run, drift, arm, idx, key, value):
+    p = run / "expB2_results.json"
+    res = json.loads(p.read_text(encoding="utf-8"))
+    res[drift][arm][key][idx] = value
+    p.write_text(json.dumps(res), encoding="utf-8")
+
+
+def test_one_pool_under_the_speed_threshold_opens_the_gate_even_when_every_mean_clears_it(tmp_path):
+    run, _ = _bundle(tmp_path, speed=0.85)
+    _set_pool(run, "0.45", "untrained", 4, "pool_speed", 0.74)
+    out = prg.promote(str(run), str(tmp_path / "x.json"), spec="s", label="t", head="abc")
+    g = out["gates"]
+    assert g["speed_min"] == pytest.approx(0.74)
+    assert g["speed_min_at"] == {"drift": "0.45", "arm": "untrained", "seed_index": 4}
+    assert g["speed_n_below"] == 1 and g["speed_n_pools"] == 36 and g["speed_n_nonfinite"] == 0
+    assert g["speed_min_of_arm_means"] > 0.75
+    assert prg.gate_status(g)["speed"] is False
+    assert "speed" in out["decision"]["gates_open"]
+
+
+def test_deaths_are_a_count_and_a_missing_leak_flag_is_not_a_pass(tmp_path):
+    run, _ = _bundle(tmp_path)
+    _set_pool(run, "0.45", "survival", 0, "pool_deaths_auth", 2)
+    p = run / "expB2_results.json"
+    res = json.loads(p.read_text(encoding="utf-8"))
+    del res["0.0"]["predictor"]["pool_leak_clean"]
+    p.write_text(json.dumps(res), encoding="utf-8")
+    g = prg.promote(str(run), str(tmp_path / "x.json"), spec="s", label="t", head="abc")["gates"]
+    assert g["deaths_total"] == 2 and isinstance(g["deaths_total"], int)
+    assert g["pool_leak_clean_all"] is False
+
+
+def test_refresh_gates_rewrites_only_the_gate_keys_and_records_what_they_were(tmp_path):
+    run, _ = _bundle(tmp_path, speed=0.85)
+    _set_pool(run, "0.45", "untrained", 4, "pool_speed", 0.74)
+    art = tmp_path / "art.json"
+    prg.promote(str(run), str(art), spec="s", label="t", head="abc")
+    doc = json.loads(art.read_text(encoding="utf-8"))
+    # the pre-2026-10-10 form: the lowest arm mean, no per-pool fields, deaths as a float
+    for k in ("speed_min_at", "speed_n_pools", "speed_n_below", "speed_n_nonfinite",
+              "speed_min_of_arm_means"):
+        del doc["gates"][k]
+    doc["gates"]["speed_min"] = 0.84
+    doc["gates"]["deaths_total"] = 0.0
+    doc["decision"]["zone"] = "ENCODING INDUCED (all clauses)"
+    art.write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    r = prg.refresh_gates(str(art), on="2026-10-10")
+    after = json.loads(art.read_text(encoding="utf-8"))
+    assert r["changed"] and after["gates"]["speed_min"] == pytest.approx(0.74)
+    assert after["gates_refreshed"]["previous"]["speed_min"] == 0.84
+    assert after["gates_refreshed"]["on"] == "2026-10-10"
+    assert after["gates"]["deaths_total"] == 0.0          # equal values keep their recorded form
+    assert after["decision"] == doc["decision"]          # the zone is --relabel's job
+    assert {k: v for k, v in after.items() if k not in ("gates", "gates_refreshed")} == \
+        {k: v for k, v in doc.items() if k != "gates"}
+    assert prg.refresh_gates(str(art))["changed"] is False
+
+
+# The skill-matched artifact keeps the arm-mean figure until the audit pin that quotes it
+# (scripts/audit_stats_recheck.py, "pinned: skill-match speed positive control min (0.837)")
+# moves to the per-pool value; then run --refresh-gates on it and drop this marker. Strict,
+# so the marker cannot outlive the refresh.
+U450 = "skill_matched_l3_h8_nowm_u450.json"
+
+
+def _speed_params():
+    out = []
+    for p in _promoted_artifacts():
+        path = p.values[0]
+        marks = ()
+        if path.name == U450:
+            marks = pytest.mark.xfail(strict=True, reason="refresh waits on the audit pin (handoff)")
+        out.append(pytest.param(path, marks=marks, id=path.name))
+    return out
+
+
+@pytest.mark.parametrize("path", _speed_params())
+def test_committed_artifacts_record_the_per_pool_speed_minimum(path):
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    res = json.loads((ROOT / doc["source_run"] / "expB2_results.json").read_text(encoding="utf-8"))
+    pools = [float(x) for d in res for a in prg.ARMS for x in res[d][a]["pool_speed"]]
+    assert doc["gates"]["speed_min"] == pytest.approx(min(pools), abs=1e-12)
+    assert doc["gates"]["speed_n_below"] == sum(x < prg.SPEED_MIN for x in pools)

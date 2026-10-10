@@ -144,3 +144,32 @@ def test_the_scan_runs_end_to_end_on_a_tiny_agent():
                              ray_steps=RS)
     assert len(rows) == 1
     assert 0.0 <= rows[0]["target"] <= 1.0 and rows[0]["n"] == 12
+
+
+def _runner():
+    import sys
+    from pathlib import Path
+    scripts = str(Path(__file__).resolve().parents[1] / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    import run_world_sample_sensitivity as rws
+    return rws
+
+
+def _cells(per_draw):
+    """One survival cell per seed with the given per-draw targets (draw 0 = registered)."""
+    return [{"arm": "survival", "seed": s, "rows": [{"target": t} for t in per_draw]}
+            for s in range(3)]
+
+
+def test_a_failed_integrity_gate_voids_the_saved_verdict_and_keeps_the_label_aside():
+    rws = _runner()
+    bases = [(800_000, 850_000)] + list(AUDIT_BASES[:8])
+    cells = _cells([0.70] + [0.72] * 8)
+    ok = rws.adjudicate(cells, ["survival"], bases, BAR, integrity_passed=True)["survival"]
+    assert ok["verdict"] == "SECURE" and "verdict_if_valid" not in ok
+    void = rws.adjudicate(cells, ["survival"], bases, BAR, integrity_passed=False)["survival"]
+    assert void["verdict"] == rws.VOID_VERDICT
+    assert void["verdict_if_valid"] == "SECURE"
+    assert {k: v for k, v in void.items() if k not in ("verdict", "verdict_if_valid")} == \
+        {k: v for k, v in ok.items() if k != "verdict"}

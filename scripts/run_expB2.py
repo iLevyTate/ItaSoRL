@@ -888,7 +888,7 @@ def main():
     plt.axhline(0.0, ls=":", color="grey")
     plt.xlabel("surrogate strength (L2 drift_sigma)")
     plt.ylabel("|pooled target AUROC - 0.5|   (incidental encoding)")
-    plt.title("ITASORL Experiment B-v2 - does survival pressure induce incidental encoding?")
+    plt.title("Experiment B-v2 - does survival pressure induce incidental encoding?")
     plt.legend(); plt.grid(alpha=0.3); plt.tight_layout()
     os.makedirs(a.out_dir, exist_ok=True)
     fig_path = os.path.join(a.out_dir, "expB2_survival.png")

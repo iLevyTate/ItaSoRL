@@ -82,8 +82,16 @@ def cfg():
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--arms", nargs="+", default=["survival", "untrained", "predictor"],
                     choices=("survival", "untrained", "predictor"))
+    # NOTE: here --hidden is the SURROGATE's capacity (the G_motion the saved agents were
+    # raised against), not the agent's trunk. In scripts/run_expB2.py the same flag name is
+    # the agent's GRU width (registered 96) and the surrogate capacity is --l3-hidden; the
+    # 8-unit trunk of the comparator-trained runs came from conflating the two
+    # (FINDINGS 14.5.1). The flag keeps its name so recorded commands still run.
     ap.add_argument("--hidden", type=int, default=8,
-                    help="GMotion capacity of the saved agents (8 or 7); default 8")
+                    help="capacity of the frozen L3 surrogate G_motion the saved agents were "
+                         "trained against (8 forward, 7 reverse); default 8. This is NOT the "
+                         "agent's GRU trunk width, which run_expB2.py calls --hidden and this "
+                         "readout reads from the saved bundles")
     ap.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     ap.add_argument("--n-eps", type=int, default=110)
     ap.add_argument("--steps", type=int, default=24)

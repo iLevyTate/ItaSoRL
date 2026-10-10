@@ -391,3 +391,32 @@ def test_the_leak_scan_reads_binary_members_and_zip_containers(tmp_path):
         z.writestr("notes.md", "nothing to see")
     assert term.encode() not in inner.getvalue(), "the fixture must hide the term in deflate"
     assert reproduce.leak_scan(str(path), rules, None) == ["fullruns/r/agents/bad.npz"]
+
+
+def test_the_leak_scan_fails_on_any_image_not_on_the_reviewed_list(tmp_path):
+    """A figure title is pixels, so no pattern can find a name drawn into it. An image ships
+    only when its exact bytes were viewed and listed; a redrawn or new image fails."""
+    import zipfile
+    import reproduce
+    ok = b"\x89PNG reviewed bytes"
+    path = tmp_path / "a.zip"
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("docs/figures/ok.png", ok)
+        z.writestr("docs/figures/new.png", b"\x89PNG never viewed")
+        z.writestr("fullruns/r/expB2_survival.png", b"\x89PNG a run script figure")
+        z.writestr("docs/figures/plot.svg", "<svg><text>chart</text></svg>")
+    reviewed = {"docs/figures/ok.png": hashlib.sha256(ok).hexdigest()}
+    assert reproduce.leak_scan(str(path), [], None, reviewed=reviewed) == [
+        "docs/figures/new.png", "fullruns/r/expB2_survival.png", "docs/figures/plot.svg"]
+
+
+def test_every_image_the_supplement_packages_is_on_the_reviewed_list():
+    import reproduce
+    pairs, _ = reproduce._sources(runs_root=os.path.join(ROOT, "no-such-runs-root"))
+    images = [(arc, src) for arc, src in pairs if reproduce.is_image(arc)]
+    assert images, "the supplement ships figures; the check must see them"
+    for arc, src in images:
+        with open(src, "rb") as fh:
+            data = fh.read()
+        assert reproduce.REVIEWED_IMAGES.get(arc) == hashlib.sha256(data).hexdigest(), \
+            f"{arc} is not on the reviewed list with these bytes; view it, then list its hash"
