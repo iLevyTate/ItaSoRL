@@ -76,8 +76,9 @@ What the corrected agents show about that result:
 - **Budget.** Decodability rises with training. Without the decoder the arm reaches 0.685
   at 450 updates; at that budget the decoder arm reads 0.821 at about equal return (17.10).
 - **Controls.** After the per-timestep behavior control 0.723 remains; the best-fitting
-  nonlinear control over observations, actions, and behavior leaves 0.620, under the bar,
-  and a decoder of the observation stream alone reads 0.724 (17.8).
+  nonlinear control over observations, actions, and behavior leaves 0.620, under the bar.
+  A decoder of the observation and action stream reads 0.724, and summary features of the
+  observation trace alone read 0.715 (17.8).
 - **Memory.** Under identical input the prefix condition fades within a few steps; with the
   recurrent state zeroed, the physical footprint of the prefix still reads 0.662 (17.7).
 - **Learnedness.** A hand-authored, temporally coherent drag of the same one-step size as
@@ -1828,7 +1829,8 @@ Stated once, plainly, with pointers into the code.
    readings. On the corrected agents the battery is wider and each control reports how well its
    basis fits the state (**17.8**): the best-fitting control, a 64-unit MLP on observations,
    sensory traces, actions and the behavior trace, explains 89% of held-out state variance and
-   leaves **0.620**, under the bar, and a decoder of the observation stream alone reads 0.724.
+   leaves **0.620**, under the bar, and a decoder of the observation and action stream
+   reads 0.724.
    The phrase "behavior-independent" is retired for that reason.
 8. **Cross-validation folds depended on the software stack (found 2026-09-28;
    re-scored 2026-09-29).** Every grouped probe splits episodes with a 5-fold
@@ -3888,7 +3890,7 @@ populations.
    matched training data, 0.738, against 0.733). The survival policy's trajectories carry the
    difference; a trunk shaped by next-observation prediction keeps it (17.6, 17.10).
 4. **The controls name what they remove.** The best-fitting nonlinear control leaves 0.620,
-   under the bar, and a decoder of the observation stream alone reads 0.724; the state
+   under the bar, and a decoder of the observation and action stream reads 0.724; the state
    carries about what its own input stream carries (17.8).
 5. **The common garden reads the body, not memory.** Retention under identical input lasts
    a few steps; with memory zeroed the prefix condition still reads 0.662 (17.7).
