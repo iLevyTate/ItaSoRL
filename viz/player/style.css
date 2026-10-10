@@ -29,9 +29,12 @@ html, body {
 
 /* The stage is a fixed pixel composition, scaled to fit the window for
    preview; capture runs the window at the layout box so scale = 1.
-   Default is the 4:5 master (1080x1350). ?layout=vertical is 9:16. */
+   Default is the 4:5 master (1080x1350). ?layout=vertical is 9:16.
+   Fixed, not absolute: its unscaled 1080 px box would otherwise count as page
+   content, and a phone widens the layout viewport to fit it, cropping the
+   left of the frame. Capture frames are byte-identical either way. */
 #stage {
-  position: absolute;
+  position: fixed;
   width: 1080px;
   height: 1350px;
   left: 50%;
@@ -403,6 +406,14 @@ body[data-layout="vertical"] #stage {
   letter-spacing: 0.08em;
   color: var(--violet);
   cursor: pointer;
+}
+/* Phone width: the range input's intrinsic width pushed the views button past
+   the right edge. Let the scrubber shrink and tighten the bar. */
+@media (max-width: 480px) {
+  #controls { gap: 10px; padding: 8px 12px; }
+  #ctl-scrub { min-width: 0; width: 0; }
+  #ctl-time { font-size: 11px; }
+  #ctl-views { padding: 8px 12px; }
 }
 
 /* Overlay gallery: companion animations without leaving the player. */
