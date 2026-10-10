@@ -524,16 +524,18 @@ def refresh_gates(art_path: str, *, on: str | None = None) -> dict:
     if bad:
         raise SystemExit(f"{art_path}: re-promotion from {old['source_run']} disagrees at "
                          f"{bad[:10]}; gates not refreshed")
-    previous = {k: old["gates"].get(k) for k in GATE_REFRESH_KEYS
-                if old["gates"].get(k, None) != fresh["gates"][k]}
-    if not previous:
+    changed = [k for k in GATE_REFRESH_KEYS
+               if k not in old["gates"] or old["gates"][k] != fresh["gates"][k]]
+    if not changed:
         return {"changed": False}
+    previous = {k: old["gates"][k] for k in changed if k in old["gates"]}
+    added = [k for k in changed if k not in old["gates"]]
     # A key whose value did not change keeps its recorded form (0.0 stays 0.0).
-    old["gates"] = {k: (fresh["gates"][k] if k in previous or k not in old["gates"]
-                        else old["gates"][k]) for k in fresh["gates"]}
+    old["gates"] = {k: (fresh["gates"][k] if k in changed else old["gates"][k])
+                    for k in fresh["gates"]}
     old["gates_refreshed"] = {
         "on": on or datetime.date.today().isoformat(),
-        "previous": previous,
+        "previous": previous, "added": added,
         "why": ("speed_min is now the lowest pool over every drift, arm and seed, as the "
                 "registered gate 3 reads it, not the lowest arm mean; deaths_total is a count; "
                 "an arm with no leakage flag no longer reads as clean. Re-promoted from "
@@ -542,8 +544,8 @@ def refresh_gates(art_path: str, *, on: str | None = None) -> dict:
     }
     with open(art_path, "w", encoding="utf-8") as fh:
         json.dump(old, fh, indent=1, default=float)
-    return {"changed": True, "previous": previous,
-            "now": {k: old["gates"][k] for k in previous}}
+    return {"changed": True, "previous": previous, "added": added,
+            "now": {k: old["gates"][k] for k in changed}}
 
 
 def main() -> int:

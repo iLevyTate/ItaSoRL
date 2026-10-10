@@ -271,7 +271,8 @@ def test_refresh_gates_rewrites_only_the_gate_keys_and_records_what_they_were(tm
     r = prg.refresh_gates(str(art), on="2026-10-10")
     after = json.loads(art.read_text(encoding="utf-8"))
     assert r["changed"] and after["gates"]["speed_min"] == pytest.approx(0.74)
-    assert after["gates_refreshed"]["previous"]["speed_min"] == 0.84
+    assert after["gates_refreshed"]["previous"] == {"speed_min": 0.84}
+    assert "speed_n_below" in after["gates_refreshed"]["added"]
     assert after["gates_refreshed"]["on"] == "2026-10-10"
     assert after["gates"]["deaths_total"] == 0.0          # equal values keep their recorded form
     assert after["decision"] == doc["decision"]          # the zone is --relabel's job
