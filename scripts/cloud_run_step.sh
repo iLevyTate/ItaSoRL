@@ -21,7 +21,9 @@ git checkout -q "${BRANCH}" 2>/dev/null || git checkout -q -b "${BRANCH}" origin
 git pull -q --ff-only origin "${BRANCH}" 2>/dev/null || true
 mkdir -p "${OUT}/cells"
 
-cells() { ls "${OUT}/cells"/cell_d*_s*.json 2>/dev/null | wc -l | tr -d ' '; }
+# find, not ls: ls exits 2 on an unmatched glob, and under set -e -o pipefail that
+# aborted the step at `last=$(cells)` whenever no cell existed yet.
+cells() { find "${OUT}/cells" -maxdepth 1 -name 'cell_d*_s*.json' 2>/dev/null | wc -l | tr -d ' '; }
 if [ "$(cells)" -ge "${N_CELLS}" ]; then echo "status: all ${N_CELLS} cells present"; touch "${OUT}/DONE"; git add "${OUT}/DONE"; git commit -qm "${NAME}: DONE" || true; git push -q origin "${BRANCH}"; exit 0; fi
 if [ -f "${LOCK}" ]; then
   age=$(( ( $(date +%s) - $(cat "${LOCK}") ) / 60 ))
