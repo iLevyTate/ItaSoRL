@@ -888,7 +888,9 @@ Methods note 7 (section 11) left one scope limit on the behavior-mediation
 control: its basis is seven behavior scalars, not the ~146-dim observation, so
 controlling for behavior did not control for sensory echo. A state that
 passively mirrors world-dependent inputs would survive the behavior control.
-This probe tests it directly. Spec frozen before the run:
+This probe tests it directly. Spec, which the log records as fixed before launch but which
+was first committed together with its result, about an hour after the run ended (dated note
+of 2026-10-10 in `docs/PREREGISTRATION_L3.md` section 12):
 `docs/specs/2026-09-26-l3-sensory-echo-control-design.md` (readout-only against
 the saved hidden = 8 agents; runner `scripts/audit_sensory_echo.py`; committed
 artifact `artifacts/expB2/sensory_echo_l3_h8.json`).

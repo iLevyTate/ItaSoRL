@@ -1116,6 +1116,66 @@ Rigor carried from the B-v3 audit (2026-07-10):
   command states `--hidden 96`. FINDINGS 14.5.1 and 17.9 carry dated corrections; both specs
   carry dated notes at their end; `docs/CORRECTIONS.md`, 2026-10-10.
 
+- **2026-10-10 - FREEZE TIMING THAT GIT DOES NOT SUPPORT: FOUR RUNS WHOSE SPEC WAS NOT
+  COMMITTED BEFORE THE RUN (no earlier entry is edited).** Several entries and specs say a
+  design was "frozen before the run". For four runs no committed timestamp precedes the run.
+  (1) The hidden = 7 selection, already recorded in the 2026-07-16 freeze-timing entry above as
+  commit-simultaneous with its result. (2) The sensory-echo control of 2026-09-26: its spec,
+  runner, the 2026-09-26 entry above and the promoted artifact all first appear in one commit,
+  `a641ca0` at 17:45:13, while the run's cells were written at 16:37:16 and its aggregate at
+  16:38:53 (local time, UTC-4, as are all times here). The spec's "frozen before any run" and
+  its "Amendment, 2026-09-26, before any run" are statements in a file first committed about an
+  hour after the run ended; no ref holds an earlier version. (3) The nonlinear joint control
+  (probe B of `docs/specs/2026-09-27-local-strengthening-probes-design.md`, recorded in the
+  2026-09-28 entry above): its spec was first committed in `791a30a` at 2026-09-27 19:23:54,
+  about seven minutes after the run started. The first predictor trace was written at 19:20:45
+  and the first survival trace at 19:24:28, 34 seconds after the commit, so the spec landed
+  mid-run, before any survival cell had finished. (4) The A1 graded-seam ablation: its spec,
+  which reads "FROZEN for the A1 launch", was first committed in `c4e4417` at 2026-07-21
+  23:55:04, 87 seconds after the run wrote its aggregate (23:53:37). The written-before-launch
+  statements may be true; git cannot show it. These are the cases the 2026-10-10 review checked
+  and found; it did not audit every other spec's timing. No number, rule or verdict changes.
+  FINDINGS 10.4.2 now describes the sensory-echo spec this way.
+
+- **2026-10-10 - PROVENANCE OF THE THREE ENTRIES AND SPECS HEADED 2026-10-09 (dates only; the
+  headers and entries stay as written).** The reverse-direction, white-jitter comparator-trained
+  and L1 stream entries above, and their specs, are headed 2026-10-09, while their commits and
+  run logs read 2026-10-08. The headers carry the UTC date; the commits and logs carry local time,
+  UTC-4. Each was committed before its run started. Reverse direction: spec and entry
+  `8aa2b9f` at 2026-10-08 21:39:03, run started 21:39:23 (`fullruns/reverse_direction/run.log`).
+  White jitter: spec and entry `d341091` at 21:41:15; the spec's device paragraph `60eb355` at
+  21:57:27; the launcher queued the run at 21:57:09, 18 seconds before that paragraph was
+  committed, and the run started at 22:00:55 (`fullruns/T_gn_l3_h8_wm/run.log`). L1 stream:
+  spec and entry `e4686f2` at 22:35:15, run started 22:39:14
+  (`fullruns/l1_stream_readout/run.log`). The run logs are gitignored local files.
+
+- **2026-10-10 - IN-PLACE EDITS TO EXISTING LINES OF THIS DOCUMENT (a record; nothing is
+  changed by this entry).** The deviation log is meant to grow only by appended entries. Six
+  commits changed existing lines of this file instead (`git log --numstat`). `ba254ec`
+  (2026-07-10) rewrote section 4's description of how `G` becomes a world into the two-stage
+  construction, 81 minutes after the registration commit `0217263` and before the first entry
+  in this section was written. `c594c3d` (2026-07-10) replaced this section's "(none yet)"
+  placeholder with the first entry. `15b1fc7` (2026-07-14) replaced the closing "STILL OWED"
+  sentence of the 2026-07-14 hidden = 7 entry when the owed probe was recorded the same day.
+  Three repository-wide passes
+  followed: `75c49a2` (2026-07-20) changed the hardware string "RTX 4050" to "local GPU" and
+  moved spec paths from `docs/superpowers/specs/` to `docs/specs/` in twelve lines, `5e9e84b`
+  (2026-07-21) replaced a long dash with a hyphen in one line, and `8eb9174` (2026-08-23) did the
+  same in two lines. The passes also touched one to twenty lines each of
+  `docs/PREREGISTRATION.md`, `docs/PREREGISTRATION_Bv3.md` and `docs/PREREGISTRATION_C.md`,
+  including a reworded background paragraph and an added reader note. Apart from the
+  pre-run section 4 resolution, none of these edits changed a number, a rule, a gate or a
+  verdict.
+
+- **2026-10-10 - CLARIFICATION: WHERE THE L0 GATE'S MARGIN IS REGISTERED (nothing is
+  re-adjudicated).** Section 7 gate 2 above reads "equivalent to 0.5 by TOST" with no margin. It
+  inherits the B-v3 gates ("The four B-v3 gates"), `docs/PREREGISTRATION_Bv3.md` section 7 says
+  its gates are "Identical to B-v2", and the margin, plus or minus 0.05, is written in
+  `docs/PREREGISTRATION.md` section 7 gate 2. The test level of 0.05, which every L0 adjudication
+  on record uses and which the 2026-10-06 primary-analysis spec states, and the [0.45, 0.55] ROPE
+  band appear in no preregistration. They are the defaults of `itasorl.stats.equivalence_test`
+  and `itasorl.stats.rope_test`, applied as the project's reporting convention.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
