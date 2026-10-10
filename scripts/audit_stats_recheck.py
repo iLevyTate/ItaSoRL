@@ -2233,6 +2233,25 @@ def main() -> int:
                        f"| {_lab} | {_txt} | {_eq.p_value:.3f} |" in _s17)
             check_true(f"PAPER_OUTLINE row 46 quotes the post hoc contrast {_m}",
                        f"{_txt} (p {_eq.p_value:.3f})" in _o46)
+        # 2026-10-10: the stream decoder's recipe and its final training loss (FINDINGS 17.8,
+        # docs/METHODS_ARMS.md), read from both control-diagnostics artifacts.
+        for _fn in ("corrected_l3_h8_wm.json", "l1_stream_readout.json"):
+            if not os.path.exists(os.path.join(ARTROOT, "control_diagnostics", _fn)):
+                continue
+            _cells = _load_art("control_diagnostics", _fn)["cells"]
+            _ftl = [x for c in _cells for x in c["seq_gru"]["final_train_loss"]]
+            check_true(f"17.8: the stream decoder of {_fn} is the recorded recipe (64, GRU 96, 60 epochs)",
+                       all((c["seq_gru"]["embed"], c["seq_gru"]["hidden"], c["seq_gru"]["epochs"])
+                           == (64, 96, 60) for c in _cells))
+            check_int(f"17.8: {_fn} records 150 decoder folds", len(_ftl), 150)
+            check_true(f"17.8: the decoder's final training loss is below 0.001 in every fold of {_fn}",
+                       max(_ftl) < 1e-3)
+            check_true(f"17.8: {_fn} scores 220 episodes per cell (about 176 per training fold)",
+                       {c["n"] for c in _cells} == {220})
+        _s17f = " ".join(_s17.split())
+        check_true("FINDINGS 17.8 quotes the decoder's fit",
+                   "below 0.001 in every fold" in _s17f
+                   and "roughly 176 training episodes per fold" in _s17f)
     for _fam in ("gn", "qd"):
         _tp = os.path.join(ARTROOT, "texture", f"corrected_l3_h8_wm_{_fam}.json")
         if not os.path.exists(_tp):

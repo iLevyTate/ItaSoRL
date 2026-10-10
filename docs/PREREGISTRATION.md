@@ -162,9 +162,9 @@ raw metrics in `expB2_results.json`. Published confirmatory copies live in
 - **2026-10-10 - IN-PLACE EDITS TO EXISTING LINES OF THIS DOCUMENT (a record; nothing is
   changed by this entry).** Three commits changed existing lines here instead of appending.
   `75c49a2` (2026-07-20) changed "The ralph hardening pass" to "A code-hardening pass" in the
-  2026-06-28 entry. `5e9e84b` (2026-07-21) replaced long dashes with hyphens in twenty lines.
-  `8eb9174` (2026-08-23), after the B-v2 runs, rewrote the background paragraph of section 1:
-  it dropped the "FINDINGS conjectures" framing and the "asks whether incidental encoding now
-  emerges" clause and states the conjecture directly. None of these changed a number, a rule,
-  a gate or a verdict. The same commits are listed for `docs/PREREGISTRATION_L3.md` in its
-  2026-10-10 entry.
+  2026-06-28 entry. `5e9e84b` (2026-07-20 local, 2026-07-21 UTC) replaced long dashes with
+  hyphens in twenty lines. `8eb9174` (2026-08-23), after the B-v2 runs, rewrote the
+  background paragraph of section 1: it dropped the "FINDINGS conjectures" framing and the
+  "asks whether incidental encoding now emerges" clause and states the conjecture directly.
+  None of these changed a number, a rule, a gate or a verdict. The same commits are listed
+  for `docs/PREREGISTRATION_L3.md` in its 2026-10-10 entry.
