@@ -369,13 +369,15 @@ banner, the scope paragraph of 14, 17.11 and 17.12), `docs/PAPER_OUTLINE.md` (se
 27) and `docs/REVISION_2026-10.md` (step 12) state one verdict: the contrast is flat under both
 readouts, and the registered verdict is uninformative, decided by gate 5, with gate 1 a weak
 positive under the frozen wording that falls short only of the draft margin. The README, the
-site and `docs/LEARNING.md` say the same, and the audit holds every one of these surfaces to it.
-Two dated notes under FINDINGS 13.F record each point with its numbers, attribute the estimand and the gates to
-their two runs (`a0cb850` and `06ecc10`), and add the descriptive per-individual contrast,
-+0.006 [-0.012, +0.024]. Two dated section-12 entries in `docs/PREREGISTRATION_C.md` record the
-same points and the in-place edits to that file, and count seven deviations from its frozen
-text: the four of the first entry, the fixed lifetime layouts among them, and in the second the
-missing energy cost of reproduction, the panel cadence and the unreported section-10 analysis.
+site and `docs/LEARNING.md` say the same. The audit holds the FINDINGS banner, TL;DR, section
+1, section 6 and 17.12, `docs/PAPER_OUTLINE.md`, the README, the site and `docs/LEARNING.md` to
+it. Two dated notes under FINDINGS 13.F record each point with its numbers, attribute the
+estimand and the gates to their two runs (`a0cb850` and `06ecc10`), and add the descriptive
+per-individual contrast, +0.006 [-0.012, +0.024]. Two dated section-12 entries in
+`docs/PREREGISTRATION_C.md` record the same points and the in-place edits to that file, and
+count seven deviations from its frozen text: the four of the first entry, the fixed lifetime
+layouts among them, and in the second the missing energy cost of reproduction, the panel
+cadence and the unreported section-10 analysis.
 
 **What this does not change.** No number of the estimand moves. 13.D keeps "validated null" as
 a description of the pooled estimand, and the verdict bears on H3 in neither direction.
@@ -553,12 +555,12 @@ zero, which does not show equality. In `replay` each trunk reads the stream thro
 frozen normalizer, so the 0.1 belongs to trunk and normalizer together. The size of the law
 deviation along each policy's trajectories was never recorded.
 
-**Change.** 17.6 says "within about 0.01" with the paired contrasts, adds the prediction-trained
-arms against the untrained arm, assigns the 0.1 to the trained agent as a whole, and says that
-why trunks keep more from the survival streams is not measured. The TL;DR, the ladder table,
-section 6 and 17.12 use the same wording, each revision dated, as do `docs/PAPER_OUTLINE.md`
-section 4.5 and row 44. The audit recomputes the contrasts from
-`artifacts/policy_controls/corrected_l3_h8_wm.json`.
+**Change.** 17.6 says "within about 0.01" with the paired contrasts, adds the
+prediction-trained arms against the untrained arm, assigns the 0.1 to the trained agent as a
+whole, and says that why trunks keep more from the survival streams is not measured, with dated
+markers where a sentence is replaced. The TL;DR, the ladder table, section 6 and 17.12 use the
+same wording, as do `docs/PAPER_OUTLINE.md` section 4.5 and row 44. The audit recomputes the
+contrasts from `artifacts/policy_controls/corrected_l3_h8_wm.json`.
 
 **What this does not change.** No number. The primary verdict of 17.2 is defined on the `own`
 protocol, and "survival-specific" stays withdrawn.

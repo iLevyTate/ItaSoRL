@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are (64 of 1440 on 2026-10-10). It also checks that the generated pages
+many there are (64 of 1453 on 2026-10-10). It also checks that the generated pages
 (index.html, the results manifest, the gate table, the contrast intervals, the manuscript
 tables) match a fresh render, and that retired wording has not returned to the pages it
 watches. Fails loudly (non-zero exit) on any mismatch beyond rounding.
@@ -16,7 +16,7 @@ What it reads from the documents. Numbers in the document text are compared with
 values, recomputed where per-seed values exist, for FINDINGS 3.1, 10.1.1, 13.F, 14.5.1,
 14.7, 14.7.1 and section 17, the Experiment C lines of the FINDINGS summary, the dated notes
 of 2026-10-10 in FINDINGS 3.4, 9, 10.5, 10.9, 12, 13.E, 13.F, 14, 14.6, 16 and 17.11 (where
-they quote a committed artifact), and PAPER_OUTLINE rows 27, 40, 44 and 46. In README.md, CITATION.cff,
+they quote a committed artifact), and PAPER_OUTLINE rows 27, 40, 44, 46 and 54. In README.md, CITATION.cff,
 the site, the rest of PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only,
 a few of which contain a number; a number edited outside those phrases is not caught. Numbers
 the notes take from gitignored run bundles under fullruns/ are not checked.
@@ -2361,6 +2361,37 @@ def main() -> int:
                f"survival minus predictor {_fm(_rp['predictor'])}, minus predictor_logged "
                f"{_fm(_rp['predictor_logged'])}, minus untrained {_fm(_rp['untrained'])}; "
                f"predictor_logged minus untrained {_fm(_rpl)}" in _fl(_read("docs/PAPER_OUTLINE.md")))
+    # PAPER_OUTLINE row 54 (2026-10-10): the four calibrated fingerprint instances read
+    # together, each pooled survival target and its margins recomputed from its artifact.
+    _inst = []
+    for _fn in ("behavior_audit_l3_h8_traces.json", "behavior_audit_l3_h7_traces.json"):
+        _ag = _load_art("expB2", _fn)["aggregate"]
+        _inst.append({a: _ag[f"d=0.45 {a}"]["target"]["mean"]
+                      for a in ("survival", "predictor", "untrained")})
+    for _fn in ("second_seed_l3_h8_gseed2_gpu.json", "second_instance_l3_h10_gseed1.json"):
+        _ar = _load_art("expB2", _fn)["arms"]["0.45"]
+        _inst.append({a: float(np.mean(_ar[a]["pool_target"]["per_seed"]))
+                      for a in ("survival", "predictor", "untrained")})
+    _sv = [i["survival"] for i in _inst]
+    _mu = [i["survival"] - i["untrained"] for i in _inst]
+    _mp = [i["survival"] - i["predictor"] for i in _inst]
+    _r54 = _fl(_read("docs/PAPER_OUTLINE.md"))
+    check("PAPER_OUTLINE row 54: descriptive mean of the four instances (0.701)",
+          float(np.mean(_sv)), 0.701)
+    check_int("PAPER_OUTLINE row 54: untrained margin above 0.05 on all four",
+              sum(m > 0.05 for m in _mu), 4)
+    check_int("PAPER_OUTLINE row 54: predictor margin above 0.05 on two",
+              sum(m > 0.05 for m in _mp), 2)
+    check_true("PAPER_OUTLINE row 54 quotes the four instances and their margins",
+               ("survival pooled targets as published " + ", ".join(
+                   f"{v:.3f} ({w})" for v, w in zip(_sv, ("hidden 8, G seed 0", "hidden 7",
+                                                     "hidden 8, G seed 2",
+                                                     "hidden 10, G seed 1, CPU"))))
+               + ";"
+               in _r54
+               and f"descriptive mean {np.mean(_sv):.3f}" in _r54
+               and "margin over the untrained arm " + ", ".join(f"{m:+.3f}" for m in _mu) in _r54
+               and "over the predictor " + ", ".join(f"{m:+.3f}" for m in _mp) in _r54)
     # FINDINGS 12: retrain time against cell time, from the policy-controls cells.
     _rs = [c["retrain_seconds"] for c in _pcells]
     _cs = [c["seconds"] for c in _pcells]
