@@ -26,6 +26,7 @@ python scripts/reproduce.py tables        # rebuild every table and gate without
 python scripts/build_results_manifest.py # which code, config, seeds and trainer produced each artifact
 python scripts/dump_brain_film_data.py   # per-unit world-signal -> viz/player/brain/brain-data.js
 python scripts/render_brain_pair_tour.py # the earlier brain-pair tour and section loops
+python scripts/plot_record_figures.py    # Experiment A, B and B-v2 record figures from committed artifacts (docs/figures, artifacts/expB2)
 ```
 
 `dump_brain_film_data.py` reads the saved held-out state pools under

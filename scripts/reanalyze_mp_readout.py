@@ -34,6 +34,7 @@ rides on it, so this re-score corrects the record rather than any verdict.
 from __future__ import annotations
 
 import _bootstrap  # noqa: F401
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 import argparse
 import glob
@@ -162,7 +163,7 @@ def main() -> None:
         if d:
             os.makedirs(d, exist_ok=True)
         with open(a.json, "w", encoding="utf-8") as fh:
-            json.dump({"bundle": a.bundle, "l3_hidden": a.l3_hidden,
+            json.dump({"bundle": repo_rel(a.bundle), "l3_hidden": a.l3_hidden,
                        "estimator": "probe_world_identity (pair-grouped, post-1633bca)",
                        "mp_config": {"n_pairs": MP_PAIRS, "prefix_steps": MP_PREFIX,
                                      "branch_steps": MP_BRANCH, "ray_steps": RAY_STEPS},

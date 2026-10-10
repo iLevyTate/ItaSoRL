@@ -31,6 +31,7 @@ where known, and flags the two decision-relevant readouts:
 from __future__ import annotations
 
 import _bootstrap  # noqa: F401
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 import argparse
 import glob
@@ -162,7 +163,7 @@ def main() -> None:
         if d:
             os.makedirs(d, exist_ok=True)
         with open(a.json, "w", encoding="utf-8") as fh:
-            json.dump({"states_dir": a.states_dir, "estimator": "cg_probe (pair-grouped, post-1633bca)",
+            json.dump({"states_dir": repo_rel(a.states_dir), "estimator": "cg_probe (pair-grouped, post-1633bca)",
                        "cells": cells, "aggregate": summary}, fh, indent=1, default=float)
         print(f"\nwrote {a.json}")
 

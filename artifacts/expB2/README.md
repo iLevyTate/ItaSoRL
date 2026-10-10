@@ -6,9 +6,9 @@ Canonical committed outputs from pre-registered confirmatory runs (not ephemeral
 | File | Description |
 |------|-------------|
 | `expB2_results.json` | **Canonical** full-scale metrics from independent Colab replication (`fullruns/06302026`, commit `4c16be6`, 300 updates, 3 seeds, Tesla T4). Includes CIs, drag ceiling, manipulation-check fields. |
-| `expB2_survival.png` | Figure matching the canonical JSON |
+| `expB2_survival.png` | Figure matching the canonical JSON, redrawn from it by `scripts/plot_record_figures.py` (pooled world-identity AUROC per arm, mean and std over 3 seeds, labeled historical) |
 | `expB2_results_confirmatory_n3.json` | Archived initial lab confirmatory run (pre-rigor-hardening; survival @ drift 0.45 ≈ 0.595) |
-| `expB2_survival_confirmatory_n3.png` | Figure for the archived initial run |
+| `expB2_survival_confirmatory_n3.png` | Figure for the archived initial run, redrawn from its JSON by `scripts/plot_record_figures.py` |
 | `behavior_audit_l3_n10.json` | Behavior-mediation audit of the L3 n=10 dumps (`fullruns/l3_n10_audited/states`) via `scripts/audit_behavior_mediation.py`. Reproduces the published survival d=0.45 numbers exactly: target 0.752, behavior-only 0.689/0.705, in-fold controlled 0.676 linear / 0.659 quadratic. Old-format dumps, so per-episode control only; the per-timestep control needs the trace-extended dumps of the owed re-runs. |
 | `behavior_audit_l3_h8_traces.json` | Behavior-mediation audit of the trace-extended hidden=8 re-run (`fullruns/l3_h8_traces/states`). Deterministic replication of every published figure, plus the decisive per-timestep control: survival resid_trace **0.726** [0.685, 0.765], 9/10 seeds >= 0.65 (quad 0.721); behavior trace alone 0.803; untrained resid_trace 0.498 (exact chance); predictor 0.574. Outcome per the pre-registered decision rule as it stood: claim STRENGTHENED. Historical trainer, and the residual is what this basis and this model could not explain, not independence from behavior: on the corrected agents the best-fitting control leaves 0.620, under the bar (FINDINGS 17.8). |
 | `behavior_audit_l3_h7_traces.json` | Behavior-mediation audit of the second-capacity hidden=7 n=10 run (`fullruns/l3_h7_traces/states`). Survival resid_trace **0.722** [0.678, 0.763] replicates hidden=8's 0.726; the survival-vs-predictor dissociation is NOT met (+0.023 < +0.05), so that dissociation is artifact-conditional. FINDINGS 10.5; the reading that credited the survival objective is withdrawn in 17.6. |
@@ -24,8 +24,9 @@ and `artifacts/expB/`, promoted from the recorded `fullruns/06302026` bundle by
 `scripts/promote_ab_summaries.py`.
 
 New runs write to `fullruns/<MMDDYYYY>/artifacts/` or here when promoted manually.
-Promote a run by copying `expB2_results.json` and `expB2_survival.png` from the run
-folder and updating this README if provenance changes.
+Promote a run by copying `expB2_results.json` from the run folder, redrawing
+`expB2_survival.png` with `python scripts/plot_record_figures.py`, and updating this README
+if provenance changes.
 `scripts/audit_stats_recheck.py` re-verifies every number quoted in
 `README.md` / `docs/FINDINGS.md` / `docs/PAPER_OUTLINE.md` against these
 committed artifacts; run it before publishing any doc change.

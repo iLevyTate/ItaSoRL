@@ -142,6 +142,9 @@ def build_b2_extra(args: argparse.Namespace, *, resume: bool = False) -> list[st
         extra += ["--updates", str(args.b2_updates)]
     if args.b2_hidden is not None:
         extra += ["--hidden", str(args.b2_hidden)]
+        if args.b2_hidden != 96:
+            # --b2-hidden is an explicit trunk choice; run_expB2 refuses an unregistered trunk otherwise.
+            extra += ["--allow-unregistered-trunk"]
     if args.b2_dump_states is not None:
         extra += ["--dump-states", args.b2_dump_states]
     if args.b2_sysid_aux:

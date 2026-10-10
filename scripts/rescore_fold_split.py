@@ -22,6 +22,7 @@ Usage:
 from __future__ import annotations
 
 import _bootstrap  # noqa: F401
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 import argparse
 import glob
@@ -103,7 +104,7 @@ def rescore(states_dir: str, label: str = "") -> dict:
         aggregate[f"d={drift} {agent}"] = block
     import sklearn
     return {
-        "states_dir": states_dir.replace("\\", "/"), "label": label,
+        "states_dir": repo_rel(states_dir), "label": label,
         "spec": "docs/specs/2026-09-28-explicit-cv-folds.md",
         "generated_by": "scripts/rescore_fold_split.py",
         "stack": {"python": sys.version.split()[0], "numpy": np.__version__,

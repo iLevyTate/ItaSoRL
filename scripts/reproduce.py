@@ -314,6 +314,7 @@ INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "
                  "docs/PREREGISTRATION_L3.md", "docs/PREREGISTRATION_C.md",
                  "docs/ITASORL_world_spec.md", "docs/ITASORL.md", "docs/LEARNING.md",
                  "docs/STATUS_2026-09-27.md", "docs/AUDIT_2026-07.md",
+                 "docs/rule_ledger.json", "docs/RULE_LEDGER.md",
                  # read by the scalar audit's wording guards and the site check:
                  "README.md", "CITATION.cff", "index.html", "index.template.html",
                  "viz/player/brain/brain.js",
