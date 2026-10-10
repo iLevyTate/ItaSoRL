@@ -944,9 +944,16 @@ def main(argv=None) -> int:
         for msg in problems:
             print("RULE LEDGER:", msg)
         rc = 1 if problems else 0
-        with open(LEDGER_MD, "w", encoding="utf-8", newline="\n") as fh:
-            fh.write(rule_ledger_md(rows, ledger))
-        print(f"wrote {os.path.relpath(LEDGER_MD, ROOT)}" + (f" ({len(problems)} problem(s))" if problems else ""))
+        md = rule_ledger_md(rows, ledger)
+        current = open(LEDGER_MD, encoding="utf-8").read() if os.path.exists(LEDGER_MD) else None
+        # Compare with line endings normalized, so a checkout with CRLF endings is not rewritten
+        # (and shown as modified) when the rendering has not changed.
+        if current is None or current.replace("\r\n", "\n") != md:
+            with open(LEDGER_MD, "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(md)
+            print(f"wrote {os.path.relpath(LEDGER_MD, ROOT)}" + (f" ({len(problems)} problem(s))" if problems else ""))
+        else:
+            print(f"{os.path.relpath(LEDGER_MD, ROOT)} unchanged")
     want = tables()
     os.makedirs(OUT, exist_ok=True)
     for n, w in want.items():
