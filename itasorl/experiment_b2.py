@@ -156,7 +156,14 @@ def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int,
     for k, v in {**SURVIVAL_METAB, **SURVIVAL_FOOD, **(food_override or {})}.items():
         setattr(w, k, v)
     w.mortal = MORTAL if mortal is None else mortal
-    if DRIFT_MODE == "l3" and drift_sigma > 0.0 and _L3_GMOTION is not None:
+    if DRIFT_MODE == "l3" and drift_sigma > 0.0:
+        # Fail closed. Without a learned law the l3 world integrates the authentic velocity
+        # law, so a "surrogate" pool would be an authentic pool under another seed base and
+        # the target would read near 0.5 with no error. This raises only on that
+        # misconfiguration; a world built with G installed is unchanged.
+        if _L3_GMOTION is None:
+            raise RuntimeError("l3 mode with no surrogate installed; call setup_l3_surrogate "
+                               "first (or assign experiment_b2._L3_GMOTION)")
         w._g_motion = _L3_GMOTION  # surrogate (drift_sigma>0) uses learned dynamics; authentic does not
     return w
 
