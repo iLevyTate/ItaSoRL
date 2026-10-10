@@ -130,8 +130,8 @@ def test_every_registered_gate_counts_not_only_l0(tmp_path):
     run, _ = _bundle(tmp_path, speed=0.70)
     dec = prg.promote(str(run), str(tmp_path / "x.json"), spec="s", label="t", head="abc")["decision"]
     assert dec["zone"] == "DECODABILITY CLAUSES MET, GATE OPEN: speed"
-    base = {"pass_bar": True, "pass_margin_predictor": True, "pass_margin_untrained": True,
-            "survival": 0.7, "predictor": 0.6, "untrained": 0.5}
+    base = {"pass_bar": True, "t90_excludes_bar": True, "pass_margin_predictor": True,
+            "pass_margin_untrained": True, "survival": 0.7, "predictor": 0.6, "untrained": 0.5}
     gates = {"engagement": {"0.00": {"pass": 10, "n": 10}, "0.45": {"pass": 9, "n": 10}},
              "l0_tost": {"equivalent": True}, "speed_min": 0.8, "pool_leak_clean_all": False,
              "untrained_floor_ok": False, "deaths_total": 2.0}
@@ -152,6 +152,63 @@ def test_near_chance_with_an_open_gate_is_not_a_strengthened_negative(tmp_path):
     assert dec["zone"] == "ALL ARMS NEAR CHANCE, GATE OPEN: l0"
 
 
+# ---- G62: the registered rule also needs the t-based 90% interval to exclude the bar ----
+
+def test_a_mean_at_the_bar_whose_interval_straddles_it_is_not_the_registered_verdict(tmp_path):
+    """PREREGISTRATION_L3 sec. 10 adjudicates the bar on the t-based 90% interval, and
+    decide_goal_stakes.primary_met counts t90_excludes_bar as a clause. A run with the mean at
+    the bar, both margins, every gate passing and a straddling interval must not read
+    ENCODING INDUCED."""
+    run, _ = _bundle(tmp_path, surv=0.66, pred=0.55, untr=0.50)
+    p = run / "expB2_results.json"
+    res = json.loads(p.read_text(encoding="utf-8"))
+    res["0.45"]["survival"]["pool_target"] = [0.56, 0.76, 0.58, 0.74, 0.60, 0.72]   # mean 0.66
+    p.write_text(json.dumps(res), encoding="utf-8")
+    dec = prg.promote(str(run), str(tmp_path / "x.json"), spec="s", label="t", head="abc")["decision"]
+    assert dec["pass_bar"] and dec["pass_margin_predictor"] and dec["pass_margin_untrained"]
+    assert dec["t90_excludes_bar"] is False and dec["survival_t90"][0] < 0.65
+    assert dec["zone"] == "MEAN AT BAR, T90 STRADDLES 0.65"
+    assert dec["registered_rule_met"] is False and dec["gates_open"] == []
+    # with a gate open as well, both are named
+    base = {"pass_bar": True, "t90_excludes_bar": False, "pass_margin_predictor": True,
+            "pass_margin_untrained": True, "survival": 0.66, "predictor": 0.55, "untrained": 0.5}
+    gates = {"engagement": {"0.45": {"pass": 10, "n": 10}}, "l0_tost": {"equivalent": False},
+             "speed_min": 0.8, "pool_leak_clean_all": True, "untrained_floor_ok": True,
+             "deaths_total": 0}
+    z = prg.zone_for(base, gates)
+    assert z["zone"] == "MEAN AT BAR, T90 STRADDLES 0.65, GATE OPEN: l0"
+    assert z["registered_rule_met"] is False
+    # an interval clause that was not recorded is not a pass either
+    z = prg.zone_for({k: v for k, v in base.items() if k != "t90_excludes_bar"},
+                     {**gates, "l0_tost": {"equivalent": True}})
+    assert z["zone"] == "MEAN AT BAR, T90 NOT RECORDED" and z["registered_rule_met"] is False
+    # the interval clause alone decides between the two zones
+    z = prg.zone_for({**base, "t90_excludes_bar": True}, {**gates, "l0_tost": {"equivalent": True}})
+    assert z["zone"] == "ENCODING INDUCED (all clauses)" and z["registered_rule_met"] is True
+
+
+# ---- G5: an unscored speed pool is not a passed gate ----
+
+@pytest.mark.parametrize("bad", [float("nan"), None])
+def test_an_unscored_speed_pool_leaves_the_gate_not_recorded(tmp_path, bad):
+    run, _ = _bundle(tmp_path, speed=0.9)
+    _set_pool(run, "0.45", "predictor", 2, "pool_speed", bad)
+    out = prg.promote(str(run), str(tmp_path / "x.json"), spec="s", label="t", head="abc")
+    g = out["gates"]
+    assert g["speed_n_nonfinite"] == 1 and g["speed_min"] == pytest.approx(0.9)
+    assert prg.gate_status(g)["speed"] is None
+    assert out["decision"]["zone"] == "DECODABILITY CLAUSES MET, GATE NOT RECORDED: speed"
+    assert out["decision"]["registered_rule_met"] is False
+
+
+def test_a_scored_pool_under_the_threshold_opens_the_gate_whatever_else_is_unscored(tmp_path):
+    run, _ = _bundle(tmp_path, speed=0.9)
+    _set_pool(run, "0.45", "predictor", 2, "pool_speed", None)
+    _set_pool(run, "0.0", "untrained", 1, "pool_speed", 0.70)
+    g = prg.promote(str(run), str(tmp_path / "x.json"), spec="s", label="t", head="abc")["gates"]
+    assert prg.gate_status(g)["speed"] is False
+
+
 C1 = "corrected_l3_h8_wm.json"
 
 
@@ -160,14 +217,17 @@ def _promoted_artifacts():
     for path in sorted((ROOT / "artifacts" / "expB2").glob("*.json")):
         doc = json.loads(path.read_text(encoding="utf-8"))
         if isinstance(doc, dict) and doc.get("generated_by") == "scripts/promote_reviewer_gaps_runs.py":
-            marks = ()
-            if path.name == C1:
-                # Relabelling C1 waits on tests/test_mechanism_readouts.py:326, which pins the
-                # old zone and belongs to the goal-and-stakes work. Strict: once C1 is relabelled
-                # this XPASSes and fails, so the marker cannot outlive the fix.
-                marks = pytest.mark.xfail(strict=True, reason="C1 relabel pending (owner-gated test pin)")
-            out.append(pytest.param(path, marks=marks, id=path.name))
+            out.append(pytest.param(path, id=path.name))
     return out
+
+
+def test_c1_reads_decodability_clauses_met_with_the_l0_gate_open():
+    """C1 was relabelled on 2026-10-10 (--relabel): its L0 gate is open, so the artifact must not
+    carry the registered verdict's name, matching artifacts/corrected_verdicts.json."""
+    doc = json.loads((ROOT / "artifacts" / "expB2" / C1).read_text(encoding="utf-8"))
+    assert doc["decision"]["zone"] == "DECODABILITY CLAUSES MET, GATE OPEN: l0"
+    assert doc["decision"]["registered_rule_met"] is False
+    assert doc["zone_relabelled"]["previous_zone"] == "ENCODING INDUCED (all clauses)"
 
 
 @pytest.mark.parametrize("path", _promoted_artifacts())
@@ -249,9 +309,20 @@ def test_deaths_are_a_count_and_a_missing_leak_flag_is_not_a_pass(tmp_path):
     res = json.loads(p.read_text(encoding="utf-8"))
     del res["0.0"]["predictor"]["pool_leak_clean"]
     p.write_text(json.dumps(res), encoding="utf-8")
-    g = prg.promote(str(run), str(tmp_path / "x.json"), spec="s", label="t", head="abc")["gates"]
+    out = prg.promote(str(run), str(tmp_path / "x.json"), spec="s", label="t", head="abc")
+    g = out["gates"]
     assert g["deaths_total"] == 2 and isinstance(g["deaths_total"], int)
-    assert g["pool_leak_clean_all"] is False
+    # Nothing was measured for that arm: the gate is not recorded, neither passed nor open.
+    assert g["pool_leak_clean_all"] is None
+    assert prg.gate_status(g)["reward_leak"] is None
+    assert "GATE NOT RECORDED: reward_leak" in out["decision"]["zone"]
+    assert "reward_leak" not in out["decision"]["gates_open"]
+    # A recorded unclean pool opens the gate, whatever else is missing.
+    res = json.loads(p.read_text(encoding="utf-8"))
+    res["0.45"]["survival"]["pool_leak_clean"][3] = False
+    p.write_text(json.dumps(res), encoding="utf-8")
+    g = prg.promote(str(run), str(tmp_path / "y.json"), spec="s", label="t", head="abc")["gates"]
+    assert g["pool_leak_clean_all"] is False and prg.gate_status(g)["reward_leak"] is False
 
 
 def test_refresh_gates_rewrites_only_the_gate_keys_and_records_what_they_were(tmp_path):

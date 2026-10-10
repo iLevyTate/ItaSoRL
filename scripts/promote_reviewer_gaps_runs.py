@@ -18,10 +18,13 @@ summary JSON per run under artifacts/expB2/ with provenance:
     the audit cells
   * gate-0 calibration rows when a calibration.json is given
   * the frozen decision rule for the run (spec named in --spec). The zone reads
-    "ENCODING INDUCED" only when the three decodability clauses hold AND every registered
-    gate passes (PREREGISTRATION_L3 sec. 8). Clauses met with a gate open read
-    "DECODABILITY CLAUSES MET, GATE OPEN: <gates>", naming gates as
-    artifacts/corrected_verdicts.json does, and decision.registered_rule_met is false
+    "ENCODING INDUCED" only when the four decodability clauses hold (mean at the 0.65 bar,
+    t-based 90% interval excluding the bar as PREREGISTRATION_L3 sec. 10 requires, and both
+    0.05 margins) AND every registered gate passes (sec. 8). Clauses met with a gate open
+    read "DECODABILITY CLAUSES MET, GATE OPEN: <gates>", naming gates as
+    artifacts/corrected_verdicts.json does, and decision.registered_rule_met is false. A
+    mean at the bar with both margins but an interval that straddles the bar reads
+    "MEAN AT BAR, T90 STRADDLES 0.65" (the INCONCLUSIVE row of build_corrected_verdicts.py)
   * with --device-control-against <no-auxiliary run dir>, the device-control rule
     frozen in the 2026-09-27 addendum to the architecture-baseline spec: the
     decoder-carrying survival target on the same device against the no-auxiliary one
@@ -120,8 +123,16 @@ def speed_gate(res: dict, drifts) -> dict:
     scripts/promote_bv3_gates.py, scripts/promote_texture_trained.py and
     scripts/build_corrected_verdicts.py read. speed_min_of_arm_means is the figure this script
     wrote before 2026-10-10, kept so a quoted older value can be traced. A pool whose probe
-    could not be scored (NaN) is counted in speed_n_nonfinite and does not set the minimum."""
-    pools = [(d, a, i, float(x)) for d in drifts for a in ARMS
+    could not be scored (NaN, or None in the results file) is counted in speed_n_nonfinite and
+    does not set the minimum; gate_status then reads the gate as not recorded unless a scored
+    pool already sits under the threshold."""
+    def score(x) -> float:
+        try:
+            return float("nan") if x is None else float(x)
+        except (TypeError, ValueError):
+            return float("nan")
+
+    pools = [(d, a, i, score(x)) for d in drifts for a in ARMS
              for i, x in enumerate(res[d][a].get("pool_speed", []))]
     finite = [q for q in pools if math.isfinite(q[3])]
     lo = min(finite, key=lambda q: q[3]) if finite else None
@@ -135,6 +146,19 @@ def speed_gate(res: dict, drifts) -> dict:
         "speed_n_nonfinite": len(pools) - len(finite),
         "speed_min_of_arm_means": float(min(arm_means)) if arm_means else float("nan"),
     }
+
+
+def leak_clean_all(res: dict, drifts) -> bool | None:
+    """The reward-leak gate over every pool: False when any recorded pool is unclean, None
+    (not recorded) when no recorded pool is unclean but some arm carries no leakage flag, and
+    True only when every arm recorded every pool clean. A missing flag is not a pass, and it
+    is not a leak either: nothing was measured."""
+    flags = [res[d][a].get("pool_leak_clean") for d in drifts for a in ARMS]
+    if any(f is not None and not all(bool(x) for x in f) for f in flags):
+        return False
+    if any(f is None for f in flags):
+        return None
+    return True
 
 
 def deaths_count(res: dict, drifts) -> int:
@@ -231,8 +255,10 @@ def gate_status(gates: dict) -> dict:
     """Each registered gate as True (passes), False (open) or None (not recorded).
 
     Read from a promoted gates block: engagement in every cell at every drift, L0 TOST
-    equivalence on the drift-0 survival targets, speed control at least 0.75, every pool
-    clean of reward leakage, untrained floor within 0.1 of 0.5, and no deaths.
+    equivalence on the drift-0 survival targets, speed control at least 0.75 in every pool,
+    every pool clean of reward leakage, untrained floor within 0.1 of 0.5, and no deaths.
+    The speed gate is open when a scored pool sits under 0.75; when none does but some pool
+    could not be scored (speed_n_nonfinite > 0), it is not recorded, never passed.
     """
     def num(v):
         try:
@@ -250,10 +276,13 @@ def gate_status(gates: dict) -> dict:
     equiv = tost.get("equivalent") if isinstance(tost, dict) else None
     speed, deaths = num(gates.get("speed_min")), num(gates.get("deaths_total"))
     leak, floor = gates.get("pool_leak_clean_all"), gates.get("untrained_floor_ok")
+    g_speed = None if speed is None else speed >= SPEED_MIN
+    if g_speed and (num(gates.get("speed_n_nonfinite")) or 0) > 0:
+        g_speed = None
     return {
         "engagement": g_eng,
         "l0": None if equiv is None else bool(equiv),
-        "speed": None if speed is None else speed >= SPEED_MIN,
+        "speed": g_speed,
         "reward_leak": None if leak is None else bool(leak),
         "untrained_floor": None if floor is None else bool(floor),
         "deaths": None if deaths is None else deaths == 0,
@@ -263,9 +292,13 @@ def gate_status(gates: dict) -> dict:
 def zone_for(decision: dict, gates: dict) -> dict:
     """The zone of the frozen decision matrix (PREREGISTRATION_L3 sec. 8), gates included.
 
-    "Encoding induced" and "strengthened negative" both require every gate to pass. When the
-    three decodability clauses hold but a gate is open, or was not recorded, the zone says so
-    and never carries the registered verdict's name.
+    The decodability clauses are the four that scripts/decide_goal_stakes.py and
+    scripts/build_corrected_verdicts.py read: survival mean at the 0.65 bar, its t-based 90%
+    interval excluding the bar (sec. 10; run_expB2.decide_h_b2 returns NOT met when the
+    interval straddles it), and both 0.05 margins. "Encoding induced" and "strengthened
+    negative" both require every gate to pass. When the clauses hold but a gate is open, or
+    was not recorded, the zone says so and never carries the registered verdict's name. A
+    mean at the bar with both margins whose interval straddles the bar has its own zone.
     """
     st = gate_status(gates)
     open_ = [k for k in GATES if st[k] is False]
@@ -275,10 +308,17 @@ def zone_for(decision: dict, gates: dict) -> dict:
         note = "GATE OPEN: " + ", ".join(open_)
     if unshown:
         note += ("; " if note else "") + "GATE NOT RECORDED: " + ", ".join(unshown)
-    clauses = bool(decision["pass_bar"] and decision["pass_margin_predictor"]
-                   and decision["pass_margin_untrained"])
+    mean_clauses = bool(decision["pass_bar"] and decision["pass_margin_predictor"]
+                        and decision["pass_margin_untrained"])
+    t90 = decision.get("t90_excludes_bar")
+    if t90 is None and decision.get("survival_t90"):
+        t90 = decision["survival_t90"][0] > BAR
+    clauses = mean_clauses and t90 is True
     if clauses:
         zone = f"DECODABILITY CLAUSES MET, {note}" if note else "ENCODING INDUCED (all clauses)"
+    elif mean_clauses:
+        zone = "MEAN AT BAR, " + ("T90 STRADDLES 0.65" if t90 is False else "T90 NOT RECORDED")
+        zone += f", {note}" if note else ""
     elif decision["survival"] < 0.55 and decision["predictor"] < 0.55 and decision["untrained"] < 0.55:
         zone = f"ALL ARMS NEAR CHANCE, {note}" if note else "STRENGTHENED NEGATIVE (all arms near chance)"
     else:
@@ -333,10 +373,7 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
         "l0_survival_mean": float(np.mean(l0_vals)),
         "l0_tost": tost, "l0_rope": rope,
         **speed_gate(res, drifts),
-        # A run that recorded no leakage flag for an arm has not shown that gate passed.
-        "pool_leak_clean_all": all(("pool_leak_clean" in res[d][a])
-                                   and all(bool(x) for x in res[d][a]["pool_leak_clean"])
-                                   for d in drifts for a in ARMS),
+        "pool_leak_clean_all": leak_clean_all(res, drifts),
         "untrained_floor_at_dmax": untr["mean"],
         "untrained_floor_ok": abs(untr["mean"] - 0.5) < 0.1,
         "deaths_total": deaths_count(res, drifts),
@@ -471,8 +508,9 @@ def relabel(art_path: str, *, calibration: str | None = None, on: str | None = N
         "on": on or datetime.date.today().isoformat(),
         "previous_zone": prev,
         "why": ("the zone now requires every registered gate to pass (PREREGISTRATION_L3 "
-                "sec. 8); numbers and git_commit_at_promotion are the original promotion's, "
-                "checked against a re-promotion from source_run before writing"),
+                "sec. 8) and the t-based 90% interval to exclude the bar (sec. 10); numbers and "
+                "git_commit_at_promotion are the original promotion's, checked against a "
+                "re-promotion from source_run before writing"),
     }
     with open(art_path, "w", encoding="utf-8") as fh:
         json.dump(old, fh, indent=1, default=float)

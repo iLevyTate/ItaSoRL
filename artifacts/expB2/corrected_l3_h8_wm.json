@@ -321,7 +321,11 @@
   "lead_over_untrained": 0.2104132231404957,
   "pass_margin_predictor": true,
   "pass_margin_untrained": true,
-  "zone": "ENCODING INDUCED (all clauses)"
+  "zone": "DECODABILITY CLAUSES MET, GATE OPEN: l0",
+  "registered_rule_met": false,
+  "gates_open": [
+   "l0"
+  ]
  },
  "behavior_audit": {
   "untrained": {
@@ -867,5 +871,10 @@
    "speed_min_of_arm_means"
   ],
   "why": "speed_min is now the lowest pool over every drift, arm and seed, as the registered gate 3 reads it, not the lowest arm mean; deaths_total is a count; an arm with no leakage flag no longer reads as clean. Re-promoted from source_run and checked to agree everywhere else before writing; the decision block and git_commit_at_promotion are the original promotion's"
+ },
+ "zone_relabelled": {
+  "on": "2026-10-10",
+  "previous_zone": "ENCODING INDUCED (all clauses)",
+  "why": "the zone now requires every registered gate to pass (PREREGISTRATION_L3 sec. 8); numbers and git_commit_at_promotion are the original promotion's, checked against a re-promotion from source_run before writing"
  }
 }
