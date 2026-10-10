@@ -23,6 +23,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from itasorl.behavior_audit import aggregate_cells  # noqa: E402
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 BAR = 0.65
 
@@ -89,7 +90,7 @@ def main() -> int:
                 aggregate[f"d={float(d):.2f} {a}"] = agg
 
     out = {
-        "source_run": args.run_dir.replace("\\", "/"),
+        "source_run": repo_rel(args.run_dir),
         "fingerprint": sorted(fingerprints)[0],
         "git_commit": sorted(commits),
         "generated_by": "scripts/promote_heldout_artifact.py",

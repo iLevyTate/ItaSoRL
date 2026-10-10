@@ -1,5 +1,5 @@
 {
- "bundle": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_h7_heldout",
+ "bundle": "fullruns/l3_h7_heldout",
  "l3_hidden": 7,
  "estimator": "probe_world_identity (pair-grouped, post-1633bca)",
  "mp_config": {
