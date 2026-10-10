@@ -1,5 +1,5 @@
 {
- "source_run": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/expC_milestone3/emergence_pilot_per_individual.json",
+ "source_run": "fullruns/expC_milestone3/emergence_pilot_per_individual.json",
  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
  "surrogate": "frozen L3 G_motion (hidden=8, seed=0)",
  "control_food": {

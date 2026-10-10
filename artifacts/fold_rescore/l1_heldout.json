@@ -63,6 +63,10 @@
    "drift": "0.00",
    "seed": 0,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4185308762383861,
     "resid_trace": 0.48100542408842806
@@ -76,6 +80,10 @@
    "drift": "0.00",
    "seed": 0,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5214970141847612,
     "resid_trace": 0.5032809746248482
@@ -89,6 +97,10 @@
    "drift": "0.00",
    "seed": 0,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4280649521756241,
     "resid_trace": 0.4148058792327567
@@ -102,6 +114,10 @@
    "drift": "0.00",
    "seed": 1,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4917406703967969,
     "resid_trace": 0.44582413633797036
@@ -115,6 +131,10 @@
    "drift": "0.00",
    "seed": 1,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5124189381106377,
     "resid_trace": 0.4677318070598703
@@ -128,6 +148,10 @@
    "drift": "0.00",
    "seed": 1,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.48796605239292984,
     "resid_trace": 0.43131769416354393
@@ -141,6 +165,10 @@
    "drift": "0.00",
    "seed": 2,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5160857587735058,
     "resid_trace": 0.5003396471775918
@@ -154,6 +182,10 @@
    "drift": "0.00",
    "seed": 2,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5339168078298513,
     "resid_trace": 0.5479715278134251
@@ -167,6 +199,10 @@
    "drift": "0.00",
    "seed": 2,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.458243074448608,
     "resid_trace": 0.46526444569922826
@@ -180,6 +216,10 @@
    "drift": "0.00",
    "seed": 3,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5194497202402341,
     "resid_trace": 0.49422599798093875
@@ -193,6 +233,10 @@
    "drift": "0.00",
    "seed": 3,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5818318703694199,
     "resid_trace": 0.5512234142668925
@@ -206,6 +250,10 @@
    "drift": "0.00",
    "seed": 3,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.48430522047122837,
     "resid_trace": 0.5347749088855809
@@ -219,6 +267,10 @@
    "drift": "0.00",
    "seed": 4,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5148880105401845,
     "resid_trace": 0.47147391475454714
@@ -232,6 +284,10 @@
    "drift": "0.00",
    "seed": 4,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5157367007169379,
     "resid_trace": 0.5145064421744264
@@ -245,6 +301,10 @@
    "drift": "0.00",
    "seed": 4,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.497927895556354,
     "resid_trace": 0.502457950481666
@@ -258,6 +318,10 @@
    "drift": "0.00",
    "seed": 5,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5020695378402888,
     "resid_trace": 0.48012251253357974
@@ -271,6 +335,10 @@
    "drift": "0.00",
    "seed": 5,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4618996286980477,
     "resid_trace": 0.46771555190527525
@@ -284,6 +352,10 @@
    "drift": "0.00",
    "seed": 5,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4503781462279486,
     "resid_trace": 0.46856766421983814
@@ -297,6 +369,10 @@
    "drift": "0.00",
    "seed": 6,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4545060999606454,
     "resid_trace": 0.4677437845422035
@@ -310,6 +386,10 @@
    "drift": "0.00",
    "seed": 6,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5334924627414745,
     "resid_trace": 0.51986294338073
@@ -323,6 +403,10 @@
    "drift": "0.00",
    "seed": 6,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4702701777800592,
     "resid_trace": 0.48143233578016187
@@ -336,6 +420,10 @@
    "drift": "0.00",
    "seed": 7,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4690168198073336,
     "resid_trace": 0.4636226750851257
@@ -349,6 +437,10 @@
    "drift": "0.00",
    "seed": 7,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.46896805434354844,
     "resid_trace": 0.45325274198791987
@@ -362,6 +454,10 @@
    "drift": "0.00",
    "seed": 7,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4532373423677772,
     "resid_trace": 0.48425474393853846
@@ -375,6 +471,10 @@
    "drift": "0.00",
    "seed": 8,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4648794551956607,
     "resid_trace": 0.4814092363499478
@@ -388,6 +488,10 @@
    "drift": "0.00",
    "seed": 8,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5058056567937991,
     "resid_trace": 0.5161892784422429
@@ -401,6 +505,10 @@
    "drift": "0.00",
    "seed": 8,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.49962270930650376,
     "resid_trace": 0.4747950994986567
@@ -414,6 +522,10 @@
    "drift": "0.00",
    "seed": 9,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.46525931249251407,
     "resid_trace": 0.43300309703471757
@@ -427,6 +539,10 @@
    "drift": "0.00",
    "seed": 9,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.585632154406858,
     "resid_trace": 0.5487902742843455
@@ -440,6 +556,10 @@
    "drift": "0.00",
    "seed": 9,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.49173211505227316,
     "resid_trace": 0.4752006228290814
@@ -453,6 +573,10 @@
    "drift": "0.0230",
    "seed": 0,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4177146963708228,
     "resid_trace": 0.4445801892442208
@@ -466,6 +590,10 @@
    "drift": "0.0230",
    "seed": 0,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5620185479869274,
     "resid_trace": 0.5644542545728316
@@ -479,6 +607,10 @@
    "drift": "0.0230",
    "seed": 0,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4495191896377667,
     "resid_trace": 0.4507588590592543
@@ -492,6 +624,10 @@
    "drift": "0.0230",
    "seed": 1,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.55791198261554,
     "resid_trace": 0.5297794432181784
@@ -505,6 +641,10 @@
    "drift": "0.0230",
    "seed": 1,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5359931899457591,
     "resid_trace": 0.5194326095511866
@@ -518,6 +658,10 @@
    "drift": "0.0230",
    "seed": 1,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5239241654261416,
     "resid_trace": 0.4829885529490273
@@ -531,6 +675,10 @@
    "drift": "0.0230",
    "seed": 2,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4942182981708673,
     "resid_trace": 0.49792875109080637
@@ -544,6 +692,10 @@
    "drift": "0.0230",
    "seed": 2,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.509896822545044,
     "resid_trace": 0.5033092072617764
@@ -557,6 +709,10 @@
    "drift": "0.0230",
    "seed": 2,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.49424995294560514,
     "resid_trace": 0.48799856270212005
@@ -570,6 +726,10 @@
    "drift": "0.0230",
    "seed": 3,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.51161559125986,
     "resid_trace": 0.49673100285748506
@@ -583,6 +743,10 @@
    "drift": "0.0230",
    "seed": 3,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5417714696370822,
     "resid_trace": 0.5132650616840341
@@ -596,6 +760,10 @@
    "drift": "0.0230",
    "seed": 3,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.532269048474582,
     "resid_trace": 0.5637005287202916
@@ -609,6 +777,10 @@
    "drift": "0.0230",
    "seed": 4,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5128321612511335,
     "resid_trace": 0.4872029156614136
@@ -622,6 +794,10 @@
    "drift": "0.0230",
    "seed": 4,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.558762383861198,
     "resid_trace": 0.5513260784011772
@@ -635,6 +811,10 @@
    "drift": "0.0230",
    "seed": 4,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.48050493643379016,
     "resid_trace": 0.47473606762144316
@@ -648,6 +828,10 @@
    "drift": "0.0230",
    "seed": 5,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5145047311055216,
     "resid_trace": 0.4317608610098729
@@ -661,6 +845,10 @@
    "drift": "0.0230",
    "seed": 5,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4904411135636432,
     "resid_trace": 0.48218691716715434
@@ -674,6 +862,10 @@
    "drift": "0.0230",
    "seed": 5,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4776431736906045,
     "resid_trace": 0.4937708536522766
@@ -687,6 +879,10 @@
    "drift": "0.0230",
    "seed": 6,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4983462519035641,
     "resid_trace": 0.4908928357544958
@@ -700,6 +896,10 @@
    "drift": "0.0230",
    "seed": 6,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.610432387112229,
     "resid_trace": 0.57071762229865
@@ -713,6 +913,10 @@
    "drift": "0.0230",
    "seed": 6,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5236213062300019,
     "resid_trace": 0.5567236452611947
@@ -726,6 +930,10 @@
    "drift": "0.0230",
    "seed": 7,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.46116814674126927,
     "resid_trace": 0.46692418253683077
@@ -739,6 +947,10 @@
    "drift": "0.0230",
    "seed": 7,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.44003216809540924,
     "resid_trace": 0.46403076501890733
@@ -752,6 +964,10 @@
    "drift": "0.0230",
    "seed": 7,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4672518522320894,
     "resid_trace": 0.4821544068579643
@@ -765,6 +981,10 @@
    "drift": "0.0230",
    "seed": 8,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4313715928340434,
     "resid_trace": 0.422259295381825
@@ -778,6 +998,10 @@
    "drift": "0.0230",
    "seed": 8,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5674101261057782,
     "resid_trace": 0.5955221326762828
@@ -791,6 +1015,10 @@
    "drift": "0.0230",
    "seed": 8,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4888429752066116,
     "resid_trace": 0.4871721164211282
@@ -804,6 +1032,10 @@
    "drift": "0.0230",
    "seed": 9,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4883938196191161,
     "resid_trace": 0.4900467121810995
@@ -817,6 +1049,10 @@
    "drift": "0.0230",
    "seed": 9,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.516966103724997,
     "resid_trace": 0.5037369744879626
@@ -830,6 +1066,10 @@
    "drift": "0.0230",
    "seed": 9,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5054257994969458,
     "resid_trace": 0.47855260681347644
