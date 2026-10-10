@@ -120,7 +120,10 @@ text beside the film.
 The live player of film one (`viz/player/`) had its end card reworded on
 2026-10-08 to drop the reading that credited survival on its own (withdrawn in
 FINDINGS 17.6), and its footer names the pre-correction trainer
-(`viz/player/beats.json`). Since 2026-10-10 the Two Minds live renderer
+(`viz/player/beats.json`). On 2026-10-10 its end-card tiles were relabeled
+"untrained mind" and "trained mind" (they read "its mind, idle" and "its mind,
+surviving"), and the 45 to 80 s beats still tell the survival story in their
+captions; rewriting those beats is left to the owner. Since 2026-10-10 the Two Minds live renderer
 (`viz/player/brain/`) carries a footer on its end card as well, naming the
 pre-correction trainer and the 300-update budget, because its line about
 dropping the second job holds at that budget only: at 450 updates the arm
