@@ -1066,6 +1066,30 @@ Rigor carried from the B-v3 audit (2026-07-10):
   threshold. The survival-specificity wording stays unavailable, because it needs the stakes rule
   met. `T-touch`, `S-immortal`, every gate, and every other frozen rule are unchanged.
 
+- **2026-10-10 - GOAL AND STAKES: THE PREDICTOR ARM INHERITED `--mortal off`, SO INTEGRITY
+  CHECK 2 COULD NOT PASS; FIXED, AND BOTH RUNS RESTART (spec
+  `docs/specs/2026-10-07-goal-and-stakes-design.md`, integrity check 2).** The spec states
+  that the predictor and untrained arms are objective-free and, in `T-touch` and `S-immortal`,
+  equal `C1`'s arms to the bit. The implementation applied the `--mortal` switch to every world
+  `make_world` builds, including the 80-step scripted episodes the predictor arm trains on. In
+  `C1` the scripted walker dies in about half of those episodes (0.535 at the registered density,
+  the calibration above), so with death off the predictor trained on longer episodes and
+  different normalizer statistics. Both cloud runs completed all 20 cells this way. In every cell
+  of both runs the untrained target equals `C1`'s to the bit (20 of 20 per run) and the predictor
+  target does not (0 of 20; on the four drift-0 seeds `C1` reads 0.431, 0.554, 0.607, 0.483 and
+  both runs read 0.470, 0.497, 0.492, 0.476). `T-touch` and `S-immortal` agree with each other
+  to the bit, and a first step on an unpinned torch gave the same predictor values as the
+  pinned step, so neither the device nor the library version is the cause. Under check 2 a
+  mismatch stops the comparison, so **no cell of either run is read.** The predictor's scripted
+  collector now always builds mortal worlds, whatever `--mortal` says; the switch acts on the
+  trained arm's world only, which is what the spec describes. A test trains the predictor with
+  the switch on and off and requires identical weights, on a batch shown to contain deaths
+  inside 80 steps, and it fails on the old code. At the default (`--mortal on`) nothing changes,
+  so no recorded run and no fingerprint moves. Both runs' cells move to
+  `artifacts/goal_stakes/quarantine/` on their run branches, and both runs restart from zero
+  cells on the fixed code, pinned to `C1`'s torch 2.14.1, numpy 2.4.6 and scikit-learn 1.9.1.
+  Every gate, margin, and frozen wording is unchanged.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

@@ -146,7 +146,8 @@ def setup_l3_heldout_surrogate(**train_kwargs) -> None:
 
 
 def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int,
-               food_override: dict | None = None) -> PatchOfEarthV0:
+               food_override: dict | None = None, mortal: bool | None = None) -> PatchOfEarthV0:
+    """`mortal` overrides the module-level MORTAL for this world only (None keeps MORTAL)."""
     w = PatchOfEarthV0(params or WorldParams(), drift_sigma=drift_sigma, drift_mode=DRIFT_MODE,
                        l1_delta=L1_DELTA, sensor_sigma=SENSOR_SIGMA)
     w.ray_steps = ray_steps
@@ -154,7 +155,7 @@ def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int,
     # byte-identical to the frozen SURVIVAL_FOOD layout every other experiment depends on.
     for k, v in {**SURVIVAL_METAB, **SURVIVAL_FOOD, **(food_override or {})}.items():
         setattr(w, k, v)
-    w.mortal = MORTAL
+    w.mortal = MORTAL if mortal is None else mortal
     if DRIFT_MODE == "l3" and drift_sigma > 0.0 and _L3_GMOTION is not None:
         w._g_motion = _L3_GMOTION  # surrogate (drift_sigma>0) uses learned dynamics; authentic does not
     return w
@@ -745,9 +746,15 @@ def untrained_agent(params, drift_sigma, ray_steps, hidden, embed, world_model, 
 
 def _collect_scripted(agent, norm, params, drift_sigma, n_eps, max_steps, device, seed_base, ray_steps):
     """Collect episodes driven by the fixed scripted policy (Experiment B's policy),
-    for training the prediction-only control. Returns padded tensors + mask."""
+    for training the prediction-only control. Returns padded tensors + mask.
+
+    The worlds are always mortal, whatever MORTAL says: the predictor arm is objective-free
+    and must train on the same scripted episodes as C1 (goal-and-stakes integrity check 2).
+    MORTAL is a knob on the trained arm's world only; inheriting it here let --mortal off
+    run these 80-step episodes past the deaths C1's predictor saw (PREREGISTRATION_L3,
+    2026-10-10)."""
     A = agent.act_dim
-    envs = [make_world(params, drift_sigma, ray_steps) for _ in range(n_eps)]
+    envs = [make_world(params, drift_sigma, ray_steps, mortal=True) for _ in range(n_eps)]
     rngs = [np.random.default_rng(seed_base + i) for i in range(n_eps)]
     obs = np.stack([e.reset(_seeds(seed_base + i)).obs for i, e in enumerate(envs)]).astype(np.float64)
     active = np.ones(n_eps, bool)
