@@ -414,6 +414,17 @@ def main() -> int:
     check("expB recurrent-state target @0.45 (0.510)", sweep[0.45]["target_mean"], 0.510)
     check("expB recurrent-state std @0.45 (0.039)", sweep[0.45]["target_std"], 0.039)
     check("expB recurrent-state target @0.20 (0.509)", sweep[0.2]["target_mean"], 0.509)
+    # 2026-10-10: every cell of the FINDINGS 3.1 table that the artifact stores is matched
+    # exactly, as printed (three cells had drifted by 0.001). The artifact stores no shuffled
+    # standard deviation; those three come from the run log and are not checked here.
+    _f31 = open(os.path.join(ARTROOT, "..", "docs", "FINDINGS.md"), encoding="utf-8").read()
+    _f31 = _f31[_f31.index("### 3.1 "):_f31.index("### 3.2 ")]
+    for _d, _lab in ((0.0, "0.00 (control)"), (0.2, "0.20"), (0.45, "0.45")):
+        _r = sweep[_d]
+        _row = (f"| {_lab} | {_r['target_mean']:.3f} ± {_r['target_std']:.3f} | "
+                f"{_r['shuffled_mean']:.3f} ± ")
+        check_true(f"FINDINGS 3.1 row {_lab} quotes the artifact's target and shuffled means",
+                   _row in _f31 and f"| {_r['speed_mean']:.3f} ± " in _f31)
     surp = {r["drift"]: r for r in eb["expB_surprise"]["drift_sweep_with_std"]}
     check("surprise channel @0.45 (0.596)", surp[0.45]["mean"], 0.596)
     check("surprise channel std @0.45 (0.007)", surp[0.45]["std"], 0.007)

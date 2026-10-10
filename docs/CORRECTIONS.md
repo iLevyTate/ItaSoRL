@@ -292,3 +292,18 @@ otherwise left as frozen.
 **What this does not change.** Both readouts scored the agents their specs named, and neither
 result moves. The seed-2 agents have not been scored by either design. Like every saved agent
 set, both directories are gitignored local files and are not in the repository.
+
+## 2026-10-10: three Experiment B cells in FINDINGS 3.1 were off by 0.001
+
+**What was wrong.** The FINDINGS 3.1 table gave the drift-0 target as 0.460 and the shuffled
+control as 0.522 at drift 0.20 and 0.548 plus or minus 0.059 at drift 0.45. The promoted
+artifact `artifacts/expB/summary.json` and the run log it was promoted from
+(`fullruns/06302026/steps/expB_full.log`) read 0.459, 0.523 and 0.547 plus or minus 0.058.
+The run recorded no per-seed values, so the artifact's three-decimal means are the source.
+The audit checked three of the twelve table values the artifact stores.
+
+**Change.** The three cells now match the artifact and the log, with a dated note under the
+table giving the old values, and the audit checks all twelve stored values (target mean and
+standard deviation, shuffled mean, speed mean, at each drift).
+
+**What this does not change.** Every reading stays at chance, and no verdict moves.

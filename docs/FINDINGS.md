@@ -235,9 +235,15 @@ quantized."
 
 | drift_sigma | target | shuffled | speed (+ctrl) |
 |-------------|--------|----------|---------------|
-| 0.00 (control) | 0.460 ± 0.021 | 0.510 ± 0.113 | 0.913 ± 0.023 |
-| 0.20 | 0.509 ± 0.028 | 0.522 ± 0.069 | 0.898 ± 0.021 |
-| 0.45 | 0.510 ± 0.039 | 0.548 ± 0.059 | 0.902 ± 0.008 |
+| 0.00 (control) | 0.459 ± 0.021 | 0.510 ± 0.113 | 0.913 ± 0.023 |
+| 0.20 | 0.509 ± 0.028 | 0.523 ± 0.069 | 0.898 ± 0.021 |
+| 0.45 | 0.510 ± 0.039 | 0.547 ± 0.058 | 0.902 ± 0.008 |
+
+*(Three cells corrected 2026-10-10 to the committed artifact and the run log they were
+promoted from: the drift-0 target had read 0.460, and the shuffled column 0.522 at 0.20 and
+0.548 ± 0.059 at 0.45. The means come from `artifacts/expB/summary.json`; the shuffled
+standard deviations, which the artifact does not store, come from
+`fullruns/06302026/steps/expB_full.log`. `docs/CORRECTIONS.md`, 2026-10-10.)*
 
 The target sits at chance even at strong drift, while the positive control reads
 speed at ≈ 0.90 and the drift = 0 control is clean. The apparatus works; the agent
