@@ -371,7 +371,11 @@ readouts, and the registered verdict is uninformative, decided by gate 5, with g
 positive under the frozen wording that falls short only of the draft margin. The README, the
 site and `docs/LEARNING.md` say the same. The audit holds the FINDINGS banner, TL;DR, section
 1, section 6 and 17.12, `docs/PAPER_OUTLINE.md`, the README, the site and `docs/LEARNING.md` to
-it. Two dated notes under FINDINGS 13.F record each point with its numbers, attribute the
+it. The site's Experiment C card footer ("uninformative (gates 1, 5)") and item 6 of the
+cover page of both July 2026 walkthrough PDFs ("because registered gates 1 and 5 fail") had
+kept the old routing. The footer now names gate 5 and the covers name it as the gate that
+decides, and the audit guard matches any listing of gates 1 and 5 together on the surfaces
+it reads. Two dated notes under FINDINGS 13.F record each point with its numbers, attribute the
 estimand and the gates to their two runs (`a0cb850` and `06ecc10`), and add the descriptive
 per-individual contrast, +0.006 [-0.012, +0.024]. Two dated section-12 entries in
 `docs/PREREGISTRATION_C.md` record the same points and the in-place edits to that file, and
@@ -637,3 +641,27 @@ for it.
 Experiment B after the fact.
 
 **What this does not change.** The reading: 0.510 at drift 0.45, at chance.
+
+## 2026-10-10: promoted artifacts named the registered verdict with a gate open
+
+**What was wrong.** `scripts/promote_reviewer_gaps_runs.py` wrote the zone "ENCODING INDUCED
+(all clauses)" whenever the survival mean reached 0.65 and both margins held. It read neither
+the registered gates, which the decision matrix (`docs/PREREGISTRATION_L3.md` section 8)
+requires to pass, nor the t-based 90% interval that section 10 adjudicates the bar on. Two
+promoted artifacts carried that name with the L0 gate open: `C1`'s
+(`artifacts/expB2/corrected_l3_h8_wm.json`), whose verdict in
+`artifacts/corrected_verdicts.json` reads NOT MET as registered, and the skill-matched run's
+(`artifacts/expB2/skill_matched_l3_h8_nowm_u450.json`).
+
+**Change.** The zone reads "ENCODING INDUCED" only when the mean is at the bar, the t-based 90%
+interval excludes it, both margins hold, and every gate passes. Clauses met with a gate open
+read "DECODABILITY CLAUSES MET, GATE OPEN: <gates>", and a mean at the bar whose interval
+straddles it reads "MEAN AT BAR, T90 STRADDLES 0.65". A speed gate with a pool that could not
+be scored, or a leakage gate with an arm that carries no flag, reads as not recorded instead of
+passed or open. `--relabel` rewrote the zone of both artifacts, which now read "DECODABILITY
+CLAUSES MET, GATE OPEN: l0", and each keeps its earlier zone in a `zone_relabelled` note.
+Before writing, it checked every number against a re-promotion from the committed cells.
+
+**What this does not change.** No number moves, and no other committed artifact's zone
+changes. The corrected verdicts, the gate table and FINDINGS already read `C1`'s registered
+rule as not met.
