@@ -1,13 +1,23 @@
 """Check quoted numbers and watched wording against the committed artifacts.
 
-What it does: loads the committed JSONs under artifacts/ and checks that the numbers
-quoted in README.md, docs/FINDINGS.md (sections 9-10, 14 to 16 and the methods notes),
-docs/PAPER_OUTLINE.md, CITATION.cff, the site, and the B-v3 gate entry of
-docs/PREREGISTRATION_Bv3.md section 12 equal values recomputed from the per-seed cells
-they come from; that generated pages (index.html, the results manifest, the gate table,
-the contrast intervals, the manuscript tables) are current; and that retired wording has
-not returned to the pages it watches. Fails loudly (non-zero exit) on any mismatch
-beyond rounding.
+What it does. For each result it guards, it loads the committed JSONs under artifacts/,
+recomputes the summary statistic (mean, t-based or bootstrap interval, TOST, seed count)
+from the per-seed values where the artifact stores them, and compares it with the number the
+documents quote, which this script mirrors as a constant. Where an artifact stores no
+per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
+values, recorded integrity results and a few stored gate readings), the stored value itself
+is compared with the constant. Those checks are labeled "pinned:" and the run prints how
+many there are (62 of 1345 on 2026-10-10). It also checks that the generated pages
+(index.html, the results manifest, the gate table, the contrast intervals, the manuscript
+tables) match a fresh render, and that retired wording has not returned to the pages it
+watches. Fails loudly (non-zero exit) on any mismatch beyond rounding.
+
+What it reads from the documents. Numbers in the document text are compared with artifact
+values, recomputed where per-seed values exist, for FINDINGS 3.1, 10.1.1, 13.F, 14.5.1,
+14.7, 14.7.1 and section 17, the Experiment C lines of the FINDINGS summary, and
+PAPER_OUTLINE rows 27, 40 and 46. In README.md, CITATION.cff, the site, the rest of
+PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only, a few of which
+contain a number; a number edited outside those phrases is not caught.
 
 What it does not do (revision 2026-10): it reruns no experiment, it cannot detect an error
 in the committed per-seed values themselves (the GAE bootstrap defect passed it for
@@ -45,6 +55,7 @@ BAR = 0.65
 
 failures: list[str] = []
 n_checks = 0
+n_pins = 0
 
 
 def t_ci(vals: list[float], level: float = 0.90) -> tuple[float, float]:
@@ -58,8 +69,10 @@ def t_ci(vals: list[float], level: float = 0.90) -> tuple[float, float]:
 
 
 def check(label: str, actual: float, expected: float, tol: float = TOL) -> None:
-    global n_checks
+    global n_checks, n_pins
     n_checks += 1
+    if label.startswith("pinned:"):
+        n_pins += 1
     ok = math.isfinite(actual) and abs(actual - expected) <= tol
     mark = "ok  " if ok else "FAIL"
     print(f"  [{mark}] {label}: doc {expected:.3f} vs recomputed {actual:.4f}")
@@ -94,6 +107,24 @@ def seed_vals(doc: dict, drift: str, agent: str, metric: str) -> list[float]:
             if r["drift"] == drift and r["agent"] == agent and metric in r]
     rows.sort(key=lambda r: r["seed"])
     return [float(r[metric]) for r in rows]
+
+
+def _seed_mean(block: dict, key: str = "per_seed") -> float:
+    """Mean recomputed from the per-seed values stored beside an aggregate, so a quoted
+    number is compared with what the seeds give and not with the stored aggregate."""
+    return float(np.mean(block[key]))
+
+
+def _lead(doc: dict, arm: str) -> float:
+    """Survival-minus-arm lead at the run's strongest drift, from per-seed pool targets."""
+    arms = doc["arms"][doc["dmax"]]
+    return _seed_mean(arms["survival"]["pool_target"]) - _seed_mean(arms[arm]["pool_target"])
+
+
+def _fold_seeds(art: dict, met: str, scheme: str) -> list:
+    """Per-seed survival values at drift 0.45 of a fold re-score, under one partition."""
+    return [c[scheme][met] for c in art["cells"]
+            if c["agent"] == "survival" and float(c["drift"]) == 0.45]
 
 
 def verify_aggregate_consistency(name: str, doc: dict) -> None:
@@ -394,9 +425,9 @@ def main() -> int:
     with open(os.path.join(ARTROOT, "expA", "summary.json"), encoding="utf-8") as fh:
         ea = json.load(fh)
     l1 = {c["label"]: c for c in ea["expA_l1"]["cells"]}
-    check("L1 oracle at delta=0.06 (1.000)",
+    check("pinned: L1 oracle at delta=0.06 (1.000)",
           l1["L1 discretization, delta=0.06"]["oracle_auroc"], 1.000)
-    check("L1 L0 control (0.523)",
+    check("pinned: L1 L0 control (0.523)",
           l1["L0 control, identical world"]["oracle_auroc"], 0.523)
     check_true("L1 leakage audit passes on clean cells",
                l1["L1 discretization, delta=0.06"]["leakage_pass"]
@@ -404,16 +435,16 @@ def main() -> int:
     check_true("L1 contaminated-reward negative control CAUGHT (leakage_pass False)",
                not l1["L1 + contaminated reward (+0.02 in surrogate)"]["leakage_pass"])
     l2 = {c["label"]: c for c in ea["expA_l2"]["cells"]}
-    check("L2 oracle at drift=0.30 (0.993)",
+    check("pinned: L2 oracle at drift=0.30 (0.993)",
           l2["L2 rollout drift, drift_sigma=0.30"]["oracle_auroc"], 0.993)
-    check("L2 L0 control (0.440)",
+    check("pinned: L2 L0 control (0.440)",
           l2["L2 control, drift_sigma=0  -> identical dynamics"]["oracle_auroc"], 0.440)
     with open(os.path.join(ARTROOT, "expB", "summary.json"), encoding="utf-8") as fh:
         eb = json.load(fh)
     sweep = {r["drift"]: r for r in eb["expB_full"]["drift_sweep"]}
-    check("expB recurrent-state target @0.45 (0.510)", sweep[0.45]["target_mean"], 0.510)
-    check("expB recurrent-state std @0.45 (0.039)", sweep[0.45]["target_std"], 0.039)
-    check("expB recurrent-state target @0.20 (0.509)", sweep[0.2]["target_mean"], 0.509)
+    check("pinned: expB recurrent-state target @0.45 (0.510)", sweep[0.45]["target_mean"], 0.510)
+    check("pinned: expB recurrent-state std @0.45 (0.039)", sweep[0.45]["target_std"], 0.039)
+    check("pinned: expB recurrent-state target @0.20 (0.509)", sweep[0.2]["target_mean"], 0.509)
     # 2026-10-10: every cell of the FINDINGS 3.1 table that the artifact stores is matched
     # exactly, as printed (three cells had drifted by 0.001). The artifact stores no shuffled
     # standard deviation; those three come from the run log and are not checked here.
@@ -426,11 +457,11 @@ def main() -> int:
         check_true(f"FINDINGS 3.1 row {_lab} quotes the artifact's target and shuffled means",
                    _row in _f31 and f"| {_r['speed_mean']:.3f} ± " in _f31)
     surp = {r["drift"]: r for r in eb["expB_surprise"]["drift_sweep_with_std"]}
-    check("surprise channel @0.45 (0.596)", surp[0.45]["mean"], 0.596)
-    check("surprise channel std @0.45 (0.007)", surp[0.45]["std"], 0.007)
+    check("pinned: surprise channel @0.45 (0.596)", surp[0.45]["mean"], 0.596)
+    check("pinned: surprise channel std @0.45 (0.007)", surp[0.45]["std"], 0.007)
     nl = {r["drift"]: r for r in eb["expB_nonlinear"]["drift_sweep_with_std"]}
-    check("nonlinear probe @0.45 (0.482)", nl[0.45]["mean"], 0.482)
-    check("nonlinear probe std @0.45 (0.031)", nl[0.45]["std"], 0.031)
+    check("pinned: nonlinear probe @0.45 (0.482)", nl[0.45]["mean"], 0.482)
+    check("pinned: nonlinear probe std @0.45 (0.031)", nl[0.45]["std"], 0.031)
     for row in eb["expB_kstep_rerun_20260713"]["horizons"]:
         check_true(f"kstep rerun horizon {row['open_horizon']} at chance "
                    f"({row['drift_045_target_mean']:.3f} in 0.48-0.51)",
@@ -439,15 +470,15 @@ def main() -> int:
     print("== FINDINGS 7.1: B-v3 n=10 and capacity ceiling (committed) ==")
     with open(os.path.join(ART, "bv3_n10_summary.json"), encoding="utf-8") as fh:
         bv3 = json.load(fh)["pooled_target_drift045"]["survival"]
-    check("B-v3 survival n=10 (0.610)", bv3["mean"], 0.610)
-    check("B-v3 boot lo (0.585)", bv3["boot90_lo"], 0.585)
-    check("B-v3 boot hi (0.634)", bv3["boot90_hi"], 0.634)
+    check("B-v3 survival n=10 (0.610)", _seed_mean(bv3, "pool_target_per_seed"), 0.610)
+    check("B-v3 boot lo (0.585)", mean_ci(bv3["pool_target_per_seed"])[1], 0.585)
+    check("B-v3 boot hi (0.634)", mean_ci(bv3["pool_target_per_seed"])[2], 0.634)
     check_true("B-v3 CI entirely below 0.65 bar", bv3["boot90_hi"] < BAR)
     with open(os.path.join(ART, "sysid_ceiling_n10_summary.json"), encoding="utf-8") as fh:
         ceil = json.load(fh)["pooled_target_drift045"]["survival"]
-    check("capacity ceiling n=10 (0.596)", ceil["mean"], 0.596)
-    check("ceiling boot lo (0.577)", ceil["boot90_lo"], 0.577)
-    check("ceiling boot hi (0.616)", ceil["boot90_hi"], 0.616)
+    check("capacity ceiling n=10 (0.596)", _seed_mean(ceil, "pool_target_per_seed"), 0.596)
+    check("ceiling boot lo (0.577)", mean_ci(ceil["pool_target_per_seed"])[1], 0.577)
+    check("ceiling boot hi (0.616)", mean_ci(ceil["pool_target_per_seed"])[2], 0.616)
     check_true("ceiling CI entirely below 0.65 bar", ceil["boot90_hi"] < BAR)
     ctlo, cthi = t_ci(ceil["pool_target_per_seed"])
     check("ceiling t lo (0.573)", ctlo, 0.573)
@@ -480,11 +511,11 @@ def main() -> int:
     check_true("cross-recipe frozen rule recomputed (survival >= 0.65 AND "
                "> untrained + 0.05)", m >= BAR and m > mu + 0.05)
     check_true("cross-recipe rule_pass recorded true", bool(tr["rule_pass"]))
-    check("cross-recipe rule margin (0.034)", tr["rule_margin"], 0.034)
-    check("cross-recipe integrity gate reproduced 0.752",
+    check("cross-recipe rule margin over the bar (0.034)", _seed_mean(tr, "survival_per_seed") - BAR, 0.034)
+    check("pinned: cross-recipe integrity gate reproduced 0.752",
           xr["integrity_gate"]["drift045_survival_mean_reproduced"], 0.752)
     g0 = xr["gate0"]
-    check("cross-recipe gate-0 rff oracle (0.887)", g0["rff"]["selected_oracle_auroc"], 0.887)
+    check("pinned: cross-recipe gate-0 rff oracle (0.887)", g0["rff"]["selected_oracle_auroc"], 0.887)
     check_true("cross-recipe gate-0 rff oracle in band",
                0.85 <= g0["rff"]["selected_oracle_auroc"] <= 0.95)
     check_true("cross-recipe cd dropped with empty window (floors > 0.6 "
@@ -526,7 +557,7 @@ def main() -> int:
         with open(os.path.join(ARTROOT, "expB2", rp), encoding="utf-8") as fh:
             rs = json.load(fh)
         check(f"mp re-score survival mean matches doc quote ({rp})",
-              rs["strong_drift"]["survival"]["mp_fixed_mean"], quoted, tol=5e-4)
+              _seed_mean(rs["strong_drift"]["survival"], "mp_fixed_per_seed"), quoted, tol=5e-4)
 
     print("== FINDINGS Exp C: emergence pilot (milestone 3, N=48 G=30 3 seeds) ==")
     # NOTE (2026-07-18): this block re-verifies the INVALIDATED pilot artifact
@@ -615,7 +646,7 @@ def main() -> int:
     check_true("H2 stored Spearman rho == 1.0", abs(h2["survival_monotonicity_rho"] - 1.0) <= 1e-9)
     # endpoints: alpha=1 reproduces the published 0.752 headline; alpha=0 at the L0 floor
     check("H2 alpha=1 survival == published L3 headline (0.752)", surv_means[-1], 0.752, tol=1e-3)
-    check("H2 integrity gate alpha=1 survival mean (0.752)",
+    check("pinned: H2 integrity gate alpha=1 survival mean (0.752)",
           h2["integrity"]["survival_mean_alpha1"], 0.752)
     check_true("H2 integrity pools bit-match saved dumps (determinism check #5)",
                h2["integrity"]["pools_bit_match"] is True)
@@ -692,21 +723,21 @@ def main() -> int:
         check_true(f"h{hid} gn rule_pass recorded False, verdict H2_SUPPORTED",
                    doc["gn_rule"]["pass"] is False and doc["gn_rule"]["verdict"] == "H2_SUPPORTED")
         check_true(f"h{hid} gn not dropped at gate 0", doc["gn_dropped_at_gate0"] is False)
-        check(f"h{hid} gn sigma_v (0.010)", doc["config"]["gn_sigma_v"], 0.01)
+        check(f"pinned: h{hid} gn sigma_v (0.010)", doc["config"]["gn_sigma_v"], 0.01)
         # integrity gate: 60 reloaded agents regenerate pools bit-identically and the
         # drift-0.45 survival mean reproduces the published headline
         integ = doc["integrity"]
         check_true(f"h{hid} integrity gate PASSED in run log", integ.get("gate_passed") is True)
         check(f"h{hid} integrity reproduces published survival ({exp['pub']:.3f})",
               integ.get("survival_mean_reproduced", float("nan")), exp["pub"])
-        check(f"h{hid} published_target_check recorded ({exp['pub']:.3f})",
+        check(f"pinned: h{hid} published_target_check recorded ({exp['pub']:.3f})",
               doc["config"]["published_target_check"], exp["pub"])
         check_int(f"h{hid} integrity: 60 reloaded agents ok", integ.get("n_integrity_ok_lines", -1), 60)
         # capacity ladder oracles are intentionally sub-band
         lo = doc["ladder_oracles"]
-        check(f"h{hid} ladder oracle h16 (0.788)", lo["h16"], 0.788)
-        check(f"h{hid} ladder oracle h32 (0.656)", lo["h32"], 0.656)
-        check(f"h{hid} ladder oracle h64 (0.603)", lo["h64"], 0.603)
+        check(f"pinned: h{hid} ladder oracle h16 (0.788)", lo["h16"], 0.788)
+        check(f"pinned: h{hid} ladder oracle h32 (0.656)", lo["h32"], 0.656)
+        check(f"pinned: h{hid} ladder oracle h64 (0.603)", lo["h64"], 0.603)
         for name, (m, n_above) in exp["ladder"].items():
             check(f"h{hid} ladder {name} survival ({m:.3f})", _arm_mean(ch[name]["survival"]), m)
             if n_above is not None:
@@ -720,9 +751,9 @@ def main() -> int:
     # gate 0 for the gn comparator (hidden=8 calibration, reused verbatim at hidden=7)
     g0 = tk[8]["gate0"]["gn"]
     sel = g0["selected_row"]
-    check("gate-0 gn selected sigma_v (0.010)", sel["sigma_v"], 0.01)
-    check("gate-0 gn oracle AUROC (0.865)", sel["oracle_auroc"], 0.865)
-    check("gate-0 gn untrained floor (0.448)", sel["floor"], 0.448)
+    check("pinned: gate-0 gn selected sigma_v (0.010)", sel["sigma_v"], 0.01)
+    check("pinned: gate-0 gn oracle AUROC (0.865)", sel["oracle_auroc"], 0.865)
+    check("gate-0 gn untrained floor (0.448)", _seed_mean(sel, "floor_per_seed"), 0.448)
     check_true("gate-0 gn selected row in band, mech leak pass, floor ok, passes gate 0",
                sel["in_band"] and sel["mech_leak_pass"] and sel["floor_ok"] and sel["passes_gate0"])
     check_true("gate-0 gn exactly one sigma_v passes gate 0",
@@ -789,12 +820,12 @@ def main() -> int:
     lob = _load_art("expL1", "obs_localization.json")
     # gate 0: frozen grid and the matched-band noise comparator
     gd, gn_ = org["gate0"]["delta"], org["gate0"]["noise"]
-    check("L1 gate-0 chosen delta (0.023)", gd["chosen_delta"], 0.023)
-    check("L1 gate-0 oracle AUROC at delta (0.873)", gd["chosen_auroc"], 0.873)
+    check("pinned: L1 gate-0 chosen delta (0.023)", gd["chosen_delta"], 0.023)
+    check("pinned: L1 gate-0 oracle AUROC at delta (0.873)", gd["chosen_auroc"], 0.873)
     check_true("L1 gate-0 delta row leakage clean",
                gd["chosen_row"] is not None and gd["chosen_row"]["leakage_pass"] is True)
-    check("L1 noise comparator sigma_o (0.010)", gn_["chosen_sigma"], 0.01)
-    check("L1 noise comparator oracle AUROC (0.873)", gn_["chosen_row"]["oracle_auroc"], 0.873)
+    check("pinned: L1 noise comparator sigma_o (0.010)", gn_["chosen_sigma"], 0.01)
+    check("pinned: L1 noise comparator oracle AUROC (0.873)", gn_["chosen_row"]["oracle_auroc"], 0.873)
     check_true("L1 noise comparator leakage clean", gn_["chosen_row"]["leakage_pass"] is True)
     check_true("L1 gate-0 sensor sigma 0.01 shared by delta and noise calibrations",
                abs(gd["sensor_sigma"] - 0.01) <= 1e-12
@@ -854,7 +885,7 @@ def main() -> int:
     a1 = abl["a1_graded_seam"]
     check_true("L1 A1 integrity: pools bit-match saved dumps",
                a1["integrity"]["checked"] and a1["integrity"]["pools_bit_match"] is True)
-    check("L1 A1 integrity reproduces headline survival (0.533)",
+    check("pinned: L1 A1 integrity reproduces headline survival (0.533)",
           a1["integrity"]["survival_mean_headline"], 0.533)
     check_true("L1 A1 integrity gate PASSED in run log",
                abl["integrity"].get("gate_passed") is True
@@ -876,7 +907,7 @@ def main() -> int:
     check_true("L1 A1 L0 anchor accepts chance equivalence", a1["l0_anchor"]["accept_equiv"] is True)
     # A2 noise knockout: vacuous rule failure on a null primary
     nz = abl["a2_noise_knockout"]
-    check("L1 A2 noise sigma (0.010)", nz["noise_sigma"], 0.01)
+    check("pinned: L1 A2 noise sigma (0.010)", nz["noise_sigma"], 0.01)
     check("L1 A2 noise survival (0.525)", float(np.mean(nz["survival_per_seed"])), 0.525)
     check("L1 A2 noise untrained (0.509)", float(np.mean(nz["untrained_per_seed"])), 0.509)
     check("L1 A2 noise predictor (0.516)", float(np.mean(nz["predictor_per_seed"])), 0.516)
@@ -885,8 +916,8 @@ def main() -> int:
                and nz["gn_verdict"] == "H2_SUPPORTED")
     # A2 observation-channel localization at L1
     lm = lob["masks"]
-    check("L1 obs delta (0.023)", lob["config"]["l1_delta"], 0.023)
-    check("L1 obs sensor sigma (0.010)", lob["config"]["sensor_sigma"], 0.01)
+    check("pinned: L1 obs delta (0.023)", lob["config"]["l1_delta"], 0.023)
+    check("pinned: L1 obs sensor sigma (0.010)", lob["config"]["sensor_sigma"], 0.01)
     for mask in ("none", "vision", "intero", "all"):
         _stored_means_reproduce(f"L1 obs mask={mask}", lm[mask])
         check_int(f"L1 obs mask={mask} zeroed dims ({zero_dims[mask]}/146)",
@@ -936,8 +967,8 @@ def main() -> int:
     check_true("B-v3 gate 4 exactly one exception: drift 0.45 seed 6 survival reward_sum",
                len(fails) == 1 and fails[0]["drift"] == "0.45" and fails[0]["seed"] == 6
                and fails[0]["agent"] == "survival" and fails[0]["channel"] == "reward_sum")
-    check("B-v3 gate 4 exception reward_sum AUROC (0.393)", fails[0]["value"], 0.393)
-    check("B-v3 gate 4 exception max_abs_dev (0.107)", fails[0]["max_abs_dev"], 0.107)
+    check("pinned: B-v3 gate 4 exception reward_sum AUROC (0.393)", fails[0]["value"], 0.393)
+    check("pinned: B-v3 gate 4 exception max_abs_dev (0.107)", fails[0]["max_abs_dev"], 0.107)
     check_true("B-v3 gate 4 exception recomputed from the per-cell mp leakage rows",
                sum(1 for r in bg["mp_leakage"] if not r["leakage_clean"]) == 1)
     check_true("B-v3 gates: leakage pass recorded False, all_pass recorded False",
@@ -961,27 +992,27 @@ def main() -> int:
             check_int(f"sensory-echo {key} {met}: n_ge_065 reproduces per-seed count",
                       int(sum(x >= BAR for x in v["per_seed"])), int(v["n_ge_065"]))
     sv = se["aggregate"]["d=0.45 survival"]
-    check("10.4.2 survival target reproduces 0.752", sv["target"]["mean"], 0.752)
-    check("10.4.2 survival resid_trace reproduces 10.4.1's 0.723", sv["resid_trace"]["mean"], 0.723)
-    check("10.4.2 survival obs_trace_only (0.709)", sv["obs_trace_only"]["mean"], 0.709)
-    check("10.4.2 survival resid_obs (0.731)", sv["resid_obs"]["mean"], 0.731)
+    check("10.4.2 survival target reproduces 0.752", _seed_mean(sv["target"]), 0.752)
+    check("10.4.2 survival resid_trace reproduces 10.4.1's 0.723", _seed_mean(sv["resid_trace"]), 0.723)
+    check("10.4.2 survival obs_trace_only (0.709)", _seed_mean(sv["obs_trace_only"]), 0.709)
+    check("10.4.2 survival resid_obs (0.731)", _seed_mean(sv["resid_obs"]), 0.731)
     lo, hi = t_ci(sv["resid_obs"]["per_seed"])
     check("10.4.2 survival resid_obs t90 lo (0.690)", lo, 0.690)
     check("10.4.2 survival resid_obs t90 hi (0.772)", hi, 0.772)
     check_int("10.4.2 survival resid_obs seeds >= 0.65 (8)", sv["resid_obs"]["n_ge_065"], 8)
-    check("10.4.2 survival resid_obs_int (0.758)", sv["resid_obs_int"]["mean"], 0.758)
-    check("10.4.2 survival resid_obs_beh (0.670)", sv["resid_obs_beh"]["mean"], 0.670)
+    check("10.4.2 survival resid_obs_int (0.758)", _seed_mean(sv["resid_obs_int"]), 0.758)
+    check("10.4.2 survival resid_obs_beh (0.670)", _seed_mean(sv["resid_obs_beh"]), 0.670)
     lo, hi = t_ci(sv["resid_obs_beh"]["per_seed"])
     check("10.4.2 survival resid_obs_beh t90 lo (0.638)", lo, 0.638)
     check("10.4.2 survival resid_obs_beh t90 hi (0.702)", hi, 0.702)
     check("10.4.2 predictor resid_obs (0.542)",
-          se["aggregate"]["d=0.45 predictor"]["resid_obs"]["mean"], 0.542)
+          _seed_mean(se["aggregate"]["d=0.45 predictor"]["resid_obs"]), 0.542)
     check("10.4.2 untrained resid_obs (0.534)",
-          se["aggregate"]["d=0.45 untrained"]["resid_obs"]["mean"], 0.534)
+          _seed_mean(se["aggregate"]["d=0.45 untrained"]["resid_obs"]), 0.534)
     check("10.4.2 drift-0 survival resid_obs floor (0.504)",
-          se["aggregate"]["d=0.00 survival"]["resid_obs"]["mean"], 0.504)
+          _seed_mean(se["aggregate"]["d=0.00 survival"]["resid_obs"]), 0.504)
     check("10.4.2 drift-0 untrained resid_obs floor (0.472)",
-          se["aggregate"]["d=0.00 untrained"]["resid_obs"]["mean"], 0.472)
+          _seed_mean(se["aggregate"]["d=0.00 untrained"]["resid_obs"]), 0.472)
     dec = se["decision"]
     check_true("10.4.2 frozen rule passes both clauses", bool(dec["pass_bar"] and dec["pass_margin"]))
     check_true("10.4.2 stored rule flags reproduce from stored means",
@@ -996,14 +1027,14 @@ def main() -> int:
     ab = _load_art("expB2", "arch_baseline_l3_h8_nowm.json")
     for arm, ref in (("survival", 0.601), ("predictor", 0.589), ("untrained", 0.529)):
         blk = ab["arms"][ab["dmax"]][arm]["pool_target"]
-        check(f"10.8 {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.8 {arm} pooled target ({ref})", _seed_mean(blk), ref)
         check(f"10.8 {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
     sv = ab["arms"][ab["dmax"]]["survival"]["pool_target"]
     lo, hi = t_ci(sv["per_seed"])
     check("10.8 survival t90 lo (0.549)", lo, 0.549)
     check("10.8 survival t90 hi (0.654)", hi, 0.654)
     check_int("10.8 survival seeds >= 0.65 (1)", sv["n_ge_065"], 1)
-    check("10.8 survival resid_trace (0.646)", ab["behavior_audit"]["survival"]["resid_trace"]["mean"], 0.646)
+    check("10.8 survival resid_trace (0.646)", _seed_mean(ab["behavior_audit"]["survival"]["resid_trace"]), 0.646)
     check_true("10.8 all gates pass", ab["gates"]["l0_tost"]["equivalent"] and ab["gates"]["l0_rope"]["accept"]
                and ab["gates"]["pool_leak_clean_all"] and ab["gates"]["untrained_floor_ok"]
                and all(v["pass"] == v["n"] for v in ab["gates"]["engagement"].values()))
@@ -1013,15 +1044,15 @@ def main() -> int:
     si = _load_art("expB2", "second_instance_l3_h10_gseed1.json")
     check_int("10.9 gate 0 selected hidden (10)", int(si["gate0_calibration"]["selected_hidden"]), 10)
     rows = {int(r["hidden"]): r for r in si["gate0_calibration"]["rows"]}
-    check("10.9 gate 0 hidden 8 oracle (0.928)", rows[8]["oracle_auroc"], 0.928)
-    check("10.9 gate 0 hidden 8 floor dirty (0.664)", rows[8]["floor"], 0.664)
+    check("pinned: 10.9 gate 0 hidden 8 oracle (0.928)", rows[8]["oracle_auroc"], 0.928)
+    check("10.9 gate 0 hidden 8 floor dirty (0.664)", _seed_mean(rows[8], "floor_per_seed"), 0.664)
     check_true("10.9 gate 0 hidden 8 fails at seed 1", not rows[8]["passes_gate0"])
-    check("10.9 gate 0 hidden 10 oracle (0.893)", rows[10]["oracle_auroc"], 0.893)
-    check("10.9 gate 0 hidden 10 floor (0.484)", rows[10]["floor"], 0.484)
+    check("pinned: 10.9 gate 0 hidden 10 oracle (0.893)", rows[10]["oracle_auroc"], 0.893)
+    check("10.9 gate 0 hidden 10 floor (0.484)", _seed_mean(rows[10], "floor_per_seed"), 0.484)
     check_true("10.9 gate 0 hidden 10 passes", bool(rows[10]["passes_gate0"]))
     for arm, ref in (("survival", 0.639), ("predictor", 0.534), ("untrained", 0.514)):
         blk = si["arms"][si["dmax"]][arm]["pool_target"]
-        check(f"10.9 {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.9 {arm} pooled target ({ref})", _seed_mean(blk), ref)
         check(f"10.9 {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
     sv = si["arms"][si["dmax"]]["survival"]["pool_target"]
     lo, hi = t_ci(sv["per_seed"])
@@ -1029,7 +1060,7 @@ def main() -> int:
     check("10.9 survival t90 hi (0.669)", hi, 0.669)
     check_int("10.9 survival seeds >= 0.65 (5)", sv["n_ge_065"], 5)
     rt = si["behavior_audit"]["survival"]["resid_trace"]
-    check("10.9 survival resid_trace (0.658)", rt["mean"], 0.658)
+    check("10.9 survival resid_trace (0.658)", _seed_mean(rt), 0.658)
     lo, hi = t_ci(rt["per_seed"])
     check("10.9 survival resid_trace t90 lo (0.625)", lo, 0.625)
     check("10.9 survival resid_trace t90 hi (0.691)", hi, 0.691)
@@ -1049,11 +1080,11 @@ def main() -> int:
     check_true("10.9-gpu execution names the owner's GPU machine", sg["execution"].startswith("owner's GPU"))
     check_int("10.9-gpu gate 0 re-run selected hidden (10)", int(sg["gate0_calibration"]["selected_hidden"]), 10)
     g10 = {int(r["hidden"]): r for r in sg["gate0_calibration"]["rows"]}[10]
-    check("10.9-gpu gate 0 hidden 10 oracle on CUDA (0.893)", g10["oracle_auroc"], 0.893)
-    check("10.9-gpu gate 0 hidden 10 floor on CUDA (0.521)", g10["floor"], 0.521)
+    check("pinned: 10.9-gpu gate 0 hidden 10 oracle on CUDA (0.893)", g10["oracle_auroc"], 0.893)
+    check("10.9-gpu gate 0 hidden 10 floor on CUDA (0.521)", _seed_mean(g10, "floor_per_seed"), 0.521)
     for arm, ref in (("survival", 0.612), ("predictor", 0.529), ("untrained", 0.521)):
         blk = sg["arms"][sg["dmax"]][arm]["pool_target"]
-        check(f"10.9-gpu {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.9-gpu {arm} pooled target ({ref})", _seed_mean(blk), ref)
         check(f"10.9-gpu {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
     svg = sg["arms"][sg["dmax"]]["survival"]["pool_target"]
     lo, hi = t_ci(svg["per_seed"])
@@ -1061,18 +1092,18 @@ def main() -> int:
     check("10.9-gpu survival t90 hi (0.642)", hi, 0.642)
     check_int("10.9-gpu survival seeds >= 0.65 (3)", svg["n_ge_065"], 3)
     rtg = sg["behavior_audit"]["survival"]["resid_trace"]
-    check("10.9-gpu survival resid_trace (0.638)", rtg["mean"], 0.638)
+    check("10.9-gpu survival resid_trace (0.638)", _seed_mean(rtg), 0.638)
     lo, hi = t_ci(rtg["per_seed"])
     check("10.9-gpu survival resid_trace t90 lo (0.612)", lo, 0.612)
     check("10.9-gpu survival resid_trace t90 hi (0.663)", hi, 0.663)
-    check("10.9-gpu lead over predictor (+0.083)", sg["decision"]["lead_over_predictor"], 0.083)
-    check("10.9-gpu lead over untrained (+0.091)", sg["decision"]["lead_over_untrained"], 0.091)
+    check("10.9-gpu lead over predictor (+0.083)", _lead(sg, "predictor"), 0.083)
+    check("10.9-gpu lead over untrained (+0.091)", _lead(sg, "untrained"), 0.091)
     check_true("10.9-gpu rule not met: bar missed, both margin clauses pass",
                (not sg["decision"]["pass_bar"]) and sg["decision"]["pass_margin_predictor"]
                and sg["decision"]["pass_margin_untrained"])
     check_true("10.9-gpu L0 gate open as stated (TOST and ROPE both reject at n = 10)",
                (not sg["gates"]["l0_tost"]["equivalent"]) and (not sg["gates"]["l0_rope"]["accept"]))
-    check("10.9-gpu L0 survival mean (0.539)", sg["gates"]["l0_survival_mean"], 0.539)
+    check("10.9-gpu L0 survival mean (0.539)", _seed_mean(sg["arms"]["0.0"]["survival"]["pool_target"]), 0.539)
     check_true("10.9-gpu remaining gates pass (engagement, leak, floor, deaths)",
                sg["gates"]["pool_leak_clean_all"] and sg["gates"]["untrained_floor_ok"]
                and sg["gates"]["deaths_total"] == 0
@@ -1104,28 +1135,28 @@ def main() -> int:
             check(f"h7 sensory-echo {key} {met}: stored mean reproduces per-seed mean",
                   float(np.mean(v["per_seed"])), float(v["mean"]))
     sv7 = s7["aggregate"]["d=0.45 survival"]
-    check("h7 10.4.2 survival target reproduces 0.737", sv7["target"]["mean"], 0.737)
-    check("h7 10.4.2 survival obs_trace_only (0.697)", sv7["obs_trace_only"]["mean"], 0.697)
-    check("h7 10.4.2 survival resid_trace, seven-channel (0.739)", sv7["resid_trace"]["mean"], 0.739)
-    check("h7 10.4.2 survival resid_obs (0.684)", sv7["resid_obs"]["mean"], 0.684)
+    check("h7 10.4.2 survival target reproduces 0.737", _seed_mean(sv7["target"]), 0.737)
+    check("h7 10.4.2 survival obs_trace_only (0.697)", _seed_mean(sv7["obs_trace_only"]), 0.697)
+    check("h7 10.4.2 survival resid_trace, seven-channel (0.739)", _seed_mean(sv7["resid_trace"]), 0.739)
+    check("h7 10.4.2 survival resid_obs (0.684)", _seed_mean(sv7["resid_obs"]), 0.684)
     lo, hi = t_ci(sv7["resid_obs"]["per_seed"])
     check("h7 10.4.2 survival resid_obs t90 lo (0.627)", lo, 0.627)
     check("h7 10.4.2 survival resid_obs t90 hi (0.741)", hi, 0.741)
     check_int("h7 10.4.2 survival resid_obs seeds >= 0.65 (7)", sv7["resid_obs"]["n_ge_065"], 7)
-    check("h7 10.4.2 survival resid_obs_int (0.695)", sv7["resid_obs_int"]["mean"], 0.695)
-    check("h7 10.4.2 survival resid_obs_beh (0.671)", sv7["resid_obs_beh"]["mean"], 0.671)
+    check("h7 10.4.2 survival resid_obs_int (0.695)", _seed_mean(sv7["resid_obs_int"]), 0.695)
+    check("h7 10.4.2 survival resid_obs_beh (0.671)", _seed_mean(sv7["resid_obs_beh"]), 0.671)
     lo, hi = t_ci(sv7["resid_obs_beh"]["per_seed"])
     check("h7 10.4.2 survival resid_obs_beh t90 lo (0.618)", lo, 0.618)
     check("h7 10.4.2 survival resid_obs_beh t90 hi (0.725)", hi, 0.725)
     p7o = s7["aggregate"]["d=0.45 predictor"]["resid_obs"]["mean"]
     check("h7 10.4.2 predictor resid_obs (0.589)", p7o, 0.589)
-    check("h7 10.4.2 predictor raw target (0.714)", s7["aggregate"]["d=0.45 predictor"]["target"]["mean"], 0.714)
-    check("h7 10.4.2 untrained resid_obs (0.549)", s7["aggregate"]["d=0.45 untrained"]["resid_obs"]["mean"], 0.549)
-    check("h7 10.4.2 untrained obs_trace_only (0.643)", s7["aggregate"]["d=0.45 untrained"]["obs_trace_only"]["mean"], 0.643)
+    check("h7 10.4.2 predictor raw target (0.714)", _seed_mean(s7["aggregate"]["d=0.45 predictor"]["target"]), 0.714)
+    check("h7 10.4.2 untrained resid_obs (0.549)", _seed_mean(s7["aggregate"]["d=0.45 untrained"]["resid_obs"]), 0.549)
+    check("h7 10.4.2 untrained obs_trace_only (0.643)", _seed_mean(s7["aggregate"]["d=0.45 untrained"]["obs_trace_only"]), 0.643)
     check("h7 10.4.2 survival-minus-predictor lead under the sensory control (+0.095)",
-          sv7["resid_obs"]["mean"] - p7o, 0.095)
-    check("h7 10.4.2 drift-0 survival resid_obs floor (0.504)", s7["aggregate"]["d=0.00 survival"]["resid_obs"]["mean"], 0.504)
-    check("h7 10.4.2 drift-0 untrained resid_obs floor (0.472)", s7["aggregate"]["d=0.00 untrained"]["resid_obs"]["mean"], 0.472)
+          _seed_mean(sv7["resid_obs"]) - p7o, 0.095)
+    check("h7 10.4.2 drift-0 survival resid_obs floor (0.504)", _seed_mean(s7["aggregate"]["d=0.00 survival"]["resid_obs"]), 0.504)
+    check("h7 10.4.2 drift-0 untrained resid_obs floor (0.472)", _seed_mean(s7["aggregate"]["d=0.00 untrained"]["resid_obs"]), 0.472)
     d7 = s7["decision"]
     check_true("h7 10.4.2 frozen rule passes both clauses", bool(d7["pass_bar"] and d7["pass_margin"]))
     check_true("h7 10.4.2 t-CI lower bound below the bar, as stated", d7["survival_t90"][0] < BAR)
@@ -1150,8 +1181,10 @@ def main() -> int:
         for met, (leg, exp) in mets.items():
             blk = fr[h]["aggregate"]["d=0.45 survival"][met]
             tol = 1e-3 if (h, met) == (8, "target") else TOL   # 0.7525 is the exact 3-dp midpoint
-            check(f"fold h{h} survival {met} legacy reproduces published ({leg})", blk["legacy"]["mean"], leg, tol=tol)
-            check(f"fold h{h} survival {met} explicit ({exp})", blk["explicit"]["mean"], exp)
+            check(f"fold h{h} survival {met} legacy reproduces published ({leg})",
+                  float(np.mean(_fold_seeds(fr[h], met, "legacy"))), leg, tol=tol)
+            check(f"fold h{h} survival {met} explicit ({exp})",
+                  float(np.mean(_fold_seeds(fr[h], met, "explicit"))), exp)
             check(f"fold h{h} survival {met}: stored shift = explicit - legacy",
                   blk["mean_shift"], blk["explicit"]["mean"] - blk["legacy"]["mean"])
             for scheme in ("legacy", "explicit"):
@@ -1180,10 +1213,10 @@ def main() -> int:
                abs(round(s8["mean"], 3) - 0.774) < 1e-9 and abs(round(s7["mean"], 3) - 0.740) < 1e-9)
     # common garden, matched pair, gate 0 under both schemes
     cg = {(h, sch): _fold_art(f"cg_h{h}_{sch}.json")["aggregate"] for h in (8, 7) for sch in ("legacy", "explicit")}
-    check("fold cg h8 legacy reproduces the forward tail (0.666)", cg[(8, "legacy")]["d0.45_survival"]["cg_tail_mean"], 0.666)
-    check("fold cg h7 legacy reproduces the reverse tail (0.684)", cg[(7, "legacy")]["d0.45_survival"]["cg_tail_mean"], 0.684)
-    check("fold cg h8 explicit forward tail (0.677)", cg[(8, "explicit")]["d0.45_survival"]["cg_tail_mean"], 0.677)
-    check("fold cg h7 explicit reverse tail (0.677)", cg[(7, "explicit")]["d0.45_survival"]["cg_tail_mean"], 0.677)
+    check("fold cg h8 legacy reproduces the forward tail (0.666)", _seed_mean(cg[(8, "legacy")]["d0.45_survival"], "cg_tail_per_seed"), 0.666)
+    check("fold cg h7 legacy reproduces the reverse tail (0.684)", _seed_mean(cg[(7, "legacy")]["d0.45_survival"], "cg_tail_per_seed"), 0.684)
+    check("fold cg h8 explicit forward tail (0.677)", _seed_mean(cg[(8, "explicit")]["d0.45_survival"], "cg_tail_per_seed"), 0.677)
+    check("fold cg h7 explicit reverse tail (0.677)", _seed_mean(cg[(7, "explicit")]["d0.45_survival"], "cg_tail_per_seed"), 0.677)
     for h in (8, 7):
         a = cg[(h, "explicit")]
         check_true(f"fold cg h{h} explicit: both frozen clauses still pass",
@@ -1193,18 +1226,18 @@ def main() -> int:
         mpl = _fold_art(f"mp_h{h}_legacy.json")["aggregate"]["d0.45_survival"]
         mpe = _fold_art(f"mp_h{h}_explicit.json")["aggregate"]["d0.45_survival"]
         check_true(f"fold mp h{h} legacy reproduces every stored value", bool(mpl["all_reproduce_stored"]))
-        check(f"fold mp h{h} legacy survival ({leg})", mpl["mp_fixed_mean"], leg)
-        check(f"fold mp h{h} explicit survival ({exp})", mpe["mp_fixed_mean"], exp)
+        check(f"fold mp h{h} legacy survival ({leg})", _seed_mean(mpl, "mp_fixed_per_seed"), leg)
+        check(f"fold mp h{h} explicit survival ({exp})", _seed_mean(mpe, "mp_fixed_per_seed"), exp)
     g0 = {sch: {int(r["hidden"]): r for r in _fold_art(f"gate0_h8h7_{sch}.json")["rows"]} for sch in ("legacy", "explicit")}
-    check("fold gate0 legacy h8 oracle reproduces (0.928)", g0["legacy"][8]["oracle_auroc"], 0.928)
-    check("fold gate0 legacy h8 floor reproduces (0.482)", g0["legacy"][8]["floor"], 0.482)
-    check("fold gate0 legacy h7 oracle reproduces (0.922)", g0["legacy"][7]["oracle_auroc"], 0.922)
-    check("fold gate0 legacy h7 floor reproduces (0.566)", g0["legacy"][7]["floor"], 0.566)
+    check("pinned: fold gate0 legacy h8 oracle reproduces (0.928)", g0["legacy"][8]["oracle_auroc"], 0.928)
+    check("fold gate0 legacy h8 floor reproduces (0.482)", _seed_mean(g0["legacy"][8], "floor_per_seed"), 0.482)
+    check("pinned: fold gate0 legacy h7 oracle reproduces (0.922)", g0["legacy"][7]["oracle_auroc"], 0.922)
+    check("fold gate0 legacy h7 floor reproduces (0.566)", _seed_mean(g0["legacy"][7], "floor_per_seed"), 0.566)
     check_true("fold gate0 legacy: both capacities pass", g0["legacy"][8]["passes_gate0"] and g0["legacy"][7]["passes_gate0"])
-    check("fold gate0 explicit h8 floor (0.508)", g0["explicit"][8]["floor"], 0.508)
+    check("fold gate0 explicit h8 floor (0.508)", _seed_mean(g0["explicit"][8], "floor_per_seed"), 0.508)
     check_true("fold gate0 explicit h8 passes", bool(g0["explicit"][8]["passes_gate0"]))
-    check("section 16: gate0 explicit h7 floor (0.615)", g0["explicit"][7]["floor"], 0.615)
-    check("section 16: gate0 explicit h7 oracle still in band (0.918)", g0["explicit"][7]["oracle_auroc"], 0.918)
+    check("section 16: gate0 explicit h7 floor (0.615)", _seed_mean(g0["explicit"][7], "floor_per_seed"), 0.615)
+    check("pinned: section 16: gate0 explicit h7 oracle still in band (0.918)", g0["explicit"][7]["oracle_auroc"], 0.918)
     check_true("section 16: gate0 explicit h7 FAILS on the floor clause",
                (not g0["explicit"][7]["passes_gate0"]) and (not g0["explicit"][7]["floor_ok"])
                and abs(g0["explicit"][7]["floor"] - 0.5) >= 0.1)
@@ -1260,13 +1293,13 @@ def main() -> int:
     check_int("h8-seed2 gate 0 G seed (2)", int(s2["gate0_calibration"]["g_seed"]), 2)
     check_int("h8-seed2 gate 0 selected hidden (8)", int(s2["gate0_calibration"]["selected_hidden"]), 8)
     g8 = s2["gate0_calibration"]["rows"][0]
-    check("h8-seed2 gate 0 oracle (0.939)", g8["oracle_auroc"], 0.939)
-    check("h8-seed2 gate 0 floor (0.540)", g8["floor"], 0.540)
+    check("pinned: h8-seed2 gate 0 oracle (0.939)", g8["oracle_auroc"], 0.939)
+    check("h8-seed2 gate 0 floor (0.540)", _seed_mean(g8, "floor_per_seed"), 0.540)
     check_true("h8-seed2 gate 0 passes with a clean mechanical floor",
                bool(g8["passes_gate0"]) and bool(g8["mech_leak_pass"]) and bool(g8["in_band"]))
     for arm, ref in (("survival", 0.676), ("predictor", 0.627), ("untrained", 0.550)):
         blk = s2["arms"][s2["dmax"]][arm]["pool_target"]
-        check(f"h8-seed2 {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"h8-seed2 {arm} pooled target ({ref})", _seed_mean(blk), ref)
         check(f"h8-seed2 {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
     sv2 = s2["arms"][s2["dmax"]]["survival"]["pool_target"]
     lo, hi = t_ci(sv2["per_seed"])
@@ -1274,22 +1307,22 @@ def main() -> int:
     check("h8-seed2 survival t90 hi (0.717)", hi, 0.717)
     check_int("h8-seed2 survival seeds >= 0.65 (6)", sv2["n_ge_065"], 6)
     rt2 = s2["behavior_audit"]["survival"]["resid_trace"]
-    check("h8-seed2 survival resid_trace (0.660)", rt2["mean"], 0.660)
+    check("h8-seed2 survival resid_trace (0.660)", _seed_mean(rt2), 0.660)
     lo, hi = t_ci(rt2["per_seed"])
     check("h8-seed2 survival resid_trace t90 lo (0.631)", lo, 0.631)
     check("h8-seed2 survival resid_trace t90 hi (0.689)", hi, 0.689)
-    check("h8-seed2 survival behavior_trace_only (0.745)", s2["behavior_audit"]["survival"]["behavior_trace_only"]["mean"], 0.745)
+    check("h8-seed2 survival behavior_trace_only (0.745)", _seed_mean(s2["behavior_audit"]["survival"]["behavior_trace_only"]), 0.745)
     ba2 = s2["behavior_audit"]
-    check("h8-seed2 predictor behavior_trace_only (0.719)", ba2["predictor"]["behavior_trace_only"]["mean"], 0.719)
-    check("h8-seed2 untrained behavior_trace_only (0.683)", ba2["untrained"]["behavior_trace_only"]["mean"], 0.683)
-    check("h8-seed2 predictor resid_trace (0.606)", ba2["predictor"]["resid_trace"]["mean"], 0.606)
-    check("h8-seed2 untrained resid_trace (0.563)", ba2["untrained"]["resid_trace"]["mean"], 0.563)
-    check("h8-seed2 resid_trace lead over predictor (+0.054)", rt2["mean"] - ba2["predictor"]["resid_trace"]["mean"], 0.054)
-    check("h8-seed2 resid_trace lead over untrained (+0.098)", rt2["mean"] - ba2["untrained"]["resid_trace"]["mean"], 0.098)
+    check("h8-seed2 predictor behavior_trace_only (0.719)", _seed_mean(ba2["predictor"]["behavior_trace_only"]), 0.719)
+    check("h8-seed2 untrained behavior_trace_only (0.683)", _seed_mean(ba2["untrained"]["behavior_trace_only"]), 0.683)
+    check("h8-seed2 predictor resid_trace (0.606)", _seed_mean(ba2["predictor"]["resid_trace"]), 0.606)
+    check("h8-seed2 untrained resid_trace (0.563)", _seed_mean(ba2["untrained"]["resid_trace"]), 0.563)
+    check("h8-seed2 resid_trace lead over predictor (+0.054)", _seed_mean(rt2) - _seed_mean(ba2["predictor"]["resid_trace"]), 0.054)
+    check("h8-seed2 resid_trace lead over untrained (+0.098)", _seed_mean(rt2) - _seed_mean(ba2["untrained"]["resid_trace"]), 0.098)
     check_int("h8-seed2 survival resid_trace seeds >= 0.65 (5)", sum(v >= BAR for v in rt2["per_seed"]), 5)
     d2 = s2["decision"]
-    check("h8-seed2 lead over predictor (+0.0491)", d2["lead_over_predictor"], 0.0491, tol=0.0001)
-    check("h8-seed2 lead over untrained (+0.126)", d2["lead_over_untrained"], 0.126)
+    check("h8-seed2 lead over predictor (+0.0491)", _lead(s2, "predictor"), 0.0491, tol=0.0001)
+    check("h8-seed2 lead over untrained (+0.126)", _lead(s2, "untrained"), 0.126)
     check_true("h8-seed2 rule: mean clears the bar, t-CI does not, predictor margin misses by < 0.001",
                bool(d2["pass_bar"]) and (not d2["t90_excludes_bar"]) and (not d2["pass_margin_predictor"])
                and bool(d2["pass_margin_untrained"]) and (0.05 - d2["lead_over_predictor"]) < 0.001)
@@ -1335,7 +1368,7 @@ def main() -> int:
                "**auxiliary-conditional** verdict therefore stands unchanged" in _fd)
     for arm, ref in (("survival", 0.717), ("predictor", 0.588), ("untrained", 0.513)):
         blk = sk["arms"][sk["dmax"]][arm]["pool_target"]
-        check(f"skill-match {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"skill-match {arm} pooled target ({ref})", _seed_mean(blk), ref)
         check(f"skill-match {arm}: stored mean reproduces per-seed mean", float(np.mean(blk["per_seed"])), blk["mean"])
     svk = sk["arms"][sk["dmax"]]["survival"]["pool_target"]
     lo, hi = t_ci(svk["per_seed"])
@@ -1343,34 +1376,36 @@ def main() -> int:
     check("skill-match survival t90 hi (0.755)", hi, 0.755)
     check_int("skill-match survival seeds >= 0.65 (8)", svk["n_ge_065"], 8)
     rtk = sk["behavior_audit"]["survival"]["resid_trace"]
-    check("skill-match survival resid_trace (0.724)", rtk["mean"], 0.724)
+    check("skill-match survival resid_trace (0.724)", _seed_mean(rtk), 0.724)
     lo, hi = t_ci(rtk["per_seed"])
     check("skill-match survival resid_trace t90 lo (0.690)", lo, 0.690)
     check("skill-match survival resid_trace t90 hi (0.757)", hi, 0.757)
     check_int("skill-match survival resid_trace seeds >= 0.65 (9)", sum(v >= BAR for v in rtk["per_seed"]), 9)
     bak = sk["behavior_audit"]
-    check("skill-match predictor resid_trace (0.590)", bak["predictor"]["resid_trace"]["mean"], 0.590)
-    check("skill-match untrained resid_trace (0.539)", bak["untrained"]["resid_trace"]["mean"], 0.539)
-    check("skill-match survival behavior_trace_only (0.838)", bak["survival"]["behavior_trace_only"]["mean"], 0.838)
+    check("skill-match predictor resid_trace (0.590)", _seed_mean(bak["predictor"]["resid_trace"]), 0.590)
+    check("skill-match untrained resid_trace (0.539)", _seed_mean(bak["untrained"]["resid_trace"]), 0.539)
+    check("skill-match survival behavior_trace_only (0.838)", _seed_mean(bak["survival"]["behavior_trace_only"]), 0.838)
     dk = sk["decision"]
-    check("skill-match lead over predictor (+0.129)", dk["lead_over_predictor"], 0.129)
-    check("skill-match lead over untrained (+0.204)", dk["lead_over_untrained"], 0.204)
+    check("skill-match lead over predictor (+0.129)", _lead(sk, "predictor"), 0.129)
+    check("skill-match lead over untrained (+0.204)", _lead(sk, "untrained"), 0.204)
     check_true("skill-match probe passes bar, t-CI excludes it, and both margins pass",
                bool(dk["pass_bar"]) and bool(dk["t90_excludes_bar"])
                and bool(dk["pass_margin_predictor"]) and bool(dk["pass_margin_untrained"]))
     # The frozen match clause: an overshoot voids the mediation inference even though
     # every probe clause above passes. Both halves must stay true together.
     sm = sk["skill_match"]
-    check("skill-match reference return (-0.219)", sm["reference_return"], -0.219)
-    check("skill-match window lo (-0.269)", sm["window"][0], -0.269)
-    check("skill-match window hi (-0.169)", sm["window"][1], -0.169)
-    check("skill-match stage-2 return R (-0.1559)", sm["match_return"], -0.1559, tol=0.0001)
+    _sk_r = _seed_mean(sm, "per_seed_returns")
+    _sk_se = float(np.std(sm["per_seed_returns"], ddof=1) / np.sqrt(len(sm["per_seed_returns"])))
+    check("pinned: skill-match reference return (-0.219)", sm["reference_return"], -0.219)
+    check("pinned: skill-match window lo (-0.269)", sm["window"][0], -0.269)
+    check("pinned: skill-match window hi (-0.169)", sm["window"][1], -0.169)
+    check("skill-match stage-2 return R (-0.1559)", _seed_mean(sm, "per_seed_returns"), -0.1559, tol=0.0001)
     check("skill-match R reproduces the per-seed mean", float(np.mean(sm["per_seed_returns"])), sm["match_return"])
     check_int("skill-match stage-2 seeds (10)", sm["n_seeds"], 10)
-    check("skill-match stage-2 return se (0.096)", sm["return_se"], 0.096)
-    check("skill-match overshoot past the window (+0.0131)", sm["overshoot_past_window"], 0.0131, tol=0.0001)
-    check("skill-match overshoot in standard errors (0.14)", sm["overshoot_in_se"], 0.14, tol=0.005)
-    check("skill-match deviation from reference (+0.0631)", sm["deviation_from_reference"], 0.0631, tol=0.0001)
+    check("skill-match stage-2 return se (0.096)", _sk_se, 0.096)
+    check("skill-match overshoot past the window (+0.0131)", _sk_r - sm["window"][1], 0.0131, tol=0.0001)
+    check("skill-match overshoot in standard errors (0.14)", (_sk_r - sm["window"][1]) / _sk_se, 0.14, tol=0.005)
+    check("skill-match deviation from reference (+0.0631)", _sk_r - sm["reference_return"], 0.0631, tol=0.0001)
     check_true("skill-match R is outside the window and above it",
                (not sm["in_window"]) and sm["match_return"] > sm["window"][1])
     check_true("skill-match probe does not read below the bar", not sm["probe_below_bar"])
@@ -1380,10 +1415,12 @@ def main() -> int:
                sk["gates"]["pool_leak_clean_all"] and sk["gates"]["untrained_floor_ok"]
                and sk["gates"]["deaths_total"] == 0
                and all(v["pass"] == v["n"] for v in sk["gates"]["engagement"].values()))
-    check("skill-match speed positive control min (0.837)", sk["gates"]["speed_min"], 0.837)
-    check("skill-match L0 survival mean (0.539)", sk["gates"]["l0_survival_mean"], 0.539)
-    check("skill-match L0 TOST p (0.285)", sk["gates"]["l0_tost"]["p_value"], 0.285)
-    check("skill-match L0 ROPE P (0.736)", sk["gates"]["l0_rope"]["p_in_rope"], 0.736)
+    check("pinned: skill-match speed positive control min (0.837)", sk["gates"]["speed_min"], 0.837)
+    check("skill-match L0 survival mean (0.539)", _seed_mean(sk["arms"]["0.0"]["survival"]["pool_target"]), 0.539)
+    check("skill-match L0 TOST p (0.285)",
+          equivalence_test(sk["arms"]["0.0"]["survival"]["pool_target"]["per_seed"], margin=0.05).p_value, 0.285)
+    check("skill-match L0 ROPE P (0.736)",
+          rope_test(sk["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]).p_in_rope, 0.736)
     check_true("skill-match L0 gate recorded open, not accepted",
                (not sk["gates"]["l0_tost"]["equivalent"]) and (not sk["gates"]["l0_rope"]["accept"]))
     # Determinism cross-check: at drift 0 the untrained and predictor arms are objective
@@ -1404,7 +1441,7 @@ def main() -> int:
     dc = _load_art("expB2", "device_control_l3_h8_wm_cpu.json")
     for arm, ref in (("survival", 0.730), ("predictor", 0.589), ("untrained", 0.523)):
         blk = dc["arms"][dc["dmax"]][arm]["pool_target"]
-        check(f"10.8 device control {arm} pooled target ({ref})", blk["mean"], ref)
+        check(f"10.8 device control {arm} pooled target ({ref})", _seed_mean(blk), ref)
         check(f"10.8 device control {arm}: stored mean reproduces per-seed mean",
               float(np.mean(blk["per_seed"])), blk["mean"])
     sv = dc["arms"][dc["dmax"]]["survival"]["pool_target"]
@@ -1413,7 +1450,7 @@ def main() -> int:
     check("10.8 device control survival t90 hi (0.791)", hi, 0.791)
     check_int("10.8 device control survival seeds >= 0.65 (8)", sv["n_ge_065"], 8)
     rt = dc["behavior_audit"]["survival"]["resid_trace"]
-    check("10.8 device control survival resid_trace (0.710)", rt["mean"], 0.710)
+    check("10.8 device control survival resid_trace (0.710)", _seed_mean(rt), 0.710)
     lo, hi = t_ci(rt["per_seed"])
     check("10.8 device control survival resid_trace t90 lo (0.656)", lo, 0.656)
     check("10.8 device control survival resid_trace t90 hi (0.764)", hi, 0.764)
@@ -1442,17 +1479,17 @@ def main() -> int:
                nl["integrity"]["all_match"] is True and nl["integrity"]["target_reproduced"] is True
                and len(nl["cells"]) == 30)
     sv = nl["aggregate"]["d=0.45 survival"]
-    check("nonlinear survival resid_obs_beh_mlp (0.654)", sv["resid_obs_beh_mlp"]["mean"], 0.654)
+    check("nonlinear survival resid_obs_beh_mlp (0.654)", _seed_mean(sv["resid_obs_beh_mlp"]), 0.654)
     lo, hi = t_ci(sv["resid_obs_beh_mlp"]["per_seed"])
     check("nonlinear survival resid_obs_beh_mlp t90 lo (0.621)", lo, 0.621)
     check("nonlinear survival resid_obs_beh_mlp t90 hi (0.687)", hi, 0.687)
     check_int("nonlinear survival resid_obs_beh_mlp seeds >= 0.65 (6)", sv["resid_obs_beh_mlp"]["n_ge_065"], 6)
-    check("nonlinear survival resid_obs_mlp (0.653)", sv["resid_obs_mlp"]["mean"], 0.653)
+    check("nonlinear survival resid_obs_mlp (0.653)", _seed_mean(sv["resid_obs_mlp"]), 0.653)
     check("nonlinear untrained resid_obs_beh_mlp (0.509)",
-          nl["aggregate"]["d=0.45 untrained"]["resid_obs_beh_mlp"]["mean"], 0.509)
+          _seed_mean(nl["aggregate"]["d=0.45 untrained"]["resid_obs_beh_mlp"]), 0.509)
     check("nonlinear predictor resid_obs_beh_mlp (0.542)",
-          nl["aggregate"]["d=0.45 predictor"]["resid_obs_beh_mlp"]["mean"], 0.542)
-    check("nonlinear run reproduces the linear joint control (0.670)", sv["resid_obs_beh"]["mean"], 0.670)
+          _seed_mean(nl["aggregate"]["d=0.45 predictor"]["resid_obs_beh_mlp"]), 0.542)
+    check("nonlinear run reproduces the linear joint control (0.670)", _seed_mean(sv["resid_obs_beh"]), 0.670)
     check_true("nonlinear frozen rule passes at the mean",
                bool(nl["decision_nonlinear"]["pass_bar"] and nl["decision_nonlinear"]["pass_margin"]))
     check_true("FINDINGS carries the nonlinear joint control addendum",
@@ -1467,9 +1504,9 @@ def main() -> int:
                            ("regime", 0.0002, 1.000), ("ar1", 0.01, 0.810), ("regime", 0.005, 0.854),
                            ("l3_h8_seed0", 0.02, 0.928), ("l3_h7_seed0", 0.02, 0.922),
                            ("l3_h8_seed0", 0.05, 0.674), ("ar1", 0.05, 0.588)):
-        check(f"15 {cell} @ sigma {sig} ({ref})", cells[(cell, sig)]["oracle_auroc"], ref)
+        check(f"pinned: 15 {cell} @ sigma {sig} ({ref})", cells[(cell, sig)]["oracle_auroc"], ref)
     check_true("15 mechanical leakage clean in every cell", all(r["leakage_pass"] for r in mh["rows"]))
-    check("15 L0 anchor mean over noise seeds (0.475)", mh["l0_anchor_noise_seeds"]["mean"], 0.475)
+    check("pinned: 15 L0 anchor mean over noise seeds (0.475)", mh["l0_anchor_noise_seeds"]["mean"], 0.475)
     check_true("15 L3 at least as detectable as L2 ar1 at every sigma",
                all(cells[("l3_h8_seed0", s)]["oracle_auroc"] >= cells[("ar1", s)]["oracle_auroc"] - 1e-9
                    for s in (0.0002, 0.001, 0.005, 0.01, 0.02, 0.05)))
@@ -2004,8 +2041,8 @@ def main() -> int:
             check_true(f"17.5.2 table row {_arm}",
                        f"| {_arm} | {_a['mean']:.3f} [{_a['t90'][0]:.3f}, {_a['t90'][1]:.3f}] | "
                        f"{_b['mean']:.3f} [{_b['t90'][0]:.3f}, {_b['t90'][1]:.3f}] |" in _s17)
-        check("17.5.2: the artifact carries the registered bar", _rd["bar"], BAR)
-        check("17.5.2: the artifact carries the registered margin", _rd["margin"], 0.05)
+        check("pinned: 17.5.2: the artifact carries the registered bar", _rd["bar"], BAR)
+        check("pinned: 17.5.2: the artifact carries the registered margin", _rd["margin"], 0.05)
         _re = _radj(survival=_rs["standard"]["survival"]["mean"],
                     untrained=_rs["standard"]["untrained"]["mean"],
                     bar=BAR, margin=0.05)
@@ -2075,8 +2112,8 @@ def main() -> int:
             _lab = "registered" if k == 0 else f"independent {k}"
             check_true(f"17.5.1 quotes the drift-0.45 draw {b[0]}",
                        f"| {_lab} | {b[0]} / {b[1]} | {m:.3f} |" in _s17)
-        check("17.5.1: the artifact carries the registered bar", _ws["bar"], BAR)
-        check("17.5.1: the summary carries the registered bar", _wsum["bar"], BAR)
+        check("pinned: 17.5.1: the artifact carries the registered bar", _ws["bar"], BAR)
+        check("pinned: 17.5.1: the summary carries the registered bar", _wsum["bar"], BAR)
         _re = _wss(_wm[1:], _wm[0], bar=BAR)
         check_true("17.5.1: the verdict recomputes from the cells under the frozen rule",
                    _re["verdict"] == _wsum["verdict"] and _re["registered_rank"] == _wsum["registered_rank"])
@@ -2275,6 +2312,9 @@ def main() -> int:
                build_paper_tables.main(["--check"]) == 0)
 
     print()
+    print(f"pins: {n_pins} of {n_checks} checks compare a value as stored in an artifact with a "
+          "constant in this script (labels start 'pinned:'): readings stored without per-seed "
+          "values, configuration values, and recorded integrity results.")
     if failures:
         print(f"RESULT: {len(failures)} of {n_checks} checks FAILED:")
         for f in failures:

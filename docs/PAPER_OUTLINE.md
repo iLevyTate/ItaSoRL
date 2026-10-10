@@ -177,6 +177,11 @@ note 9.
 - Rows 38 to 49 added 2026-10-06 (revision): the 450-update arm, the two agent-free
   detector results of revision steps 9 and 10, the corrected runs, and the readouts on
   the corrected agents (FINDINGS 17).
+- Rows 27, 40 and 46 and section 4.7 revised 2026-10-10: row 27 and 4.7 give the 13.F
+  verdict (flat contrast, registered verdict uninformative), row 40 says where the
+  quadratic-drag floor leaves tolerance as the gate-0 artifact records it (eps 8), and
+  row 46 carries the post hoc paired contrasts of FINDINGS 17.8. The audit reads those
+  three rows.
 - Rows 28 to 37 added 2026-09-28 for the sections that resolved after July
   (10.4.2, 10.8, 10.9, 11 note 2, 14 to 14.7, 15). Row 12 is narrowed by 10.8, and
   row 27 now records the 13.D re-run. The published GPU L3 cells are not committed,
@@ -189,8 +194,9 @@ note 9.
 - Claims 9-10 resolved (2026-07-16): per-seed pooled targets promoted to
   `artifacts/expB2/bv3_n10_summary.json` and
   `artifacts/expB2/sysid_ceiling_n10_summary.json` by the same script;
-  `scripts/audit_stats_recheck.py` re-verifies every inventory number against
-  the committed artifacts.
+  `scripts/audit_stats_recheck.py` recomputes those values from the committed
+  artifacts and compares them with its own copies of the quoted numbers. It reads
+  numbers from this page only in rows 27, 40 and 46 (note of 2026-10-10).
 - Rows 23-24 resolved (spec 2026-07-14, per-seed summary committed as
   `artifacts/expB2/heldout_l3_h8_summary.json`): transfer generalizes, and the
   re-scored common-garden control passes the frozen rule on both directions
