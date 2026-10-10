@@ -27,6 +27,8 @@ import json
 import os
 import subprocess
 
+from promote_bv3_gates import repo_rel
+
 BAR = 0.65
 MARGIN = 0.05
 DRIFT = "0.45"  # strongest drift, the decision cell
@@ -74,8 +76,8 @@ def main() -> int:
     floor_ok = all(abs(v - 0.5) <= 0.05 for v in floor.values())
 
     out = {
-        "source_rescore": args.rescore.replace("\\", "/"),
-        "states_dir": rs["states_dir"].replace("\\", "/"),
+        "source_rescore": repo_rel(args.rescore),
+        "states_dir": repo_rel(rs["states_dir"]),
         "estimator": rs["estimator"],
         "git_commit_at_promotion": git_head(),
         "generated_by": "scripts/promote_cg_rescore.py",

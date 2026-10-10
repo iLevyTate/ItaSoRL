@@ -1,6 +1,14 @@
 """
 Compare Experiment B-v2 JSON outputs side-by-side (no GPU).
 
+The two committed B-v2 files are historical: both were trained with the pre-correction
+survival trainer (gae_bootstrap pre_transition) and scored on legacy folds
+(docs/CORRECTIONS.md, docs/RESULTS_MANIFEST.md rows BV2-L2-AR1 and BV2-L2-AR1-LAB).
+run_expB2.py now defaults to the corrected trainer, and itasorl/folds.py to explicit folds,
+so a fresh run is printed with its trainer and fold scheme and is not expected to match the
+historical numbers. A gap between them is a trainer and fold change. It does not mean the
+replication failed.
+
 Usage (from repo root):
     python scripts/compare_expB2_artifacts.py
     python scripts/compare_expB2_artifacts.py --run fullruns/06302026
@@ -12,12 +20,21 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CANONICAL = ROOT / "artifacts" / "expB2" / "expB2_results.json"
 DEFAULT_LAB = ROOT / "artifacts" / "expB2" / "expB2_results_confirmatory_n3.json"
+LABEL_CANONICAL = "Historical B-v2 (pre_transition trainer, legacy folds, Colab T4, commit 4c16be6)"
+LABEL_LAB = ("Historical B-v2 lab run, archived (pre_transition trainer, legacy folds, "
+             "run commit not recorded)")
+NOTICE = ("Note: both files above are historical (pre_transition trainer, legacy folds). A run "
+          "with the corrected trainer (successor) and explicit folds is not expected to match "
+          "them. A gap between them is a trainer and fold change, not a failed replication. "
+          "ITASORL_FOLDS=legacy only reproduces the old folds on the scikit-learn stack that "
+          "produced them (itasorl/folds.py).")
 SESOI = 0.65
 DRIFT_KEY = "0.45"
 AGENT = "survival"
@@ -41,6 +58,27 @@ def _resolve_run_json(run: Path | None) -> Path | None:
         return run
     candidate = run / "artifacts" / "expB2_results.json"
     return candidate if candidate.is_file() else None
+
+
+def run_provenance(run_json: Path) -> dict:
+    """Trainer and fold scheme of a run, read from the cell checkpoints beside its JSON.
+
+    Each cells/cell_d*_s*.json written by run_expB2.py records gae_bootstrap (cells from
+    before the trainer flag existed carry none, which means pre_transition). The fold scheme
+    is not recorded per cell, so the scheme this environment would use is reported instead.
+    """
+    trainers: set[str] = set()
+    cells_dir = Path(run_json).parent / "cells"
+    for cp in sorted(cells_dir.glob("cell_d*_s*.json")):
+        try:
+            with cp.open(encoding="utf-8") as f:
+                cell = json.load(f).get("cell", {})
+        except (OSError, ValueError):
+            continue
+        trainers.add(str(cell.get("gae_bootstrap", "pre_transition")))
+    scheme = os.environ.get("ITASORL_FOLDS", "explicit").strip().lower() or "explicit"
+    return {"gae_bootstrap": ", ".join(sorted(trainers)) if trainers else "not recorded (no cells/)",
+            "fold_scheme": f"not recorded in the run; this environment uses {scheme}"}
 
 
 def _survival_at_drift(data: dict, drift: str = DRIFT_KEY) -> dict:
@@ -100,21 +138,25 @@ def main() -> None:
     sections: list[str] = ["# Experiment B-v2 comparison (survival @ drift 0.45)", ""]
 
     if args.lab.is_file():
-        sections.extend(_fmt_stats("Initial lab (confirmatory n=3)", args.lab,
-                                   _survival_at_drift(_load(args.lab))))
+        sections.extend(_fmt_stats(LABEL_LAB, args.lab, _survival_at_drift(_load(args.lab))))
     else:
-        sections.extend(_fmt_stats("Initial lab (confirmatory n=3)", args.lab, None))
+        sections.extend(_fmt_stats(LABEL_LAB, args.lab, None))
     sections.append("")
 
     if args.canonical.is_file():
-        sections.extend(_fmt_stats("Canonical (Colab replication)", args.canonical,
+        sections.extend(_fmt_stats(LABEL_CANONICAL, args.canonical,
                                    _survival_at_drift(_load(args.canonical))))
     else:
-        sections.extend(_fmt_stats("Canonical (Colab replication)", args.canonical, None))
+        sections.extend(_fmt_stats(LABEL_CANONICAL, args.canonical, None))
+    sections.append("")
+    sections.append(NOTICE)
     sections.append("")
 
     if run_path and run_path.is_file():
+        prov = run_provenance(run_path)
         sections.extend(_fmt_stats("This run", run_path, _survival_at_drift(_load(run_path))))
+        sections.append(f"Trainer (gae_bootstrap): {prov['gae_bootstrap']}")
+        sections.append(f"Fold scheme: {prov['fold_scheme']}")
     elif args.run is not None:
         sections.extend(_fmt_stats("This run", args.run, None))
     else:

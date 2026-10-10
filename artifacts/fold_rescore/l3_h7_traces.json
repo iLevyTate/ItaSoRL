@@ -1,5 +1,5 @@
 {
- "states_dir": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_h7_traces/states",
+ "states_dir": "fullruns/l3_h7_traces/states",
  "label": "L3 hidden 7",
  "spec": "docs/specs/2026-09-28-explicit-cv-folds.md",
  "generated_by": "scripts/rescore_fold_split.py",

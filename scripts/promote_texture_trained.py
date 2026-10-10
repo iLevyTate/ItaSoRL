@@ -26,6 +26,7 @@ import numpy as np  # noqa: E402
 
 from itasorl.results_io import git_head  # noqa: E402
 from itasorl.stats import equivalence_test, paired_contrast, t_ci90  # noqa: E402
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 ARMS = ("untrained", "predictor", "survival")
 # The full section 7 battery. Named here so a gate cannot go missing from a promoted artifact
@@ -179,7 +180,7 @@ def main() -> int:
         routing = "STRENGTHENED NEGATIVE"
 
     out = {
-        "source_run": a.run.replace("\\", "/"),
+        "source_run": repo_rel(a.run),
         "generated_by": "scripts/promote_texture_trained.py",
         "git_commit_at_promotion": git_head(),
         "spec": "docs/specs/2026-10-09-gn-comparator-trained-design.md",

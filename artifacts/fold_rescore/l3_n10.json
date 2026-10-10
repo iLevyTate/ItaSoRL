@@ -1,5 +1,5 @@
 {
- "states_dir": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_n10/states",
+ "states_dir": "fullruns/l3_n10/states",
  "label": "l3_n10",
  "spec": "docs/specs/2026-09-28-explicit-cv-folds.md",
  "generated_by": "scripts/rescore_fold_split.py",

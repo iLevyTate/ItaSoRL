@@ -18,6 +18,8 @@ import json
 import os
 import subprocess
 
+from promote_bv3_gates import repo_rel
+
 METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh",
            "resid_obs_mlp", "resid_obs_beh_mlp")   # the last two only in --nonlinear runs
 
@@ -37,7 +39,7 @@ def promote(run_dir: str, out_path: str, head: str | None = None) -> dict:
         cells = json.load(fh)
     keep = {k: v for k, v in agg.items() if k.startswith("d=")}
     out = {
-        "source_run": run_dir.replace("\\", "/"),
+        "source_run": repo_rel(run_dir),
         "spec": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md",
         "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
         "surrogate": f"L3 GMotion hidden={agg['hidden']} seed={agg['g_seed']} trained on P",

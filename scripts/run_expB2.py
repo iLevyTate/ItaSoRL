@@ -59,6 +59,10 @@ from itasorl.world import WorldParams  # noqa: E402
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 AG = ("untrained", "predictor", "survival")
+# Every confirmatory rung registers a 96-unit agent trunk (PREREGISTRATION_L3 sec. 9). A
+# launch with --hidden 8, meant as the surrogate's --l3-hidden 8, voided a preregistered run
+# (FINDINGS 14.5.1), so a full-scale run with any other trunk needs an explicit opt-out.
+REGISTERED_TRUNK = 96
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -69,7 +73,14 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--updates", type=int, default=300)
     ap.add_argument("--n_eps", type=int, default=16)
     ap.add_argument("--max_steps", type=int, default=80)
-    ap.add_argument("--hidden", type=int, default=96)
+    ap.add_argument("--hidden", type=int, default=REGISTERED_TRUNK,
+                    help="the AGENT's GRU trunk width (registered 96). The L3 surrogate's capacity "
+                         "is --l3-hidden. Any other width outside --quick needs "
+                         "--allow-unregistered-trunk")
+    ap.add_argument("--allow-unregistered-trunk", action="store_true",
+                    help="permit a --hidden other than the registered 96 outside --quick, for a "
+                         "deliberate trunk ablation. Parse-time only: it is not part of the config "
+                         "fingerprint or of any cell record")
     ap.add_argument("--ray_steps", type=int, default=5)
     ap.add_argument("--shaping_coef", type=float, default=1.0)
     ap.add_argument("--pool_n", type=int, default=110)
@@ -174,6 +185,11 @@ def _finalize(a: argparse.Namespace) -> argparse.Namespace:
         a.mp_pairs, a.mp_prefix, a.mp_branch = 25, 12, 16
         if a.drift_mode == "l1":
             a.drifts = [0.0, a.l1_delta]
+    if not a.quick and a.hidden != REGISTERED_TRUNK and not a.allow_unregistered_trunk:
+        raise SystemExit(
+            f"--hidden {a.hidden} sets the agent's GRU trunk, registered at {REGISTERED_TRUNK} "
+            "(FINDINGS 14.5.1). For the L3 surrogate's capacity use --l3-hidden; for a "
+            "deliberate trunk ablation add --allow-unregistered-trunk.")
     if a.heldout_evals and a.drift_mode != "l3":
         raise SystemExit("--heldout-evals requires --drift-mode l3")
     if a.quick and a.heldout_evals:

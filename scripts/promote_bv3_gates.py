@@ -32,6 +32,7 @@ import glob
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 
@@ -81,12 +82,44 @@ def seed_stats(vals: list[float]) -> dict:
             "n_ge_065": int(sum(v >= BAR for v in vals)), "n_seeds": len(vals)}
 
 
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+_ABS_PATH = re.compile(r"^(?:[A-Za-z]:[/\\]|/)")
+
+
+def repo_rel(path: str) -> str:
+    """Repo-relative label for a run path, so no artifact records a machine-local path.
+
+    A path through a `fullruns` directory, in this checkout or another one (the main
+    checkout while promoting from a worktree), becomes `fullruns/<rest>`. Any other path
+    inside the repository becomes relative to its root. A path outside both is kept as
+    given, with forward slashes. Every promoter that records a path uses this.
+    """
+    if not path:
+        return path
+    text = str(path)
+    parts = text.replace("\\", "/").split("/")
+    if "fullruns" in parts:
+        i = len(parts) - 1 - parts[::-1].index("fullruns")
+        return "/".join(p for p in parts[i:] if p not in ("", "."))
+    is_abs = bool(_ABS_PATH.match(text))
+    full = text if is_abs else os.path.abspath(text)
+    root = os.path.normcase(REPO_ROOT).replace("\\", "/").rstrip("/") + "/"
+    here = os.path.normcase(full).replace("\\", "/")
+    if here.startswith(root):
+        return full.replace("\\", "/")[len(root):]
+    return text.replace("\\", "/")
+
+
+def rel_flags(flags):
+    """A recorded argv with every absolute path argument made repo-relative."""
+    if not isinstance(flags, list):
+        return flags
+    return [repo_rel(f) if isinstance(f, str) and _ABS_PATH.match(f) else f for f in flags]
+
+
 def source_label(run_dir: str) -> str:
     """Canonical `fullruns/<name>` label for a bundle that may live in another checkout."""
-    absdir = os.path.abspath(run_dir)
-    if os.path.basename(os.path.dirname(absdir)) == "fullruns":
-        return "fullruns/" + os.path.basename(absdir)
-    return run_dir.replace("\\", "/")
+    return repo_rel(run_dir)
 
 
 def drift_key(value) -> str:
@@ -196,7 +229,7 @@ def build_gates_doc(results: dict, cell_files: list[dict], manifest: dict | None
         "git_commit_at_run": sorted(map(str, commits)),
         "run_id": (manifest or {}).get("run_id"),
         "environment": (manifest or {}).get("environment"),
-        "flags": flags,
+        "flags": rel_flags(flags),
         "drifts": drifts,
         "arms": arms_out,
         "engagement": engagement,

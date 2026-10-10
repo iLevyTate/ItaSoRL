@@ -27,6 +27,8 @@ import json
 import os
 import subprocess
 
+from promote_bv3_gates import repo_rel
+
 AGENTS = ["survival", "predictor", "untrained"]
 DRIFT = "0.45"  # strongest drift; drift-0.00 is the floor read
 
@@ -56,8 +58,8 @@ def main() -> int:
     floor_ok = all(abs(v - 0.5) <= 0.05 for v in floor.values())
 
     out = {
-        "source_rescore": args.rescore.replace("\\", "/"),
-        "bundle": rs["bundle"].replace("\\", "/"),
+        "source_rescore": repo_rel(args.rescore),
+        "bundle": repo_rel(rs["bundle"]),
         "l3_hidden": rs["l3_hidden"],
         "estimator": rs["estimator"],
         "mp_config": rs["mp_config"],

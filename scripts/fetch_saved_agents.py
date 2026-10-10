@@ -1,15 +1,16 @@
 """Find the gitignored saved agents a readout-only rerun needs, wherever they are.
 
-The historical hidden-8 held-out agents (`fullruns/l3_h8_heldout/agents/`) are not in the
-repository. They are published with the paper's Zenodo record, and a reader who already has
-them may hold them in a Drive folder. This resolves, in order: an existing local folder, a
-Drive folder, then an archive URL (zip or tar), and verifies every file against the sha256
-values recorded in the committed sensitivity artifact, so a rerun never scores the wrong
-weights silently.
+The agents of the historical hidden-8 run (`fullruns/l3_h8_heldout/agents/`; their trunk is
+96 units wide, and 8 is the surrogate's capacity) are not in the repository. They ship with
+the review supplement and get a DOI archive after the decision. A reader who already has them
+may hold them in a Drive folder. This resolves, in order: an existing local folder (an
+extracted supplement holds them at the default --local-dir), a Drive folder, then an archive
+URL (zip or tar), and verifies every file against the sha256 values recorded in the committed
+sensitivity artifact, so a rerun never scores the wrong weights silently.
 
 Usage (prints the resolved folder on the last line):
-    python scripts/fetch_saved_agents.py --url https://zenodo.org/.../agents.zip
     python scripts/fetch_saved_agents.py --drive-dir /content/drive/MyDrive/ITASORL_agents/l3_h8_heldout
+    python scripts/fetch_saved_agents.py --url https://<archive host>/agents.zip
 """
 
 from __future__ import annotations
@@ -28,9 +29,11 @@ from pathlib import Path
 DEFAULT_LOCAL = "fullruns/l3_h8_heldout/agents"
 DEFAULT_REF = "artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json"
 NO_SOURCE = """\
-No saved agents found. They are not in the git repository (19 MB, gitignored). Either:
-  * pass --url with the agents archive of the paper's Zenodo record, or
-  * upload the agent files to Drive (MyDrive/ITASORL_agents/l3_h8_heldout/) and pass --drive-dir.
+No saved agents found. They are not in the git repository (19 MB, gitignored). They ship
+with the review supplement, under fullruns/l3_h8_heldout/agents/. Either:
+  * run this from the extracted supplement, or pass --local-dir with that folder, or
+  * upload the agent files to Drive (MyDrive/ITASORL_agents/l3_h8_heldout/) and pass --drive-dir, or
+  * pass --url with a link to a zip or tar archive of that folder.
 The files are named agent_d0.45_s<seed>_survival.pt; their sha256 values are recorded in
 artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json and are checked after download."""
 

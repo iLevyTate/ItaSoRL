@@ -1,5 +1,5 @@
 {
- "states_dir": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_h7_heldout/states",
+ "states_dir": "fullruns/l3_h7_heldout/states",
  "estimator": "cg_probe (pair-grouped, post-1633bca)",
  "cells": [
   {

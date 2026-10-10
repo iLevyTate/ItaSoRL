@@ -1,9 +1,14 @@
 """Export the frozen L3 fingerprints the project used (revision step 15).
 
-Each instance is retrained deterministically from its recipe (`train_g_motion`, world P,
-fixed epochs) and serialized with `GMotion.to_npz`. A reader can load them with
-`GMotion.from_npz` instead of retraining; `tests/test_reproducibility_package.py` checks
-that a loaded file reproduces a fresh retrain exactly on this stack.
+Each instance is retrained from its recipe (`train_g_motion`, world P, fixed epochs) on one
+CPU thread, as the run workers fit it, and serialized with `GMotion.to_npz`. A reader can
+load them with `GMotion.from_npz` instead of retraining. `tests/test_reproducibility_package.py`
+checks that a loaded file and a fresh single-thread retrain give outputs that agree within
+np.allclose(atol=1e-6, rtol=1e-5), and that is the whole claim: a retrain is not bit-identical
+across torch, numpy or CPU builds, or across thread counts. The committed files were exported
+before this script recorded its stack, so their index.json names no versions. Every export
+from now on records Python, torch and numpy versions, the OS and the thread count under
+"stack".
 
 Usage:  python scripts/export_surrogates.py [--out artifacts/surrogates]
 """
@@ -24,6 +29,17 @@ P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 INSTANCES = ((8, 0), (7, 0), (10, 1), (8, 2), (4, 0))   # hidden, G seed, as used in the runs
 
 
+def stack_record() -> dict:
+    """The software stack and thread count an export ran on (recorded in index.json)."""
+    import platform
+
+    import numpy
+    import torch
+    return {"python": platform.python_version(), "torch": torch.__version__,
+            "numpy": numpy.__version__, "os": platform.platform(),
+            "torch_threads": torch.get_num_threads()}
+
+
 def main() -> int:
     import torch
     torch.set_num_threads(1)     # the run workers fit G single-threaded; match their bits
@@ -38,7 +54,10 @@ def main() -> int:
              "device": "cpu (torch CPU kernels). The CPU runs (L3-H8-WM-CPU, L3-H8-NOWM-CPU, "
                        "L3-H10-GS1-CPU, the corrected C1/C2) trained G on CPU and match these files; "
                        "the GPU-published runs trained G on CUDA, whose last float bits can differ, "
-                       "so their integrity gates regenerate G on CUDA", "files": {}}
+                       "so their integrity gates regenerate G on CUDA",
+             "reproduces": "a fresh single-thread CPU retrain agrees within np.allclose(atol=1e-6, "
+                           "rtol=1e-5); bit identity is not claimed across stacks or thread counts",
+             "stack": stack_record(), "files": {}}
     for hidden, seed in INSTANCES:
         name = f"gmotion_h{hidden}_s{seed}.npz"
         path = os.path.join(a.out, name)

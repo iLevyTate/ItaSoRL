@@ -1,7 +1,7 @@
 """scripts/fetch_saved_agents.py resolves the gitignored saved agents for a readout-only rerun.
 
-The agents live outside the repository (a Drive folder, or an archive from the Zenodo
-record), so the Colab cell needs one function that finds them wherever they are, extracts
+The agents live outside the repository (the review supplement, a Drive folder, or an
+archive link), so the Colab cell needs one function that finds them wherever they are, extracts
 an archive if given one, and refuses files whose sha256 does not match the committed
 artifact. These tests build small fake agent files and archives; nothing is downloaded.
 """
@@ -109,15 +109,18 @@ def test_resolve_prefers_an_existing_dir_then_a_drive_folder_then_the_url(tmp_pa
 
     monkeypatch.setattr(fsa, "download", fake_download)
     got = fsa.resolve(local_dir=tmp_path / "nope", drive_dir=tmp_path / "nodrive",
-                      url="https://zenodo.example/agents.zip", work=tmp_path / "w2")
-    assert calls == ["https://zenodo.example/agents.zip"]
+                      url="https://archive.example/agents.zip", work=tmp_path / "w2")
+    assert calls == ["https://archive.example/agents.zip"]
     assert got is not None and sorted(p.name for p in got.iterdir()) == NAMES
 
 
 def test_resolve_with_nothing_available_says_what_to_do(tmp_path):
     with pytest.raises(SystemExit) as e:
         fsa.resolve(local_dir=tmp_path / "a", drive_dir=tmp_path / "b", url="", work=tmp_path / "w")
-    assert "Zenodo" in str(e.value) and "Drive" in str(e.value)
+    msg = str(e.value)
+    assert "review supplement" in msg and "Drive" in msg and "--url" in msg
+    # No archive record exists before the review decision, so none may be promised.
+    assert "Zenodo" not in msg and "published" not in msg
 
 
 def test_the_folder_with_the_most_agents_wins_over_a_stray_copy_nearer_the_root(tmp_path):
