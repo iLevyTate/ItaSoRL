@@ -1,9 +1,10 @@
-"""The 1188-check scalar audit must be able to fail (revision audit item 10, finding F56).
+"""The scalar audit (about 1200 checks; the script prints the exact count) must be able to
+fail (revision audit item 10, finding F56).
 
 Nothing in the suite proved that `scripts/audit_stats_recheck.py` would catch a corrupted
 artifact; its sensitivity had only ever been checked by hand. These tests flip one value in a
 committed artifact and assert the guard records a failure, and they pin the behavior of the
-three check primitives every one of the 1188 checks is built from.
+three check primitives every one of its checks is built from.
 """
 
 from __future__ import annotations
