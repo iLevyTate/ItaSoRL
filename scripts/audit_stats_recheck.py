@@ -1615,12 +1615,37 @@ def main() -> int:
         ("index.html", "0.654", "index.html carries the nonlinear joint control"),
         ("index.html", "0.506", "index.html carries the graded-seam collapse"),
         ("index.html", "0.509", "index.html carries the Exp C final AUROC"),
-        ("index.html", "validated null", "index.html states the Exp C verdict"),
     ]:
         check_true(label, needle in _read(relpath))
     for relpath, banned in [("index.html", "EXP C · next"),
                             ("index.html", "no matter how loud the artifact")]:
         check_true(f"{relpath} no longer says '{banned}'", banned not in _read(relpath))
+    # 2026-10-10: Experiment C's registered verdict is UNINFORMATIVE (FINDINGS 13.F; section 8
+    # of PREREGISTRATION_C routes a gate-1 failure there), so "validated null" is no longer the
+    # verdict wording and the pin that required it on index.html is retired. The summary
+    # surfaces state the uninformative verdict with a pointer to 13.F and may not use the old
+    # phrases. The 13.D heading, the 13.F reconciliation and the frozen PREREGISTRATION_C keep
+    # the historical phrase and are not watched. README.md, index.html and docs/LEARNING.md
+    # are reworded in a separate pass; add them to _expc_surfaces once their wording lands.
+    _fx = _read("docs/FINDINGS.md")
+    _expc_surfaces = {
+        "FINDINGS banner, TL;DR and section 1": _fx[:_fx.index("## 2. Experiment A")],
+        "FINDINGS section 6": _fx[_fx.index("## 6. Status against"):_fx.index("## 7. Levers")],
+        "FINDINGS 17.12": _fx[_fx.index("### 17.12"):],
+        "docs/PAPER_OUTLINE.md": _read("docs/PAPER_OUTLINE.md"),
+    }
+    for _where, _txt in _expc_surfaces.items():
+        _flat = " ".join(_txt.split())
+        check_true(f"{_where} states the Exp C verdict as uninformative with a 13.F pointer",
+                   "uninformative" in _flat and "13.F" in _flat)
+        for _banned in ("validated null", "open test", "evolutionary null"):
+            check_true(f"{_where} no longer says '{_banned}'", _banned not in _flat)
+    _pix = _load_art("expC", "emergence_pilot_per_individual_summary.json")
+    _ft = sorted(c["indiv_final_treat"]["mean"] for c in _pix["cells"])
+    check_true("TL;DR and PAPER_OUTLINE row 27 quote the per-individual final treatment range",
+               all(f"final treatment means {_ft[0]:.3f} to {_ft[-1]:.3f}" in " ".join(_t.split())
+                   for _t in (_expc_surfaces["FINDINGS banner, TL;DR and section 1"],
+                              _expc_surfaces["docs/PAPER_OUTLINE.md"])))
 
     # ---- section 16: the shared mechanism behind both flipped clauses --------
     # Recompute the legacy-to-explicit shift and the contrasts straight from the

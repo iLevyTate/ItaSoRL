@@ -21,8 +21,9 @@ reading order; there is deliberately no section 8.)*
 > registered encoding criterion"; behavior and sensory controls name their basis and
 > model; the common garden shows that prefix condition "remains decodable after
 > restoring authentic dynamics", not internal memory; the texture knockout shows that
-> the original direction does not transfer; the evolutionary null is restricted to the
-> pooled population readout. Gates under both fold partitions: `docs/GATE_TABLE.md`.
+> the original direction does not transfer; Experiment C has a flat contrast under both of
+> its readouts and an uninformative registered verdict (13.F). Gates under both fold
+> partitions: `docs/GATE_TABLE.md`.
 > Margin intervals: `docs/CONTRAST_INTERVALS.md`. What each arm experienced:
 > `docs/METHODS_ARMS.md`.
 
@@ -96,10 +97,14 @@ The follow-ups, read narrowly:
 - **Common garden.** Tail-only states still separate the prefix condition (0.666 forward,
   0.684 reverse; 10.6.1). Prefix condition remains decodable after restoring authentic
   dynamics, and on the corrected agents mostly through the physical footprint (17.7).
-- **Experiment C.** Selection over 30 generations did not raise world decodability as the
-  pooled population readout measures it (contrast -0.002 [-0.013, +0.009]; 13.D). That
-  readout reads 0.609 where independent known-decodable individuals average 0.649, so it is
-  attenuated rather than blind (17.11); it is not a per-individual test (13.E).
+- **Experiment C.** The contrast is flat and the registered verdict is uninformative
+  (13.F). Selection over 30 generations did not raise world decodability under the pooled
+  population readout (contrast -0.002 [-0.013, +0.009]; 13.D) or under the per-individual
+  readout (final treatment means 0.534 to 0.539, no individual at 0.65; 13.F). Two registered
+  gates fail, exploitability (gate 1) and the speed positive control (gate 5), and the
+  preregistration routes a gate-1 failure to uninformative, not to a null. The pooled readout
+  reads 0.609 where independent known-decodable individuals average 0.649, so it is
+  attenuated rather than blind (17.11).
 
 ---
 
@@ -123,9 +128,11 @@ Three experiments were planned. This cycle completed Experiment A for L1 and L2
 the survival-coupled B-v2/B-v3 arc (section 9), and the L3 arc (section 10).
 Experiment C (emergence under selection) has run its first pilot; the recorded
 null was **invalidated by two since-fixed measurement bugs** (see the correction
-in section 13.C) and the re-run on fixed code has now landed as a **validated
-null** (section 13.D) under its pooled population readout: selection did not raise
-world-condition decodability as that readout measures it (scope in section 13.E).
+in section 13.C). The re-run on fixed code (section 13.D) and a rerun with the
+per-individual readout and the full gate battery (section 13.F) both show a flat
+contrast: selection did not raise world-condition decodability under either readout.
+Two registered gates fail (exploitability and the speed positive control), so the
+registered verdict is **uninformative**, not a null (section 13.F).
 
 The world is **"A Patch of Earth" v0**, a 2.5D, deterministic, dissipative,
 Earth-*like* (authored, not data-driven) environment with a ~146-dimensional
@@ -441,21 +448,23 @@ inducing it (if possible) requires something more deliberate.
   **not meet the registered encoding criterion** at the matched in-band grid (0.533), so L1 does not
   reproduce the L3 positive; H2 at L1 is therefore a strengthened negative for
   organism encoding of an oracle-detectable observation artifact.
-- **H3 (emergence under selection).** Negative under the pooled population readout at
-  the tested budget. The first pilot's
+- **H3 (emergence under selection).** Not answered: the contrast is flat and the
+  registered verdict is **uninformative** (section 13.F). The first pilot's
   recorded null was **invalidated** (section 13.C): the run executed on pre-fix
   code carrying two since-fixed measurement defects (the fitness/panel legs ran
   on the default world rather than world P, and the common-garden AUROC estimator
   split matched pairs across CV folds, biasing detection AUROCs toward 0). The
-  re-run on fixed code with the identical pre-registered configuration has now
-  landed (section 13.D) and is a **validated null**: the treatment-minus-control
-  emergence contrast is -0.002 (90% t-CI [-0.013, +0.009], spanning 0), mean
-  final treatment AUROC 0.509 (below the 0.65 floor), so emergence_claim is
-  False on all three pre-registered sub-conditions. Selection had grip (fitness
-  moved in both arms) but the pooled population readout did not rise. That readout
-  fits one probe across individuals, so it cannot see detectors that individuals
-  carry along unaligned directions, and the run is 3 lineages at 30 generations; the
-  result is restricted to that estimator and budget (section 13.E).
+  re-run on fixed code with the identical pre-registered configuration (section
+  13.D) found a flat contrast: the treatment-minus-control emergence contrast is
+  -0.002 (90% t-CI [-0.013, +0.009], spanning 0), mean final treatment AUROC 0.509
+  (below the 0.65 floor), so emergence_claim is False on all three pre-registered
+  sub-conditions. Selection had grip (fitness moved in both arms) but the pooled
+  population readout did not rise, and a rerun with the per-individual readout found
+  no individual at the bar (section 13.F). That rerun's full gate battery fails gate 1
+  (exploitability) and gate 5 (the speed positive control), and section 8 of
+  `docs/PREREGISTRATION_C.md` routes a gate-1 failure to uninformative, so neither
+  readout yields a verdict on H3 at 3 lineages and 30 generations. The null label of
+  section 13.D described the pooled estimand before those gates were run.
 
 ---
 
@@ -1904,6 +1913,9 @@ trainer, fold partition, commit and device produced each artifact.
 > `artifacts/expC/emergence_pilot_summary.json` now holds the **re-run** numbers
 > (section 13.D); the invalidated original numbers survive only as prose in the
 > opening body above 13.C.
+>
+> *(2026-10-10: under the full gate battery of section 13.F the registered verdict is
+> uninformative, not a null; see the note at the end of 13.F.)*
 
 *(The committed section-13 numbers live in
 `artifacts/expC/emergence_pilot_summary.json`, promoted from the gitignored
@@ -2219,6 +2231,15 @@ world is too small, and the panel's speed control is below bar. This is the
 section-14 disposition restated by the run itself. Re-opening Experiment C still
 requires the section-8 richer-controller redesign.
 
+**Note (2026-10-10): one verdict wording on every surface.** The paragraph above keeps
+"validated null" as a description of the pooled estimand. The registered rule does not:
+section 8 of `docs/PREREGISTRATION_C.md` allows "Strengthened negative" only when every gate
+passes and routes a gate 0 or gate 1 failure to Uninformative, and gates 1 and 5 fail here.
+Under the registered rule Experiment C has a flat contrast under both readouts and an
+uninformative verdict, which bears on H3 in neither direction. The summary surfaces of this
+document (the revision banner, the TL;DR, sections 1 and 6, and 17.12) and
+`docs/PAPER_OUTLINE.md` now say so. The 13.D heading and the paragraph above stay as written.
+
 ## 14. H2 substrate-grounding: the graded-seam ablation (A1)
 
 **Status: supported for the L3 rung at hidden=8 in the narrow sense of section 6
@@ -2300,7 +2321,7 @@ capacities.
 
 **Scope and deferred follow-ons.** This is a necessity-plus-specificity result on
 the L3 rung at hidden=8 and hidden=7; it does not speak to L1/L2 (different
-substrate primitives) or to H3 (negative under the pooled population readout, section 13). The reactive
+substrate primitives) or to H3 (flat contrast, registered verdict uninformative, section 13.F). The reactive
 reading of the common-garden control (section 10.6.1: prefix condition remains
 modestly decodable after restoring authentic dynamics)
 is unchanged; A1 neutralizes the felt dynamics divergence, so a collapse is fully
@@ -3464,8 +3485,10 @@ return, which is consistent with selection having no gradient toward a detector.
 6. **Nothing here is specific to learned dynamics.** A hand-authored, temporally coherent
    drag of the same one-step size is read through the same direction; white jitter is not
    (17.9).
-7. **The evolutionary null stays restricted** to the pooled readout, which reads 0.609
-   where independent individuals average 0.649 (17.11).
+7. **The evolutionary result is uninformative, not a null** (revised 2026-10-10). Both
+   readouts are flat, two registered gates fail, and the preregistration routes that to
+   uninformative (13.F). The pooled readout reads 0.609 where independent individuals
+   average 0.649 (17.11).
 
 The claim the corrected record supports: in this world, an agent trained with survival and
 next-observation prediction at the registered budget carries a decodable difference between

@@ -88,10 +88,11 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      comparators (17.9): a hand-authored coherent drag is read through the original
      direction (0.721) and by a fresh probe (0.754), white jitter is not, so nothing
      is specific to learned dynamics; observation localization (14.6).
-   - 4.7 Experiment C (FINDINGS 13.D, 13.E): selection did not raise world
-     decodability under the pooled population readout (contrast -0.002 [-0.013,
-     +0.009]); the readout is not a per-individual test, and on known-decodable agents
-     it reads 0.609 where individuals average 0.649 (17.11). Out of the abstract.
+   - 4.7 Experiment C (FINDINGS 13.D, 13.E, 13.F): the contrast is flat under the
+     pooled population readout (-0.002 [-0.013, +0.009]) and under the per-individual
+     readout (no individual at 0.65), and the registered verdict is uninformative
+     because gates 1 and 5 fail (13.F). On known-decodable agents the pooled readout
+     reads 0.609 where individuals average 0.649 (17.11). Out of the abstract.
 5. **Limitations** (FINDINGS 11; `docs/CORRECTIONS.md`)
    - One surrogate per run and one set of evaluation worlds: intervals over agent
      seeds condition on both. L0 depends on the world sample (`artifacts/l0_audit/`).
@@ -142,7 +143,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 24 | Common-garden control, re-scored: prefix condition remains decodable after restoring authentic dynamics (frozen rule passes both directions; memory and physical footprint not separated) | historical; secondary | survival cg_tail 0.666 forward / 0.684 reverse (>= 0.65 and > untrained + 0.05); late tail 0.586/0.577 decays below bar | FINDINGS 10.6.1 | artifacts/expB2/heldout_l3_h8_cg_rescore.json | - |
 | 25 | Reverse transfer direction-dependent: coarse-to-subtle FAILS | historical; secondary | survival 0.638, frozen rule fails | FINDINGS 10.6 | artifacts/expB2/heldout_l3_h7_reverse_summary.json | - |
 | 26 | Cross-recipe transfer: the direction reads a random-Fourier-features law fit on the same data (rule passes; interval lower bound 0.654) | historical; secondary | survival 0.684, t 90% CI [0.654, 0.715], 7/10 vs untrained 0.548; rule passes, margin +0.034 | FINDINGS 10.7 | artifacts/l3_crossrecipe/summary.json | - |
-| 27 | Exp C: the milestone-3 pilot null was INVALIDATED (13.C); the fixed-code re-run is a validated null under the pooled population readout, which is not a per-individual test (13.E) | no actor-critic; exploratory | contrast -0.002, t 90% CI [-0.013, +0.009]; final treatment AUROC 0.509 | FINDINGS 13.C, 13.D | artifacts/expC/emergence_pilot_summary.json (holds the re-run, `git_commit_at_run` a0cb850) | - |
+| 27 | Exp C: the milestone-3 pilot null was INVALIDATED (13.C); the fixed-code re-run and the per-individual rerun both have a flat contrast, and the registered verdict is uninformative because gates 1 and 5 fail (13.F) | no actor-critic; exploratory | contrast -0.002, t 90% CI [-0.013, +0.009]; final treatment AUROC 0.509; per-individual final treatment means 0.534 to 0.539, no individual at 0.65 | FINDINGS 13.C, 13.D, 13.F | artifacts/expC/emergence_pilot_summary.json (holds the re-run, `git_commit_at_run` a0cb850); artifacts/expC/emergence_pilot_per_individual_summary.json | - |
 | 28 | Sensory-echo control passes at hidden 8 | historical; secondary | `resid_obs` 0.731 [0.690, 0.772], 8/10 vs untrained 0.534; joint sensory-plus-behavior 0.670 | FINDINGS 10.4.2 | artifacts/expB2/sensory_echo_l3_h8.json | - |
 | 29 | At 300 updates the survival arm without the auxiliary did not meet the bar | historical; primary, replaced by C1 and C2 | survival without it 0.601 [0.549, 0.654], 1/10; predictor 0.589 | FINDINGS 10.8 | artifacts/expB2/arch_baseline_l3_h8_nowm.json | - |
 | 30 | Device control: the CPU is not the cause | historical; primary, replaced by C1 and C2 | survival with the auxiliary on the same CPU sandbox 0.730 [0.668, 0.791], 8/10; paired lead over 0.601 +0.128 [+0.089, +0.168] | FINDINGS 10.8 | artifacts/expB2/device_control_l3_h8_wm_cpu.json | - |
