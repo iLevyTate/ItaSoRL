@@ -3024,8 +3024,10 @@ run (`docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md`; annou
 `docs/PREREGISTRATION_L3.md` section 12 on 2026-10-08) carries the same eight independent
 pairs to drift 0.45, where the headline is read. The corrected `C1` agents are not in the
 repository, so the ten saved survival agents at drift 0.45 of the historical hidden-8 held-out
-run (`L3-H8-HELDOUT`, pre-correction trainer, the only in-band hidden-8 instance with saved
-weights) are scored instead (`scripts/run_world_sample_sensitivity.py`,
+run (`L3-H8-HELDOUT`, pre-correction trainer, the only retained instance of the headline
+fingerprint, hidden 8 at G seed 0, the one `C1` was raised under; corrected 2026-10-10 from "the
+only in-band hidden-8 instance with saved weights", since the seed-2 hidden-8 instance
+`L3-H8-GS2-GPU` also kept its 60 agents, see `docs/CORRECTIONS.md`) are scored instead (`scripts/run_world_sample_sensitivity.py`,
 `artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`). The run was scored in two
 sessions on the owner's laptop CPU: eight seeds at code commit `65d47ed`, then, after the
 session's memory guard stopped the process, the last two seeds from the per-seed

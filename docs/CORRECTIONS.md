@@ -274,3 +274,21 @@ beside it, [0.537, 0.624], computed from the local run bundle.
 excluded, and no claim rests on either. Runs whose agents were not kept cannot be checked from
 their weights; the other seven saved agent sets checked on 2026-10-10 all have the registered
 trunk.
+
+## 2026-10-10: the held-out hidden-8 run was not the only in-band hidden-8 instance with saved agents
+
+**What was wrong.** FINDINGS 17.5.1 and the frozen specs of the drift-0.45 world-sample
+sensitivity run (2026-10-08) and the reverse-direction readout (2026-10-09) say the historical
+held-out run is "the only in-band hidden-8 instance with saved weights". The seed-2 hidden-8
+instance (`L3-H8-GS2-GPU`, oracle 0.939, in band, FINDINGS 10.9) also kept its 60 agents in
+`fullruns/l3_h8_gseed2_gpu/agents/` (10 seeds at drifts 0 and 0.45, three arms), as
+`fullruns/l3_h8_heldout/agents/` does.
+
+**Change.** FINDINGS 17.5.1 now says the held-out run is the only retained instance of the
+headline fingerprint (hidden 8, G seed 0), the fingerprint the corrected `C1` agents were raised
+under, and names the seed-2 instance; both specs carry a dated note at their end and are
+otherwise left as frozen.
+
+**What this does not change.** Both readouts scored the agents their specs named, and neither
+result moves. The seed-2 agents have not been scored by either design. Like every saved agent
+set, both directories are gitignored local files and are not in the repository.
