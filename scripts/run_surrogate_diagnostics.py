@@ -22,6 +22,8 @@ Usage:
     python scripts/run_surrogate_diagnostics.py --out <fresh artifact> [--qd-eps 6.0] [--quick]
     python scripts/run_surrogate_diagnostics.py --qd-eps 6.0 \\
         --merge-into artifacts/surrogate_diagnostics.json
+    python scripts/run_surrogate_diagnostics.py --out <fresh artifact> --qd-eps 6.0 \\
+        --calibration-sample-77
 
 `--merge-into` keeps every value already in the committed artifact (its per-surrogate
 `diagnostics` were scored before 2026-10-10 on the seed-77 sample, which overlaps G's training
@@ -29,6 +31,13 @@ episodes, with the train column at seed 0 for every G) and adds the disjoint-see
 under the key `disjoint_heldout`. It refuses to write unless this run reproduces the stored
 agent-accessible detector scores exactly and the stored profile values to within
 `PROFILE_TOL`, so the added block is known to come from the same surrogates.
+
+`--calibration-sample-77` regenerates the committed top-level per-surrogate `diagnostics`: it
+scores every surrogate with the held-out sample at seed 77 and the train column at seed 0,
+as those values were scored before 2026-10-10. That sample overlaps every G's training
+episodes, so its "held-out" columns are in-sample; the output says so in
+`calibration_sample` and in each block's `heldout_overlaps_training`. Without the flag the
+per-surrogate diagnostics are the disjoint-seed ones of the `disjoint_heldout` block.
 """
 
 from __future__ import annotations
@@ -58,6 +67,8 @@ A G retrained on another numpy or torch build differs in its float32 weights, wh
 profile by about 1e-8 and leaves every quoted digit unchanged."""
 PROFILE_KEYS = ("rms_one_step", "linear_explained_share", "lag1_autocorr", "mean_dev")
 MERGE_KEY = "disjoint_heldout"
+CALIBRATION_SEED = 77
+"""First episode seed of the calibration sample the committed top-level diagnostics used."""
 
 
 def scripted_obs_pool(g, seed_base: int, n: int, steps: int, ray_steps: int = 5) -> np.ndarray:
@@ -137,9 +148,16 @@ def main() -> int:
     ap.add_argument("--qd-eps", type=float, default=None, help="gate-0 eps of the qd comparator")
     ap.add_argument("--gn-sigma", type=float, default=0.01)
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--calibration-sample-77", action="store_true",
+                    help="score the per-surrogate diagnostics on the seed-77 calibration sample "
+                         "with the train column at seed 0, as the committed top-level block was "
+                         "(in-sample for every learned G; labeled so in the output)")
     a = ap.parse_args()
     if a.merge_into and a.quick:
         ap.error("--merge-into needs the full-size run, not --quick")
+    if a.merge_into and a.calibration_sample_77:
+        ap.error("--merge-into adds the disjoint-seed block; --calibration-sample-77 writes a fresh "
+                 "artifact with --out")
     n, steps = (30, 12) if a.quick else (110, 24)
     t0 = time.time()
     surrogates, train_seeds = {}, {}
@@ -155,8 +173,12 @@ def main() -> int:
     auth = scripted_obs_pool(None, 800_000, n, steps)
     rows = {}
     for name, g in surrogates.items():
-        diag = surrogate_diagnostics(g, params=P, train_seed=train_seeds.get(name, 0),
-                                     heldout_eps=20 if a.quick else 60)
+        if a.calibration_sample_77:
+            diag = surrogate_diagnostics(g, params=P, train_seed=0, heldout_seed=CALIBRATION_SEED,
+                                         heldout_eps=20 if a.quick else 60, allow_overlap=True)
+        else:
+            diag = surrogate_diagnostics(g, params=P, train_seed=train_seeds.get(name, 0),
+                                         heldout_eps=20 if a.quick else 60)
         prof = perturbation_profile(g, params=P, n_eps=20 if a.quick else 60)
         prof_ho = perturbation_profile(g, params=P, n_eps=20 if a.quick else 60,
                                        seed=HELDOUT_SEED)
@@ -174,9 +196,17 @@ def main() -> int:
            "k_water=1.5, gravity=0.4) [P]", "pools": {"n_per_pool": n, "steps": steps,
                                                        "seed_bases": [800_000, 850_000],
                                                        "policy": "scripted, rng 600000 + i"},
-           "heldout_seed": HELDOUT_SEED, "profile_sample": "seed 77, 60 x 40 (calibration sample)",
+           "heldout_seed": CALIBRATION_SEED if a.calibration_sample_77 else HELDOUT_SEED,
+           "profile_sample": "seed 77, 60 x 40 (calibration sample)",
            "surrogates": rows, "environment": _environment(),
            "wall_seconds": round(time.time() - t0, 1)}
+    if a.calibration_sample_77:
+        out["calibration_sample"] = (
+            "Per-surrogate diagnostics scored with the held-out sample at seed 77 (episodes 77 to "
+            "136) and the train column at seed 0 for every G, as the committed top-level block "
+            "was before 2026-10-10. Those episodes lie inside every learned G's training range, "
+            "so the held-out columns are in-sample. The disjoint-seed numbers come from a run "
+            "without --calibration-sample-77.")
     path = a.merge_into or a.out
     if a.merge_into:
         with open(a.merge_into, encoding="utf-8") as fh:
