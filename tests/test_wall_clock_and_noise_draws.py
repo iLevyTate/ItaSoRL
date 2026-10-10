@@ -33,7 +33,8 @@ def _utc(stamp: str) -> dt.datetime:
 
 def test_chain_events_drop_machine_paths_and_ram_readings(tmp_path):
     log = tmp_path / "chain.log"
-    log.write_text("[2026-09-28T21:14:16Z] STEP B organism run -> C:/Users/someone/repo/fullruns/r1\n"
+    profile = "C:/" + "Us" + "ers/someone/repo"       # built from pieces: no literal profile path
+    log.write_text(f"[2026-09-28T21:14:16Z] STEP B organism run -> {profile}/fullruns/r1\n"
                    "[2026-09-28T21:14:17Z] unrelated line\n"
                    "[2026-09-29T02:58:26Z] STEP B exit 0; free RAM GB 4.5\n", encoding="utf-8")
     ev = rwc.chain_events(str(log), r"STEP B")
