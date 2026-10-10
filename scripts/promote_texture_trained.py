@@ -32,6 +32,7 @@ import _bootstrap  # noqa: F401
 import argparse  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
+import re  # noqa: E402
 
 import numpy as np  # noqa: E402
 
@@ -129,7 +130,13 @@ def trunk_check(agents_dir: str | None) -> dict:
         # as itasorl.experiment_b2.load_agent_bundle). Nothing is evaluated.
         blob = torch.load(os.path.join(agents_dir, name), map_location="cpu", weights_only=False)
         hidden = int(blob["ctor"]["hidden"])
-        whh = [tuple(v.shape) for k, v in blob["state_dict"].items() if k.endswith("weight_hh")]
+        # GRUCell names its recurrent weight weight_hh, nn.GRU weight_hh_l<k>. A bundle with
+        # neither cannot confirm its constructor record, so it is refused, not passed.
+        whh = [tuple(v.shape) for k, v in blob["state_dict"].items()
+               if re.search(r"weight_hh(?:_l\d+)?$", k)]
+        if not whh:
+            raise SystemExit(f"{name}: no recurrent weight_hh in the state dict; the trunk width "
+                             f"cannot be checked against ctor hidden {hidden}")
         if any(sh != (3 * hidden, hidden) for sh in whh):
             raise SystemExit(f"{name}: ctor hidden {hidden} disagrees with weight_hh {whh}")
         widths.add(hidden)

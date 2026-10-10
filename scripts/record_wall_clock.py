@@ -51,9 +51,20 @@ def _iso(t: float) -> str:
     return dt.datetime.fromtimestamp(t).astimezone().isoformat(timespec="seconds")
 
 
-def _birth(path: str) -> float:
-    st = os.stat(path)
-    return getattr(st, "st_birthtime", st.st_ctime)
+def _creation(st, os_name: str) -> tuple[float, str]:
+    """(time, what it is) from a stat result. A file's creation time where the platform records
+    one: st_birthtime (macOS, BSD, and Windows on Python 3.12+), or st_ctime on Windows, which is
+    creation time there. Elsewhere st_ctime is the last inode change, not creation, and is
+    labeled so."""
+    if getattr(st, "st_birthtime", None) is not None:
+        return st.st_birthtime, "creation time"
+    if os_name == "nt":
+        return st.st_ctime, "creation time"
+    return st.st_ctime, "inode change time (ctime; this platform records no creation time)"
+
+
+def _birth(path: str) -> tuple[float, str]:
+    return _creation(os.stat(path), os.name)
 
 
 def _workers(run_log: str) -> int | None:
@@ -88,12 +99,12 @@ def record(runs_root: str, run: str) -> dict:
     d = os.path.join(runs_root, run)
     run_log = os.path.join(d, "run.log")
     start_src = run_log if os.path.exists(run_log) else d
-    start = _birth(start_src)
+    start, kind = _birth(start_src)
     end = os.path.getmtime(os.path.join(d, "expB2_results.json"))
     cells = sorted(os.path.getmtime(p) for p in glob.glob(os.path.join(d, "cells", "cell_*.json")))
     row = {"run_dir": f"fullruns/{run}", "start": _iso(start),
-           "start_source": ("creation time of run.log" if start_src == run_log
-                            else "creation time of the run directory (no run.log)"),
+           "start_source": (f"{kind} of run.log" if start_src == run_log
+                            else f"{kind} of the run directory (no run.log)"),
            "end": _iso(end), "end_source": "modification time of expB2_results.json",
            "wall_hours": round((end - start) / 3600, 2), "n_cells": len(cells),
            "first_cell_written": _iso(cells[0]) if cells else None,

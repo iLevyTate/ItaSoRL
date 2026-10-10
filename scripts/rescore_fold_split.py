@@ -65,8 +65,12 @@ def npz_shapes(path: str) -> dict:
                 version = np.lib.format.read_magic(fh)
                 if version == (1, 0):
                     shape = np.lib.format.read_array_header_1_0(fh)[0]
-                else:
+                elif version == (2, 0):
                     shape = np.lib.format.read_array_header_2_0(fh)[0]
+                else:
+                    # Format 3.0 (a UTF-8 header) has no public reader; the private one reads
+                    # every version numpy knows and refuses the rest.
+                    shape = np.lib.format._read_array_header(fh, version)[0]
             out[name[:-4] if name.endswith(".npy") else name] = tuple(int(x) for x in shape)
     return out
 

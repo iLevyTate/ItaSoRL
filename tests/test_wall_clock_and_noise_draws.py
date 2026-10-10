@@ -93,3 +93,15 @@ def test_the_l0_anchor_block_the_record_quotes():
     assert a == {"seeds": b["seeds"], "oracle_auroc": b["oracle_auroc"], "mean": b["mean"]}
     assert round(a["mean"], 3) == 0.475
     assert [round(x, 3) for x in (min(a["oracle_auroc"]), max(a["oracle_auroc"]))] == [0.394, 0.581]
+
+
+def test_the_start_time_is_labeled_by_what_the_platform_records():
+    """st_ctime is creation time on Windows but the last inode change on Linux, so a record
+    built there must not call it a creation time."""
+    from types import SimpleNamespace
+    assert rwc._creation(SimpleNamespace(st_birthtime=3.0, st_ctime=9.0), "posix") == (3.0, "creation time")
+    assert rwc._creation(SimpleNamespace(st_ctime=9.0), "nt") == (9.0, "creation time")
+    t, kind = rwc._creation(SimpleNamespace(st_ctime=9.0), "posix")
+    assert t == 9.0 and kind.startswith("inode change time") and "creation" in kind
+    t, kind = rwc._birth(__file__)
+    assert t > 0 and isinstance(kind, str)
