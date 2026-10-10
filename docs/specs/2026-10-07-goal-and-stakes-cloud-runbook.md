@@ -21,7 +21,7 @@ Date: 2026-10-07. Spec: `docs/specs/2026-10-07-goal-and-stakes-design.md`.
 |---|---|
 | T-touch | `--objective touch --mortal off` |
 | S-immortal | `--mortal off` |
-| S-scarce | `--n_pellets <chosen>` after `python scripts/calibrate_scarcity.py --out artifacts/goal_stakes/calibration.json` and the dated PREREGISTRATION_L3 amendment recording the chosen value |
+| S-scarce | Not run. The calibration chose 24 pellets, the registered density, so the run would repeat `C1` (PREREGISTRATION_L3, 2026-10-10). |
 
 Order: T-touch, S-immortal, S-scarce. The C1 mechanism readout runs once, in any session:
 `python scripts/run_mechanism_readouts.py --run-dir artifacts/corrected_runs/corrected_l3_h8_wm --out artifacts/goal_stakes/C1/mechanism.json --workers 4`.
