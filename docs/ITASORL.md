@@ -93,11 +93,16 @@ cannot do both (you do not control base reality).
 
 ### The nearest neighbors, axis by axis (cross-reference performed 2026-07)
 
-The head-to-head cross-reference this section calls for has now been run: a multi-angle
-sweep across the seven adjacent literatures (evaluation awareness, incidental-encoding
-probing, agent-side reality-gap detection, ALife substrate detection, embedded agency,
-simulation-physics, and VM red-pill detection), with each candidate match verified
-against its primary source. The project's novelty is defined by four axes:
+The head-to-head cross-reference this section calls for was run in 2026-07, with each
+candidate match verified against its primary source. The works compared axis by axis below
+come from evaluation awareness, incidental-encoding probing, agent-side reality-gap
+detection, and the theory of why capable agents need world models; embedded agency and
+simulation physics are covered in the overview above, and meta-RL was added in 2026-10
+(next section). The sweep's original list also named ALife substrate detection and VM
+red-pill detection; no work from either is cited here. The sweep did not cover dynamics
+randomization and system identification, hidden-state probing of RL agents, or studies of
+auxiliary losses and representation, so the comparison is incomplete for those lineages.
+The project's novelty is defined by four axes:
 
 1. **tabula rasa** - a from-scratch, non-linguistic recurrent agent, no pretraining, no semantics;
 2. **substrate-grounded cues** - discretization, rollout drift, and learned-dynamics fingerprints are the *only* tells;
@@ -185,7 +190,7 @@ incidentally encode dynamics information."
 
 ## Hypotheses
 
-- **H1 - Detectability.** A trained agent classifies authentic vs. surrogate environments at a rate significantly above chance.
+- **H1 - Detectability.** A privileged detector distinguishes the surrogate from the authentic world at a rate significantly above chance (Experiment A). Whether the agent's own state carries the distinction is H4.
 - **H2 - Substrate-grounding.** Detection is driven by computational artifacts, not task confounds - established through strict ablations.
 - **H3 - Emergence.** Detection capacity strengthens across evolutionary generations when it confers a survival advantage, even though detection itself yields no direct programmatic reward.
 - **H4 - Legibility.** The internal state regarding the nature of reality is distinct and decodable from the agent's neural activations via an external linear probe.
@@ -229,6 +234,8 @@ The specific tell available to the agent escalates with the surrogate ladder:
 - **L4 (adversarial):** *residual tells* - whatever invariant the adversarial surrogate fails to preserve perfectly. The signal becomes progressively subtler, and "no robust tell remains" is itself a meaningful, reportable (negative) result.
 
 One distinction is load-bearing, and it is the same one the construct-validity analysis in Part II guards. A momentary spike in prediction error only means "my model is locally wrong." For the result to count as *simulation detection* rather than ordinary anomaly detection, the agent's internal state must carry a *stable, generalized* representation - a persistent latent direction meaning "I am in a surrogate" - not a transient blip. This is precisely why the readout probe must decode a stable category, and why selectivity controls (against reward statistics, metadata, and formatting) are required.
+
+*Added 2026-10.* Measured against this criterion, the corrected agents carry a reactive representation and not a stored one. Under identical input the condition fades from the recurrent state within a few steps, and most of the decodability that persists after the world is put back to normal is carried by the body's physical state, not by memory (FINDINGS 17.7). The project therefore reports that the condition is decodable from the agent's state, and does not claim that the agent detects it.
 
 Finally, a clarification on what "the organism determines" actually means at each stage. In Experiment B the latent *encodes* the distinction incidentally and the external probe *reads it out*; the organism is not necessarily acting on it. Only in Phase B2 (an action that pays off solely in the surrogate world) and Experiment C (selection over generations) does the organism *use* the determination in the strong sense - where its behavior, or its survival, depends on the distinction it has drawn.
 
@@ -501,7 +508,6 @@ The practical upshot: the single highest-leverage next action is not more design
 **Open for the principal researcher:**
 
 - **Primary goal weighting** - a rigorous paper vs. a compelling visual artifact vs. a paper explicitly demonstrated by the artifact (current lean: the latter).
-- **Target venue** - traditional ALIFE proceedings vs. ML workshops on situational awareness, world models, and interpretability (submitting to both remains viable).
 - **Compute commitment** - Colab + single GPU is confirmed for initial development and L1 scaffolding; a persistent host for long-horizon Experiment C is undecided.
 - **Neuromorphic / SNN lens** - whether "spiking world models are more or less detectable" becomes a differentiator (currently parked to limit initial complexity).
 - **Novelty appetite** - a global-first claim vs. a conservative "first in this specific setting" posture with honest caveats about the sprawling ALife literature (recommended: the latter).
