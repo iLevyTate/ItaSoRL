@@ -83,7 +83,8 @@ def test_the_registered_margin_is_at_least_everywhere_it_is_applied():
 
     src = inspect.getsource(_bcv())
     # No comparison against the margin may use a strict inequality.
-    assert "> MARGIN" not in src.replace(">= MARGIN", ""),         "the registered margin is 'at least', so every comparison must be >="
+    assert "> MARGIN" not in src.replace(">= MARGIN", ""), \
+        "the registered margin is 'at least', so every comparison must be >="
 
 
 # A lead equal to the margin must pass and one ulp below it must fail. No three-decimal pair

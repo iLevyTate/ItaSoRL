@@ -1,4 +1,4 @@
-"""The scalar audit (about 1200 checks; the script prints the exact count) must be able to
+"""The scalar audit (over 1400 checks; the script prints the exact count) must be able to
 fail (revision audit item 10, finding F56).
 
 Nothing in the suite proved that `scripts/audit_stats_recheck.py` would catch a corrupted
