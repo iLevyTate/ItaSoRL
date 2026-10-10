@@ -184,3 +184,23 @@ def test_the_generated_verdict_table_does_not_lead_with_met_for_a_run_whose_rule
         assert not row.split("&")[-2].strip().startswith("MET on"), name
         for g in r["gates"]["failed"]:
             assert g.upper() in row.upper(), (name, g)
+
+
+def test_an_interval_bound_is_not_a_quoted_historical_headline(tmp_path, capsys):
+    """A confidence bound that happens to equal a historical headline is not a claim about it.
+    The drift-0.45 draw interval is [0.752, 0.808]; its lower bound collides with the historical
+    hidden-8 headline 0.752 and must not be flagged."""
+    text = (GOOD.replace("HEAD", _headline_sentence())
+            + "\n\subsection{Draws}\nthe eight draw means give an interval of "
+              "\ci{0.752}{0.808} over draws\n")
+    rc = bpt.check_manuscript(_write(tmp_path, text))
+    out = capsys.readouterr().out
+    assert "historical headline" not in out, out
+    assert rc == 0
+
+
+def test_a_bare_historical_headline_is_still_flagged(tmp_path, capsys):
+    text = (GOOD.replace("HEAD", _headline_sentence())
+            + "\n\subsection{Results}\nthe signal reads 0.752 on GPU\n")
+    rc = bpt.check_manuscript(_write(tmp_path, text))
+    assert rc == 1 and "historical headline" in capsys.readouterr().out

@@ -68,10 +68,10 @@ def equivalence_test(values, h0: float = 0.5, margin: float = 0.05,
     lower, upper = h0 - margin, h0 + margin
     mean = float(x.mean())
     if n < 2:
-        # Can't estimate variance from <2 points; fall back to a pointwise band check.
-        inside = lower <= mean <= upper
+        # With no variance there is no test. A point inside the band is not equivalence, so
+        # this fails closed: the gate stays unmet and the caller sees NaN p-values.
         return EquivalenceResult(mean, margin, lower, upper, float("nan"),
-                                 float("nan"), float("nan"), bool(inside), n)
+                                 float("nan"), float("nan"), False, n)
     sd = float(x.std(ddof=1))
     se = sd / np.sqrt(n) if sd > 0 else 1e-12
     df = n - 1
@@ -238,7 +238,14 @@ def t_ci90(values) -> tuple[float, float]:
         return (float("nan"), float("nan"))
     mean = float(x.mean())
     se = float(x.std(ddof=1)) / np.sqrt(n)
-    crit = float(_student_t.ppf(0.95, n - 1)) if _HAVE_SCIPY else 1.645
+    if not _HAVE_SCIPY:
+        # The normal quantile (1.645) would narrow this by about a quarter at n = 10 while
+        # every artifact and the manuscript label the result t-based. Refuse rather than
+        # relabel: scipy is a declared dependency of this project.
+        raise RuntimeError(
+            "t_ci90 needs scipy for the Student-t quantile; the normal approximation would "
+            "silently report a narrower interval under a t label. Install scipy.")
+    crit = float(_student_t.ppf(0.95, n - 1))
     return (mean - crit * se, mean + crit * se)
 
 
@@ -282,9 +289,10 @@ def rope_test(values, rope: tuple[float, float] = (0.45, 0.55), level: float = 0
     n = x.size
     lo_r, hi_r = rope
     if n < 2:
+        # Fails closed, as equivalence_test does: a single point cannot bound a mean, so the
+        # interval is undefined and acceptance is refused rather than inferred from the point.
         m = float(x.mean()) if n else float("nan")
-        inside = bool(lo_r <= m <= hi_r) if n else False
-        return RopeResult(m, (lo_r, hi_r), (m, m), float(inside), inside, n)
+        return RopeResult(m, (lo_r, hi_r), (float("nan"), float("nan")), float("nan"), False, n)
     rng = np.random.default_rng(seed)
     means = x[rng.integers(0, n, size=(n_boot, n))].mean(axis=1)
     a = (1.0 - level) / 2.0

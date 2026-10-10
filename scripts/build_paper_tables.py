@@ -79,6 +79,8 @@ RETIRED = [
 # The label counts when it appears anywhere in the enclosing sectioning block (a paragraph
 # headed "The historical headline" labels every number inside it), not only on the same line.
 HISTORICAL_HEADLINES = ("0.752",)       # L3-H8-N10, the published GPU headline
+# Interval macros, dropped before the historical-headline scan: a bound is not a claim.
+_CI_MACRO = re.compile(r"\\ci\{[^}]*\}\{[^}]*\}")
 HISTORICAL_LABEL = re.compile(r"historical|pre-?correction|labeled", re.I)
 SECTIONING = re.compile(r"^\\(?:sub)*(?:section|paragraph)\*?\{")
 
@@ -260,10 +262,15 @@ def check_manuscript(d: str) -> int:
                 if m and not _withdrawn_before(line, m.start()):
                     print(f"{rel}:{i}: retired wording /{pat}/ -> {fix}")
                     issues += 1
-            if any(h in line for h in HISTORICAL_HEADLINES):
+            # A confidence bound that happens to equal a historical headline is not a claim
+            # about that headline. Interval macros are dropped before this scan; the drift-0.45
+            # draw interval \ci{0.752}{0.808} is the case that forced this.
+            prose = _CI_MACRO.sub(" ", raw)
+            prose = strip_tex(prose)
+            if any(h in prose for h in HISTORICAL_HEADLINES):
                 block = "\n".join(raw_lines[blocks[i - 1]:i])
                 for h in HISTORICAL_HEADLINES:
-                    if h in line and not HISTORICAL_LABEL.search(block):
+                    if h in prose and not HISTORICAL_LABEL.search(block):
                         print(f"{rel}:{i}: historical headline {h} without a historical or "
                               "pre-correction label in its section")
                         issues += 1

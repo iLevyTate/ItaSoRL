@@ -941,6 +941,108 @@ Rigor carried from the B-v3 audit (2026-07-10):
   the spec before the run. Section 5's readout, section 6's bar and margins, and every gate in
   section 7 are unchanged, and this diagnostic cannot overturn a registered verdict.
 
+- **2026-10-09 - REVERSE-DIRECTION READOUT, ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-09-reverse-direction-readout-design.md`).** Every positive on record is in
+  one direction: the agent is raised inside the surrogate and the probe separates the law it was
+  raised under from the authentic law. The other direction, an agent raised in the authentic world
+  probed against a learned surrogate it never lived in, has never been measured, and it is the
+  direction the project's own framing describes. This diagnostic scores the ten saved drift-0
+  agents of each arm of the historical hidden-8 held-out run with the standard pooled readout at
+  drift 0.45 and with the balanced same-world-seed readout, because the corrected C1 agents are not
+  in the repository. It is a readout on pre-correction agents and measures the direction-dependence
+  of the estimator, not the corrected headline. The integrity gate is that the same agents rescored
+  at drift 0 reproduce this run's recorded explicit-partition drift-0 targets within 0.01 on every
+  seed and arm, or the run is void. The three outcome labels (CARRIED, NOT CARRIED, AMBIGUOUS),
+  their thresholds, and the exact wording written in each case are fixed in the spec before the run.
+  Section 5's readout, section 6's bar and margins, and every gate in section 7 are unchanged, and
+  this diagnostic cannot overturn a registered verdict.
+
+- **2026-10-09 - COMPARATOR-TRAINED RUN ON THE WHITE-JITTER FAMILY, ANNOUNCED BEFORE THE RUN
+  (spec `docs/specs/2026-10-09-gn-comparator-trained-design.md`).** The 2026-10-08 texture entry
+  above records that no `gn`-trained run was executed and that the learned-texture rule remains
+  unmet. This is that run. `G_gn` at `sigma_v = 0.01` already passed gate 0 on world `P` before
+  this entry (oracle 0.8653, in band; mechanical leakage clean; untrained floor 0.4479, inside
+  tolerance; `artifacts/expH2/texture_knockout_h8.json`), which is what distinguishes it from the
+  hand-authored quadratic drag whose gate 0 failed. Unlike the two diagnostics announced on
+  2026-10-08 and earlier on 2026-10-09, this run is **confirmatory**: it applies section 6's rule
+  and section 7's gates verbatim, with nothing relaxed, to agents raised inside an in-band
+  unstructured perturbation. The configuration is the registered L3 one with the surrogate family
+  switched (ten seeds, drifts 0 and 0.45, 300 updates, three arms, corrected successor-value
+  trainer, agents saved). The wording written in each of the three cases, including the case where
+  the rule is MET and the paper's sufficiency claim must therefore be withdrawn in its current
+  form, is fixed in the spec before the run.
+
+- **2026-10-09 - L1 STREAM AND CONTROL READOUT, ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-09-l1-stream-readout-design.md`).** The L1 negative is a negative on the
+  state: agents raised under the observation-quantization seam read 0.533 while the oracle reads
+  the seam at 0.873 in band under its own grid oracle. Every stream-only decoder and behavior-trace
+  readout in this project was scored on the corrected L3 agents, so two explanations of that
+  negative are currently indistinguishable: the seam may not change where the policy goes, leaving
+  nothing in the agent's own stream for the trunk to keep, or the stream may carry it and the trunk
+  not keep it. Only the second is an encoding failure in the sense the sufficiency claim needs.
+  This diagnostic runs the existing control battery on the sixty saved agents of the historical L1
+  held-out run at that run's own rung (grid spacing 0.023, sensor noise 0.01). The battery does not
+  change; the only new code makes the rung selectable, with the L3 default unchanged. The integrity
+  gate is that the state probe reproduces the L1 run's recorded per-seed targets within 0.01 and
+  that regenerated pools bit-match the saved dumps, or the run is void. The two readings (S1, the
+  stream carries it; S2, it does not) and the wording written in each case are fixed in the spec
+  before the run. The L1 run's own adjudication stands as recorded whatever the stream reads, and
+  no gate, margin, or registered verdict changes.
+
+- **2026-10-09 - OUTCOME OF THE WHITE-JITTER COMPARATOR-TRAINED RUN: UNINFORMATIVE.** The run
+  announced above executed at the registered configuration (`artifacts/texture/T_gn_l3_h8_wm.json`,
+  FINDINGS 14.5.1). Section 7 gate 3, the speed positive control at 0.75, reads
+  0.74545 on the survival arm at drift 0.45, seed 2, missing by
+  0.00455 on one of twenty cells. Section 8's two verdicts both
+  require every gate to pass, so neither is reached, and the matrix names no cell for a
+  positive-control failure. The margin is not relaxed. The run is uninformative, is not counted as
+  a negative, and strengthens no claim; the learned-texture rule remains unmet. Descriptive
+  outcome at drift 0.45, recorded because this log and the manuscript quote it: survival
+  0.522 (90% CI [0.502, 0.542]),
+  predictor 0.511, untrained 0.552,
+  0 of 10 seeds at the bar, survival minus untrained
+  -0.030 [-0.051, -0.008]. Every other gate passes, including
+  the drift-zero L0 equivalence the corrected headline run does not.
+
+- **2026-10-09 - CORRECTION TO THE WHITE-JITTER GATE SCORING (the outcome entry above is left
+  as written, per the append-only rule).** The positive control reported in that entry was scored
+  on the **survival arm only**, which understated the failure. Section 7 gate 3 carries no arm
+  restriction and the project's own convention, written into `scripts/promote_bv3_gates.py`, is
+  "speed probe at least 0.75 in every pool". Rescored that way across both drift slices and all
+  three arms, the control is short in **9 of 60** arm-by-cell pools, worst
+  **0.6862** (short by 0.0638), all-pool mean
+  0.8179; the shortfall is 3 of 10 untrained cells at drift 0, 5 of 10 untrained
+  cells at drift 0.45, and 1 of 10 survival cells at drift 0.45. The survival-arm figures quoted in
+  the entry above (0.74545, 19 of 20) are correct for that arm and are retained as
+  a recorded field. The promoter (`scripts/promote_texture_trained.py`) and the audit are corrected,
+  and the promoter now refuses to write an artifact with any registered gate unscored, which also
+  closed a second gap: engagement had not been recorded at all and is now read from the run's cells
+  (20 of 20 engaged). **The verdict is unchanged, UNINFORMATIVE, and no margin was relaxed in either
+  direction.** The correction makes the failure larger, not smaller: the shortfall sits mainly in
+  the untrained arm, the baseline the registered margins are measured against, so the run does not
+  establish that its own comparator is probeable in this family.
+
+- **2026-10-09 - SECOND CORRECTION TO THE WHITE-JITTER RUN: IT WAS NOT THE REGISTERED
+  CONFIGURATION (the two entries above stand as written, per the append-only rule).** The frozen
+  spec said the run would execute "the registered L3 configuration with the surrogate family
+  switched". It did not. The agent trunk was **8 units wide, not the registered 96**: the launch
+  command carried `--hidden 8`, which sets the agent's GRU width, conflated with `--l3-hidden 8`,
+  which sets the surrogate's and is the correct gate-0 value. The same conflation was in the
+  Colab notebook's extras cell, which ships in the supplement; it is fixed there now. Verified
+  from the saved weights, `cell.weight_hh` is `(24, 8)` on all three arms against `(288, 96)` for
+  every other run in the project. Found on 2026-10-09 while investigating why the positive
+  control failed.
+
+  This is a second and more fundamental reason the run is uninformative, independent of the
+  positive control recorded above, and it is the likely cause of that failure: the control is low
+  in every arm at both drifts, including the drift-0 cells where no surrogate is installed, which
+  no property of the jitter could produce. A trunk a twelfth of the registered width also makes
+  the descriptive numbers incomparable to every other cell in this project, so they should not be
+  read as a reading of the white jitter at all. **Nothing changes in the verdict or anywhere else:
+  the run was already UNINFORMATIVE, already supported no claim, and still does. The
+  learned-texture rule remains unmet, and a usable trained case still requires a new run under a
+  new frozen specification, at the registered trunk width.**
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

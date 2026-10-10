@@ -197,9 +197,10 @@ def build() -> dict:
             "c1_minus_c2": diff, "paired": paired_contrast(a, b),
             "c1_meets_primary": out["runs"]["C1"]["primary"]["met"],
             "c1_decodability": out["runs"]["C1"]["primary"]["decodability"],
-            "holds": bool(out["runs"]["C1"]["primary"]["met"] and diff > MARGIN),
+            # "at least" in section 6, so >=, matching the primary clauses above.
+            "holds": bool(out["runs"]["C1"]["primary"]["met"] and diff >= MARGIN),
             "holds_on_decodability_clauses": bool(out["runs"]["C1"]["primary"]["decodability"] == "MET"
-                                                  and diff > MARGIN)}
+                                                  and diff >= MARGIN)}
     return out
 
 

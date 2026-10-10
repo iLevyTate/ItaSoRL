@@ -1622,7 +1622,15 @@ Stated once, plainly, with pointers into the code.
    cell passes at margins 0.05, 0.10, and 0.15. From 0.20 to 0.30 one cell fails,
    the no-auxiliary run at drift 0.45, whose trained return clears the better
    baseline by 0.182. The published GPU L3 cells are not committed, so this sweep
-   does not cover them.
+   does not cover them. **Extended 2026-10-09 to the corrected cells**
+   (`scripts/audit_engagement_margin.py` on `artifacts/corrected_runs/*/cells`, 40 cells,
+   `artifacts/engagement_margin_corrected.json`): `C1` passes 10 of 10 at every margin from
+   0.05 to 0.30 at both drifts, smallest gap over the better baseline **0.390** at drift
+   0.45; `C2` passes 10 of 10 up to 0.20, **9 of 10** at 0.25 and **8 of 10** at
+   0.30, smallest gap **0.230**. The registered matrix routes an engagement failure to
+   uninformative, so a margin of 0.25 or more would change `C2`'s gate status; under either
+   reading `C2` does not reach the bar, and `C1`'s engagement gate is unaffected at any swept
+   margin.
 3. **One primary readout; everything else is a control or exploratory.** The
    pre-registered decision uses only the pooled LEVEL `target` against the 0.65 bar
    and the 0.05 SESOI. The volatility readouts (`target_var`, `target_full`),
@@ -2334,6 +2342,70 @@ remains conditional on the subtler hidden=8 artifact (section 10.5), and the rea
 credited the survival objective is withdrawn in 17.6. For what the comparators do show once a
 fresh probe is fit on them, see **17.9**.
 
+### 14.5.1 Comparator-trained run on the white jitter: UNINFORMATIVE (2026-10-09)
+
+The 2026-10-08 texture entry recorded that no `gn`-trained run had been executed and that the
+learned-texture rule remained unmet. This is that run, frozen beforehand in
+`docs/specs/2026-10-09-gn-comparator-trained-design.md` and announced in
+`docs/PREREGISTRATION_L3.md` section 12. Unlike the diagnostics of 17.5.1 and 17.5.2 it is
+**confirmatory**: section 6's rule and section 7's gates apply verbatim to agents raised inside
+an in-band unstructured perturbation. `G_gn` at `sigma_v = 0.01` had passed gate 0 on world `P`
+before the spec was written (oracle 0.8653 in band, mechanical leakage clean, untrained floor
+0.4479 within tolerance), which is what separates it from the quadratic drag of 14.5 whose gate 0
+failed. Ten seeds, drifts 0 and 0.45, 300 updates, three arms, corrected successor-value trainer,
+CPU (`artifacts/texture/T_gn_l3_h8_wm.json`).
+
+**The configuration was not the registered one, found 2026-10-09 after the run.** The agent
+trunk was **8 units wide, not the registered 96**. The run was launched with `--hidden 8`, which
+sets the agent's GRU width, conflated with `--l3-hidden 8`, which sets the surrogate's and is the
+correct gate-0 value; the same conflation is in the Colab notebook's extras cell, now fixed.
+Verified from the saved weights: `cell.weight_hh` is `(24, 8)` on all three arms, against
+`(288, 96)` for every other run in the project. This is a second and more fundamental reason the
+run is uninformative, independent of the gate below: whatever it measured, it was not the
+registered protocol with the surrogate family switched, and a trunk a twelfth of the registered
+width is not the trunk any other result in this paper is about. It is also the likely cause of
+the gate failure, since the positive control is low in **every arm at both drifts**, including
+the drift-0 cells where no surrogate is installed at all, which a property of the jitter could
+not produce.
+
+**The gate that does not pass.** The registered positive control (section 7, gate 3: speed probe
+at least 0.75) is short in **9 of the 60** arm-by-cell pools of
+this run. The worst reads **0.6862**, short by 0.0638, against an
+all-pool mean of 0.8179. The shortfall is concentrated in the untrained arm (3 of 10
+cells at drift 0 and 5 of 10 at drift 0.45), with one survival cell at drift 0.45
+(0.74545); on the survival arm alone 19 of 20 pass, with a mean of
+0.8436. The untrained arm is the baseline the registered margins are measured
+against, so this run does not establish that its own comparator is probeable at all, which is
+exactly what a positive control exists to catch. The margin is not relaxed after the fact. Section 8's two verdicts both
+require every gate to pass, so neither is reached; and the matrix routes only a gate-0 or
+engagement failure to *uninformative*, so it names no cell for this outcome, the same structural
+gap recorded for the L0 failure in 17.2. **The run is therefore uninformative, it is not counted
+as a negative, and no claim anywhere rests on it.**
+
+Every other gate passes: engagement in 20 of 20 cells; the drift-zero L0 control accepts
+equivalence to chance on the survival arm (mean 0.5228,
+TOST p = 0.0202), which is the clause the corrected headline run does not pass;
+reward leakage at most 0.089 from chance against the 0.1
+tolerance; zero deaths in every pool; untrained floor 0.552.
+
+**The descriptive outcome**, recorded because the preregistration log and the manuscript quote
+it, and for no other purpose. At drift 0.45, pooled target with t-based 90% intervals over ten
+seeds: untrained 0.552 [0.529, 0.575], predictor
+0.511 [0.484, 0.539], survival **0.522**
+[0.502, 0.542], with 0 of 10 seeds at or
+above the 0.65 bar. The seed-paired survival-minus-untrained contrast is
+-0.030 [-0.051, -0.008], so the survival arm reads below the
+untrained arm rather than above it. Had the positive control passed, this configuration would
+have routed to *strengthened negative*. It did not, and the project does not read a verdict off a
+run whose gates are open.
+
+**What this does not license.** It is not evidence that agents raised in an unstructured
+perturbation fail to encode it, and the sufficiency claim gains nothing from it. With the trunk
+at a twelfth of the registered width the descriptive numbers are not comparable to any other
+cell in this paper, and they should not be read as a reading of the jitter at all. The limitation
+that no comparator-trained run supports that claim stands. A usable trained case would require a
+new run under a specification written before it, not a reinterpretation of this one.
+
 ## 14.6 A2 observation-channel localization
 
 **Status: COMPLETE for the L3 rung at hidden=8 and hidden=7.** Design and runner:
@@ -2452,6 +2524,68 @@ substrate seam is not sufficient for incidental encoding; the seam's
 computational character matters.
 
 ---
+
+### 14.7.1 The L1 stream: the seam reaches the senses and the state does not keep it (2026-10-09)
+
+The L1 negative of 14.7 is a negative **on the state**. Every stream-only decoder and
+behavior-trace readout in this project had been scored on the corrected L3 agents, so two very
+different explanations of that negative were indistinguishable: the seam might not change where
+the policy goes, leaving nothing in the agent's own stream for the trunk to keep, or the stream
+might carry it and the trunk not keep it. Only the second is an encoding failure in the sense the
+title claims. A design frozen before the run
+(`docs/specs/2026-10-09-l1-stream-readout-design.md`, announced in `docs/PREREGISTRATION_L3.md`
+section 12 the same day) settles it by running the existing control battery at the L1 rung on the
+thirty drift-0.023 cells of the historical L1 held-out run, every arm and seed at that run's
+strongest drift, which is the slice `run_control_diagnostics.py` scores by construction and the
+one the frozen spec's integrity gate names (grid spacing 0.023, sensor noise 0.01;
+`artifacts/control_diagnostics/l1_stream_readout.json`).
+
+**Integrity gate, checked first.** All 30 regenerated state pools bit-match the run's saved dumps,
+and every per-seed state target reproduces the recorded explicit-partition value exactly (worst
+absolute deviation 0.0000 over 30 cells, against the 0.01 tolerance). The state probe reads
+0.552 here against the published 0.533 because the published figure is scored
+under the legacy partition and this battery uses the stack-independent one; that shift of about
+0.02 on every arm is the documented partition effect of methods note 8, not a disagreement.
+
+| readout | survival | predictor | untrained |
+|---|---|---|---|
+| state probe (h_t) | 0.552 [0.530, 0.574] | 0.525 [0.505, 0.545] | 0.513 [0.494, 0.533] |
+| observation summary features | 0.795 [0.760, 0.829] | 0.751 [0.733, 0.769] | 0.804 [0.771, 0.836] |
+| flattened sequence, linear | 0.795 [0.781, 0.809] | 0.785 [0.766, 0.805] | 0.830 [0.807, 0.854] |
+| supervised GRU on the stream | 0.590 [0.547, 0.633] | 0.573 [0.556, 0.590] | 0.604 [0.568, 0.639] |
+| behavior-trace control | 0.537 [0.515, 0.558] | 0.513 [0.502, 0.524] | 0.504 [0.485, 0.523] |
+| observation control | 0.563 [0.536, 0.590] | 0.558 [0.530, 0.586] | 0.531 [0.499, 0.562] |
+| best-fitting MLP control | 0.543 [0.521, 0.566] | 0.545 [0.519, 0.570] | 0.531 [0.496, 0.565] |
+
+**Branch S1 of the frozen spec: the stream carries it.** The rule adjudicates on the larger of
+the two decoders the spec names, and that is the summary-feature reader at **0.795**, far above
+the 0.65 bar, while the agent's recurrent state reads **0.552**. The other named decoder, the
+supervised GRU at the trunk's own capacity, reads 0.590 [0.547, 0.633],
+below the bar, and it is reported here because the spec requires the measured stream numbers beside
+the state number wherever the L1 negative appears. So the seam is plainly present in what the agent
+sees to an offline reader, and a reader shaped like the agent's own trunk finds much less of it.
+
+Two features make the reading sharper than the headline rung's. First, the stream decoders read
+about the same on every arm, including the untrained one
+(0.804 on summary features and
+0.830 on the flattened sequence), which is what an
+observation-level seam should do: it is a property of the observations rather than of anything the
+agent learned. Second, matched decoder for decoder the two rungs agree rather than opposing each other. The
+capacity-matched GRU reads 0.590 from the L1 stream against a state of 0.552
+(+0.038), and 0.724 from the L3 stream against a state of
+0.733 (-0.009): at both rungs the trunk holds about what a reader
+of its own capacity extracts. What separates the rungs is the offline readers, 0.795 and
+0.795 at L1 against 0.715 and 0.661 at L3.
+
+**What this licenses.** The alternative reading, that the seam never reaches the agent's stream,
+is excluded: offline readers find it there at 0.795. What is not licensed is the stronger
+claim that a trunk of this capacity could have kept it, because the capacity-matched reader of the
+same stream gets only 0.590. The defensible statement is that what the trunk keeps tracks
+what a reader of its capacity extracts, and that a differently shaped reader can take more from the
+same stream than any of these agents hold. The L1 case therefore becomes a materially
+stronger leg of the sufficiency argument than it was, and the limitation recording that the stream
+had been measured on the corrected L3 agents only is discharged. The L1 run's own adjudication
+(the registered encoding criterion not met) stands exactly as recorded.
 
 ## 15. Matched-handicap oracle ceilings across rungs (2026-09-27)
 
@@ -2885,6 +3019,68 @@ For comparison, the drift-0 between-draw sd on the corrected agents is 0.049 (17
 historical agents the drift-0.45 between-draw sd is 0.042, so the draw
 moves the reading by a comparable amount at the condition the headline is read, and every
 interval reported on a single-pair pooled target remains conditional on its draw.
+
+### 17.5.2 The reverse direction: agents raised in the authentic world (2026-10-09)
+
+Every positive on record is in one direction. The agent is raised inside the surrogate and the
+probe separates the law it was raised under from the authentic law it never lived in. The other
+direction had never been measured, and it is the direction the project's framing describes. A
+design frozen before the run (`docs/specs/2026-10-09-reverse-direction-readout-design.md`,
+announced in `docs/PREREGISTRATION_L3.md` section 12 the same day) measures it.
+
+The ten saved **drift-0** agents of each arm of the historical hidden-8 held-out run are scored at
+readout drift 0.45, which is the opposite pairing from every other cell in the project: the agent
+trained in the authentic world and the probe is asked to separate it from a learned surrogate it
+never experienced. The two evaluation pools are the same ones every L3 cell uses (authentic 800000
+at drift 0, surrogate 850000 at drift 0.45). These are pre-correction-trainer agents, for the same
+reason as 17.5.1: the corrected `C1` agents are not in the repository.
+(`scripts/reverse_direction.py`, `artifacts/l0_audit/reverse_direction_l3_h8_heldout.json`,
+code commit `8aa2b9f`.)
+
+**Integrity gate, checked first.** Rescoring the same agents at drift 0 reproduces this run's
+recorded explicit-partition drift-0 targets on all 30 cells, worst abs dev 0.0012 against the
+0.01 tolerance, so the readout transfers from the GPU stack that trained them.
+
+| arm | standard pooled target | balanced (same world seed) |
+|---|---|---|
+| untrained | 0.505 [0.478, 0.531] | 0.522 [0.490, 0.554] |
+| predictor | 0.570 [0.547, 0.594] | 0.613 [0.593, 0.633] |
+| survival | 0.760 [0.716, 0.804] | 0.796 [0.755, 0.838] |
+
+Survival per seed: 0.863, 0.737, 0.720, 0.862, 0.769, 0.636, 0.673, 0.818, 0.729, 0.793;
+9 of 10 at or above the 0.65 bar. The seed-paired margin over the
+untrained arm is +0.255 and over the predictor
++0.189.
+
+**Verdict under the rule frozen before the run: CARRIED.** The survival arm clears the bar with
+its whole t-based interval above it and exceeds the untrained arm by more than the registered 0.05
+margin. An agent raised in the authentic world separates a surrogate it never lived in.
+
+Three readings follow, and the paper takes all three.
+
+First, rearing in the surrogate is **not necessary**. The claim is about what a trained forager's
+state carries when the dynamics it is scored under differ from the ones it is scored against, not
+about having grown up on the wrong side of that difference.
+
+Second, this **weakens the model-exploitation reading** of the forward result. A policy trained
+inside a learned model is known to drift toward the states where that model is wrong, and that
+mechanism cannot operate here: these agents never trained in the surrogate and so could not have
+learned to seek out its error regions. The reading survives that objection.
+
+Third, it **sharpens the dissociation rather than blurring it**. The untrained arm reads
+0.505 and the predictor 0.570 against survival's 0.760, so what
+matters is being a trained forager. Compared like for like, against the forward direction on these
+same ten agents, the same pools and the same explicit partition
+(`artifacts/fold_rescore/l3_h8_heldout.json`, the file this run's integrity gate reads), the
+forward margin is 0.774 minus 0.513, that is +0.261, so the reverse margin of +0.255 is 0.006
+**smaller** rather than larger. It is not compared against the corrected `C1` margin, which comes
+from a different trainer, different agents and a different partition baseline. At the same time
+the reading does move the result closer to
+out-of-distribution detection than the manuscript previously framed it, and the related-work
+positioning was revised accordingly, as the frozen spec required for this outcome.
+
+The drift-0 readings that make up the integrity gate are the same L0 control as elsewhere, so the
+open-gate caveat of 17.5 applies to this run too.
 
 ### 17.6 Who drives the evaluation episodes (revision step 6)
 

@@ -292,6 +292,11 @@ RUNS = [
         artifacts=["expB2/engagement_margin_cloud_runs.json"], claims=[37],
         readout_of=["BV3-REGIME-N10", "L3-H8-NOWM-CPU", "L3-H10-GS1-CPU", "L3-H8-WM-CPU"],
         trains_survival=False, folds="n/a"),
+    run("ENGAGE-MARGIN-CORRECTED", "Engagement-margin sweep on the corrected cells",
+        experiment="B-v2", artifacts=["engagement_margin_corrected.json"], claims=[37],
+        readout_of=["C1", "C2"], survival_trainer="successor_value", status="corrected",
+        trains_survival=False, folds="n/a",
+        notes="scripts/audit_engagement_margin.py on the committed corrected cells; offline, no compute. FINDINGS methods note 2. Extends ENGAGE-MARGIN, which covered historical cells only."),
     # ---------------- readout-only analyses on saved survival agents ----------------
     run("L3-CROSSRECIPE", "Cross-recipe transfer probe (RFF ridge family)", experiment="B-v2 L3",
         artifacts=["l3_crossrecipe/summary.json"], claims=[26], trains_survival=False,
@@ -338,6 +343,56 @@ RUNS = [
               "(gate 1 exploitability, gate 5 speed positive control), so neither estimator yields "
               "a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not "
               "apply to it."),
+    run("L1-STREAM-READOUT", "L1 stream and control readout on the saved L1 agents "
+        "(frozen 2026-10-09)", experiment="H2",
+        artifacts=["control_diagnostics/l1_stream_readout.json"], claims=[35],
+        trains_survival=False, readout_of=["L1-ORGANISM"], commit_at_run="5666f59",
+        folds="explicit", device="owner's laptop CPU, 4 workers",
+        local_run_dir="fullruns/l1_stream_readout",
+        notes="scripts/run_control_diagnostics.py --drift-mode l1 --l1-delta 0.023 --l1-sigma "
+              "0.01; spec docs/specs/2026-10-09-l1-stream-readout-design.md; FINDINGS 14.7.1. "
+              "Asks whether the quantization seam reaches the agent's own observation stream. "
+              "Integrity gate passed: all 30 regenerated state pools bit-match the run's dumps "
+              "and every per-seed target reproduces the explicit-partition record exactly. "
+              "Branch S1: the stream carries it. Pre-correction-trainer agents."),
+    run("T-GN-TRAINED", "Comparator-trained run on the white-jitter family (frozen 2026-10-09)",
+        experiment="B-v2 L3", artifacts=["texture/T_gn_l3_h8_wm.json"],
+        survival_trainer="successor_value", status="corrected", commit_at_run="60eb355",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01,
+                "hidden": 8, "hidden_deviation": "the registered trunk is 96; this run was "
+                "launched with --hidden 8, conflating the agent trunk with --l3-hidden"},
+        agent_seeds=S10, surrogate={"family": "G_gn (iid velocity jitter on the authentic law)",
+                                    "sigma_v": 0.01, "gate0": "oracle 0.8653 in band, floor 0.4479"},
+        budget={"survival_updates": 300}, eval_seeds=BV2_EVAL_SEEDS, folds="explicit",
+        device="owner's laptop CPU, 4 workers",
+        local_run_dir="fullruns/T_gn_l3_h8_wm",
+        notes="NOT THE REGISTERED CONFIGURATION: the agent trunk was 8 units, not 96, because "
+              "--hidden 8 was passed alongside --l3-hidden 8. Uninformative for that reason "
+              "independently of the gate below. scripts/run_expB2.py --l3-family gn then "
+              "scripts/promote_texture_trained.py; spec "
+              "docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. "
+              "UNINFORMATIVE: the registered positive control (speed probe at least 0.75, "
+              "scored in every pool as the project does) is short in 9 of 60 arm-by-cell pools, "
+              "worst 0.6862, with 8 of the 9 in the untrained arm the registered margins are "
+              "measured against, so the matrix's two verdicts, which both require every gate to "
+              "pass, are not reached, and the matrix names no cell for this "
+              "failure. Not promoted as a negative; it strengthens no claim. The descriptive "
+              "outcome is recorded because the preregistration log and the manuscript quote it."),
+    run("H8-HELDOUT-REVERSE-DIRECTION", "Reverse-direction readout: drift-0 agents probed "
+        "against a surrogate they never lived in (frozen 2026-10-09)", experiment="L0 audit",
+        artifacts=["l0_audit/reverse_direction_l3_h8_heldout.json"], trains_survival=False,
+        readout_of=["L3-H8-HELDOUT"], commit_at_run="8aa2b9f", folds="explicit",
+        eval_seeds={"authentic pool": "800000 at drift 0",
+                    "surrogate pool": "850000 at drift 0.45"},
+        device="owner's laptop CPU, one thread per readout",
+        local_run_dir="fullruns/reverse_direction",
+        notes="scripts/reverse_direction.py; spec docs/specs/2026-10-09-reverse-direction-readout-"
+              "design.md; FINDINGS 17.5.2. The agents are the DRIFT-0 ones of the held-out run and "
+              "the readout drift is 0.45, the opposite pairing from every other cell. Integrity "
+              "gate (the same agents rescored at drift 0 reproduce the recorded drift-0 targets "
+              "within 0.01) passed on all 30 cells, worst abs dev 0.0012. Verdict under the "
+              "frozen rule: CARRIED. Pre-correction-trainer agents; this measures the "
+              "direction-dependence of the estimator, not the corrected headline."),
     run("H8-HELDOUT-D045-WORLD-SAMPLES", "Drift-0.45 world-sample sensitivity on the historical "
         "hidden-8 held-out agents (frozen 2026-10-08)", experiment="L0 audit",
         artifacts=["l0_audit/d045_world_samples_l3_h8_heldout.json"], trains_survival=False,

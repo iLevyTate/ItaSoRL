@@ -1792,6 +1792,38 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "engagement_margin_corrected.json"
+      ],
+      "budget": null,
+      "claims": [
+        37
+      ],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "B-v2",
+      "folds": "n/a",
+      "id": "ENGAGE-MARGIN-CORRECTED",
+      "local_run_dir": null,
+      "notes": "scripts/audit_engagement_margin.py on the committed corrected cells; offline, no compute. FINDINGS methods note 2. Extends ENGAGE-MARGIN, which covered historical cells only.",
+      "readout_only_on": [
+        "C1",
+        "C2"
+      ],
+      "recorded_provenance": {
+        "engagement_margin_corrected.json": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Engagement-margin sweep on the corrected cells"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "l3_crossrecipe/summary.json"
       ],
       "budget": null,
@@ -2089,6 +2121,159 @@
       "surrogate": null,
       "survival_trainer": "none",
       "title": "Experiment C milestone 3 rerun with the per-individual readout (2026-10-07)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "control_diagnostics/l1_stream_readout.json"
+      ],
+      "budget": null,
+      "claims": [
+        35
+      ],
+      "commit_at_run": "5666f59",
+      "config": {},
+      "deps": null,
+      "device": "owner's laptop CPU, 4 workers",
+      "eval_seeds": null,
+      "experiment": "H2",
+      "folds": "explicit",
+      "id": "L1-STREAM-READOUT",
+      "local_run_dir": "fullruns/l1_stream_readout",
+      "notes": "scripts/run_control_diagnostics.py --drift-mode l1 --l1-delta 0.023 --l1-sigma 0.01; spec docs/specs/2026-10-09-l1-stream-readout-design.md; FINDINGS 14.7.1. Asks whether the quantization seam reaches the agent's own observation stream. Integrity gate passed: all 30 regenerated state pools bit-match the run's dumps and every per-seed target reproduces the explicit-partition record exactly. Branch S1: the stream carries it. Pre-correction-trainer agents.",
+      "readout_only_on": [
+        "L1-ORGANISM"
+      ],
+      "recorded_provenance": {
+        "control_diagnostics/l1_stream_readout.json": {
+          "generated_by": "scripts/run_control_diagnostics.py",
+          "git_commit": "5666f59"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "inherited: pre_transition_value",
+      "title": "L1 stream and control readout on the saved L1 agents (frozen 2026-10-09)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "artifacts": [
+        "texture/T_gn_l3_h8_wm.json"
+      ],
+      "budget": {
+        "survival_updates": 300
+      },
+      "claims": [],
+      "commit_at_run": "60eb355",
+      "config": {
+        "drift_mode": "l3",
+        "drifts": [
+          0.0,
+          0.45
+        ],
+        "embed": 64,
+        "hidden": 8,
+        "hidden_deviation": "the registered trunk is 96; this run was launched with --hidden 8, conflating the agent trunk with --l3-hidden",
+        "l3_family": "gn",
+        "l3_family_param": 0.01,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)"
+      },
+      "deps": null,
+      "device": "owner's laptop CPU, 4 workers",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "T-GN-TRAINED",
+      "local_run_dir": "fullruns/T_gn_l3_h8_wm",
+      "notes": "NOT THE REGISTERED CONFIGURATION: the agent trunk was 8 units, not 96, because --hidden 8 was passed alongside --l3-hidden 8. Uninformative for that reason independently of the gate below. scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. UNINFORMATIVE: the registered positive control (speed probe at least 0.75, scored in every pool as the project does) is short in 9 of 60 arm-by-cell pools, worst 0.6862, with 8 of the 9 in the untrained arm the registered margins are measured against, so the matrix's two verdicts, which both require every gate to pass, are not reached, and the matrix names no cell for this failure. Not promoted as a negative; it strengthens no claim. The descriptive outcome is recorded because the preregistration log and the manuscript quote it.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "texture/T_gn_l3_h8_wm.json": {
+          "generated_by": "scripts/promote_texture_trained.py",
+          "git_commit_at_promotion": "df7ccf3",
+          "source_run": "../../fullruns/T_gn_l3_h8_wm/expB2_results.json",
+          "spec": "docs/specs/2026-10-09-gn-comparator-trained-design.md"
+        }
+      },
+      "status": "corrected",
+      "surrogate": {
+        "family": "G_gn (iid velocity jitter on the authentic law)",
+        "gate0": "oracle 0.8653 in band, floor 0.4479",
+        "sigma_v": 0.01
+      },
+      "survival_trainer": "successor_value",
+      "title": "Comparator-trained run on the white-jitter family (frozen 2026-10-09)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "l0_audit/reverse_direction_l3_h8_heldout.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "8aa2b9f",
+      "config": {},
+      "deps": null,
+      "device": "owner's laptop CPU, one thread per readout",
+      "eval_seeds": {
+        "authentic pool": "800000 at drift 0",
+        "surrogate pool": "850000 at drift 0.45"
+      },
+      "experiment": "L0 audit",
+      "folds": "explicit",
+      "id": "H8-HELDOUT-REVERSE-DIRECTION",
+      "local_run_dir": "fullruns/reverse_direction",
+      "notes": "scripts/reverse_direction.py; spec docs/specs/2026-10-09-reverse-direction-readout-design.md; FINDINGS 17.5.2. The agents are the DRIFT-0 ones of the held-out run and the readout drift is 0.45, the opposite pairing from every other cell. Integrity gate (the same agents rescored at drift 0 reproduce the recorded drift-0 targets within 0.01) passed on all 30 cells, worst abs dev 0.0012. Verdict under the frozen rule: CARRIED. Pre-correction-trainer agents; this measures the direction-dependence of the estimator, not the corrected headline.",
+      "readout_only_on": [
+        "L3-H8-HELDOUT"
+      ],
+      "recorded_provenance": {
+        "l0_audit/reverse_direction_l3_h8_heldout.json": {
+          "generated_by": "scripts/reverse_direction.py",
+          "git_commit": "8aa2b9f",
+          "spec": "docs/specs/2026-10-09-reverse-direction-readout-design.md"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "inherited: pre_transition_value",
+      "title": "Reverse-direction readout: drift-0 agents probed against a surrogate they never lived in (frozen 2026-10-09)"
     },
     {
       "affected_by_gae_correction": true,

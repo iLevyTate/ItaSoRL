@@ -31,6 +31,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `L3-H8-GS2-GPU` | historical | B-v2 L3 | 31 | pre_transition_value | - | d67dd51 | explicit | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126, ITASORL_FOLDS=explicit |
 | `L3-H8-NOWM-U450` | historical | B-v2 L3 | - | pre_transition_value | - | 9d5d047 / 80948ff (cells span both) | explicit | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126, ITASORL_FOLDS=explicit |
 | `ENGAGE-MARGIN` | historical | B-v2 | 37 | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-NOWM-CPU, L3-H10-GS1-CPU, L3-H8-WM-CPU | not recorded | n/a | not recorded |
+| `ENGAGE-MARGIN-CORRECTED` | corrected | B-v2 | 37 | inherited: successor_value | C1, C2 | not recorded | n/a | not recorded |
 | `L3-CROSSRECIPE` | historical | B-v2 L3 | 26 | inherited: pre_transition_value | L3-H8-HELDOUT | a5c46ff | legacy | local GPU |
 | `H2-GRADED-SEAM` | historical | H2 | 32 | inherited: pre_transition_value | L3-H8-HELDOUT | c4e4417 | legacy | cuda |
 | `H2-TEXTURE` | historical | H2 | 33 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | not recorded |
@@ -38,6 +39,9 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `L1-H2` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | not recorded | legacy | not recorded |
 | `SENSORY-ECHO` | historical | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
 | `EXPC-M3-PER-INDIVIDUAL` | historical | C | 28 | none | - | 3c6f0aa | n/a | owner's laptop CPU |
+| `L1-STREAM-READOUT` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | 5666f59 | explicit | owner's laptop CPU, 4 workers |
+| `T-GN-TRAINED` | corrected | B-v2 L3 | - | successor_value | - | 60eb355 | explicit | owner's laptop CPU, 4 workers |
+| `H8-HELDOUT-REVERSE-DIRECTION` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 8aa2b9f | explicit | owner's laptop CPU, one thread per readout |
 | `H8-HELDOUT-D045-WORLD-SAMPLES` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 865b842 | explicit | owner's laptop CPU, one thread per readout |
 | `FOLDS-EXPLICIT-V1` | historical | methods | - | none | - | not recorded | explicit | not recorded |
 | `GATE-TABLE` | historical | methods | - | inherited: pre_transition_value | BV2-L2-AR1, BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
@@ -385,6 +389,14 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: n/a
 - Artifacts: `artifacts/expB2/engagement_margin_cloud_runs.json`
 
+### `ENGAGE-MARGIN-CORRECTED`: Engagement-margin sweep on the corrected cells
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Folds: n/a
+- Notes: scripts/audit_engagement_margin.py on the committed corrected cells; offline, no compute. FINDINGS methods note 2. Extends ENGAGE-MARGIN, which covered historical cells only.
+- Artifacts: `artifacts/engagement_margin_corrected.json`
+
 ### `L3-CROSSRECIPE`: Cross-recipe transfer probe (RFF ridge family)
 
 - Status: historical
@@ -446,6 +458,43 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Local run directory (not in git): fullruns/expC_milestone3
 - Notes: scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE on the same two registered gates (gate 1 exploitability, gate 5 speed positive control), so neither estimator yields a verdict. Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.
 - Artifacts: `artifacts/expC/emergence_pilot_per_individual_summary.json`
+
+### `L1-STREAM-READOUT`: L1 stream and control readout on the saved L1 agents (frozen 2026-10-09)
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Commit at run: 5666f59
+- Folds: explicit
+- Device: owner's laptop CPU, 4 workers
+- Local run directory (not in git): fullruns/l1_stream_readout
+- Notes: scripts/run_control_diagnostics.py --drift-mode l1 --l1-delta 0.023 --l1-sigma 0.01; spec docs/specs/2026-10-09-l1-stream-readout-design.md; FINDINGS 14.7.1. Asks whether the quantization seam reaches the agent's own observation stream. Integrity gate passed: all 30 regenerated state pools bit-match the run's dumps and every per-seed target reproduces the explicit-partition record exactly. Branch S1: the stream carries it. Pre-correction-trainer agents.
+- Artifacts: `artifacts/control_diagnostics/l1_stream_readout.json`
+
+### `T-GN-TRAINED`: Comparator-trained run on the white-jitter family (frozen 2026-10-09)
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: 60eb355
+- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Surrogate: {"family": "G_gn (iid velocity jitter on the authentic law)", "sigma_v": 0.01, "gate0": "oracle 0.8653 in band, floor 0.4479"}
+- Budget: {"survival_updates": 300}
+- Folds: explicit
+- Device: owner's laptop CPU, 4 workers
+- Local run directory (not in git): fullruns/T_gn_l3_h8_wm
+- Notes: NOT THE REGISTERED CONFIGURATION: the agent trunk was 8 units, not 96, because --hidden 8 was passed alongside --l3-hidden 8. Uninformative for that reason independently of the gate below. scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. UNINFORMATIVE: the registered positive control (speed probe at least 0.75, scored in every pool as the project does) is short in 9 of 60 arm-by-cell pools, worst 0.6862, with 8 of the 9 in the untrained arm the registered margins are measured against, so the matrix's two verdicts, which both require every gate to pass, are not reached, and the matrix names no cell for this failure. Not promoted as a negative; it strengthens no claim. The descriptive outcome is recorded because the preregistration log and the manuscript quote it.
+- Config (beyond the standard protocol): {"hidden": 8, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01, "hidden_deviation": "the registered trunk is 96; this run was launched with --hidden 8, conflating the agent trunk with --l3-hidden"}
+- Artifacts: `artifacts/texture/T_gn_l3_h8_wm.json`
+
+### `H8-HELDOUT-REVERSE-DIRECTION`: Reverse-direction readout: drift-0 agents probed against a surrogate they never lived in (frozen 2026-10-09)
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Commit at run: 8aa2b9f
+- Folds: explicit
+- Device: owner's laptop CPU, one thread per readout
+- Local run directory (not in git): fullruns/reverse_direction
+- Notes: scripts/reverse_direction.py; spec docs/specs/2026-10-09-reverse-direction-readout-design.md; FINDINGS 17.5.2. The agents are the DRIFT-0 ones of the held-out run and the readout drift is 0.45, the opposite pairing from every other cell. Integrity gate (the same agents rescored at drift 0 reproduce the recorded drift-0 targets within 0.01) passed on all 30 cells, worst abs dev 0.0012. Verdict under the frozen rule: CARRIED. Pre-correction-trainer agents; this measures the direction-dependence of the estimator, not the corrected headline.
+- Artifacts: `artifacts/l0_audit/reverse_direction_l3_h8_heldout.json`
 
 ### `H8-HELDOUT-D045-WORLD-SAMPLES`: Drift-0.45 world-sample sensitivity on the historical hidden-8 held-out agents (frozen 2026-10-08)
 

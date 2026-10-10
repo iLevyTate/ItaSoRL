@@ -44,10 +44,93 @@ import numpy as np
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 
 
+def checkpoint_path(ckpt_dir: str, cell: dict) -> str:
+    """One file per (drift, seed, arm). The name is the cell's identity, so a resume is a
+    directory listing rather than a parse of partial output."""
+    return os.path.join(ckpt_dir,
+                        f"d{float(cell['drift']):.2f}_s{int(cell['seed'])}_{cell['arm']}.json")
+
+
+def save_checkpoint(ckpt_dir: str, cell: dict) -> str:
+    os.makedirs(ckpt_dir, exist_ok=True)
+    path = checkpoint_path(ckpt_dir, cell)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(cell, fh, indent=1, default=float)
+    os.replace(tmp, path)      # atomic, so a kill mid-write cannot leave a half cell
+    return path
+
+
+def load_checkpoints(ckpt_dir: str | None) -> list:
+    if not ckpt_dir or not os.path.isdir(ckpt_dir):
+        return []
+    out = []
+    for name in sorted(os.listdir(ckpt_dir)):
+        if not name.endswith(".json"):
+            continue
+        with open(os.path.join(ckpt_dir, name), encoding="utf-8") as fh:
+            out.append(json.load(fh))
+    return out
+
+
+def split_resumable(tasks: list, ckpt_dir: str | None):
+    """(still to do, already done). A cell is done when its checkpoint file exists."""
+    done = load_checkpoints(ckpt_dir)
+    have = {(f"{float(c['drift']):.2f}", int(c["seed"]), c["arm"]) for c in done}
+    todo = [t for t in tasks
+            if (f"{float(t['drift']):.2f}", int(t["seed"]), t["arm"]) not in have]
+    return todo, done
+
+
+def setup_rung(task: dict) -> None:
+    """Install the surrogate rung this task is scored at, in this process.
+
+    Workers are spawned, so each one installs the rung from its own task payload. L3 trains the
+    learned velocity law once per process; L1 needs no surrogate, only the grid spacing and the
+    sensor noise the run used.
+    """
+    import itasorl.experiment_b2 as b2
+    from itasorl.world import WorldParams
+
+    mode = task.get("drift_mode", "l3")
+    b2.DRIFT_MODE = mode
+    if mode == "l1":
+        b2.L1_DELTA = float(task["l1_delta"])
+        b2.SENSOR_SIGMA = float(task["l1_sigma"])
+        return
+    if b2._L3_GMOTION is None:
+        b2.setup_l3_surrogate(hidden=task["l3_hidden"], device="cpu", seed=task["l3_seed"],
+                              params=WorldParams(k_land=1.5, k_water=1.5, gravity=0.4))
+
+
+def build_parser():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--run-dir", required=True)
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--workers", type=int, default=1)
+    ap.add_argument("--n-eps", type=int, default=110)
+    ap.add_argument("--steps", type=int, default=24)
+    ap.add_argument("--ray-steps", type=int, default=5)
+    ap.add_argument("--gru-epochs", type=int, default=60)
+    ap.add_argument("--l3-hidden", type=int, default=8)
+    ap.add_argument("--l3-seed", type=int, default=0)
+    ap.add_argument("--drift-mode", choices=("l3", "l1"), default="l3",
+                    help="which rung the saved agents live on; l3 is the default and is "
+                         "unchanged. l1 scores the observation-quantization rung and needs "
+                         "--l1-delta and --l1-sigma to match the run that trained them.")
+    ap.add_argument("--l1-delta", type=float, default=0.023,
+                    help="L1 grid spacing (fullruns/l1_heldout used 0.023)")
+    ap.add_argument("--l1-sigma", type=float, default=0.01,
+                    help="L1 observation sensor noise (fullruns/l1_heldout used 0.01)")
+    ap.add_argument("--checkpoint-dir", default=None,
+                    help="one JSON per (drift, seed, arm); finished cells are skipped on a rerun")
+    ap.add_argument("--quick", action="store_true")
+    return ap
+
+
 def run_one(task: dict) -> dict:
     import torch
 
-    import itasorl.experiment_b2 as b2
     from itasorl.behavior_audit import _trace_phi, sensory_residual_probe_auroc, trace_residual_probe_auroc
     from itasorl.control_diagnostics import (flat_sequence_linear_auroc, history_basis,
                                              residual_probe_with_diagnostics, sequence_gru_auroc)
@@ -57,9 +140,7 @@ def run_one(task: dict) -> dict:
 
     torch.set_num_threads(1)
     P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
-    b2.DRIFT_MODE = "l3"
-    if b2._L3_GMOTION is None:
-        b2.setup_l3_surrogate(hidden=task["l3_hidden"], device="cpu", seed=task["l3_seed"], params=P)
+    setup_rung(task)
     t0 = time.time()
     d, s, g = task["drift"], task["seed"], task["arm"]
     agent, norm = load_agent_bundle(task["path"], "cpu")
@@ -116,18 +197,7 @@ def _scalar(v):
 def main() -> int:
     from itasorl import folds
     from itasorl.stats import t_ci90
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--run-dir", required=True)
-    ap.add_argument("--out", required=True)
-    ap.add_argument("--workers", type=int, default=1)
-    ap.add_argument("--n-eps", type=int, default=110)
-    ap.add_argument("--steps", type=int, default=24)
-    ap.add_argument("--ray-steps", type=int, default=5)
-    ap.add_argument("--gru-epochs", type=int, default=60)
-    ap.add_argument("--l3-hidden", type=int, default=8)
-    ap.add_argument("--l3-seed", type=int, default=0)
-    ap.add_argument("--quick", action="store_true")
-    a = ap.parse_args()
+    a = build_parser().parse_args()
     if a.quick:
         a.n_eps, a.steps, a.ray_steps, a.gru_epochs = 40, 16, 4, 10
     agents_dir = os.path.join(a.run_dir, "agents")
@@ -142,20 +212,29 @@ def main() -> int:
     tasks = [{"path": os.path.join(agents_dir, nm), "drift": d, "seed": s, "arm": g,
               "states_dir": os.path.join(a.run_dir, "states"), "n_eps": a.n_eps,
               "steps": a.steps, "ray_steps": a.ray_steps, "gru_epochs": a.gru_epochs,
-              "l3_hidden": a.l3_hidden, "l3_seed": a.l3_seed}
+              "l3_hidden": a.l3_hidden, "l3_seed": a.l3_seed,
+              "drift_mode": a.drift_mode, "l1_delta": a.l1_delta, "l1_sigma": a.l1_sigma}
              for d, s, g, nm in cells if d == dmax]
-    results = []
+    tasks, results = split_resumable(tasks, a.checkpoint_dir)
+    if results:
+        print(f"resumed {len(results)} cell(s) from {a.checkpoint_dir}; {len(tasks)} to go",
+              flush=True)
+    results = list(results)
     if a.workers > 1:
         import multiprocessing as mp
         with mp.get_context("spawn").Pool(a.workers) as pool:
             for r in pool.imap_unordered(run_one, tasks):
                 results.append(r)
+                if a.checkpoint_dir:
+                    save_checkpoint(a.checkpoint_dir, r)
                 print(f"  s{r['seed']} {r['arm']}: target {r.get('target', float('nan')):.3f} "
                       f"bit_match={r.get('dump_bit_match')} ({r.get('seconds')} s)", flush=True)
     else:
         for t in tasks:
             r = run_one(t)
             results.append(r)
+            if a.checkpoint_dir:
+                save_checkpoint(a.checkpoint_dir, r)
             print(f"  s{r['seed']} {r['arm']}: target {r.get('target', float('nan')):.3f} "
                   f"bit_match={r.get('dump_bit_match')} ({r.get('seconds')} s)", flush=True)
     results.sort(key=lambda r: (r["arm"], r["seed"]))

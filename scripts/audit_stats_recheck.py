@@ -1855,6 +1855,107 @@ def main() -> int:
         for arm in ("predictor", "untrained"):
             check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
                        f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
+    _l1p = os.path.join(ARTROOT, "control_diagnostics", "l1_stream_readout.json")
+    if os.path.exists(_l1p):
+        _f14b = _read("docs/FINDINGS.md")
+        _s147 = _f14b[_f14b.index("### 14.7.1"):_f14b.index("## 15. Matched-handicap")]
+        _l1 = _load_art("control_diagnostics", "l1_stream_readout.json")
+        _la = _l1["aggregate"]
+        check_true("14.7.1: every state pool bit-matches the run's dumps",
+                   bool(_l1["all_dumps_bit_match"]))
+        check_int("14.7.1: thirty cells scored", len(_l1["cells"]), 30)
+        for _k, _lab in (("target", "state probe (h_t)"),
+                         ("obs_summary_only", "observation summary features"),
+                         ("seq_flat_linear", "flattened sequence, linear"),
+                         ("seq_gru", "supervised GRU on the stream")):
+            _r = "| " + _lab + " | " + " | ".join(
+                f"{_la[f'd=0.02 {_a} {_k}']['mean']:.3f} "
+                f"[{_la[f'd=0.02 {_a} {_k}']['t90'][0]:.3f}, "
+                f"{_la[f'd=0.02 {_a} {_k}']['t90'][1]:.3f}]"
+                for _a in ("survival", "predictor", "untrained")) + " |"
+            check_true(f"14.7.1 table row {_k}", _r in _s147)
+        _dmax = max(_la["d=0.02 survival obs_summary_only"]["mean"],
+                    _la["d=0.02 survival seq_gru"]["mean"])
+        check_true("14.7.1: branch S1, the larger stream decoder clears the bar", _dmax >= 0.65)
+        check_true("14.7.1: the state does not clear the bar",
+                   _la["d=0.02 survival target"]["mean"] < 0.65)
+        check_true("14.7.1 quotes the larger stream decoder", f"**{_dmax:.3f}**" in _s147)
+    _gnp = os.path.join(ARTROOT, "texture", "T_gn_l3_h8_wm.json")
+    if os.path.exists(_gnp):
+        _f14 = _read("docs/FINDINGS.md")
+        _s14 = _f14[_f14.index("## 14. H2 substrate-grounding"):_f14.index("## 15.")]
+        _gn = _load_art("texture", "T_gn_l3_h8_wm.json")
+        _sp = _gn["gates"]["speed_positive_control"]
+        check_true("14.5.1: the gn run fails exactly the speed positive control",
+                   _gn["gates_failed"] == ["speed_positive_control"])
+        check_true("14.5.1: the registered rule is not met", not _gn["rule_met"])
+        check_true("14.5.1: it routes uninformative", _gn["routing"].startswith("UNINFORMATIVE"))
+        check_true("14.5.1 quotes the worst pool, over every arm not just survival",
+                   f"**{_sp['min_all_pools']:.4f}**" in _s14)
+        check_true("14.5.1 quotes how many pools are short",
+                   f"**{_sp['n_below']} of the {_sp['n_pools']}**" in _s14)
+        check_true("14.5.1 still records the survival-arm worst",
+                   f"{_sp['min_survival']:.5f}" in _s14)
+        check_true("14.5.1: the gate is scored over every pool",
+                   _sp["n_pools"] == 60 and _sp["min_all_pools"] < _sp["min_survival"])
+        check_true("14.5.1: engagement is verified from the cells, not asserted",
+                   _gn["gates"]["engagement"]["n_cells"] == 20
+                   and _gn["gates"]["engagement"]["n_engaged"] == 20)
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from promote_texture_trained import REGISTERED_GATES as _REG
+        check_true("14.5.1: every registered gate is scored in the artifact",
+                   set(_gn["gates"]) == set(_REG))
+        # The matched forward margin, recomputed, so the like-for-like comparison cannot drift.
+        _fw = {}
+        for _c in _load_art("fold_rescore", "l3_h8_heldout.json")["cells"]:
+            if float(_c["drift"]) == 0.45 and "explicit" in _c:
+                _fw.setdefault(_c["agent"], []).append(float(_c["explicit"]["target"]))
+        _mfwd = float(np.mean(_fw["survival"]) - np.mean(_fw["untrained"]))
+        check_true("17.5.2 quotes the matched forward margin",
+                   f"that is {_mfwd:+.3f}" in _s17)
+        check_true("17.5.2 no longer claims the reverse margin is the larger one",
+                   "larger than the forward direction" not in _s17)
+        for _arm in ("untrained", "predictor", "survival"):
+            _a = _gn["primary"][_arm]
+            _iv = f"[{_a['t90'][0]:.3f}, {_a['t90'][1]:.3f}]"
+            # The survival mean is bolded and may wrap before its interval.
+            check_true(f"14.5.1 quotes the {_arm} reading",
+                       any(f"{_m} {_iv}" in _s14 or f"{_m}\n{_iv}" in _s14
+                           for _m in (f"{_a['mean']:.3f}", f"**{_a['mean']:.3f}**")))
+        check_int("14.5.1: no seed reaches the bar",
+                  _gn["primary"]["survival"]["seeds_at_or_above_bar"], 0)
+        check_true("14.5.1: every other gate passes",
+                   all(g["pass"] for k, g in _gn["gates"].items()
+                       if k != "speed_positive_control"))
+    _rdp = os.path.join(ARTROOT, "l0_audit", "reverse_direction_l3_h8_heldout.json")
+    if os.path.exists(_rdp):
+        from scripts.reverse_direction import adjudicate as _radj
+        _rd = _load_art("l0_audit", "reverse_direction_l3_h8_heldout.json")
+        _rs = _rd["summary"]
+        check_true("17.5.2: the agents scored are the drift-0 ones",
+                   _rd["agent_drift"] == 0.0 and _rd["readout_drift"] == 0.45)
+        check_true("17.5.2: the integrity gate passed", bool(_rd["integrity"]["pass"]))
+        check_int("17.5.2: thirty cells checked by the gate", _rd["integrity"]["n_checked"], 30)
+        check_true("17.5.2 quotes the gate's worst deviation",
+                   f"worst abs dev {_rd['integrity']['worst_abs_dev']:.4f}" in _s17)
+        for _arm in ("untrained", "predictor", "survival"):
+            _a, _b = _rs["standard"][_arm], _rs["balanced"][_arm]
+            _per = [c["target"] for c in sorted(_rd["cells"], key=lambda c: c["seed"])
+                    if c["arm"] == _arm]
+            check("17.5.2: " + _arm + " mean recomputes from the cells",
+                  _a["mean"], float(np.mean(_per)))
+            check_true(f"17.5.2 table row {_arm}",
+                       f"| {_arm} | {_a['mean']:.3f} [{_a['t90'][0]:.3f}, {_a['t90'][1]:.3f}] | "
+                       f"{_b['mean']:.3f} [{_b['t90'][0]:.3f}, {_b['t90'][1]:.3f}] |" in _s17)
+        check("17.5.2: the artifact carries the registered bar", _rd["bar"], BAR)
+        check("17.5.2: the artifact carries the registered margin", _rd["margin"], 0.05)
+        _re = _radj(survival=_rs["standard"]["survival"]["mean"],
+                    untrained=_rs["standard"]["untrained"]["mean"],
+                    bar=BAR, margin=0.05)
+        check_true("17.5.2: the verdict recomputes under the frozen rule",
+                   _re["verdict"] == _rs["verdict"])
+        check_true("17.5.2 quotes the verdict",
+                   f"frozen before the run: {_rs['verdict']}" in _s17)
     _s13 = _f17[_f17.index("## 13. Experiment C"):_f17.index("## 14.")]
     _pip = os.path.join(ARTROOT, "expC", "emergence_pilot_per_individual_summary.json")
     if os.path.exists(_pip):
@@ -1917,7 +2018,9 @@ def main() -> int:
             _lab = "registered" if k == 0 else f"independent {k}"
             check_true(f"17.5.1 quotes the drift-0.45 draw {b[0]}",
                        f"| {_lab} | {b[0]} / {b[1]} | {m:.3f} |" in _s17)
-        _re = _wss(_wm[1:], _wm[0], bar=_ws["bar"])
+        check("17.5.1: the artifact carries the registered bar", _ws["bar"], BAR)
+        check("17.5.1: the summary carries the registered bar", _wsum["bar"], BAR)
+        _re = _wss(_wm[1:], _wm[0], bar=BAR)
         check_true("17.5.1: the verdict recomputes from the cells under the frozen rule",
                    _re["verdict"] == _wsum["verdict"] and _re["registered_rank"] == _wsum["registered_rank"])
         check("17.5.1: registered draw mean", _wsum["registered"], _wm[0])
