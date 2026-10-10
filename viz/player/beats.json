@@ -121,8 +121,8 @@
         "headline": "The fake was detectable all along. Its own mind showed it only after a life spent foraging in the copy.",
         "recap": [
           { "label": "outside watcher", "pct": "99%" },
-          { "label": "its mind, idle", "pct": "50%" },
-          { "label": "its mind, surviving", "pct": "73%" }
+          { "label": "untrained mind", "pct": "50%" },
+          { "label": "trained mind", "pct": "73%" }
         ],
         "url": "ilevytate.github.io/ItaSoRL",
         "foot": "Real runs, 10 each. 50% = coin flip, 100% = always right. Read out, never rewarded. Pre-correction trainer. The survival-only reading is withdrawn: a mind trained only to predict reads the same senses as well (FINDINGS 17.6). Corrected trainer: 0.733, the registered rule not met on its authentic-versus-authentic gate, and the level stable across nine draws of evaluation worlds (0.728 to 0.860, FINDINGS 17.5.1). docs/CORRECTIONS.md."

@@ -1443,10 +1443,10 @@ function makeTransport(player, duration) {
   return { draw, play, pause };
 }
 
-// Overlay gallery: the companion loop clips from the main page's "More ways
-// to see it" strip plus the Two Minds film, viewable without leaving the
-// player. Opening pauses the film; the muted loops play only while the
-// overlay is up. Two Minds has controls and waits for a click.
+// Overlay gallery: the voiced cut of this film and the Two Minds film,
+// viewable without leaving the player. Opening pauses the film; any muted
+// loop clip plays only while the overlay is up (none ships since the July
+// demo loops were retired); the films have controls and wait for a click.
 function wireGallery(pauseFilm) {
   const gal = $("gallery");
   const vids = Array.from(gal.querySelectorAll("video"));

@@ -118,7 +118,10 @@ const SECTIONS = {
     narration: [
       { u0: 0.00, u1: 0.25, text: "Ten senses. Every world arrives through them." },
       { u0: 0.25, u1: 0.50, text: "The flaw enters at speed: how things move." },
-      { u0: 0.50, u1: 1.00, text: "Cover the eyes and the trace fades." },
+      // Was "Cover the eyes and the trace fades." Against this fingerprint masking vision
+      // moves 0.752 to 0.686 with 7 of 10 seeds still over the bar, and against the
+      // coarser one it raises the signal (FINDINGS 14.6), so it weakens and stays.
+      { u0: 0.50, u1: 1.00, text: "Cover the eyes and the trace weakens, but stays." },
     ],
   },
   process: {
@@ -147,8 +150,13 @@ const SECTIONS = {
     // said "before the miss" at u 0.40, after the miss, over a climbing meter.
     narration: [
       { u0: 0.00, u1: 0.22, text: "Twelve real memory cells, by unit number." },
-      { u0: 0.22, u1: 0.44, text: "Until the miss lands: a coin flip. 49%." },
-      { u0: 0.44, u1: 0.72, text: "After: 73%. Our bar, set in advance, was 65%." },
+      // 49% and 73% are two different brains, untrained and trained, each read once
+      // after training. The old lines ("Until the miss lands: a coin flip. 49%." /
+      // "After: 73%.") told them as one brain's before and after, which was never
+      // measured. The meter still climbs inside one brain; a re-render needs a meter
+      // that shows the two brains side by side.
+      { u0: 0.22, u1: 0.44, text: "An untrained brain reads 49%: a coin flip." },
+      { u0: 0.44, u1: 0.72, text: "A trained brain reads 73%. The bar was 65%." },
       { u0: 0.72, u1: 1.00, text: "Teal rings hold the trace. Twins fade." },
     ],
   },
