@@ -252,3 +252,13 @@ def test_death_stats_counts_deaths_and_early_deaths(monkeypatch):
                         window=death_step - 1)
     assert r2["death_rate"] == 1.0
     assert r2["early_death_rate"] == 0.0
+
+
+def test_policy_readout_retrains_with_the_runs_objective_and_mortality():
+    """run_policy_controlled_readouts retrains the trained arm and requires it to be
+    bit-identical to the saved one, so it must carry the run's objective and mortality."""
+    import run_policy_controlled_readouts as prc
+    assert prc.run_knobs({"objective": "touch", "mortal": False}) == {"objective": "touch",
+                                                                       "mortal": False}
+    assert prc.run_knobs({"mortal": False}) == {"objective": "survival", "mortal": False}
+    assert prc.run_knobs({}) == {"objective": "survival", "mortal": True}   # pre-flag cells

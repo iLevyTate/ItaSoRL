@@ -47,6 +47,13 @@ def _cfg_from_cells(run_dir: str) -> dict:
         return json.load(fh)
 
 
+def run_knobs(payload: dict) -> dict:
+    """The trained arm's objective and mortality as recorded in a cell; cells written before
+    the goal-and-stakes flags existed carry neither and get the registered defaults."""
+    return {"objective": payload.get("objective", "survival"),
+            "mortal": bool(payload.get("mortal", True))}
+
+
 def run_seed(task: dict) -> dict:
     import torch
 
@@ -61,6 +68,10 @@ def run_seed(task: dict) -> dict:
     P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
     k, seed, d = task, task["seed"], task["drift"]
     b2.DRIFT_MODE = "l3"
+    # The retrain must use the run's own trained-arm reward and mortality, or it cannot be
+    # bit-identical to the saved agent (goal-and-stakes runs; absent keys are the defaults).
+    b2.OBJECTIVE = k.get("objective", "survival")
+    b2.MORTAL = bool(k.get("mortal", True))
     if b2._L3_GMOTION is None:
         b2.setup_l3_surrogate(hidden=k["l3_hidden"], device="cpu", seed=k["l3_seed"], params=P)
     agents_dir = os.path.join(k["run_dir"], "agents")
@@ -135,6 +146,7 @@ def main() -> int:
             "max_steps": a.max_steps, "ray_steps": a.ray_steps, "shaping_coef": 1.0,
             "world_model": a.world_model,
             "gae_bootstrap": payload.get("gae_bootstrap", "pre_transition"),
+            **run_knobs(payload),
             "pool_n": a.pool_n, "pool_steps": a.pool_steps}
     tasks = [{**base, "seed": s} for s in seeds]
     print(f"policy-controlled readouts: {a.run_dir} drift={dmax} seeds={seeds} "
