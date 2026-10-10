@@ -10,6 +10,9 @@ property a decision layer must not have.
 
 from __future__ import annotations
 
+import os
+import sys
+
 import numpy as np
 import pytest
 
@@ -66,17 +69,55 @@ def test_equivalence_still_accepts_and_rejects_correctly_at_n_ten():
 
 # --------------------------------------------------------------- the margin is "at least"
 
-def test_the_registered_margin_is_at_least_everywhere_it_is_applied():
-    """Section 6 of the preregistration reads "exceeds both baselines by at least 0.05". One
-    instance on record missed a margin by a thousandth, so the boundary is not hypothetical."""
-    import inspect
-
-    import scripts  # noqa: F401
-    import sys, os
+def _bcv():
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
     import build_corrected_verdicts as bcv
+    return bcv
 
-    src = inspect.getsource(bcv)
+
+def test_the_registered_margin_is_at_least_everywhere_it_is_applied():
+    """Section 6 of the preregistration reads "exceeds both baselines by at least 0.05". One
+    instance on record missed a margin by a thousandth, so the boundary is not hypothetical.
+    The behavioral tests below protect the rule; this grep only catches the obvious spelling."""
+    import inspect
+
+    src = inspect.getsource(_bcv())
     # No comparison against the margin may use a strict inequality.
-    assert "> MARGIN" not in src.replace(">= MARGIN", ""), \
-        "the registered margin is 'at least', so every comparison must be >="
+    assert "> MARGIN" not in src.replace(">= MARGIN", ""),         "the registered margin is 'at least', so every comparison must be >="
+
+
+# A lead equal to the margin must pass and one ulp below it must fail. No three-decimal pair
+# of AUROCs differs by exactly 0.05 in float64 (0.6875 - 0.6375 is 0.050000000000000044), so
+# the tests compute the lead the way the code does and move the margin onto it, bit for bit.
+_SURV = [0.6875, 0.7012, 0.6633, 0.7240, 0.6801, 0.6950, 0.6712, 0.7105, 0.6890, 0.6982]
+_PRED = [0.6375, 0.6211, 0.6490, 0.6302, 0.6188, 0.6455, 0.6270, 0.6333, 0.6401, 0.6219]
+_UNTR = [0.5012, 0.4870, 0.5133, 0.4951, 0.5066, 0.4902, 0.5098, 0.4987, 0.5041, 0.4929]
+
+
+def _cells(surv, pred, untr):
+    bcv = _bcv()
+    return {(0.45, s): {"agents": {"survival": {"pool": {"target": surv[s]}},
+                                   "predictor": {"pool": {"target": pred[s]}},
+                                   "untrained": {"pool": {"target": untr[s]}}}}
+            for s in bcv.SEEDS}
+
+
+def test_primary_margin_passes_at_exactly_the_margin_and_fails_one_ulp_above(monkeypatch):
+    bcv = _bcv()
+    cells = _cells(_SURV, _PRED, _UNTR)
+    s_mean = bcv._summ(_SURV)["mean"]
+    for clause, base in (("margin_predictor", _PRED), ("margin_untrained", _UNTR)):
+        lead = s_mean - float(np.mean(base))          # exactly as primary() computes it
+        monkeypatch.setattr(bcv, "MARGIN", lead)
+        assert bcv.primary(cells, {"failed": []})["clauses"][clause] is True, clause
+        monkeypatch.setattr(bcv, "MARGIN", float(np.nextafter(lead, np.inf)))
+        assert bcv.primary(cells, {"failed": []})["clauses"][clause] is False, clause
+
+
+def test_paired_contrast_margin_passes_at_exactly_the_margin_and_fails_one_ulp_above():
+    from itasorl.stats import paired_contrast
+
+    lead = float((np.asarray(_SURV) - np.asarray(_PRED)).mean())   # as paired_contrast does
+    assert paired_contrast(_SURV, _PRED, margin=lead)["mean_ge_margin"] is True
+    assert paired_contrast(_SURV, _PRED, margin=float(np.nextafter(lead, np.inf)))[
+        "mean_ge_margin"] is False
