@@ -1905,6 +1905,20 @@ the exact commands for any run; and `scripts/reproduce.py supplement` builds the
 archive. `docs/REPRODUCE.md` is the walkthrough, and `docs/RESULTS_MANIFEST.md` records which
 trainer, fold partition, commit and device produced each artifact.
 
+**Wall times of the GPU organism runs (recorded 2026-10-10).** No artifact records the wall
+time of these runs; the figures below come from local, gitignored files. Each run is ten
+seeds at two drifts with three arms on the owner's RTX 4050 laptop GPU.
+
+| run | measured span | source |
+|---|---|---|
+| `L3-H8-N10` (`fullruns/l3_h8_traces`, with state dumps) | 7.42 h, first to last cell file (2026-07-12 20:39 to 2026-07-13 04:05 local) | cell file times; the run log has no timestamps |
+| `L3-H8-HELDOUT` (`fullruns/l3_h8_heldout`) | 6.55 h, first to last cell file (2026-07-14 11:14 to 17:47 local) | cell file times; the run log has no timestamps |
+| `L3-H10-GS1-GPU` (`fullruns/l3_h10_gseed1_gpu`) | 5.74 h, launch to exit (2026-09-28 21:14 to 2026-09-29 02:58 UTC), including a first attempt that stopped after one cell at 0.81 h and a resume on two workers that ran 4.92 h | `fullruns/second_instance_gpu_chain.log` |
+| `L3-H8-GS2-GPU` (`fullruns/l3_h8_gseed2_gpu`) | 6.53 h, launch to exit on three workers (2026-09-29 13:45 to 20:17 UTC) | `fullruns/gpu_queue_chain.log` |
+
+A span from the first to the last cell file leaves out the time to the first cell, so the two
+July runs took longer than their spans.
+
 ---
 
 ## 13. Experiment C: emergence of a world-detector under selection (milestone-3 pilot)
