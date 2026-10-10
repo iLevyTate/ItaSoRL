@@ -216,3 +216,178 @@ def test_tables_dumps_passes_the_output_path_rescore_fold_split_requires(monkeyp
     reproduce.tables([str(d) + os.sep])
     other = [c for c in calls if any("rescore_fold_split" in str(x) for x in c)][0]
     assert other[other.index("--json") + 1] == out
+
+
+def test_tables_names_each_run_s_outputs_after_the_run(monkeypatch, tmp_path):
+    """The documented dump layout is fullruns/<run>/states, so the leaf is always "states".
+    Two runs must not write the same rescore file, and the behavior control must be saved
+    rather than printed."""
+    import reproduce
+
+    calls = []
+    monkeypatch.setattr(reproduce, "_run", lambda cmd, **kw: calls.append(cmd) or 0)
+    monkeypatch.setattr(reproduce, "BUILDERS", [])
+    dirs = []
+    for run in ("corrected_l3_h8_wm", "corrected_l3_h8_nowm"):
+        d = tmp_path / "fullruns" / run / "states"
+        d.mkdir(parents=True)
+        dirs.append(str(d))
+    reproduce.tables(dirs)
+
+    def outputs(script):
+        rows = [c for c in calls if any(script in str(x) for x in c)]
+        assert len(rows) == 2, calls
+        assert all("--json" in c for c in rows), rows
+        return [os.path.basename(c[c.index("--json") + 1]) for c in rows]
+
+    assert outputs("rescore_fold_split") == ["fold_rescore_corrected_l3_h8_wm.json",
+                                             "fold_rescore_corrected_l3_h8_nowm.json"]
+    assert outputs("audit_behavior_mediation") == ["behavior_audit_corrected_l3_h8_wm.json",
+                                                   "behavior_audit_corrected_l3_h8_nowm.json"]
+    assert reproduce.dump_tag("x/run_a/states/") == reproduce.dump_tag("x/run_a/states") == "run_a"
+    assert reproduce.dump_tag("x/run_b/custom_dumps") == "custom_dumps"
+
+
+# Fixture hosts and URLs are assembled at runtime: written literally they would be matched by
+# the archive's own scrub and leak checks when this file is packaged.
+_GH = "git" + "hub"
+_ATTACH = "https://" + _GH + ".com/user-" + "attachments/assets/0000-aaaa"
+_PAGES_IMG = "https://someone." + _GH + ".io/site/card.png"
+_RAW_IMG = "https://raw." + _GH + "usercontent.com/someone/site/main/card.png"
+
+
+def _hosted_image_re():
+    import re
+    host = (r"https?://(?:" + _GH + r"\.com/user-" + r"attachments/|[\w.-]*" + _GH
+            + r"usercontent\.com/|[\w-]+\." + _GH + r"\.io/)")
+    return re.compile(r"(<img\b[^>]*\bsrc\s*=\s*[\"']?|!\[[^\]]*\]\(\s*<?)" + host, re.I)
+
+
+def test_externally_hosted_images_are_removed_and_local_images_kept():
+    import reproduce
+    text = "\n".join([
+        f'<img width="2560" height="1280" alt="social preview" src="{_ATTACH}" />',
+        f"![card]({_PAGES_IMG})",
+        f"<img src='{_RAW_IMG}'>",
+        '<img src="docs/figures/budget_curve.png" alt="local">',
+        "![local figure](docs/figures/l3_summary.png)",
+    ])
+    out = reproduce.scrub(text, reproduce.IMAGE_SCRUB)
+    assert out.count(reproduce.IMAGE_PLACEHOLDER) == 3
+    assert not _hosted_image_re().search(out)
+    assert 'src="docs/figures/budget_curve.png"' in out
+    assert "![local figure](docs/figures/l3_summary.png)" in out
+
+
+def test_no_packaged_page_keeps_an_externally_hosted_image():
+    """README.md carried the social-preview image, which renders the owner's site address.
+    Every packaged .md and .html file, once scrubbed, must be free of such images; images in
+    general are fine (FINDINGS and the site embed local figures)."""
+    import reproduce
+    rules = reproduce.scrub_rules()
+    pat = _hosted_image_re()
+    bad = []
+    for rel in reproduce._files():
+        if rel.endswith((".md", ".html")):
+            with open(os.path.join(ROOT, rel), encoding="utf-8", errors="replace") as fh:
+                if pat.search(reproduce.scrub(fh.read(), rules)):
+                    bad.append(rel)
+    assert bad == []
+
+
+def test_repository_urls_are_replaced_before_the_owner_rule(monkeypatch, tmp_path):
+    """Applied after the owner rule, the URL patterns no longer match, and the repository name
+    survives next to <author>. The URL rules run first and take the whole URL."""
+    import reproduce
+    owner, repo = "Some" + "Owner", "Some" + "Repo"
+    monkeypatch.setattr(reproduce, "_remote", lambda: (owner, repo))
+    monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))     # no CITATION.cff: owner only
+    assert reproduce.identity_terms() == [owner]
+    text = " | ".join([
+        "https://" + owner.lower() + "." + _GH + ".io/" + repo + "/",
+        "https://" + _GH + ".com/" + owner + "/" + repo + ".git",
+        "git@" + _GH + ".com:" + owner + "/" + repo + ".git",
+        "https://colab.research.google.com/" + _GH + "/" + owner + "/" + repo + "/blob/main/nb.ipynb",
+        "https://" + _GH + ".com/" + owner + "/" + repo.upper() + "/issues",
+        "written by " + owner,
+    ])
+    out = reproduce.scrub(text, reproduce.scrub_rules())
+    ph = reproduce.REPO_PLACEHOLDER
+    assert out == " | ".join([ph + "/", ph, ph, ph + "/blob/main/nb.ipynb", ph + "/issues",
+                              "written by <author>"]), out
+    assert repo.lower() not in out.lower()
+
+
+def test_the_package_rename_follows_case_and_reaches_file_names():
+    import reproduce
+    old = reproduce.project_name()
+    assert old, "pyproject.toml must name the package"
+    new = "blind" + "pkg"
+    ren = reproduce.renamer(old, new)
+    mixed = "".join(c.upper() if i % 2 else c for i, c in enumerate(old))
+    text = (f"import {old}.stats\n{old.upper()}_FOLDS=legacy\n{old.capitalize()}Overview\n"
+            f"{mixed} site\nsee docs/{old.upper()}_world_spec.md")
+    out = ren(text)
+    assert out == (f"import {new}.stats\n{new.upper()}_FOLDS=legacy\n{new.capitalize()}Overview\n"
+                   f"{new.capitalize()} site\nsee docs/{new.upper()}_world_spec.md")
+    assert ren(f"{old}/world.py") == f"{new}/world.py"
+    assert reproduce.renamer(old, None)(text) == text
+    with pytest.raises(SystemExit):
+        reproduce.check_anon_name("Not-An-Identifier", old)
+    with pytest.raises(SystemExit):
+        reproduce.check_anon_name(old + "2", old)
+    reproduce.check_anon_name(old, old)        # an archive rebuilding itself: no-op, allowed
+
+
+def test_supplement_renames_the_package_and_reports_each_run_bundle(tmp_path, monkeypatch):
+    """Run bundles are read from --runs-root; a present one ships under fullruns/, an absent
+    one is named in README_SUPPLEMENT.md. The package directory and every spelling of its
+    name are replaced in member names and text."""
+    import zipfile
+    import reproduce
+    old = reproduce.project_name()
+    new = "blind" + "pkg"
+    runs = tmp_path / "runs"
+    (runs / "present" / "agents").mkdir(parents=True)
+    (runs / "present" / "agents" / "agent_s0.pt").write_bytes(b"PK-free weights \x00\x01")
+    monkeypatch.setattr(reproduce, "RUN_DIRS", ["fullruns/present/agents", "fullruns/absent"])
+    monkeypatch.setattr(reproduce, "INCLUDE_DIRS", [old])
+    monkeypatch.setattr(reproduce, "INCLUDE_FILES", ["pyproject.toml", "pytest.ini"])
+    out = tmp_path / "supp.zip"
+    assert reproduce.supplement(str(out), runs_root=str(runs), anon_name=new) == 0
+    with zipfile.ZipFile(out) as z:
+        names = z.namelist()
+        assert "fullruns/present/agents/agent_s0.pt" in names
+        assert f"{new}/stats.py" in names and f"{new}/__init__.py" in names
+        assert not any(old in n.lower() for n in names), names
+        readme = z.read("README_SUPPLEMENT.md").decode("utf-8")
+        assert "included      fullruns/present/agents (1 files)" in readme
+        assert "not included  fullruns/absent" in readme
+        for n in names:
+            if reproduce.is_text(n):
+                assert old not in z.read(n).decode("utf-8", errors="replace").lower(), n
+        assert f'name = "{new}"' in z.read("pyproject.toml").decode("utf-8")
+
+
+def test_the_leak_scan_reads_binary_members_and_zip_containers(tmp_path):
+    """Agent bundles (.pt) and arrays (.npz) are zip containers; an .npz member is deflated, so
+    a raw byte scan alone would miss a path or name inside it. The e-mail shape is left out of
+    the binary scan because arbitrary bytes match it by chance."""
+    import io
+    import zipfile
+    import reproduce
+    term = "Some" + "Owner"
+    rules = reproduce.term_rules([term]) + list(reproduce.GENERIC_SCRUB)
+    inner = io.BytesIO()
+    with zipfile.ZipFile(inner, "w", zipfile.ZIP_DEFLATED) as zi:
+        zi.writestr("arr/data.pkl", b"\x80\x02" + term.encode() + b"\x00" * 64)
+    clean = io.BytesIO()
+    with zipfile.ZipFile(clean, "w", zipfile.ZIP_DEFLATED) as zc:
+        zc.writestr("arr/data.pkl", b"\x80\x02 weights only " + b"x" + b"@" + b"ab.cd")
+    path = tmp_path / "a.zip"
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("fullruns/r/agents/bad.npz", inner.getvalue())
+        z.writestr("fullruns/r/agents/good.pt", clean.getvalue())
+        z.writestr("notes.md", "nothing to see")
+    assert term.encode() not in inner.getvalue(), "the fixture must hide the term in deflate"
+    assert reproduce.leak_scan(str(path), rules, None) == ["fullruns/r/agents/bad.npz"]
