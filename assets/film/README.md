@@ -85,11 +85,17 @@ corrected agents the best-fitting control leaves 0.620, under the bar
 family and are not shown as numbers; the senses chapter states that direction
 in words.
 
-The live player's end card was reworded on 2026-10-08 to drop the reading that
-credited survival on its own (withdrawn in FINDINGS 17.6), and its footer now
-names the pre-correction trainer. The rendered mp4 files keep the original end
-card: they are not re-rendered, and the pages that publish them carry the label
-instead.
+The live player of film one (`viz/player/`) had its end card reworded on
+2026-10-08 to drop the reading that credited survival on its own (withdrawn in
+FINDINGS 17.6), and its footer names the pre-correction trainer
+(`viz/player/beats.json`). Since 2026-10-10 the Two Minds live renderer
+(`viz/player/brain/`) carries a footer on its end card as well, naming the
+pre-correction trainer and the 300-update budget, because its line about
+dropping the second job holds at that budget only: at 450 updates the arm
+without the decoder clears the bar (0.717 on the pre-correction trainer, 0.685
+on the corrected one; FINDINGS 10.8.1, 17.10). The rendered mp4 files keep
+the original end card: they are not re-rendered, and the pages that publish
+them carry the label instead.
 
 On 2026-10-09 the caveats were extended on every surface that publishes the films
 (the site film block, the live player's end-card footer, and this file) with the corrected
@@ -121,8 +127,8 @@ ffmpeg -ss 2 -i assets/film/clips/two-minds-tour.mp4 -frames:v 1 \
 |------|---------------|--------|
 | `loop-idle-clouds.mp4` | Idle mind: memories from both worlds sit in one mixed blob. | `viz/player` capture |
 | `loop-survival-clouds.mp4` | Surviving mind: the two worlds' memories drift into separate islands. | `viz/player` capture |
-| `loop-race.mp4` | Two brains train side by side; the detection score only climbs when the fake matters. | `viz/player` capture |
-| `loop-brain-pair.mp4` | Teal rings on the memory cells that hold the clue, present only under survival. | `scripts/render_brain_pair_tour.py` |
+| `loop-race.mp4` | Two brains train side by side. The detection score climbs for the foraging brain, not the idle one (pre-correction trainer; FINDINGS 17.6). | `viz/player` capture |
+| `loop-brain-pair.mp4` | Teal rings mark the memory cells that hold the clue in the foraging brain (pre-correction trainer; FINDINGS 17.6). | `scripts/render_brain_pair_tour.py` |
 | `clips/loop-brain-pair-*` (local only) | The earlier brain-pair tour and its per-section loops (wide, vertical, GIF). Superseded by Two Minds for outreach. | `scripts/render_brain_pair_tour.py` |
 
 All loops start and end on the same frame.

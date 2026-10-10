@@ -390,6 +390,10 @@
   @media (max-width:480px){
     [data-screen-label="Facts"]{ grid-template-columns:1fr !important; }
     h1{ font-size:33px !important; }
+    /* Five rungs in a phone-width card: tighter padding and type so each label fits its column. */
+    #about .ladder{ padding:28px 12px 24px !important; }
+    #about .ladder-grid > div > div:nth-child(2){ font-size:11px !important; }
+    #about .ladder-grid > div > div:nth-child(3){ font-size:9.5px !important; }
   }
 </style>
 </helmet>
@@ -434,8 +438,8 @@
           <a href="#readout" class="pill" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#fff; background:linear-gradient(135deg,#9079c8,#5f82c6); padding:14px 26px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff, inset 0 1px 0 rgba(255,255,255,0.35);">See the readout →</a>
           <a href="#film" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">Watch the film (90 s)</a>
           <a href="#research" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">What we study</a>
-          <a href="docs/itasorl-series-plain-english.pdf" target="_blank" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">The story (PDF)</a>
-          <a href="docs/itasorl-series-research.pdf" target="_blank" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">Research edition (PDF)</a>
+          <a href="docs/itasorl-series-plain-english.pdf" target="_blank" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">July 2026 story (PDF, pre-correction)</a>
+          <a href="docs/itasorl-series-research.pdf" target="_blank" class="ghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#4a4468; background:#e8e5f1; padding:13px 24px; border-radius:999px; box-shadow:6px 6px 14px #c8c3dd, -6px -6px 14px #fbfaff;">July 2026 research edition (PDF, pre-correction)</a>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; animation:rise .7s ease-out .32s both;">
           <span style="display:inline-flex; align-items:center; gap:9px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#6b6588; background:#e8e5f1; padding:10px 16px; border-radius:999px; box-shadow:inset 4px 4px 9px #c8c3dd, inset -4px -4px 9px #fbfaff;"><span style="color:#8a72c0;">●</span> tabula rasa</span>
@@ -489,12 +493,12 @@
         <p style="font-size:16px; line-height:1.68; color:#5c5776; margin:0; text-wrap:pretty;">Three invariants hold everywhere: tabula rasa (no imported semantics), readout not reward (world identity is probed, never trained), and substrate-grounded (the only tells are artifacts of the computation itself).</p>
       </div>
       <!-- SURROGATE LADDER -->
-      <div style="background:#e8e5f1; border-radius:20px; padding:34px 38px 30px; box-shadow:inset 6px 6px 14px #c8c3dd, inset -6px -6px 14px #fbfaff;">
+      <div class="ladder" style="background:#e8e5f1; border-radius:20px; padding:34px 38px 30px; box-shadow:inset 6px 6px 14px #c8c3dd, inset -6px -6px 14px #fbfaff;">
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:26px;">
           <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:#8a72c0;">The surrogate ladder</span>
           <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9a94b0;">frontier: L3</span>
         </div>
-        <div style="position:relative; display:grid; grid-template-columns:repeat(5,1fr);">
+        <div class="ladder-grid" style="position:relative; display:grid; grid-template-columns:repeat(5,1fr);">
           <div style="position:absolute; top:7px; left:10%; right:10%; height:2px; background:#d6d2e6; border-radius:2px;"></div>
           <div style="position:absolute; top:7px; left:10%; width:60%; height:2px; background:linear-gradient(90deg,#9079c8,#5f82c6); border-radius:2px;"></div>
           <div style="position:relative; text-align:center;">
@@ -505,7 +509,7 @@
           <div style="position:relative; text-align:center;">
             <div style="width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg,#9079c8,#5f82c6); margin:0 auto 14px; box-shadow:0 2px 6px rgba(96,79,152,0.4);"></div>
             <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#2a2547; font-weight:500;">L1</div>
-            <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#8a849e; margin-top:4px;">discretization</div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#8a849e; margin-top:4px;">discreti&shy;zation</div>
           </div>
           <div style="position:relative; text-align:center;">
             <div style="width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg,#9079c8,#5f82c6); margin:0 auto 14px; box-shadow:0 2px 6px rgba(96,79,152,0.4);"></div>
@@ -514,13 +518,13 @@
           </div>
           <div style="position:relative; text-align:center;">
             <div style="width:16px; height:16px; border-radius:50%; background:#e8e5f1; border:2.5px solid #5f82c6; margin:0 auto 14px; animation:pulse-dot 2.4s ease-out infinite;"></div>
-            <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#2a2547; font-weight:500;">L3 · positive</div>
-            <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#8a849e; margin-top:4px;">learned dynamics</div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#2a2547; font-weight:500;">L3 · decodable</div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#8a849e; margin-top:4px;">rule not met (L0)</div>
           </div>
           <div style="position:relative; text-align:center;">
             <div style="width:16px; height:16px; border-radius:50%; background:#d6d2e6; margin:0 auto 14px;"></div>
             <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#6b6588; font-weight:500;">L4</div>
-            <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#8a849e; margin-top:4px;">adversarial</div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#8a849e; margin-top:4px;">adver&shy;sarial</div>
           </div>
         </div>
       </div>
@@ -554,15 +558,15 @@
           <div style="position:absolute; top:14px; right:24px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:72px; line-height:1; color:#dedaeb; letter-spacing:-0.03em; user-select:none;">B′</div>
           <div style="position:relative; display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6b6588; margin-bottom:20px; background:#e8e5f1; padding:7px 12px; border-radius:8px; box-shadow:inset 3px 3px 6px #c8c3dd, inset -3px -3px 6px #fbfaff;"><span style="width:6px; height:6px; border-radius:50%; background:#8a72c0;"></span>EXP B · L3 · done</div>
           <h3 style="position:relative; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:23px; margin:0 0 12px; color:#2a2547; letter-spacing:-0.01em;">Foraging plus prediction</h3>
-          <p style="position:relative; font-size:15px; line-height:1.62; color:#5c5776; margin:0 0 22px;">Against a learned-dynamics fingerprint, the state of agents trained to survive and to predict their next observation separates the worlds: 0.733 (90% CI 0.669 to 0.797) with the trainer corrected in October 2026, against 0.589 for prediction-only and 0.523 untrained. Without the next-observation predictor the survival agent reads 0.613, under the bar; the predictor adds +0.120 (90% CI +0.065 to +0.174) at 300 updates, and with more training the gap holds at about equal foraging skill. Then the check that changed the story: feed a prediction-only brain the exact senses the survival agent lived through and it reads the world just as well (0.721 against 0.733), and a decoder that never sees the brain reads 0.724 from the senses alone. The signal rides on where the foraging policy takes the body, and a brain trained to predict keeps it. A hand-written drag that drifts the same coherent way is read too (0.754); white jitter of the same size is not. The common-garden control passes its frozen rule (0.666 forward, 0.684 reverse on the original agents): prefix condition remains decodable after restoring authentic dynamics, and on the corrected agents mostly through the body's footprint rather than memory (see FINDINGS 10.6.1 and 17). One honesty check stays open: with both worlds real, the survival state reads 0.559 on the registered pair of evaluation worlds, the largest of nine draws on record (the eight independent draws deviate from chance by 0.037 on average, and the gate accepts on two of them), so the registered rule as a whole is not met and the result is reported on its decodability clauses only. A balanced readout on the same world seeds reads 0.767, and carried to drift 0.45 on the historical hidden-8 agents, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run. Historical numbers on the original trainer: 0.752, and 0.730 against 0.601 without the predictor on the same CPU; an independently trained second fingerprint keeps the margin under the bar (0.639).</p>
+          <p style="position:relative; font-size:15px; line-height:1.62; color:#5c5776; margin:0 0 22px;">Against a learned-dynamics fingerprint, the state of agents trained to survive and to predict their next observation separates the worlds: 0.733 (90% CI 0.669 to 0.797) with the trainer corrected in October 2026, against 0.589 for prediction-only and 0.523 untrained. Without the next-observation predictor the survival agent reads 0.613, under the bar; the predictor adds +0.120 (90% CI +0.065 to +0.174) at 300 updates, and with more training the gap holds at about equal foraging skill. Then the check that changed the story: feed a prediction-only brain the exact senses the survival agent lived through and it reads the world just as well (0.721 against 0.733), and a decoder that never sees the brain reads 0.724 from the senses alone. The signal rides on where the foraging policy takes the body, and a brain trained to predict keeps it. A hand-written drag that drifts the same coherent way is read too (0.754); white jitter of the same size is not. The common-garden control passes its frozen rule (0.666 forward, 0.684 reverse on the original agents): prefix condition remains decodable after restoring authentic dynamics, and on the corrected agents mostly through the body's footprint rather than memory (see FINDINGS 10.6.1 and 17). One honesty check stays open: with both worlds real, the survival state reads 0.559 on the registered pair of evaluation worlds, the largest of nine draws on record (the eight independent draws deviate from chance by 0.037 on average, and the gate accepts on two of them), so the registered rule as a whole is not met and the result is reported on its decodability clauses only. A balanced readout on the same world seeds reads 0.767, and carried to drift 0.45 on the agents of the historical hidden-8 run, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run. Historical numbers on the original trainer: 0.752, and 0.730 against 0.601 without the predictor on the same CPU; an independently trained second fingerprint keeps the margin under the bar (0.639).</p>
           <div style="position:relative; border-top:1px solid #d9d5e7; padding-top:14px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8a72c0;">probe 0.733 · n = 10 · corrected trainer · L0 open</div>
         </div>
         <div class="card-hov" style="position:relative; overflow:hidden; background:#e8e5f1; border-radius:20px; padding:34px; box-shadow:9px 9px 20px #c8c3dd, -9px -9px 20px #fbfaff;">
           <div style="position:absolute; top:14px; right:24px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:72px; line-height:1; color:#dedaeb; letter-spacing:-0.03em; user-select:none;">C</div>
           <div style="position:relative; display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6b6588; margin-bottom:20px; background:#e8e5f1; padding:7px 12px; border-radius:8px; box-shadow:inset 3px 3px 6px #c8c3dd, inset -3px -3px 6px #fbfaff;"><span style="width:6px; height:6px; border-radius:50%; background:#5f82c6;"></span>EXP C · done</div>
           <h3 style="position:relative; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:23px; margin:0 0 12px; color:#2a2547; letter-spacing:-0.01em;">Emergence under selection</h3>
-          <p style="position:relative; font-size:15px; line-height:1.62; color:#5c5776; margin:0 0 22px;">Put the food where knowing the world pays, then breed lineages for 30 generations. Does world identity become more decodable? Not under the pooled population readout. Selection raised fitness in every run, yet one probe fit across the final foragers reads 0.509, chance, and the contrast against control lineages with food underfoot is -0.002 (90% CI -0.013 to +0.009). A first pilot ran on code with two measurement bugs and was thrown out; this is the fixed-code re-run. A pooled probe cannot see individuals that carry the world along different directions, so per-individual readouts are the open test. The L4 adversarial rung has not started.</p>
-          <div style="position:relative; border-top:1px solid #d9d5e7; padding-top:14px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8a72c0;">AUROC 0.509 · 3 seeds × 30 generations · validated null</div>
+          <p style="position:relative; font-size:15px; line-height:1.62; color:#5c5776; margin:0 0 22px;">Put the food where knowing the world pays, then breed lineages for 30 generations. Does world identity become more decodable? The contrast is flat, and the registered verdict is uninformative. Selection raised fitness in every run, yet one probe fit across the final foragers reads 0.509, chance, and the contrast against control lineages with food underfoot is -0.002 (90% CI -0.013 to +0.009). Scored one forager at a time, the individuals average 0.535 and none reaches the bar. Two registered gates fail: the payoff for knowing the world is under its margin (gate 1), and the speed control is under its bar (gate 5). So neither readout yields a verdict in either direction (FINDINGS 13.F). A first pilot ran on code with two measurement bugs and was thrown out; these numbers come from fixed code. The L4 adversarial rung has not started.</p>
+          <div style="position:relative; border-top:1px solid #d9d5e7; padding-top:14px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8a72c0;">AUROC 0.509 · 3 seeds × 30 generations · uninformative (gates 1, 5)</div>
         </div>
       </div>
     </section>
@@ -574,7 +578,7 @@
           <div>
             <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:#8a72c0; margin-bottom:22px;">03 &nbsp;/&nbsp; The readout</div>
             <h2 style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:38px; line-height:1.1; letter-spacing:-0.02em; margin:0 0 20px; color:#2a2547; text-wrap:balance;">Detectable is not the same as learned.</h2>
-            <p style="font-size:16px; line-height:1.65; color:#5c5776; margin:0 0 30px; max-width:440px; text-wrap:pretty;">After training, a linear probe reads the agent's internal state and asks: is world identity in there? At L1 and L2 the answer stays near chance while an outside oracle catches the flaw. At L3, survival pressure is the first condition that lifts the curve, and only while the agent also trains to predict its next observation.</p>
+            <p style="font-size:16px; line-height:1.65; color:#5c5776; margin:0 0 30px; max-width:440px; text-wrap:pretty;">After training, a linear probe reads the agent's internal state and asks: is world identity in there? At L1 and L2 the answer stays near chance while an outside oracle catches the flaw. At L3 the curve lifts for agents trained to survive and to predict their next observation. Fed the same senses, a prediction-only brain reads the world as well, so the signal rides on where the foraging policy goes (FINDINGS 17.6).</p>
             <div style="display:flex; gap:16px;">
               <div style="flex:1; background:#e8e5f1; border-radius:14px; padding:18px 20px; box-shadow:inset 5px 5px 11px #c8c3dd, inset -5px -5px 11px #fbfaff;">
                 <div style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:24px; color:#2a2547;">AUROC</div>
@@ -587,17 +591,17 @@
             </div>
           </div>
           <div style="background:#e8e5f1; border-radius:18px; padding:26px; box-shadow:inset 7px 7px 16px #c8c3dd, inset -7px -7px 16px #fbfaff;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:6px 16px; margin-bottom:8px;">
               <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#8a72c0;">probe readout · L3 fingerprint</span>
-              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5f82c6;">● confirmed, n = 10</span>
+              <span style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.5; color:#5f82c6; text-align:right;">● decodability clauses met<br>L0 gate open · n = 10</span>
             </div>
             <div style="display:flex; gap:18px; margin-bottom:14px;">
               <span style="display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6b6588;"><span style="width:14px; height:3px; border-radius:2px; background:linear-gradient(90deg,#8a72c0,#5f82c6);"></span>survival agent</span>
-              <span style="display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6b6588;"><span style="width:14px; height:3px; border-radius:2px; background:#b3aecb;"></span>prediction-only</span>
+              <span style="display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6b6588;"><span style="width:14px; height:3px; border-radius:2px; background:#b3aecb;"></span>prediction-only, its own senses</span>
             </div>
             <div ref="{{ chartRef }}" style="width:100%;"></div>
             <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#8a849e; margin-top:12px;">
-              <span>training progress →</span><span>survival pressure applied</span>
+              <span>training progress →</span><span>schematic; end points are the measured means</span>
             </div>
           </div>
         </div>
@@ -678,7 +682,7 @@
                 <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#6b6588; margin-top:4px;">its mind, surviving</div>
               </div>
             </div>
-            <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#9a94b0; margin:0;">Real runs, 10 each. 50% = coin flip, 100% = always right. Read out, never rewarded. These three numbers come from the pre-correction trainer, and the film's earlier reading that credited survival on its own is withdrawn: at matched input a prediction-trained agent reads the same streams as well (<a href="docs/FINDINGS.md" class="navlink" style="color:#8a72c0;">FINDINGS 17.6</a>, <a href="docs/CORRECTIONS.md" class="navlink" style="color:#8a72c0;">corrections</a>). The films are not re-rendered; they narrate the historical arc, and these caveats travel with them. On the corrected trainer the survival state reads 0.733 with the registered rule as a whole not met (the authentic-versus-authentic gate is open on the registered pair of evaluation worlds), and the level is not a product of that draw: carried to drift 0.45 on the historical hidden-8 agents, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run. The record is <a href="docs/FINDINGS.md" class="navlink" style="color:#8a72c0;">FINDINGS 17</a>.</p>
+            <p style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#9a94b0; margin:0;">Real runs, 10 each. 50% = coin flip, 100% = always right. Read out, never rewarded. These three numbers come from the pre-correction trainer, and the film's earlier reading that credited survival on its own is withdrawn: at matched input a prediction-trained agent reads the same streams as well (<a href="docs/FINDINGS.md" class="navlink" style="color:#8a72c0;">FINDINGS 17.6</a>, <a href="docs/CORRECTIONS.md" class="navlink" style="color:#8a72c0;">corrections</a>). The films are not re-rendered; they narrate the historical arc, and these caveats travel with them. On the corrected trainer the survival state reads 0.733 with the registered rule as a whole not met (the authentic-versus-authentic gate is open on the registered pair of evaluation worlds), and the level is not a product of that draw: carried to drift 0.45 on the agents of the historical hidden-8 run, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run. The record is <a href="docs/FINDINGS.md" class="navlink" style="color:#8a72c0;">FINDINGS 17</a>.</p>
           </div>
           <div>
             <video controls="controls" playsinline="playsinline" preload="metadata" poster="assets/film/detectable-all-along-poster.jpg" style="display:block; width:100%; aspect-ratio:16/9; border-radius:18px; background:#dedaeb; box-shadow:10px 10px 24px #c8c3dd, -10px -10px 24px #fbfaff;">
@@ -723,25 +727,25 @@
               <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
                 <source src="assets/film/loop-idle-clouds.mp4" type="video/mp4">
               </video>
-              <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Idle mind - memories from the real and fake worlds sit in one mixed blob. It cannot tell.</figcaption>
+              <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Idle mind: memories from the real and fake worlds sit in one mixed blob. It cannot tell.</figcaption>
             </figure>
             <figure style="margin:0;">
               <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
                 <source src="assets/film/loop-survival-clouds.mp4" type="video/mp4">
               </video>
-              <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Surviving mind - the two worlds' memories drift into separate islands. It can tell.</figcaption>
+              <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Surviving mind: the two worlds' memories drift into separate islands. It can tell.</figcaption>
             </figure>
             <figure style="margin:0;">
               <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
                 <source src="assets/film/loop-race.mp4" type="video/mp4">
               </video>
-              <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Two brains train side by side - the detection score only climbs when the fake matters.</figcaption>
+              <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Two brains train side by side. The detection score climbs for the foraging brain, not the idle one (pre-correction trainer; FINDINGS 17.6).</figcaption>
             </figure>
             <figure style="margin:0;">
               <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" preload="metadata" style="display:block; width:100%; border-radius:14px; background:#12101f; box-shadow:8px 8px 18px #c8c3dd, -8px -8px 18px #fbfaff;">
                 <source src="assets/film/loop-brain-pair.mp4" type="video/mp4">
               </video>
-              <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Inside the brain - teal rings mark the memory cells that hold the clue, present only under survival.</figcaption>
+              <figcaption style="font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.6; color:#6b6588; margin-top:10px;">Inside the brain: teal rings mark the memory cells that hold the clue in the foraging brain (pre-correction trainer; FINDINGS 17.6).</figcaption>
             </figure>
           </div>
         </div>
@@ -757,7 +761,7 @@
             <span style="width:6px; height:6px; border-radius:50%; background:#9079c8;"></span> deterministic given its seeds
           </div>
           <h2 style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:46px; line-height:1.08; letter-spacing:-0.02em; margin:0 auto 20px; color:#f2f0fa; max-width:640px; text-wrap:balance;">Open source. Reproducible. Run it yourself.</h2>
-          <p style="font-size:17px; line-height:1.6; color:#b6b1d2; max-width:520px; margin:0 auto 32px; text-wrap:pretty;">Every experiment is deterministic given its seeds. Clone the repo, or open the Colab notebook on a GPU runtime and run all cells.</p>
+          <p style="font-size:17px; line-height:1.6; color:#b6b1d2; max-width:520px; margin:0 auto 32px; text-wrap:pretty;">Every experiment is deterministic given its seeds. The Colab notebook reruns Experiments A and B, the L2 arcs and the extra checks you tick. The corrected L3 headline (0.733, and 0.613 without the predictor) retrains on CPU from <code style="font-family:'IBM Plex Mono',monospace; font-size:14px; color:#d6d0ee; overflow-wrap:anywhere;">python scripts/reproduce.py retrain C1</code>, and every committed table rebuilds from the artifacts without training (<code style="font-family:'IBM Plex Mono',monospace; font-size:14px; color:#d6d0ee; overflow-wrap:anywhere;">python scripts/reproduce.py tables</code>).</p>
           <div style="display:inline-flex; align-items:center; gap:16px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#cfc9e8; background:rgba(15,13,30,0.45); border:1px solid rgba(179,166,221,0.18); padding:14px 16px 14px 22px; border-radius:14px; margin-bottom:36px; max-width:100%;">
             <span style="color:#8a72c0; user-select:none;">$</span>
             <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">git clone https://github.com/iLevyTate/ItaSoRL.git</span>
@@ -766,8 +770,8 @@
           <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
             <a href="https://colab.research.google.com/github/iLevyTate/ItaSoRL/blob/main/notebooks/colab_gpu.ipynb" target="_blank" class="pill" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#fff; background:linear-gradient(135deg,#9079c8,#5f82c6); padding:15px 30px; border-radius:999px; box-shadow:0 10px 26px rgba(20,16,45,0.5), inset 0 1px 0 rgba(255,255,255,0.35);">Open in Colab</a>
             <a href="https://github.com/iLevyTate/ItaSoRL" target="_blank" class="darkghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#cfc9e8; background:rgba(255,255,255,0.04); border:1px solid rgba(179,166,221,0.28); padding:14px 28px; border-radius:999px;">github.com/iLevyTate/ItaSoRL</a>
-            <a href="docs/itasorl-series-plain-english.pdf" target="_blank" class="darkghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#cfc9e8; background:rgba(255,255,255,0.04); border:1px solid rgba(179,166,221,0.28); padding:14px 28px; border-radius:999px;">Plain-English series (PDF)</a>
-            <a href="docs/itasorl-series-research.pdf" target="_blank" class="darkghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#cfc9e8; background:rgba(255,255,255,0.04); border:1px solid rgba(179,166,221,0.28); padding:14px 28px; border-radius:999px;">Research edition (PDF)</a>
+            <a href="docs/itasorl-series-plain-english.pdf" target="_blank" class="darkghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#cfc9e8; background:rgba(255,255,255,0.04); border:1px solid rgba(179,166,221,0.28); padding:14px 28px; border-radius:999px;">Plain-English series, July 2026 (PDF, pre-correction)</a>
+            <a href="docs/itasorl-series-research.pdf" target="_blank" class="darkghost" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#cfc9e8; background:rgba(255,255,255,0.04); border:1px solid rgba(179,166,221,0.28); padding:14px 28px; border-radius:999px;">Research edition, July 2026 (PDF, pre-correction)</a>
           </div>
         </div>
       </div>
@@ -789,7 +793,7 @@
         <div>
           <div style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.16em; text-transform:uppercase; color:#9a94b0; margin-bottom:14px;">Connect</div>
           <div style="display:flex; flex-direction:column; gap:10px; font-family:'IBM Plex Mono',monospace; font-size:12.5px;">
-            <a href="https://github.com/iLevyTate/ItaSoRL" target="_blank">GitHub</a><a href="https://colab.research.google.com/github/iLevyTate/ItaSoRL/blob/main/notebooks/colab_gpu.ipynb" target="_blank">Colab notebook</a><a href="https://github.com/iLevyTate/ItaSoRL/blob/main/docs/ITASORL.md" target="_blank">Research plan</a><a href="docs/itasorl-series-plain-english.pdf" target="_blank">Plain-English series (PDF)</a><a href="docs/itasorl-series-research.pdf" target="_blank">Research edition (PDF)</a>
+            <a href="https://github.com/iLevyTate/ItaSoRL" target="_blank">GitHub</a><a href="https://colab.research.google.com/github/iLevyTate/ItaSoRL/blob/main/notebooks/colab_gpu.ipynb" target="_blank">Colab notebook</a><a href="https://github.com/iLevyTate/ItaSoRL/blob/main/docs/ITASORL.md" target="_blank">Research plan</a><a href="docs/itasorl-series-plain-english.pdf" target="_blank">Plain-English series (PDF, July 2026, pre-correction)</a><a href="docs/itasorl-series-research.pdf" target="_blank">Research edition (PDF, July 2026, pre-correction)</a>
           </div>
         </div>
       </div>
@@ -816,10 +820,10 @@ class Component extends DCLogic {
       { date: 'Exp B / L1', title: 'The matched negative', note: 'At an in-band quantization grid the oracle catches the copy at 0.873 under the organism sensor noise. The survival state reads 0.533, with 0 of 10 seeds over the bar. Once the oracles are matched (FINDINGS 15), this is the clean contrast with L3, not L2.', tag: 'negative, n=10' },
       { date: 'H2 / L3', title: 'The signal lives in the seam', note: 'Blend the learned velocity law back toward the real one and the survival signal falls step by step, 0.752 down to 0.506, while the untrained floor stays flat near chance. The direction fit on the learned law does not transfer to a jitter surrogate matched for detectability (oracle 0.865; 0.539). Whether a fresh probe or a jitter-raised agent reads the jitter is a separate test, so no learned-texture mechanism is claimed.', tag: 'H2, narrowed' },
       { date: 'Exp B / L3', title: 'Transfer probes and the common garden', note: 'The world-identity direction reads an unseen same-recipe fingerprint at 0.773 and a different surrogate family at 0.684 (both rules pass), but the reverse, coarse-to-subtle direction fails the bar (0.638). A re-scored common-garden control passes the frozen rule on both directions (0.666 forward, 0.684 reverse): prefix condition remains decodable after restoring authentic dynamics, without separating memory from a physical footprint (FINDINGS 10.6.1).', tag: 'transfer, n=10' },
-      { date: 'Exp C', title: 'Selection did not raise the pooled readout', note: 'Three seeds, 30 generations, food placed so that knowing the world pays. Fitness rose in every arm, but world identity decodes from the final foragers at 0.509 and the contrast against control is -0.002 (90% CI -0.013 to +0.009). Negative under the pooled population readout, which does not test individuals one by one (FINDINGS 13.D, 13.E).', tag: 'validated null' },
+      { date: 'Exp C', title: 'Selection: a flat contrast, an uninformative verdict', note: 'Three seeds, 30 generations, food placed so that knowing the world pays. Fitness rose in every arm, but world identity decodes from the final foragers at 0.509 and the contrast against control is -0.002 (90% CI -0.013 to +0.009). Scored one forager at a time the rerun is flat too: individuals average 0.535 and none reaches the bar. Registered gates 1 (the payoff for knowing the world) and 5 (the speed control) fail, so the registered verdict is uninformative (FINDINGS 13.F). Section 13.D first recorded the pooled result as a validated null; 13.F supersedes that verdict.', tag: 'uninformative' },
       { date: 'Exp B / L3', title: 'Audit: how much rides on behavior?', note: 'Post-hoc confound audit: behavior alone decodes the world at ~0.69; a per-timestep linear control on speed, energy, food, and drag leaves ~0.73, clearing the pre-registered 0.65 bar. It removes what that basis can express and no more.', tag: 'audited' },
       { date: 'Exp B / L3', title: 'Survival plus prediction separates the worlds (historical)', note: 'At n = 10 with the pre-correction trainer: survival probe 0.752 (90% CI 0.698-0.807) vs ~0.57 prediction-only and ~0.49 untrained. Reward- and survivorship-controlled; L0 at chance under the original fold partition (0.517).', tag: 'positive, n=10' },
-      { date: 'Exp B / L2', title: 'Detectable does not mean learned', note: 'An artifact a noiseless oracle detects at ~0.99 leaves a prediction-only agent's state near chance (~0.5) across three readout channels. At the L3 gate noise the oracle reads 0.62 to 0.65, so the matched contrast is L1 against L3.', tag: 'negative' },
+      { date: 'Exp B / L2', title: 'Detectable does not mean learned', note: 'An artifact a noiseless oracle detects at ~0.99 leaves a prediction-only agent\'s state near chance (~0.5) across three readout channels. At the L3 gate noise the oracle reads 0.62 to 0.65, so the matched contrast is L1 against L3.', tag: 'negative' },
       { date: 'Exp A / L2', title: 'Detectability ceiling: rollout drift', note: 'Oracle detection vs drift strength, with calibrated difficulty and confound audit.', tag: 'done' },
       { date: 'Exp A / L1', title: 'Detectability ceiling: discretization', note: 'Agent-free oracle spots the surrogate from substrate seams alone, vs grid spacing.', tag: 'done' },
     ];
@@ -930,24 +934,27 @@ class Component extends DCLogic {
     const x0 = padL, x1 = W - padR, y0 = padT, y1 = H - padB;
     const X = (t) => x0 + t * (x1 - x0);
     const map = (auroc) => y1 - ((auroc - 0.4) / 0.6) * (y1 - y0);
-    const N = 64, split = 0.6;
-
+    const N = 64;
+    // A schematic, not a measured training curve: both lines start near chance and end
+    // on the measured corrected means (survival 0.733, predictor 0.589).
+    // The wobble fades to zero at the right edge so each line ends on its number.
+    const sig = (t) => 1 / (1 + Math.exp(-9 * (t - 0.55)));
+    const s0 = sig(0), s1 = sig(1);
     const surv = [], pred = [];
     for (let i = 0; i <= N; i++) {
       const t = i / N;
-      let a = 0.5 + this.noise(i) * 0.014;
-      if (t > split) {
-        const k = (t - split) / (1 - split);
-        a = 0.5 + (0.752 - 0.5) * (1 / (1 + Math.exp(-9 * (k - 0.45)))) + this.noise(i + 7) * 0.008;
-      }
-      surv.push([X(t), map(Math.min(a, 0.76))]);
-      pred.push([X(t), map(0.53 + this.noise(i + 31) * 0.02 + t * 0.03)]);
+      const fade = 1 - t;
+      const a = 0.5 + (0.733 - 0.5) * (sig(t) - s0) / (s1 - s0) + this.noise(i + 7) * 0.012 * fade;
+      const b = 0.52 + (0.589 - 0.52) * t + this.noise(i + 31) * 0.016 * fade;
+      surv.push([X(t), map(a)]);
+      pred.push([X(t), map(b)]);
     }
     const toPath = (pts) => pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
     const survPath = toPath(surv);
     const predPath = toPath(pred);
     const areaPath = survPath + ` L ${surv[surv.length - 1][0].toFixed(1)} ${y1} L ${surv[0][0].toFixed(1)} ${y1} Z`;
     const chance = map(0.5);
+    const bar = map(0.65);
     const end = surv[surv.length - 1];
     const grid = [1.0, 0.75].map((v) =>
       `<line x1="${x0}" y1="${map(v).toFixed(1)}" x2="${x1}" y2="${map(v).toFixed(1)}" stroke="rgba(120,110,160,0.14)" stroke-width="1"/>`
@@ -966,9 +973,9 @@ class Component extends DCLogic {
             <stop offset="0" stop-color="rgba(122,111,193,0.20)"/><stop offset="1" stop-color="rgba(122,111,193,0)"/>
           </linearGradient>
         </defs>
-        <rect x="${X(split).toFixed(1)}" y="${y0}" width="${(x1 - X(split)).toFixed(1)}" height="${(y1 - y0).toFixed(1)}" fill="rgba(138,114,192,0.06)" rx="6"/>
-        <line x1="${X(split).toFixed(1)}" y1="${y0}" x2="${X(split).toFixed(1)}" y2="${y1}" stroke="rgba(138,114,192,0.3)" stroke-width="1" stroke-dasharray="3 4"/>
         ${grid}${ticks}
+        <line x1="${x0}" y1="${bar.toFixed(1)}" x2="${x1}" y2="${bar.toFixed(1)}" stroke="rgba(95,130,198,0.38)" stroke-width="1" stroke-dasharray="2 4"/>
+        <text x="${x0 + 4}" y="${(bar - 5).toFixed(1)}" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6588">bar 0.65</text>
         <line x1="${x0}" y1="${chance.toFixed(1)}" x2="${x1}" y2="${chance.toFixed(1)}" stroke="rgba(74,68,104,0.28)" stroke-width="1" stroke-dasharray="4 5"/>
         <text x="${x1}" y="${(chance + 14).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6588">chance</text>
         <path d="${areaPath}" fill="url(#fillg)" style="animation:fade 1.6s ease-out both;"/>
@@ -976,7 +983,7 @@ class Component extends DCLogic {
         <path d="${survPath}" fill="none" stroke="url(#lg)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1100" style="animation:drawline 2.6s ease-out forwards;"/>
         <circle cx="${end[0].toFixed(1)}" cy="${end[1].toFixed(1)}" r="4.5" fill="#5f82c6"/>
         <circle cx="${end[0].toFixed(1)}" cy="${end[1].toFixed(1)}" r="9" fill="none" stroke="rgba(95,130,198,0.35)" stroke-width="1.5"/>
-        <text x="${(end[0] + 14).toFixed(1)}" y="${(end[1] + 4).toFixed(1)}" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="500" fill="#4f6fc0">&#8776;0.75</text>
+        <text x="${(end[0] + 14).toFixed(1)}" y="${(end[1] + 4).toFixed(1)}" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="500" fill="#4f6fc0">0.733</text>
       </svg>`;
   }
 
