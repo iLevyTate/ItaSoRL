@@ -2568,7 +2568,11 @@ grid structure.
 
 **Organism result (n=10, three arms, B-v2 protocol).** At the headline grid,
 survival pooled target = **0.533** (90% CI [0.509, 0.556], 0/10 ≥ 0.65),
-predictor 0.489, untrained 0.494. L0 control accepts chance equivalence (ROPE
+predictor 0.489, untrained 0.494. (Added 2026-10-10: that interval is the seed bootstrap.
+The t-based 90% interval of the same ten values is [0.506, 0.561], which excludes chance,
+and the TOST of the survival mean against 0.5 at the registered 0.05 margin does not accept
+equivalence, p = 0.147. The mean sits above chance and below the bar, and neither result is
+a gate.) L0 control accepts chance equivalence (ROPE
 p = 0.989). Engagement, leakage, and survivorship gates pass; ceilings (energy /
 food) remain readable. Primary H_B2 is **not met**: an oracle-detectable L1
 artifact leaves no decodable world-identity trace in the survival state. This

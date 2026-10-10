@@ -799,6 +799,18 @@ def main() -> int:
     m_, lo_, hi_ = mean_ci(l1s)
     check("L1 survival boot lo (0.509)", lo_, 0.509)
     check("L1 survival boot hi (0.556)", hi_, 0.556)
+    # 2026-10-10: the t interval and the TOST against chance the manuscript quotes.
+    l1tlo, l1thi = t_ci(l1s)
+    check("L1 survival t lo (0.506)", l1tlo, 0.506)
+    check("L1 survival t hi (0.561)", l1thi, 0.561)
+    l1eq = equivalence_test(l1s, h0=0.5, margin=0.05)
+    check("L1 survival TOST p against chance (0.147)", l1eq.p_value, 0.147)
+    check_true("L1 survival is not shown equivalent to chance", not l1eq.equivalent)
+    with open(os.path.join(ARTROOT, "..", "docs", "FINDINGS.md"), encoding="utf-8") as fh:
+        _f147 = " ".join(fh.read().split())
+    check_true("FINDINGS 14.7 quotes the L1 t interval and TOST p",
+               f"[{l1tlo:.3f}, {l1thi:.3f}]" in _f147
+               and f"does not accept equivalence, p = {l1eq.p_value:.3f}" in _f147)
     check_int("L1 survival seeds >= 0.65 (0)", sum(v >= BAR for v in l1s), 0)
     stored = org["arms"][hd]["survival"]["aggregate"]["pool_target"]
     check_true("L1 stored survival aggregate reproduces from per-seed list",
