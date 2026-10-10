@@ -126,6 +126,23 @@ A commit it does not carry forward is listed in this section as superseded, with
 The outcome for each commit is added here when that evaluation reports, and the branch stays
 on the remote until the list is complete.
 
+**Outcome (2026-10-10).** The site group reviewed the five commits:
+
+- `a87bf07`: carried forward in `0bfa02f`. The readout chart plots per-seed results on the
+  corrected record, drawn from `artifacts/corrected_verdicts.json`,
+  `artifacts/policy_controls/corrected_l3_h8_wm.json` and `artifacts/expB2/corrected_l3_h8_nowm.json`.
+- `47a6423`: not carried forward. Its data-drawn loops show pre-correction numbers without a
+  trainer label; the four July demo loops it replaced were retired instead (`3b1d193`, `0bfa02f`).
+- `9a79c12`: superseded by #113 (`be56bc2`), which re-rendered the Two Minds encode after the
+  mirroring fix of #112; its encode would undo #112.
+- `eda1ad0`: carried forward in `0bfa02f` for its phone layout only (the ladder stacks as a list
+  below 720 px). Its per-rung numbers predate the correction and are not carried.
+- `7276243`: superseded by `1454fea`, which put a dated cover page in front of both July 2026
+  walkthrough PDFs, saying what the correction changed.
+
+Every commit has an outcome, so the branch can be closed. Deleting
+`origin/claude/wizardly-euler-e47s59` is an owner action.
+
 ## Where the manuscript lives
 
 The LaTeX manuscript (`docs/paper`) is local to the owner's checkout and is not in git, and

@@ -2568,6 +2568,11 @@ margin, paired by seed, falls with the seam at both capacities: at hidden 7 from
 against 0.5 at the 0.05 margin accepts at hidden 8 (p = 0.005) and does not accept at
 hidden 7 (p = 0.086).
 
+*Later the same day:* the hidden-7 bundle is promoted as `artifacts/expH2/summary_h7.json`, so
+the hidden-7 numbers in the note above now have a committed source. The audit recomputes from it
+the untrained curve, the alpha 1 minus alpha 0 contrast, the predictor's endpoints, the
+survival-minus-untrained margins and the hidden-7 TOST.
+
 **Scope and deferred follow-ons.** This is a necessity-plus-specificity result on
 the L3 rung at hidden=8 and hidden=7; it does not speak to L1/L2 (different
 substrate primitives) or to H3 (flat contrast, registered verdict uninformative, section 13.F). The reactive
@@ -2809,6 +2814,12 @@ the interoception mask, against +0.151 [+0.099, +0.202] unmasked
 single-channel mask is not specific to training, the pattern 14.7 calls a non-specific lesion
 artifact at L1, and the clause about artifacts propagating into both streams is withdrawn. At
 hidden 8 the vision mask also lifts the untrained arm, from 0.488 to 0.567.
+
+*Addendum (2026-10-10).* Paired by seed at hidden 8, survival minus untrained is +0.119
+[+0.075, +0.162] under the vision mask, against +0.265 [+0.209, +0.320] unmasked
+(`artifacts/expH2/obs_localization_h8.json`), so the hidden-8 vision-masked reading stays
+specific to training, at less than half the unmasked margin. On the same seed-0 survival agent
+the masked body-temperature channel enters at -22.9 sd, beside hydration at -31.8 sd.
 
 ## 14.7 A3 L1: H2 substrate-grounding on the discretization rung
 

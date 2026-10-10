@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are (62 of 1401 on 2026-10-10). It also checks that the generated pages
+many there are (64 of 1440 on 2026-10-10). It also checks that the generated pages
 (index.html, the results manifest, the gate table, the contrast intervals, the manuscript
 tables) match a fresh render, and that retired wording has not returned to the pages it
 watches. Fails loudly (non-zero exit) on any mismatch beyond rounding.
@@ -15,8 +15,8 @@ watches. Fails loudly (non-zero exit) on any mismatch beyond rounding.
 What it reads from the documents. Numbers in the document text are compared with artifact
 values, recomputed where per-seed values exist, for FINDINGS 3.1, 10.1.1, 13.F, 14.5.1,
 14.7, 14.7.1 and section 17, the Experiment C lines of the FINDINGS summary, the dated notes
-of 2026-10-10 in FINDINGS 3.4, 9, 10.5, 12, 13.F, 14, 14.6 and 16 (where they quote a
-committed artifact), and PAPER_OUTLINE rows 27, 40, 44 and 46. In README.md, CITATION.cff,
+of 2026-10-10 in FINDINGS 3.4, 9, 10.5, 10.9, 12, 13.E, 13.F, 14, 14.6, 16 and 17.11 (where
+they quote a committed artifact), and PAPER_OUTLINE rows 27, 40, 44 and 46. In README.md, CITATION.cff,
 the site, the rest of PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only,
 a few of which contain a number; a number edited outside those phrases is not caught. Numbers
 the notes take from gitignored run bundles under fullruns/ are not checked.
@@ -1682,6 +1682,8 @@ def main() -> int:
         ("index.html", "0.509", "index.html carries the Exp C final AUROC"),
     ]:
         check_true(label, needle in _read(relpath))
+    # 2026-10-10: the July demo loops were retired and the readout chart plots per-seed
+    # corrected readouts, not a training curve.
     for relpath, banned in [("index.html", "EXP C · next"),
                             ("index.html", "no matter how loud the artifact"),
                             ("index.html", "loop-idle-clouds"), ("index.html", "loop-survival-clouds"),
@@ -2269,7 +2271,7 @@ def main() -> int:
     # artifact is recomputed here from per-seed or per-cell values and looked up in the text,
     # whitespace-flattened. Numbers the notes take from gitignored run bundles (the hidden-7
     # graded seam, the gate-0 recalibration, the Experiment C run file) are not read.
-    print("\n== 2026-10-10 record notes (FINDINGS 3.4, 9, 10.5, 12, 13.F, 14, 14.6, 16, 17) ==")
+    print("\n== 2026-10-10 record notes (FINDINGS 3.4, 9, 10.5, 10.9, 12, 13, 14, 14.6, 16, 17) ==")
     from itasorl.stats import paired_contrast as _pc2
     _fx2 = _read("docs/FINDINGS.md")
     _fl = lambda s: " ".join(s.split())
@@ -2482,6 +2484,33 @@ def main() -> int:
                all(x == 0.5 for _h in ("h7", "h8")
                    for _a in _load_art("expH2", f"obs_localization_{_h}.json")["masks"]["all"].values()
                    if isinstance(_a, dict) and "per_seed_full" in _a for x in _a["per_seed_full"]))
+    # FINDINGS 14 note: the hidden-7 graded seam, promoted as artifacts/expH2/summary_h7.json.
+    _h7c = _load_art("expH2", "summary_h7.json")["cells"]
+    _al = sorted(_h7c["untrained"], key=lambda k: float(k[1:]))
+    _uc = [f"{np.mean(_h7c['untrained'][k]['per_seed']):.3f}" for k in _al]
+    check_true("14 note quotes the hidden-7 untrained curve",
+               f"{', '.join(_uc[:-1])} and {_uc[-1]} from alpha 0 to alpha 1" in _s14)
+    _u10 = _pc2(_h7c["untrained"]["a1.00"]["per_seed"], _h7c["untrained"]["a0.00"]["per_seed"])
+    _nup = sum(a > b for a, b in zip(_h7c["untrained"]["a1.00"]["per_seed"],
+                                     _h7c["untrained"]["a0.00"]["per_seed"]))
+    check_true("14 note quotes the hidden-7 untrained rise, alpha 1 minus alpha 0",
+               f"alpha 1 minus alpha 0, paired by seed, {_fm(_u10)}, {_nup} of 10 seeds up" in _s14)
+    check_true("14 note quotes the hidden-7 predictor endpoints",
+               f"the predictor arm rises from {np.mean(_h7c['predictor']['a0.00']['per_seed']):.3f} to "
+               f"{np.mean(_h7c['predictor']['a1.00']['per_seed']):.3f}" in _s14)
+    _h7m = {a: _pc2(_h7c["survival"][a]["per_seed"], _h7c["untrained"][a]["per_seed"])
+            for a in ("a1.00", "a0.00")}
+    check_true("14 note quotes the hidden-7 survival-minus-untrained margins",
+               f"at hidden 7 from {_fm(_h7m['a1.00'])} at alpha 1 to {_fm(_h7m['a0.00'])} at alpha 0" in _s14)
+    _et7 = equivalence_test(_h7c["survival"]["a0.00"]["per_seed"], 0.5, 0.05)
+    check_true(f"14 note quotes the hidden-7 alpha-0 TOST (p = {_et7.p_value:.3f}, not accepted)",
+               (not _et7.equivalent) and f"does not accept at hidden 7 (p = {_et7.p_value:.3f})" in _s14)
+    # FINDINGS 14.6 addendum: the hidden-8 margin under the vision mask.
+    _o8 = _load_art("expH2", "obs_localization_h8.json")["masks"]
+    _om8 = lambda mk: _pc2(_o8[mk]["survival"]["per_seed_full"], _o8[mk]["untrained"]["per_seed_full"])
+    check_true("14.6 addendum quotes the hidden-8 paired margin under the vision mask",
+               f"survival minus untrained is {_fm(_om8('vision'))} under the vision mask, against "
+               f"{_fm(_om8('none'))} unmasked" in _s146)
     # FINDINGS 10.9 note: the speed positive control read in every pool, for every promoted run.
     _s109 = _fx2[_fx2.index("### 10.9 Second fingerprint"):_fx2.index("## 11. Methods notes")]
     _under = []

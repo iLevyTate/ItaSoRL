@@ -485,3 +485,14 @@ inference.
 `docs/RESULTS_MANIFEST.md` is regenerated.
 
 **What this does not change.** No number. The note describes a partition the re-score records.
+
+## 2026-10-10: the hidden-7 graded seam has a committed source
+
+**What was wrong.** The H2 entry above says the hidden-7 graded-seam numbers live only in the
+gitignored run bundle. That bundle has since been promoted as
+`artifacts/expH2/summary_h7.json`.
+
+**Change.** FINDINGS 14 notes the promotion, and the audit recomputes the hidden-7 numbers of
+the 14 note from the artifact.
+
+**What this does not change.** Every number the note quotes matches the artifact.
