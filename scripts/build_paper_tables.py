@@ -531,7 +531,8 @@ def boundary_cases(rows: list[dict]) -> list[tuple[dict, dict, str]]:
                        else "the rule's clauses hold, this one exactly at the bound" if c["distance"] == 0
                        else "the rule's clauses hold by this margin")
             else:
-                others = [x for x in r["clauses"] if x["role"] == c["role"] and x is not c
+                # a failing gate counts the failing rule clauses too, and the other way round
+                others = [x for x in r["clauses"] if x["role"] in ("rule", "gate") and x is not c
                           and not x["passes"]]
                 why = ("the only clause short of its threshold" if not others
                        else "other clauses fail as well")

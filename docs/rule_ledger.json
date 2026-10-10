@@ -1233,7 +1233,8 @@
    "outcome": "passes",
    "outcome_class": "threshold met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29; FINDINGS 10.4.2",
-   "note": "Passes on its mean basis while the t90 lower bound sits under the bar."
+   "note": "Passes on its mean basis while the t90 lower bound sits under the bar.",
+   "freeze_note": "Noted 2026-10-10: the spec's \"Out of scope\" section lists hidden = 7. The rule was frozen for the hidden-8 agents; the 2026-09-29 entry applied it to the hidden-7 agents after that, so this row's rule was not registered for this run before it ran."
   },
   {
    "id": "NONLINEAR-JOINT-CONTROL",
@@ -1591,13 +1592,26 @@
      },
      "reading": "0.638",
      "role": "rule"
+    },
+    {
+     "clause": "speed positive control in every pool",
+     "basis": "minimum over 60 pools",
+     "op": ">=",
+     "threshold": 0.75,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
+      "path": "gates/speed_min"
+     },
+     "reading": "0.748",
+     "role": "gate"
     }
    ],
    "clauses_hold": false,
-   "gates_hold": null,
+   "gates_hold": false,
    "outcome": "NOT MET: replication not claimed; both margins pass",
    "outcome_class": "threshold not met",
-   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29; FINDINGS 10.9 addendum"
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29 and 2026-10-10 (speed control); FINDINGS 10.9 addendum",
+   "note": "Gate added 2026-10-10. Read over every drift, arm and seed, the speed positive control is short in one pool of 60 (untrained arm, drift 0.45, seed index 6: 0.748 against 0.75); the figure first recorded, 0.833, was the lowest arm mean. By the rule applied to the white-jitter run, the readings of this run are descriptive. The replication rule was not met in any case, so the outcome does not move."
   },
   {
    "id": "HIDDEN8-SEED2",
@@ -1963,9 +1977,10 @@
    ],
    "clauses_hold": true,
    "gates_hold": false,
-   "outcome": "does not hold; holds on the decodability clauses, conditional on the C1 gates",
+   "outcome": "NOT MET as registered: C1 does not meet its primary rule; the lead holds on the decodability clauses",
    "outcome_class": "threshold not met",
-   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-06; FINDINGS 17.4; artifacts/corrected_verdicts.json"
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-06 and 2026-10-10; FINDINGS 17.4; artifacts/corrected_verdicts.json",
+   "note": "Outcome restated 2026-10-10 with the registered result first (PREREGISTRATION_L3 sec. 12, 2026-10-10 entry; artifacts/corrected_verdicts.json, holds false, holds_on_decodability_clauses true). Until then this row read \"does not hold; holds on the decodability clauses, conditional on the C1 gates\". The lead is +0.120 [+0.065, +0.174] at the 300-update budget; no reading moved."
   },
   {
    "id": "TEXTURE-GN-Q1",
