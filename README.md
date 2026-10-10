@@ -35,10 +35,12 @@ Make your own copy first (`File -> Save a copy in Drive`). The first cell
 enforces that. Pick your own GPU runtime. Then run all cells: it clones the repo
 and runs `python scripts/run_e2e.py`.
 
-Two illustrated walkthroughs, same numbers, from the committed artifacts:
+Two illustrated walkthroughs from July 2026, printed before the October
+corrections. Their numbers come from the original trainer, and a dated cover page
+on each lists what has changed since:
 
-- [**Plain-English series (PDF)**](docs/itasorl-series-plain-english.pdf)
-- [**Research edition (PDF)**](docs/itasorl-series-research.pdf)
+- [**Plain-English series (PDF)**](docs/itasorl-series-plain-english.pdf): the July 2026 pre-correction walkthrough
+- [**Research edition (PDF)**](docs/itasorl-series-research.pdf): the July 2026 pre-correction walkthrough, in research terms
 
 ---
 
@@ -132,8 +134,8 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 
 - **H1 (detectability)**: a privileged detector distinguishes the surrogate from the authentic world. **Supported** at L1, L2, and L3; at one shared detector noise the L2 flaws read weaker than L3 (FINDINGS §15).
 - **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference (FINDINGS §14). A hand-authored, temporally coherent drag of matched one-step size is read as well, white jitter is not, so nothing here is specific to learned dynamics (§17.9). At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
-- **H3 (emergence under selection)**: selection raises world decodability. **Negative under the pooled population readout**, 3 lineages at 30 generations (FINDINGS §13.D, §13.E).
-- **H4 (incidental encoding)**: the condition is decodable from a from-scratch agent's state without reward. **Met at L3** for survival with the next-observation auxiliary at 300 updates, corrected trainer: 0.733, with the L0 gate open on the registered world pair (FINDINGS §17); not met at L1 or L2.
+- **H3 (emergence under selection)**: selection raises world decodability. **Flat contrast, registered verdict uninformative.** Over 3 lineages and 30 generations the contrast is flat under both the pooled and the per-individual readout, but registered gates 1 and 5 fail, so neither readout yields a verdict (FINDINGS §13.F; the earlier record is §13.D, §13.E).
+- **H4 (incidental encoding)**: the condition is decodable from a from-scratch agent's state without reward. At L3 the three **decodability clauses are met** for survival with the next-observation auxiliary at 300 updates, corrected trainer: 0.733. The registered rule as a whole is not met, because the L0 (authentic-versus-authentic) gate does not pass on the registered world pair, 0.559 (FINDINGS §17). Not met at L1 or L2.
 
 ### Current status
 
@@ -148,7 +150,7 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 | Experiment B, L1 organism + H2 battery | **done: did not meet it at in-band Δ=0.023 (survival 0.533; FINDINGS §14.7)** |
 | Experiment B, L3 (learned-dynamics) | **met the decodability clauses at n=10** with survival plus the next-observation auxiliary at 300 updates, corrected trainer: 0.733 against predictor 0.589 and untrained 0.523, L0 gate open on the registered world pair. Without the auxiliary 0.613, not met (FINDINGS §17). Historical: 0.752 on GPU, 0.730 and 0.601 on CPU (§10.8); an independently trained fingerprint 0.639 (§10.9); prefix condition remains decodable after restoring authentic dynamics, carried mostly by the physical footprint the prefix leaves rather than by memory, and retention under identical input is not shown (FINDINGS §17.7, §10.6.1). Details in [Key result](#key-result) |
 | Trainer correction (2026-10) | **done**: GAE truncation bootstrap fixed; both primary runs rerun; effect +0.003 and +0.012 ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), FINDINGS §17) |
-| Experiment C (emergence under selection) | **validated null** under the pooled population readout on the fixed-code re-run (FINDINGS §13.D, §13.E) |
+| Experiment C (emergence under selection) | **done: flat contrast, registered verdict uninformative.** Gates 1 and 5 fail, so neither the pooled nor the per-individual readout yields a verdict (FINDINGS §13.F) |
 | Ladder L4 (adversarially-hardened surrogate) | not started |
 
 ### Key result
@@ -171,7 +173,7 @@ reads **0.733** (t-based 90% CI **[0.669, 0.797]**, 8 of 10 seeds at the 0.65
 bar), the predictor arm 0.589 and the untrained arm 0.523, with paired margins
 of +0.144 and +0.210 whose intervals clear the registered 0.05. The L0 gate
 (both pools authentic) is open on the registered pair of evaluation worlds
-(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the historical hidden-8 agents, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so
+(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the agents of the historical hidden-8 run, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so
 the verdict is met on the decodability clauses, conditional on L0. Without the
 auxiliary the same protocol reads **0.613** [0.552, 0.675], not met; the
 decoder adds **+0.120** [+0.065, +0.174]. The bootstrap fix moved these two
@@ -225,7 +227,8 @@ The control removes what its channels and model can express; behavior outside
 that basis is not excluded. An earlier per-episode-mean control had
 under-estimated the signal at ~0.66 by over-removing, the attenuation the
 synthetic tests predicted. Code: `scripts/audit_behavior_mediation.py`.
-Artifacts: `artifacts/expB2/`.
+Artifacts: `artifacts/expB2/`. On the corrected agents the best-fitting behavior and
+sensory control leaves 0.620, under the bar (FINDINGS §17.8).
 
 A second in-band fingerprint (hidden = 7, frozen fallback after hidden = 4
 failed its gates) leaves about the same after the behavior control: **0.722**
@@ -296,8 +299,8 @@ the same data; independent data were not tested. Details:
 |-- requirements.txt            runtime dependencies
 |-- requirements-dev.txt        pytest + dev tooling
 |-- itasorl/                    core library (world, agents, experiments)
-|   |-- world.py                World protocol, surrogate ladder, matched-pair harness
-|   |-- patch_of_earth.py       PatchOfEarthV0 concrete world, incl. L1/L2 hooks
+|   |-- world.py                World protocol and obs/action specs; first ladder sketch (superseded)
+|   |-- patch_of_earth.py       PatchOfEarthV0 concrete world; the L1, L2 and L3 rungs (drift_mode)
 |   |-- agent.py                recurrent world model (RSSM-lite)
 |   |-- agent_ac.py             survival actor-critic (Experiment B-v2)
 |   |-- experiment_a.py         agent-free L1 detectability oracle
@@ -351,8 +354,8 @@ the same data; independent data were not tested. Details:
 |   |-- PREREGISTRATION_L3.md   L3 pre-registration + deviation log
 |   |-- PREREGISTRATION_C.md    Experiment C pre-registration (design-complete)
 |   |-- AUDIT_2026-07.md        research-integrity audit
-|   |-- itasorl-series-plain-english.pdf  illustrated walkthrough (plain English)
-|   |-- itasorl-series-research.pdf       illustrated walkthrough (research edition)
+|   |-- itasorl-series-plain-english.pdf  July 2026 pre-correction walkthrough (plain English)
+|   |-- itasorl-series-research.pdf       July 2026 pre-correction walkthrough (research edition)
 |   `-- figures/                result figures (.png) + provenance README
 |-- artifacts/                  published summaries (committed): expA/, expB/, expB2/, expC/, l3_crossrecipe/
 |-- fullruns/                   e2e run bundles (gitignored; default output)
@@ -363,8 +366,8 @@ the same data; independent data were not tested. Details:
 
 ### Documents
 
-- [`docs/itasorl-series-plain-english.pdf`](docs/itasorl-series-plain-english.pdf): the illustrated walkthrough in plain English - the friendliest entry point to the whole project.
-- [`docs/itasorl-series-research.pdf`](docs/itasorl-series-research.pdf): the same series in research terms - design, control battery, pre-registered results, open questions.
+- [`docs/itasorl-series-plain-english.pdf`](docs/itasorl-series-plain-english.pdf): the July 2026 pre-correction walkthrough, illustrated, in plain English. Its numbers come from the original trainer, and a dated cover page lists what the corrected record changed.
+- [`docs/itasorl-series-research.pdf`](docs/itasorl-series-research.pdf): the July 2026 pre-correction walkthrough in research terms (design, control battery, pre-registered results, open questions), with the same dated cover page.
 - [`docs/ITASORL.md`](docs/ITASORL.md): the research plan, core question, prior work, hypotheses (H1 to H4), experiments (A/B/C), the surrogate ladder, validity audit, statistics, and engineering architecture.
 - [`docs/ITASORL_world_spec.md`](docs/ITASORL_world_spec.md): the world specification, "A Patch of Earth" v0, the 2.5D representation, fields and forcing, dynamics, ecology, the ~146-dim observation, ladder attachment, and confound management.
 - [`docs/FINDINGS.md`](docs/FINDINGS.md): empirical results from the first build-and-test cycle.
@@ -398,6 +401,18 @@ Per-figure provenance (which script, which doc section) is tracked in
 ---
 
 ## How to run
+
+Get the code. A shallow clone has every file the runs need:
+
+```bash
+git clone --depth 1 https://github.com/iLevyTate/ItaSoRL
+cd ItaSoRL
+```
+
+Earlier commits added film renders that later left the tree, so a full clone
+downloads about 250 MB of history. Checking the commit hashes recorded in
+[`docs/RESULTS_MANIFEST.md`](docs/RESULTS_MANIFEST.md) needs that history: clone
+without `--depth`, or run `git fetch --unshallow` inside the shallow clone.
 
 Dependencies:
 
@@ -438,7 +453,7 @@ pytest -q
 
 **Local Jupyter / VS Code:** open [`notebooks/colab_gpu.ipynb`](notebooks/colab_gpu.ipynb) from this repo; it auto-detects local mode (no Drive/download cells).
 
-**Readout-only reruns on the saved agents:** the ten hidden-8 survival agents behind the world-sample sensitivity result (FINDINGS 17.5.1) are gitignored and are published with the paper's archive record. `python scripts/fetch_saved_agents.py --url <archive link>` downloads them and checks every file's sha256 against `artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`; the Colab notebook's Extra checks section does the same from a form field and then runs `scripts/run_world_sample_sensitivity.py`, comparing its per-draw means and verdict against the committed artifact.
+**Readout-only reruns on the saved agents:** the ten survival agents of the historical hidden-8 held-out run (96-unit trunk; 8 is the surrogate's capacity) behind the world-sample sensitivity result (FINDINGS 17.5.1) are gitignored, so git does not carry them; they ship in the anonymized review supplement. `python scripts/fetch_saved_agents.py --local-dir <folder>` finds them in a folder you hold (`--drive-dir` for a mounted Drive folder, `--url` for a zip or tar of them) and checks every file's sha256 against `artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`; the Colab notebook's Extra checks section does the same from a form field and then runs `scripts/run_world_sample_sensitivity.py`, comparing its per-draw means and verdict against the committed artifact.
 
 ---
 

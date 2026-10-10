@@ -21,9 +21,11 @@ abstract: >-
   contrast is L1 against L3. A learned-dynamics fingerprint (L3) met the
   decodability clauses for survival-trained agents carrying a
   next-observation auxiliary at the registered 300-update budget, with the trainer corrected in
-  October 2026 (0.733 against 0.589 for a prediction-only arm; the L0 gate open
-  on the registered evaluation-world pair and equivalent to chance across eight
-  independent pairs). Without the auxiliary the arm reads 0.613 at 300 updates
+  October 2026 (0.733 against 0.589 for a prediction-only arm). The registered
+  rule as a whole is not met: the L0 gate is open on the registered
+  evaluation-world pair (0.559), and across eight independent pairs it is
+  equivalent to chance on the pooled test, while the gate accepts on two of the
+  eight draws individually. Without the auxiliary the arm reads 0.613 at 300 updates
   and 0.685 at 450, so the auxiliary result is bounded by budget. At matched
   evaluation input a prediction-trained trunk reads the world as well as the
   survival trunk: the signal rides on the trajectories the foraging policy
