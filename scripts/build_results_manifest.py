@@ -555,19 +555,19 @@ RUNS = [
         notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. Directory registered "
               "ahead of the run (.gitkeep placeholder until cells land)."),
     run("S-SCARCE", "Survival objective, death on, scarce food (calibrated), n = 10 (goal-and-stakes)",
-        experiment="B-v2 L3", artifacts=["goal_stakes/S-scarce"],
+        experiment="B-v2 L3", artifacts=["goal_stakes/S-scarce", "goal_stakes/calibration.json"],
         claims=[], survival_trainer="successor_value", status="corrected", commit_at_run="pending",
         config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor",
-                "n_pellets": "calibrated (artifacts/goal_stakes/calibration.json)"},
+                "n_pellets": "calibrated: 24, the registered density (artifacts/goal_stakes/calibration.json)"},
         agent_seeds=S10, surrogate=L3_H8, budget={"survival_updates": 300, "predictor_updates": 300},
         eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CPU_REVISION,
         local_run_dir="artifacts/goal_stakes/S-scarce",
-        notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; pellet count by the "
-              "frozen calibration rule, recorded as a dated PREREGISTRATION_L3 amendment. "
-              "The calibration output artifacts/goal_stakes/calibration.json "
-              "(scripts/calibrate_scarcity.py) does not exist yet; add it to this row's artifacts "
-              "when it lands, or --check reports it as unowned. Directory registered ahead of the "
-              "run (.gitkeep placeholder until cells land)."),
+        notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. NOT RUN: the frozen "
+              "calibration (scripts/calibrate_scarcity.py, artifacts/goal_stakes/calibration.json) "
+              "chose 24 pellets, the registered density C1 already uses (scripted 80-step death "
+              "rate 0.535 at drift 0, 0.515 at drift 0.45), so the run would repeat C1's "
+              "configuration and the stakes rule is not testable (PREREGISTRATION_L3, 2026-10-10). "
+              "The directory keeps its .gitkeep placeholder; no cell exists."),
     run("C1-MECHANISM", "Mechanism readouts 6 to 9 and the scripted-walk stream decoder, C1 agents",
         experiment="B-v2 L3", artifacts=["goal_stakes/C1"], trains_survival=False,
         readout_of=["C1"], survival_trainer="successor_value", status="corrected",

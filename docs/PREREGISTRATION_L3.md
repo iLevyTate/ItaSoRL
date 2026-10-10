@@ -1043,6 +1043,29 @@ Rigor carried from the B-v3 audit (2026-07-10):
   learned-texture rule remains unmet, and a usable trained case still requires a new run under a
   new frozen specification, at the registered trunk width.**
 
+- **2026-10-10 - S-SCARCE CALIBRATION: THE FROZEN RULE CHOOSES THE REGISTERED DENSITY, SO
+  `S-scarce` IS NOT RUN (spec `docs/specs/2026-10-07-goal-and-stakes-design.md`, "Calibration of
+  the scarce rung"; output `artifacts/goal_stakes/calibration.json`).** The calibration ran as
+  frozen: `python scripts/calibrate_scarcity.py --out artifacts/goal_stakes/calibration.json`,
+  basal burn 0.4, 200 scripted and 200 random episodes of 80 steps per world per setting, on a
+  local Windows CPU (the rule fixes no device; it trains nothing). Scripted-walker 80-step death
+  rates at drift 0 and drift 0.45, by pellet count: 24 pellets 0.535 and 0.515; 16 pellets 0.68
+  and 0.625; 12 pellets 0.72 and 0.73; 8 pellets 0.815 and 0.825; 6 pellets 0.885 and 0.87; 4
+  pellets 0.885 and 0.895. No setting had a death inside the 24-step pooled window in either
+  world. The largest pellet count in the [0.40, 0.60] band is 24, its drift-0.45 rate is within
+  0.10 of its drift-0 rate, and it has no early deaths, so the rule chooses 24. That is the
+  registered density `C1` already uses. The spec assumed the registered density carried low
+  stakes and that the rule would choose a scarcer one; for the scripted walker it already sits
+  in the band, and every scarcer setting overshoots it. The basal-0.5 fallback applies only when
+  no setting lands in the band, so it does not apply. **`S-scarce` at the chosen setting would
+  be a rerun of `C1`'s configuration, so it is not run, and no other pellet count is substituted
+  after seeing these rates.** The stakes rule needs `S-immortal` < `C1` < `S-scarce`, so it
+  cannot be tested in this world. The decision output records the stakes rule as "not testable:
+  the frozen calibration chose the registered density, so no scarcer rung exists", writes neither
+  stakes wording, and reports the `S-immortal` and `C1` survival means descriptively with no
+  threshold. The survival-specificity wording stays unavailable, because it needs the stakes rule
+  met. `T-touch`, `S-immortal`, every gate, and every other frozen rule are unchanged.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

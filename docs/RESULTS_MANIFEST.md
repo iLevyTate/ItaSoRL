@@ -711,9 +711,9 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Local run directory (not in git): artifacts/goal_stakes/S-scarce
-- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; pellet count by the frozen calibration rule, recorded as a dated PREREGISTRATION_L3 amendment. The calibration output artifacts/goal_stakes/calibration.json (scripts/calibrate_scarcity.py) does not exist yet; add it to this row's artifacts when it lands, or --check reports it as unowned. Directory registered ahead of the run (.gitkeep placeholder until cells land).
-- Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "n_pellets": "calibrated (artifacts/goal_stakes/calibration.json)"}
-- Artifacts: `artifacts/goal_stakes/S-scarce`
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. NOT RUN: the frozen calibration (scripts/calibrate_scarcity.py, artifacts/goal_stakes/calibration.json) chose 24 pellets, the registered density C1 already uses (scripted 80-step death rate 0.535 at drift 0, 0.515 at drift 0.45), so the run would repeat C1's configuration and the stakes rule is not testable (PREREGISTRATION_L3, 2026-10-10). The directory keeps its .gitkeep placeholder; no cell exists.
+- Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "n_pellets": "calibrated: 24, the registered density (artifacts/goal_stakes/calibration.json)"}
+- Artifacts: `artifacts/goal_stakes/S-scarce`, `artifacts/goal_stakes/calibration.json`
 
 ### `C1-MECHANISM`: Mechanism readouts 6 to 9 and the scripted-walk stream decoder, C1 agents
 

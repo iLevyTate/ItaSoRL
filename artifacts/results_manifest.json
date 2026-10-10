@@ -3193,7 +3193,8 @@
         9
       ],
       "artifacts": [
-        "goal_stakes/S-scarce"
+        "goal_stakes/S-scarce",
+        "goal_stakes/calibration.json"
       ],
       "budget": {
         "predictor_updates": 300,
@@ -3215,7 +3216,7 @@
         "mp_pairs": 60,
         "mp_prefix": 20,
         "n_eps": 16,
-        "n_pellets": "calibrated (artifacts/goal_stakes/calibration.json)",
+        "n_pellets": "calibrated: 24, the registered density (artifacts/goal_stakes/calibration.json)",
         "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
         "pool_n": 110,
         "pool_steps": 24,
@@ -3242,10 +3243,11 @@
       "folds": "explicit",
       "id": "S-SCARCE",
       "local_run_dir": "artifacts/goal_stakes/S-scarce",
-      "notes": "Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; pellet count by the frozen calibration rule, recorded as a dated PREREGISTRATION_L3 amendment. The calibration output artifacts/goal_stakes/calibration.json (scripts/calibrate_scarcity.py) does not exist yet; add it to this row's artifacts when it lands, or --check reports it as unowned. Directory registered ahead of the run (.gitkeep placeholder until cells land).",
+      "notes": "Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. NOT RUN: the frozen calibration (scripts/calibrate_scarcity.py, artifacts/goal_stakes/calibration.json) chose 24 pellets, the registered density C1 already uses (scripted 80-step death rate 0.535 at drift 0, 0.515 at drift 0.45), so the run would repeat C1's configuration and the stakes rule is not testable (PREREGISTRATION_L3, 2026-10-10). The directory keeps its .gitkeep placeholder; no cell exists.",
       "readout_only_on": null,
       "recorded_provenance": {
-        "goal_stakes/S-scarce": {}
+        "goal_stakes/S-scarce": {},
+        "goal_stakes/calibration.json": {}
       },
       "status": "corrected",
       "surrogate": {
