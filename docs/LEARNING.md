@@ -2,7 +2,9 @@
 
 This is the explainer. Every term, experiment, and process in ordinary English,
 then the research it sits on (APA 7 at the end). Written for an adult, not a
-child. Numbers here are a snapshot as of 2026-07-14. Living sources:
+child. Acts 1 to 9 of section 8 keep their numbers as first recorded, and every
+survival creature in them was trained with the historical trainer. Section 8 was
+updated 2026-10-06 with the corrected-trainer results (Act 10). Living sources:
 `docs/FINDINGS.md` and `docs/PREREGISTRATION_L3.md`.
 
 Each idea gets a comparison first, then a precise sentence. If you can walk from
@@ -65,7 +67,7 @@ The four hypotheses (from `README.md`):
 
 - **H1 (detectability)**: a privileged outside inspector can tell the two worlds apart.
 - **H2 (substrate-grounding)**: the signal really lives in the computational seams, not in some side effect.
-- **H3 (emergence under selection)**: across generations, creatures whose survival depends on the difference get better at representing it. (Tested in Experiment C: thirty generations did not raise what the pooled population readout measures. That readout cannot see detectors that individuals carry in their own private directions, so it does not show there were none. See Act 9's caveats in section 8.)
+- **H3 (emergence under selection)**: across generations, creatures whose survival depends on the difference get better at representing it. (Tested in Experiment C: flat contrast, registered verdict uninformative. Thirty generations of selection raised neither the pooled population readout nor the per-individual one, but two of the design's own gates fail, so neither readout yields a verdict on H3; FINDINGS 13.F and the caveats at the end of section 8.)
 - **H4 (legibility, or incidental encoding)**: a from-scratch creature encodes the difference on its own, without reward. (The main event.)
 
 ---
@@ -283,19 +285,20 @@ Setup: the B-v2 pipeline with `--drift-mode l3 --l3-hidden 8` (or 7), after G
 passes gate-0. Pre-registered in `docs/PREREGISTRATION_L3.md`. It includes the
 second-capacity replication and the behavior-mediation audit (section 6).
 
-**Experiment C: evolution (run, and the answer was no).**
+**Experiment C: evolution (run; flat contrast, registered verdict uninformative).**
 Question: across many generations of creatures that live, die, and reproduce,
 does detection ability strengthen when survival depends on it (H3)? It was run:
 48 policies, 30 generations, three lineages. Under the pooled population readout
 selection did not raise world-condition decodability, and a rerun with a
 per-individual readout did not change that (FINDINGS 13.D and 13.F). The design's
-own gates say the contrast is not interpretable at that geometry, so the honest
-summary is that this particular setup could not answer the question, not that
-evolution cannot.
-One planned control worth knowing now: the **common-garden assay**. To compare
-offspring fairly, you test them all in the same kitchen, not each in their own
-home kitchen. Precisely: freeze each generation and test everyone on the same
-hidden set of worlds, which separates "genuinely better at the skill" from
+own gates say the contrast is not interpretable at that geometry: knowing the world
+paid too little (gate 1), and the readout's speed check fell below its bar (gate 5).
+The registered verdict is therefore uninformative. This setup could not answer the
+question in either direction.
+One control the run used is worth knowing now: the **common-garden assay**. To
+compare offspring fairly, you test them all in the same kitchen, not each in their
+own home kitchen. Precisely: each generation was frozen and everyone was tested on
+the same hidden set of worlds, which separates "genuinely better at the skill" from
 "merely descended from survivors" (**survivorship bias**).
 
 ---
@@ -636,11 +639,16 @@ Then the fixed creatures went through four new tests, and each one narrowed the 
   senses the survival creature lived through, and it reads the world at 0.721. One
   trained on exactly the survival creature's practice data reads 0.738. The survival
   creature reads 0.733. Drive every creature with the same scripted policy and none of
-  them reads the world well (0.55 to 0.58). The survival creature's edge comes from where
-  it goes: its foraging takes the body to places where the forger's physics part from
-  the real ones, and a brain trained to predict keeps what it saw there. Act 6's "both
-  jobs" survives in this form. The imagination job shapes the brain that keeps the
-  difference, and the survival job produces paths worth keeping.
+  them reads the world well (0.55 to 0.58). The survival creature's edge comes from the
+  paths its own foraging produces, and a brain trained to predict keeps what it saw on
+  them. The gap between the real and the forged motion law is present on the scripted
+  paths too: an inspector that checks the motion law from the creature's own senses
+  reads it at 0.991 on scripted episodes (FINDINGS 10.1.1). Even an untrained brain
+  reads the foraging paths better than the scripted ones (0.636 against 0.551). So
+  brains keep more of the difference from the foraging paths, and why has not been
+  measured yet. Act 6's "both jobs" survives in this form. The imagination job shapes
+  the brain that keeps the difference, and the survival job produces paths worth
+  keeping.
 - *The senses already carry it.* A decoder that never sees the brain, only the
   creature's senses and actions, reads 0.724. The strongest control that fits well
   leaves 0.620, under the bar.
@@ -687,17 +695,20 @@ well.
   creatures the controlled test says that is mostly the body's footprint, not memory
   (Act 10).
 - L4, the forger with a detective on the team, remains unbuilt. Experiment C's
-  emergence pilot resolved negative under its pooled population readout (FINDINGS
-  13.D and 13.E): thirty generations of selection did not raise that readout. Tested
-  on creatures known to carry the signal, that readout comes in a little low (0.609
-  against 0.649 one by one) but does not go blind.
+  evolution run has a flat contrast and an uninformative registered verdict (FINDINGS
+  13.F): gates 1 and 5 fail, so the preregistration's section-8 table routes it to
+  UNINFORMATIVE. Both readouts, pooled and one by one, are flat, and neither yields a
+  verdict. Tested on creatures known to carry the signal, the pooled readout comes in
+  a little low (0.609 against 0.649 one by one) but does not go blind.
 
 Where results live: `docs/FINDINGS.md` (the narrative), `docs/PREREGISTRATION_L3.md`
 section 12 (the dated lab log), `artifacts/expB2/*.json` (the committed numbers),
 and `fullruns/` (the full bundles, ignored by git, with the latest pointer in
-`results/LATEST_RUN.txt`). A verification script checks the numbers quoted in the
-main documents against values recomputed from the committed per-seed results, and it
-runs in CI on every change. It cannot catch an error inside the results themselves:
+`results/LATEST_RUN.txt`). A verification script recomputes the statistics it guards
+from the committed per-seed results and compares each with a copy of the quoted value
+kept in the script. It reads the numbers of only a few passages of `docs/FINDINGS.md`
+directly (section 17 among them) and checks selected wording elsewhere. It runs in CI
+on every change. It cannot catch an error inside the results themselves:
 the training defect of Act 10 passed it for months.
 
 ---
@@ -720,7 +731,7 @@ the training defect of Act 10 passed it for months.
 | Behavior trace (bta/bts) | The per-timestep record of speed, energy, food, and drag saved with the states | trace dumps |
 | Capacity | Network size; for G_motion it is the only difficulty knob of the L3 fake | `surrogate_l3.py` |
 | Capacity ceiling (sysid-aux) | Force-feed the answer to measure the loudest the architecture could ever say it | `--sysid-aux` |
-| Common-garden assay | Test every generation in the same kitchen to separate skill from survivorship | Experiment C (planned) |
+| Common-garden assay | Test every generation in the same kitchen to separate skill from survivorship | Experiment C (run; panel scored, FINDINGS 13.D, 13.F) |
 | Confound | Any accidental clue that is not the substrate artifact (reward, length, metadata) | leakage audit |
 | Contamination test | Deliberately plant a clue to prove the leakage audit would catch it (it does) | Experiment A |
 | Critic | The value head; the coach scoring situations | `agent_ac.py` |
@@ -737,7 +748,7 @@ the training defect of Act 10 passed it for months.
 | Episode | One life segment (about 80 to 110 steps); the unit for probing statistics | everywhere |
 | Experiment A | The agent-free inspector: how catchable is each fake? | `experiment_a.py` |
 | Experiment B | The daydreamer's diary check: prediction-only incidental encoding | `experiment_b.py` |
-| Experiment C | Evolution across generations (H3); run, null under the pooled and the per-individual readout (FINDINGS 13.D, 13.F) | ITASORL.md |
+| Experiment C | Evolution across generations (H3); run, flat contrast, registered verdict uninformative: gates 1 and 5 fail, and neither the pooled nor the per-individual readout yields a verdict (FINDINGS 13.F) | ITASORL.md |
 | Fingerprint (generative) | The forger's signature flaws: blur, missing detail, mode collapse, learned noise | L3 |
 | fullruns/ | Git-ignored folders holding complete run bundles; pointer in `results/LATEST_RUN.txt` | outputs |
 | G (G_motion) | The forger: a small frozen network imitating real motion, swapped in as L3 physics | `surrogate_l3.py` |
@@ -769,7 +780,7 @@ the training defect of Act 10 passed it for months.
 | Per-timestep control | Subtract behavior moment by moment before probing (surgical; the deciding test) | behavior audit |
 | Pooled readout | Mix all episodes and read world identity; measures one direction shared across independent episodes (the headline) | readouts |
 | Positive control (speed) | The reader must at least read speed (about 0.9), or the notebook is illegible and the run is void | probes |
-| Potential-based shaping | Warmer, colder food hints that provably never change the best strategy | B-v2 reward |
+| Potential-based shaping | Warmer, colder food hints designed not to change the best strategy; the guarantee needs a correct truncation bootstrap, which the historical trainer lacked (Act 10) | B-v2 reward |
 | Pre-registration | Predictions sealed in an envelope before running; removes after-the-fact knob tweaking | PREREGISTRATION*.md |
 | Predictor (agent) | The daydreamer arm of the three-creature comparison | B-v2/L3 |
 | Probe | The reader: an outside classifier reading world identity from h_t | probes |
@@ -778,7 +789,7 @@ the training defect of Act 10 passed it for months.
 | Regime drift | B-v3's version of L2: one constant drag offset per episode | `--drift-mode regime` |
 | Residualization | Subtract everything behavior predicts, then read what remains | behavior audit |
 | resid_trace | The result-file key for the per-timestep-controlled probe score (the ~0.72 numbers) | audit artifacts |
-| ROPE | Region of Practical Equivalence: a Bayesian "certified boring, equals chance" test | `stats.py` |
+| ROPE | Region of Practical Equivalence: a "certified boring, equals chance" check on the percentile bootstrap (the share of bootstrap means inside the equivalence band), not a Bayesian test | `stats.py` |
 | RSSM | Recurrent State-Space Model: encode, remember, predict; the creature's skeleton | `agent.py` |
 | Second capacity | The pre-registered replication with a different in-band forger (hidden=7) | PREREGISTRATION_L3 sec.11 |
 | Seed (SeedBundle) | The recipe card for randomness; separate streams for world, weather, ecology, and policy | reproducibility |
@@ -864,10 +875,3 @@ Schulman, J., Moritz, P., Levine, S., Jordan, M., & Abbeel, P. (2016).
 High-dimensional continuous control using generalized advantage estimation. In
 *International Conference on Learning Representations*.
 https://arxiv.org/abs/1506.02438
-
----
-
-*If one sentence had to sum up the project: an outside inspector can always catch
-the fake, but a creature only starts carrying that knowledge in its own head when
-the fake is a learned imitation and its life depends on coping with it, and even
-then the "only survivors notice" part depends on which forger you hired.*
