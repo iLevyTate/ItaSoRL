@@ -47,13 +47,15 @@ so L2 was the weaker flaw. The detectability-matched contrast is L1: at an in-ba
 observation-quantization grid (Δ = 0.023, detector 0.873) the survival agent's pooled
 target is **0.533**, with 0 of 10 seeds at 0.65 (section 14.7).
 
-**A learned-law flaw (L3) met it under one training protocol (corrected, section 17).**
+**A learned-law flaw (L3) met its decodability clauses at 0.733 under one training protocol
+(corrected, section 17); the registered rule as a whole is not met, because the L0 gate is
+open on the registered world pair (0.559).**
 Survival training with the next-observation auxiliary, 300 updates, ten seeds, against a
 gate-calibrated fingerprint (privileged detector 0.928 at detector-side noise σ = 0.02):
 the survival state decodes the world at **0.733** (t-based 90% CI [0.669, 0.797]),
 against 0.589 for the predictor arm and 0.523 untrained, with paired margins of +0.144 and
 +0.210 whose intervals clear 0.05. The L0 gate is open on the registered world-sample pair
-(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the historical hidden-8 agents, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so the verdict is
+(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the agents of the historical hidden-8 run, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so the verdict is
 MET on the decodability clauses, conditional on L0. Without the auxiliary the survival
 state reads **0.613** [0.552, 0.675], not met; the decoder adds **+0.120** [+0.065,
 +0.174]. The correction itself moved the two drift-0.45 readings by +0.003 and +0.012.
@@ -120,7 +122,7 @@ substrate). Detection is measured against a **surrogate ladder**:
 | L0 | Identical re-implementation (control, must be at chance) | tested |
 | L1 | Observation discretization (a lattice / quantization tell) | tested (survival did not meet the registered encoding criterion at in-band Δ=0.023: 0.533; section 14.7) |
 | L2 | Rollout drift (a slowly drifting dynamics coefficient) | tested |
-| L3 | Learned world-model surrogate (a generative fingerprint) | tested. Corrected trainer (section 17): `C1` **0.733** [0.669, 0.797] met the decodability clauses, and the L0 authentic-versus-authentic gate is **open** on the registered world pair (0.559, TOST p 0.939) while equivalent to chance across eight independent pairs (17.5); the best-fitting behavior and sensory control leaves **0.620**, under the bar (17.8); at matched input a prediction-trained trunk reads the same streams as well (17.6); the common-garden tail is carried mostly by the prefix's physical footprint, and retention under identical input is not shown (17.7). Historical trainer, as recorded: (positive at the registered 300-update budget with the next-observation auxiliary, n=10; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
+| L3 | Learned world-model surrogate (a generative fingerprint) | tested. Corrected trainer (section 17): `C1` **0.733** [0.669, 0.797] met the decodability clauses, and the L0 authentic-versus-authentic gate is **open** on the registered world pair (0.559, TOST p 0.939) while equivalent to chance on the pooled test across eight independent pairs (TOST over pairs p 0.022), with the gate accepting on two of the eight draws individually (17.5); the best-fitting behavior and sensory control leaves **0.620**, under the bar (17.8); at matched input a prediction-trained trunk reads the same streams as well (17.6); the common-garden tail is carried mostly by the prefix's physical footprint, and retention under identical input is not shown (17.7). Historical trainer, as recorded: (positive at the registered 300-update budget with the next-observation auxiliary, n=10; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
 | L4 | Adversarially-hardened surrogate | not started |
 
 Three experiments were planned. This cycle completed Experiment A for L1 and L2
@@ -404,9 +406,9 @@ inducing it (if possible) requires something more deliberate.
   on the decodability clauses with the L0 gate open (17.4), the best-fitting control leaves
   0.620 under the bar (17.8), and at matched evaluation input a prediction-trained trunk reads
   the survival agent's own streams as well as the survival trunk does, so the margin is a
-  difference between training regimes and not of objective (17.6). The condition that flips the result is the
-  artifact's character (a generative fingerprint that survival must cope with), not
-  probe power, capacity, or objective horizon. A held-out probe (section 10.6)
+  difference between training regimes and not of objective (17.6). The condition that flips the result is a
+  coherent, state-dependent dynamics difference reached by the foraging trajectories
+  (17.6, 17.9), not probe power, capacity, or objective horizon. A held-out probe (section 10.6)
   qualifies the *nature* of the encoding: it transfers to a capacity variant of
   the training fingerprint (same recipe, seed, and training data - robustness
   within one recipe, see the 10.6 scope note), and a common-garden
@@ -442,8 +444,8 @@ inducing it (if possible) requires something more deliberate.
   two missing questions on the corrected agents: a hand-authored, temporally coherent drag
   at matched one-step size IS read through the same direction (transfer 0.721, fresh
   0.754) while white jitter is not, so what the tested classes separate on is temporal
-  coherence, not learnedness. The survival-specificity part
-  remains conditional on the subtler hidden=8 artifact (section 10.5). The same
+  coherence, not learnedness. The survival-specificity reading is withdrawn
+  (17.6). The same
   H2 battery on the L1 discretization rung (section 14.7) finds that survival does
   **not meet the registered encoding criterion** at the matched in-band grid (0.533), so L1 does not
   reproduce the L3 positive; H2 at L1 is therefore a strengthened negative for
@@ -1758,9 +1760,14 @@ Stated once, plainly, with pointers into the code.
    bar and its survival-minus-predictor lead stays under the 0.05 margin (+0.037),
    and both common-garden directions pass both clauses. Two pre-registered gate
    clauses flip, both reported in section 16: the hidden 7 gate-0 untrained floor,
-   and the L0 equivalence test on every GPU-scored L3 and L1 organism run (the
-   L0 control reads 0.539 with TOST p = 0.207 under explicit, 0.517 with p = 0.010
-   under legacy; the first entry of this note missed it). Not
+   and the L0 equivalence test on every historical run scored on the owner's
+   workstation stack, which covers the GPU-trained L3 runs and the CPU-trained L1
+   organism run, while the runs scored on the cloud CPU stack pass it (the L0
+   control reads 0.539 with TOST p = 0.207 under explicit, 0.517 with p = 0.010
+   under legacy; the first entry of this note missed it). The stack is named as
+   provenance, not as the cause: the explicit partition is the same on every
+   stack, and which runs pass follows the agent set scored (wording corrected
+   2026-10-10; it had said "every GPU-scored L3 and L1 organism run"). Not
    re-scored: the B-v3 dumps are not on the owner's machine, and the joint
    sensory-plus-behavior controls come from `audit_sensory_echo.py`, which
    regenerates pools rather than reading dumps, so their lower bounds (0.638
@@ -3194,10 +3201,16 @@ Training of either kind adds about 0.1 over an untrained trunk on the same strea
 The survival-over-predictor margin of the primary readout (+0.144) is therefore a
 difference between training regimes, and at matched evaluation input it is not a difference
 of objective. What carries the world signal is the trajectories the survival policy
-generates. The scripted policy, which thrusts and turns at random, visits states where the
-learned law and the authentic law agree closely enough that no tested trunk separates them;
-the survival policy visits states where they differ, and any trained trunk reading those
-streams carries the difference. The primary verdict of 17.2 is unchanged, since it is defined
+generates. Under the scripted policy, which thrusts and turns at random, no tested trunk
+separates the worlds well (0.551 to 0.577 across the four trunks), yet the law-fitting
+detector of 10.1.1, scored on scripted-policy episodes, reads 0.991 from the raw
+observations, so the difference is present in those streams. On the survival policy's
+streams every trained trunk reads it (0.721 to 0.738 on replay), and even the untrained trunk
+reads more (0.636 on replay against 0.551 scripted). Trunks keep more of the difference from
+the survival policy's streams than from the scripted ones. Why is not measured: the size of
+the law deviation along each policy's trajectories has not been recorded (sentence revised
+2026-10-10; it had asserted that the survival policy visits states where the laws differ
+more). The primary verdict of 17.2 is unchanged, since it is defined
 on the `own` protocol. The wording of every claim that calls the signal survival-specific,
 or credits it to the survival objective, is narrowed to this reading (the closing summary
 of this section and the public pages).

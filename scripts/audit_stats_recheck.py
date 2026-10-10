@@ -1640,6 +1640,15 @@ def main() -> int:
                    "uninformative" in _flat and "13.F" in _flat)
         for _banned in ("validated null", "open test", "evolutionary null"):
             check_true(f"{_where} no longer says '{_banned}'", _banned not in _flat)
+    # PAPER_OUTLINE row 40: where the quadratic-drag floor first leaves its tolerance,
+    # recomputed from the gate-0 sweep rather than copied (it once said eps 4).
+    _q0 = _load_art("texture", "gate0_qd.json")
+    _q_first = min(r["eps"] for r in _q0["rows"] if not r["floor_ok"])
+    _q_prev = max(r["eps"] for r in _q0["rows"] if r["eps"] < _q_first)
+    _q_prev_floor = next(r["floor"] for r in _q0["rows"] if r["eps"] == _q_prev)
+    check_true(f"PAPER_OUTLINE row 40: the qd floor leaves tolerance from eps {_q_first:g}",
+               f"floor leaves tolerance from eps {_q_first:g} ({_q_prev_floor:.3f} at eps {_q_prev:g} "
+               f"is inside the {_q0['floor_tol']:g} tolerance)" in _read("docs/PAPER_OUTLINE.md"))
     _pix = _load_art("expC", "emergence_pilot_per_individual_summary.json")
     _ft = sorted(c["indiv_final_treat"]["mean"] for c in _pix["cells"])
     check_true("TL;DR and PAPER_OUTLINE row 27 quote the per-individual final treatment range",
