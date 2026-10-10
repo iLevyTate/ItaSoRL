@@ -698,15 +698,39 @@ stopping**. PREREGISTRATION_L3 section 9 described a recurrent predictor trained
 stopping; that is not what ran (dated amendment in its section 12). In world P drag is the
 constant 1.5, so the authentic law vel' = 0.925 vel + 0.05 a is linear with constant
 coefficients and withholding drag from `G` withholds a constant. A least-squares linear fit
-on `G`'s own training transitions recovers the law to float rounding (held-out RMS 6e-9), so
-a linear surrogate would carry no fingerprint: **the fingerprint is the approximation error
-of this particular finite-trained network.** Introducing early stopping now would make a
+on `G`'s own training transitions recovers the law to float rounding (RMS 6e-9 on those
+transitions and on episodes at disjoint seeds alike), so a linear surrogate would carry no
+fingerprint: **the fingerprint is the approximation error of this particular finite-trained
+network.** Introducing early stopping now would make a
 different fingerprint and would need its own gate 0.
 
-**Errors on held-out authentic transitions** (`artifacts/surrogate_diagnostics.json`;
-60 x 40 scripted-policy transitions at seeds disjoint from training; RMS velocity error):
+**Errors on held-out authentic transitions** (`artifacts/surrogate_diagnostics.json`, block
+`disjoint_heldout`, rescored 2026-10-10; 60 x 40 scripted-policy transitions at seeds 100000
+to 100059, disjoint from every training range; the train column is each `G`'s own 250
+training episodes; RMS velocity error):
 
-| surrogate | one-step, train | one-step, held out | open-loop rollout gap at 1 / 5 / 10 / 24 steps | lag-1 autocorrelation of the deviation | agent-accessible detector |
+| surrogate | one-step, train | one-step, held out | open-loop rollout gap at 1 / 5 / 10 / 24 steps | lag-1 autocorrelation of the deviation, held out | agent-accessible detector |
+|---|---|---|---|---|---|
+| `G` hidden 8, seed 0 (headline) | 0.0361 | 0.0354 | 0.038 / 0.060 / 0.079 / 0.076 | 0.83 | 0.991 |
+| `G` hidden 7, seed 0 | 0.0574 | 0.0558 | 0.032 / 0.076 / 0.114 / 0.128 | 0.94 | 0.992 |
+| `G` hidden 10, seed 1 | 0.0263 | 0.0258 | 0.021 / 0.049 / 0.083 / 0.108 | 0.87 | 0.991 |
+| `G` hidden 8, seed 2 | 0.0356 | 0.0342 | 0.014 / 0.061 / 0.112 / 0.127 | 0.93 | 0.991 |
+| Gaussian jitter, sigma_v 0.01 | 0.0141 | 0.0143 | 0.013 / 0.026 / 0.033 / 0.036 | 0.01 | 0.991 |
+| quadratic drag, eps 6.0 (hand-authored) | 0.0143 | 0.0148 | 0.000 / 0.030 / 0.085 / 0.045 | 0.95 | 0.967 |
+
+**The seed-77 calibration sample (as recorded 2026-10-06; relabeled 2026-10-10).** Until
+2026-10-10 the table below was labeled "held-out authentic transitions at seeds disjoint from
+training". It was not held out. Episode i of a sample is seeded by the sample's base seed plus
+i, so its 60 episodes at base seed 77 are episodes 77 to 136 of every `G`'s own training data
+(250 episodes from seed 0, 1 or 2), and its train column used seed 0 for every `G`, which is
+the training data of the two seed-0 instances only. For a learned `G` the middle column is
+therefore in-sample. The untrained comparators have no training data to overlap. The sample
+stays in the record as the calibration sample: the quadratic drag's eps 6.0 was matched on it
+(17.9), and the detector column does not depend on it. The rescored table above moves no
+reading; the headline `G` errs by 0.0354 per step held out against 0.0349 here
+(`docs/CORRECTIONS.md`, 2026-10-10).
+
+| surrogate | one-step, seed-0 sample | one-step, seed-77 calibration sample (in-sample for `G`) | open-loop rollout gap at 1 / 5 / 10 / 24 steps | lag-1 autocorrelation of the deviation | agent-accessible detector |
 |---|---|---|---|---|---|
 | `G` hidden 8, seed 0 (headline) | 0.0361 | 0.0349 | 0.038 / 0.057 / 0.079 / 0.072 | 0.84 | 0.991 |
 | `G` hidden 7, seed 0 | 0.0574 | 0.0559 | 0.031 / 0.066 / 0.121 / 0.127 | 0.94 | 0.992 |
@@ -718,7 +742,8 @@ different fingerprint and would need its own gate 0.
 One-step error and rollout divergence are different quantities: the rollout gap compounds
 the one-step error along a trajectory and, because drag damps velocity, it saturates rather
 than growing without bound. The learned fingerprints' deviations are temporally coherent
-(lag-1 autocorrelation 0.84 to 0.94); the Gaussian comparator's are white.
+(lag-1 autocorrelation 0.83 to 0.94 held out, 0.84 to 0.94 on the calibration sample); the
+Gaussian comparator's are white.
 
 **The detector.** The gate-0 oracle is a **privileged detector**: it reads the world's
 internal transitions and adds a **detector-side** measurement noise of sigma = 0.02 before
@@ -3230,7 +3255,11 @@ comparators were scored on the `C1` agents at drift 0.45 (`scripts/run_texture_f
   RMS deviation 0.0142 and lag-1 autocorrelation of the deviation **0.0014**, i.e. white to
   within rounding (10.1.1 prints the same value as 0.00 at two decimals). The same table's
   held-out authentic transitions give 0.0143 and its training transitions 0.0141: the three
-  figures are one quantity measured on three samples, not a disagreement.
+  figures are one quantity measured on three samples, not a disagreement. *(Note 2026-10-10:
+  that profile and that table are the seed-77 calibration sample of 10.1.1, not a held-out
+  sample; its 0.0143 column scores the same seed-77 episodes with a different noise draw. On
+  the disjoint held-out sample of 10.1.1 `gn` reads 0.0143 one-step and lag-1 0.01. The
+  matched eps of `qd` below was fixed on the calibration sample and stays as recorded.)*
 - `qd`: the authentic law minus a hand-authored quadratic drag, eps 6.0. Gate 0 found no
   in-band eps (amendment in the spec), so eps was fixed to match `gn` on one-step RMS
   deviation, on the same 60-episode profile: at eps 1 the `qd` deviation is 0.002356 and the

@@ -166,6 +166,9 @@ sigma 0.02, not a universal ceiling.
 **What this does not change.** No organism number. Introducing early stopping now would make
 a different fingerprint, with its own gate 0 and its own provenance.
 
+*(2026-10-10: the held-out sample in this entry overlapped G's training episodes; see the
+2026-10-10 entry on the surrogate diagnostics below.)*
+
 ## 2026-10-06: what the bootstrap correction did to the primary comparisons
 
 **Runs.** `C1` and `C2` (`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`)
@@ -217,3 +220,35 @@ the provenance records changed hash with identical code: the C1 readouts and the
 promotion now name `34e2c0d`, and the exploratory cross-run replay and the C2 promotion now
 name `7870bba`. No number changed. The pre-rewrite hashes are deliberately not listed here,
 because they still resolve on GitHub to commits that carry the tables.
+
+## 2026-10-10: the surrogate's held-out diagnostics were in-sample
+
+**What was wrong.** `surrogate_diagnostics` scored `G`'s held-out error on 60 episodes that
+start at seed 77. Episode i of a sample is seeded by the sample's base seed plus i (world,
+weather, ecology and the scripted action stream), and every `G` was trained on 250 episodes
+that start at its own seed (0, 1 or 2). The 60 episodes were therefore episodes 77 to 136 of
+each `G`'s training data, bit for bit. The train column also used seed 0 for every `G`, which
+is the training data of the two seed-0 instances only. FINDINGS 10.1.1, the 2026-10-06 entry
+above, the docstrings and the texture comparator spec called the sample held out at disjoint
+seeds.
+
+**Change.** The held-out sample now starts at seed 100000, `surrogate_diagnostics` refuses a
+held-out range that overlaps the training range, and `scripts/run_surrogate_diagnostics.py`
+scores each `G`'s train column on its own training seed. The committed artifact
+`artifacts/surrogate_diagnostics.json` keeps every stored value and gains a `disjoint_heldout`
+block. The runner writes that block only after the rerun reproduces the stored
+agent-accessible detector scores exactly and the stored deviation profiles to within 1e-6;
+the largest profile difference was 6.5e-8, from retraining `G` on the owner's workstation
+stack (Python 3.13.2, numpy 1.26.4, torch 2.7.0). FINDINGS 10.1.1 now leads with the
+held-out table and keeps the seed-77 table, relabeled as the calibration sample: the
+quadratic drag's eps 6.0 was matched on that sample (FINDINGS 17.9,
+`artifacts/texture/qd_eps1_calibration.json`), so it stays as recorded.
+
+**Effect.** The headline `G` errs by 0.0354 RMS per step held out, against 0.0349 on the
+calibration sample. Its open-loop rollout gap at 24 steps is 0.076 against 0.072, and the
+lag-1 autocorrelation of its deviation is 0.83 against 0.84. The other three instances and
+the two comparators move by similar amounts (FINDINGS 10.1.1). The agent-accessible
+detector (0.991, and 0.967 for the quadratic drag) reads neither sample and is unchanged.
+
+**What this does not change.** No organism number, no gate and no verdict. The surrogates
+are the same frozen nets, and the gate-0 oracle never read this sample.

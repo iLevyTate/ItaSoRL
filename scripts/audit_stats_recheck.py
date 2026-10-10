@@ -2125,20 +2125,61 @@ def main() -> int:
                    f"**{_vi['mean']:.3f}** return (t-based 90% CI [{_vi['t90'][0]:.3f}, {_vi['t90'][1]:.3f}]"
                    in _s17)
     # Revision step 10: FINDINGS 10.1.1 quotes the surrogate diagnostics; pin every cell.
+    # 2026-10-10: the per-surrogate `diagnostics` were scored on a seed-77 sample that lies
+    # inside every G's training episodes. They stay quoted, relabeled as the calibration
+    # sample, and the `disjoint_heldout` block carries the held-out rescoring. Each table is
+    # pinned in its own part of the section, and the seed ranges are recomputed.
     print("\n== FINDINGS 10.1.1: surrogate and detector diagnostics ==")
     _f = _read("docs/FINDINGS.md")
     _sec = _f[_f.index("### 10.1.1"):_f.index("### 10.2 Headline result")]
-    _sd = _load_art("surrogate_diagnostics.json")["surrogates"]
+    _cut = _sec.index("**The seed-77 calibration sample")
+    _sec_ho, _sec_cal = _sec[:_cut], _sec[_cut:]
+    _sdoc = _load_art("surrogate_diagnostics.json")
+    _sd = _sdoc["surrogates"]
     for _name, _v in _sd.items():
         _g = _v["diagnostics"]
         for _label, _val, _fmt in (
-                ("one-step train", _g["g_one_step"]["rms_train"], "{:.4f}"),
-                ("one-step held out", _g["g_one_step"]["rms_heldout"], "{:.4f}"),
+                ("one-step seed-0 sample", _g["g_one_step"]["rms_train"], "{:.4f}"),
+                ("one-step seed-77 calibration sample", _g["g_one_step"]["rms_heldout"], "{:.4f}"),
                 ("lag-1 autocorrelation", _v["profile"]["lag1_autocorr"], "{:.2f}"),
                 ("agent-accessible detector", _v["agent_accessible_detector"]["auroc"], "{:.3f}")):
-            check_true(f"10.1.1 {_name} {_label} {_fmt.format(_val)} quoted", _fmt.format(_val) in _sec)
-    check_true("10.1.1 linear-fit held-out RMS is rounding-level (< 1e-7)",
+            check_true(f"10.1.1 calibration {_name} {_label} {_fmt.format(_val)} quoted",
+                       _fmt.format(_val) in _sec_cal)
+    check_true("10.1.1 linear-fit RMS on the calibration sample is rounding-level (< 1e-7)",
                all(v["diagnostics"]["linear_fit"]["rms_heldout"] < 1e-7 for v in _sd.values()))
+    _dh = _sdoc["disjoint_heldout"]
+    _G_TRAIN = {"gmotion_h8_s0": 0, "gmotion_h7_s0": 0, "gmotion_h10_s1": 1, "gmotion_h8_s2": 2}
+    _n_tr, _n_ho = 250, 60
+    check_true("10.1.1: the seed-77 sample lies inside every G's training episodes",
+               all(_s <= 77 and 77 + _n_ho <= _s + _n_tr for _s in _G_TRAIN.values()))
+    check_true("10.1.1: the held-out range is disjoint from every G's training episodes",
+               all(_dh["heldout_seed"] >= _s + _n_tr or _dh["heldout_seed"] + _n_ho <= _s
+                   for _s in _G_TRAIN.values()))
+    check_true("10.1.1: each G's train column is scored on its own training seed",
+               all(_dh["surrogates"][_k]["diagnostics"]["train_seed"] == _s
+                   for _k, _s in _G_TRAIN.items()))
+    check_true("10.1.1: the rescoring reproduced the stored detector exactly and the stored "
+               "profiles to its tolerance",
+               _dh["determinism"]["detector_auroc_exact"]
+               and _dh["determinism"]["profile_max_abs_diff"] <= _dh["determinism"]["profile_tol"])
+    check_true("10.1.1: the held-out block covers the same surrogates", set(_dh["surrogates"]) == set(_sd))
+    for _name, _v in _dh["surrogates"].items():
+        _g = _v["diagnostics"]
+        _roll = " / ".join(f"{_g['rollout_rms_velocity_gap'][_h]:.3f}" for _h in ("1", "5", "10", "24"))
+        for _label, _txt in (
+                ("one-step train", f"{_g['g_one_step']['rms_train']:.4f}"),
+                ("one-step held out", f"{_g['g_one_step']['rms_heldout']:.4f}"),
+                ("rollout gaps", _roll),
+                ("lag-1 autocorrelation held out", f"{_v['profile_heldout']['lag1_autocorr']:.2f}"),
+                ("agent-accessible detector", f"{_sd[_name]['agent_accessible_detector']['auroc']:.3f}")):
+            check_true(f"10.1.1 held out {_name} {_label} {_txt} quoted", _txt in _sec_ho)
+    check_true("10.1.1 linear-fit held-out RMS is rounding-level (< 1e-7)",
+               all(v["diagnostics"]["linear_fit"]["rms_heldout"] < 1e-7
+                   for v in _dh["surrogates"].values()))
+    check_true("10.1.1 quotes the headline G's held-out and calibration one-step errors together",
+               f"{_dh['surrogates']['gmotion_h8_s0']['diagnostics']['g_one_step']['rms_heldout']:.4f} per step "
+               f"held out against {_sd['gmotion_h8_s0']['diagnostics']['g_one_step']['rms_heldout']:.4f}"
+               in " ".join(_sec_cal.split()))
     # Revision step 15: the manuscript's tables are generated from the checked artifacts.
     # The manuscript and its generated tables stay local (gitignored docs/paper/); render the
     # tables in memory from the committed artifacts instead of comparing committed files.
