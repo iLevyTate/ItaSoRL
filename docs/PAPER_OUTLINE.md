@@ -58,12 +58,14 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      near chance across channels, horizons, and probes at L2; survival coupling 0.610
      [0.585, 0.634]; supervised reference 0.596 (a lower-bound reference, not an
      architectural ceiling); L1 organism 0.533 at the in-band grid.
-     Each "did not meet the registered encoding criterion".
+     The registered ones "did not meet the registered encoding criterion"; Experiment B
+     predates the first preregistration, so its 0.65 bar is applied after the fact.
    - 4.3 The L3 primary result (FINDINGS 17.2, 17.5): corrected survival with the
      next-observation auxiliary at 300 updates reads 0.733 [0.669, 0.797] against
-     predictor 0.589 and untrained 0.523; MET on the decodability clauses, with L0
-     open on the registered world pair (0.559) and equivalent across eight independent
-     pairs (0.493). The historical 0.752 [0.698, 0.807] is reported beside it.
+     predictor 0.589 and untrained 0.523. The registered rule is NOT MET, because L0 is
+     open on the registered world pair (0.559); the decodability clauses are met, and
+     across eight independent pairs L0 averages 0.493 (TOST over pairs p 0.022). The
+     historical 0.752 [0.698, 0.807] is reported beside it.
    - 4.4 The auxiliary contrast, bounded by budget (FINDINGS 10.8, 10.8.1, 17): the
      corrected decoder-on minus decoder-off difference, +0.120 [+0.065, +0.174] (0.733
      against 0.613), and the budget curve: without the decoder 0.685 at 450 updates;
@@ -126,7 +128,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 1 | L0 control at chance (oracle) | agent-free | AUROC 0.523 | FINDINGS 2.1 | artifacts/expA/summary.json | expA_ceiling.png |
 | 2 | L1 detectable (oracle) | agent-free | AUROC 1.000 | FINDINGS 2.1 | artifacts/expA/summary.json | expA_ceiling.png |
 | 3 | L2 detectable (oracle) | agent-free | AUROC 0.993 | FINDINGS 2.2 | artifacts/expA/summary.json | expA_L2_ceiling.png |
-| 4 | L2 did not meet the registered encoding criterion (recurrent state) | no actor-critic | 0.510 ± 0.039 @ drift 0.45 | FINDINGS 3.1 | artifacts/expB/summary.json | expB_incidental.png |
+| 4 | L2 prediction-only state below the 0.65 bar (recurrent state; Experiment B predates the first preregistration, so the bar is applied after the fact) | no actor-critic | 0.510 ± 0.039 @ drift 0.45 | FINDINGS 3.1 | artifacts/expB/summary.json | expB_incidental.png |
 | 5 | L2 surprise channel weak | no actor-critic | 0.596 ± 0.007 @ drift 0.45 | FINDINGS 3.2 | artifacts/expB/summary.json | expB_channels.png |
 | 6 | No liftoff with horizon | no actor-critic | 0.48-0.51 across 0/8/16 | FINDINGS 3.3 | artifacts/expB/summary.json (recorded rerun; see 3.3 correction) | expB_kstep.png |
 | 7 | L2 null holds under a nonlinear probe | no actor-critic | 0.482 ± 0.031 | FINDINGS 3.4 | artifacts/expB/summary.json | - |
@@ -163,7 +165,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 38 | No-auxiliary survival arm at 450 updates: above the bar, skill match failed, so no mediation inference | historical; secondary | 0.717 [0.679, 0.755], 8/10; return -0.156 against the window [-0.269, -0.169] | FINDINGS 10.8.1 | artifacts/expB2/skill_matched_l3_h8_nowm_u450.json | - |
 | 39 | Agent-accessible detector on the agent's own observations reads the L3 surrogate | agent-free | AUROC 0.991 | FINDINGS 10.1.1 | artifacts/surrogate_diagnostics.json | - |
 | 40 | Hand-authored quadratic-drag comparator has no in-band gate-0 value | agent-free | detector 0.601 to 0.768 across eps 0.5 to 16; floor leaves tolerance from eps 8 (0.560 at eps 4 is inside the 0.1 tolerance) | texture spec amendment | artifacts/texture/gate0_qd.json | - |
-| 41 | Corrected primary run: survival with the auxiliary, 300 updates, n = 10; MET on the decodability clauses, L0 open on the registered pair | corrected; primary | 0.733 [0.669, 0.797], 8/10; predictor 0.589, untrained 0.523; margins +0.144 [+0.072, +0.217], +0.210 [+0.135, +0.286]; L0 0.559 (TOST p 0.939) | FINDINGS 17.2 | artifacts/expB2/corrected_l3_h8_wm.json; artifacts/corrected_verdicts.json | - |
+| 41 | Corrected primary run: survival with the auxiliary, 300 updates, n = 10; NOT MET as registered (L0 open on the registered pair), decodability clauses met | corrected; primary | 0.733 [0.669, 0.797], 8/10; predictor 0.589, untrained 0.523; margins +0.144 [+0.072, +0.217], +0.210 [+0.135, +0.286]; L0 0.559 (TOST p 0.939) | FINDINGS 17.2 | artifacts/expB2/corrected_l3_h8_wm.json; artifacts/corrected_verdicts.json | - |
 | 42 | Corrected auxiliary contrast on one device, and the budget curve to 450 updates | corrected; primary (contrast), exploratory (curve) | without the auxiliary 0.613 [0.552, 0.675], NOT MET; C1 minus C2 +0.120 [+0.065, +0.174]; at 450 updates 0.821 with and 0.685 without, return difference -0.054 [-0.198, +0.090] | FINDINGS 17.4, 17.10 | artifacts/expB2/corrected_l3_h8_nowm.json; artifacts/budget_curve.json | budget_curve.png |
 | 43 | L0 across independent world-sample pairs; balanced readout | corrected; secondary | eight independent pairs: signed means 0.406 to 0.557, average 0.493 (sd 0.049, TOST over pairs p 0.022), gate accepts at 2 of 8; balanced survival readout 0.767 [0.718, 0.816] | FINDINGS 17.5 | artifacts/l0_audit/corrected_l3_h8_wm.json | - |
 | 44 | At matched evaluation input a prediction-trained trunk reads the world within about 0.01 of the survival trunk, and trained agents read about 0.10 above the untrained one | corrected; secondary | replay: survival 0.733, predictor 0.721, exposure-matched predictor 0.738; survival minus predictor +0.012 [-0.002, +0.026], minus predictor_logged -0.005 [-0.038, +0.027], minus untrained +0.097 [+0.066, +0.128]; predictor_logged minus untrained +0.102 [+0.067, +0.137]; each trunk reads the replay through its own normalizer; scripted policy 0.55 to 0.58 for every arm | FINDINGS 17.6 | artifacts/policy_controls/corrected_l3_h8_wm.json | - |
@@ -176,6 +178,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 51 | Reverse direction: an authentic-raised agent reads a surrogate it never lived in | historical agents; secondary | survival 0.760 [0.716, 0.804], 9/10; predictor 0.570, untrained 0.505; margin over untrained +0.255; balanced 0.796; integrity gate passed on 30 cells | FINDINGS 17.5.2 | artifacts/l0_audit/reverse_direction_l3_h8_heldout.json | - |
 | 52 | White-jitter comparator-trained run: UNINFORMATIVE, supports no claim | corrected trainer; set aside | survival 0.522 [0.502, 0.542], 0/10; untrained 0.552; speed positive control 0.686 at its worst against 0.75, 9 of 60 pools short; ran with an 8-unit trunk, not the registered 96 | FINDINGS 14.5.1 | artifacts/texture/T_gn_l3_h8_wm.json | - |
 | 53 | L1 stream carries the seam while the state does not | historical agents; exploratory | summary-feature stream 0.795 [0.760, 0.829], supervised GRU 0.590 [0.547, 0.633], state 0.552 [0.530, 0.574] (explicit partition; 0.533 legacy, row 35); untrained stream 0.804 | FINDINGS 14.7.1 | artifacts/control_diagnostics/l1_stream_readout.json | - |
+| 54 | The four calibrated fingerprint instances read together: the untrained margin reproduces on all four, the predictor margin on two | historical; secondary, descriptive | survival pooled targets as published 0.752 (hidden 8, G seed 0), 0.737 (hidden 7), 0.676 (hidden 8, G seed 2), 0.639 (hidden 10, G seed 1, CPU); descriptive mean 0.701; margin over the untrained arm +0.265, +0.151, +0.126, +0.126; over the predictor +0.179, +0.023, +0.049, +0.105, so above 0.05 on two | FINDINGS 10.2, 10.5, 10.9 | artifacts/expB2/behavior_audit_l3_h8_traces.json; artifacts/expB2/behavior_audit_l3_h7_traces.json; artifacts/expB2/second_seed_l3_h8_gseed2_gpu.json; artifacts/expB2/second_instance_l3_h10_gseed1.json | - |
 
 Status: *agent-free* and *no actor-critic* results are untouched by the 2026-10
 trainer correction; *historical* results came from the pre-correction survival trainer
@@ -200,6 +203,13 @@ note 9.
   reverse direction, the white-jitter comparator-trained run and the L1 stream readout, with
   the numbers the manuscript's inventory gives the same claims, so rows 1 to 26 and 38 to 53
   of both lists name the same claims.
+- Also on 2026-10-10, after the verdict labels were changed to lead with the registered
+  outcome: section 4.3 and row 41 say that `C1` does not meet its registered rule because L0
+  is open and that the decodability clauses are met (`artifacts/corrected_verdicts.json`).
+  Row 4 and section 4.2 say that Experiment B predates the first preregistration, so its
+  0.65 bar is applied after the fact. Row 54 records the four calibrated fingerprint
+  instances read together (rows 12, 21 and 31 and the hidden 8 new-seed run of FINDINGS 10.9),
+  a descriptive summary the manuscript gives.
 - Also on 2026-10-10: row 49 names its payoff figure for what it is, the own-world assignment
   minus the better single policy, beside the best-of-two value (FINDINGS 13.E and 17.11 notes);
   rows 15 and 16 cite the held-out run's summary, whose standard pools reproduce the run; row

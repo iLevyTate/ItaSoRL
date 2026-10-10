@@ -73,11 +73,17 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
-Commits recorded by artifacts that are not ancestors of main (squash merges); each lives only on the branch named, so keep that branch or tag its head:
+Commits that artifacts record, or that the record cites, and that are not ancestors of main (most reached main through squash merges); each lives only on the branch named, so keep that branch or tag its head:
 
 - `feat/remaining-research` (head `55afc72`): `4d57253`, `80550ca`, `80948ff`, `9d5d047`, `d67dd51`. Recorded by the 2026-09 runs (second instances on GPU, the skill-matched baseline, the hidden 7 sensory echo). Their content reached main through the squash merge 21ed4df (#111).
 - `claude/affectionate-carson-azhxt2` (head `fb4dfa5`): `f676b95`, `34e2c0d`, `7870bba`, `2606e7f`. Recorded by the 2026-10 corrected-trainer confirmation runs (every C1 and C2 cell records f676b95), the verdict builder and readout promotions (34e2c0d), the exploratory cross-run replay (7870bba), and the set-aside T-qd comparator run (2606e7f, FINDINGS 17.9 addendum). Their content reached main through the squash merges 6d85438 (#116) and 552be24 (#117).
 - `claude/colab-guard-and-checkpointing` (head `06ecc10`): `06ecc10`. Recorded by the Experiment C per-individual rerun checkpoints (FINDINGS 13.F). Its content reached main through the squash merge 329dfb7 (#119); the tree at 06ecc10 is identical to main at 329dfb7.
+- `feat/d045-world-sample-sensitivity` (head `678c83e`): `865b842`. Recorded as the commit at run of the drift-0.45 world-sample sensitivity readout (FINDINGS 17.5.1). Its content reached main through the squash merge 177605f (#127); the tree at 678c83e is identical to main at 177605f.
+- `feat/final-review-fixes` (head `d341091`): `8aa2b9f`, `d341091`. 8aa2b9f is recorded as the commit at run of the reverse-direction readout (FINDINGS 17.5.2); d341091 is cited as the commit that froze the white-jitter spec (PREREGISTRATION_L3 and the spec's notes). Both were rebased onto feat/direction-and-comparator-runs as 13f60bc and caa2ce0 with the same spec and entry text, and reached main through the squash merge c05d791 (#130).
+- `feat/direction-and-comparator-runs` (head `4f4584b`): `13f60bc`, `caa2ce0`, `60eb355`, `e4686f2`, `5666f59`. 60eb355 is recorded as the commit at run of the white-jitter comparator-trained run (FINDINGS 14.5.1) and 5666f59 as that of the L1 stream readout (FINDINGS 14.7.1); e4686f2 froze the L1 stream spec; 13f60bc and caa2ce0 are the rebased copies of 8aa2b9f and d341091, and caa2ce0 is the parent of 60eb355. Their content reached main through the squash merge c05d791 (#130); the tree at 4f4584b is identical to main at c05d791.
+- `claude/wizardly-euler-e47s59` (head `7276243`): `a87bf07`, `47a6423`, `9a79c12`, `eda1ad0`, `7276243`. Never merged. No artifact records them; docs/REVISION_2026-10.md and assets/film/README.md cite them, and the 2026-10-10 review pass carried part of their content forward (docs/REVISION_2026-10.md says which).
+
+Three artifacts also record a commit of the 2026-10-10 review branch. A squash merge leaves it off main; it stays reachable through that branch's pull request, and `docs/REVISION_2026-10.md` names the artifacts.
 
 Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.
 

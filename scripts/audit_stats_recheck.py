@@ -660,7 +660,7 @@ def main() -> int:
                h2rr.accept == bool(h2["l0_anchor_alpha0"]["accept_equiv"]))
     # untrained floor control: flat near chance at EVERY alpha at hidden 8, so there the
     # collapse is specific to the learned survival signal. At hidden 7 the floor rises with
-    # the seam (FINDINGS 14, note of 2026-10-10; that bundle is not promoted).
+    # the seam (FINDINGS 14, note of 2026-10-10; artifacts/expH2/summary_h7.json, checked below).
     untr_means = [float(np.mean(h2_untr[f"a{al:.2f}"]["per_seed"])) for al in h2_alphas]
     check("H2 untrained floor at alpha=1 (0.488)", untr_means[-1], 0.488)
     check_true("H2 untrained floor flat/below bar at every alpha (max mean < 0.55)",
@@ -1925,9 +1925,11 @@ def main() -> int:
                    f"**{_ac['c1_minus_c2']:+.3f}**, paired by seed **{_sv2(_ac['paired']['t90'])}**" in _s17n2)
         check_true("FINDINGS 17.4 counts the seeds favoring the decoder",
                    f"{sum(x > 0 for x in _ac['paired']['diff_per_seed'])} of 10 seeds favor the decoder" in _s17n2)
-        check_true("17.4 wording matches the frozen auxiliary rule (holds on decodability, not in full)",
+        check_true("17.4 wording matches the frozen auxiliary rule (not met as registered, "
+                   "holds on decodability)",
                    (not _ac["holds"]) and _ac["holds_on_decodability_clauses"]
-                   and "holds on the decodability clauses, conditional on `C1`'s open gate" in _s17n2)
+                   and "The auxiliary rule is therefore NOT MET as registered" in _s17n2
+                   and "the lead holds on the decodability clauses" in _s17n2)
     _bcp = os.path.join(ARTROOT, "budget_curve.json")
     if os.path.exists(_bcp):
         _bc = _load_art("budget_curve.json")

@@ -160,14 +160,16 @@ promoted from the recorded `fullruns/06302026` e2e bundle by
 
 *(Figure provenance, noted 2026-10-10. Until 2026-10-10 the four figures in sections 2 and 3
 (`figures/expA_ceiling.png`, `figures/expA_L2_ceiling.png`, `figures/expB_incidental.png`,
-`figures/expB_channels.png`) were the ones drawn by run `fullruns/07042026` (commit `888eb3e`,
-the owner's RTX 4050 laptop GPU), while the numbers in the text and tables of both sections
-come from the promoted run `fullruns/06302026` (commit `4c16be6`, Tesla T4). The two runs
-differ at every point that is not saturated, and the largest gap is 0.055, at the L1
-calibration point delta 0.015 (0.457 plotted, 0.402 recorded). The 07042026 run used
-`--quick`, which shortens only the B-v2 step, so the gap comes from the different run and
-stack, not from quick mode. The figures are now redrawn from the committed artifacts by
-`scripts/plot_record_figures.py`, so they plot the numbers quoted here.)*
+`figures/expB_channels.png`) were the images committed on 2026-06-28, drawn on the owner's
+local stack. The later local quick-mode run `fullruns/07042026` (commit `888eb3e`, RTX 4050
+laptop GPU) reproduces them byte for byte. The numbers in the text and tables of both
+sections come from the promoted run `fullruns/06302026` (commit `4c16be6`, Tesla T4). The
+plotted and quoted values differ at every point that is not saturated, and the largest gap
+is 0.055, at the L1 calibration point delta 0.015 (0.457 plotted, 0.402 recorded). Quick
+mode shortens only the B-v2 step, so the gap comes from the different run and stack. The
+figures are now redrawn from the committed artifacts by `scripts/plot_record_figures.py`, so
+they plot the numbers quoted here; `docs/figures/README.md` and `docs/CORRECTIONS.md`,
+2026-10-10.)*
 
 **Method.** An external discriminator on full trajectory logs, run *before* any
 agent exists, to (a) measure how detectable each rung is and (b) prove the signal
@@ -2373,15 +2375,16 @@ requires the section-8 richer-controller redesign.
 
 **Note (2026-10-10): one verdict wording on every surface.** The paragraph above keeps
 "validated null" as a description of the pooled estimand. The registered rule does not:
-section 8 of `docs/PREREGISTRATION_C.md` allows "Strengthened negative" only when every gate
-passes and routes a gate 0 or gate 1 failure to Uninformative, and gates 1 and 5 fail here.
-Under the registered rule Experiment C has a flat contrast under both readouts and an
-uninformative verdict, which bears on H3 in neither direction. The summary surfaces of this
-document (the revision banner, the TL;DR, sections 1 and 6, and 17.12) and
-`docs/PAPER_OUTLINE.md` now say so. The 13.D heading and the paragraph above stay as written.
+section 7 of `docs/PREREGISTRATION_C.md` interprets no contrast unless every gate passes,
+section 8 allows "Strengthened negative" only when every gate passes, and gate 5, the speed
+positive control, fails here (second note below). Under the registered rule Experiment C has a
+flat contrast under both readouts and an uninformative verdict, which bears on H3 in neither
+direction. The summary surfaces of this document (the revision banner, the TL;DR, sections 1
+and 6, and 17.12) and `docs/PAPER_OUTLINE.md` now say so. The 13.D heading and the paragraph
+above stay as written.
 
 **Second note (2026-10-10): the run record checked against the code and the run file.** This
-note corrects statements in 13.D, in 13.F and in the note above without editing them. Each
+note corrects statements in 13.D and 13.F without editing them. Each
 point was checked against `fullruns/expC_milestone3/emergence_pilot_per_individual.json`, the
 promoted summaries under `artifacts/expC/`, and the runner at `06ecc10`.
 
@@ -2395,8 +2398,8 @@ promoted summaries under `artifacts/expC/`, and the runner at `06ecc10`.
   interprets no contrast unless every gate passes, and the speed control reads 0.527 to 0.631
   across the 21 panels, under the 0.75 bar in every one. Section 8's table has no row for a
   gate-5 failure, and its strengthened-negative row needs every gate to pass, so the verdict
-  stays uninformative. The note above and the summary surfaces that said "gates 1 and 5
-  fail" now name gate 5 and the draft margin.
+  stays uninformative. "Gate 1 (exploitability) fails" in the gate-battery paragraph of 13.F
+  reads gate 1 against that draft margin.
 - *Gate 3 cannot fail.* The L0 sub-panel runs both members of every pair on the authentic
   law from the same seeds under a deterministic policy, so the two tails are identical and all
   21 panels read exactly 0.500; the TOST p of about 1e-203 reflects zero variance. It checks
@@ -2431,8 +2434,9 @@ promoted summaries under `artifacts/expC/`, and the runner at `06ecc10`.
 - *Fitness is scored on fixed layouts.* Each lifetime is 2 authentic and 2 surrogate episodes
   of 80 steps on the same two layouts (seed base 320000 plus 10000 per lineage), identical for
   every individual, generation and arm, under a deterministic policy. Section 4 of the
-  preregistration specifies a world drawn per episode by a keyed stream. This is recorded as a
-  deviation (PREREGISTRATION_C, 2026-10-10 entry), the fourth on record for Experiment C.
+  preregistration specifies a world drawn per episode by a keyed stream. This is recorded as
+  deviation 4 of the seven on record for Experiment C (PREREGISTRATION_C, the two 2026-10-10
+  entries).
 - *The separate survival series.* It runs 2 episodes per agent on two fixed layouts for 44
   steps and records no death in any of the 21 panels. The common-garden panel on the same
   populations keeps 4936, 4963 and 4938 of 5280 pairs at generation 0 (6.0% to 6.5% dropped,
@@ -2464,15 +2468,17 @@ first two points as comments (`itasorl/experiment_b2.py` `cg_probe`,
   the 30th reproduction produced, whose fitness is never evaluated. `fit_delta` and gate 2
   describe a different population from the one in the estimand.
 - *The trunk width.* The evolved policies have an 8-unit GRU behind an 8-unit embedding
-  (`embed` and `hidden` 8 in both summaries' configurations), against the 96-unit trunk of every
-  gradient-trained agent in this document. The pooled speed control reads 0.527 to 0.631 here,
-  which fits a narrow trunk, and the 17.11 validation behind the 0.61 estimate used 96-unit
-  agents (17.11, note of the same date).
+  (`embed` and `hidden` 8 in both summaries' configurations), against the registered 96-unit
+  trunk of the survival agents of 13.E and 17.11 (the two comparator-trained runs of 14.5.1
+  also had 8 units, and no claim rests on them). The pooled speed control reads 0.527 to 0.631
+  here, which fits a narrow trunk, and the 17.11 validation behind the 0.61 estimate used
+  96-unit agents (17.11, note of the same date).
 - *What was registered.* The 8-unit trunk and the lifetime of 2 authentic plus 2 surrogate
   episodes appear only in the unratified section 14 (item 6). The second 2026-10-10 entry in
-  `docs/PREREGISTRATION_C.md` lists these and the other departures the preregistration does not
-  label (no energy cost of reproduction, the panel cadence, the unreported generational curve
-  and untrained floor).
+  `docs/PREREGISTRATION_C.md` lists these, which the frozen sections leave open, and three
+  departures from frozen text, numbered deviations 5 to 7 there: no energy cost of
+  reproduction (section 4), the panel cadence (section 5), and the unreported generational
+  curve and untrained floor (section 10).
 
 ## 14. H2 substrate-grounding: the graded-seam ablation (A1)
 
@@ -2554,8 +2560,9 @@ ROPE share 0.947). The graded-seam necessity result is robust across the two in-
 capacities.
 
 *Note (2026-10-10): the hidden-7 untrained floor is not flat.* In the same run
-(`fullruns/l3_h7_ablation/aggregate.json`, local and not promoted, so the audit does not read
-it) the untrained arm rises with the seam: 0.474, 0.482, 0.530, 0.574, 0.578 and 0.586 from
+(`artifacts/expH2/summary_h7.json`, promoted from the local run bundle
+`fullruns/l3_h7_ablation/`; the audit recomputes the numbers of this note from it) the
+untrained arm rises with the seam: 0.474, 0.482, 0.530, 0.574, 0.578 and 0.586 from
 alpha 0 to alpha 1 (Spearman rho 1.0; alpha 1 minus alpha 0, paired by seed, +0.112 [+0.067,
 +0.157], 9 of 10 seeds up), and the predictor arm rises from 0.500 to 0.714. At hidden 7 the
 graded world does make the pools separable to an untrained trunk, which fits the coarser and
@@ -2567,11 +2574,6 @@ margin, paired by seed, falls with the seam at both capacities: at hidden 7 from
 (0.463). The alpha-0 equivalence statements above rest on the bootstrap ROPE check. The TOST
 against 0.5 at the 0.05 margin accepts at hidden 8 (p = 0.005) and does not accept at
 hidden 7 (p = 0.086).
-
-*Later the same day:* the hidden-7 bundle is promoted as `artifacts/expH2/summary_h7.json`, so
-the hidden-7 numbers in the note above now have a committed source. The audit recomputes from it
-the untrained curve, the alpha 1 minus alpha 0 contrast, the predictor's endpoints, the
-survival-minus-untrained margins and the hidden-7 TOST.
 
 **Scope and deferred follow-ons.** This is a necessity-plus-specificity result on
 the L3 rung at hidden=8 and hidden=7; it does not speak to L1/L2 (different
@@ -3280,7 +3282,8 @@ At the condition the headline reads, the correction moved nothing that this desi
 At drift 0 it raised the survival arm's separation of the two authentic world samples by
 about 0.03, which is enough to move the historical L0 pass (0.529, p = 0.039) to an open
 gate. The historical device-control verdict (MET with every gate) therefore does not carry
-over unchanged: the corrected run meets the decodability clauses and leaves L0 open.
+over: the corrected run meets the decodability clauses, leaves L0 open, and so does not meet
+the registered rule.
 
 ### 17.4 C2: survival without the auxiliary, and the auxiliary comparison
 
@@ -3305,10 +3308,13 @@ survival target by +0.012 [-0.019, +0.044] and the drift-0 target by +0.001 [-0.
 **Auxiliary comparison (frozen rule, same device).** `C1` minus `C2` in survival means is
 **+0.120**, paired by seed **[+0.065, +0.174]**; 9 of 10 seeds favor the decoder. The rule
 asks for `C1` to meet its primary rule and for the difference to exceed 0.05. The difference
-clears 0.05 with its interval; `C1` meets its rule on the decodability clauses and leaves
-L0 open on the registered pair (17.2, 17.5). The auxiliary-conditional reading therefore
-holds on the decodability clauses, conditional on `C1`'s open gate, at the 300-update
-budget. Sections 17.6 and 17.10 say what the decoder changes.
+clears 0.05 with its interval; `C1` meets the decodability clauses of its rule and leaves
+L0 open on the registered pair (17.2, 17.5). The auxiliary rule is therefore NOT MET as
+registered, because `C1` does not meet its primary rule; the lead holds on the decodability
+clauses at the 300-update budget. (Wording changed 2026-10-10 from "the
+auxiliary-conditional reading therefore holds on the decodability clauses, conditional on
+`C1`'s open gate", which led with the clause that holds; the reading is unchanged.) Sections
+17.6 and 17.10 say what the decoder changes.
 
 ### 17.5 The L0 gate across world samples (revision step 5)
 
@@ -3792,8 +3798,8 @@ foraging policy produces streams in which there is a difference to keep.
 
 ### 17.11 The evolutionary readout, validated on agents with a known answer (revision step 12)
 
-Experiment C's null (13.D) was measured with a pooled population probe, which can miss
-individuals that each carry the world along their own direction (13.E).
+Experiment C's pooled result (13.D) was measured with a pooled population probe, which can
+miss individuals that each carry the world along their own direction (13.E).
 `scripts/validate_population_readout.py` ran both estimators on the ten survival agents of
 `C1`, which were trained independently and so do not share directions, and on the ten
 untrained agents as a null (`artifacts/population_readout/corrected_l3_h8_wm.json`). The
@@ -3808,8 +3814,10 @@ On independently trained individuals the pooled probe reads about 0.04 below the
 per-individual mean and stays above the untrained population. It is attenuated, not blind.
 Applied to Experiment C, a population of individuals each carrying a signal at this level
 would have read near 0.61 under the pooled probe, against the 0.509 the evolved foragers
-read; the 13.D null is therefore informative about signals of that size, and still says
-nothing about weaker or more scattered individual signals. The evolution was rerun with
+read; the flat pooled contrast of 13.D is therefore informative about signals of that size,
+though the registered verdict is uninformative (13.F), and it still says nothing about weaker
+or more scattered individual signals (wording revised 2026-10-10; this paragraph had called
+the 13.D result a null). The evolution was rerun with
 the per-individual estimator on 2026-10-07 (13.F): individuals average 0.534 to 0.539 in
 the final treatment populations (corrected 2026-10-10 from 0.535 to 0.539;
 `docs/CORRECTIONS.md`), none reaches the bar, and the gate battery routes the run
@@ -3837,14 +3845,16 @@ populations.
 
 ### 17.12 What the corrected results change
 
-1. **The primary result holds at the registered budget, with one gate open.** Under the
-   corrected trainer, with each arm's own policy driving the episodes, the survival agent
-   trained with the next-observation auxiliary reads 0.733 [0.669, 0.797], above the
-   predictor and untrained arms by margins whose intervals clear 0.05. The correction moved
-   it by +0.003. L0 is open on the registered world-sample pair (0.559), the largest of nine draws
-   on record (absolute deviation from chance 0.037 on average across eight independent pairs,
-   gate accepting on two; at drift 0.45 every independent draw clears the bar, 17.5.1). Verdict: MET on the decodability
-   clauses, conditional on L0.
+1. **The decodability clauses are met at the registered budget, and the registered rule is
+   not, because one gate is open.** Under the corrected trainer, with each arm's own policy
+   driving the episodes, the survival agent trained with the next-observation auxiliary
+   reads 0.733 [0.669, 0.797], above the predictor and untrained arms by margins whose
+   intervals clear 0.05. The correction moved it by +0.003. L0 is open on the registered
+   world-sample pair (0.559), the largest of nine draws on record (absolute deviation from
+   chance 0.037 on average across eight independent pairs, gate accepting on two; at drift
+   0.45 every independent draw clears the bar, 17.5.1). Verdict: NOT MET as registered,
+   because L0 is open; the decodability clauses are met (wording changed 2026-10-10 from
+   "MET on the decodability clauses, conditional on L0", which led with MET; 17.2).
 2. **The auxiliary result is bounded by budget.** At 300 updates the arm without the decoder
    reads 0.613 and does not meet the rule; the decoder adds +0.120 [+0.065, +0.174]. With
    more training the arm without the decoder rises to 0.685 at 450 updates, and at that
