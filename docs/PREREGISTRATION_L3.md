@@ -1095,7 +1095,8 @@ Rigor carried from the B-v3 audit (2026-07-10):
   2026-10-09 entries above stand as written, per the append-only rule).** The second correction
   above places the error in "the launch command". It was in the frozen design. The command block
   of `docs/specs/2026-10-09-gn-comparator-trained-design.md` (line 44, committed in `d341091`
-  before the run and unchanged since) reads `--l3-hidden 8 --hidden 8`, and the launch copied
+  before the run, rebased with the same text as `caa2ce0`, the parent of the run commit
+  `60eb355`, and unchanged since) reads `--l3-hidden 8 --hidden 8`, and the launch copied
   it, so the spec's own sentence that the run is "the registered L3 configuration ... and
   nothing else changed" contradicted its command. The conflation began in the 2026-10-06 texture
   comparator spec, which describes the comparator-trained protocol as "corrected trainer,
@@ -1147,25 +1148,28 @@ Rigor carried from the B-v3 audit (2026-07-10):
   21:57:27; the launcher queued the run at 21:57:09, 18 seconds before that paragraph was
   committed, and the run started at 22:00:55 (`fullruns/T_gn_l3_h8_wm/run.log`). L1 stream:
   spec and entry `e4686f2` at 22:35:15, run started 22:39:14
-  (`fullruns/l1_stream_readout/run.log`). The run logs are gitignored local files.
+  (`fullruns/l1_stream_readout/run.log`). The run logs are gitignored local files. `8aa2b9f`
+  and `d341091` live on `origin/feat/final-review-fixes`; the runs' own lineage,
+  `origin/feat/direction-and-comparator-runs`, holds their rebased copies `13f60bc` and
+  `caa2ce0` with the same text and timestamps (`caa2ce0` is the parent of `60eb355`), together
+  with `60eb355` and `e4686f2`, and reached `main` in the squash merge `c05d791` (#130).
 
-- **2026-10-10 - IN-PLACE EDITS TO EXISTING LINES OF THIS DOCUMENT (a record; nothing is
-  changed by this entry).** The deviation log is meant to grow only by appended entries. Six
-  commits changed existing lines of this file instead (`git log --numstat`). `ba254ec`
-  (2026-07-10) rewrote section 4's description of how `G` becomes a world into the two-stage
-  construction, 81 minutes after the registration commit `0217263` and before the first entry
-  in this section was written. `c594c3d` (2026-07-10) replaced this section's "(none yet)"
-  placeholder with the first entry. `15b1fc7` (2026-07-14) replaced the closing "STILL OWED"
-  sentence of the 2026-07-14 hidden = 7 entry when the owed probe was recorded the same day.
-  Three repository-wide passes
-  followed: `75c49a2` (2026-07-20) changed the hardware string "RTX 4050" to "local GPU" and
-  moved spec paths from `docs/superpowers/specs/` to `docs/specs/` in twelve lines, `5e9e84b`
-  (2026-07-21) replaced a long dash with a hyphen in one line, and `8eb9174` (2026-08-23) did the
-  same in two lines. The passes also touched one to twenty lines each of
-  `docs/PREREGISTRATION.md`, `docs/PREREGISTRATION_Bv3.md` and `docs/PREREGISTRATION_C.md`,
-  including a reworded background paragraph and an added reader note. Apart from the
-  pre-run section 4 resolution, none of these edits changed a number, a rule, a gate or a
-  verdict.
+- **2026-10-10 - IN-PLACE EDITS TO EXISTING LINES OF THIS DOCUMENT (a record; nothing is changed
+  by this entry).** The deviation log is meant to grow only by appended entries. Six commits
+  changed existing lines of this file instead (`git log --numstat`). `ba254ec` (2026-07-10)
+  rewrote section 4's description of how `G` becomes a world into the two-stage construction, 81
+  minutes after the registration commit `0217263` and before the first entry in this section was
+  written. `c594c3d` (2026-07-10) replaced this section's "(none yet)" placeholder with the
+  first entry. `15b1fc7` (2026-07-14) replaced the closing "STILL OWED" sentence of the
+  2026-07-14 hidden = 7 entry when the owed probe was recorded the same day. Three
+  repository-wide passes followed: `75c49a2` (2026-07-20) changed the hardware string "RTX 4050"
+  to "local GPU" and moved spec paths from `docs/superpowers/specs/` to `docs/specs/` in twelve
+  lines, `5e9e84b` (2026-07-20 local, 2026-07-21 UTC) replaced a long dash with a hyphen in one
+  line, and `8eb9174` (2026-08-23) did the same in two lines. The passes also touched one to
+  twenty lines each of `docs/PREREGISTRATION.md`, `docs/PREREGISTRATION_Bv3.md` and
+  `docs/PREREGISTRATION_C.md`, including a reworded background paragraph and an added reader
+  note. Apart from the pre-run section 4 resolution, none of these edits changed a number, a
+  rule, a gate or a verdict.
 
 - **2026-10-10 - CLARIFICATION: WHERE THE L0 GATE'S MARGIN IS REGISTERED (nothing is
   re-adjudicated).** Section 7 gate 2 above reads "equivalent to 0.5 by TOST" with no margin. It
@@ -1233,7 +1237,25 @@ Rigor carried from the B-v3 audit (2026-07-10):
   descriptive. Its rule was not met in any case, so no verdict moves. The artifacts record the
   per-pool value with its location and keep the arm-mean figure beside it
   (`gates.speed_min`, `speed_min_at`, `speed_min_of_arm_means`); FINDINGS 10.9 carries the
-  table, and `docs/CORRECTIONS.md` the correction.
+  table, and `docs/CORRECTIONS.md` the correction. Runs promoted after this change, the
+  goal-and-stakes runs included, record the per-pool minimum and are read under the per-pool
+  rule.
+
+- **2026-10-10 - TWO RECORDED VERDICT WORDINGS RESTATED (a record; the entries stay as written,
+  no reading moves and no margin changes).** (1) The 2026-10-06 results entry gives the `C1`
+  verdict as "MET on the decodability clauses, conditional on the open L0 gate" and says the
+  auxiliary-conditional reading "holds on the decodability clauses, conditional on `C1`'s L0
+  gate". The frozen rule counts every gate, so with L0 open the registered verdict is NOT MET;
+  the decodability clauses are met. The auxiliary rule asks for `C1` to meet its primary rule,
+  so it is NOT MET as registered, while its lead, +0.120 [+0.065, +0.174], holds on the
+  decodability clauses. `artifacts/corrected_verdicts.json` now labels the run "NOT MET as
+  registered (open gate(s): l0); decodability clauses MET", and FINDINGS 17.2, 17.4 and 17.12
+  lead with the registered outcome. (2) The 2026-07-25 L1 entry says the oracle-detectable L1
+  artifact "leaves no incidental world-identity encoding". Primary H_B2 is not met, as
+  recorded. The survival mean, 0.533, sits above chance: the t-based 90% interval of its ten
+  seeds is [0.506, 0.561], and the TOST against 0.5 at the 0.05 margin does not accept
+  equivalence (p = 0.147). The reading is "below the bar", not "no encoding"; FINDINGS 14.7
+  and section 6 carry the same wording, and `docs/CORRECTIONS.md` both corrections.
 
 ## 13. How to run (milestones, in order)
 

@@ -700,6 +700,31 @@ COMMITS_OFF_MAIN = [
      "note": "Recorded by the Experiment C per-individual rerun checkpoints (FINDINGS 13.F). Its "
              "content reached main through the squash merge 329dfb7 (#119); the tree at 06ecc10 "
              "is identical to main at 329dfb7."},
+    {"branch": "feat/d045-world-sample-sensitivity", "head": "678c83e",
+     "commits": ["865b842"],
+     "note": "Recorded as the commit at run of the drift-0.45 world-sample sensitivity readout "
+             "(FINDINGS 17.5.1). Its content reached main through the squash merge 177605f "
+             "(#127); the tree at 678c83e is identical to main at 177605f."},
+    {"branch": "feat/final-review-fixes", "head": "d341091",
+     "commits": ["8aa2b9f", "d341091"],
+     "note": "8aa2b9f is recorded as the commit at run of the reverse-direction readout "
+             "(FINDINGS 17.5.2); d341091 is cited as the commit that froze the white-jitter spec "
+             "(PREREGISTRATION_L3 and the spec's notes). Both were rebased onto "
+             "feat/direction-and-comparator-runs as 13f60bc and caa2ce0 with the same spec and "
+             "entry text, and reached main through the squash merge c05d791 (#130)."},
+    {"branch": "feat/direction-and-comparator-runs", "head": "4f4584b",
+     "commits": ["13f60bc", "caa2ce0", "60eb355", "e4686f2", "5666f59"],
+     "note": "60eb355 is recorded as the commit at run of the white-jitter comparator-trained run "
+             "(FINDINGS 14.5.1) and 5666f59 as that of the L1 stream readout (FINDINGS 14.7.1); "
+             "e4686f2 froze the L1 stream spec; 13f60bc and caa2ce0 are the rebased copies of "
+             "8aa2b9f and d341091, and caa2ce0 is the parent of 60eb355. Their content reached "
+             "main through the squash merge c05d791 (#130); the tree at 4f4584b is identical to "
+             "main at c05d791."},
+    {"branch": "claude/wizardly-euler-e47s59", "head": "7276243",
+     "commits": ["a87bf07", "47a6423", "9a79c12", "eda1ad0", "7276243"],
+     "note": "Never merged. No artifact records them; docs/REVISION_2026-10.md and "
+             "assets/film/README.md cite them, and the 2026-10-10 review pass carried part of "
+             "their content forward (docs/REVISION_2026-10.md says which)."},
 ]
 
 
@@ -867,12 +892,16 @@ def render_md(m: dict) -> str:
         L.append(f"| `{r['id']}` | {r['status']} | {r['experiment']} | {claims} | {r['survival_trainer']} | "
                  f"{ro} | {r['commit_at_run'] or 'not recorded'}{mark} | {r['folds']} | "
                  f"{r['device'] or 'not recorded'} |")
-    L += ["", "Commits recorded by artifacts that are not ancestors of main (squash merges); each "
-          "lives only on the branch named, so keep that branch or tag its head:", ""]
+    L += ["", "Commits that artifacts record, or that the record cites, and that are not "
+          "ancestors of main (most reached main through squash merges); each lives only on the "
+          "branch named, so keep that branch or tag its head:", ""]
     for g in m["commits_off_main"]:
         L.append(f"- `{g['branch']}` (head `{g['head']}`): "
                  f"{', '.join('`' + c + '`' for c in g['commits'])}. {g['note']}")
-    L += ["", "Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.",
+    L += ["", "Three artifacts also record a commit of the 2026-10-10 review branch. A squash merge "
+          "leaves it off main; it stays reachable through that branch's pull request, and "
+          "`docs/REVISION_2026-10.md` names the artifacts.",
+          "", "Claims are the row numbers of the claims inventory in `docs/PAPER_OUTLINE.md`.",
           "", "## Evaluation worlds and seeds", "",
           m["eval_world_note"], "",
           "| Readout | Seed base |", "|---|---|"]

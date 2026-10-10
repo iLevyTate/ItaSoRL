@@ -113,7 +113,10 @@ family needs a new frozen spec whose command states `--hidden 96`. Dated entry:
 
 The header date, 2026-10-09, is the UTC date. This spec and its section-12 entry were committed
 in `d341091` at 2026-10-08 21:41:15 local time (UTC-4); the device paragraph followed in
-`60eb355` at 21:57:27. The launcher queued the run at 21:57:09, 18 seconds before that paragraph
-was committed, and the run started at 22:00:55 (`fullruns/T_gn_l3_h8_wm/run.log`, local time,
-gitignored). The header is left as written. Dated entry: `docs/PREREGISTRATION_L3.md` section 12,
-2026-10-10.
+`60eb355` at 21:57:27. `d341091` lives on `origin/feat/final-review-fixes`. The run's own
+lineage holds its rebased copy, `caa2ce0`, with the same spec and entry text and the same
+timestamp: `caa2ce0` is the parent of `60eb355` on `origin/feat/direction-and-comparator-runs`,
+which reached `main` in the squash merge `c05d791` (#130). The launcher queued the run at
+21:57:09, 18 seconds before that paragraph was committed, and the run started at 22:00:55
+(`fullruns/T_gn_l3_h8_wm/run.log`, local time, gitignored). The header is left as written. Dated
+entry: `docs/PREREGISTRATION_L3.md` section 12, 2026-10-10.

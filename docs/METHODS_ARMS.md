@@ -70,3 +70,29 @@ predictor reads 0.721 and `predictor_logged` 0.738 against 0.733 for survival; u
 scripted protocol every arm reads 0.55 to 0.58. The survival-versus-predictor gap of the
 standard readout does not persist against `predictor_logged` under either matched protocol,
 so it is described as a difference between training regimes.
+
+## Probes and readout models (recorded 2026-10-10)
+
+**World-identity probe.** Every linear probe in Experiments A and B and in the B-v2 and L3
+readouts is `make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))`
+(`itasorl/experiment_a.py`, `itasorl/experiment_b2.py`, `itasorl/behavior_audit.py`). Inside
+cross-validation the scaler and the classifier are fit on the training folds only. Apart from
+the iteration cap the settings are scikit-learn's defaults: L2 penalty, C = 1, the lbfgs
+solver. They are the same in the 1.5 series of the local runs and, per its documentation, in
+1.9.1, the version of the revision container.
+
+**Control regressors.** Each behavior or sensory control regresses its basis out of the state
+in-fold and probes the residual with the probe above.
+
+| control | regressor | where |
+|---|---|---|
+| historical behavior controls (FINDINGS 10.4, 10.4.1) | ordinary least squares on standardized features | `itasorl/behavior_audit.py` |
+| sensory echo and the linear bases of FINDINGS 17.8 | ridge, penalty 1e-3 | `itasorl/behavior_audit.py`, `itasorl/control_diagnostics.py` |
+| nonlinear joint control (FINDINGS 10.4.2, 17.8) | one hidden layer of 64 ReLU units, L2 penalty 1e-3, Adam, 300 iterations | `itasorl/behavior_audit.py`, `itasorl/control_diagnostics.py` |
+
+**Stream decoder.** The supervised GRU of FINDINGS 17.8 and 14.7.1
+(`itasorl.control_diagnostics.sequence_gru_auroc`) reads the (observation, previous action)
+sequence through two 64-unit ReLU layers into a 96-unit GRU and a linear logit on the final
+state. Each fold trains it for 60 epochs with Adam at 1e-3 and batch 32 on the training
+episodes alone, with inputs standardized on training-fold statistics, no validation split
+and no weight decay.

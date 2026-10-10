@@ -80,5 +80,7 @@ from it comes from that artifact, and `scripts/audit_stats_recheck.py` binds the
 
 The header date, 2026-10-09, is the UTC date. This spec and its section-12 entry were committed
 in `e4686f2` at 2026-10-08 22:35:15 local time (UTC-4), and the run started at 22:39:14
-(`fullruns/l1_stream_readout/run.log`, local time, gitignored). The header is left as written.
+(`fullruns/l1_stream_readout/run.log`, local time, gitignored). `e4686f2` lives on
+`origin/feat/direction-and-comparator-runs`, which reached `main` in the squash merge `c05d791`
+(#130). The header is left as written.
 Dated entry: `docs/PREREGISTRATION_L3.md` section 12, 2026-10-10.

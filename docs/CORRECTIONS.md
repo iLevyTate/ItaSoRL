@@ -284,14 +284,17 @@ instance (`L3-H8-GS2-GPU`, oracle 0.939, in band, FINDINGS 10.9) also kept its 6
 `fullruns/l3_h8_gseed2_gpu/agents/` (10 seeds at drifts 0 and 0.45, three arms), as
 `fullruns/l3_h8_heldout/agents/` does.
 
-**Change.** FINDINGS 17.5.1 now says the held-out run is the only retained instance of the
-headline fingerprint (hidden 8, G seed 0), the fingerprint the corrected `C1` agents were raised
-under, and names the seed-2 instance; both specs carry a dated note at their end and are
-otherwise left as frozen.
+**Change.** FINDINGS 17.5.1 now says the held-out run is the only retained agent set of the
+headline fingerprint (hidden 8, G seed 0, the one the corrected `C1` agents were raised under)
+trained under `C1`'s protocol, with the next-observation auxiliary on at 300 updates. It names
+the seed-2 instance and the two no-auxiliary runs of the headline fingerprint that also kept
+agents: `l3_h8_nowm` (six drift-0 agents) and `l3_h8_nowm_skill_u450` (60 agents, the survival
+arm at 450 updates). Both specs carry a dated note at their end and are otherwise left as
+frozen.
 
 **What this does not change.** Both readouts scored the agents their specs named, and neither
-result moves. The seed-2 agents have not been scored by either design. Like every saved agent
-set, both directories are gitignored local files and are not in the repository.
+result moves. None of the other agent sets has been scored by either design. Like every saved
+agent set, these directories are gitignored local files and are not in the repository.
 
 ## 2026-10-10: three Experiment B cells in FINDINGS 3.1 were off by 0.001
 
@@ -338,39 +341,53 @@ range.
 **What this does not change.** No individual reaches 0.65 in any population, and the run's
 routing does not move.
 
-## 2026-10-10: which gate makes Experiment C uninformative, and what the run record claimed
+## 2026-10-10: Experiment C's registered verdict is uninformative, not a validated null
 
-**What was wrong.** The summary surfaces of FINDINGS, `docs/PAPER_OUTLINE.md` and the 13.F note
-said the verdict is uninformative because "gates 1 and 5 fail" and that the preregistration
-"routes a gate-1 failure to uninformative". Section 7 of `docs/PREREGISTRATION_C.md`, the frozen
-text, gives gate 1 no numeric margin. The 0.005 margin is in section 14, which was never
-ratified, and against the frozen wording the treatment gap (0.00228, 90% CI [0.00109, 0.00377])
-is a weak positive. The routing rests on gate 5, the speed positive control (0.527 to 0.631
-against 0.75), because section 7 interprets no contrast unless every gate passes. A review of
-the run file and the runner found more. Gate 3 is satisfied by construction (identical
-branches, every panel 0.500). The pooled-AUROC shift from 13.D comes from the fold partition
-alone. The rerun's summary was promoted although 13.F and the amendment say it was not.
-"Bit-reproducible" means reproducible to 8 decimals. The reproduction threshold saturates
+**What was wrong.** Before this pass the summary surfaces read the fixed-code re-run of 13.D as
+a null. The README said "Negative under the pooled population readout" and "validated null";
+`docs/PAPER_OUTLINE.md` row 27 said "the fixed-code re-run is a validated null under the pooled
+population readout"; FINDINGS said "validated null" in section 1 and in the H3 bullet of section
+6, "the evolutionary null is restricted to the pooled population readout" in the revision
+banner, and "The evolutionary null stays restricted" in 17.12. The per-individual rerun of
+2026-10-07 ran the full gate battery, and its records (the 13.F gate paragraph, the 2026-10-07
+amendment in `docs/PREREGISTRATION_C.md` and step 12 of `docs/REVISION_2026-10.md`) said that
+gates 1 and 5 fail. Section 7 of `docs/PREREGISTRATION_C.md`, the frozen text, interprets no
+contrast unless every gate passes, so the registered verdict is uninformative. It gives gate 1
+no numeric margin. The 0.005 margin is in section 14, which was never ratified, and against the
+frozen wording the treatment gap (0.00228, 90% CI [0.00109, 0.00377]) is a weak positive. The
+routing therefore rests on gate 5, the speed positive control (0.527 to 0.631 against 0.75). A
+review of the run file and the runner found more. Gate 3 is satisfied by construction
+(identical branches, every panel 0.500). The pooled-AUROC shift from 13.D comes from the fold
+partition alone. The rerun's summary was promoted although 13.F and the amendment say it was
+not. "Bit-reproducible" means reproducible to 8 decimals. The reproduction threshold saturates
 within three to seven generations. Every lifetime is scored on the same two layouts, against
-the per-episode keyed draw of section 4, a fourth deviation from the preregistration. The
-separate survival series uses two fixed layouts for 44 steps and records no death while the
-panel drops about 6% of its pairs.
+the per-episode keyed draw of section 4. The separate survival series uses two fixed layouts
+for 44 steps and records no death while the panel drops about 6% of its pairs.
 
-**Change.** The FINDINGS summary surfaces (TL;DR, section 1, section 6, 17.12) and
-`docs/PAPER_OUTLINE.md` (section 4.7, row 27) name gate 5 and the draft margin. A second dated
-note under FINDINGS 13.F records each point with its numbers and attributes the estimand and
-the gates to their two runs (`a0cb850` and `06ecc10`), and adds the descriptive per-individual
-contrast, +0.006 [-0.012, +0.024]. A dated section-12 amendment in `docs/PREREGISTRATION_C.md`
-records the same points, the fourth deviation and the in-place edits to that file.
+**Change.** The FINDINGS summary surfaces (revision banner, TL;DR, sections 1 and 6, the 13
+banner, the scope paragraph of 14, 17.11 and 17.12), `docs/PAPER_OUTLINE.md` (section 4.7, row
+27) and `docs/REVISION_2026-10.md` (step 12) state one verdict: the contrast is flat under both
+readouts, and the registered verdict is uninformative, decided by gate 5, with gate 1 a weak
+positive under the frozen wording that falls short only of the draft margin. The README, the
+site and `docs/LEARNING.md` say the same. The audit holds the FINDINGS banner, TL;DR, section
+1, section 6 and 17.12, `docs/PAPER_OUTLINE.md`, the README, the site and `docs/LEARNING.md` to
+it. Two dated notes under FINDINGS 13.F record each point with its numbers, attribute the
+estimand and the gates to their two runs (`a0cb850` and `06ecc10`), and add the descriptive
+per-individual contrast, +0.006 [-0.012, +0.024]. Two dated section-12 entries in
+`docs/PREREGISTRATION_C.md` record the same points and the in-place edits to that file, and
+count seven deviations from its frozen text: the four of the first entry, the fixed lifetime
+layouts among them, and in the second the missing energy cost of reproduction, the panel
+cadence and the unreported section-10 analysis.
 
-**What this does not change.** The verdict stays uninformative, now on gate 5 under section 7.
-No number of the estimand moves.
+**What this does not change.** No number of the estimand moves. 13.D keeps "validated null" as
+a description of the pooled estimand, and the verdict bears on H3 in neither direction.
 
 ## 2026-10-10: H2 readings narrowed (graded seam at hidden 7, observation masks, L1 calibration)
 
 **What was wrong.** FINDINGS 14 argued specificity from a flat untrained floor and said the
 graded-seam result holds at both capacities. At hidden 7 the untrained floor rises with the
-seam, from 0.474 to 0.586 (local run bundle), and the predictor from 0.500 to 0.714. The
+seam, from 0.474 to 0.586 (`artifacts/expH2/summary_h7.json`), and the predictor from 0.500
+to 0.714. The
 alpha-0 equivalence rested on the bootstrap ROPE check; the TOST accepts at hidden 8 (p = 0.005)
 and not at hidden 7 (p = 0.086). In FINDINGS 14.6 and the two 2026-07-24 entries of
 `docs/PREREGISTRATION_L3.md`, the all-mask collapse to 0.500 was read as a sanity check,
@@ -382,9 +399,10 @@ clean" for the L1 calibrations cannot fail, because both members of each pair co
 fixed-policy trajectory.
 
 **Change.** Dated notes under FINDINGS 14, 14.6 and 14.7, a dated entry in PREREGISTRATION_L3,
-and section 6 of FINDINGS adds the TOST. The audit recomputes the hidden-8 TOST, the hidden-8
-margins and the hidden-7 mask readings from committed artifacts; the hidden-7 graded-seam
-numbers live only in the gitignored run bundle.
+and section 6 of FINDINGS adds the TOST. The hidden-7 graded-seam run is promoted from its
+local bundle as `artifacts/expH2/summary_h7.json`. The audit recomputes the hidden-8 TOST, the
+hidden-8 margins, the hidden-7 mask readings and the hidden-7 graded-seam numbers of the note
+from committed artifacts.
 
 **What this does not change.** The survival-minus-untrained margin falls with the seam at both
 capacities, and the hidden-8 collapse and its TOST stand. No run is repeated.
@@ -486,13 +504,136 @@ inference.
 
 **What this does not change.** No number. The note describes a partition the re-score records.
 
-## 2026-10-10: the hidden-7 graded seam has a committed source
+## 2026-10-10: the C1 verdict label led with MET
 
-**What was wrong.** The H2 entry above says the hidden-7 graded-seam numbers live only in the
-gitignored run bundle. That bundle has since been promoted as
-`artifacts/expH2/summary_h7.json`.
+**What was wrong.** The corrected `C1` run was labeled "MET on the decodability clauses,
+conditional on the open L0 gate" in `artifacts/corrected_verdicts.json`, FINDINGS (TL;DR, 17.2,
+17.12), `docs/PAPER_OUTLINE.md` (section 4.3, row 41), `docs/REVISION_2026-10.md` and the
+2026-10-06 results entry of `docs/PREREGISTRATION_L3.md`. FINDINGS 17.4 said the
+auxiliary-conditional reading "holds on the decodability clauses, conditional on `C1`'s open
+gate". The frozen rule counts every gate, so a run whose L0 gate is open does not meet it, and
+the auxiliary rule asks for `C1` to meet its primary rule. Leading with MET stated both
+verdicts more favorably than the rules do.
 
-**Change.** FINDINGS 14 notes the promotion, and the audit recomputes the hidden-7 numbers of
-the 14 note from the artifact.
+**Change.** The artifact's label reads "NOT MET as registered (open gate(s): l0); decodability
+clauses MET", and the generated verdict table reports the auxiliary rule as not met as
+registered before the decodability lead. FINDINGS (TL;DR, 17.2, 17.3, 17.4, 17.12),
+`docs/PAPER_OUTLINE.md` and `docs/REVISION_2026-10.md` lead with the registered outcome, with a
+dated marker where a label is replaced, and a dated entry in `docs/PREREGISTRATION_L3.md`
+restates the 2026-10-06 wording. The audit's 17.4 check reads the new wording.
 
-**What this does not change.** Every number the note quotes matches the artifact.
+**What this does not change.** No reading, interval or margin. The decodability clauses are met
+and the L0 gate is open, as before.
+
+## 2026-10-10: the L1 organism result was worded as no encoding
+
+**What was wrong.** FINDINGS 14.7 said the oracle-detectable L1 artifact "leaves no decodable
+world-identity trace in the survival state", section 6 called H2 at L1 "a strengthened
+negative", and the 2026-07-25 entry of `docs/PREREGISTRATION_L3.md` says the artifact "leaves
+no incidental world-identity encoding". The survival mean, 0.533, sits above chance: its seed
+bootstrap interval is [0.509, 0.556], its t-based 90% interval [0.506, 0.561], and the TOST
+against 0.5 at the 0.05 margin does not accept equivalence (p = 0.147). The strengthened
+negative of the L3 decision table needs survival at chance.
+
+**Change.** FINDINGS 14.7 says the mean sits above chance and below the bar, and section 6 calls
+the L1 result negative at the registered bar, both with dated markers. A dated entry in
+`docs/PREREGISTRATION_L3.md` restates the 2026-07-25 wording. The audit checks the t interval
+and the TOST p that 14.7 quotes.
+
+**What this does not change.** Primary H_B2 is not met, as recorded, and 0 of 10 seeds reach
+0.65.
+
+## 2026-10-10: what the matched-input readouts of 17.6 show
+
+**What was wrong.** FINDINGS 17.6 said that on replayed survival streams a prediction-trained
+trunk reads the world "as well as" the survival trunk, credited the roughly 0.1 by which the
+trained agents read above the untrained one to training of the trunk, and said the survival
+policy "visits states where they differ" more than the scripted policy does. Section 6 said the
+flipping condition is a dynamics difference "reached by the foraging trajectories". The replay
+readouts put the predictor within about 0.01 of the survival trunk with intervals that include
+zero, which does not show equality. In `replay` each trunk reads the stream through its own
+frozen normalizer, so the 0.1 belongs to trunk and normalizer together. The size of the law
+deviation along each policy's trajectories was never recorded.
+
+**Change.** 17.6 says "within about 0.01" with the paired contrasts, adds the
+prediction-trained arms against the untrained arm, assigns the 0.1 to the trained agent as a
+whole, and says that why trunks keep more from the survival streams is not measured, with dated
+markers where a sentence is replaced. The TL;DR, the ladder table, section 6 and 17.12 use the
+same wording, as do `docs/PAPER_OUTLINE.md` section 4.5 and row 44. The audit recomputes the
+contrasts from `artifacts/policy_controls/corrected_l3_h8_wm.json`.
+
+**What this does not change.** No number. The primary verdict of 17.2 is defined on the `own`
+protocol, and "survival-specific" stays withdrawn.
+
+## 2026-10-10: which historical runs the explicit partition moves off L0 equivalence
+
+**What was wrong.** FINDINGS methods note 8 said the L0 equivalence test flips on "every
+GPU-scored L3 and L1 organism run". The L1 organism run was trained on CPU. The runs whose L0
+test does not accept under the explicit partition are the ones scored on the owner's
+workstation stack, the GPU-trained L3 runs and the CPU-trained L1 organism run among them; the
+runs scored on the cloud CPU stack pass.
+
+**Change.** Note 8 names the runs by the stack they were scored on, says the stack is named as
+provenance and not as the cause (the explicit partition is the same on every stack), and dates
+the wording change.
+
+**What this does not change.** No gate value and no verdict.
+
+## 2026-10-10: specs said to be frozen before runs that git cannot place before them
+
+**What was wrong.** FINDINGS 10.4.2 said the sensory-echo spec was "frozen before the run", and
+the spec says the same of itself. Its spec, runner, preregistration entry and artifact first
+appear in one commit, about an hour after the run ended. Three more runs show the same gap
+between the record and git: the hidden = 7 selection (already recorded on 2026-07-16), the
+nonlinear joint control, whose spec was committed about seven minutes after the run started,
+and the A1 graded-seam ablation, whose spec was committed 87 seconds after the run wrote its
+aggregate.
+
+**Change.** FINDINGS 10.4.2 says the spec was first committed together with its result, and a
+dated entry in `docs/PREREGISTRATION_L3.md` gives the commit and run times of all four.
+
+**What this does not change.** No number, rule or verdict. The written-before-launch statements
+may be true; git cannot show it. The review checked these four cases and did not audit the
+timing of every other spec.
+
+## 2026-10-10: the figures of sections 2 and 3 plotted a different run
+
+**What was wrong.** The committed `expA_ceiling.png`, `expA_L2_ceiling.png`,
+`expB_incidental.png` and `expB_channels.png` were images committed on 2026-06-28 from the
+owner's local stack, which the local quick-mode run `fullruns/07042026` reproduces byte for
+byte. The FINDINGS text and tables quote the promoted run `fullruns/06302026` (Tesla T4).
+Plotted and quoted values differed by up to 0.055 (L1 at Δ = 0.015: 0.457 plotted, 0.402
+quoted). The images also carried the project name in a raster title, and `expB_incidental.png`
+left out the speed positive control.
+
+**Change.** `scripts/plot_record_figures.py` redraws the five figures of sections 2 and 3 and
+the two B-v2 figures in `artifacts/expB2/` from the committed artifacts.
+`docs/figures/README.md` and a dated note at the head of FINDINGS section 2 record the
+provenance.
+
+**What this does not change.** No number in the text or tables, and the qualitative reading of
+every figure.
+
+## 2026-10-10: the status page put the hidden 8 new-seed instance under the bar
+
+**What was wrong.** `docs/STATUS_2026-09-27.md` says the hidden 8 instance at G seed 2 (0.676)
+lands "under the 0.65 bar with the CI excluded". Its mean is above 0.65; the lower bound of its
+t-based 90% interval, 0.636, is below (FINDINGS 10.9).
+
+**Change.** A dated correction at the head of the status page. The recorded sentence is kept.
+
+**What this does not change.** The frozen rule's reading: replication at hidden 8 is not
+claimed, because the interval's lower bound sits under 0.65 and the margin over the predictor
+misses 0.05.
+
+## 2026-10-10: Experiment B's bar was called registered
+
+**What was wrong.** `docs/PAPER_OUTLINE.md` row 4 said the prediction-only L2 result "did not
+meet the registered encoding criterion". Experiment B ran before the first preregistration
+(`docs/PREREGISTRATION.md`, 2026-06-28, which cites its result), so no criterion was registered
+for it.
+
+**Change.** Row 4 and section 4.2 of `docs/PAPER_OUTLINE.md` say the 0.65 bar is applied to
+Experiment B after the fact.
+
+**What this does not change.** The reading: 0.510 at drift 0.45, at chance.

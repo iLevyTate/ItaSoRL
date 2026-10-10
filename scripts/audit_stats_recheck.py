@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are (64 of 1440 on 2026-10-10). It also checks that the generated pages
+many there are (64 of 1453 on 2026-10-10). It also checks that the generated pages
 (index.html, the results manifest, the gate table, the contrast intervals, the manuscript
 tables) match a fresh render, and that retired wording has not returned to the pages it
 watches. Fails loudly (non-zero exit) on any mismatch beyond rounding.
@@ -16,7 +16,7 @@ What it reads from the documents. Numbers in the document text are compared with
 values, recomputed where per-seed values exist, for FINDINGS 3.1, 10.1.1, 13.F, 14.5.1,
 14.7, 14.7.1 and section 17, the Experiment C lines of the FINDINGS summary, the dated notes
 of 2026-10-10 in FINDINGS 3.4, 9, 10.5, 10.9, 12, 13.E, 13.F, 14, 14.6, 16 and 17.11 (where
-they quote a committed artifact), and PAPER_OUTLINE rows 27, 40, 44 and 46. In README.md, CITATION.cff,
+they quote a committed artifact), and PAPER_OUTLINE rows 27, 40, 44, 46 and 54. In README.md, CITATION.cff,
 the site, the rest of PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only,
 a few of which contain a number; a number edited outside those phrases is not caught. Numbers
 the notes take from gitignored run bundles under fullruns/ are not checked.
@@ -660,7 +660,7 @@ def main() -> int:
                h2rr.accept == bool(h2["l0_anchor_alpha0"]["accept_equiv"]))
     # untrained floor control: flat near chance at EVERY alpha at hidden 8, so there the
     # collapse is specific to the learned survival signal. At hidden 7 the floor rises with
-    # the seam (FINDINGS 14, note of 2026-10-10; that bundle is not promoted).
+    # the seam (FINDINGS 14, note of 2026-10-10; artifacts/expH2/summary_h7.json, checked below).
     untr_means = [float(np.mean(h2_untr[f"a{al:.2f}"]["per_seed"])) for al in h2_alphas]
     check("H2 untrained floor at alpha=1 (0.488)", untr_means[-1], 0.488)
     check_true("H2 untrained floor flat/below bar at every alpha (max mean < 0.55)",
@@ -1925,9 +1925,11 @@ def main() -> int:
                    f"**{_ac['c1_minus_c2']:+.3f}**, paired by seed **{_sv2(_ac['paired']['t90'])}**" in _s17n2)
         check_true("FINDINGS 17.4 counts the seeds favoring the decoder",
                    f"{sum(x > 0 for x in _ac['paired']['diff_per_seed'])} of 10 seeds favor the decoder" in _s17n2)
-        check_true("17.4 wording matches the frozen auxiliary rule (holds on decodability, not in full)",
+        check_true("17.4 wording matches the frozen auxiliary rule (not met as registered, "
+                   "holds on decodability)",
                    (not _ac["holds"]) and _ac["holds_on_decodability_clauses"]
-                   and "holds on the decodability clauses, conditional on `C1`'s open gate" in _s17n2)
+                   and "The auxiliary rule is therefore NOT MET as registered" in _s17n2
+                   and "the lead holds on the decodability clauses" in _s17n2)
     _bcp = os.path.join(ARTROOT, "budget_curve.json")
     if os.path.exists(_bcp):
         _bc = _load_art("budget_curve.json")
@@ -2231,6 +2233,25 @@ def main() -> int:
                        f"| {_lab} | {_txt} | {_eq.p_value:.3f} |" in _s17)
             check_true(f"PAPER_OUTLINE row 46 quotes the post hoc contrast {_m}",
                        f"{_txt} (p {_eq.p_value:.3f})" in _o46)
+        # 2026-10-10: the stream decoder's recipe and its final training loss (FINDINGS 17.8,
+        # docs/METHODS_ARMS.md), read from both control-diagnostics artifacts.
+        for _fn in ("corrected_l3_h8_wm.json", "l1_stream_readout.json"):
+            if not os.path.exists(os.path.join(ARTROOT, "control_diagnostics", _fn)):
+                continue
+            _cells = _load_art("control_diagnostics", _fn)["cells"]
+            _ftl = [x for c in _cells for x in c["seq_gru"]["final_train_loss"]]
+            check_true(f"17.8: the stream decoder of {_fn} is the recorded recipe (64, GRU 96, 60 epochs)",
+                       all((c["seq_gru"]["embed"], c["seq_gru"]["hidden"], c["seq_gru"]["epochs"])
+                           == (64, 96, 60) for c in _cells))
+            check_int(f"17.8: {_fn} records 150 decoder folds", len(_ftl), 150)
+            check_true(f"17.8: the decoder's final training loss is below 0.001 in every fold of {_fn}",
+                       max(_ftl) < 1e-3)
+            check_true(f"17.8: {_fn} scores 220 episodes per cell (about 176 per training fold)",
+                       {c["n"] for c in _cells} == {220})
+        _s17f = " ".join(_s17.split())
+        check_true("FINDINGS 17.8 quotes the decoder's fit",
+                   "below 0.001 in every fold" in _s17f
+                   and "roughly 176 training episodes per fold" in _s17f)
     for _fam in ("gn", "qd"):
         _tp = os.path.join(ARTROOT, "texture", f"corrected_l3_h8_wm_{_fam}.json")
         if not os.path.exists(_tp):
@@ -2340,6 +2361,37 @@ def main() -> int:
                f"survival minus predictor {_fm(_rp['predictor'])}, minus predictor_logged "
                f"{_fm(_rp['predictor_logged'])}, minus untrained {_fm(_rp['untrained'])}; "
                f"predictor_logged minus untrained {_fm(_rpl)}" in _fl(_read("docs/PAPER_OUTLINE.md")))
+    # PAPER_OUTLINE row 54 (2026-10-10): the four calibrated fingerprint instances read
+    # together, each pooled survival target and its margins recomputed from its artifact.
+    _inst = []
+    for _fn in ("behavior_audit_l3_h8_traces.json", "behavior_audit_l3_h7_traces.json"):
+        _ag = _load_art("expB2", _fn)["aggregate"]
+        _inst.append({a: _ag[f"d=0.45 {a}"]["target"]["mean"]
+                      for a in ("survival", "predictor", "untrained")})
+    for _fn in ("second_seed_l3_h8_gseed2_gpu.json", "second_instance_l3_h10_gseed1.json"):
+        _ar = _load_art("expB2", _fn)["arms"]["0.45"]
+        _inst.append({a: float(np.mean(_ar[a]["pool_target"]["per_seed"]))
+                      for a in ("survival", "predictor", "untrained")})
+    _sv = [i["survival"] for i in _inst]
+    _mu = [i["survival"] - i["untrained"] for i in _inst]
+    _mp = [i["survival"] - i["predictor"] for i in _inst]
+    _r54 = _fl(_read("docs/PAPER_OUTLINE.md"))
+    check("PAPER_OUTLINE row 54: descriptive mean of the four instances (0.701)",
+          float(np.mean(_sv)), 0.701)
+    check_int("PAPER_OUTLINE row 54: untrained margin above 0.05 on all four",
+              sum(m > 0.05 for m in _mu), 4)
+    check_int("PAPER_OUTLINE row 54: predictor margin above 0.05 on two",
+              sum(m > 0.05 for m in _mp), 2)
+    check_true("PAPER_OUTLINE row 54 quotes the four instances and their margins",
+               ("survival pooled targets as published " + ", ".join(
+                   f"{v:.3f} ({w})" for v, w in zip(_sv, ("hidden 8, G seed 0", "hidden 7",
+                                                     "hidden 8, G seed 2",
+                                                     "hidden 10, G seed 1, CPU"))))
+               + ";"
+               in _r54
+               and f"descriptive mean {np.mean(_sv):.3f}" in _r54
+               and "margin over the untrained arm " + ", ".join(f"{m:+.3f}" for m in _mu) in _r54
+               and "over the predictor " + ", ".join(f"{m:+.3f}" for m in _mp) in _r54)
     # FINDINGS 12: retrain time against cell time, from the policy-controls cells.
     _rs = [c["retrain_seconds"] for c in _pcells]
     _cs = [c["seconds"] for c in _pcells]
