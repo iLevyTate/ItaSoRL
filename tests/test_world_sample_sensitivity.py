@@ -138,7 +138,6 @@ def test_l0_world_samples_still_scores_drift_zero_with_its_recorded_key_order(mo
     assert list(rows[0]) == ["bases", "target", "n", "first_state_target"]
 
 
-@pytest.mark.slow
 def test_the_scan_runs_end_to_end_on_a_tiny_agent():
     agent, norm = _agent_norm()
     rows = world_sample_scan(agent, norm, P, 0.45, bases=AUDIT_BASES[:1], n_eps=6, steps=4,
