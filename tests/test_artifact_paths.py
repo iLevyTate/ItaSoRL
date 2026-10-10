@@ -25,9 +25,9 @@ import promote_bv3_gates as pb  # noqa: E402
 _PROFILE = "Use" + "rs"
 _HOME = "/ho" + "me/"
 # A Windows profile in any drive form (C:/, c:\ after normcase, Git Bash /c/, WSL /mnt/c/), a
-# macOS profile (/Users/<name>), and a Linux home other than the generic cloud and CI accounts
-# (the home directories named user and runner). Case-insensitive, because os.path.normcase
-# lowers the whole path.
+# macOS profile (the profile folder at the filesystem root), and a Linux home other than the
+# generic cloud and CI accounts (the home directories named user and runner). Case-insensitive,
+# because os.path.normcase lowers the whole path.
 USER_PATH = re.compile(
     r"(?:(?:[A-Za-z]:[/\\]+|/(?:[a-z]|mnt/[a-z])/|(?<![\w.:/-])/)" + _PROFILE
     + r"[/\\]+[^/\\\s\"'<>]+|" + _HOME + r"(?!user/|runner/)[^/\s\"'<>]+)", re.I)

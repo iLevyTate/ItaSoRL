@@ -111,21 +111,34 @@ def test_package_file_list_follows_git_not_the_filesystem():
     assert "itasorl/experiment_b2.py" in files and "artifacts/gate_table.json" in files
 
 
-def test_supplement_scrubs_every_text_member_including_cff_html_js_and_license(tmp_path, monkeypatch):
+@pytest.fixture(scope="module")
+def built_supplement(tmp_path_factory):
+    """One archive built from this checkout with no run bundles, shared by the tests that read
+    a whole archive. Skipped in an extracted archive, which has no identity terms to check
+    and is not where the archive is built."""
+    import reproduce
+    if not reproduce.identity_terms():
+        pytest.skip("no identity terms here (an anonymized copy rebuilding itself)")
+    d = tmp_path_factory.mktemp("supplement")
+    out = d / "supp.zip"
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(reproduce, "RUN_DIRS", [])
+        assert reproduce.supplement(str(out), runs_root=str(d / "no-runs")) == 0
+    return out
+
+
+def test_supplement_scrubs_every_text_member_including_cff_html_js_and_license(built_supplement):
     import re
     import zipfile
     import reproduce
-    monkeypatch.setattr(reproduce, "RUN_DIRS", [])
-    out = tmp_path / "supp.zip"
     terms = reproduce.identity_terms()
-    if not terms:
-        pytest.skip("no identity terms here (an anonymized copy rebuilding itself)")
-    assert reproduce.supplement(str(out)) == 0
     pats = [re.compile(r"(?<![A-Za-z0-9])" + re.escape(t) + r"(?![a-z0-9])") for t in terms]
-    with zipfile.ZipFile(out) as z:
+    pats += [p for p, _ in reproduce.film_rules()]
+    with zipfile.ZipFile(built_supplement) as z:
         names = set(z.namelist())
         for must in ("CITATION.cff", "LICENSE", "index.html", "viz/player/brain/brain.js",
-                     "viz/collect.py", "notebooks/colab_gpu.ipynb", "SHA256SUMS"):
+                     "viz/player/index.html", "viz/collect.py", "notebooks/colab_gpu.ipynb",
+                     "SHA256SUMS", "README_SUPPLEMENT.md"):
             assert must in names, must
         assert not any(n.startswith("artifacts/clip_audit/") for n in names)
         for n in names:
@@ -133,6 +146,32 @@ def test_supplement_scrubs_every_text_member_including_cff_html_js_and_license(t
                 t = z.read(n).decode("utf-8", errors="replace")
                 for pat in pats:
                     assert not pat.search(t), (n, pat.pattern)
+        # SHA256SUMS lists every member but itself, the generated files included.
+        listed = {ln.split("  ", 1)[1] for ln in z.read("SHA256SUMS").decode("utf-8").splitlines()}
+        assert listed == names - {"SHA256SUMS"}
+        readme = z.read("README_SUPPLEMENT.md").decode("utf-8")
+        assert "pip install -r requirements-dev.txt" in readme and "python -m pytest -q" in readme
+        assert "gitignored" not in readme
+
+
+def test_the_extracted_supplement_passes_its_audit_and_site_tests(built_supplement, tmp_path):
+    """The archive must pass its own checks (docs/REPRODUCE.md says so). Twice it did not: a
+    file the scalar audit or the site tests read was not packaged, and the audit stopped with
+    FileNotFoundError. Extract the archive and run the audit and the site tests inside it."""
+    import subprocess
+    import zipfile
+    x = tmp_path / "x"
+    with zipfile.ZipFile(built_supplement) as z:
+        z.extractall(x)
+    audit = subprocess.run([sys.executable, os.path.join("scripts", "audit_stats_recheck.py")],
+                           cwd=x, capture_output=True, text=True, timeout=600)
+    assert audit.returncode == 0, (audit.stdout[-4000:], audit.stderr[-4000:])
+    assert "RESULT: all" in audit.stdout
+    site = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+                           os.path.join("tests", "test_site_logic.py")],
+                          cwd=x, capture_output=True, text=True, timeout=600)
+    assert site.returncode == 0, site.stdout[-4000:]
+    assert " failed" not in site.stdout
 
 
 def test_the_scrubber_does_not_rewrite_its_own_source():
@@ -361,12 +400,18 @@ def test_supplement_renames_the_package_and_reports_each_run_bundle(tmp_path, mo
         assert f"{new}/stats.py" in names and f"{new}/__init__.py" in names
         assert not any(old in n.lower() for n in names), names
         readme = z.read("README_SUPPLEMENT.md").decode("utf-8")
-        assert "included      fullruns/present/agents (1 files)" in readme
-        assert "not included  fullruns/absent" in readme
+        # one Markdown bullet per bundle, so the list renders as a list
+        assert "\n- included: `fullruns/present/agents` (1 files)\n" in readme
+        assert "\n- not included: `fullruns/absent`\n" in readme
         for n in names:
             if reproduce.is_text(n):
                 assert old not in z.read(n).decode("utf-8", errors="replace").lower(), n
         assert f'name = "{new}"' in z.read("pyproject.toml").decode("utf-8")
+    # The submission build can insist on every bundle: it then writes nothing.
+    strict = tmp_path / "strict.zip"
+    assert reproduce.supplement(str(strict), runs_root=str(runs), anon_name=new,
+                                require_runs=True) == 1
+    assert not strict.exists()
 
 
 def test_the_leak_scan_reads_binary_members_and_zip_containers(tmp_path):
@@ -420,3 +465,160 @@ def test_every_image_the_supplement_packages_is_on_the_reviewed_list():
             data = fh.read()
         assert reproduce.REVIEWED_IMAGES.get(arc) == hashlib.sha256(data).hexdigest(), \
             f"{arc} is not on the reviewed list with these bytes; view it, then list its hash"
+
+
+# ---- final review, 2026-10-10: remote parsing, path forms, films, links, provenance ----
+# Every fixture below that looks like a path, an iD or a title is assembled at runtime, so the
+# archive's own scrub leaves this file as written when it is packaged.
+_PROF = "Use" + "rs"
+
+
+def test_only_a_github_remote_names_the_owner(tmp_path, monkeypatch):
+    """A clone of a local checkout has a filesystem path as its origin; parsing it took a path
+    segment as the owner and rewrote ordinary words. Only a GitHub URL counts, and CITATION.cff
+    is the fallback."""
+    import reproduce
+    owner, repo = "Some" + "Owner", "Some" + "Repo"
+    host = _GH + ".com"
+    for url in ("https://" + host + "/" + owner + "/" + repo + ".git",
+                "https://" + host + "/" + owner + "/" + repo,
+                "git@" + host + ":" + owner + "/" + repo + ".git",
+                "ssh://git@" + host + "/" + owner + "/" + repo + ".git"):
+        assert reproduce.parse_github(url) == (owner, repo), url
+    for url in ("C:/" + _PROF + "/someone/Documents/" + _GH + "/" + repo,
+                "/srv/mirrors/" + owner + "/" + repo + ".git",
+                "https://gitlab.example.org/" + owner + "/" + repo, ""):
+        assert reproduce.parse_github(url) is None, url
+    # outside a checkout (no origin) the owner comes from CITATION.cff's repository-code
+    (tmp_path / "CITATION.cff").write_text(
+        'repository-code: "https://' + host + "/" + owner + "/" + repo + '"\n', encoding="utf-8")
+    monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))
+    assert reproduce._remote() == (owner, repo)
+
+
+def test_every_local_profile_form_is_scrubbed():
+    import reproduce
+    forms = ["/c/" + _PROF + "/someone/repo/x.json",          # Git Bash
+             "/mnt/c/" + _PROF + "/someone/repo",             # WSL
+             "/" + _PROF + "/someone/repo",                   # macOS
+             "C:/" + _PROF + "/someone/repo",                 # Windows
+             "c:\\" + _PROF.lower() + "\\someone\\repo",      # normcased Windows
+             "C--" + _PROF + "-someone-Documents-repo"]       # a path flattened into a name
+    for f in forms:
+        out = reproduce.scrub("at " + f + " end", reproduce.GENERIC_SCRUB)
+        assert "someone" not in out and "<local-path>" in out, (f, out)
+    # a web URL with a lower-case users segment is not a local path
+    url = "https://api.example.org/" + _PROF.lower() + "/someone"
+    assert reproduce.scrub(url, reproduce.GENERIC_SCRUB) == url
+
+
+def test_a_bare_orcid_id_is_an_identity_term(tmp_path, monkeypatch):
+    import reproduce
+    orcid = "0000-0002-" + "1825-0097"
+    (tmp_path / "CITATION.cff").write_text(
+        'authors:\n  - family-names: "Doe"\n    orcid: "https://orc' + 'id.org/' + orcid + '"\n',
+        encoding="utf-8")
+    monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))
+    monkeypatch.setattr(reproduce, "_remote", lambda: None)
+    terms = reproduce.identity_terms()
+    assert orcid in terms
+    out = reproduce.scrub("iD " + orcid + ".", reproduce.term_rules(terms))
+    assert orcid not in out and "<author>" in out
+
+
+def test_the_build_machine_account_and_the_local_title_are_leak_checks(tmp_path, monkeypatch):
+    import reproduce
+    acct = "some" + "acct"
+    monkeypatch.setenv("HOME", str(tmp_path / acct))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path / acct))
+    assert reproduce.local_account() == acct
+    monkeypatch.setenv("HOME", str(tmp_path / "runner"))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path / "runner"))
+    assert reproduce.local_account() is None                  # a CI default is not a check
+    monkeypatch.setattr(reproduce, "local_account", lambda: acct)
+    paper = tmp_path / "docs" / "paper"
+    paper.mkdir(parents=True)
+    (paper / "main.tex").write_text("\\title{Quiet Words In A Row: A Subtitle}\n", encoding="utf-8")
+    monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))
+    assert reproduce.paper_title() == "Quiet Words In A Row"
+    pats = reproduce._leak_patterns(None)
+    assert any(p.search("dir of " + acct.upper() + " here") for p in pats)
+    assert any(p.search("quiet words\nin a row") for p in pats)
+    assert not any(p.search(acct + "s and quiet words") for p in pats)
+
+
+def test_film_titles_become_neutral_names_in_text_and_paths(tmp_path, monkeypatch):
+    import reproduce
+    film = tmp_path / "assets" / "film"
+    film.mkdir(parents=True)
+    for n in ("bright-north-star-web.mp4", "bright-north-star-poster.jpg", "quiet-hands-web.mp4",
+              "README.md"):
+        (film / n).write_bytes(b"x")
+    monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))
+    assert reproduce.film_slugs() == ["bright-north-star", "quiet-hands"]
+    rules = reproduce.film_rules()
+    text = ("*Bright North Star* (released 24 March\n2025), then QUIET HANDS, quiet_hands.py, "
+            "build-quiet-hands.ps1 and a spec released on 2025-" + "04-01; brightness stays, "
+            "and with quiet hands in plain prose")
+    out = reproduce.scrub(text, rules)
+    assert out == ("*Film One* (released <date>), then FILM TWO, film_two.py, "
+                   "build-film-two.ps1 and a spec released on <date>; brightness stays, "
+                   "and with quiet hands in plain prose")
+    # the leak check reads the same patterns, so ordinary prose is not a leak either
+    assert not any(p.search("with quiet hands in plain prose") for p, _ in rules)
+    monkeypatch.setattr(reproduce, "ROOT", str(tmp_path / "nowhere"))
+    assert reproduce.film_slugs() == [] and reproduce.film_rules() == []
+
+
+def test_outreach_specs_and_run_figures_are_left_out():
+    import reproduce
+    assert reproduce.excluded("docs/specs/2026-07-14-outreach-video-design.md")
+    assert reproduce.excluded("artifacts/goal_stakes/T-touch/expB2_survival.png")
+    assert reproduce.excluded("artifacts/goal_stakes/quarantine/x_2026-10-10/expB2_survival.png")
+    assert reproduce.excluded("fullruns/corrected_l3_h8_wm/expB2_survival.png")
+    for ships in ("artifacts/goal_stakes/T-touch/expB2_results.json",
+                  "fullruns/corrected_l3_h8_wm/agents/agent_d0.45_s0_survival.pt",
+                  "docs/specs/2026-10-06-primary-analysis-and-l0.md",
+                  "artifacts/expB2/expB2_survival.png"):
+        assert reproduce.excluded(ships) is None, ships
+
+
+def test_links_the_archive_cannot_resolve_become_plain_text():
+    import reproduce
+    ph = reproduce.REPO_PLACEHOLDER
+    shipped = {"docs/FINDINGS.md", "docs/specs/a.md", "artifacts/expB2/x.json", "README.md"}
+    text = "\n".join([
+        "[site](" + ph + "/)",
+        "[![Badge](https://img.example.org/b.svg)](" + ph + "/blob/main/nb.ipynb)",
+        "[film notes](assets/film/README.md)",
+        "[findings](docs/FINDINGS.md#176-who)",
+        "[folder](artifacts/expB2/)",
+        "[web](https://example.org/x)",
+        "[anchor](#top)",
+        "![figure](docs/figures/f.png)",
+    ])
+    out = reproduce.delink(text, "README.md", shipped)
+    assert out.split("\n") == ["site", "", "film notes", "[findings](docs/FINDINGS.md#176-who)",
+                               "[folder](artifacts/expB2/)", "[web](https://example.org/x)",
+                               "[anchor](#top)", "![figure](docs/figures/f.png)"]
+    # relative to the file that holds the link
+    assert reproduce.delink("[a](a.md) [up](../FINDINGS.md) [out](../../x.md)",
+                            "docs/specs/b.md", shipped) == "[a](a.md) [up](../FINDINGS.md) out"
+
+
+def test_provenance_lists_first_and_last_commits_without_names(tmp_path, monkeypatch):
+    import reproduce
+    if not _in_git_checkout():
+        pytest.skip("provenance is read from git; an extracted archive has no history")
+    rows, why = reproduce.provenance_rows(["docs/PREREGISTRATION_L3.md"])
+    if rows is None:
+        assert "shallow" in why
+        pytest.skip(why)
+    (rel, first, fh, last, lh), = rows
+    assert rel == "docs/PREREGISTRATION_L3.md" and first <= last and fh and lh
+    md = reproduce.provenance_md(rows, lambda s: s)
+    assert "| `docs/PREREGISTRATION_L3.md` | " + first + " | " + fh + " |" in md
+    assert "@" not in md
+    monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))
+    rows, why = reproduce.provenance_rows(["docs/PREREGISTRATION_L3.md"])
+    assert rows is None and "git checkout" in why

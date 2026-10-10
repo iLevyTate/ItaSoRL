@@ -12,6 +12,10 @@ list, the readout chart and the copy button blank. These tests:
   - pin every per-seed readout row the section-03 chart draws to the committed artifacts;
   - keep the retired July demo loops off the pages, the phone cut viewable on phones, the
     correction caveats linked to rendered pages, and the page's language and landmark set.
+
+The anonymized supplement (scripts/reproduce.py) does not ship .gitignore or the film folder,
+so outside a git checkout a check on one of those files skips with that reason. In a checkout
+a missing file still fails.
 """
 
 from __future__ import annotations
@@ -31,6 +35,21 @@ ROW_RE = re.compile(
     r"^\s*(\w+): \{ seeds: \[([^\]]*)\], mean: ([0-9.]+), lo: ([0-9.]+), hi: ([0-9.]+) \},$", re.M
 )
 RETIRED_LOOPS = ("loop-idle-clouds", "loop-survival-clouds", "loop-race", "loop-brain-pair")
+
+
+def _in_git_checkout() -> bool:
+    try:
+        return subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=ROOT,
+                              capture_output=True, text=True).stdout.strip() == "true"
+    except OSError:
+        return False
+
+
+def _site_text(relpath: str) -> str:
+    path = ROOT / relpath
+    if not path.exists() and not _in_git_checkout():
+        pytest.skip(f"{relpath} is not shipped in the anonymized supplement")
+    return path.read_text(encoding="utf-8")
 
 
 def _logic_script() -> str:
@@ -99,7 +118,7 @@ def test_readout_chart_is_not_a_training_curve():
 @pytest.mark.parametrize("relpath", ["index.html", "index.template.html", "viz/player/index.html",
                                      "assets/film/README.md"])
 def test_retired_demo_loops_are_not_served(relpath):
-    text = (ROOT / relpath).read_text(encoding="utf-8")
+    text = _site_text(relpath)
     for name in RETIRED_LOOPS:
         if relpath == "assets/film/README.md":
             # The film README names them once, in the retirement note, never as a served file.
@@ -109,13 +128,13 @@ def test_retired_demo_loops_are_not_served(relpath):
 
 
 def test_gitignore_allowlist_drops_the_retired_loops():
-    text = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    text = _site_text(".gitignore")
     for name in RETIRED_LOOPS:
         assert f"!/assets/film/{name}.mp4" not in text
 
 
 def test_phone_cut_page_sets_a_viewport():
-    head = (ROOT / "viz" / "player" / "index.html").read_text(encoding="utf-8").split("</head>")[0]
+    head = _site_text("viz/player/index.html").split("</head>")[0]
     assert '<meta name="viewport" content="width=device-width, initial-scale=1">' in head
 
 
