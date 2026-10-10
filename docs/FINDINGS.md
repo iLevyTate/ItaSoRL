@@ -3302,6 +3302,22 @@ input stream does, and the stream carries it because of where the survival polic
 body. The wording "behavior-independent" is retired: the paper says which basis was
 controlled, with which model, and what remained.
 
+**Paired contrasts (post hoc, added 2026-10-10).** Seed-paired differences between the
+survival state and a readout of the same survival episodes at drift 0.45, n = 10, each with its
+t-based 90% interval and a TOST against a smallest effect of interest of 0.05. The 0.05 is
+borrowed from the registered margins: no rule was registered for these contrasts, so they are
+reported and not adjudicated. All three are computed from the `per_seed` arrays of the
+committed artifact.
+
+| state minus | mean [t 90% CI] | TOST p, margin 0.05 |
+|---|---|---|
+| supervised GRU on the stream | +0.009 [-0.011, +0.029] | 0.002 |
+| summary features of the observation trace | +0.018 [-0.004, +0.040] | 0.013 |
+| the residual the best-fitting control leaves (64-unit MLP) | +0.113 [+0.065, +0.161] | 0.980 |
+
+By this test the state reads the same as either stream decoder to within 0.05. It reads 0.113
+above what the best-fitting control leaves, and that difference is not within 0.05.
+
 ### 17.9 Texture comparators: three questions, two answered (revision step 9)
 
 The published texture knockout (14.5) asked one question: does the world-identity direction

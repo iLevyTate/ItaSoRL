@@ -2122,6 +2122,31 @@ def main() -> int:
                 check_true(f"FINDINGS 17.8 held-out R2 {m} ({_r2:.2f})", f"| {_r2:.2f} |" in _s17)
                 check_true(f"17.8: basis not recoverable from the survival residual ({m})",
                            _ca[f"d=0.45 survival {m}"]["nuisance_from_residual_r2_mean"] <= -0.005)
+        # 2026-10-10: the post hoc paired contrasts the manuscript quotes (state minus each
+        # readout, survival arm, drift 0.45), recomputed from the per_seed arrays and checked
+        # against the quoted values and against the FINDINGS 17.8 table and PAPER_OUTLINE row 46.
+        from itasorl.stats import paired_contrast as _pc178
+        _st = _ca["d=0.45 survival target"]["per_seed"]
+        _o46 = " ".join(_read("docs/PAPER_OUTLINE.md").split())
+        for _m, _lab, _qm, _qlo, _qhi, _qp in (
+                ("seq_gru", "supervised GRU on the stream", 0.009, -0.011, 0.029, 0.002),
+                ("obs_summary_only", "summary features of the observation trace",
+                 0.018, -0.004, 0.040, 0.013),
+                ("resid_joint_mlp", "the residual the best-fitting control leaves (64-unit MLP)",
+                 0.113, 0.065, 0.161, 0.980)):
+            _ot = _ca[f"d=0.45 survival {_m}"]["per_seed"]
+            check_int(f"17.8 post hoc state minus {_m}: ten paired seeds", min(len(_st), len(_ot)), 10)
+            _pc = _pc178(_st, _ot)
+            _eq = equivalence_test(np.asarray(_st, float) - np.asarray(_ot, float), h0=0.0, margin=0.05)
+            check(f"17.8 post hoc state minus {_m} mean ({_qm:+.3f})", _pc["mean"], _qm)
+            check(f"17.8 post hoc state minus {_m} t lo ({_qlo:+.3f})", _pc["t90"][0], _qlo)
+            check(f"17.8 post hoc state minus {_m} t hi ({_qhi:+.3f})", _pc["t90"][1], _qhi)
+            check(f"17.8 post hoc state minus {_m} TOST p ({_qp:.3f})", _eq.p_value, _qp)
+            _txt = (f"{_pc['mean']:+.3f} [{_pc['t90'][0]:+.3f}, {_pc['t90'][1]:+.3f}]")
+            check_true(f"FINDINGS 17.8 post hoc row {_m}",
+                       f"| {_lab} | {_txt} | {_eq.p_value:.3f} |" in _s17)
+            check_true(f"PAPER_OUTLINE row 46 quotes the post hoc contrast {_m}",
+                       f"{_txt} (p {_eq.p_value:.3f})" in _o46)
     for _fam in ("gn", "qd"):
         _tp = os.path.join(ARTROOT, "texture", f"corrected_l3_h8_wm_{_fam}.json")
         if not os.path.exists(_tp):
