@@ -21,8 +21,9 @@ reading order; there is deliberately no section 8.)*
 > registered encoding criterion"; behavior and sensory controls name their basis and
 > model; the common garden shows that prefix condition "remains decodable after
 > restoring authentic dynamics", not internal memory; the texture knockout shows that
-> the original direction does not transfer; the evolutionary null is restricted to the
-> pooled population readout. Gates under both fold partitions: `docs/GATE_TABLE.md`.
+> the original direction does not transfer; Experiment C has a flat contrast under both of
+> its readouts and an uninformative registered verdict (13.F). Gates under both fold
+> partitions: `docs/GATE_TABLE.md`.
 > Margin intervals: `docs/CONTRAST_INTERVALS.md`. What each arm experienced:
 > `docs/METHODS_ARMS.md`.
 
@@ -46,13 +47,15 @@ so L2 was the weaker flaw. The detectability-matched contrast is L1: at an in-ba
 observation-quantization grid (Δ = 0.023, detector 0.873) the survival agent's pooled
 target is **0.533**, with 0 of 10 seeds at 0.65 (section 14.7).
 
-**A learned-law flaw (L3) met it under one training protocol (corrected, section 17).**
+**A learned-law flaw (L3) met its decodability clauses at 0.733 under one training protocol
+(corrected, section 17); the registered rule as a whole is not met, because the L0 gate is
+open on the registered world pair (0.559).**
 Survival training with the next-observation auxiliary, 300 updates, ten seeds, against a
 gate-calibrated fingerprint (privileged detector 0.928 at detector-side noise σ = 0.02):
 the survival state decodes the world at **0.733** (t-based 90% CI [0.669, 0.797]),
 against 0.589 for the predictor arm and 0.523 untrained, with paired margins of +0.144 and
 +0.210 whose intervals clear 0.05. The L0 gate is open on the registered world-sample pair
-(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the historical hidden-8 agents, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so the verdict is
+(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the agents of the historical hidden-8 run, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so the verdict is
 MET on the decodability clauses, conditional on L0. Without the auxiliary the survival
 state reads **0.613** [0.552, 0.675], not met; the decoder adds **+0.120** [+0.065,
 +0.174]. The correction itself moved the two drift-0.45 readings by +0.003 and +0.012.
@@ -96,10 +99,14 @@ The follow-ups, read narrowly:
 - **Common garden.** Tail-only states still separate the prefix condition (0.666 forward,
   0.684 reverse; 10.6.1). Prefix condition remains decodable after restoring authentic
   dynamics, and on the corrected agents mostly through the physical footprint (17.7).
-- **Experiment C.** Selection over 30 generations did not raise world decodability as the
-  pooled population readout measures it (contrast -0.002 [-0.013, +0.009]; 13.D). That
-  readout reads 0.609 where independent known-decodable individuals average 0.649, so it is
-  attenuated rather than blind (17.11); it is not a per-individual test (13.E).
+- **Experiment C.** The contrast is flat and the registered verdict is uninformative
+  (13.F). Selection over 30 generations did not raise world decodability under the pooled
+  population readout (contrast -0.002 [-0.013, +0.009]; 13.D) or under the per-individual
+  readout (final treatment means 0.534 to 0.539, no individual at 0.65; 13.F). Two registered
+  gates fail, exploitability (gate 1) and the speed positive control (gate 5), and the
+  preregistration routes a gate-1 failure to uninformative, not to a null. The pooled readout
+  reads 0.609 where independent known-decodable individuals average 0.649, so it is
+  attenuated rather than blind (17.11).
 
 ---
 
@@ -115,7 +122,7 @@ substrate). Detection is measured against a **surrogate ladder**:
 | L0 | Identical re-implementation (control, must be at chance) | tested |
 | L1 | Observation discretization (a lattice / quantization tell) | tested (survival did not meet the registered encoding criterion at in-band Δ=0.023: 0.533; section 14.7) |
 | L2 | Rollout drift (a slowly drifting dynamics coefficient) | tested |
-| L3 | Learned world-model surrogate (a generative fingerprint) | tested. Corrected trainer (section 17): `C1` **0.733** [0.669, 0.797] met the decodability clauses, and the L0 authentic-versus-authentic gate is **open** on the registered world pair (0.559, TOST p 0.939) while equivalent to chance across eight independent pairs (17.5); the best-fitting behavior and sensory control leaves **0.620**, under the bar (17.8); at matched input a prediction-trained trunk reads the same streams as well (17.6); the common-garden tail is carried mostly by the prefix's physical footprint, and retention under identical input is not shown (17.7). Historical trainer, as recorded: (positive at the registered 300-update budget with the next-observation auxiliary, n=10; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
+| L3 | Learned world-model surrogate (a generative fingerprint) | tested. Corrected trainer (section 17): `C1` **0.733** [0.669, 0.797] met the decodability clauses, and the L0 authentic-versus-authentic gate is **open** on the registered world pair (0.559, TOST p 0.939) while equivalent to chance on the pooled test across eight independent pairs (TOST over pairs p 0.022), with the gate accepting on two of the eight draws individually (17.5); the best-fitting behavior and sensory control leaves **0.620**, under the bar (17.8); at matched input a prediction-trained trunk reads the same streams as well (17.6); the common-garden tail is carried mostly by the prefix's physical footprint, and retention under identical input is not shown (17.7). Historical trainer, as recorded: (positive at the registered 300-update budget with the next-observation auxiliary, n=10; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
 | L4 | Adversarially-hardened surrogate | not started |
 
 Three experiments were planned. This cycle completed Experiment A for L1 and L2
@@ -123,9 +130,11 @@ Three experiments were planned. This cycle completed Experiment A for L1 and L2
 the survival-coupled B-v2/B-v3 arc (section 9), and the L3 arc (section 10).
 Experiment C (emergence under selection) has run its first pilot; the recorded
 null was **invalidated by two since-fixed measurement bugs** (see the correction
-in section 13.C) and the re-run on fixed code has now landed as a **validated
-null** (section 13.D) under its pooled population readout: selection did not raise
-world-condition decodability as that readout measures it (scope in section 13.E).
+in section 13.C). The re-run on fixed code (section 13.D) and a rerun with the
+per-individual readout and the full gate battery (section 13.F) both show a flat
+contrast: selection did not raise world-condition decodability under either readout.
+Two registered gates fail (exploitability and the speed positive control), so the
+registered verdict is **uninformative**, not a null (section 13.F).
 
 The world is **"A Patch of Earth" v0**, a 2.5D, deterministic, dissipative,
 Earth-*like* (authored, not data-driven) environment with a ~146-dimensional
@@ -144,6 +153,17 @@ implemented world.
 *(All section-2 numbers are committed in `artifacts/expA/summary.json`,
 promoted from the recorded `fullruns/06302026` e2e bundle by
 `scripts/promote_ab_summaries.py`.)*
+
+*(Figure provenance, noted 2026-10-10. Until 2026-10-10 the four figures in sections 2 and 3
+(`figures/expA_ceiling.png`, `figures/expA_L2_ceiling.png`, `figures/expB_incidental.png`,
+`figures/expB_channels.png`) were the ones drawn by run `fullruns/07042026` (commit `888eb3e`,
+the owner's RTX 4050 laptop GPU), while the numbers in the text and tables of both sections
+come from the promoted run `fullruns/06302026` (commit `4c16be6`, Tesla T4). The two runs
+differ at every point that is not saturated, and the largest gap is 0.055, at the L1
+calibration point delta 0.015 (0.457 plotted, 0.402 recorded). The 07042026 run used
+`--quick`, which shortens only the B-v2 step, so the gap comes from the different run and
+stack, not from quick mode. The figures are now redrawn from the committed artifacts by
+`scripts/plot_record_figures.py`, so they plot the numbers quoted here.)*
 
 **Method.** An external discriminator on full trajectory logs, run *before* any
 agent exists, to (a) measure how detectable each rung is and (b) prove the signal
@@ -202,7 +222,9 @@ leakage audit must be read with this in mind.
 *(Section-3 numbers are committed in `artifacts/expB/summary.json`,
 promoted from the recorded `fullruns/06302026` e2e bundle plus the 2026-07-13
 k-step rerun log by `scripts/promote_ab_summaries.py` - with one exception: the
-3.4 engagement figures, see the 2026-07-18 correction note there.)*
+3.4 engagement figures, see the 2026-07-18 correction note there. The two figures of this
+section were drawn from a different run until 2026-10-10; see the figure provenance note at
+the head of section 2.)*
 
 **The apparatus.** A compact recurrent world model (RSSM-lite: encoder → GRU →
 next-observation decoder) trained **only** to predict its own sensory stream. It
@@ -226,9 +248,15 @@ quantized."
 
 | drift_sigma | target | shuffled | speed (+ctrl) |
 |-------------|--------|----------|---------------|
-| 0.00 (control) | 0.460 ± 0.021 | 0.510 ± 0.113 | 0.913 ± 0.023 |
-| 0.20 | 0.509 ± 0.028 | 0.522 ± 0.069 | 0.898 ± 0.021 |
-| 0.45 | 0.510 ± 0.039 | 0.548 ± 0.059 | 0.902 ± 0.008 |
+| 0.00 (control) | 0.459 ± 0.021 | 0.510 ± 0.113 | 0.913 ± 0.023 |
+| 0.20 | 0.509 ± 0.028 | 0.523 ± 0.069 | 0.898 ± 0.021 |
+| 0.45 | 0.510 ± 0.039 | 0.547 ± 0.058 | 0.902 ± 0.008 |
+
+*(Three cells corrected 2026-10-10 to the committed artifact and the run log they were
+promoted from: the drift-0 target had read 0.460, and the shuffled column 0.522 at 0.20 and
+0.548 ± 0.059 at 0.45. The means come from `artifacts/expB/summary.json`; the shuffled
+standard deviations, which the artifact does not store, come from
+`fullruns/06302026/steps/expB_full.log`. `docs/CORRECTIONS.md`, 2026-10-10.)*
 
 The target sits at chance even at strong drift, while the positive control reads
 speed at ≈ 0.90 and the drift = 0 control is clean. The apparatus works; the agent
@@ -397,9 +425,9 @@ inducing it (if possible) requires something more deliberate.
   on the decodability clauses with the L0 gate open (17.4), the best-fitting control leaves
   0.620 under the bar (17.8), and at matched evaluation input a prediction-trained trunk reads
   the survival agent's own streams as well as the survival trunk does, so the margin is a
-  difference between training regimes and not of objective (17.6). The condition that flips the result is the
-  artifact's character (a generative fingerprint that survival must cope with), not
-  probe power, capacity, or objective horizon. A held-out probe (section 10.6)
+  difference between training regimes and not of objective (17.6). The condition that flips the result is a
+  coherent, state-dependent dynamics difference reached by the foraging trajectories
+  (17.6, 17.9), not probe power, capacity, or objective horizon. A held-out probe (section 10.6)
   qualifies the *nature* of the encoding: it transfers to a capacity variant of
   the training fingerprint (same recipe, seed, and training data - robustness
   within one recipe, see the 10.6 scope note), and a common-garden
@@ -435,27 +463,29 @@ inducing it (if possible) requires something more deliberate.
   two missing questions on the corrected agents: a hand-authored, temporally coherent drag
   at matched one-step size IS read through the same direction (transfer 0.721, fresh
   0.754) while white jitter is not, so what the tested classes separate on is temporal
-  coherence, not learnedness. The survival-specificity part
-  remains conditional on the subtler hidden=8 artifact (section 10.5). The same
+  coherence, not learnedness. The survival-specificity reading is withdrawn
+  (17.6). The same
   H2 battery on the L1 discretization rung (section 14.7) finds that survival does
   **not meet the registered encoding criterion** at the matched in-band grid (0.533), so L1 does not
   reproduce the L3 positive; H2 at L1 is therefore a strengthened negative for
   organism encoding of an oracle-detectable observation artifact.
-- **H3 (emergence under selection).** Negative under the pooled population readout at
-  the tested budget. The first pilot's
+- **H3 (emergence under selection).** Not answered: the contrast is flat and the
+  registered verdict is **uninformative** (section 13.F). The first pilot's
   recorded null was **invalidated** (section 13.C): the run executed on pre-fix
   code carrying two since-fixed measurement defects (the fitness/panel legs ran
   on the default world rather than world P, and the common-garden AUROC estimator
   split matched pairs across CV folds, biasing detection AUROCs toward 0). The
-  re-run on fixed code with the identical pre-registered configuration has now
-  landed (section 13.D) and is a **validated null**: the treatment-minus-control
-  emergence contrast is -0.002 (90% t-CI [-0.013, +0.009], spanning 0), mean
-  final treatment AUROC 0.509 (below the 0.65 floor), so emergence_claim is
-  False on all three pre-registered sub-conditions. Selection had grip (fitness
-  moved in both arms) but the pooled population readout did not rise. That readout
-  fits one probe across individuals, so it cannot see detectors that individuals
-  carry along unaligned directions, and the run is 3 lineages at 30 generations; the
-  result is restricted to that estimator and budget (section 13.E).
+  re-run on fixed code with the identical pre-registered configuration (section
+  13.D) found a flat contrast: the treatment-minus-control emergence contrast is
+  -0.002 (90% t-CI [-0.013, +0.009], spanning 0), mean final treatment AUROC 0.509
+  (below the 0.65 floor), so emergence_claim is False on all three pre-registered
+  sub-conditions. Selection had grip (fitness moved in both arms) but the pooled
+  population readout did not rise, and a rerun with the per-individual readout found
+  no individual at the bar (section 13.F). That rerun's full gate battery fails gate 1
+  (exploitability) and gate 5 (the speed positive control), and section 8 of
+  `docs/PREREGISTRATION_C.md` routes a gate-1 failure to uninformative, so neither
+  readout yields a verdict on H3 at 3 lineages and 30 generations. The null label of
+  section 13.D described the pooled estimand before those gates were run.
 
 ---
 
@@ -698,15 +728,39 @@ stopping**. PREREGISTRATION_L3 section 9 described a recurrent predictor trained
 stopping; that is not what ran (dated amendment in its section 12). In world P drag is the
 constant 1.5, so the authentic law vel' = 0.925 vel + 0.05 a is linear with constant
 coefficients and withholding drag from `G` withholds a constant. A least-squares linear fit
-on `G`'s own training transitions recovers the law to float rounding (held-out RMS 6e-9), so
-a linear surrogate would carry no fingerprint: **the fingerprint is the approximation error
-of this particular finite-trained network.** Introducing early stopping now would make a
+on `G`'s own training transitions recovers the law to float rounding (RMS 6e-9 on those
+transitions and on episodes at disjoint seeds alike), so a linear surrogate would carry no
+fingerprint: **the fingerprint is the approximation error of this particular finite-trained
+network.** Introducing early stopping now would make a
 different fingerprint and would need its own gate 0.
 
-**Errors on held-out authentic transitions** (`artifacts/surrogate_diagnostics.json`;
-60 x 40 scripted-policy transitions at seeds disjoint from training; RMS velocity error):
+**Errors on held-out authentic transitions** (`artifacts/surrogate_diagnostics.json`, block
+`disjoint_heldout`, rescored 2026-10-10; 60 x 40 scripted-policy transitions at seeds 100000
+to 100059, disjoint from every training range; the train column is each `G`'s own 250
+training episodes; RMS velocity error):
 
-| surrogate | one-step, train | one-step, held out | open-loop rollout gap at 1 / 5 / 10 / 24 steps | lag-1 autocorrelation of the deviation | agent-accessible detector |
+| surrogate | one-step, train | one-step, held out | open-loop rollout gap at 1 / 5 / 10 / 24 steps | lag-1 autocorrelation of the deviation, held out | agent-accessible detector |
+|---|---|---|---|---|---|
+| `G` hidden 8, seed 0 (headline) | 0.0361 | 0.0354 | 0.038 / 0.060 / 0.079 / 0.076 | 0.83 | 0.991 |
+| `G` hidden 7, seed 0 | 0.0574 | 0.0558 | 0.032 / 0.076 / 0.114 / 0.128 | 0.94 | 0.992 |
+| `G` hidden 10, seed 1 | 0.0263 | 0.0258 | 0.021 / 0.049 / 0.083 / 0.108 | 0.87 | 0.991 |
+| `G` hidden 8, seed 2 | 0.0356 | 0.0342 | 0.014 / 0.061 / 0.112 / 0.127 | 0.93 | 0.991 |
+| Gaussian jitter, sigma_v 0.01 | 0.0141 | 0.0143 | 0.013 / 0.026 / 0.033 / 0.036 | 0.01 | 0.991 |
+| quadratic drag, eps 6.0 (hand-authored) | 0.0143 | 0.0148 | 0.000 / 0.030 / 0.085 / 0.045 | 0.95 | 0.967 |
+
+**The seed-77 calibration sample (as recorded 2026-10-06; relabeled 2026-10-10).** Until
+2026-10-10 the table below was labeled "held-out authentic transitions at seeds disjoint from
+training". It was not held out. Episode i of a sample is seeded by the sample's base seed plus
+i, so its 60 episodes at base seed 77 are episodes 77 to 136 of every `G`'s own training data
+(250 episodes from seed 0, 1 or 2), and its train column used seed 0 for every `G`, which is
+the training data of the two seed-0 instances only. For a learned `G` the middle column is
+therefore in-sample. The untrained comparators have no training data to overlap. The sample
+stays in the record as the calibration sample: the quadratic drag's eps 6.0 was matched on it
+(17.9), and the detector column does not depend on it. The rescored table above moves no
+reading; the headline `G` errs by 0.0354 per step held out against 0.0349 here
+(`docs/CORRECTIONS.md`, 2026-10-10).
+
+| surrogate | one-step, seed-0 sample | one-step, seed-77 calibration sample (in-sample for `G`) | open-loop rollout gap at 1 / 5 / 10 / 24 steps | lag-1 autocorrelation of the deviation | agent-accessible detector |
 |---|---|---|---|---|---|
 | `G` hidden 8, seed 0 (headline) | 0.0361 | 0.0349 | 0.038 / 0.057 / 0.079 / 0.072 | 0.84 | 0.991 |
 | `G` hidden 7, seed 0 | 0.0574 | 0.0559 | 0.031 / 0.066 / 0.121 / 0.127 | 0.94 | 0.992 |
@@ -718,7 +772,8 @@ different fingerprint and would need its own gate 0.
 One-step error and rollout divergence are different quantities: the rollout gap compounds
 the one-step error along a trajectory and, because drag damps velocity, it saturates rather
 than growing without bound. The learned fingerprints' deviations are temporally coherent
-(lag-1 autocorrelation 0.84 to 0.94); the Gaussian comparator's are white.
+(lag-1 autocorrelation 0.83 to 0.94 held out, 0.84 to 0.94 on the calibration sample); the
+Gaussian comparator's are white.
 
 **The detector.** The gate-0 oracle is a **privileged detector**: it reads the world's
 internal transitions and adds a **detector-side** measurement noise of sigma = 0.02 before
@@ -863,7 +918,9 @@ Methods note 7 (section 11) left one scope limit on the behavior-mediation
 control: its basis is seven behavior scalars, not the ~146-dim observation, so
 controlling for behavior did not control for sensory echo. A state that
 passively mirrors world-dependent inputs would survive the behavior control.
-This probe tests it directly. Spec frozen before the run:
+This probe tests it directly. Spec, which the log records as fixed before launch but which
+was first committed together with its result, about an hour after the run ended (dated note
+of 2026-10-10 in `docs/PREREGISTRATION_L3.md` section 12):
 `docs/specs/2026-09-26-l3-sensory-echo-control-design.md` (readout-only against
 the saved hidden = 8 agents; runner `scripts/audit_sensory_echo.py`; committed
 artifact `artifacts/expB2/sensory_echo_l3_h8.json`).
@@ -1722,9 +1779,14 @@ Stated once, plainly, with pointers into the code.
    bar and its survival-minus-predictor lead stays under the 0.05 margin (+0.037),
    and both common-garden directions pass both clauses. Two pre-registered gate
    clauses flip, both reported in section 16: the hidden 7 gate-0 untrained floor,
-   and the L0 equivalence test on every GPU-scored L3 and L1 organism run (the
-   L0 control reads 0.539 with TOST p = 0.207 under explicit, 0.517 with p = 0.010
-   under legacy; the first entry of this note missed it). Not
+   and the L0 equivalence test on every historical run scored on the owner's
+   workstation stack, which covers the GPU-trained L3 runs and the CPU-trained L1
+   organism run, while the runs scored on the cloud CPU stack pass it (the L0
+   control reads 0.539 with TOST p = 0.207 under explicit, 0.517 with p = 0.010
+   under legacy; the first entry of this note missed it). The stack is named as
+   provenance, not as the cause: the explicit partition is the same on every
+   stack, and which runs pass follows the agent set scored (wording corrected
+   2026-10-10; it had said "every GPU-scored L3 and L1 organism run"). Not
    re-scored: the B-v3 dumps are not on the owner's machine, and the joint
    sensory-plus-behavior controls come from `audit_sensory_echo.py`, which
    regenerates pools rather than reading dumps, so their lower bounds (0.638
@@ -1862,6 +1924,20 @@ the exact commands for any run; and `scripts/reproduce.py supplement` builds the
 archive. `docs/REPRODUCE.md` is the walkthrough, and `docs/RESULTS_MANIFEST.md` records which
 trainer, fold partition, commit and device produced each artifact.
 
+**Wall times of the GPU organism runs (recorded 2026-10-10).** No artifact records the wall
+time of these runs; the figures below come from local, gitignored files. Each run is ten
+seeds at two drifts with three arms on the owner's RTX 4050 laptop GPU.
+
+| run | measured span | source |
+|---|---|---|
+| `L3-H8-N10` (`fullruns/l3_h8_traces`, with state dumps) | 7.42 h, first to last cell file (2026-07-12 20:39 to 2026-07-13 04:05 local) | cell file times; the run log has no timestamps |
+| `L3-H8-HELDOUT` (`fullruns/l3_h8_heldout`) | 6.55 h, first to last cell file (2026-07-14 11:14 to 17:47 local) | cell file times; the run log has no timestamps |
+| `L3-H10-GS1-GPU` (`fullruns/l3_h10_gseed1_gpu`) | 5.74 h, launch to exit (2026-09-28 21:14 to 2026-09-29 02:58 UTC), including a first attempt that stopped after one cell at 0.81 h and a resume on two workers that ran 4.92 h | `fullruns/second_instance_gpu_chain.log` |
+| `L3-H8-GS2-GPU` (`fullruns/l3_h8_gseed2_gpu`) | 6.53 h, launch to exit on three workers (2026-09-29 13:45 to 20:17 UTC) | `fullruns/gpu_queue_chain.log` |
+
+A span from the first to the last cell file leaves out the time to the first cell, so the two
+July runs took longer than their spans.
+
 ---
 
 ## 13. Experiment C: emergence of a world-detector under selection (milestone-3 pilot)
@@ -1877,6 +1953,9 @@ trainer, fold partition, commit and device produced each artifact.
 > `artifacts/expC/emergence_pilot_summary.json` now holds the **re-run** numbers
 > (section 13.D); the invalidated original numbers survive only as prose in the
 > opening body above 13.C.
+>
+> *(2026-10-10: under the full gate battery of section 13.F the registered verdict is
+> uninformative, not a null; see the note at the end of 13.F.)*
 
 *(The committed section-13 numbers live in
 `artifacts/expC/emergence_pilot_summary.json`, promoted from the gitignored
@@ -2192,6 +2271,15 @@ world is too small, and the panel's speed control is below bar. This is the
 section-14 disposition restated by the run itself. Re-opening Experiment C still
 requires the section-8 richer-controller redesign.
 
+**Note (2026-10-10): one verdict wording on every surface.** The paragraph above keeps
+"validated null" as a description of the pooled estimand. The registered rule does not:
+section 8 of `docs/PREREGISTRATION_C.md` allows "Strengthened negative" only when every gate
+passes and routes a gate 0 or gate 1 failure to Uninformative, and gates 1 and 5 fail here.
+Under the registered rule Experiment C has a flat contrast under both readouts and an
+uninformative verdict, which bears on H3 in neither direction. The summary surfaces of this
+document (the revision banner, the TL;DR, sections 1 and 6, and 17.12) and
+`docs/PAPER_OUTLINE.md` now say so. The 13.D heading and the paragraph above stay as written.
+
 ## 14. H2 substrate-grounding: the graded-seam ablation (A1)
 
 **Status: supported for the L3 rung at hidden=8 in the narrow sense of section 6
@@ -2273,7 +2361,7 @@ capacities.
 
 **Scope and deferred follow-ons.** This is a necessity-plus-specificity result on
 the L3 rung at hidden=8 and hidden=7; it does not speak to L1/L2 (different
-substrate primitives) or to H3 (negative under the pooled population readout, section 13). The reactive
+substrate primitives) or to H3 (flat contrast, registered verdict uninformative, section 13.F). The reactive
 reading of the common-garden control (section 10.6.1: prefix condition remains
 modestly decodable after restoring authentic dynamics)
 is unchanged; A1 neutralizes the felt dynamics divergence, so a collapse is fully
@@ -2406,6 +2494,29 @@ cell in this paper, and they should not be read as a reading of the jitter at al
 that no comparator-trained run supports that claim stands. A usable trained case would require a
 new run under a specification written before it, not a reinterpretation of this one.
 
+**Correction (2026-10-10): the error was in the frozen spec, and the `qd`-trained run had it
+too.** Two statements above are corrected here and left as written. First, the run "was
+launched with `--hidden 8`" reads as if the launch introduced the error. The frozen spec's own
+command block (`docs/specs/2026-10-09-gn-comparator-trained-design.md`, committed in `d341091`
+before the run) already reads `--l3-hidden 8 --hidden 8`, and the launch copied it. The
+conflation began in the 2026-10-06 texture comparator spec, which describes the
+comparator-trained protocol as a "hidden 8 trunk". Second, "`(288, 96)` for every other run in
+the project" is wrong. The `qd`-trained run set aside in 17.9 (`fullruns/T_qd_l3_h8_wm/`) has
+`cell.weight_hh` `(24, 8)` on all 60 saved agents, and its recorded config fingerprint
+`23a620e51d4e26fd` is reproduced by its flags with `--hidden 8` and not with 96 (which gives
+`f947a5bce5be281b`). The saved agent sets checked from their weights on 2026-10-10 that do have
+the registered trunk, `(288, 96)`, are `l1_heldout`, `l3_h7_heldout`, `l3_h8_heldout`,
+`l3_h8_gseed2_gpu`, `l3_h10_gseed1_gpu`, `l3_h8_nowm` (six files) and `l3_h8_nowm_skill_u450`.
+Runs whose agents were not kept, the corrected `C1` and `C2` among them, cannot be checked this
+way. Both comparator-trained runs were therefore 8-unit runs. The `qd` run's speed positive
+control is also short, in **8 of 60** pools, worst 0.7018 (untrained, drift 0, seed 2), and its
+three short untrained drift-0 pools equal this run's to every digit (0.7449, 0.7062, 0.7018).
+No surrogate is installed at drift 0, and the untrained agents of the two runs share their seeds
+and the 8-unit trunk, so equal values there point at the trunk width and not at either
+perturbation. No verdict changes: this run was already uninformative, the `qd` run was already
+excluded, and no claim rests on either. Dated entries: `docs/PREREGISTRATION_L3.md` section 12
+and `docs/CORRECTIONS.md`, 2026-10-10.
+
 ## 14.6 A2 observation-channel localization
 
 **Status: COMPLETE for the L3 rung at hidden=8 and hidden=7.** Design and runner:
@@ -2490,7 +2601,11 @@ grid structure.
 
 **Organism result (n=10, three arms, B-v2 protocol).** At the headline grid,
 survival pooled target = **0.533** (90% CI [0.509, 0.556], 0/10 ≥ 0.65),
-predictor 0.489, untrained 0.494. L0 control accepts chance equivalence (ROPE
+predictor 0.489, untrained 0.494. (Added 2026-10-10: that interval is the seed bootstrap.
+The t-based 90% interval of the same ten values is [0.506, 0.561], which excludes chance,
+and the TOST of the survival mean against 0.5 at the registered 0.05 margin does not accept
+equivalence, p = 0.147. The mean sits above chance and below the bar, and neither result is
+a gate.) L0 control accepts chance equivalence (ROPE
 p = 0.989). Engagement, leakage, and survivorship gates pass; ceilings (energy /
 food) remain readable. Primary H_B2 is **not met**: an oracle-detectable L1
 artifact leaves no decodable world-identity trace in the survival state. This
@@ -2976,8 +3091,10 @@ run (`docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md`; annou
 `docs/PREREGISTRATION_L3.md` section 12 on 2026-10-08) carries the same eight independent
 pairs to drift 0.45, where the headline is read. The corrected `C1` agents are not in the
 repository, so the ten saved survival agents at drift 0.45 of the historical hidden-8 held-out
-run (`L3-H8-HELDOUT`, pre-correction trainer, the only in-band hidden-8 instance with saved
-weights) are scored instead (`scripts/run_world_sample_sensitivity.py`,
+run (`L3-H8-HELDOUT`, pre-correction trainer, the only retained instance of the headline
+fingerprint, hidden 8 at G seed 0, the one `C1` was raised under; corrected 2026-10-10 from "the
+only in-band hidden-8 instance with saved weights", since the seed-2 hidden-8 instance
+`L3-H8-GS2-GPU` also kept its 60 agents, see `docs/CORRECTIONS.md`) are scored instead (`scripts/run_world_sample_sensitivity.py`,
 `artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`). The run was scored in two
 sessions on the owner's laptop CPU: eight seeds at code commit `65d47ed`, then, after the
 session's memory guard stopped the process, the last two seeds from the per-seed
@@ -3121,10 +3238,16 @@ Training of either kind adds about 0.1 over an untrained trunk on the same strea
 The survival-over-predictor margin of the primary readout (+0.144) is therefore a
 difference between training regimes, and at matched evaluation input it is not a difference
 of objective. What carries the world signal is the trajectories the survival policy
-generates. The scripted policy, which thrusts and turns at random, visits states where the
-learned law and the authentic law agree closely enough that no tested trunk separates them;
-the survival policy visits states where they differ, and any trained trunk reading those
-streams carries the difference. The primary verdict of 17.2 is unchanged, since it is defined
+generates. Under the scripted policy, which thrusts and turns at random, no tested trunk
+separates the worlds well (0.551 to 0.577 across the four trunks), yet the law-fitting
+detector of 10.1.1, scored on scripted-policy episodes, reads 0.991 from the raw
+observations, so the difference is present in those streams. On the survival policy's
+streams every trained trunk reads it (0.721 to 0.738 on replay), and even the untrained trunk
+reads more (0.636 on replay against 0.551 scripted). Trunks keep more of the difference from
+the survival policy's streams than from the scripted ones. Why is not measured: the size of
+the law deviation along each policy's trajectories has not been recorded (sentence revised
+2026-10-10; it had asserted that the survival policy visits states where the laws differ
+more). The primary verdict of 17.2 is unchanged, since it is defined
 on the `own` protocol. The wording of every claim that calls the signal survival-specific,
 or credits it to the survival objective, is narrowed to this reading (the closing summary
 of this section and the public pages).
@@ -3216,6 +3339,22 @@ input stream does, and the stream carries it because of where the survival polic
 body. The wording "behavior-independent" is retired: the paper says which basis was
 controlled, with which model, and what remained.
 
+**Paired contrasts (post hoc, added 2026-10-10).** Seed-paired differences between the
+survival state and a readout of the same survival episodes at drift 0.45, n = 10, each with its
+t-based 90% interval and a TOST against a smallest effect of interest of 0.05. The 0.05 is
+borrowed from the registered margins: no rule was registered for these contrasts, so they are
+reported and not adjudicated. All three are computed from the `per_seed` arrays of the
+committed artifact.
+
+| state minus | mean [t 90% CI] | TOST p, margin 0.05 |
+|---|---|---|
+| supervised GRU on the stream | +0.009 [-0.011, +0.029] | 0.002 |
+| summary features of the observation trace | +0.018 [-0.004, +0.040] | 0.013 |
+| the residual the best-fitting control leaves (64-unit MLP) | +0.113 [+0.065, +0.161] | 0.980 |
+
+By this test the state reads the same as either stream decoder to within 0.05. It reads 0.113
+above what the best-fitting control leaves, and that difference is not within 0.05.
+
 ### 17.9 Texture comparators: three questions, two answered (revision step 9)
 
 The published texture knockout (14.5) asked one question: does the world-identity direction
@@ -3230,7 +3369,11 @@ comparators were scored on the `C1` agents at drift 0.45 (`scripts/run_texture_f
   RMS deviation 0.0142 and lag-1 autocorrelation of the deviation **0.0014**, i.e. white to
   within rounding (10.1.1 prints the same value as 0.00 at two decimals). The same table's
   held-out authentic transitions give 0.0143 and its training transitions 0.0141: the three
-  figures are one quantity measured on three samples, not a disagreement.
+  figures are one quantity measured on three samples, not a disagreement. *(Note 2026-10-10:
+  that profile and that table are the seed-77 calibration sample of 10.1.1, not a held-out
+  sample; its 0.0143 column scores the same seed-77 episodes with a different noise draw. On
+  the disjoint held-out sample of 10.1.1 `gn` reads 0.0143 one-step and lag-1 0.01. The
+  matched eps of `qd` below was fixed on the calibration sample and stays as recorded.)*
 - `qd`: the authentic law minus a hand-authored quadratic drag, eps 6.0. Gate 0 found no
   in-band eps (amendment in the spec), so eps was fixed to match `gn` on one-step RMS
   deviation, on the same 60-episode profile: at eps 1 the `qd` deviation is 0.002356 and the
@@ -3275,6 +3418,16 @@ gate 0 and the untrained arm reads above the survival arm, this run is excluded 
 learned-texture rule and is not a clean negative; it is reported here descriptively only,
 is not promoted to `artifacts/`, and changes no wording above. No `gn`-trained run was
 ever executed and no output for one exists.
+
+*(Note 2026-10-10: "hidden 8" in this addendum was the surrogate's capacity and, through the
+`--hidden 8` conflation recorded in 14.5.1, the agent trunk's width as well: all 60 saved
+agents of `T-qd` have an 8-unit GRU, not the registered 96-unit one. The run's speed positive
+control is also short in 8 of its 60 pools (worst 0.7018), which this addendum did not report.
+The intervals quoted above are seed-bootstrap intervals; the t-based 90% interval of the same
+ten survival values is [0.537, 0.624], computed from the local, unpromoted
+`fullruns/T_qd_l3_h8_wm/expB2_results.json`. The exclusion stands and no reading changes; see
+the 14.5.1 correction of the same date. The last sentence above was overtaken on 2026-10-08,
+when the `gn`-trained run of 14.5.1 was executed.)*
 
 **Reading.** At the same one-step magnitude, a hand-authored perturbation that is coherent
 over time and depends on the state is read by the survival agent's state, through the very
@@ -3398,8 +3551,10 @@ return, which is consistent with selection having no gradient toward a detector.
 6. **Nothing here is specific to learned dynamics.** A hand-authored, temporally coherent
    drag of the same one-step size is read through the same direction; white jitter is not
    (17.9).
-7. **The evolutionary null stays restricted** to the pooled readout, which reads 0.609
-   where independent individuals average 0.649 (17.11).
+7. **The evolutionary result is uninformative, not a null** (revised 2026-10-10). Both
+   readouts are flat, two registered gates fail, and the preregistration routes that to
+   uninformative (13.F). The pooled readout reads 0.609 where independent individuals
+   average 0.649 (17.11).
 
 The claim the corrected record supports: in this world, an agent trained with survival and
 next-observation prediction at the registered budget carries a decodable difference between

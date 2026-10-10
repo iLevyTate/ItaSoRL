@@ -88,10 +88,11 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      comparators (17.9): a hand-authored coherent drag is read through the original
      direction (0.721) and by a fresh probe (0.754), white jitter is not, so nothing
      is specific to learned dynamics; observation localization (14.6).
-   - 4.7 Experiment C (FINDINGS 13.D, 13.E): selection did not raise world
-     decodability under the pooled population readout (contrast -0.002 [-0.013,
-     +0.009]); the readout is not a per-individual test, and on known-decodable agents
-     it reads 0.609 where individuals average 0.649 (17.11). Out of the abstract.
+   - 4.7 Experiment C (FINDINGS 13.D, 13.E, 13.F): the contrast is flat under the
+     pooled population readout (-0.002 [-0.013, +0.009]) and under the per-individual
+     readout (no individual at 0.65), and the registered verdict is uninformative
+     because gates 1 and 5 fail (13.F). On known-decodable agents the pooled readout
+     reads 0.609 where individuals average 0.649 (17.11). Out of the abstract.
 5. **Limitations** (FINDINGS 11; `docs/CORRECTIONS.md`)
    - One surrogate per run and one set of evaluation worlds: intervals over agent
      seeds condition on both. L0 depends on the world sample (`artifacts/l0_audit/`).
@@ -142,7 +143,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 24 | Common-garden control, re-scored: prefix condition remains decodable after restoring authentic dynamics (frozen rule passes both directions; memory and physical footprint not separated) | historical; secondary | survival cg_tail 0.666 forward / 0.684 reverse (>= 0.65 and > untrained + 0.05); late tail 0.586/0.577 decays below bar | FINDINGS 10.6.1 | artifacts/expB2/heldout_l3_h8_cg_rescore.json | - |
 | 25 | Reverse transfer direction-dependent: coarse-to-subtle FAILS | historical; secondary | survival 0.638, frozen rule fails | FINDINGS 10.6 | artifacts/expB2/heldout_l3_h7_reverse_summary.json | - |
 | 26 | Cross-recipe transfer: the direction reads a random-Fourier-features law fit on the same data (rule passes; interval lower bound 0.654) | historical; secondary | survival 0.684, t 90% CI [0.654, 0.715], 7/10 vs untrained 0.548; rule passes, margin +0.034 | FINDINGS 10.7 | artifacts/l3_crossrecipe/summary.json | - |
-| 27 | Exp C: the milestone-3 pilot null was INVALIDATED (13.C); the fixed-code re-run is a validated null under the pooled population readout, which is not a per-individual test (13.E) | no actor-critic; exploratory | contrast -0.002, t 90% CI [-0.013, +0.009]; final treatment AUROC 0.509 | FINDINGS 13.C, 13.D | artifacts/expC/emergence_pilot_summary.json (holds the re-run, `git_commit_at_run` a0cb850) | - |
+| 27 | Exp C: the milestone-3 pilot null was INVALIDATED (13.C); the fixed-code re-run and the per-individual rerun both have a flat contrast, and the registered verdict is uninformative because gates 1 and 5 fail (13.F) | no actor-critic; exploratory | contrast -0.002, t 90% CI [-0.013, +0.009]; final treatment AUROC 0.509; per-individual final treatment means 0.534 to 0.539, no individual at 0.65 | FINDINGS 13.C, 13.D, 13.F | artifacts/expC/emergence_pilot_summary.json (holds the re-run, `git_commit_at_run` a0cb850); artifacts/expC/emergence_pilot_per_individual_summary.json | - |
 | 28 | Sensory-echo control passes at hidden 8 | historical; secondary | `resid_obs` 0.731 [0.690, 0.772], 8/10 vs untrained 0.534; joint sensory-plus-behavior 0.670 | FINDINGS 10.4.2 | artifacts/expB2/sensory_echo_l3_h8.json | - |
 | 29 | At 300 updates the survival arm without the auxiliary did not meet the bar | historical; primary, replaced by C1 and C2 | survival without it 0.601 [0.549, 0.654], 1/10; predictor 0.589 | FINDINGS 10.8 | artifacts/expB2/arch_baseline_l3_h8_nowm.json | - |
 | 30 | Device control: the CPU is not the cause | historical; primary, replaced by C1 and C2 | survival with the auxiliary on the same CPU sandbox 0.730 [0.668, 0.791], 8/10; paired lead over 0.601 +0.128 [+0.089, +0.168] | FINDINGS 10.8 | artifacts/expB2/device_control_l3_h8_wm_cpu.json | - |
@@ -155,13 +156,13 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 37 | Engagement margin sweep on committed cells | historical gate audit | 80/80 cells pass at margins 0.05 to 0.15; 79/80 from 0.20 to 0.30 | FINDINGS 11, note 2 | artifacts/expB2/bv3_n10_gates.json; artifacts/expB2/engagement_margin_cloud_runs.json | - |
 | 38 | No-auxiliary survival arm at 450 updates: above the bar, skill match failed, so no mediation inference | historical; secondary | 0.717 [0.679, 0.755], 8/10; return -0.156 against the window [-0.269, -0.169] | FINDINGS 10.8.1 | artifacts/expB2/skill_matched_l3_h8_nowm_u450.json | - |
 | 39 | Agent-accessible detector on the agent's own observations reads the L3 surrogate | agent-free | AUROC 0.991 | FINDINGS 10.1.1 | artifacts/surrogate_diagnostics.json | - |
-| 40 | Hand-authored quadratic-drag comparator has no in-band gate-0 value | agent-free | detector 0.601 to 0.768 across eps 0.5 to 16; floor leaves tolerance from eps 4 | texture spec amendment | artifacts/texture/gate0_qd.json | - |
+| 40 | Hand-authored quadratic-drag comparator has no in-band gate-0 value | agent-free | detector 0.601 to 0.768 across eps 0.5 to 16; floor leaves tolerance from eps 8 (0.560 at eps 4 is inside the 0.1 tolerance) | texture spec amendment | artifacts/texture/gate0_qd.json | - |
 | 41 | Corrected primary run: survival with the auxiliary, 300 updates, n = 10; MET on the decodability clauses, L0 open on the registered pair | corrected; primary | 0.733 [0.669, 0.797], 8/10; predictor 0.589, untrained 0.523; margins +0.144 [+0.072, +0.217], +0.210 [+0.135, +0.286]; L0 0.559 (TOST p 0.939) | FINDINGS 17.2 | artifacts/expB2/corrected_l3_h8_wm.json; artifacts/corrected_verdicts.json | - |
 | 42 | Corrected auxiliary contrast on one device, and the budget curve to 450 updates | corrected; primary (contrast), exploratory (curve) | without the auxiliary 0.613 [0.552, 0.675], NOT MET; C1 minus C2 +0.120 [+0.065, +0.174]; at 450 updates 0.821 with and 0.685 without, return difference -0.054 [-0.198, +0.090] | FINDINGS 17.4, 17.10 | artifacts/expB2/corrected_l3_h8_nowm.json; artifacts/budget_curve.json | budget_curve.png |
 | 43 | L0 across independent world-sample pairs; balanced readout | corrected; secondary | eight independent pairs average 0.493 (sd 0.049, TOST over pairs p 0.022); balanced survival readout 0.767 [0.718, 0.816] | FINDINGS 17.5 | artifacts/l0_audit/corrected_l3_h8_wm.json | - |
 | 44 | At matched evaluation input a prediction-trained trunk reads the world as well as the survival trunk | corrected; secondary | replay: survival 0.733, predictor 0.721, exposure-matched predictor 0.738; survival minus predictor_logged -0.005 [-0.038, +0.027]; scripted policy 0.55 to 0.58 for every arm | FINDINGS 17.6 | artifacts/policy_controls/corrected_l3_h8_wm.json | - |
 | 45 | Retention under identical input not shown; the common garden reads the physical footprint | corrected; exploratory | replay 0.561 [0.545, 0.577]; reset hidden 0.662 [0.638, 0.687]; factorial physical 0.658, hidden 0.569 | FINDINGS 17.7 | artifacts/persistence/corrected_l3_h8_wm.json | - |
-| 46 | The best-fitting control leaves a signal under the bar; the observation stream alone carries the world | corrected; secondary | MLP joint control 0.620 [0.584, 0.656] (held-out R^2 0.89); sequence GRU on observations 0.724 | FINDINGS 17.8 | artifacts/control_diagnostics/corrected_l3_h8_wm.json | - |
+| 46 | The best-fitting control leaves a signal under the bar; the observation stream alone carries the world | corrected; secondary | MLP joint control 0.620 [0.584, 0.656] (held-out R^2 0.89); sequence GRU on observations 0.724; post hoc paired state minus readout, t 90% CI and TOST p against a borrowed 0.05: sequence GRU +0.009 [-0.011, +0.029] (p 0.002), summary features +0.018 [-0.004, +0.040] (p 0.013), MLP control residual +0.113 [+0.065, +0.161] (p 0.980) | FINDINGS 17.8 | artifacts/control_diagnostics/corrected_l3_h8_wm.json | - |
 | 47 | A hand-authored coherent drag is read; white jitter is not | corrected; exploratory | qd transfer 0.721, fresh 0.754 (+0.142 over untrained); gn transfer 0.527, fresh 0.488 | FINDINGS 17.9 | artifacts/texture/corrected_l3_h8_wm_{gn,qd}.json | - |
 | 48 | Decoder effect split between trunk and trajectories (post hoc) | corrected; exploratory | trunk effect +0.056 and +0.080; stream effect +0.039 and +0.064 | FINDINGS 17.10 | artifacts/cross_replay/corrected_c1_c2.json | - |
 | 49 | The pooled evolutionary readout is attenuated, not blind | corrected; exploratory | pooled 0.609 against per-individual 0.649 on known-decodable agents; value of world information -0.056 [-0.092, -0.020] | FINDINGS 17.11 | artifacts/population_readout/corrected_l3_h8_wm.json | - |
@@ -176,6 +177,11 @@ note 9.
 - Rows 38 to 49 added 2026-10-06 (revision): the 450-update arm, the two agent-free
   detector results of revision steps 9 and 10, the corrected runs, and the readouts on
   the corrected agents (FINDINGS 17).
+- Rows 27, 40 and 46 and section 4.7 revised 2026-10-10: row 27 and 4.7 give the 13.F
+  verdict (flat contrast, registered verdict uninformative), row 40 says where the
+  quadratic-drag floor leaves tolerance as the gate-0 artifact records it (eps 8), and
+  row 46 carries the post hoc paired contrasts of FINDINGS 17.8. The audit reads those
+  three rows.
 - Rows 28 to 37 added 2026-09-28 for the sections that resolved after July
   (10.4.2, 10.8, 10.9, 11 note 2, 14 to 14.7, 15). Row 12 is narrowed by 10.8, and
   row 27 now records the 13.D re-run. The published GPU L3 cells are not committed,
@@ -188,8 +194,9 @@ note 9.
 - Claims 9-10 resolved (2026-07-16): per-seed pooled targets promoted to
   `artifacts/expB2/bv3_n10_summary.json` and
   `artifacts/expB2/sysid_ceiling_n10_summary.json` by the same script;
-  `scripts/audit_stats_recheck.py` re-verifies every inventory number against
-  the committed artifacts.
+  `scripts/audit_stats_recheck.py` recomputes those values from the committed
+  artifacts and compares them with its own copies of the quoted numbers. It reads
+  numbers from this page only in rows 27, 40 and 46 (note of 2026-10-10).
 - Rows 23-24 resolved (spec 2026-07-14, per-seed summary committed as
   `artifacts/expB2/heldout_l3_h8_summary.json`): transfer generalizes, and the
   re-scored common-garden control passes the frozen rule on both directions

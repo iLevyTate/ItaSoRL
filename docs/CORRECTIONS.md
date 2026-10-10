@@ -166,6 +166,9 @@ sigma 0.02, not a universal ceiling.
 **What this does not change.** No organism number. Introducing early stopping now would make
 a different fingerprint, with its own gate 0 and its own provenance.
 
+*(2026-10-10: the held-out sample in this entry overlapped G's training episodes; see the
+2026-10-10 entry on the surrogate diagnostics below.)*
+
 ## 2026-10-06: what the bootstrap correction did to the primary comparisons
 
 **Runs.** `C1` and `C2` (`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`)
@@ -217,3 +220,90 @@ the provenance records changed hash with identical code: the C1 readouts and the
 promotion now name `34e2c0d`, and the exploratory cross-run replay and the C2 promotion now
 name `7870bba`. No number changed. The pre-rewrite hashes are deliberately not listed here,
 because they still resolve on GitHub to commits that carry the tables.
+
+## 2026-10-10: the surrogate's held-out diagnostics were in-sample
+
+**What was wrong.** `surrogate_diagnostics` scored `G`'s held-out error on 60 episodes that
+start at seed 77. Episode i of a sample is seeded by the sample's base seed plus i (world,
+weather, ecology and the scripted action stream), and every `G` was trained on 250 episodes
+that start at its own seed (0, 1 or 2). The 60 episodes were therefore episodes 77 to 136 of
+each `G`'s training data, bit for bit. The train column also used seed 0 for every `G`, which
+is the training data of the two seed-0 instances only. FINDINGS 10.1.1, the 2026-10-06 entry
+above, the docstrings and the texture comparator spec called the sample held out at disjoint
+seeds.
+
+**Change.** The held-out sample now starts at seed 100000, `surrogate_diagnostics` refuses a
+held-out range that overlaps the training range, and `scripts/run_surrogate_diagnostics.py`
+scores each `G`'s train column on its own training seed. The committed artifact
+`artifacts/surrogate_diagnostics.json` keeps every stored value and gains a `disjoint_heldout`
+block. The runner writes that block only after the rerun reproduces the stored
+agent-accessible detector scores exactly and the stored deviation profiles to within 1e-6;
+the largest profile difference was 6.5e-8, from retraining `G` on the owner's workstation
+stack (Python 3.13.2, numpy 1.26.4, torch 2.7.0). FINDINGS 10.1.1 now leads with the
+held-out table and keeps the seed-77 table, relabeled as the calibration sample: the
+quadratic drag's eps 6.0 was matched on that sample (FINDINGS 17.9,
+`artifacts/texture/qd_eps1_calibration.json`), so it stays as recorded.
+
+**Effect.** The headline `G` errs by 0.0354 RMS per step held out, against 0.0349 on the
+calibration sample. Its open-loop rollout gap at 24 steps is 0.076 against 0.072, and the
+lag-1 autocorrelation of its deviation is 0.83 against 0.84. The other three instances and
+the two comparators move by similar amounts (FINDINGS 10.1.1). The agent-accessible
+detector (0.991, and 0.967 for the quadratic drag) reads neither sample and is unchanged.
+
+**What this does not change.** No organism number, no gate and no verdict. The surrogates
+are the same frozen nets, and the gate-0 oracle never read this sample.
+
+## 2026-10-10: both comparator-trained runs had an 8-unit agent trunk
+
+**What was wrong.** Two comparator-trained runs were executed: `T-qd` (quadratic drag,
+2026-10-06, set aside in FINDINGS 17.9) and `T-gn` (white jitter, 2026-10-08 and 09, FINDINGS
+14.5.1). The record said that only `T-gn` had an 8-unit agent trunk, that its launch command
+caused it, and that every other run in the project had the registered 96-unit trunk. All 60
+saved agents of `T-qd` also have `cell.weight_hh` `(24, 8)`, its recorded config fingerprint
+reproduces only with `--hidden 8`, and its speed positive control is short in 8 of 60 pools
+(worst 0.7018), which no document reported. The error was written into the specs before either
+run: the 2026-10-06 texture comparator spec calls the protocol a "hidden 8 trunk", and the
+frozen command block of the 2026-10-09 `gn` spec reads `--l3-hidden 8 --hidden 8`.
+
+**Change.** Dated corrections under FINDINGS 14.5.1 and the 17.9 addendum, a dated entry in
+PREREGISTRATION_L3 section 12, and dated notes at the end of both specs; no frozen text is
+rewritten. The 17.9 addendum's seed-bootstrap interval for `T-qd` now has the t-based interval
+beside it, [0.537, 0.624], computed from the local run bundle.
+
+**What this does not change.** No verdict. `T-gn` was already uninformative and `T-qd` already
+excluded, and no claim rests on either. Runs whose agents were not kept cannot be checked from
+their weights; the other seven saved agent sets checked on 2026-10-10 all have the registered
+trunk.
+
+## 2026-10-10: the held-out hidden-8 run was not the only in-band hidden-8 instance with saved agents
+
+**What was wrong.** FINDINGS 17.5.1 and the frozen specs of the drift-0.45 world-sample
+sensitivity run (2026-10-08) and the reverse-direction readout (2026-10-09) say the historical
+held-out run is "the only in-band hidden-8 instance with saved weights". The seed-2 hidden-8
+instance (`L3-H8-GS2-GPU`, oracle 0.939, in band, FINDINGS 10.9) also kept its 60 agents in
+`fullruns/l3_h8_gseed2_gpu/agents/` (10 seeds at drifts 0 and 0.45, three arms), as
+`fullruns/l3_h8_heldout/agents/` does.
+
+**Change.** FINDINGS 17.5.1 now says the held-out run is the only retained instance of the
+headline fingerprint (hidden 8, G seed 0), the fingerprint the corrected `C1` agents were raised
+under, and names the seed-2 instance; both specs carry a dated note at their end and are
+otherwise left as frozen.
+
+**What this does not change.** Both readouts scored the agents their specs named, and neither
+result moves. The seed-2 agents have not been scored by either design. Like every saved agent
+set, both directories are gitignored local files and are not in the repository.
+
+## 2026-10-10: three Experiment B cells in FINDINGS 3.1 were off by 0.001
+
+**What was wrong.** The FINDINGS 3.1 table gave the drift-0 target as 0.460 and the shuffled
+control as 0.522 at drift 0.20 and 0.548 plus or minus 0.059 at drift 0.45. The promoted
+artifact `artifacts/expB/summary.json` and the run log it was promoted from
+(`fullruns/06302026/steps/expB_full.log`) read 0.459, 0.523 and 0.547 plus or minus 0.058.
+The run recorded no per-seed values, so the artifact's three-decimal means are the source.
+The audit checked three of the twelve table values the artifact stores.
+
+**Change.** The three cells now match the artifact and the log, with a dated note under the
+table giving the old values, and the audit checks all twelve stored values (target mean and
+standard deviation, shuffled mean, speed mean, at each drift).
+
+**What this does not change.** Every reading stays at chance, and no verdict moves.
