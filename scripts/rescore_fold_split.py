@@ -39,6 +39,7 @@ import json
 import os
 import platform
 import re
+import struct
 import sys
 import zipfile
 from collections import defaultdict
@@ -68,11 +69,27 @@ def npz_shapes(path: str) -> dict:
                 elif version == (2, 0):
                     shape = np.lib.format.read_array_header_2_0(fh)[0]
                 else:
-                    # Format 3.0 (a UTF-8 header) has no public reader; the private one reads
-                    # every version numpy knows and refuses the rest.
-                    shape = np.lib.format._read_array_header(fh, version)[0]
+                    # Format 3.0 (a UTF-8 header) has no public reader, and numpy 2 moved the
+                    # private one, so the header is read here from the documented layout.
+                    shape = _npy_v3_shape(fh, version)
             out[name[:-4] if name.endswith(".npy") else name] = tuple(int(x) for x in shape)
     return out
+
+
+_SHAPE_FIELD = re.compile(r"""['"]shape['"]\s*:\s*\(([^)]*)\)""")
+
+
+def _npy_v3_shape(fh, version) -> tuple:
+    """Shape from a .npy format 3.x header: a little-endian uint32 length, then a UTF-8
+    dict literal whose 'shape' entry is a tuple of ints (the NEP 1 layout). Any other
+    version, or a header without a readable shape, is refused."""
+    if version[0] != 3:
+        raise ValueError(f"unsupported .npy format version {version}")
+    (hlen,) = struct.unpack("<I", fh.read(4))
+    m = _SHAPE_FIELD.search(fh.read(hlen).decode("utf-8"))
+    if m is None:
+        raise ValueError("no shape field in the .npy header")
+    return tuple(int(x) for x in m.group(1).split(",") if x.strip())
 
 
 def pool_shape(shapes: dict) -> dict:
