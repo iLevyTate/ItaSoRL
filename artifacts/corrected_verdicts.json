@@ -192,6 +192,7 @@
      "margin": 0.05,
      "n": 10
     },
+    "non_finite_cells": 0,
     "clauses": {
      "mean_at_bar": true,
      "lower_bound_at_bar": true,
@@ -201,6 +202,66 @@
     "decodability": "MET",
     "verdict": "MET on the decodability clauses, conditional on open gate(s): l0",
     "met": false
+   },
+   "drift_zero": {
+    "untrained": {
+     "per_seed": [
+      0.404959,
+      0.492149,
+      0.533884,
+      0.494215,
+      0.526446,
+      0.51281,
+      0.46157,
+      0.452479,
+      0.482645,
+      0.544628
+     ],
+     "mean": 0.490579,
+     "t90": [
+      0.465924,
+      0.515233
+     ]
+    },
+    "predictor": {
+     "per_seed": [
+      0.431405,
+      0.553719,
+      0.607438,
+      0.483058,
+      0.535124,
+      0.486364,
+      0.482645,
+      0.42314,
+      0.54876,
+      0.52686
+     ],
+     "mean": 0.507851,
+     "t90": [
+      0.474646,
+      0.541057
+     ]
+    },
+    "survival": {
+     "per_seed": [
+      0.572727,
+      0.550413,
+      0.56405,
+      0.573554,
+      0.538017,
+      0.53843,
+      0.594215,
+      0.560331,
+      0.552479,
+      0.55
+     ],
+     "mean": 0.559421,
+     "t90": [
+      0.549332,
+      0.569511
+     ]
+    },
+    "note": "registered evaluation-world pair; each arm scored on episodes its own actor generates; reported, not thresholded"
    },
    "correction_effect": {
     "0.00": {
@@ -600,6 +661,7 @@
      "margin": 0.05,
      "n": 10
     },
+    "non_finite_cells": 0,
     "clauses": {
      "mean_at_bar": false,
      "lower_bound_at_bar": false,
@@ -609,6 +671,66 @@
     "decodability": "NOT MET",
     "verdict": "NOT MET",
     "met": false
+   },
+   "drift_zero": {
+    "untrained": {
+     "per_seed": [
+      0.424793,
+      0.47686,
+      0.489256,
+      0.524793,
+      0.478099,
+      0.531818,
+      0.46157,
+      0.454959,
+      0.509504,
+      0.528926
+     ],
+     "mean": 0.488058,
+     "t90": [
+      0.467409,
+      0.508707
+     ]
+    },
+    "predictor": {
+     "per_seed": [
+      0.431405,
+      0.553719,
+      0.607438,
+      0.483058,
+      0.535124,
+      0.486364,
+      0.482645,
+      0.42314,
+      0.54876,
+      0.52686
+     ],
+     "mean": 0.507851,
+     "t90": [
+      0.474646,
+      0.541057
+     ]
+    },
+    "survival": {
+     "per_seed": [
+      0.478512,
+      0.511983,
+      0.503719,
+      0.50124,
+      0.499174,
+      0.557438,
+      0.48719,
+      0.53719,
+      0.542149,
+      0.532231
+     ],
+     "mean": 0.515083,
+     "t90": [
+      0.500105,
+      0.53006
+     ]
+    },
+    "note": "registered evaluation-world pair; each arm scored on episodes its own actor generates; reported, not thresholded"
    },
    "correction_effect": {
     "0.00": {
