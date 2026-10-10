@@ -141,11 +141,14 @@ at build time from the names of the served film files, so it spells none of them
 and film-production specs are left out, and so is any figure a run script drew inside a run
 bundle (under `artifacts/goal_stakes/` or `fullruns/`), since no one has viewed those for
 names. A Markdown link to the repository placeholder or to a file the archive does not carry
-becomes plain text. `PROVENANCE.md` lists the first and last commit of every preregistration
-and spec in the archive, with UTC committer dates and short hashes, read from git at build
-time. It is left out, with the reason in `README_SUPPLEMENT.md`, when the build runs outside a
-git checkout or from a shallow clone. `--require-runs` stops the build with nothing written
-when a run bundle in `RUN_DIRS` is absent.
+becomes plain text. `PROVENANCE.md` lists every commit to each preregistration and spec in
+the archive, oldest first, with UTC committer dates and times, short hashes and a count per
+file, read from git at build time. Edits made on side branches are listed under their own
+hashes, and a merge commit is listed when its version of the file differs from every parent.
+No names, e-mail addresses or commit messages are included. It is left out, with the reason
+in `README_SUPPLEMENT.md`, when the build runs outside a git checkout or from a shallow clone.
+`--require-runs` stops the build with nothing written when a run bundle in `RUN_DIRS` is
+absent.
 
 Inside the extracted archive the test suite and the full scalar audit pass. The audit skips its
 one check on the film VO and music spec, which the archive leaves out.

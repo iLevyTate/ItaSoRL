@@ -21,9 +21,9 @@
                and Markdown links into material the archive does not carry become plain text.
                Every shipped file, binaries included, is checked for identity strings.
                README_SUPPLEMENT.md says what the archive holds, how to install and run it,
-               and which run bundles were included; PROVENANCE.md lists the first and last
-               commit of every preregistration and spec, from git at build time; SHA256SUMS
-               lists every other file. --require-runs fails the build when a RUN_DIRS bundle
+               and which run bundles were included; PROVENANCE.md lists every commit to
+               each preregistration and spec (UTC date and time, short hash, a count per
+               file), from git at build time; SHA256SUMS lists every other file. --require-runs fails the build when a RUN_DIRS bundle
                is absent.
 
 Usage:
@@ -661,9 +661,10 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
              "here; its committed per-seed records are under artifacts/.")
     L += ["", "## Files", ""]
     if provenance is None:
-        L.append(f"- `{PROVENANCE_NAME}` lists the first and last commit of every "
-                 "preregistration and spec in the archive, read from git when the archive was "
-                 "built, so the freeze timing of each can be checked.")
+        L.append(f"- `{PROVENANCE_NAME}` lists every commit to each preregistration and spec "
+                 "in the archive, with its UTC date and time and short hash and a count per "
+                 "file, read from git when the archive was built, so the freeze timing of each "
+                 "and the date of every later edit can be checked.")
     else:
         L.append(f"- There is no `{PROVENANCE_NAME}`: {provenance}.")
     L.append(f"- `SHA256SUMS` lists the SHA-256 of every file in the archive except itself, "
@@ -718,11 +719,33 @@ def _git(args: list[str]) -> str | None:
     return res.stdout
 
 
+def _log_records(args: list[str]) -> list[tuple[str, str, list[str]]]:
+    """[(short hash, committer time, [paths])] from a `git log --name-only` whose format line
+    is `%x00%h %ct`, newest first; [] when git gives nothing."""
+    out = _git(["-c", "core.quotepath=off", "log", "--name-only", "--format=%x00%h %ct", *args])
+    recs = []
+    for chunk in (out or "").split("\0")[1:]:
+        lines = [ln.strip() for ln in chunk.splitlines() if ln.strip()]
+        if lines:
+            h, ts = lines[0].split()
+            recs.append((h, ts, lines[1:]))
+    return recs
+
+
 def provenance_rows(rels: list[str]):
-    """([(path, first commit, first hash, last commit, last hash)], None), or (None, reason)
-    when the history is not there to read: outside a git checkout, or in a shallow clone,
-    whose oldest commit is the clone boundary and not when a file entered the history.
-    Committer dates in UTC, no names or e-mail addresses."""
+    """([(path, [(UTC time, short hash, note), ...] oldest first, dirty)], None), or
+    (None, reason) when the history is not there to read: outside a git checkout, or in a
+    shallow clone, whose oldest commit is the clone boundary and not when a file entered the
+    history.
+
+    Every commit that changed the file is listed. The non-merge commits come from
+    `git log --follow`, which walks every merged branch (an edit made on a side branch keeps its
+    own hash even when the main line later carries the same text) and follows renames. A merge
+    commit is listed when its version of the file differs from every parent, i.e. when it joins
+    edits from two branches or resolves a conflict; a merge that takes one side unchanged added
+    nothing. `note` is "merge", or the file's path when the commit made it under an earlier
+    one. `dirty` is True when the file in the working tree differs from the last commit.
+    Committer dates in UTC, no names, e-mail addresses or commit messages."""
     top = (_git(["rev-parse", "--show-toplevel"]) or "").strip()
     if not top or os.path.normcase(os.path.realpath(top)) != os.path.normcase(os.path.realpath(ROOT)):
         return None, "the archive was not built from a git checkout"
@@ -733,28 +756,63 @@ def provenance_rows(rels: list[str]):
         return datetime.datetime.fromtimestamp(int(ts), tz=datetime.timezone.utc).strftime(
             "%Y-%m-%d %H:%M")
 
+    status = _git(["-c", "core.quotepath=off", "status", "--porcelain", "--", *rels]) or ""
+    changed = {ln[3:].split(" -> ")[-1].strip() for ln in status.splitlines() if len(ln) > 3}
     rows = []
     for rel in rels:
-        log = [ln.split() for ln in (_git(["log", "--follow", "--format=%h %ct", "--", rel])
-                                     or "").splitlines() if ln.strip()]
-        if log:
-            rows.append((rel, utc(log[-1][1]), log[-1][0], utc(log[0][1]), log[0][0]))
-        else:
-            rows.append((rel, "not committed", "", "not committed", ""))
+        edits = _log_records(["--follow", "--", rel])
+        paths = sorted({p for _, _, ps in edits for p in ps} | {rel})
+        merges = [(h, ts, ["merge"]) for h, ts, ps in
+                  _log_records(["--full-history", "--merges", "-c", "--", *paths])
+                  if set(ps) & set(paths)]
+        seen, commits = set(), []
+        for h, ts, ps in sorted(edits + merges, key=lambda r: int(r[1])):
+            if h in seen:
+                continue
+            seen.add(h)
+            note = "merge" if ps == ["merge"] else next((p for p in ps if p != rel), "")
+            commits.append((utc(ts), h, note))
+        rows.append((rel, commits, rel in changed))
     return rows, None
 
 
 def provenance_md(rows, rename) -> str:
+    """PROVENANCE.md: a summary line per file, then every commit to it."""
     out = ["# Provenance of the preregistrations and specs", "",
-           "Read from the git history when this archive was built: the first and the last "
-           "commit that touched each file, with committer dates in UTC and short commit hashes. "
-           "Names and e-mail addresses are not included. The first commit is when the file "
-           "entered the history. A later last commit is a later edit, and the file's own dated "
-           "entries say what changed.", "",
-           "| File | First commit (UTC) | Hash | Last commit (UTC) | Hash |",
-           "|---|---|---|---|---|"]
-    for rel, first, fh, last, lh in rows:
-        out.append(f"| `{rename(rel)}` | {first} | {fh} | {last} | {lh} |")
+           "Read from the git history when this archive was built: every commit that changed "
+           "each file, oldest first, with committer dates and times in UTC and short commit "
+           "hashes. Names, e-mail addresses and commit messages are not included. The first "
+           "commit is when the file entered the history, and each later one is an edit; the "
+           "file's own dated entries say what changed. Commits on every branch that was merged "
+           "are counted, so an edit made on a side branch is listed under its own hash. A merge "
+           "commit is listed when its version of the file differs from every parent, which "
+           "happens when it joins edits from two branches or resolves a conflict. A commit made "
+           "while the file had an earlier path names that path.", "",
+           "## Summary", "",
+           "| File | Commits | First commit (UTC) | Last commit (UTC) |",
+           "|---|---|---|---|"]
+    for rel, commits, _ in rows:
+        if commits:
+            (f, fh, _), (la, lh, _) = commits[0], commits[-1]
+            out.append(f"| `{rename(rel)}` | {len(commits)} | {f} ({fh}) | {la} ({lh}) |")
+        else:
+            out.append(f"| `{rename(rel)}` | 0 | not committed | not committed |")
+    out += ["", "## Every commit"]
+    for rel, commits, dirty in rows:
+        out += ["", f"### `{rename(rel)}`", ""]
+        if not commits:
+            out.append("Not committed when the archive was built.")
+            continue
+        n = len(commits)
+        line = (f"{n} commit{'s' if n != 1 else ''}, first {commits[0][0]} ({commits[0][1]}), "
+                f"last {commits[-1][0]} ({commits[-1][1]}).")
+        if dirty:
+            line += (" The copy in this archive has changes that were not committed when it was "
+                     "built.")
+        out += [line, "", "| # | Commit (UTC) | Hash | Note |", "|---|---|---|---|"]
+        for i, (when, h, note) in enumerate(commits, 1):
+            note = "merge" if note == "merge" else (f"path `{rename(note)}`" if note else "")
+            out.append(f"| {i} | {when} | {h} | {note} |")
     return "\n".join(out) + "\n"
 
 

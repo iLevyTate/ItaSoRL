@@ -610,19 +610,124 @@ def test_links_the_archive_cannot_resolve_become_plain_text():
                             "docs/specs/b.md", shipped) == "[a](a.md) [up](../FINDINGS.md) out"
 
 
-def test_provenance_lists_first_and_last_commits_without_names(tmp_path, monkeypatch):
+def _git_in(d, *args, when=None):
+    import subprocess
+    env = dict(os.environ)
+    if when:
+        env["GIT_AUTHOR_DATE"] = env["GIT_COMMITTER_DATE"] = when
+    res = subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.org",
+                          "-c", "commit.gpgsign=false", "-c", "core.autocrlf=false", *args],
+                         cwd=d, env=env, check=True, capture_output=True, text=True)
+    return res.stdout.strip()
+
+
+def test_provenance_lists_every_commit_in_a_built_history(tmp_path, monkeypatch):
+    """Every commit to a file, oldest first: the first commit under an earlier path, side-branch
+    edits (one of them later duplicated on the main line, so plain `git log` hides it), and the
+    merge that joins edits from two branches; not the merges that add nothing to the file."""
+    import shutil
+
+    import reproduce
+    if shutil.which("git") is None:
+        pytest.skip("git is not installed")
+    d = str(tmp_path)
+    doc = "docs/PREREGISTRATION_X.md"
+    n = [0]
+
+    def commit(msg, files=None):
+        n[0] += 1
+        when = f"2026-01-01T00:{n[0]:02d}:00+00:00"
+        for path, text in (files or {}).items():
+            os.makedirs(os.path.dirname(os.path.join(d, path)) or d, exist_ok=True)
+            with open(os.path.join(d, path), "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(text)
+            _git_in(d, "add", path)
+        _git_in(d, "commit", "-q", "-m", msg, when=when)
+        return _git_in(d, "rev-parse", "--short", "HEAD")
+
+    def merge(branch):
+        n[0] += 1
+        when = f"2026-01-01T00:{n[0]:02d}:00+00:00"
+        _git_in(d, "merge", "-q", "--no-ff", "--no-edit", branch, when=when)
+        return _git_in(d, "rev-parse", "--short", "HEAD")
+
+    def text(a="a", b="b", c="c", e="d"):
+        return f"{a}\n{b}\n{c}\n{e}\n"
+
+    _git_in(d, "init", "-q")
+    _git_in(d, "symbolic-ref", "HEAD", "refs/heads/main")
+    c1 = commit("add", {"PREREGISTRATION_X.md": text()})
+    os.makedirs(os.path.join(d, "docs"))
+    _git_in(d, "mv", "PREREGISTRATION_X.md", doc)
+    c2 = commit("move")
+    _git_in(d, "branch", "side")
+    _git_in(d, "checkout", "-q", "side")
+    c3 = commit("side a", {doc: text(a="a2")})
+    _git_in(d, "checkout", "-q", "main")
+    c4 = commit("main d", {doc: text(e="d2")})
+    m1 = merge("side")                                    # joins a2 and d2: listed
+    _git_in(d, "branch", "side2")
+    _git_in(d, "checkout", "-q", "side2")
+    c5 = commit("side2 c", {doc: text(a="a2", c="c2", e="d2")})
+    _git_in(d, "checkout", "-q", "main")
+    c6 = commit("main c, same text", {doc: text(a="a2", c="c2", e="d2")})
+    merge("side2")                                        # same as both parents: not listed
+    _git_in(d, "branch", "side3")
+    _git_in(d, "checkout", "-q", "side3")
+    commit("other file", {"other.txt": "x\n"})
+    _git_in(d, "checkout", "-q", "main")
+    c7 = commit("main b", {doc: text(a="a2", b="b2", c="c2", e="d2")})
+    merge("side3")                                        # file as on main: not listed
+    assert c5 not in _git_in(d, "log", "--format=%h", "--", doc).split()   # plain log hides it
+
+    monkeypatch.setattr(reproduce, "ROOT", d)
+    rows, why = reproduce.provenance_rows([doc])
+    assert why is None
+    (rel, commits, dirty), = rows
+    assert rel == doc and not dirty
+    assert [h for _, h, _ in commits] == [c1, c2, c3, c4, m1, c5, c6, c7]
+    assert [note for *_, note in commits] == ["PREREGISTRATION_X.md", "", "", "", "merge",
+                                               "", "", ""]
+    assert [w for w, _, _ in commits] == [f"2026-01-01 00:{i:02d}" for i in (1, 2, 3, 4, 5, 6, 7, 10)]
+    md = reproduce.provenance_md(rows, lambda s: s)
+    assert f"| `{doc}` | 8 | 2026-01-01 00:01 ({c1}) | 2026-01-01 00:10 ({c7}) |" in md
+    assert f"8 commits, first 2026-01-01 00:01 ({c1}), last 2026-01-01 00:10 ({c7})." in md
+    assert f"| 1 | 2026-01-01 00:01 | {c1} | path `PREREGISTRATION_X.md` |" in md
+    assert f"| 5 | 2026-01-01 00:05 | {m1} | merge |" in md
+    assert "@" not in md and "t@example" not in md
+    with open(os.path.join(d, doc), "a", encoding="utf-8") as fh:
+        fh.write("local edit\n")
+    (_, _, dirty), = reproduce.provenance_rows([doc])[0]
+    assert dirty
+    assert "changes that were not committed" in reproduce.provenance_md(
+        reproduce.provenance_rows([doc])[0], lambda s: s)
+
+
+def test_provenance_lists_every_commit_to_a_registration_without_names(tmp_path, monkeypatch):
     import reproduce
     if not _in_git_checkout():
         pytest.skip("provenance is read from git; an extracted archive has no history")
-    rows, why = reproduce.provenance_rows(["docs/PREREGISTRATION_L3.md"])
+    rel = "docs/PREREGISTRATION_L3.md"
+    rows, why = reproduce.provenance_rows([rel])
     if rows is None:
         assert "shallow" in why
         pytest.skip(why)
-    (rel, first, fh, last, lh), = rows
-    assert rel == "docs/PREREGISTRATION_L3.md" and first <= last and fh and lh
+    (got, commits, _), = rows
+    assert got == rel and len(commits) >= 2
+    listed = [h for _, h, _ in commits]
+    assert len(set(listed)) == len(listed)
+    assert [w for w, _, _ in commits] == sorted(w for w, _, _ in commits)
+    # every edit on any merged branch, and the merges plain `git log` shows for the file
+    every = _git_in(ROOT, "log", "--full-history", "--no-merges", "--format=%h", "--", rel)
+    plain = _git_in(ROOT, "log", "--format=%h", "--", rel)
+    assert set(every.split()) | set(plain.split()) <= set(listed)
     md = reproduce.provenance_md(rows, lambda s: s)
-    assert "| `docs/PREREGISTRATION_L3.md` | " + first + " | " + fh + " |" in md
+    n = len(commits)
+    assert (f"{n} commits, first {commits[0][0]} ({commits[0][1]}), "
+            f"last {commits[-1][0]} ({commits[-1][1]}).") in md
+    for i, (when, h, _) in enumerate(commits, 1):
+        assert f"| {i} | {when} | {h} |" in md
     assert "@" not in md
     monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))
-    rows, why = reproduce.provenance_rows(["docs/PREREGISTRATION_L3.md"])
+    rows, why = reproduce.provenance_rows([rel])
     assert rows is None and "git checkout" in why
