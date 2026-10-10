@@ -216,3 +216,25 @@ def test_expand_skip_returns_canonical_step_names():
     # the experiments_no_b2 profile's whole purpose
     prof = run_e2e.PROFILES["experiments_no_b2"]
     assert "expB2" in run_e2e.expand_skip(prof["skip_steps"])
+
+
+# --- agent trunk width (G7) -------------------------------------------------
+
+def test_an_unregistered_trunk_is_refused_without_the_explicit_opt_out():
+    """'8' meant as the L3 surrogate capacity once ran as the trunk width (FINDINGS 14.5.1).
+    run_e2e must not add run_expB2's opt-out on its own."""
+    import pytest
+    with pytest.raises(SystemExit, match="allow-unregistered-trunk"):
+        run_e2e.build_b2_extra(_ns(b2_hidden=8))
+    extra = run_e2e.build_b2_extra(_ns(b2_hidden=8, allow_unregistered_trunk=True))
+    assert extra[extra.index("--hidden") + 1] == "8" and "--allow-unregistered-trunk" in extra
+    registered = run_e2e.build_b2_extra(_ns(b2_hidden=96))
+    assert "--allow-unregistered-trunk" not in registered and "--hidden" in registered
+    assert "--allow-unregistered-trunk" not in run_e2e.build_b2_extra(_ns())
+
+
+def test_the_registered_trunk_matches_run_expB2():
+    import re
+    src = (ROOT / "scripts" / "run_expB2.py").read_text(encoding="utf-8")
+    m = re.search(r"^REGISTERED_TRUNK = (\d+)", src, re.M)
+    assert m and int(m.group(1)) == run_e2e.REGISTERED_TRUNK

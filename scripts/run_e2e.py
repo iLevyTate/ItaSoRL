@@ -119,7 +119,15 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--b2-seeds", type=int, nargs="+", default=None,
                     help="Override Experiment B-v2 seeds (e.g. 0 1 2 ... 15 to power the null).")
     ap.add_argument("--b2-updates", type=int, default=None, help="Override B-v2 training updates.")
-    ap.add_argument("--b2-hidden", type=int, default=None, help="Override B-v2 recurrent hidden size.")
+    ap.add_argument("--b2-hidden", type=int, default=None,
+                    help="Agent GRU trunk width (registered 96). This is not the L3 surrogate "
+                         "capacity, which run_expB2.py takes as --l3-hidden. Any other width needs "
+                         "--allow-unregistered-trunk.")
+    ap.add_argument("--allow-unregistered-trunk", action="store_true",
+                    help="Forward run_expB2.py's opt-out for a deliberate trunk ablation. Without it "
+                         "a --b2-hidden other than 96 is refused before anything runs, because '8' "
+                         "meant as the surrogate capacity once ran as the trunk width "
+                         "(FINDINGS 14.5.1).")
     ap.add_argument("--b2-dump-states", type=str, default=None,
                     help="Persist B-v2 recurrent states to this dir (forwarded to run_expB2.py "
                          "--dump-states) for offline variance/selectivity re-probing with "
@@ -134,17 +142,27 @@ def parse_args() -> argparse.Namespace:
     return ap.parse_args()
 
 
+# The registered agent trunk width, the same value as run_expB2.REGISTERED_TRUNK
+# (tests/test_run_e2e_flags.py checks that the two agree).
+REGISTERED_TRUNK = 96
+
+
 def build_b2_extra(args: argparse.Namespace, *, resume: bool = False) -> list[str]:
     extra: list[str] = []
     if args.b2_seeds is not None:
         extra += ["--seeds", *[str(s) for s in args.b2_seeds]]
     if args.b2_updates is not None:
         extra += ["--updates", str(args.b2_updates)]
+    allow = bool(getattr(args, "allow_unregistered_trunk", False))
     if args.b2_hidden is not None:
+        if args.b2_hidden != REGISTERED_TRUNK and not allow:
+            raise SystemExit(
+                f"--b2-hidden {args.b2_hidden} is not the registered {REGISTERED_TRUNK}-unit agent "
+                "trunk. The L3 surrogate capacity is run_expB2.py's --l3-hidden, not this flag. "
+                "For a deliberate trunk ablation add --allow-unregistered-trunk.")
         extra += ["--hidden", str(args.b2_hidden)]
-        if args.b2_hidden != 96:
-            # --b2-hidden is an explicit trunk choice; run_expB2 refuses an unregistered trunk otherwise.
-            extra += ["--allow-unregistered-trunk"]
+    if allow:
+        extra += ["--allow-unregistered-trunk"]
     if args.b2_dump_states is not None:
         extra += ["--dump-states", args.b2_dump_states]
     if args.b2_sysid_aux:
