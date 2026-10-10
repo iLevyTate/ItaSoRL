@@ -177,6 +177,19 @@ sysid-aux CEILING (PR #14) as the capacity reference.
   one is. The historical trainer stays available as `--gae-bootstrap pre_transition` for exact
   reproduction.
 
+- **2026-10-10 - THE MATCHED-PAIR LEAKAGE AUDIT USED THE PRE-FIX ESTIMATOR, AND TWO IN-PLACE
+  EDITS (a record; the 2026-09-26 entry stays as written).** Gate 4 of the 2026-09-26 entry,
+  "matched-pair leakage audit clean in 59 of 60 cells" with the one exception at reward-sum
+  AUROC 0.393, was scored at `820849f`, where the audit called the probe with one CV group per
+  episode. Matched twins could then fall in different folds, the estimator defect recorded in
+  `docs/PREREGISTRATION_L3.md` (2026-07-22 entry), which biases AUROC toward zero; the run's
+  matched-pair target reads 0.134 to 0.137 at drift 0 in `artifacts/expB2/bv3_n10_gates.json`.
+  The 0.393 reading and the 59-of-60 count therefore come from that estimator. The pooled
+  verdict does not use the matched-pair channel and is unchanged. Separately, `ce32271`
+  (2026-07-18) replaced this section's "(none yet)" placeholder with the first entry, and
+  `75c49a2` (2026-07-20) changed one spec path from `docs/superpowers/specs/` to `docs/specs/`
+  in that entry. Neither changed a number, a rule, a gate or a verdict.
+
 ## 13. How to run
 
     # confirmatory (3 seeds), regime mode, dumping states for offline re-probing:

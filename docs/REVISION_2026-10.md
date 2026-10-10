@@ -69,7 +69,7 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 9 | Texture knockout interpretation | Done 2026-10-06 (FINDINGS 17.9): white jitter is read by no arm; a hand-authored coherent drag at matched one-step RMS is read (transfer 0.721, fresh 0.754); the tested classes separate on temporal coherence, not learnedness. A `qd`-trained run was executed on 2026-10-06 and set aside (gate 0 failed; descriptive record in FINDINGS 17.9); no `gn`-trained run exists |
 | 10 | Oracle and surrogate descriptions | Done 2026-10-06: FINDINGS 10.1.1 (surrogate as implemented, linear-fit control, held-out one-step error vs rollout divergence, detector-side sigma, privileged detector score, agent-accessible detector at 0.991); PREREGISTRATION_L3 amendment on fixed epochs; audited |
 | 11 | Auxiliary-loss conclusion bounded by budget | Done 2026-10-06 (FINDINGS 17.10): without the decoder 0.613 at 300 and 0.685 at 450 updates; at 450 the decoder arm still reads +0.136 higher at about equal return; skill-matched baseline stays a failed match; exploratory cross-replay splits the effect between trunk and trajectories |
-| 12 | Evolutionary readout | Done 2026-10-06: per-individual readout, lineage summary, value of world information; validation on the `C1` agents (FINDINGS 17.11): the pooled probe reads 0.609 where individuals average 0.649. The evolution was rerun with the per-individual readout on 2026-10-07 and routes UNINFORMATIVE on gates 1 and 5 (FINDINGS 13.F; amendment in PREREGISTRATION_C), so the claim stays restricted to the pooled readout |
+| 12 | Evolutionary readout | Done 2026-10-06: per-individual readout, lineage summary, value of world information; validation on the `C1` agents (FINDINGS 17.11): the pooled probe reads 0.609 where individuals average 0.649. The evolution was rerun with the per-individual readout on 2026-10-07 and routes UNINFORMATIVE (FINDINGS 13.F; amendment in PREREGISTRATION_C), so the claim stays restricted to the pooled readout. 2026-10-10: the routing rests on the speed control (gate 5) under section 7; gate 1 fails only against the margin of the unratified section-14 draft (FINDINGS 13.F, second note) |
 | 13 | Statistical terminology and estimators | Done 2026-10-06: ROPE relabeled as a bootstrap check (FINDINGS methods note 9, `itasorl/stats.py`); per-cell intervals tied to their estimator, pair-level resampling for paired readouts, `fold_mean_auroc_ci`; seed-paired margin intervals for every run (`docs/CONTRAST_INTERVALS.md`); conditioning stated; analysis tiers fixed |
 | 14 | Claims and methods rewritten consistently | Done 2026-10-06: FINDINGS (banner, TL;DR, narrowed sections, section 17), README, CITATION.cff, the site (numbers generated from the corrected artifacts), PAPER_OUTLINE (status column, rows 38 to 49), LEARNING (Act 10), ITASORL.md, METHODS_ARMS, the world spec; retired phrasings guarded by the audit on `README.md`, `index.html` and `CITATION.cff`; the manuscript checker (`scripts/build_paper_tables.py --manuscript`, tightened 2026-10-07) requires at least one generated table to be `\input`, requires every headline number of `artifacts/corrected_verdicts.json` to be quoted, matches retired wording after LaTeX markup is stripped, and flags any pre-correction headline without a historical label; it reports, the author decides |
 | 15 | Related work and the reproducibility package | Done 2026-10-06. Meta-RL comparison (RL^2, Mikulik et al., VariBAD, PEARL, RMA) in `docs/ITASORL.md`; `docs/REPRODUCE.md`; `scripts/reproduce.py` (tables without training, retrain recipes, anonymized supplement); frozen surrogates in `artifacts/surrogates/`; manuscript tables and check (`scripts/build_paper_tables.py`); the audit's stated purpose corrected. 2026-10-07: the 2026-10-06 claim that the extracted supplement passed its tests and audit did not hold (it shipped 483 gitignored files and the author's name in five files, and two tests failed to collect); the file list now follows `git ls-files`, every text member is scrubbed including `.cff`, `.html`, `.js` and extensionless files, `viz/collect.py` and the Colab notebook are packaged, and the extracted archive was re-verified on 2026-10-07 to pass the test suite and the 1188-check audit; `reproduce.py tables` reports whether the committed pages were already current before rewriting them |
@@ -101,6 +101,30 @@ the one public surface still carrying the pre-revision framing unlabeled.
 early-finding copy (an organism "near chance" with survival adding "a faint trace ~60%")
 predates the whole L3 arc and should be rewritten from the current claim table before any of
 it is reused.
+
+## The unmerged site and film commits (2026-10-10)
+
+Five commits made on 2026-09-29 sit on `origin/claude/wizardly-euler-e47s59` and were never
+merged. PR #109 merged that branch on 2026-09-28; these came after it, and `git cherry` against
+`main` finds no equivalent patch for any of them.
+
+| commit | what it does |
+|---|---|
+| `a87bf07` | site: the readout chart plots the per-seed results instead of a made-up curve |
+| `47a6423` | film: replaces the four demo loops with loops drawn from committed data |
+| `9a79c12` | film (Two Minds): the end card no longer says "trained only to survive" |
+| `eda1ad0` | site: the surrogate ladder shows what each rung measured, and under 720 px it stacks as a list (the five-column row collided at phone width) |
+| `7276243` | docs: labels the walkthrough PDFs as the July 2026 edition |
+
+Until they are dealt with, `main` and the live site keep the demo loops, the colliding ladder
+and the made-up chart. The site group of the 2026-10-10 review pass evaluates
+the five commits in that pass. A commit it carries forward is rebased onto `main`, its
+numbers are brought to the corrected record (`C1` 0.733 [0.669, 0.797], predictor 0.589,
+untrained 0.523, L0 open at 0.559, with the historical label kept on 0.752, 0.726, 0.601 and
+0.730), `index.html` is rebuilt from the template, and `scripts/audit_stats_recheck.py` is run.
+A commit it does not carry forward is listed in this section as superseded, with the reason.
+The outcome for each commit is added here when that evaluation reports, and the branch stays
+on the remote until the list is complete.
 
 ## Where the manuscript lives
 
