@@ -409,3 +409,22 @@ hidden-7 leakage count, the B-v2 speed range and the population standard deviati
 **What this does not change.** Every gate named still passes on the survival arm, the B-v2
 speed control passes in every pool, and the B-v3 pooled verdict does not use the matched-pair
 channel. No verdict moves.
+
+## 2026-10-10: the speed positive control was read on arm means
+
+**What was wrong.** `scripts/promote_reviewer_gaps_runs.py` recorded `gates.speed_min` as the
+lowest arm mean, while the registered gate 3 asks for at least 0.75 in every pool. Eight promoted
+artifacts carried the higher figure, the gate table copied it, and FINDINGS 10.8, 10.8.1 and
+10.9 and six entries of `docs/PREREGISTRATION_L3.md` quoted it (0.814 to 0.837). The lowest
+pools read 0.748 to 0.790. On the hidden-10 GPU re-measure one pool of 60 reads 0.748, under
+the bar, and no document reported it.
+
+**Change.** The promoter computes the per-pool minimum and records where it sits, and
+`--refresh-gates` rewrote the gates block of each promoted artifact, keeping the earlier figure
+beside it and leaving the decision block as promoted. The audit pin for the skill-matched run
+moved from 0.837 to 0.790 and the gate table is rebuilt. FINDINGS 10.9 has a dated note with
+every run's two figures, and `docs/PREREGISTRATION_L3.md` a dated entry.
+
+**What this does not change.** Every other run passes in every pool. The GPU re-measure's rule
+was not met before; with its positive control short in one pool, its readings are descriptive.
+The 0.75 threshold is not relaxed, and the corrected verdicts already used per-pool values.

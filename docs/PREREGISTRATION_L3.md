@@ -1218,6 +1218,23 @@ Rigor carried from the B-v3 audit (2026-07-10):
   check passed within its tolerances, which is what "EXACT" should have said. FINDINGS 10.5
   carries both notes.
 
+- **2026-10-10 - THE SPEED POSITIVE CONTROL OF SIX ENTRIES WAS THE LOWEST ARM MEAN, NOT THE
+  LOWEST POOL (a record; the entries stay as written and the threshold is not relaxed).** Gate 3
+  asks for the speed probe at or above 0.75 in every pool. The architecture-baseline,
+  second-instance, device-control, GPU re-measure, hidden-8 new-seed and skill-matched entries
+  above (2026-09-27 to 2026-09-30) quote a minimum that `scripts/promote_reviewer_gaps_runs.py`
+  computed over arm means. Read over every drift, arm and seed, the lowest pools are:
+  architecture baseline 0.835 -> 0.787; second instance on CPU 0.830 -> 0.753; device control
+  0.830 -> 0.772; GPU re-measure 0.833 -> 0.748; hidden-8 new seed 0.814 -> 0.758; skill-matched
+  baseline 0.837 -> 0.790. The corrected runs `C1` and `C2` read 0.772 and 0.787, which their
+  verdicts already used. Every run but the GPU re-measure still passes. There, one pool of 60
+  (untrained, drift 0.45, seed index 6) reads 0.748, so the positive control is not met on that
+  run; by the rule applied to the white-jitter run (2026-10-09 entries above), its readings are
+  descriptive. Its rule was not met in any case, so no verdict moves. The artifacts record the
+  per-pool value with its location and keep the arm-mean figure beside it
+  (`gates.speed_min`, `speed_min_at`, `speed_min_of_arm_means`); FINDINGS 10.9 carries the
+  table, and `docs/CORRECTIONS.md` the correction.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

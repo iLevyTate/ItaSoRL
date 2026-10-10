@@ -1418,7 +1418,9 @@ def main() -> int:
                sk["gates"]["pool_leak_clean_all"] and sk["gates"]["untrained_floor_ok"]
                and sk["gates"]["deaths_total"] == 0
                and all(v["pass"] == v["n"] for v in sk["gates"]["engagement"].values()))
-    check("pinned: skill-match speed positive control min (0.837)", sk["gates"]["speed_min"], 0.837)
+    # 2026-10-10: speed_min is the lowest pool, as the registered gate 3 reads it; 0.837 was the
+    # lowest arm mean (kept in the artifact as speed_min_of_arm_means).
+    check("pinned: skill-match speed positive control, lowest pool (0.790)", sk["gates"]["speed_min"], 0.790)
     check("skill-match L0 survival mean (0.539)", _seed_mean(sk["arms"]["0.0"]["survival"]["pool_target"]), 0.539)
     check("skill-match L0 TOST p (0.285)",
           equivalence_test(sk["arms"]["0.0"]["survival"]["pool_target"]["per_seed"], margin=0.05).p_value, 0.285)
@@ -2438,6 +2440,28 @@ def main() -> int:
                all(x == 0.5 for _h in ("h7", "h8")
                    for _a in _load_art("expH2", f"obs_localization_{_h}.json")["masks"]["all"].values()
                    if isinstance(_a, dict) and "per_seed_full" in _a for x in _a["per_seed_full"]))
+    # FINDINGS 10.9 note: the speed positive control read in every pool, for every promoted run.
+    _s109 = _fx2[_fx2.index("### 10.9 Second fingerprint"):_fx2.index("## 11. Methods notes")]
+    _under = []
+    for _run, _fn in (("L3-H8-NOWM-CPU", "arch_baseline_l3_h8_nowm"),
+                      ("L3-H8-WM-CPU", "device_control_l3_h8_wm_cpu"),
+                      ("L3-H8-NOWM-U450", "skill_matched_l3_h8_nowm_u450"),
+                      ("L3-H10-GS1-CPU", "second_instance_l3_h10_gseed1"),
+                      ("L3-H10-GS1-GPU", "second_instance_l3_h10_gseed1_gpu"),
+                      ("L3-H8-GS2-GPU", "second_seed_l3_h8_gseed2_gpu"),
+                      ("C1", "corrected_l3_h8_wm"), ("C2", "corrected_l3_h8_nowm")):
+        _gg = load(_fn + ".json")["gates"]
+        _at = _gg["speed_min_at"]
+        _tail = (f"| {_gg['speed_min_of_arm_means']:.3f} | {_gg['speed_min']:.3f} | {_at['arm']}, drift "
+                 f"{float(_at['drift']):g}, seed index {_at['seed_index']} | {_gg['speed_n_below']} of "
+                 f"{_gg['speed_n_pools']} |")
+        _line = next((ln for ln in _s109.split("\n") if ln.startswith(f"| `{_run}` |")), "")
+        check_true(f"10.9 note quotes {_run}'s lowest arm mean, lowest pool and where it sits",
+                   _line.endswith(_tail))
+        if _gg["speed_n_below"]:
+            _under.append(_run)
+    check_true("10.9 note: only the hidden-10 GPU re-measure has a pool under 0.75",
+               _under == ["L3-H10-GS1-GPU"] and "Every run but one still passes." in _s109)
     # FINDINGS 16: rows of the gate table that share one set of drift-zero agents.
     _gt = _load_art("gate_table.json")["rows"]
     _key = lambda r: tuple(round(r["l0"][k], 6) for k in ("n", "mean", "sd", "tost_p"))

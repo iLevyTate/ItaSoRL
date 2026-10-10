@@ -27,7 +27,7 @@ Speed min is the speed probe in the lowest pool over every drift, arm and seed (
 | `L3-H10-GS1-CPU` | historical | explicit (= legacy on that stack) | 0.529 | 0.039 | pass | 0.983 | 0.514 (pass) | 20/20 | 0.753 | yes | 0.000 |
 | `L3-H10-GS1-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.521 (pass) | 20/20 | 0.748 | yes | 0.000 |
 | `L3-H8-GS2-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.550 (pass) | 20/20 | 0.758 | yes | 0.000 |
-| `L3-H8-NOWM-U450` | historical | explicit | 0.539 | 0.285 | inconclusive (not shown equivalent) | 0.736 | 0.513 (pass) | 20/20 | 0.837 (lowest arm mean) | yes | 0.000 |
+| `L3-H8-NOWM-U450` | historical | explicit | 0.539 | 0.285 | inconclusive (not shown equivalent) | 0.736 | 0.513 (pass) | 20/20 | 0.790 | yes | 0.000 |
 | `CORRECTED-L3_H8_NOWM` | corrected | explicit | 0.515 | 0.001 | pass | 1.000 | 0.529 (pass) | 20/20 | 0.787 | yes | 0.000 |
 | `CORRECTED-L3_H8_WM` | corrected | explicit | 0.559 | 0.939 | inconclusive (not shown equivalent) | 0.028 | 0.523 (pass) | 20/20 | 0.772 | yes | 0.000 |
 

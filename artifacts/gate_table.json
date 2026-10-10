@@ -538,8 +538,8 @@
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.83687,
-   "speed_basis": "arm mean",
+   "speed_min": 0.789933,
+   "speed_basis": "pool",
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"

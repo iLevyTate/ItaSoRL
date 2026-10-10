@@ -281,22 +281,8 @@ def test_refresh_gates_rewrites_only_the_gate_keys_and_records_what_they_were(tm
     assert prg.refresh_gates(str(art))["changed"] is False
 
 
-# The skill-matched artifact keeps the arm-mean figure until the audit pin that quotes it
-# (scripts/audit_stats_recheck.py, "pinned: skill-match speed positive control min (0.837)")
-# moves to the per-pool value; then run --refresh-gates on it and drop this marker. Strict,
-# so the marker cannot outlive the refresh.
-U450 = "skill_matched_l3_h8_nowm_u450.json"
-
-
 def _speed_params():
-    out = []
-    for p in _promoted_artifacts():
-        path = p.values[0]
-        marks = ()
-        if path.name == U450:
-            marks = pytest.mark.xfail(strict=True, reason="refresh waits on the audit pin (handoff)")
-        out.append(pytest.param(path, marks=marks, id=path.name))
-    return out
+    return [pytest.param(p.values[0], id=p.values[0].name) for p in _promoted_artifacts()]
 
 
 @pytest.mark.parametrize("path", _speed_params())

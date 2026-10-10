@@ -292,7 +292,16 @@
    "accept": false,
    "n": 10
   },
-  "speed_min": 0.836869845890986,
+  "speed_min": 0.7899332932003211,
+  "speed_min_at": {
+   "drift": "0.0",
+   "arm": "untrained",
+   "seed_index": 0
+  },
+  "speed_n_pools": 60,
+  "speed_n_below": 0,
+  "speed_n_nonfinite": 0,
+  "speed_min_of_arm_means": 0.836869845890986,
   "pool_leak_clean_all": true,
   "untrained_floor_at_dmax": 0.5129752066115703,
   "untrained_floor_ok": true,
@@ -888,5 +897,19 @@
   "on": "2026-10-10",
   "previous_zone": "ENCODING INDUCED (all clauses)",
   "why": "the zone now requires every registered gate to pass (PREREGISTRATION_L3 sec. 8); numbers and git_commit_at_promotion are the original promotion's, checked against a re-promotion from source_run before writing"
+ },
+ "gates_refreshed": {
+  "on": "2026-10-10",
+  "previous": {
+   "speed_min": 0.836869845890986
+  },
+  "added": [
+   "speed_min_at",
+   "speed_n_pools",
+   "speed_n_below",
+   "speed_n_nonfinite",
+   "speed_min_of_arm_means"
+  ],
+  "why": "speed_min is now the lowest pool over every drift, arm and seed, as the registered gate 3 reads it, not the lowest arm mean; deaths_total is a count; an arm with no leakage flag no longer reads as clean. Re-promoted from source_run and checked to agree everywhere else before writing; the decision block and git_commit_at_promotion are the original promotion's"
  }
 }

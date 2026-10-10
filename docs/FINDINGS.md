@@ -1378,6 +1378,8 @@ ROPE share = 0.9997, both accept); speed positive control at least 0.835 in ever
 cell; pooled reward-leak clean in every cell; untrained floor at drift 0.45
 0.529 (within tolerance); 0 early deaths in every pool.
 
+*(2026-10-10: 0.835 is the lowest arm mean; the lowest pool reads 0.787. See the note "the speed positive control, read in every pool" at the end of 10.9.)*
+
 **Result (drift 0.45, n = 10, t-based 90% CI; seed bootstrap in the artifact).**
 
 | agent (no auxiliary unless noted) | pooled target | t 90% CI | seeds >= 0.65 |
@@ -1427,6 +1429,8 @@ falls below 0.65, the verdict is withdrawn to "not established". An earlier laun
 Gates all pass: engagement 20/20 cells; L0 control 0.529 (TOST p = 0.039, ROPE
 P = 0.983, both accept); speed positive control at least 0.830; pooled reward-leak
 clean in every cell; untrained floor at drift 0.45 0.523; 0 early deaths.
+
+*(2026-10-10: 0.830 is the lowest arm mean; the lowest pool reads 0.772. See the note "the speed positive control, read in every pool" at the end of 10.9.)*
 
 | agent (same CPU sandbox) | pooled target | t 90% CI | seeds >= 0.65 |
 |---|---|---|---|
@@ -1547,6 +1551,8 @@ window is narrower than the noise. (3) Stage 1's three seeds are the first three
 2's ten, so stage 1 is not an independent pre-test of the budget. The rule reads the
 n = 10 return, which is what is quoted and adjudicated above.
 
+*(2026-10-10: the gates paragraph above quotes the speed control at 0.837, the lowest arm mean; the lowest pool reads 0.790. See the note "the speed positive control, read in every pool" at the end of 10.9.)*
+
 ### 10.9 Second fingerprint instance: a training-regime dissociation, below the bar (2026-09-27, historical trainer; objective reading withdrawn per 17.6)
 
 Methods note 4: `G` was a single frozen instance trained at seed 0. The held-out
@@ -1581,6 +1587,8 @@ And oracle detectability is not monotone in capacity at this seed (hidden 9 read
 P = 0.983, both accept); speed at least 0.830; pooled reward-leak clean in every
 cell; untrained floor 0.514; 0 early deaths. (The secondary matched-pair leakage
 channel is clean in 7/10 untrained cells at drift 0.45; no rule reads it.)
+
+*(2026-10-10: 0.830 is the lowest arm mean; the lowest pool reads 0.753. See the note "the speed positive control, read in every pool" at the end of 10.9.)*
 
 **Result (drift 0.45, n = 10, t-based 90% CI).**
 
@@ -1647,6 +1655,8 @@ so `--resume` reused the finished cell). Committed:
 `artifacts/reviewer_gaps_runs/l3_gate0_seed1_gpu/`, `l3_h10_gseed1_gpu/`,
 `artifacts/expB2/second_instance_l3_h10_gseed1_gpu.json`.
 
+*(2026-10-10: 0.833 is the lowest arm mean. One pool reads 0.748, under the 0.75 bar, so the speed positive control is not met on this run. See the note at the end of this section.)*
+
 *Hidden-8 new-seed run (2026-09-29).* The run the two notes above pointed to:
 capacity held at the published 8, only the G seed changed. Spec frozen before
 launch (`docs/specs/2026-09-28-l3-hidden8-second-seed-design.md`). Gate 0 at G
@@ -1680,6 +1690,8 @@ in every cell, untrained floor 0.550, 0 early deaths; the L0 control reads 0.539
 (TOST p = 0.207), the open clause described in section 16, and these are the
 same ten drift-0 cells as the hidden 10 GPU run.
 
+*(2026-10-10: 0.814 is the lowest arm mean; the lowest pool reads 0.758. See the note at the end of this section.)*
+
 **Reading.** Two independently trained hidden-8 fingerprints (seed 0: 0.774
 explicit, seed 2: 0.676) both give a survival readout well above the untrained
 floor and above the 0.65 bar in the mean, so the encoding is not confined to the
@@ -1697,6 +1709,33 @@ fingerprint's full-strength result" stands, and "survival-specific" is now
 qualified by two instances, one clear and one at the margin. Committed:
 `artifacts/reviewer_gaps_runs/l3_gate0_seed2_gpu/`, `l3_h8_gseed2_gpu/`,
 `artifacts/expB2/second_seed_l3_h8_gseed2_gpu.json`.
+
+*Note (2026-10-10): the speed positive control, read in every pool.* The gate lines of 10.8,
+10.8.1 and this section give the speed positive control as "at least" a value that
+`scripts/promote_reviewer_gaps_runs.py` computed as the lowest arm mean. The registered gate 3
+asks for at least 0.75 in every pool, and the B-v3 gate promotion, the comparator-trained runs
+and `scripts/build_corrected_verdicts.py` read it that way. Each of these artifacts now records
+the lowest pool (`gates.speed_min`, located by `speed_min_at`), with the earlier figure kept
+under `gates_refreshed` and `speed_min_of_arm_means`:
+
+| run | quoted in | lowest arm mean | lowest pool | where | pools under 0.75 |
+|---|---|---|---|---|---|
+| `L3-H8-NOWM-CPU` | 10.8 | 0.835 | 0.787 | untrained, drift 0, seed index 0 | 0 of 60 |
+| `L3-H8-WM-CPU` | 10.8 | 0.830 | 0.772 | untrained, drift 0, seed index 0 | 0 of 60 |
+| `L3-H8-NOWM-U450` | 10.8.1 | 0.837 | 0.790 | untrained, drift 0, seed index 0 | 0 of 60 |
+| `L3-H10-GS1-CPU` | 10.9 | 0.830 | 0.753 | untrained, drift 0.45, seed index 6 | 0 of 60 |
+| `L3-H10-GS1-GPU` | 10.9 | 0.833 | 0.748 | untrained, drift 0.45, seed index 6 | 1 of 60 |
+| `L3-H8-GS2-GPU` | 10.9 | 0.814 | 0.758 | untrained, drift 0.45, seed index 6 | 0 of 60 |
+| `C1` | 17.2 (already the pool value) | 0.830 | 0.772 | untrained, drift 0, seed index 0 | 0 of 60 |
+| `C2` | not quoted | 0.835 | 0.787 | untrained, drift 0, seed index 0 | 0 of 60 |
+
+Every run but one still passes. On the hidden-10 GPU re-measure the untrained arm at drift
+0.45, seed index 6, reads 0.748, so the positive control is not met on that run. By the rule
+applied to the white-jitter run (14.5.1), which needs every gate to pass before a verdict is
+reached, that run's readings above are descriptive; its frozen rule was not met in any case,
+and the 0.75 threshold is not relaxed. The corrected verdicts already used the per-pool values
+(`artifacts/corrected_verdicts.json`). The gate table (`docs/GATE_TABLE.md`) shows the same
+values; PREREGISTRATION_L3 carries a dated entry and `docs/CORRECTIONS.md` the correction.
 
 ## 11. Methods notes and limitations
 
