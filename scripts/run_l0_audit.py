@@ -41,6 +41,7 @@ from itasorl.experiment_b2 import load_agent_bundle
 from itasorl.l0_audit import AUDIT_BASES, STANDARD_BASES, l0_world_samples, paired_pooled_readout
 from itasorl.stats import equivalence_test, t_ci90
 from itasorl.world import WorldParams
+from promote_bv3_gates import repo_rel
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
@@ -103,7 +104,7 @@ def main() -> int:
         cells = [c for c in cells if c[1] < 2]
     dmax = max(c[0] for c in cells)
     bases = (STANDARD_BASES,) + AUDIT_BASES[: a.pairs]
-    out = {"agents_dir": a.agents_dir, "generated_by": "scripts/run_l0_audit.py", "git_commit": git_head(),
+    out = {"agents_dir": repo_rel(a.agents_dir), "generated_by": "scripts/run_l0_audit.py", "git_commit": git_head(),
            "bases": [list(b) for b in bases], "n_eps": a.n_eps, "steps": a.steps,
            "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
            "l0": [], "paired": []}
@@ -147,7 +148,7 @@ def main() -> int:
                          "t90": [float(x) for x in t_ci90(v)] if len(v) > 1 else None}
     out["paired_summary"] = summ
     cells_dir = a.integrity_cells or os.path.join(os.path.dirname(os.path.normpath(a.agents_dir)), "cells")
-    out["integrity"] = {"reference": cells_dir.replace("\\", "/"),
+    out["integrity"] = {"reference": repo_rel(cells_dir),
                         **integrity_gate(out["l0"], recorded_l0_targets(cells_dir), a.integrity_tol)}
     out["wall_seconds"] = round(time.time() - t0, 1)
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)

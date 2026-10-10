@@ -23,7 +23,14 @@ if str(ROOT / "scripts") not in sys.path:
 import promote_bv3_gates as pb  # noqa: E402
 
 _PROFILE = "Use" + "rs"
-USER_PATH = re.compile(r"(?:[A-Za-z]:[/\\]+|/(?:c|mnt/c)/)" + _PROFILE + r"[/\\]+[^/\\\s\"'<>]+")
+_HOME = "/ho" + "me/"
+# A Windows profile in any drive form (C:/, c:\ after normcase, Git Bash /c/, WSL /mnt/c/), a
+# macOS profile (/Users/<name>), and a Linux home other than the generic cloud and CI accounts
+# (the home directories named user and runner). Case-insensitive, because os.path.normcase
+# lowers the whole path.
+USER_PATH = re.compile(
+    r"(?:(?:[A-Za-z]:[/\\]+|/(?:[a-z]|mnt/[a-z])/|(?<![\w.:/-])/)" + _PROFILE
+    + r"[/\\]+[^/\\\s\"'<>]+|" + _HOME + r"(?!user/|runner/)[^/\s\"'<>]+)", re.I)
 
 # Not scanned: files other work owns or that are generated from the ones below.
 SKIP = {"artifacts/corrected_verdicts.json", "artifacts/surrogate_diagnostics.json",
@@ -75,9 +82,12 @@ def test_no_tracked_file_records_a_user_profile_path():
 
 def test_the_pattern_catches_the_forms_it_must():
     for bad in ("C:/" + _PROFILE + "/someone/x", "c:\\\\" + _PROFILE + "\\\\someone\\\\x",
-                "/c/" + _PROFILE + "/someone/x", "/mnt/c/" + _PROFILE + "/someone/x"):
+                "/c/" + _PROFILE + "/someone/x", "/mnt/c/" + _PROFILE + "/someone/x",
+                "c:\\" + _PROFILE.lower() + "\\someone\\x", "/" + _PROFILE + "/someone/x",
+                "/d/" + _PROFILE + "/someone/x", _HOME + "someone/ItaSoRL/fullruns/r"):
         assert USER_PATH.search(bad), bad
-    for ok in ("fullruns/l3_h8_heldout/states", "<local-path>/x", "/home/user/ItaSoRL/fullruns/r"):
+    for ok in ("fullruns/l3_h8_heldout/states", "<local-path>/x", _HOME + "user/ItaSoRL/fullruns/r",
+               _HOME + "runner/work/x", "https://api.example.org/" + _PROFILE.lower() + "/someone"):
         assert not USER_PATH.search(ok), ok
 
 

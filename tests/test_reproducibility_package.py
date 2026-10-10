@@ -75,7 +75,7 @@ def test_json_escaped_windows_paths_are_scrubbed():
     # json.dumps doubles every backslash, which is how a Windows path sits in a JSON artifact.
     # Assembled at runtime so the scrubber does not rewrite this fixture inside the archive.
     win = "C:" + "\\Users\\someone\\repo\\x.json"
-    text = json.dumps({"path": win, "p2": "C:" + "/Users/other/y"})
+    text = json.dumps({"path": win, "p2": "C:" + "/Use" + "rs/other/y"})
     assert "\\\\Users" in text
     out = reproduce.scrub(text, reproduce.GENERIC_SCRUB)
     assert "someone" not in out and "other" not in out

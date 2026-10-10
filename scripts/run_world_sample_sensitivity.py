@@ -46,6 +46,7 @@ from itasorl.l0_audit import (  # noqa: E402
     AUDIT_BASES, STANDARD_BASES, world_sample_scan, world_sample_summary,
 )
 from itasorl.world import WorldParams  # noqa: E402
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
@@ -150,7 +151,7 @@ def main() -> int:
         "generated_by": "scripts/run_world_sample_sensitivity.py",
         "git_commit": git_head(),
         "spec": "docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md",
-        "agents_dir": a.agents_dir, "drift": a.drift, "arms": arms, "bar": a.bar,
+        "agents_dir": repo_rel(a.agents_dir), "drift": a.drift, "arms": arms, "bar": a.bar,
         "bases": [list(b) for b in bases], "registered_bases": list(STANDARD_BASES),
         "n_eps": a.n_eps, "steps": a.steps,
         "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
@@ -187,7 +188,7 @@ def main() -> int:
                            "abs_dev": abs(got - want)})
     worst = max((c["abs_dev"] for c in checks), default=float("nan"))
     passed = bool(checks) and worst <= a.integrity_tol
-    out["integrity"] = {"reference": a.integrity_ref, "tolerance": a.integrity_tol,
+    out["integrity"] = {"reference": repo_rel(a.integrity_ref), "tolerance": a.integrity_tol,
                         "n_checked": len(checks), "worst_abs_dev": worst,
                         "pass": passed, "per_seed": checks}
 
