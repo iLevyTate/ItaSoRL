@@ -61,3 +61,13 @@ def test_the_committed_gn_artifact_records_the_8_unit_trunk_from_its_agents():
     assert d["configuration_deviation"].startswith("The agent trunk was 8 units")
     assert d["rule_met"] is False and d["routing"].startswith("UNINFORMATIVE")
     assert d["source_run"] == "fullruns/T_gn_l3_h8_wm/expB2_results.json"
+
+
+def test_trunk_check_reads_nn_gru_names_and_refuses_a_bundle_without_recurrent_weights(tmp_path):
+    torch.save({"ctor": {"hidden": 8}, "state_dict": {"gru.weight_hh_l0": torch.zeros(24, 8)},
+                "norm": {}}, tmp_path / "agent_d0.45_s0_survival.pt")
+    assert ptt.trunk_check(str(tmp_path))["hidden_values"] == [8]
+    torch.save({"ctor": {"hidden": 96}, "state_dict": {"head.weight": torch.zeros(2, 96)},
+                "norm": {}}, tmp_path / "agent_d0.45_s1_survival.pt")
+    with pytest.raises(SystemExit, match="no recurrent weight_hh"):
+        ptt.trunk_check(str(tmp_path))

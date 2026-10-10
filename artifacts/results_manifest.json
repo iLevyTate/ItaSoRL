@@ -2605,7 +2605,7 @@
       "claims": [],
       "commit_at_run": null,
       "config": {
-        "runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 6.0 (disjoint block: --qd-eps 6.0 --merge-into artifacts/surrogate_diagnostics.json)"
+        "runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 6.0 --calibration-sample-77 (the seed-77 per-surrogate diagnostics; disjoint block: --qd-eps 6.0 --merge-into artifacts/surrogate_diagnostics.json)"
       },
       "deps": null,
       "device": null,
@@ -2637,7 +2637,7 @@
       "commit_at_run": "82ef5d6",
       "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {
-        "runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 1.0 --gn-sigma 0.01"
+        "runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 1.0 --gn-sigma 0.01 --calibration-sample-77"
       },
       "deps": null,
       "device": "cpu",

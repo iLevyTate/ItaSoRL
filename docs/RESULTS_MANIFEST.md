@@ -602,7 +602,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Trainer: none
 - Folds: explicit
 - Notes: Agent free: G instances retrained deterministically from their recipe. The per-surrogate diagnostics were scored on a seed-77 sample inside every G's training episodes (the calibration sample of FINDINGS 10.1.1). The disjoint_heldout block (2026-10-10) rescored them at seeds 100000 to 100059 with each G's train column on its own seed, on the owner's workstation stack (Python 3.13.2, numpy 1.26.4, torch 2.7.0+cu126); it was written only after the rerun reproduced every stored detector AUROC exactly and the stored profiles to 6.5e-8. docs/CORRECTIONS.md 2026-10-10.
-- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 6.0 (disjoint block: --qd-eps 6.0 --merge-into artifacts/surrogate_diagnostics.json)"}
+- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 6.0 --calibration-sample-77 (the seed-77 per-surrogate diagnostics; disjoint block: --qd-eps 6.0 --merge-into artifacts/surrogate_diagnostics.json)"}
 - Artifacts: `artifacts/surrogate_diagnostics.json`
 
 ### `QD-EPS1-CAL`: Deviation calibration of the quadratic-drag comparator at eps 1
@@ -614,7 +614,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: explicit
 - Device: cpu
 - Notes: Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived only in the comparator spec. Measured here: qd at eps 1 deviates by 0.002356 and gn by 0.0142 on the same 60-episode profile, a ratio of 6.02 (FINDINGS 17.9). The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds). Its diagnostics block is the seed-77 calibration sample; the eps-1 profile value 0.002356 is unaffected.
-- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 1.0 --gn-sigma 0.01"}
+- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 1.0 --gn-sigma 0.01 --calibration-sample-77"}
 - Artifacts: `artifacts/texture/qd_eps1_calibration.json`
 
 ### `SURROGATES`: Frozen L3 fingerprints (G_motion instances), serialized

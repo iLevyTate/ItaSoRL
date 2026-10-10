@@ -97,3 +97,18 @@ def test_merge_refuses_a_rerun_that_does_not_reproduce_the_stored_detector_or_pr
         rsd.merge_disjoint_block(_stored(), _fresh(auroc=0.98), date="2026-10-10")
     with pytest.raises(ValueError, match="profile"):
         rsd.merge_disjoint_block(_stored(), _fresh(rms=0.0360), date="2026-10-10")
+
+
+def test_the_calibration_sample_can_be_regenerated_only_when_labeled_in_sample():
+    """The committed top-level diagnostics were scored on a held-out sample inside G's training
+    episodes. allow_overlap reproduces them, and the output then says the sample overlaps."""
+    g = train_g_motion(hidden=4, n_eps=20, steps=10, epochs=5, params=P, ray_steps=3)
+    kw = dict(params=P, n_train_eps=20, train_steps=10, heldout_eps=6, heldout_steps=12,
+              horizons=(1,), ray_steps=3, train_seed=0)
+    with pytest.raises(ValueError, match="overlap"):
+        surrogate_diagnostics(g, heldout_seed=5, **kw)
+    d = surrogate_diagnostics(g, heldout_seed=5, allow_overlap=True, **kw)
+    assert d["heldout_overlaps_training"] is True and d["heldout_seed"] == 5
+    assert "heldout_overlaps_training" not in surrogate_diagnostics(g, heldout_seed=500, **kw)
+    import run_surrogate_diagnostics as rsd
+    assert rsd.CALIBRATION_SEED == 77

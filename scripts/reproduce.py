@@ -11,28 +11,37 @@
                docs/RESULTS_MANIFEST.md. Hours of CPU per run (estimates in docs/REPRODUCE.md).
   supplement   Build an anonymized submission archive under dist/: code, tests, committed
                artifacts, the method documents, and each run bundle in RUN_DIRS that exists
-               under --runs-root (default fullruns/). Author names, handles, e-mail
-               addresses, repository URLs, externally hosted images and local paths are
-               scrubbed from text files. The package and project name is replaced by a
+               under --runs-root (default fullruns/). Author names, handles, ORCID iDs,
+               e-mail addresses, repository URLs, externally hosted images and local paths
+               are scrubbed from text files. The package and project name is replaced by a
                neutral one in text and in file names (--anon-name, default anonpkg;
-               --keep-name turns this off). Every shipped file, binaries included, is checked
-               for identity strings, and a SHA-256 list of every file is written.
-               README_SUPPLEMENT.md and the console both say which run bundles were
-               included and which were absent.
+               --keep-name turns this off), and so are the titles of the publicly released
+               films, read at build time from the served film files. Outreach and
+               film-production specs and run-script figures are left out (SUPPLEMENT_EXCLUDE),
+               and Markdown links into material the archive does not carry become plain text.
+               Every shipped file, binaries included, is checked for identity strings.
+               README_SUPPLEMENT.md says what the archive holds, how to install and run it,
+               and which run bundles were included; PROVENANCE.md lists the first and last
+               commit of every preregistration and spec, from git at build time; SHA256SUMS
+               lists every other file. --require-runs fails the build when a RUN_DIRS bundle
+               is absent.
 
 Usage:
     python scripts/reproduce.py tables [--dumps fullruns/corrected_l3_h8_wm/states]
     python scripts/reproduce.py retrain C1 [--execute]
     python scripts/reproduce.py supplement [--out dist/supplement.zip] [--runs-root DIR]
-                                           [--anon-name NAME | --keep-name]
+                                           [--anon-name NAME | --keep-name] [--require-runs]
 """
 
 from __future__ import annotations
 
 import argparse
+import datetime
+import fnmatch
 import hashlib
 import io
 import os
+import posixpath
 import re
 import subprocess
 import sys
@@ -151,9 +160,16 @@ def retrain(run: str, execute: bool) -> int:
 # (the scalar audit's wording guards read it) and scrubbed like every other text file.
 # The patterns are assembled from pieces so that none of them matches its own source: this
 # file is packaged and scrubbed too, and a rule that matched itself would ship as a placeholder.
+_PROFILE = "Use" + "rs"
 GENERIC_SCRUB = [
     # One or more separators: a Windows path inside a JSON string carries doubled backslashes.
-    (re.compile(r"[A-Za-z]:[/\\]+" + "Users" + r"[/\\]+[^/\\\s\"']+", re.I), "<local-path>"),
+    (re.compile(r"[A-Za-z]:[/\\]+" + _PROFILE + r"[/\\]+[^/\\\s\"']+", re.I), "<local-path>"),
+    # The same profile written the POSIX way: Git Bash (a drive letter as /c), WSL (/mnt/c) and
+    # macOS (no prefix). Case-sensitive, so a /users/ segment of a web URL is left alone.
+    (re.compile(r"(?:/mnt/[a-z]|/[a-z])?/" + _PROFILE + r"/[^/\s\"']+"), "<local-path>"),
+    # A profile path flattened into one name, as tools that key a folder by its path write it
+    # (C, two dashes, the profile folder, the account, then the rest of the path).
+    (re.compile(r"\b[A-Za-z]--" + _PROFILE + r"-[^-/\\\s\"']+"), "<local-path>"),
     (re.compile("/ho" + "me/" + r"[^/\s\"']+"), "<local-path>"),
     # The final label must be alphabetic. Without that, the project's own condition notation
     # ("train@0.45", "eval@0.45") and pinned package versions ("react@18.3.1") read as
@@ -162,7 +178,7 @@ GENERIC_SCRUB = [
     (re.compile(r"[\w.+-]+" + "@" + r"[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}"), "<email>"),
     (re.compile("orc" + r"id\.org/[\d-]+X?", re.I), "orcid.org/<orcid>"),
 ]
-_EMAIL_RULE = GENERIC_SCRUB[2]
+_EMAIL_RULE = GENERIC_SCRUB[4]
 
 # Images served from GitHub-owned hosts (an attachment upload, raw user content, or a Pages
 # site). The URL itself is opaque, but the image can show the account behind it: the
@@ -180,15 +196,37 @@ REPO_PLACEHOLDER = "<anonymous-repository>"
 DEFAULT_ANON_NAME = "anonpkg"
 
 
+_GH_REMOTE = re.compile(r"^(?:https?://(?:[^@/]+@)?(?:www\.)?" + _GH + r"\.com/|(?:ssh://)?git@"
+                        + _GH + r"\.com[:/])([^/:\s]+)/([^/\s]+?)(?:\.git)?/?$", re.I)
+
+
+def parse_github(url: str) -> tuple[str, str] | None:
+    """(owner, repository) from a GitHub https or ssh URL; None for anything else (a local
+    path, a mirror on another host)."""
+    m = _GH_REMOTE.match((url or "").strip().strip('"'))
+    return (m.group(1), m.group(2)) if m else None
+
+
 def _remote() -> tuple[str, str] | None:
-    """(owner, repository) parsed from the git remote, or None outside a checkout."""
+    """(owner, repository) of the GitHub repository: from the git remote when it is a GitHub
+    URL, else from CITATION.cff's repository-code. A clone of a local checkout or a mirror has
+    an origin that is not GitHub, and parsing that would turn path segments into identity
+    terms. None when neither names a GitHub repository (an extracted archive)."""
     try:
         url = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True,
                              text=True, cwd=ROOT).stdout.strip()
     except Exception:
-        return None
-    m = re.search(r"[:/]([^/:]+)/([^/]+?)(?:\.git)?$", url)
-    return (m.group(1), m.group(2)) if m else None
+        url = ""
+    found = parse_github(url)
+    if found:
+        return found
+    cff = os.path.join(ROOT, "CITATION.cff")
+    if os.path.exists(cff):
+        for line in open(cff, encoding="utf-8"):
+            m = re.match(r"\s*repository-code:\s*(\S+)", line)
+            if m:
+                return parse_github(m.group(1))
+    return None
 
 
 def identity_terms() -> list[str]:
@@ -199,6 +237,11 @@ def identity_terms() -> list[str]:
             m = re.match(r"\s*-?\s*(family-names|given-names|alias|name):\s*\"?([^\"]+)\"?", line)
             if m and m.group(1) != "name":
                 terms.append(m.group(2).strip())
+            # The ORCID iD on its own, so a bare iD is scrubbed like a name (the generic rule
+            # covers it only behind the orcid.org host).
+            m = re.match(r"\s*-?\s*orcid:\s*\"?(?:\S*/)?(\d{4}-\d{4}-\d{4}-\d{3}[\dX])", line)
+            if m:
+                terms.append(m.group(1))
     # Only the owner. The repository name is not a term: its lower-case form is the package
     # name, and a term rule would rewrite every import. url_rules() covers it inside URLs,
     # and the package rename covers it everywhere else.
@@ -242,10 +285,70 @@ def term_rules(terms: list[str]) -> list:
     return rules
 
 
+_FILM_FILE = re.compile(r"^([a-z0-9]+(?:-[a-z0-9]+)+?)-(?:web|poster|vertical|textless)"
+                        r"\.(?:mp4|webm|mov|jpg|jpeg|png|gif)$")
+_NUMBER_WORDS = ("one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
+
+
+def film_slugs() -> list[str]:
+    """Slugs of the publicly released films, read at build time from the names of the served
+    film files (assets/film/<slug>-web.mp4, <slug>-poster.jpg), so this file names no film.
+    In a git checkout only the committed files count, so a local, unpublished render in the
+    same folder adds no name. Empty where neither exists (an extracted archive)."""
+    listed = _git_files()
+    if listed is not None:
+        names = [posixpath.basename(f) for f in listed if f.startswith("assets/film/")]
+    else:
+        try:
+            names = os.listdir(os.path.join(ROOT, "assets", "film"))
+        except OSError:
+            return []
+    return sorted({m.group(1) for n in names for m in [_FILM_FILE.match(n)] if m})
+
+
+def film_rules(slugs: list[str] | None = None) -> list:
+    """One rule per released film: its title in any capitalization, with spaces, hyphens or
+    underscores between the words (title, file slug, Python name), becomes a neutral name
+    ("film one", "film two", ... in slug order) with the same capitalization and separator.
+    The words in lower case with plain spaces between them are ordinary prose, not the title,
+    and are left alone. A film title and a release date are a direct search key to the public
+    posts."""
+    rules = []
+    for i, slug in enumerate(slugs if slugs is not None else film_slugs()):
+        words = [re.escape(w) for w in slug.split("-")]
+        prose = r"(?!(?-i:" + r"\s+".join(words) + r")(?![A-Za-z0-9]))"
+        pat = re.compile(r"(?<![A-Za-z0-9])" + prose + r"([\s_-]+)".join(words)
+                         + r"(?![A-Za-z0-9])", re.I)
+        neutral = ["film", _NUMBER_WORDS[i] if i < len(_NUMBER_WORDS) else str(i + 1)]
+
+        def sub(m, neutral=neutral):
+            s = m.group(0)
+            sep = next((g for g in m.groups() if g), " ")
+            sep = " " if sep.strip() == "" else sep[0]
+            if s == s.lower():
+                ws = neutral
+            elif s == s.upper():
+                ws = [w.upper() for w in neutral]
+            else:
+                ws = [w.capitalize() for w in neutral]
+            return sep.join(ws)
+
+        rules.append((pat, sub))
+    # A release date written after "released" goes with the title it would identify.
+    if rules:
+        months = ("January|February|March|April|May|June|July|August|September|October|"
+                  "November|December")
+        rules.append((re.compile(r"\b(released(?:\s+on)?)\s+(?:\d{1,2}\s+(?:" + months
+                                 + r")\s+\d{4}|\d{4}-\d\d-\d\d)"), r"\1 <date>"))
+    return rules
+
+
 def scrub_rules() -> list:
     """Hosted images first, then repository URLs, then the generic rules, then one rule per
-    identity term (term_rules). The order matters: see url_rules."""
-    return IMAGE_SCRUB + url_rules() + list(GENERIC_SCRUB) + term_rules(identity_terms())
+    identity term (term_rules), then the film titles (film_rules). The order matters: see
+    url_rules."""
+    return (IMAGE_SCRUB + url_rules() + list(GENERIC_SCRUB) + term_rules(identity_terms())
+            + film_rules())
 
 
 def project_name() -> str | None:
@@ -357,7 +460,7 @@ INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "
                  "docs/rule_ledger.json", "docs/RULE_LEDGER.md",
                  # read by the scalar audit's wording guards and the site check:
                  "README.md", "CITATION.cff", "index.html", "index.template.html",
-                 "viz/player/brain/brain.js",
+                 "viz/player/brain/brain.js", "viz/player/index.html",
                  # imported by tests/test_viz_collect.py and tests/test_colab_notebook.py:
                  "viz/collect.py", "notebooks/colab_gpu.ipynb"]
 # Run bundles the archive carries when they exist under --runs-root (default fullruns/). They
@@ -369,6 +472,32 @@ INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "
 # absent is reported on the console and in README_SUPPLEMENT.md, never skipped silently.
 RUN_DIRS = ["fullruns/corrected_l3_h8_wm", "fullruns/corrected_l3_h8_nowm",
             "fullruns/l3_h8_heldout/agents", "fullruns/l3_h8_gseed2_gpu/agents"]
+# What the README says about a RUN_DIRS bundle that is absent, beyond "not included".
+RUN_NOTES = {
+    "fullruns/corrected_l3_h8_wm": "C1",
+    "fullruns/corrected_l3_h8_nowm": "C2",
+}
+
+# Left out of the archive even though they sit under a packaged root, as (pattern, reason).
+# Reproduction needs none of them. Patterns are fnmatch patterns on the repository path.
+SUPPLEMENT_EXCLUDE = [
+    # Outreach and film-production specs: audience, voice and music briefs for the public films.
+    ("docs/specs/*outreach-video*", "outreach and film-production specs"),
+    # Figures a run script drew inside a run bundle. Text drawn into an image is pixels that no
+    # scrub can see, and no one has viewed these for names (REVIEWED_IMAGES); the numbers they
+    # plot are in the JSON files beside them.
+    ("artifacts/goal_stakes/*", "run-script figures not viewed for names"),
+    ("fullruns/*", "run-script figures not viewed for names"),
+]
+_EXCLUDE_IMAGES_ONLY = {"run-script figures not viewed for names"}
+
+
+def excluded(rel: str) -> str | None:
+    """The reason `rel` is left out of the archive, or None when it ships."""
+    for pat, why in SUPPLEMENT_EXCLUDE:
+        if fnmatch.fnmatchcase(rel, pat) and (why not in _EXCLUDE_IMAGES_ONLY or is_image(rel)):
+            return why
+    return None
 
 
 def scrub(text: str, rules=None) -> str:
@@ -405,11 +534,13 @@ def _run_dir_source(r: str, runs_root: str) -> str:
     return os.path.join(runs_root, *sub.split("/"))
 
 
-def _sources(runs_root: str | None = None):
+def _sources(runs_root: str | None = None, dropped: list | None = None):
     """(archive path, source path) for every file the archive carries, sorted, and the status
     of each RUN_DIRS entry as (entry, file count), the count None when the entry is absent.
     The repository part follows git, not the filesystem, so gitignored scratch output under
-    the included directories (artifacts/clip_audit/, about 400 MB) never ships."""
+    the included directories (artifacts/clip_audit/, about 400 MB) never ships. A file that
+    SUPPLEMENT_EXCLUDE names is left out and, when `dropped` is a list, recorded there as
+    (path, reason)."""
     runs_root = runs_root or os.path.join(ROOT, "fullruns")
     roots = INCLUDE_DIRS + ["docs/specs", "docs/figures"]
     listed = _git_files()
@@ -421,6 +552,7 @@ def _sources(runs_root: str | None = None):
     repo += [f for f in INCLUDE_FILES if os.path.exists(os.path.join(ROOT, f))]
     pairs = {f: os.path.join(ROOT, f) for f in repo if os.path.isfile(os.path.join(ROOT, f))}
     status = []
+    gone = []
     for r in RUN_DIRS:
         src = _run_dir_source(r, runs_root)
         if not os.path.isdir(src):
@@ -434,6 +566,16 @@ def _sources(runs_root: str | None = None):
                 pairs[r + "/" + os.path.relpath(full, src).replace(os.sep, "/")] = full
                 n += 1
         status.append((r, n))
+    for rel in list(pairs):
+        why = excluded(rel)
+        if why:
+            del pairs[rel]
+            gone.append((rel, why))
+    if dropped is not None:
+        dropped.extend(sorted(gone))
+    # A bundle's count is what ships from it, after anything left out.
+    status = [(r, n if n is None else sum(1 for k in pairs if k.startswith(r + "/")))
+              for r, n in status]
     return sorted(pairs.items()), status
 
 
@@ -442,33 +584,220 @@ def _files(runs_root: str | None = None) -> list[str]:
     return [f for f, _ in _sources(runs_root)[0]]
 
 
-def _readme(status, anon_name: str | None) -> str:
-    lines = ["Anonymized supplement. Start with docs/REPRODUCE.md.",
-             "python scripts/reproduce.py tables   regenerates the tables and gates without training.",
-             "python scripts/reproduce.py retrain C1   prints the retraining commands.",
-             ""]
+README_NAME = "README_SUPPLEMENT.md"
+PROVENANCE_NAME = "PROVENANCE.md"
+
+
+def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
+            provenance: str | None = None) -> str:
+    """README_SUPPLEMENT.md: what the archive holds and leaves out, how to install and run it,
+    and the state of every run bundle. `provenance` is None when PROVENANCE.md was written,
+    else the reason it was not."""
+    L = ["# Anonymized supplement", "",
+         "This archive holds the code, the tests, every committed artifact and the method and "
+         "correction documents of the project, anonymized for review. The project's public "
+         "site, its films and illustrated walkthroughs, the Colab links and the git history "
+         "are not part of it, so links to them in the documents read as plain text. Start with "
+         "section 1 of docs/REPRODUCE.md and skip its clone step: the folder this file sits in "
+         "is the repository root.", "",
+         "## Install and run", "",
+         "- Python 3.10 to 3.13. Install the dependencies with "
+         "`pip install -r requirements-dev.txt`.",
+         "- `python -m pytest -q` runs the test suite, about 20 minutes on a laptop CPU.",
+         "- `python scripts/audit_stats_recheck.py` runs the scalar audit, a few seconds.",
+         "- `python scripts/reproduce.py tables` checks and rebuilds the tables and gates from "
+         "the committed per-seed artifacts without training, then runs the audit.",
+         "- `python scripts/reproduce.py retrain C1` prints the commands that retrain a run "
+         "(hours of CPU; costs in docs/REPRODUCE.md section 2).", "",
+         "## What is renamed or left out", ""]
     if anon_name:
-        lines += [f"For review, the project and package name is replaced by the neutral name "
-                  f"\"{anon_name}\" throughout the code, the documents and the file names. "
-                  f"Repository URLs read {REPO_PLACEHOLDER}, and externally hosted images are "
-                  "removed.", ""]
-    lines.append("Run bundles (gitignored outputs of training runs):")
+        L.append(f"- The project and package name is replaced by the neutral name `{anon_name}` "
+                 "in the code, the documents and the file names.")
+    L.append(f"- Repository URLs read `{REPO_PLACEHOLDER}`. Author names, ORCID iDs, e-mail "
+             "addresses and local paths read `<author>`, `<email>` and `<local-path>`, and "
+             "externally hosted images are removed.")
+    if films:
+        names = [f"Film {w.capitalize()}" for w in _NUMBER_WORDS[:films]]
+        names = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+        L.append(f"- The titles of the project's public films read {names}, and their release "
+                 "dates read `<date>`.")
+    reasons = sorted({why for _, why in dropped})
+    if reasons:
+        L.append(f"- Left out ({len(dropped)} files): " + "; ".join(reasons) + ". Reproduction "
+                 "needs none of them.")
+    L.append("- Figures that run scripts draw inside run bundles (under artifacts/goal_stakes/ "
+             "and fullruns/) are left out whenever present: no one has viewed them for names, "
+             "and the numbers they plot are in the JSON files beside them.")
+    L += ["", "## Run bundles", "",
+          "Run bundles are the outputs of training runs (cells, saved agents, state dumps). They "
+          "are not kept in version control, so the archive carries those present where it was "
+          "built.", ""]
+    absent = []
     for r, n in status:
-        lines.append(f"  included      {r} ({n} files)" if n is not None else
-                     f"  not included  {r} (absent where this archive was built)")
-    lines += ["",
-              "Saved agents and state dumps of a run that is not listed as included are not in "
-              "this archive. The corrected runs' cell records are under artifacts/corrected_runs/ "
-              "either way, so every corrected table rebuilds without training."]
-    return "\n".join(lines) + "\n"
+        if n is not None:
+            L.append(f"- included: `{r}` ({n} files)")
+        else:
+            L.append(f"- not included: `{r}`")
+            absent.append(r)
+    if not status:
+        L.append("- none: this archive was built without run bundles")
+    gone = [RUN_NOTES[r] for r in absent if r in RUN_NOTES]
+    L.append("")
+    if gone:
+        both = " and ".join(gone)
+        L += [f"The saved agents and state dumps of the corrected run{'s' if len(gone) > 1 else ''} "
+              f"{both} are not in this archive. {both} {'were' if len(gone) > 1 else 'was'} "
+              "trained in a 4-vCPU cloud container, and the bundles were not available where this "
+              "archive was built. Their per-seed cell records are under "
+              "artifacts/corrected_runs/, so every corrected table rebuilds without training. "
+              "`python scripts/reproduce.py retrain C1 --execute` retrains C1 and then C2 (about "
+              "3 h 20 min and 4 h 25 min on 4 CPU workers, docs/REPRODUCE.md section 2), and "
+              "prints the readout-only follow-ups that need the saved agents.", ""]
+    L.append("A run whose bundle is not listed as included has no saved agents or state dumps "
+             "here; its committed per-seed records are under artifacts/.")
+    L += ["", "## Files", ""]
+    if provenance is None:
+        L.append(f"- `{PROVENANCE_NAME}` lists the first and last commit of every "
+                 "preregistration and spec in the archive, read from git when the archive was "
+                 "built, so the freeze timing of each can be checked.")
+    else:
+        L.append(f"- There is no `{PROVENANCE_NAME}`: {provenance}.")
+    L.append(f"- `SHA256SUMS` lists the SHA-256 of every file in the archive except itself, "
+             f"`{README_NAME}` included.")
+    return "\n".join(L) + "\n"
+
+
+_MD_LINK = re.compile(r"(?<!!)\[((?:!\[[^\]]*\]\([^)]*\)|[^\[\]])*)\]\(\s*([^)\s]+)"
+                      r"(?:\s+\"[^\"]*\")?\s*\)")
+_SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
+
+
+def delink(text: str, md_path: str, shipped: set) -> str:
+    """A Markdown file with every link whose target the archive cannot resolve turned into its
+    link text: a target that is the repository placeholder, or a relative path to a file or
+    folder the archive does not carry. A badge (a link whose text is an image) is dropped.
+    Web URLs and in-page anchors are kept."""
+    folders = {posixpath.dirname(f) for f in shipped}
+    folders |= {d for f in folders for d in _parents(f)}
+
+    def dead(target: str) -> bool:
+        if target.startswith(REPO_PLACEHOLDER):
+            return True
+        if _SCHEME.match(target) or target.startswith(("#", "/")):
+            return False
+        path = target.split("#")[0].split("?")[0]
+        if not path:
+            return False
+        full = posixpath.normpath(posixpath.join(posixpath.dirname(md_path), path))
+        return full.startswith("..") or (full not in shipped and full.rstrip("/") not in folders)
+
+    def sub(m):
+        label, target = m.group(1), m.group(2)
+        if not dead(target):
+            return m.group(0)
+        return "" if label.lstrip().startswith("![") else label
+
+    return _MD_LINK.sub(sub, text)
+
+
+def _parents(d: str):
+    while d:
+        yield d
+        d = posixpath.dirname(d)
+
+
+def _git(args: list[str]) -> str | None:
+    try:
+        res = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return res.stdout
+
+
+def provenance_rows(rels: list[str]):
+    """([(path, first commit, first hash, last commit, last hash)], None), or (None, reason)
+    when the history is not there to read: outside a git checkout, or in a shallow clone,
+    whose oldest commit is the clone boundary and not when a file entered the history.
+    Committer dates in UTC, no names or e-mail addresses."""
+    top = (_git(["rev-parse", "--show-toplevel"]) or "").strip()
+    if not top or os.path.normcase(os.path.realpath(top)) != os.path.normcase(os.path.realpath(ROOT)):
+        return None, "the archive was not built from a git checkout"
+    if (_git(["rev-parse", "--is-shallow-repository"]) or "").strip() == "true":
+        return None, "the archive was built from a shallow clone, whose history is incomplete"
+
+    def utc(ts: str) -> str:
+        return datetime.datetime.fromtimestamp(int(ts), tz=datetime.timezone.utc).strftime(
+            "%Y-%m-%d %H:%M")
+
+    rows = []
+    for rel in rels:
+        log = [ln.split() for ln in (_git(["log", "--follow", "--format=%h %ct", "--", rel])
+                                     or "").splitlines() if ln.strip()]
+        if log:
+            rows.append((rel, utc(log[-1][1]), log[-1][0], utc(log[0][1]), log[0][0]))
+        else:
+            rows.append((rel, "not committed", "", "not committed", ""))
+    return rows, None
+
+
+def provenance_md(rows, rename) -> str:
+    out = ["# Provenance of the preregistrations and specs", "",
+           "Read from the git history when this archive was built: the first and the last "
+           "commit that touched each file, with committer dates in UTC and short commit hashes. "
+           "Names and e-mail addresses are not included. The first commit is when the file "
+           "entered the history. A later last commit is a later edit, and the file's own dated "
+           "entries say what changed.", "",
+           "| File | First commit (UTC) | Hash | Last commit (UTC) | Hash |",
+           "|---|---|---|---|---|"]
+    for rel, first, fh, last, lh in rows:
+        out.append(f"| `{rename(rel)}` | {first} | {fh} | {last} | {lh} |")
+    return "\n".join(out) + "\n"
+
+
+def _is_frozen_doc(rel: str) -> bool:
+    return (fnmatch.fnmatchcase(rel, "docs/PREREGISTRATION*.md")
+            or fnmatch.fnmatchcase(rel, "docs/specs/*.md"))
+
+
+# Account names too generic to be a leak check (cloud, CI and container defaults).
+_GENERIC_ACCOUNTS = {"user", "runner", "root", "admin", "administrator", "ubuntu", "vscode",
+                     "jovyan", "codespace", "codespaces", "content", "home", "default", "public",
+                     "guest", "build", "docker", "app"}
+
+
+def local_account() -> str | None:
+    """The build machine's account name, as a leak-only check: the scrub rules replace local
+    paths, and this catches a form they miss. None when it is too generic to check."""
+    name = os.path.basename(os.path.normpath(os.path.expanduser("~")))
+    return name if len(name) >= 4 and name.lower() not in _GENERIC_ACCOUNTS else None
+
+
+def paper_title() -> str | None:
+    """The manuscript's main title (before any colon), read at build time from the local,
+    untracked LaTeX source when it exists, so no tracked file spells it."""
+    path = os.path.join(ROOT, "docs", "paper", "main.tex")
+    try:
+        text = open(path, encoding="utf-8", errors="replace").read()
+    except OSError:
+        return None
+    m = re.search(r"\\title\{([^}:%\\]+)", text)
+    title = " ".join(m.group(1).split()) if m else ""
+    return title if len(title) >= 8 else None
 
 
 def _leak_patterns(old_name: str | None) -> list:
     """Leak-only checks beyond the scrub rules: any GitHub Pages host or hosted-image URL that
-    survived, and, when the package was renamed, any spelling of the original name."""
+    survived, and, when the package was renamed, any spelling of the original name; the build
+    machine's account name; and the manuscript's title when its local source is present."""
     pats = [re.compile(r"[\w-]+\." + _GH + r"\.io\b", re.I), re.compile(_HOSTED, re.I)]
     if old_name:
         pats.append(re.compile(re.escape(old_name), re.I))
+    acct = local_account()
+    if acct:
+        pats.append(re.compile(r"(?<![A-Za-z0-9])" + re.escape(acct) + r"(?![A-Za-z0-9])", re.I))
+    title = paper_title()
+    if title:
+        pats.append(re.compile(r"\s+".join(re.escape(w) for w in title.split()), re.I))
     return pats
 
 
@@ -518,42 +847,69 @@ def leak_scan(path: str, rules, old_name: str | None, reviewed=None) -> list[str
 
 
 def supplement(out: str, runs_root: str | None = None,
-               anon_name: str | None = DEFAULT_ANON_NAME) -> int:
+               anon_name: str | None = DEFAULT_ANON_NAME, *, require_runs: bool = False) -> int:
     old_name = project_name() if anon_name else None
     if anon_name:
         check_anon_name(anon_name, old_name)
     if old_name and old_name.lower() == anon_name.lower():
         old_name = None          # already neutral (a rebuild from an extracted archive)
-    rename = renamer(old_name, anon_name)
+    rename_pkg = renamer(old_name, anon_name)
+    films = film_rules()
     rules = scrub_rules()
-    pairs, status = _sources(runs_root)
+
+    def rename(path_or_text: str) -> str:
+        """Package name and film titles, as in text, so a path a document quotes still
+        resolves in the archive."""
+        return rename_pkg(scrub(path_or_text, films))
+
+    dropped: list = []
+    pairs, status = _sources(runs_root, dropped)
     print(f"run bundles under {runs_root or os.path.join(ROOT, 'fullruns')}:")
     for r, n in status:
         if n is None:
             print(f"  WARNING: {r} is absent; the archive will NOT carry it", flush=True)
         else:
             print(f"  included {r} ({n} files)")
+    missing = [r for r, n in status if n is None]
+    if require_runs and missing:
+        print(f"--require-runs: {len(missing)} run bundle(s) absent; no archive written")
+        return 1
+    for rel, why in dropped:
+        print(f"  left out {rel} ({why})")
+    rows, no_prov = provenance_rows([rel for rel, _ in pairs if _is_frozen_doc(rel)])
     os.makedirs(os.path.dirname(os.path.join(ROOT, out)) or ".", exist_ok=True)
+    shipped = {rename(rel) for rel, _ in pairs}
     sums = []
     with zipfile.ZipFile(os.path.join(ROOT, out), "w", zipfile.ZIP_DEFLATED) as z:
+        def put(arc: str, data: bytes) -> None:
+            z.writestr(arc, data)
+            sums.append(f"{hashlib.sha256(data).hexdigest()}  {arc}")
+
         for rel, src in pairs:
             with open(src, "rb") as fh:
                 data = fh.read()
-            if is_text(rel):
-                data = rename(scrub(data.decode("utf-8", errors="replace"), rules)).encode("utf-8")
             arc = rename(rel)
-            z.writestr(arc, data)
-            sums.append(f"{hashlib.sha256(data).hexdigest()}  {arc}")
-        z.writestr("README_SUPPLEMENT.md", _readme(status, anon_name))
+            if is_text(rel):
+                text = rename_pkg(scrub(data.decode("utf-8", errors="replace"), rules))
+                if arc.endswith(".md"):
+                    text = delink(text, arc, shipped)
+                data = text.encode("utf-8")
+            put(arc, data)
+        if rows is not None:
+            put(PROVENANCE_NAME, provenance_md(rows, rename).encode("utf-8"))
+        put(README_NAME, _readme(status, anon_name, dropped=dropped,
+                                 films=len(film_slugs()),
+                                 provenance=no_prov).encode("utf-8"))
         z.writestr("SHA256SUMS", "\n".join(sums) + "\n")
     leaks = leak_scan(os.path.join(ROOT, out), rules, old_name)
     unviewed = [n for n in leaks if is_image(n)]
     if unviewed:
         print(f"  images not on the reviewed list (view each, then add its SHA-256 to "
               f"REVIEWED_IMAGES in scripts/reproduce.py): {unviewed}")
-    print(f"wrote {out}: {len(sums)} files" + (f"; POSSIBLE IDENTITY LEAKS in {leaks}" if leaks
-          else "; no identity strings found in any file, binaries included, and every image "
-               "is on the reviewed list"))
+    print(f"wrote {out}: {len(sums) + 1} files ({len(sums)} listed in SHA256SUMS)"
+          + (f"; POSSIBLE IDENTITY LEAKS in {leaks}" if leaks
+             else "; no identity strings found in any file, binaries included, and every image "
+                  "is on the reviewed list"))
     return 1 if leaks else 0
 
 
@@ -576,12 +932,16 @@ def main(argv=None) -> int:
                         "in the archive (default %(default)s)")
     g.add_argument("--keep-name", action="store_true",
                    help="ship the package under its own name (the archive is then not anonymous)")
+    s.add_argument("--require-runs", action="store_true",
+                   help="fail, writing nothing, when a run bundle named in RUN_DIRS is absent "
+                        "(for the submission build)")
     a = ap.parse_args(argv)
     if a.cmd == "tables":
         return tables(a.dumps)
     if a.cmd == "retrain":
         return retrain(a.run, a.execute)
-    return supplement(a.out, runs_root=a.runs_root, anon_name=None if a.keep_name else a.anon_name)
+    return supplement(a.out, runs_root=a.runs_root, anon_name=None if a.keep_name else a.anon_name,
+                      require_runs=a.require_runs)
 
 
 if __name__ == "__main__":

@@ -109,3 +109,14 @@ def test_the_mp_determinism_gate_is_scored_on_the_legacy_partition(monkeypatch):
         r = rmr.rescore_cell("agent_d0.45_s0_survival.pt", 0.45, 0, "cpu")
     assert seen == ["legacy", "explicit"]
     assert r == {"mp_old": 0.5, "mp_fixed": 0.6, "n_pairs": 4}
+
+
+def test_npz_shapes_reads_every_npy_header_version(tmp_path):
+    import zipfile
+    arr = np.zeros((2, 3, 4), np.float32)
+    path = tmp_path / "v.npz"
+    with zipfile.ZipFile(path, "w") as z:
+        for name, version in (("a.npy", (1, 0)), ("b.npy", (2, 0)), ("c.npy", (3, 0))):
+            with z.open(name, "w") as fh:
+                np.lib.format.write_array(fh, arr, version=version)
+    assert rfs.npz_shapes(str(path)) == {"a": (2, 3, 4), "b": (2, 3, 4), "c": (2, 3, 4)}

@@ -492,7 +492,8 @@ RUNS = [
         artifacts=["surrogate_diagnostics.json"],
         trains_survival=False, survival_trainer="none", folds="explicit",
         config={"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 6.0 "
-                          "(disjoint block: --qd-eps 6.0 --merge-into "
+                          "--calibration-sample-77 (the seed-77 per-surrogate diagnostics; "
+                          "disjoint block: --qd-eps 6.0 --merge-into "
                           "artifacts/surrogate_diagnostics.json)"},
         notes="Agent free: G instances retrained deterministically from their recipe. The "
               "per-surrogate diagnostics were scored on a seed-77 sample inside every G's "
@@ -506,7 +507,7 @@ RUNS = [
         experiment="methods", artifacts=["texture/qd_eps1_calibration.json"],
         trains_survival=False, survival_trainer="none", folds="explicit",
         config={"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 1.0 "
-                          "--gn-sigma 0.01"},
+                          "--gn-sigma 0.01 --calibration-sample-77"},
         commit_at_run="82ef5d6", device="cpu",
         notes="Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the "
               "eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived "

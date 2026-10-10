@@ -162,7 +162,7 @@ episodes, so 100000 is disjoint from all of them."""
 def surrogate_diagnostics(g, *, params, n_train_eps: int = 250, train_steps: int = 40,
                           train_seed: int = 0, heldout_eps: int = 60, heldout_steps: int = 40,
                           heldout_seed: int = HELDOUT_SEED, horizons=(1, 5, 10, 24),
-                          ray_steps: int = 5) -> dict:
+                          ray_steps: int = 5, allow_overlap: bool = False) -> dict:
     """What the surrogate is, measured (revision step 10).
 
     In a uniform-drag world (k_land == k_water, as in world P) the authentic velocity law
@@ -178,14 +178,18 @@ def surrogate_diagnostics(g, *, params, n_train_eps: int = 250, train_steps: int
     trained at seed k passes `train_seed=k`. The held-out sample is episodes
     [heldout_seed, heldout_seed + heldout_eps), and the two ranges must not overlap: a held-out
     range inside the training range would score G on transitions it was fit to (the seed-77
-    default used before 2026-10-10 did exactly that, see docs/CORRECTIONS.md).
+    default used before 2026-10-10 did exactly that, see docs/CORRECTIONS.md). Only
+    `allow_overlap=True` lifts that refusal, to regenerate the seed-77 calibration-sample
+    numbers kept in artifacts/surrogate_diagnostics.json; the output then carries
+    heldout_overlaps_training: True, so its "held-out" columns cannot be read as held out.
 
     Reports one-step RMS error of G and of the linear fit on the training sample and on the
     held-out sample, and the open-loop ROLLOUT divergence: from held-out authentic states,
     iterate G and the authentic law under the same recorded accelerations and report the RMS
     velocity gap after each horizon. One-step error and rollout divergence are different
     quantities; the second compounds the first."""
-    if heldout_seed < train_seed + n_train_eps and train_seed < heldout_seed + heldout_eps:
+    overlap = heldout_seed < train_seed + n_train_eps and train_seed < heldout_seed + heldout_eps
+    if overlap and not allow_overlap:
         raise ValueError(
             f"held-out episodes [{heldout_seed}, {heldout_seed + heldout_eps}) overlap the "
             f"training episodes [{train_seed}, {train_seed + n_train_eps}); pick a disjoint "
@@ -214,6 +218,8 @@ def surrogate_diagnostics(g, *, params, n_train_eps: int = 250, train_steps: int
                           "rms_heldout": rms(g_pred(Xh), Yh.astype(float))},
            "n_train": int(len(X)), "n_heldout": int(len(Xh)),
            "train_seed": int(train_seed), "heldout_seed": int(heldout_seed)}
+    if overlap:
+        out["heldout_overlaps_training"] = True
     # Open-loop rollout divergence along held-out trajectories (same accelerations).
     traj = Xh.reshape(heldout_eps, heldout_steps, 4).astype(float)
     a_dt = params.dt
