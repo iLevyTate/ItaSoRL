@@ -9,7 +9,11 @@ summary JSON per run under artifacts/expB2/ with provenance:
   * per (drift, arm): per-seed pooled targets, mean, t-based 90% CI, seed-bootstrap
     90% CI, t-based 95% CI, seeds >= 0.65, speed / reward-leak / death means
   * gates: engagement pass count per drift (from cells/), L0 TOST and ROPE on the
-    survival drift-0 targets, pooled leakage clean count, untrained floor
+    survival drift-0 targets, pooled leakage clean count, untrained floor, and the speed
+    positive control as the registered gate reads it: the minimum over every pool (every
+    drift, arm and seed), with where it sits and how many pools fall under 0.75. Until
+    2026-10-10 speed_min was the minimum of the per-arm MEANS, which hid single pools under
+    the threshold; that figure is kept as speed_min_of_arm_means
   * behavior audit aggregates (resid_trace etc.) with t-based 90% CI recomputed from
     the audit cells
   * gate-0 calibration rows when a calibration.json is given
@@ -37,6 +41,15 @@ comparison arguments, refuses unless every recorded field other than the zone ag
 within 1e-9), and then rewrites only decision.zone, decision.registered_rule_met and
 decision.gates_open, adding a zone_relabelled note. git_commit_at_promotion and every number
 stay those of the original promotion.
+
+--refresh-gates brings the gates block of an artifact promoted before the per-pool speed rule
+up to date the same way: it re-promotes from source_run, refuses unless every field outside
+the gates block's speed, death-count and leak-default keys agrees (the zone keys and the
+gate-0 calibration excepted), and then rewrites only those gate keys, adding a gates_refreshed
+note with the previous values. The decision block, its zone included, is left as it was:
+a zone change is --relabel's job.
+
+    python scripts/promote_reviewer_gaps_runs.py --refresh-gates artifacts/expB2/<artifact>.json
 """
 
 from __future__ import annotations
@@ -98,6 +111,42 @@ def _nanmean(xs) -> float:
         return float(np.nanmean(np.asarray(xs, float)))
     except Exception:
         return float("nan")
+
+
+def speed_gate(res: dict, drifts) -> dict:
+    """The speed positive control (gate 3) as registered: every pool, not every arm mean.
+
+    speed_min is the lowest pool over every drift, arm and seed, which is what
+    scripts/promote_bv3_gates.py, scripts/promote_texture_trained.py and
+    scripts/build_corrected_verdicts.py read. speed_min_of_arm_means is the figure this script
+    wrote before 2026-10-10, kept so a quoted older value can be traced. A pool whose probe
+    could not be scored (NaN) is counted in speed_n_nonfinite and does not set the minimum."""
+    pools = [(d, a, i, float(x)) for d in drifts for a in ARMS
+             for i, x in enumerate(res[d][a].get("pool_speed", []))]
+    finite = [q for q in pools if math.isfinite(q[3])]
+    lo = min(finite, key=lambda q: q[3]) if finite else None
+    arm_means = [_nanmean(res[d][a]["pool_speed"]) for d in drifts for a in ARMS
+                 if "pool_speed" in res[d][a]]
+    return {
+        "speed_min": lo[3] if lo else float("nan"),
+        "speed_min_at": {"drift": lo[0], "arm": lo[1], "seed_index": lo[2]} if lo else None,
+        "speed_n_pools": len(pools),
+        "speed_n_below": int(sum(q[3] < SPEED_MIN for q in finite)),
+        "speed_n_nonfinite": len(pools) - len(finite),
+        "speed_min_of_arm_means": float(min(arm_means)) if arm_means else float("nan"),
+    }
+
+
+def deaths_count(res: dict, drifts) -> int:
+    """Pool deaths summed over every pool (counts, not per-arm means)."""
+    total = 0
+    for d in drifts:
+        for a in ARMS:
+            for k in ("pool_deaths_auth", "pool_deaths_surr"):
+                for x in res[d][a].get(k, []):
+                    if x is not None and math.isfinite(float(x)):
+                        total += int(round(float(x)))
+    return total
 
 
 def device_control(res: dict, compare_res: dict, dmax: str) -> dict:
@@ -283,13 +332,14 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
         "engagement": eng,
         "l0_survival_mean": float(np.mean(l0_vals)),
         "l0_tost": tost, "l0_rope": rope,
-        "speed_min": float(min(_nanmean(res[d][a]["pool_speed"]) for d in drifts for a in ARMS)),
-        "pool_leak_clean_all": all(all(bool(x) for x in res[d][a].get("pool_leak_clean", [True]))
+        **speed_gate(res, drifts),
+        # A run that recorded no leakage flag for an arm has not shown that gate passed.
+        "pool_leak_clean_all": all(("pool_leak_clean" in res[d][a])
+                                   and all(bool(x) for x in res[d][a]["pool_leak_clean"])
                                    for d in drifts for a in ARMS),
         "untrained_floor_at_dmax": untr["mean"],
         "untrained_floor_ok": abs(untr["mean"] - 0.5) < 0.1,
-        "deaths_total": float(sum(_nanmean(res[d][a]["pool_deaths_auth"]) + _nanmean(res[d][a]["pool_deaths_surr"])
-                                  for d in drifts for a in ARMS if "pool_deaths_auth" in res[d][a])),
+        "deaths_total": deaths_count(res, drifts),
     }
     decision = {
         "survival": surv["mean"], "predictor": pred["mean"], "untrained": untr["mean"],
@@ -405,7 +455,7 @@ def relabel(art_path: str, *, calibration: str | None = None, on: str | None = N
         kw["compare_run"] = here(kw["compare_run"])
     with tempfile.TemporaryDirectory() as tmp:
         fresh = promote(here(old["source_run"]), os.path.join(tmp, "fresh.json"), **kw)
-    strip = {k: v for k, v in old.items() if k != "zone_relabelled"}
+    strip = {k: v for k, v in old.items() if k not in ("zone_relabelled", "gates_refreshed")}
     strip["decision"] = {k: v for k, v in old["decision"].items() if k not in _RELABEL_KEYS}
     cmp = {**fresh, "decision": {k: v for k, v in fresh["decision"].items() if k not in _RELABEL_KEYS}}
     bad = _diff(strip, json.loads(json.dumps(cmp, default=float)))
@@ -429,10 +479,81 @@ def relabel(art_path: str, *, calibration: str | None = None, on: str | None = N
     return {"changed": True, "previous_zone": prev, **new}
 
 
+GATE_REFRESH_KEYS = ("speed_min", "speed_min_at", "speed_n_pools", "speed_n_below",
+                     "speed_n_nonfinite", "speed_min_of_arm_means", "deaths_total",
+                     "pool_leak_clean_all")
+
+
+def _recorded_kwargs(old: dict) -> dict:
+    kw = {"spec": old["spec"], "label": old["label"], "execution": old.get("execution"),
+          "head": old.get("git_commit_at_promotion")}
+    if "device_control" in old:
+        kw["compare_run"] = old["device_control"]["compare_run"]
+    if "skill_match" in old:
+        kw["skill_match_reference"] = old["skill_match"]["reference_return"]
+        kw["skill_match_tol"] = old["skill_match"]["tol"]
+    return kw
+
+
+def _here(path: str) -> str:
+    return path if os.path.isabs(path) else os.path.join(REPO_ROOT, path)
+
+
+def refresh_gates(art_path: str, *, on: str | None = None) -> dict:
+    """Bring an artifact's gates block up to the per-pool speed rule without touching its
+    numbers or its decision block (see the module docstring). Returns {"changed": bool, ...}."""
+    with open(art_path, encoding="utf-8") as fh:
+        old = json.load(fh)
+    if old.get("generated_by") != "scripts/promote_reviewer_gaps_runs.py":
+        raise SystemExit(f"{art_path} was not written by this script")
+    kw = _recorded_kwargs(old)
+    if "compare_run" in kw:
+        kw["compare_run"] = _here(kw["compare_run"])
+    with tempfile.TemporaryDirectory() as tmp:
+        fresh = json.loads(json.dumps(promote(_here(old["source_run"]),
+                                              os.path.join(tmp, "fresh.json"), **kw), default=float))
+
+    def comparable(doc):
+        out = {k: v for k, v in doc.items()
+               if k not in ("zone_relabelled", "gates_refreshed", "gate0_calibration")}
+        out["decision"] = {k: v for k, v in doc["decision"].items() if k not in _RELABEL_KEYS}
+        out["gates"] = {k: v for k, v in doc["gates"].items() if k not in GATE_REFRESH_KEYS}
+        return out
+
+    bad = _diff(comparable(old), comparable(fresh))
+    if bad:
+        raise SystemExit(f"{art_path}: re-promotion from {old['source_run']} disagrees at "
+                         f"{bad[:10]}; gates not refreshed")
+    changed = [k for k in GATE_REFRESH_KEYS
+               if k not in old["gates"] or old["gates"][k] != fresh["gates"][k]]
+    if not changed:
+        return {"changed": False}
+    previous = {k: old["gates"][k] for k in changed if k in old["gates"]}
+    added = [k for k in changed if k not in old["gates"]]
+    # A key whose value did not change keeps its recorded form (0.0 stays 0.0).
+    old["gates"] = {k: (fresh["gates"][k] if k in changed else old["gates"][k])
+                    for k in fresh["gates"]}
+    old["gates_refreshed"] = {
+        "on": on or datetime.date.today().isoformat(),
+        "previous": previous, "added": added,
+        "why": ("speed_min is now the lowest pool over every drift, arm and seed, as the "
+                "registered gate 3 reads it, not the lowest arm mean; deaths_total is a count; "
+                "an arm with no leakage flag no longer reads as clean. Re-promoted from "
+                "source_run and checked to agree everywhere else before writing; the decision "
+                "block and git_commit_at_promotion are the original promotion's"),
+    }
+    with open(art_path, "w", encoding="utf-8") as fh:
+        json.dump(old, fh, indent=1, default=float)
+    return {"changed": True, "previous": previous, "added": added,
+            "now": {k: old["gates"][k] for k in changed}}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--relabel", default=None, metavar="ARTIFACT",
                     help="update the zone of an already promoted artifact (see the module docstring)")
+    ap.add_argument("--refresh-gates", default=None, metavar="ARTIFACT",
+                    help="update the per-pool speed gate of an already promoted artifact")
     ap.add_argument("--run")
     ap.add_argument("--out")
     ap.add_argument("--spec")
@@ -447,6 +568,11 @@ def main() -> int:
     ap.add_argument("--skill-match-tol", type=float, default=MARGIN,
                     help="half-width of the skill-match window (default: the 0.05 margin)")
     a = ap.parse_args()
+    if a.refresh_gates:
+        r = refresh_gates(a.refresh_gates)
+        print(f"{a.refresh_gates}: " + (f"gates {r['previous']} -> {r['now']}" if r["changed"]
+                                        else "gates already current"))
+        return 0
     if a.relabel:
         r = relabel(a.relabel, calibration=a.calibration)
         print(f"{a.relabel}: " + (f"zone {r.get('previous_zone')!r} -> {r['zone']!r}" if r["changed"]

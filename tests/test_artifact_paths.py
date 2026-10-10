@@ -31,14 +31,10 @@ SKIP = {"artifacts/corrected_verdicts.json", "artifacts/surrogate_diagnostics.js
 SKIP_PREFIXES = ("artifacts/goal_stakes/",)
 # A dated audit record that quotes such a path while describing it; it stays as written.
 ALLOW = {"docs/REVISION_AUDIT_2026-10-07.md"}
-# source_run is a field the results manifest copies from each artifact, so rewriting it here
-# would leave the manifest stale. These four change together with a manifest rebuild.
-PENDING_MANIFEST_FOLLOWUP = {
-    "artifacts/expB2/sensory_echo_l3_h7.json",
-    "artifacts/expB2/sensory_echo_l3_h8.json",
-    "artifacts/expB2/sensory_echo_l3_h8_mlp.json",
-    "artifacts/expC/emergence_pilot_per_individual_summary.json",
-}
+# source_run is a field the results manifest copies from each artifact, so a rewrite here goes
+# with a manifest rebuild. The last four (the sensory-echo summaries and the Exp C
+# per-individual summary) were rewritten with the rebuild on 2026-10-10; nothing is pending.
+PENDING_MANIFEST_FOLLOWUP: set[str] = set()
 
 
 def _tracked_files() -> list[str] | None:

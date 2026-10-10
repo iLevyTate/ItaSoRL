@@ -388,7 +388,8 @@
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.834809,
+   "speed_min": 0.787171,
+   "speed_basis": "pool",
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -417,7 +418,8 @@
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.830331,
+   "speed_min": 0.772051,
+   "speed_basis": "pool",
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -446,7 +448,8 @@
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.830331,
+   "speed_min": 0.753126,
+   "speed_basis": "pool",
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -475,7 +478,8 @@
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.832978,
+   "speed_min": 0.747823,
+   "speed_basis": "pool",
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -504,7 +508,8 @@
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.813581,
+   "speed_min": 0.758418,
+   "speed_basis": "pool",
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -534,6 +539,7 @@
    },
    "engagement": "20/20",
    "speed_min": 0.83687,
+   "speed_basis": "arm mean",
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "historical"
@@ -562,7 +568,8 @@
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.834809,
+   "speed_min": 0.787171,
+   "speed_basis": "pool",
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "corrected"
@@ -591,7 +598,8 @@
     "status": "pass"
    },
    "engagement": "20/20",
-   "speed_min": 0.830331,
+   "speed_min": 0.772051,
+   "speed_basis": "pool",
    "pool_leak_clean_all": true,
    "deaths_total": 0.0,
    "status": "corrected"

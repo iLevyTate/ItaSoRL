@@ -8,17 +8,19 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 
 `pre_transition_value` is `compute_gae` as it stood from `679fee6` (2026-06-28) to `4b6e1f3`: an episode still alive at the 80-step cutoff bootstrapped from the critic value at its last stored step, before its final transition. `none` means the run trains no actor-critic. A readout-only analysis inherits the trainer of the run whose saved agents it reads.
 
+A commit marked (curated) is the registry's value with no matching run commit in the run's artifacts; the run's section says what the artifacts record instead.
+
 | Run | Status | Experiment | Claims | Trainer | Readout of | Commit at run | Folds | Device |
 |---|---|---|---|---|---|---|---|---|
 | `A-L1L2` | historical | A | 1, 2, 3 | none | - | 4c16be6 | legacy | Colab Tesla T4 |
 | `A-L2-INCONFIG` | historical | A | 36 | none | - | not recorded | legacy | not recorded |
 | `A-L3-GATE0` | historical | A | 11, 22 | none | - | not recorded | both | not recorded |
 | `B-PRED` | historical | B | 4, 5, 6, 7 | none | - | 4c16be6 | legacy | Colab Tesla T4 |
-| `BV2-L2-AR1` | historical | B-v2 | 8 | pre_transition_value | - | 4c16be6 | legacy | Colab Tesla T4 |
+| `BV2-L2-AR1` | historical | B-v2 | 8 | pre_transition_value | - | 4c16be6 (curated) | legacy | Colab Tesla T4 |
 | `BV2-L2-AR1-LAB` | historical | B-v2 | - | pre_transition_value | - | not recorded | legacy | not recorded |
 | `BV3-REGIME-N10` | historical | B-v3 | 9, 37 | pre_transition_value | - | 820849f | legacy | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
 | `BV2-SYSID-N10` | historical | B-v2 | 10 | pre_transition_value | - | f848738 | legacy | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
-| `L3-H8-N10` | historical | B-v2 L3 | 12, 13, 14, 15, 16, 17, 18, 19 | pre_transition_value | - | 2888d37 (l3_h8_traces) | both | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 (local GPU; per-run stack not recorded) |
+| `L3-H8-N10` | historical | B-v2 L3 | 12, 13, 14, 15, 16, 17, 18, 19 | pre_transition_value | - | 2888d37 (l3_h8_traces) (curated) | both | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 (local GPU; per-run stack not recorded) |
 | `L3-H4` | historical | B-v2 L3 | 22 | pre_transition_value | - | not recorded | both | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
 | `L3-H7-N10` | historical | B-v2 L3 | 20, 21, 22 | pre_transition_value | - | not recorded | both | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
 | `L3-H8-HELDOUT` | historical | B-v2 L3 | 23, 24 | pre_transition_value | - | ed88df0 | both | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
@@ -32,15 +34,18 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `L3-H8-NOWM-U450` | historical | B-v2 L3 | - | pre_transition_value | - | 9d5d047 / 80948ff (cells span both) | explicit | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126, ITASORL_FOLDS=explicit |
 | `ENGAGE-MARGIN` | historical | B-v2 | 37 | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-NOWM-CPU, L3-H10-GS1-CPU, L3-H8-WM-CPU | not recorded | n/a | not recorded |
 | `ENGAGE-MARGIN-CORRECTED` | corrected | B-v2 | 37 | inherited: successor_value | C1, C2 | not recorded | n/a | not recorded |
-| `L3-CROSSRECIPE` | historical | B-v2 L3 | 26 | inherited: pre_transition_value | L3-H8-HELDOUT | a5c46ff | legacy | local GPU |
+| `ENGAGE-MARGIN-GPU` | historical | B-v2 | 37 | inherited: pre_transition_value | L3-H8-N10, L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450, L1-ORGANISM | not recorded | n/a | not recorded |
+| `WALL-CLOCK-GPU` | historical | methods | - | none | - | not recorded | n/a | not recorded |
+| `L3-CROSSRECIPE` | historical | B-v2 L3 | 26 | inherited: pre_transition_value | L3-H8-HELDOUT | a5c46ff (curated) | legacy | local GPU |
 | `H2-GRADED-SEAM` | historical | H2 | 32 | inherited: pre_transition_value | L3-H8-HELDOUT | c4e4417 | legacy | cuda |
+| `H2-GRADED-SEAM-H7` | historical | H2 | 32 | inherited: pre_transition_value | L3-H7-REVERSE | 27b0dc1 (curated) | legacy | cuda |
 | `H2-TEXTURE` | historical | H2 | 33 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | not recorded |
 | `H2-OBSLOC` | historical | H2 | 34 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | not recorded |
 | `L1-H2` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | not recorded | legacy | not recorded |
 | `SENSORY-ECHO` | historical | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
-| `EXPC-M3-PER-INDIVIDUAL` | historical | C | 28 | none | - | 3c6f0aa | n/a | owner's laptop CPU |
+| `EXPC-M3-PER-INDIVIDUAL` | historical | C | 28 | none | - | 3c6f0aa (curated) | n/a | owner's laptop CPU |
 | `L1-STREAM-READOUT` | historical | H2 | 35 | inherited: pre_transition_value | L1-ORGANISM | 5666f59 | explicit | owner's laptop CPU, 4 workers |
-| `T-GN-TRAINED` | corrected | B-v2 L3 | - | successor_value | - | 60eb355 | explicit | owner's laptop CPU, 4 workers |
+| `T-GN-TRAINED` | corrected | B-v2 L3 | - | successor_value | - | 60eb355 (curated) | explicit | owner's laptop CPU, 4 workers |
 | `H8-HELDOUT-REVERSE-DIRECTION` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 8aa2b9f | explicit | owner's laptop CPU, one thread per readout |
 | `H8-HELDOUT-D045-WORLD-SAMPLES` | historical | L0 audit | - | inherited: pre_transition_value | L3-H8-HELDOUT | 865b842 | explicit | owner's laptop CPU, one thread per readout |
 | `FOLDS-EXPLICIT-V1` | historical | methods | - | none | - | not recorded | explicit | not recorded |
@@ -48,23 +53,23 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 | `CONTRAST-INTERVALS` | historical | methods | - | inherited: pre_transition_value | BV3-REGIME-N10, L3-H8-N10, L3-H7-N10, L3-H8-HELDOUT, L3-H7-REVERSE, L1-ORGANISM, L3-H8-NOWM-CPU, L3-H8-WM-CPU, L3-H10-GS1-CPU, L3-H10-GS1-GPU, L3-H8-GS2-GPU, L3-H8-NOWM-U450 | not recorded | both | not recorded |
 | `QD-GATE0` | historical | methods | - | none | - | not recorded | explicit | not recorded |
 | `SURROGATE-DIAG` | historical | methods | - | none | - | not recorded | explicit | not recorded |
-| `QD-EPS1-CAL` | historical | methods | - | none | - | 82ef5d6 | explicit | cpu |
+| `QD-EPS1-CAL` | historical | methods | - | none | - | 82ef5d6 (curated) | explicit | cpu |
 | `SURROGATES` | historical | methods | - | none | - | not recorded | n/a | cpu |
 | `L0-PRE-INTERVENTION` | historical | L0 audit | - | none | - | not recorded | explicit | not recorded |
 | `C1` | corrected | B-v2 L3 | 41, 42 | successor_value | - | f676b95 | explicit (explicit-v1; equals legacy on this stack) | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C2` | corrected | B-v2 L3 | 42 | successor_value | - | f676b95 | explicit (explicit-v1; equals legacy on this stack) | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-L0-AUDIT` | corrected | L0 audit | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-POLICY-CONTROLS` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-PERSISTENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-CONTROL-DIAG` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-TEXTURE` | corrected | H2 | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-POPULATION` | corrected | C | - | inherited: successor_value | C1 | 34e2c0d | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-L0-AUDIT` | corrected | L0 audit | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-POLICY-CONTROLS` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-PERSISTENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-CONTROL-DIAG` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-TEXTURE` | corrected | H2 | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-POPULATION` | corrected | C | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `T-TOUCH` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `S-IMMORTAL` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `S-SCARCE` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-MECHANISM` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `BUDGET-CURVE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | not recorded | explicit | not recorded |
-| `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 7870bba | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 7870bba (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 
@@ -132,6 +137,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: none
 - Commit at run: 4c16be6
+- Commit source: recorded
 - Folds: legacy
 - Device: Colab Tesla T4
 - Dependencies: python 3.12.13, torch 2.11.0+cu128 (recorded)
@@ -163,6 +169,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: none
 - Commit at run: 4c16be6
+- Commit source: recorded
 - Agent seeds: [0, 1, 2]
 - Folds: legacy
 - Device: Colab Tesla T4
@@ -176,12 +183,14 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: 4c16be6
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Agent seeds: [0, 1, 2]
 - Budget: {"survival_updates": 300, "env_steps_per_update": "<=1280"}
 - Folds: legacy
 - Device: Colab Tesla T4
 - Dependencies: torch 2.11.0+cu128
 - Local run directory (not in git): fullruns/06302026
+- Notes: Figure redrawn 2026-10-10 from the JSON by scripts/plot_record_figures.py (pooled AUROC per arm, mean ± std ddof 0, labeled historical).
 - Config (beyond the standard protocol): {"drift_mode": "ar1"}
 - Artifacts: `artifacts/expB2/expB2_results.json`, `artifacts/expB2/expB2_survival.png`
 
@@ -191,7 +200,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Trainer: pre_transition_value
 - Agent seeds: [0, 1, 2]
 - Folds: legacy
-- Notes: Run commit not recorded. Re-run after the 679fee6 padding fix per PREREGISTRATION.md (2026-06-28); kept as an archive, not cited as a result.
+- Notes: Run commit not recorded. Re-run after the 679fee6 padding fix per PREREGISTRATION.md (2026-06-28); kept as an archive, not cited as a result. Figure redrawn 2026-10-10 from the JSON by scripts/plot_record_figures.py (pooled AUROC per arm, mean ± std ddof 0, labeled historical).
 - Config (beyond the standard protocol): {"drift_mode": "ar1"}
 - Artifacts: `artifacts/expB2/expB2_results_confirmatory_n3.json`, `artifacts/expB2/expB2_survival_confirmatory_n3.png`
 
@@ -200,6 +209,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: 820849f
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Budget: {"survival_updates": 300}
 - Folds: legacy
@@ -215,6 +225,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: f848738
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Folds: legacy
 - Device: owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126
@@ -228,6 +239,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: 2888d37 (l3_h8_traces)
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
@@ -268,6 +280,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: ed88df0
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)", "heldout": {"hidden": 7, "g_seed": 0}}
 - Folds: both
@@ -282,6 +295,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: 15b1fc7 / 64be5bd (cells span both)
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 7, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)", "heldout": {"hidden": 8, "g_seed": 0}}
 - Folds: both
@@ -295,6 +309,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: 8a71593
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Folds: both
 - Device: cpu, 4 workers (run log header)
@@ -307,6 +322,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: a641ca0
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300}
@@ -322,6 +338,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: 3f36cc2
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300}
@@ -337,6 +354,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: a641ca0
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 10, "g_seed": 1, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Folds: legacy (= explicit on this stack)
@@ -349,6 +367,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: 283f3ab
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 10, "g_seed": 1, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Folds: explicit (the itasorl.folds default at 283f3ab)
@@ -361,6 +380,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: d67dd51
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 2, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Folds: explicit
@@ -373,6 +393,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: pre_transition_value
 - Commit at run: 9d5d047 / 80948ff (cells span both)
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 450, "predictor_updates": 300}
@@ -397,11 +418,28 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: scripts/audit_engagement_margin.py on the committed corrected cells; offline, no compute. FINDINGS methods note 2. Extends ENGAGE-MARGIN, which covered historical cells only.
 - Artifacts: `artifacts/engagement_margin_corrected.json`
 
+### `ENGAGE-MARGIN-GPU`: Engagement-margin sweep on the GPU-published cells, with their inputs
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Folds: n/a
+- Notes: scripts/audit_engagement_margin.py --with-inputs (2026-10-10) on the gitignored cells of fullruns/l3_n10, l3_h8_traces, l3_h7_traces, l3_h4_traces, l3_h8_heldout and l3_h7_heldout, the committed cells of the three GPU reviewer-gap runs, and artifacts/expL1/organism_summary.json. Each report carries its cells' engagement inputs, so every margin recomputes from this file alone (tests/test_engagement_margin.py). Survival objective only; other objectives are counted and skipped.
+- Artifacts: `artifacts/engagement_margin_gpu_runs.json`
+
+### `WALL-CLOCK-GPU`: Wall-clock record of the GPU organism runs
+
+- Status: historical
+- Trainer: none
+- Folds: n/a
+- Notes: scripts/record_wall_clock.py (2026-10-10), read only from the original bundles: start is the creation time of run.log (or of the run directory), end the last write of expB2_results.json, and the three chain-launched runs add their chain logs' UTC stamps, which agree with the file times. No GPU run recorded its own duration. Covers L3-H8-N10 (l3_n10, l3_h8_traces), L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L3-H10-GS1-GPU, L3-H8-GS2-GPU and L3-H8-NOWM-U450.
+- Artifacts: `artifacts/wall_clock_gpu_runs.json`
+
 ### `L3-CROSSRECIPE`: Cross-recipe transfer probe (RFF ridge family)
 
 - Status: historical
 - Trainer: inherited: pre_transition_value
 - Commit at run: a5c46ff
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: legacy
 - Device: local GPU
 - Artifacts: `artifacts/l3_crossrecipe/summary.json`
@@ -411,17 +449,30 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: inherited: pre_transition_value
 - Commit at run: c4e4417
+- Commit source: recorded
 - Folds: legacy
 - Device: cuda
 - Notes: Decoding falls with the dynamics difference; this does not identify a representation of learnedness.
 - Artifacts: `artifacts/expH2/summary.json`
+
+### `H2-GRADED-SEAM-H7`: H2 graded-seam ablation (A1), hidden-7 capacity replication
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Commit at run: 27b0dc1
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: legacy
+- Device: cuda
+- Local run directory (not in git): fullruns/l3_h7_ablation
+- Notes: scripts/run_expH2_ablation.py --hidden 7 (the surrogate capacity; the agent trunk is 96) on the saved fullruns/l3_h7_heldout agents, then scripts/promote_expH2_summary.py --l3-hidden 7 (2026-10-10). The bundle records no commit: it was written 2026-07-24 00:18 -0400 by the uncommitted runner that was committed as 27b0dc1 at 01:12. All three arms are recorded; the untrained floor rises from 0.474 to 0.586 and the predictor from 0.500 to 0.714 as the seam is restored, so neither is flat at this capacity.
+- Artifacts: `artifacts/expH2/summary_h7.json`
 
 ### `H2-TEXTURE`: H2 texture knockout and dose response
 
 - Status: historical
 - Trainer: inherited: pre_transition_value
 - Folds: legacy
-- Notes: Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). No gn-trained run exists.
+- Notes: Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). A gn-trained run (T-GN-TRAINED) was executed 2026-10-08/09 and is uninformative. Both comparator-trained runs ran an 8-unit agent trunk (FINDINGS 14.5.1 correction 2026-10-10): T-qd's 60 saved agents have cell.weight_hh (24, 8), its fingerprint 23a620e51d4e26fd reproduces only at --hidden 8, and its speed control is short in 8 of 60 pools (worst 0.7018).
 - Artifacts: `artifacts/expH2/texture_knockout_h8.json`, `artifacts/expH2/texture_knockout_h7.json`
 
 ### `H2-OBSLOC`: Observation-channel localization (A2)
@@ -453,6 +504,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: none
 - Commit at run: 3c6f0aa
+- Commit source: curated: the artifacts record 06ecc10 instead
 - Folds: n/a
 - Device: owner's laptop CPU
 - Local run directory (not in git): fullruns/expC_milestone3
@@ -464,6 +516,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: inherited: pre_transition_value
 - Commit at run: 5666f59
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's laptop CPU, 4 workers
 - Local run directory (not in git): fullruns/l1_stream_readout
@@ -475,14 +528,15 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: successor_value
 - Commit at run: 60eb355
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "G_gn (iid velocity jitter on the authentic law)", "sigma_v": 0.01, "gate0": "oracle 0.8653 in band, floor 0.4479"}
 - Budget: {"survival_updates": 300}
 - Folds: explicit
 - Device: owner's laptop CPU, 4 workers
 - Local run directory (not in git): fullruns/T_gn_l3_h8_wm
-- Notes: NOT THE REGISTERED CONFIGURATION: the agent trunk was 8 units, not 96, because --hidden 8 was passed alongside --l3-hidden 8. Uninformative for that reason independently of the gate below. scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. UNINFORMATIVE: the registered positive control (speed probe at least 0.75, scored in every pool as the project does) is short in 9 of 60 arm-by-cell pools, worst 0.6862, with 8 of the 9 in the untrained arm the registered margins are measured against, so the matrix's two verdicts, which both require every gate to pass, are not reached, and the matrix names no cell for this failure. Not promoted as a negative; it strengthens no claim. The descriptive outcome is recorded because the preregistration log and the manuscript quote it.
-- Config (beyond the standard protocol): {"hidden": 8, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01, "hidden_deviation": "the registered trunk is 96; this run was launched with --hidden 8, conflating the agent trunk with --l3-hidden"}
+- Notes: NOT THE REGISTERED CONFIGURATION: the agent trunk was 8 units, not 96, because the frozen spec's command block carried --hidden 8 beside --l3-hidden 8 and the launch copied it (PREREGISTRATION_L3 2026-10-10 third correction); the promoter now reads the width from the saved agents (artifact trunk_check). Uninformative for that reason independently of the gate below. scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. UNINFORMATIVE: the registered positive control (speed probe at least 0.75, scored in every pool as the project does) is short in 9 of 60 arm-by-cell pools, worst 0.6862, with 8 of the 9 in the untrained arm the registered margins are measured against, so the matrix's two verdicts, which both require every gate to pass, are not reached, and the matrix names no cell for this failure. Not promoted as a negative; it strengthens no claim. The descriptive outcome is recorded because the preregistration log and the manuscript quote it.
+- Config (beyond the standard protocol): {"hidden": 8, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01, "hidden_deviation": "the registered trunk is 96; the frozen spec's own command block (d341091, line 44) carried --hidden 8, conflating the agent trunk with --l3-hidden, and the launch copied it; the qd-trained run T-qd had the same 8-unit trunk"}
 - Artifacts: `artifacts/texture/T_gn_l3_h8_wm.json`
 
 ### `H8-HELDOUT-REVERSE-DIRECTION`: Reverse-direction readout: drift-0 agents probed against a surrogate they never lived in (frozen 2026-10-09)
@@ -490,6 +544,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: inherited: pre_transition_value
 - Commit at run: 8aa2b9f
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's laptop CPU, one thread per readout
 - Local run directory (not in git): fullruns/reverse_direction
@@ -501,6 +556,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: inherited: pre_transition_value
 - Commit at run: 865b842
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's laptop CPU, one thread per readout
 - Local run directory (not in git): fullruns/d045_world_samples
@@ -540,13 +596,13 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Config (beyond the standard protocol): {"runner": "scripts/run_expA_l3.py --family qd", "sigma_meas": 0.02, "sweep": [0.5, 1, 2, 4, 8, 16]}
 - Artifacts: `artifacts/texture/gate0_qd.json`
 
-### `SURROGATE-DIAG`: Surrogate diagnostics: linear-fit control, held-out and rollout error, agent-accessible detector
+### `SURROGATE-DIAG`: Surrogate diagnostics: linear-fit control, calibration-sample and disjoint held-out error, rollout error, agent-accessible detector
 
 - Status: historical
 - Trainer: none
 - Folds: explicit
-- Notes: Agent free: G instances retrained deterministically from their recipe.
-- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py"}
+- Notes: Agent free: G instances retrained deterministically from their recipe. The per-surrogate diagnostics were scored on a seed-77 sample inside every G's training episodes (the calibration sample of FINDINGS 10.1.1). The disjoint_heldout block (2026-10-10) rescored them at seeds 100000 to 100059 with each G's train column on its own seed, on the owner's workstation stack (Python 3.13.2, numpy 1.26.4, torch 2.7.0+cu126); it was written only after the rerun reproduced every stored detector AUROC exactly and the stored profiles to 6.5e-8. docs/CORRECTIONS.md 2026-10-10.
+- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 6.0 (disjoint block: --qd-eps 6.0 --merge-into artifacts/surrogate_diagnostics.json)"}
 - Artifacts: `artifacts/surrogate_diagnostics.json`
 
 ### `QD-EPS1-CAL`: Deviation calibration of the quadratic-drag comparator at eps 1
@@ -554,10 +610,11 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: none
 - Commit at run: 82ef5d6
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: cpu
-- Notes: Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived only in the comparator spec. Measured here: qd at eps 1 deviates by 0.002356 and gn by 0.0142 on the same 60-episode profile, a ratio of 6.02 (FINDINGS 17.9). The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds).
-- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py --qd-eps 1.0 --gn-sigma 0.01"}
+- Notes: Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived only in the comparator spec. Measured here: qd at eps 1 deviates by 0.002356 and gn by 0.0142 on the same 60-episode profile, a ratio of 6.02 (FINDINGS 17.9). The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds). Its diagnostics block is the seed-77 calibration sample; the eps-1 profile value 0.002356 is unaffected.
+- Config (beyond the standard protocol): {"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 1.0 --gn-sigma 0.01"}
 - Artifacts: `artifacts/texture/qd_eps1_calibration.json`
 
 ### `SURROGATES`: Frozen L3 fingerprints (G_motion instances), serialized
@@ -583,6 +640,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: successor_value
 - Commit at run: f676b95
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300, "budget_curve": [100, 200, 300, 450], "predictor_updates": 300}
@@ -599,6 +657,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: successor_value
 - Commit at run: f676b95
+- Commit source: recorded
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300, "budget_curve": [100, 200, 300, 450], "predictor_updates": 300}
@@ -615,6 +674,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 34e2c0d
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_l0_audit.py; revision step 5; diagnostic, not a gate.
@@ -625,6 +685,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 34e2c0d
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_policy_controlled_readouts.py; revision step 6. Survival agents retrained with batch logging, bit-identical to the saved agents (10/10); predictor_logged trains the prediction objective on those batches.
@@ -635,6 +696,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 34e2c0d
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_persistence_readout.py; revision step 7; rule frozen in docs/specs/2026-10-06-controlled-persistence-design.md.
@@ -645,6 +707,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 34e2c0d
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_control_diagnostics.py; revision step 8. Pools regenerated and bit-matched to the run's state dumps.
@@ -655,6 +718,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 34e2c0d
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_texture_fresh_probe.py; revision step 9; wording rules frozen in docs/specs/2026-10-06-texture-comparator-design.md.
@@ -665,9 +729,10 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 34e2c0d
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
-- Notes: scripts/validate_population_readout.py; revision step 12.
+- Notes: scripts/validate_population_readout.py; revision step 12. The artifact records no commit and no fold scheme (it predates the git_commit field the script gained in 19b4677), and its run_dir is the revision container's path; the commit and the explicit-v1 partition above are curated from the revision record, not read from the artifact.
 - Artifacts: `artifacts/population_readout/corrected_l3_h8_wm.json`
 
 ### `T-TOUCH`: Pellet-touch objective, death off, registered food, n = 10 (goal-and-stakes)
@@ -738,6 +803,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 7870bba
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Notes: scripts/run_cross_replay.py; post hoc, written after C1 and C2 were read; revision step 11.
@@ -756,6 +822,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: historical
 - Trainer: none
 - Commit at run: a0cb850
+- Commit source: recorded
 - Agent seeds: [0, 1, 2]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Folds: legacy

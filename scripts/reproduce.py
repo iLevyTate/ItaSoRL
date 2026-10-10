@@ -304,6 +304,46 @@ def is_text(name: str) -> bool:
     return ext.lower() in TEXT_EXT or (ext == "" and "." not in base)
 
 
+IMAGE_EXT = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tif", ".tiff", ".webp", ".svg", ".pdf",
+             ".eps", ".ico"}
+# Every image the archive may carry, by archive path and the SHA-256 of the bytes a person
+# looked at. Text drawn into an image (a figure title) is pixels: neither the scrub nor the
+# byte scan can see it, and two run-script figures once shipped the project name that way.
+# So an image ships only when its exact bytes were viewed and found free of names, handles and
+# URLs. A new or redrawn image fails the leak check until someone views it and adds its hash
+# here. Reviewed 2026-10-10: the eight images below, all redrawn title-free by
+# scripts/plot_record_figures.py or scripts/build_budget_curve.py; none prints a name.
+REVIEWED_IMAGES = {
+    "artifacts/expB2/expB2_survival.png":
+        "bcd0d1983e553c46ba83542c1e08eec8931686623348ff90ac6490f626ea0eec",
+    "artifacts/expB2/expB2_survival_confirmatory_n3.png":
+        "7f16672afc4beaead5fbbb3d3858a477c25b1b8181895c5d88ba3a38d9de7611",
+    "docs/figures/budget_curve.png":
+        "8c94728392c65a68597297e0f845c4ca8f51611f70b381c97ed0c1260752f29a",
+    "docs/figures/expA_ceiling.png":
+        "7b3a15fd6c5c42659bff105a5e7ed35c747ef9c28a12a556261e6a595ec7c779",
+    "docs/figures/expA_L2_ceiling.png":
+        "0fdaa99f143e82daaf8e4090891b021f7a53a0a67b2dfa70fa670fc5c4cb5668",
+    "docs/figures/expB_channels.png":
+        "f29e6146988e1a6e350f026e5aa22d45ecbc830513f89e55ec1afe08ec77fd55",
+    "docs/figures/expB_incidental.png":
+        "2082b8ace55c25ab1a905770e5163c2c72b715c80e17f6f491b96ea39be7eb59",
+    "docs/figures/expB_kstep.png":
+        "e05120842930f4790a2f2bd7b152185abab099bf907b2816e653e3c601a9fa0c",
+}
+
+
+def is_image(name: str) -> bool:
+    return os.path.splitext(name)[1].lower() in IMAGE_EXT
+
+
+def image_reviewed(data: bytes, reviewed=None) -> bool:
+    """True when these exact image bytes are on the reviewed list (any path: the rename can
+    move a file, and the same bytes show the same pixels)."""
+    allowed = set((REVIEWED_IMAGES if reviewed is None else reviewed).values())
+    return hashlib.sha256(data).hexdigest() in allowed
+
+
 INCLUDE_DIRS = ["itasorl", "scripts", "tests", "artifacts"]
 INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "pytest.ini",
                  "ruff.toml", "LICENSE",
@@ -452,11 +492,13 @@ def _binary_hits(data: bytes, pats, depth: int = 0) -> bool:
     return False
 
 
-def leak_scan(path: str, rules, old_name: str | None) -> list[str]:
-    """Members of the archive at `path` that still carry an identity string. Text members are
-    scanned with every scrub rule; binary members (agent bundles, arrays, images) with every
-    rule except the e-mail shape, which arbitrary bytes match by chance about once per few
-    tens of MB. Member names are scanned too."""
+def leak_scan(path: str, rules, old_name: str | None, reviewed=None) -> list[str]:
+    """Members of the archive at `path` that still carry an identity string, or may. Text
+    members are scanned with every scrub rule; binary members (agent bundles, arrays, images)
+    with every rule except the e-mail shape, which arbitrary bytes match by chance about once
+    per few tens of MB. Member names are scanned too. An image member is a leak unless its
+    bytes are on the reviewed list (REVIEWED_IMAGES, or `reviewed`), because text drawn into
+    an image is invisible to every pattern."""
     text_pats = [p for p, _ in rules] + _leak_patterns(old_name)
     bin_pats = [p for p, r in rules if (p, r) != _EMAIL_RULE] + _leak_patterns(old_name)
     leaks = []
@@ -468,6 +510,8 @@ def leak_scan(path: str, rules, old_name: str | None) -> list[str]:
             elif is_text(n):
                 if _hits(data.decode("utf-8", errors="replace"), text_pats):
                     leaks.append(n)
+            elif is_image(n) and not image_reviewed(data, reviewed):
+                leaks.append(n)
             elif _binary_hits(data, bin_pats):
                 leaks.append(n)
     return leaks
@@ -503,8 +547,13 @@ def supplement(out: str, runs_root: str | None = None,
         z.writestr("README_SUPPLEMENT.md", _readme(status, anon_name))
         z.writestr("SHA256SUMS", "\n".join(sums) + "\n")
     leaks = leak_scan(os.path.join(ROOT, out), rules, old_name)
+    unviewed = [n for n in leaks if is_image(n)]
+    if unviewed:
+        print(f"  images not on the reviewed list (view each, then add its SHA-256 to "
+              f"REVIEWED_IMAGES in scripts/reproduce.py): {unviewed}")
     print(f"wrote {out}: {len(sums)} files" + (f"; POSSIBLE IDENTITY LEAKS in {leaks}" if leaks
-          else "; no identity strings found in any file, binaries included"))
+          else "; no identity strings found in any file, binaries included, and every image "
+               "is on the reviewed list"))
     return 1 if leaks else 0
 
 

@@ -1206,6 +1206,10 @@ def cg_probe(auth_tails: list, surr_tails: list, *, late_k: int = 8, seed: int =
     y = np.concatenate([np.zeros(n), np.ones(n)]).astype(int)
     # Matched pairs share the prefix world state: same group id for both members so
     # GroupKFold keeps each pair in one fold (see probe_world_identity).
+    # When the tails pool several individuals on the same pair seeds (Experiment C,
+    # itasorl/experiment_c.py _pooled_common_garden), the group is still the pooled row, so
+    # the same world seed's pairs from related individuals can straddle folds; see the note
+    # in experiment_c.common_garden_panel. Behavior unchanged.
     g = np.concatenate([np.arange(n), np.arange(n)])
     X = np.stack([_episode_feature(H) for H in auth_tails + surr_tails])
     k = min(late_k, auth_tails[0].shape[0])

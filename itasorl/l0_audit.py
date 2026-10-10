@@ -42,8 +42,20 @@ from .experiment_b2 import _seeds, collect_pool, make_world, pooled_readout
 from .stats import auroc_ci, cluster_auroc_ci, t_ci90
 
 STANDARD_BASES = (800_000, 850_000)
-# Independent world-sample pairs for the L0 audit, disjoint from every seed base the
-# pipeline uses (training <= 285_800; evaluation 555_000 to 970_109).
+# Independent world-sample pairs for the L0 audit. The eight pairs are disjoint from each
+# other, from the registered pair (800_000 / 850_000) and from every training seed (survival
+# and predictor training seeds stay below 285_800). They are NOT disjoint from every
+# evaluation base: besides 555_000 to 970_109 (warmup, matched pairs, pooled, held-out,
+# common garden, gn), evaluation also uses the H2 ladder bases 980_000 to 1_030_109
+# (scripts/run_l3_h2_ablations.py SEED_BASES), the persistence base 980_000, the mechanism
+# readout base 1_400_000 (scripts/run_mechanism_readouts.py WORLD_BASE, shared by its
+# authentic and surrogate rollouts) and the qd bases
+# 1_900_000 / 1_950_000 (scripts/run_texture_fresh_probe.py). Two of those coincide with
+# audit pools: the h32 ladder's authentic base 1_000_000 is audit draw 1's authentic pool,
+# and the mechanism readout's 1_400_000 is audit draw 5's authentic base. The audit draws
+# stay independent of each other and of the registered pair, which is what the audit needs,
+# so no recorded audit number depends on this; tests/test_l0_audit_seed_bases.py pins the
+# overlaps so a new one cannot appear unnoticed.
 AUDIT_BASES = tuple((1_000_000 + 100_000 * k, 1_050_000 + 100_000 * k) for k in range(8))
 
 

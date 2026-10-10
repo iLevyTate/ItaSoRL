@@ -61,6 +61,7 @@
         3
       ],
       "commit_at_run": "4c16be6",
+      "commit_at_run_source": "recorded",
       "config": {
         "runners": [
           "scripts/run_expA.py",
@@ -123,9 +124,8 @@
       "readout_only_on": null,
       "recorded_provenance": {
         "expA/l2_inconfig_oracle.json": {
-          "generated_by": "scripts/run_expA_l2_inconfig.py (promoted by hand-copy with provenance, 2026-09-27)",
-          "git_commit_at_promotion": "3f36cc227c6f0a8d297c172fa875562a0f9f19ab",
-          "source_run": "fullruns/l2_inconfig_oracle.json",
+          "generated_by": "scripts/run_expA_l2_inconfig.py",
+          "git_commit": "8706e79",
           "spec": "docs/specs/2026-09-27-local-strengthening-probes-design.md"
         }
       },
@@ -195,6 +195,7 @@
         7
       ],
       "commit_at_run": "4c16be6",
+      "commit_at_run_source": "recorded",
       "config": {
         "agent": "itasorl/agent.py RecurrentWorldModel, next-step prediction"
       },
@@ -245,6 +246,7 @@
         8
       ],
       "commit_at_run": "4c16be6",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {
         "drift_mode": "ar1",
         "drifts": [
@@ -284,7 +286,7 @@
       "folds": "legacy",
       "id": "BV2-L2-AR1",
       "local_run_dir": "fullruns/06302026",
-      "notes": "",
+      "notes": "Figure redrawn 2026-10-10 from the JSON by scripts/plot_record_figures.py (pooled AUROC per arm, mean \u00b1 std ddof 0, labeled historical).",
       "readout_only_on": null,
       "recorded_provenance": {
         "expB2/expB2_results.json": {},
@@ -348,7 +350,7 @@
       "folds": "legacy",
       "id": "BV2-L2-AR1-LAB",
       "local_run_dir": null,
-      "notes": "Run commit not recorded. Re-run after the 679fee6 padding fix per PREREGISTRATION.md (2026-06-28); kept as an archive, not cited as a result.",
+      "notes": "Run commit not recorded. Re-run after the 679fee6 padding fix per PREREGISTRATION.md (2026-06-28); kept as an archive, not cited as a result. Figure redrawn 2026-10-10 from the JSON by scripts/plot_record_figures.py (pooled AUROC per arm, mean \u00b1 std ddof 0, labeled historical).",
       "readout_only_on": null,
       "recorded_provenance": {
         "expB2/expB2_results_confirmatory_n3.json": {},
@@ -385,6 +387,7 @@
         37
       ],
       "commit_at_run": "820849f",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "regime",
         "drifts": [
@@ -483,6 +486,7 @@
         10
       ],
       "commit_at_run": "f848738",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "ar1",
         "drifts": [
@@ -580,6 +584,7 @@
         19
       ],
       "commit_at_run": "2888d37 (l3_h8_traces)",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -869,6 +874,7 @@
         24
       ],
       "commit_at_run": "ed88df0",
+      "commit_at_run_source": "recorded",
       "config": {
         "cg_prefix": 20,
         "cg_steps": 24,
@@ -996,6 +1002,7 @@
         25
       ],
       "commit_at_run": "15b1fc7 / 64be5bd (cells span both)",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -1115,6 +1122,7 @@
         35
       ],
       "commit_at_run": "8a71593",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l1",
         "drifts": [
@@ -1212,6 +1220,7 @@
         29
       ],
       "commit_at_run": "a641ca0",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -1307,6 +1316,7 @@
         30
       ],
       "commit_at_run": "3f36cc2",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -1400,6 +1410,7 @@
         31
       ],
       "commit_at_run": "a641ca0",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -1494,6 +1505,7 @@
         31
       ],
       "commit_at_run": "283f3ab",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -1588,6 +1600,7 @@
         31
       ],
       "commit_at_run": "d67dd51",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -1682,6 +1695,7 @@
       },
       "claims": [],
       "commit_at_run": "9d5d047 / 80948ff (cells span both)",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -1824,6 +1838,74 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "engagement_margin_gpu_runs.json"
+      ],
+      "budget": null,
+      "claims": [
+        37
+      ],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "B-v2",
+      "folds": "n/a",
+      "id": "ENGAGE-MARGIN-GPU",
+      "local_run_dir": null,
+      "notes": "scripts/audit_engagement_margin.py --with-inputs (2026-10-10) on the gitignored cells of fullruns/l3_n10, l3_h8_traces, l3_h7_traces, l3_h4_traces, l3_h8_heldout and l3_h7_heldout, the committed cells of the three GPU reviewer-gap runs, and artifacts/expL1/organism_summary.json. Each report carries its cells' engagement inputs, so every margin recomputes from this file alone (tests/test_engagement_margin.py). Survival objective only; other objectives are counted and skipped.",
+      "readout_only_on": [
+        "L3-H8-N10",
+        "L3-H7-N10",
+        "L3-H4",
+        "L3-H8-HELDOUT",
+        "L3-H7-REVERSE",
+        "L3-H10-GS1-GPU",
+        "L3-H8-GS2-GPU",
+        "L3-H8-NOWM-U450",
+        "L1-ORGANISM"
+      ],
+      "recorded_provenance": {
+        "engagement_margin_gpu_runs.json": {}
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "inherited: pre_transition_value",
+      "title": "Engagement-margin sweep on the GPU-published cells, with their inputs"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
+        "wall_clock_gpu_runs.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "n/a",
+      "id": "WALL-CLOCK-GPU",
+      "local_run_dir": null,
+      "notes": "scripts/record_wall_clock.py (2026-10-10), read only from the original bundles: start is the creation time of run.log (or of the run directory), end the last write of expB2_results.json, and the three chain-launched runs add their chain logs' UTC stamps, which agree with the file times. No GPU run recorded its own duration. Covers L3-H8-N10 (l3_n10, l3_h8_traces), L3-H7-N10, L3-H4, L3-H8-HELDOUT, L3-H7-REVERSE, L3-H10-GS1-GPU, L3-H8-GS2-GPU and L3-H8-NOWM-U450.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "wall_clock_gpu_runs.json": {
+          "generated_by": "scripts/record_wall_clock.py"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Wall-clock record of the GPU organism runs"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "l3_crossrecipe/summary.json"
       ],
       "budget": null,
@@ -1831,6 +1913,7 @@
         26
       ],
       "commit_at_run": "a5c46ff",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {},
       "deps": null,
       "device": "local GPU",
@@ -1881,6 +1964,7 @@
         32
       ],
       "commit_at_run": "c4e4417",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": null,
       "device": "cuda",
@@ -1910,6 +1994,43 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "expH2/summary_h7.json"
+      ],
+      "budget": null,
+      "claims": [
+        32
+      ],
+      "commit_at_run": "27b0dc1",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "config": {},
+      "deps": null,
+      "device": "cuda",
+      "eval_seeds": null,
+      "experiment": "H2",
+      "folds": "legacy",
+      "id": "H2-GRADED-SEAM-H7",
+      "local_run_dir": "fullruns/l3_h7_ablation",
+      "notes": "scripts/run_expH2_ablation.py --hidden 7 (the surrogate capacity; the agent trunk is 96) on the saved fullruns/l3_h7_heldout agents, then scripts/promote_expH2_summary.py --l3-hidden 7 (2026-10-10). The bundle records no commit: it was written 2026-07-24 00:18 -0400 by the uncommitted runner that was committed as 27b0dc1 at 01:12. All three arms are recorded; the untrained floor rises from 0.474 to 0.586 and the predictor from 0.500 to 0.714 as the seam is restored, so neither is flat at this capacity.",
+      "readout_only_on": [
+        "L3-H7-REVERSE"
+      ],
+      "recorded_provenance": {
+        "expH2/summary_h7.json": {
+          "generated_by": "scripts/promote_expH2_summary.py",
+          "git_commit_at_promotion": "8706e7969b540300cda5aabaf6754d44d5471a6d",
+          "git_commit_at_run": "not recorded in the bundle; curated: the bundle was written 2026-07-24 00:18 -0400 by the uncommitted --hidden 7 runner that was committed as 27b0dc1 at 01:12 the same night",
+          "source_run": "fullruns/l3_h7_ablation/aggregate.json"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "inherited: pre_transition_value",
+      "title": "H2 graded-seam ablation (A1), hidden-7 capacity replication"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "expH2/texture_knockout_h8.json",
         "expH2/texture_knockout_h7.json"
       ],
@@ -1926,7 +2047,7 @@
       "folds": "legacy",
       "id": "H2-TEXTURE",
       "local_run_dir": null,
-      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). No gn-trained run exists.",
+      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). A gn-trained run (T-GN-TRAINED) was executed 2026-10-08/09 and is uninformative. Both comparator-trained runs ran an 8-unit agent trunk (FINDINGS 14.5.1 correction 2026-10-10): T-qd's 60 saved agents have cell.weight_hh (24, 8), its fingerprint 23a620e51d4e26fd reproduces only at --hidden 8, and its speed control is short in 8 of 60 pools (worst 0.7018).",
       "readout_only_on": [
         "L3-H8-HELDOUT",
         "L3-H7-REVERSE"
@@ -2067,19 +2188,19 @@
         "expB2/sensory_echo_l3_h7.json": {
           "generated_by": "scripts/promote_sensory_echo.py",
           "git_commit_at_promotion": "d67dd5122a6c86dfa88ae08609a259c5442efa77",
-          "source_run": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_h7_sensory_echo",
+          "source_run": "fullruns/l3_h7_sensory_echo",
           "spec": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md"
         },
         "expB2/sensory_echo_l3_h8.json": {
           "generated_by": "scripts/promote_sensory_echo.py",
           "git_commit_at_promotion": "80014885442b868e29f1a0f04d1262cb760d5f5b",
-          "source_run": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_h8_sensory_echo",
+          "source_run": "fullruns/l3_h8_sensory_echo",
           "spec": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md"
         },
         "expB2/sensory_echo_l3_h8_mlp.json": {
           "generated_by": "scripts/promote_sensory_echo.py",
           "git_commit_at_promotion": "9365d714f29c3936531ccad6e81155c51af8c043",
-          "source_run": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_h8_sensory_echo_mlp",
+          "source_run": "fullruns/l3_h8_sensory_echo_mlp",
           "spec": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md"
         }
       },
@@ -2099,6 +2220,7 @@
         28
       ],
       "commit_at_run": "3c6f0aa",
+      "commit_at_run_source": "curated: the artifacts record 06ecc10 instead",
       "config": {},
       "deps": null,
       "device": "owner's laptop CPU",
@@ -2114,7 +2236,7 @@
           "generated_by": "scripts/promote_expC_summary.py",
           "git_commit_at_promotion": "177605f9dd41bc27d91da4b0a17a103473902b24",
           "git_commit_at_run": "06ecc10d8f7c60cbe1a428581f92f6b2308336e0",
-          "source_run": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/expC_milestone3/emergence_pilot_per_individual.json"
+          "source_run": "fullruns/expC_milestone3/emergence_pilot_per_individual.json"
         }
       },
       "status": "historical",
@@ -2133,6 +2255,7 @@
         35
       ],
       "commit_at_run": "5666f59",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": null,
       "device": "owner's laptop CPU, 4 workers",
@@ -2178,6 +2301,7 @@
       },
       "claims": [],
       "commit_at_run": "60eb355",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -2186,7 +2310,7 @@
         ],
         "embed": 64,
         "hidden": 8,
-        "hidden_deviation": "the registered trunk is 96; this run was launched with --hidden 8, conflating the agent trunk with --l3-hidden",
+        "hidden_deviation": "the registered trunk is 96; the frozen spec's own command block (d341091, line 44) carried --hidden 8, conflating the agent trunk with --l3-hidden, and the launch copied it; the qd-trained run T-qd had the same 8-unit trunk",
         "l3_family": "gn",
         "l3_family_param": 0.01,
         "max_steps": 80,
@@ -2220,13 +2344,13 @@
       "folds": "explicit",
       "id": "T-GN-TRAINED",
       "local_run_dir": "fullruns/T_gn_l3_h8_wm",
-      "notes": "NOT THE REGISTERED CONFIGURATION: the agent trunk was 8 units, not 96, because --hidden 8 was passed alongside --l3-hidden 8. Uninformative for that reason independently of the gate below. scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. UNINFORMATIVE: the registered positive control (speed probe at least 0.75, scored in every pool as the project does) is short in 9 of 60 arm-by-cell pools, worst 0.6862, with 8 of the 9 in the untrained arm the registered margins are measured against, so the matrix's two verdicts, which both require every gate to pass, are not reached, and the matrix names no cell for this failure. Not promoted as a negative; it strengthens no claim. The descriptive outcome is recorded because the preregistration log and the manuscript quote it.",
+      "notes": "NOT THE REGISTERED CONFIGURATION: the agent trunk was 8 units, not 96, because the frozen spec's command block carried --hidden 8 beside --l3-hidden 8 and the launch copied it (PREREGISTRATION_L3 2026-10-10 third correction); the promoter now reads the width from the saved agents (artifact trunk_check). Uninformative for that reason independently of the gate below. scripts/run_expB2.py --l3-family gn then scripts/promote_texture_trained.py; spec docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. UNINFORMATIVE: the registered positive control (speed probe at least 0.75, scored in every pool as the project does) is short in 9 of 60 arm-by-cell pools, worst 0.6862, with 8 of the 9 in the untrained arm the registered margins are measured against, so the matrix's two verdicts, which both require every gate to pass, are not reached, and the matrix names no cell for this failure. Not promoted as a negative; it strengthens no claim. The descriptive outcome is recorded because the preregistration log and the manuscript quote it.",
       "readout_only_on": null,
       "recorded_provenance": {
         "texture/T_gn_l3_h8_wm.json": {
           "generated_by": "scripts/promote_texture_trained.py",
-          "git_commit_at_promotion": "df7ccf3",
-          "source_run": "../../fullruns/T_gn_l3_h8_wm/expB2_results.json",
+          "git_commit_at_promotion": "8706e79",
+          "source_run": "fullruns/T_gn_l3_h8_wm/expB2_results.json",
           "spec": "docs/specs/2026-10-09-gn-comparator-trained-design.md"
         }
       },
@@ -2248,6 +2372,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "8aa2b9f",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": null,
       "device": "owner's laptop CPU, one thread per readout",
@@ -2284,6 +2409,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "865b842",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": null,
       "device": "owner's laptop CPU, one thread per readout",
@@ -2472,7 +2598,7 @@
       "claims": [],
       "commit_at_run": null,
       "config": {
-        "runner": "scripts/run_surrogate_diagnostics.py"
+        "runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 6.0 (disjoint block: --qd-eps 6.0 --merge-into artifacts/surrogate_diagnostics.json)"
       },
       "deps": null,
       "device": null,
@@ -2481,7 +2607,7 @@
       "folds": "explicit",
       "id": "SURROGATE-DIAG",
       "local_run_dir": null,
-      "notes": "Agent free: G instances retrained deterministically from their recipe.",
+      "notes": "Agent free: G instances retrained deterministically from their recipe. The per-surrogate diagnostics were scored on a seed-77 sample inside every G's training episodes (the calibration sample of FINDINGS 10.1.1). The disjoint_heldout block (2026-10-10) rescored them at seeds 100000 to 100059 with each G's train column on its own seed, on the owner's workstation stack (Python 3.13.2, numpy 1.26.4, torch 2.7.0+cu126); it was written only after the rerun reproduced every stored detector AUROC exactly and the stored profiles to 6.5e-8. docs/CORRECTIONS.md 2026-10-10.",
       "readout_only_on": null,
       "recorded_provenance": {
         "surrogate_diagnostics.json": {
@@ -2491,7 +2617,7 @@
       "status": "historical",
       "surrogate": null,
       "survival_trainer": "none",
-      "title": "Surrogate diagnostics: linear-fit control, held-out and rollout error, agent-accessible detector"
+      "title": "Surrogate diagnostics: linear-fit control, calibration-sample and disjoint held-out error, rollout error, agent-accessible detector"
     },
     {
       "affected_by_gae_correction": false,
@@ -2502,8 +2628,9 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "82ef5d6",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {
-        "runner": "scripts/run_surrogate_diagnostics.py --qd-eps 1.0 --gn-sigma 0.01"
+        "runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 1.0 --gn-sigma 0.01"
       },
       "deps": null,
       "device": "cpu",
@@ -2512,7 +2639,7 @@
       "folds": "explicit",
       "id": "QD-EPS1-CAL",
       "local_run_dir": null,
-      "notes": "Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived only in the comparator spec. Measured here: qd at eps 1 deviates by 0.002356 and gn by 0.0142 on the same 60-episode profile, a ratio of 6.02 (FINDINGS 17.9). The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds).",
+      "notes": "Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived only in the comparator spec. Measured here: qd at eps 1 deviates by 0.002356 and gn by 0.0142 on the same 60-episode profile, a ratio of 6.02 (FINDINGS 17.9). The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds). Its diagnostics block is the seed-77 calibration sample; the eps-1 profile value 0.002356 is unaffected.",
       "readout_only_on": null,
       "recorded_provenance": {
         "texture/qd_eps1_calibration.json": {
@@ -2619,6 +2746,7 @@
         42
       ],
       "commit_at_run": "f676b95",
+      "commit_at_run_source": "recorded",
       "config": {
         "budget_extend": 450,
         "budget_snapshots": [
@@ -2726,6 +2854,7 @@
         42
       ],
       "commit_at_run": "f676b95",
+      "commit_at_run_source": "recorded",
       "config": {
         "budget_extend": 450,
         "budget_snapshots": [
@@ -2811,6 +2940,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "34e2c0d",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {},
       "deps": null,
       "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
@@ -2846,6 +2976,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "34e2c0d",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {},
       "deps": null,
       "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
@@ -2884,6 +3015,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "34e2c0d",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {},
       "deps": null,
       "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
@@ -2917,6 +3049,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "34e2c0d",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {},
       "deps": null,
       "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
@@ -2956,6 +3089,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "34e2c0d",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {},
       "deps": null,
       "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
@@ -2993,6 +3127,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "34e2c0d",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {},
       "deps": null,
       "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
@@ -3005,7 +3140,7 @@
       "folds": "explicit",
       "id": "C1-POPULATION",
       "local_run_dir": null,
-      "notes": "scripts/validate_population_readout.py; revision step 12.",
+      "notes": "scripts/validate_population_readout.py; revision step 12. The artifact records no commit and no fold scheme (it predates the git_commit field the script gained in 19b4677), and its run_dir is the revision container's path; the commit and the explicit-v1 partition above are curated from the revision record, not read from the artifact.",
       "readout_only_on": [
         "C1"
       ],
@@ -3331,6 +3466,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "7870bba",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
       "config": {},
       "deps": null,
       "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
@@ -3413,6 +3549,7 @@
         27
       ],
       "commit_at_run": "a0cb850",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": null,
       "device": null,

@@ -222,8 +222,22 @@ def common_garden_panel(
                  n_pairs=n_pairs, prefix_steps=prefix_steps, tail_steps=tail_steps,
                  seed_base=seed_base)
 
+    # Pooled CV groups (recorded 2026-10-10, behavior unchanged): _pooled_common_garden runs
+    # every individual on the SAME pair seeds (seed_base + p), and cg_probe groups the pooled
+    # rows by row index, so individual i's pair p and individual j's pair p can land in
+    # different folds. In an evolved, near-clonal population those are near-duplicate
+    # episodes, a leak that grows with relatedness (at gen 0 the networks are independent).
+    # A rescore or redesign should group pooled rows by world-seed index p across
+    # individuals. The tails are not saved, so the recorded runs cannot be rescored.
     auth, surr, a_st, s_st = _pooled_common_garden(sample, drift_sigma, **cg_kw)
     det = cg_probe(auth, surr, late_k=late_k)
+    # The "L0" sub-panel (gate 3) is an estimator identity check, not a shuffle or an
+    # apparatus-drift control (recorded 2026-10-10, behavior unchanged): at drift_sigma 0
+    # both branches of a pair reset on the same seeds and run the same deterministic policy
+    # under the same law, so the two tails are bit-identical and cg_probe reads exactly 0.5
+    # by construction. Gate 3's TOST then sees zero variance and passes whatever the
+    # apparatus does. A future run that wants the registered drift control should build L0
+    # from two different authentic world samples per pair, as itasorl/l0_audit.py does.
     a0, s0, _, _ = _pooled_common_garden(sample, 0.0, **cg_kw)
     l0 = cg_probe(a0, s0, late_k=late_k)
     survival = _survival_by_world(

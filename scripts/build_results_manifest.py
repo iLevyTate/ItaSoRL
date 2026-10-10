@@ -9,8 +9,12 @@ revision turns on, which policy-gradient implementation trained its survival age
 
 Recorded provenance (commits, config fingerprints, environment blocks) is read from the
 artifacts themselves and placed next to the curated entry, so a disagreement between the
-two is visible. Nothing here recomputes a result; `scripts/audit_stats_recheck.py` does
-that.
+two is visible. Each curated `commit_at_run` that names a commit is compared with the run
+commits the artifacts record (`git_commit`, `git_commit_at_run`, the cells' commits; never
+the promotion commit) and labelled in `commit_at_run_source`: "recorded" when every named
+commit is one the artifacts record, otherwise "curated" with the reason, and the page marks
+such a commit "(curated)". Nothing here recomputes a result; `scripts/audit_stats_recheck.py`
+does that.
 
 Status vocabulary:
   historical  produced before the 2026-10 corrections; the number stands as a record of
@@ -41,6 +45,7 @@ import glob
 import subprocess
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -161,14 +166,18 @@ RUNS = [
         claims=[8], commit_at_run="4c16be6", config={**BV2_PROTOCOL, "drift_mode": "ar1"},
         agent_seeds=[0, 1, 2], budget={"survival_updates": 300, "env_steps_per_update": "<=1280"},
         eval_seeds=BV2_EVAL_SEEDS, folds="legacy", device="Colab Tesla T4",
-        deps="torch 2.11.0+cu128", local_run_dir="fullruns/06302026"),
+        deps="torch 2.11.0+cu128", local_run_dir="fullruns/06302026",
+        notes="Figure redrawn 2026-10-10 from the JSON by scripts/plot_record_figures.py "
+              "(pooled AUROC per arm, mean \u00b1 std ddof 0, labeled historical)."),
     run("BV2-L2-AR1-LAB", "B-v2 initial lab confirmatory run (archived)", experiment="B-v2",
         artifacts=["expB2/expB2_results_confirmatory_n3.json",
                    "expB2/expB2_survival_confirmatory_n3.png"],
         claims=[], config={**BV2_PROTOCOL, "drift_mode": "ar1"}, agent_seeds=[0, 1, 2],
         eval_seeds=BV2_EVAL_SEEDS, folds="legacy",
         notes="Run commit not recorded. Re-run after the 679fee6 padding fix per "
-              "PREREGISTRATION.md (2026-06-28); kept as an archive, not cited as a result."),
+              "PREREGISTRATION.md (2026-06-28); kept as an archive, not cited as a result. "
+              "Figure redrawn 2026-10-10 from the JSON by scripts/plot_record_figures.py "
+              "(pooled AUROC per arm, mean \u00b1 std ddof 0, labeled historical)."),
     run("BV3-REGIME-N10", "B-v3 per-episode drag regime, n = 10", experiment="B-v3",
         artifacts=["expB2/bv3_n10_summary.json", "expB2/bv3_n10_gates.json"], claims=[9, 37],
         commit_at_run="820849f", config={**BV2_PROTOCOL, "drift_mode": "regime"},
@@ -297,6 +306,27 @@ RUNS = [
         readout_of=["C1", "C2"], survival_trainer="successor_value", status="corrected",
         trains_survival=False, folds="n/a",
         notes="scripts/audit_engagement_margin.py on the committed corrected cells; offline, no compute. FINDINGS methods note 2. Extends ENGAGE-MARGIN, which covered historical cells only."),
+    run("ENGAGE-MARGIN-GPU", "Engagement-margin sweep on the GPU-published cells, with their "
+        "inputs", experiment="B-v2", artifacts=["engagement_margin_gpu_runs.json"], claims=[37],
+        readout_of=["L3-H8-N10", "L3-H7-N10", "L3-H4", "L3-H8-HELDOUT", "L3-H7-REVERSE",
+                    "L3-H10-GS1-GPU", "L3-H8-GS2-GPU", "L3-H8-NOWM-U450", "L1-ORGANISM"],
+        trains_survival=False, folds="n/a",
+        notes="scripts/audit_engagement_margin.py --with-inputs (2026-10-10) on the gitignored "
+              "cells of fullruns/l3_n10, l3_h8_traces, l3_h7_traces, l3_h4_traces, l3_h8_heldout "
+              "and l3_h7_heldout, the committed cells of the three GPU reviewer-gap runs, and "
+              "artifacts/expL1/organism_summary.json. Each report carries its cells' engagement "
+              "inputs, so every margin recomputes from this file alone (tests/"
+              "test_engagement_margin.py). Survival objective only; other objectives are counted "
+              "and skipped."),
+    run("WALL-CLOCK-GPU", "Wall-clock record of the GPU organism runs", experiment="methods",
+        artifacts=["wall_clock_gpu_runs.json"], trains_survival=False, survival_trainer="none",
+        folds="n/a",
+        notes="scripts/record_wall_clock.py (2026-10-10), read only from the original bundles: "
+              "start is the creation time of run.log (or of the run directory), end the last "
+              "write of expB2_results.json, and the three chain-launched runs add their chain "
+              "logs' UTC stamps, which agree with the file times. No GPU run recorded its own "
+              "duration. Covers L3-H8-N10 (l3_n10, l3_h8_traces), L3-H7-N10, L3-H4, "
+              "L3-H8-HELDOUT, L3-H7-REVERSE, L3-H10-GS1-GPU, L3-H8-GS2-GPU and L3-H8-NOWM-U450."),
     # ---------------- readout-only analyses on saved survival agents ----------------
     run("L3-CROSSRECIPE", "Cross-recipe transfer probe (RFF ridge family)", experiment="B-v2 L3",
         artifacts=["l3_crossrecipe/summary.json"], claims=[26], trains_survival=False,
@@ -307,6 +337,17 @@ RUNS = [
         readout_of=["L3-H8-HELDOUT"], commit_at_run="c4e4417", folds="legacy", device="cuda",
         notes="Decoding falls with the dynamics difference; this does not identify a "
               "representation of learnedness."),
+    run("H2-GRADED-SEAM-H7", "H2 graded-seam ablation (A1), hidden-7 capacity replication",
+        experiment="H2", artifacts=["expH2/summary_h7.json"], claims=[32], trains_survival=False,
+        readout_of=["L3-H7-REVERSE"], commit_at_run="27b0dc1", folds="legacy", device="cuda",
+        local_run_dir="fullruns/l3_h7_ablation",
+        notes="scripts/run_expH2_ablation.py --hidden 7 (the surrogate capacity; the agent trunk "
+              "is 96) on the saved fullruns/l3_h7_heldout agents, then "
+              "scripts/promote_expH2_summary.py --l3-hidden 7 (2026-10-10). The bundle records no "
+              "commit: it was written 2026-07-24 00:18 -0400 by the uncommitted runner that was "
+              "committed as 27b0dc1 at 01:12. All three arms are recorded; the untrained floor "
+              "rises from 0.474 to 0.586 and the predictor from 0.500 to 0.714 as the seam is "
+              "restored, so neither is flat at this capacity."),
     run("H2-TEXTURE", "H2 texture knockout and dose response", experiment="H2",
         artifacts=["expH2/texture_knockout_h8.json", "expH2/texture_knockout_h7.json"],
         claims=[33], trains_survival=False, readout_of=["L3-H8-HELDOUT", "L3-H7-REVERSE"],
@@ -315,7 +356,13 @@ RUNS = [
                               "qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored "
                               "fullruns/T_qd_l3_h8_wm) was executed and set aside: its family "
                               "failed gate 0, so it is not promoted and bears on no rule "
-                              "(FINDINGS 17.9 addendum). No gn-trained run exists."),
+                              "(FINDINGS 17.9 addendum). A gn-trained run (T-GN-TRAINED) "
+                              "was executed 2026-10-08/09 and is uninformative. Both "
+                              "comparator-trained runs ran an 8-unit agent trunk (FINDINGS "
+                              "14.5.1 correction 2026-10-10): T-qd's 60 saved agents have "
+                              "cell.weight_hh (24, 8), its fingerprint 23a620e51d4e26fd "
+                              "reproduces only at --hidden 8, and its speed control is short "
+                              "in 8 of 60 pools (worst 0.7018)."),
     run("H2-OBSLOC", "Observation-channel localization (A2)", experiment="H2",
         artifacts=["expH2/obs_localization_h8.json", "expH2/obs_localization_h7.json"],
         claims=[34], trains_survival=False, readout_of=["L3-H8-HELDOUT", "L3-H7-REVERSE"],
@@ -359,15 +406,20 @@ RUNS = [
         experiment="B-v2 L3", artifacts=["texture/T_gn_l3_h8_wm.json"],
         survival_trainer="successor_value", status="corrected", commit_at_run="60eb355",
         config={**BV2_PROTOCOL, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01,
-                "hidden": 8, "hidden_deviation": "the registered trunk is 96; this run was "
-                "launched with --hidden 8, conflating the agent trunk with --l3-hidden"},
+                "hidden": 8, "hidden_deviation": "the registered trunk is 96; the frozen "
+                "spec's own command block (d341091, line 44) carried --hidden 8, conflating the "
+                "agent trunk with --l3-hidden, and the launch copied it; the qd-trained run "
+                "T-qd had the same 8-unit trunk"},
         agent_seeds=S10, surrogate={"family": "G_gn (iid velocity jitter on the authentic law)",
                                     "sigma_v": 0.01, "gate0": "oracle 0.8653 in band, floor 0.4479"},
         budget={"survival_updates": 300}, eval_seeds=BV2_EVAL_SEEDS, folds="explicit",
         device="owner's laptop CPU, 4 workers",
         local_run_dir="fullruns/T_gn_l3_h8_wm",
         notes="NOT THE REGISTERED CONFIGURATION: the agent trunk was 8 units, not 96, because "
-              "--hidden 8 was passed alongside --l3-hidden 8. Uninformative for that reason "
+              "the frozen spec's command block carried --hidden 8 beside --l3-hidden 8 and the "
+              "launch copied it (PREREGISTRATION_L3 2026-10-10 third correction); the promoter "
+              "now reads the width from the saved agents (artifact trunk_check). Uninformative "
+              "for that reason "
               "independently of the gate below. scripts/run_expB2.py --l3-family gn then "
               "scripts/promote_texture_trained.py; spec "
               "docs/specs/2026-10-09-gn-comparator-trained-design.md; FINDINGS 14.5.1. "
@@ -432,21 +484,34 @@ RUNS = [
                 "sweep": [0.5, 1, 2, 4, 8, 16]},
         notes="Untrained floor seeds use the corrected trainer's untrained arm (no actor-critic). "
               "docs/specs/2026-10-06-texture-comparator-design.md amendment."),
-    run("SURROGATE-DIAG", "Surrogate diagnostics: linear-fit control, held-out and rollout error, "
-        "agent-accessible detector", experiment="methods", artifacts=["surrogate_diagnostics.json"],
+    run("SURROGATE-DIAG", "Surrogate diagnostics: linear-fit control, calibration-sample and "
+        "disjoint held-out error, rollout error, agent-accessible detector", experiment="methods",
+        artifacts=["surrogate_diagnostics.json"],
         trains_survival=False, survival_trainer="none", folds="explicit",
-        config={"runner": "scripts/run_surrogate_diagnostics.py"},
-        notes="Agent free: G instances retrained deterministically from their recipe."),
+        config={"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 6.0 "
+                          "(disjoint block: --qd-eps 6.0 --merge-into "
+                          "artifacts/surrogate_diagnostics.json)"},
+        notes="Agent free: G instances retrained deterministically from their recipe. The "
+              "per-surrogate diagnostics were scored on a seed-77 sample inside every G's "
+              "training episodes (the calibration sample of FINDINGS 10.1.1). The "
+              "disjoint_heldout block (2026-10-10) rescored them at seeds 100000 to 100059 with "
+              "each G's train column on its own seed, on the owner's workstation stack (Python "
+              "3.13.2, numpy 1.26.4, torch 2.7.0+cu126); it was written only after the rerun "
+              "reproduced every stored detector AUROC exactly and the stored profiles to 6.5e-8. "
+              "docs/CORRECTIONS.md 2026-10-10."),
     run("QD-EPS1-CAL", "Deviation calibration of the quadratic-drag comparator at eps 1",
         experiment="methods", artifacts=["texture/qd_eps1_calibration.json"],
         trains_survival=False, survival_trainer="none", folds="explicit",
-        config={"runner": "scripts/run_surrogate_diagnostics.py --qd-eps 1.0 --gn-sigma 0.01"},
+        config={"runner": "scripts/run_surrogate_diagnostics.py --out <path> --qd-eps 1.0 "
+                          "--gn-sigma 0.01"},
         commit_at_run="82ef5d6", device="cpu",
         notes="Agent free. The matched eps of the qd comparator (6.0) was fixed by scaling the "
               "eps-1 one-step RMS deviation to gn's at sigma 0.01; that calibration had lived "
               "only in the comparator spec. Measured here: qd at eps 1 deviates by 0.002356 and "
               "gn by 0.0142 on the same 60-episode profile, a ratio of 6.02 (FINDINGS 17.9). "
-              "The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds)."),
+              "The G rows duplicate SURROGATE-DIAG by construction (same recipe, same seeds). "
+              "Its diagnostics block is the seed-77 calibration sample; the eps-1 profile value "
+              "0.002356 is unaffected."),
     run("SURROGATES", "Frozen L3 fingerprints (G_motion instances), serialized",
         experiment="methods", artifacts=["surrogates"], trains_survival=False,
         survival_trainer="none", folds="n/a",
@@ -532,7 +597,11 @@ RUNS = [
         artifacts=["population_readout/corrected_l3_h8_wm.json"], trains_survival=False,
         readout_of=["C1"], survival_trainer="successor_value", status="corrected",
         commit_at_run="34e2c0d", folds="explicit", eval_seeds=HELDOUT_EVAL_SEEDS, device=CPU_REVISION,
-        notes="scripts/validate_population_readout.py; revision step 12."),
+        notes="scripts/validate_population_readout.py; revision step 12. The artifact records "
+              "no commit and no fold scheme (it predates the git_commit field the script gained "
+              "in 19b4677), and its run_dir is the revision container's path; the commit and the "
+              "explicit-v1 partition above are curated from the revision record, not read from "
+              "the artifact."),
     # ---------------- goal and stakes runs (docs/specs/2026-10-07-goal-and-stakes-design.md) ----------------
     run("T-TOUCH", "Pellet-touch objective, death off, registered food, n = 10 (goal-and-stakes)",
         experiment="B-v2 L3", artifacts=["goal_stakes/T-touch"], claims=[],
@@ -693,6 +762,43 @@ def _cells_summary(dirpath: str) -> dict:
     return {"n_cells": n, "cell_commits": commits, "cell_fingerprints": fps} if n else {}
 
 
+_HASH = re.compile(r"\b[0-9a-f]{7,40}\b")
+_PURE_HASH = re.compile(r"^[0-9a-f]{7,40}$")
+
+
+def _run_commits(rec: dict) -> set[str]:
+    """Run commits the artifacts record about themselves: git_commit and git_commit_at_run
+    (plain hashes only) and the cells' commits. The promotion commit is not a run commit."""
+    out: set[str] = set()
+    for prov in rec.values():
+        if not isinstance(prov, dict):
+            continue
+        for k in ("git_commit", "git_commit_at_run"):
+            v = prov.get(k)
+            out |= {x for x in (v if isinstance(v, list) else [v])
+                    if isinstance(x, str) and _PURE_HASH.match(x)}
+        out |= {c for c in (prov.get("cell_commits") or {})
+                if isinstance(c, str) and _PURE_HASH.match(c)}
+    return out
+
+
+def commit_source(curated: str | None, recorded: set[str]) -> str | None:
+    """How the curated commit_at_run relates to what the artifacts record (R125). None when
+    the curated value names no commit (absent, or "pending")."""
+    named = _HASH.findall(curated or "")
+    if not named:
+        return None
+    if not recorded:
+        return "curated: no artifact of this run records the commit it ran at"
+    hit = [c for c in named if any(r.startswith(c) or c.startswith(r) for r in recorded)]
+    if len(hit) == len(named):
+        return "recorded"
+    have = ", ".join(sorted(r[:7] for r in recorded))
+    if hit:
+        return f"partly curated: the artifacts record {have}"
+    return f"curated: the artifacts record {have} instead"
+
+
 def build() -> dict:
     runs = []
     for r in RUNS:
@@ -700,7 +806,11 @@ def build() -> dict:
         for a in r["artifacts"]:
             p = os.path.join(ART, a)
             rec[a] = _cells_summary(p) if os.path.isdir(p) else _recorded(p)
-        runs.append({**r, "recorded_provenance": rec})
+        row = {**r, "recorded_provenance": rec}
+        src = commit_source(r["commit_at_run"], _run_commits(rec))
+        if src is not None:
+            row["commit_at_run_source"] = src
+        runs.append(row)
     return {
         "generated_by": "scripts/build_results_manifest.py",
         "reviewed_commit": REVIEWED_COMMIT,
@@ -740,13 +850,18 @@ def render_md(m: dict) -> str:
          "last stored step, before its final transition. `none` means the run trains no "
          "actor-critic. A readout-only analysis inherits the trainer of the run whose saved "
          "agents it reads.", "",
+         "A commit marked (curated) is the registry's value with no matching run commit in the "
+         "run's artifacts; the run's section says what the artifacts record instead.", "",
          "| Run | Status | Experiment | Claims | Trainer | Readout of | Commit at run | Folds | Device |",
          "|---|---|---|---|---|---|---|---|---|"]
     for r in m["runs"]:
         claims = ", ".join(str(c) for c in r["claims"]) or "-"
         ro = ", ".join(r["readout_only_on"]) if r["readout_only_on"] else "-"
+        src = r.get("commit_at_run_source") or ""
+        mark = (" (curated)" if src.startswith("curated") else
+                " (partly curated)" if src.startswith("partly") else "")
         L.append(f"| `{r['id']}` | {r['status']} | {r['experiment']} | {claims} | {r['survival_trainer']} | "
-                 f"{ro} | {r['commit_at_run'] or 'not recorded'} | {r['folds']} | "
+                 f"{ro} | {r['commit_at_run'] or 'not recorded'}{mark} | {r['folds']} | "
                  f"{r['device'] or 'not recorded'} |")
     L += ["", "Commits recorded by artifacts that are not ancestors of main (squash merges); each "
           "lives only on the branch named, so keep that branch or tag its head:", ""]
@@ -774,7 +889,8 @@ def render_md(m: dict) -> str:
     for r in m["runs"]:
         L += [f"### `{r['id']}`: {r['title']}", ""]
         for key, label in (("status", "Status"), ("survival_trainer", "Trainer"),
-                           ("commit_at_run", "Commit at run"), ("agent_seeds", "Agent seeds"),
+                           ("commit_at_run", "Commit at run"),
+                           ("commit_at_run_source", "Commit source"), ("agent_seeds", "Agent seeds"),
                            ("surrogate", "Surrogate"), ("budget", "Budget"),
                            ("folds", "Folds"), ("device", "Device"), ("deps", "Dependencies"),
                            ("local_run_dir", "Local run directory (not in git)"),

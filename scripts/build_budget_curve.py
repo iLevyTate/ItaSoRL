@@ -8,6 +8,11 @@ world-identity target, and the environment steps consumed, each across seeds wit
 come from ONE training run per seed (frozen snapshots), so the curve separates the
 fixed-budget comparison (300 updates) from capability at a larger budget (450).
 
+With two runs it also writes `cross_budget`: the second run at its largest budget against the
+first run at the registered budget (300), paired by seed, for return and target. With the
+documented order that is the decoder-off arm at 450 against the decoder-on arm at 300, the
+contrast the record quotes as "out-forages but does not out-read".
+
 Two panels share the x axis (updates); environment steps are tabulated, not given a second
 y axis.
 
@@ -31,6 +36,7 @@ import numpy as np
 
 from itasorl.stats import paired_contrast, t_ci90
 
+REGISTERED_UPDATES = 300                 # the protocol budget; the headline arm's snapshot
 SERIES_COLORS = ("#2a78d6", "#eb6834")   # validated categorical slots 1 and 2 (light surface)
 SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
 
@@ -65,6 +71,23 @@ def summarize(by_u: dict) -> list[dict]:
                       "t90": [float(x) for x in t_ci90(v)] if v.size > 1 else None}
         rows.append(row)
     return rows
+
+
+def cross_budget(label_hi: str, hi: dict, label_reg: str, reg: dict,
+                 registered: int = REGISTERED_UPDATES) -> dict | None:
+    """`label_hi` at its largest budget minus `label_reg` at the registered budget, paired by
+    seed, for return (margin 0) and target. None when either point is missing."""
+    if registered not in reg or not hi or max(hi) <= registered:
+        return None
+    u_hi = max(hi)
+    H, R = hi[u_hi], reg[registered]
+    th, tr = dict(zip(H["seed"], H["target"])), dict(zip(R["seed"], R["target"]))
+    rh, rr = dict(zip(H["seed"], H["return"])), dict(zip(R["seed"], R["return"]))
+    seeds = sorted(set(th) & set(tr))
+    return {"a": {"label": label_hi, "updates": u_hi},
+            "b": {"label": label_reg, "updates": registered}, "seeds": seeds,
+            "return": paired_contrast([rh[s] for s in seeds], [rr[s] for s in seeds], 0.0),
+            "target": paired_contrast([th[s] for s in seeds], [tr[s] for s in seeds])}
 
 
 def figure(series: dict, path: str) -> None:
@@ -135,6 +158,9 @@ def main() -> int:
             out["contrast"].append({"updates": u, "seeds": seeds,
                                     "target": paired_contrast([sa[s] for s in seeds], [sb[s] for s in seeds]),
                                     "return": paired_contrast([ra[s] for s in seeds], [rb[s] for s in seeds], 0.0)})
+        cross = cross_budget(labels[1], B, labels[0], A)
+        if cross is not None:
+            out["cross_budget"] = [cross]
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1, default=float)
@@ -145,6 +171,10 @@ def main() -> int:
     for c in out["contrast"]:
         print(f"contrast u={c['updates']}: target {c['target']['mean']:+.3f} {c['target']['t90']}  "
               f"return {c['return']['mean']:+.3f} {c['return']['t90']}")
+    for c in out.get("cross_budget", []):
+        print(f"cross budget {c['a']['label']} u={c['a']['updates']} minus {c['b']['label']} "
+              f"u={c['b']['updates']}: return {c['return']['mean']:+.3f} {c['return']['t90']}  "
+              f"target {c['target']['mean']:+.3f} {c['target']['t90']}")
     if a.figure:
         figure(series, a.figure)
         print(f"wrote {a.figure}")
