@@ -55,8 +55,8 @@ gate-calibrated fingerprint (privileged detector 0.928 at detector-side noise σ
 the survival state decodes the world at **0.733** (t-based 90% CI [0.669, 0.797]),
 against 0.589 for the predictor arm and 0.523 untrained, with paired margins of +0.144 and
 +0.210 whose intervals clear 0.05. The L0 gate is open on the registered world-sample pair
-(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the agents of the historical hidden-8 run, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so the verdict is
-MET on the decodability clauses, conditional on L0. Without the auxiliary the survival
+(0.559) and the largest of nine draws on record (across eight independent pairs the absolute deviation from chance averages 0.037 and the gate accepts on two; carried to drift 0.45 on the agents of the historical hidden-8 run, every one of the eight independent draws clears the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9), SECURE under a rule frozen before the run), so the registered verdict is
+NOT MET (L0 gate open) while the decodability clauses are met. Without the auxiliary the survival
 state reads **0.613** [0.552, 0.675], not met; the decoder adds **+0.120** [+0.065,
 +0.174]. The correction itself moved the two drift-0.45 readings by +0.003 and +0.012.
 
@@ -3233,8 +3233,9 @@ survival targets average **0.559**
 against the 0.05 margin gives p = 0.939, and 0.028 of bootstrap means fall inside the ROPE.
 The margin is not relaxed.
 
-**Verdict under the frozen rule: MET on the decodability clauses, conditional on the open L0
-gate.** The survival mean and its lower bound clear 0.65 and both margins clear 0.05. The
+**Verdict under the frozen rule: NOT MET as registered, because the L0 gate is open; the
+decodability clauses are met.** (Wording changed 2026-10-10 from "MET on the decodability
+clauses, conditional on the open L0 gate", which led with MET; the reading is unchanged.) The survival mean and its lower bound clear 0.65 and both margins clear 0.05. The
 claim that the drift-0.45 reading reflects the dynamics rather than the evaluation-world
 sample rests on the L0 gate, which is open; what the agent-based L0 audit shows about it is
 in section 17.5.

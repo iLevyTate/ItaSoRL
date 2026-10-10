@@ -49,7 +49,7 @@ def test_inconclusive_and_gate_conditional_wording():
     g = {"failed": ["l0"]}
     v = bcv.primary(cells, g)
     assert v["decodability"] == "MET" and not v["met"]
-    assert v["verdict"].startswith("MET on the decodability clauses, conditional on open gate(s): l0")
+    assert v["verdict"].startswith("NOT MET as registered (open gate(s): l0); decodability clauses MET")
 
 
 def test_missing_run_gets_no_verdict(monkeypatch):
@@ -75,7 +75,7 @@ def test_published_corrected_verdicts():
     assert c1["status"] == c2["status"] == "complete"
     assert c1["gates"]["failed"] == ["l0"]
     assert c1["primary"]["decodability"] == "MET" and not c1["primary"]["met"]
-    assert c1["primary"]["verdict"] == "MET on the decodability clauses, conditional on open gate(s): l0"
+    assert c1["primary"]["verdict"] == "NOT MET as registered (open gate(s): l0); decodability clauses MET"
     assert c2["gates"]["failed"] == [] and c2["primary"]["verdict"] == "NOT MET"
     ac = out["auxiliary_comparison"]
     assert not ac["holds"] and ac["holds_on_decodability_clauses"]
@@ -175,7 +175,7 @@ def test_a_not_met_reading_with_an_open_gate_carries_the_condition():
     v = bcv.primary(_cells(_vec(0.61, 0.03), _vec(0.59, 0.02), _vec(0.53, 0.02)),
                     {"failed": ["deaths"]})
     assert v["decodability"] == "NOT MET" and not v["met"]
-    assert "conditional on open gate(s): deaths" in v["verdict"]
+    assert v["verdict"].startswith("NOT MET as registered (open gate(s): deaths)")
     # With every gate passing the label stays bare.
     v = bcv.primary(_cells(_vec(0.61, 0.03), _vec(0.59, 0.02), _vec(0.53, 0.02)), {"failed": []})
     assert v["verdict"] == "NOT MET"

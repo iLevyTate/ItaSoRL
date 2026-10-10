@@ -212,7 +212,7 @@ def test_the_generated_verdict_table_does_not_lead_with_met_for_a_run_whose_rule
     assert rule["RUNB"] == r"\textsc{not met} (L0 open)"
     assert all(ln.split("&")[-1].strip().startswith(r"\textsc{met}") for ln in rows.values())
     aux = next(ln for ln in tex.splitlines() if ln.startswith("C1 $-$ C2"))
-    assert "holds on the decodability clauses, conditional on the C1 gates" in aux
+    assert r"\textsc{not met} as registered" in aux and "the lead holds on the decodability clauses" in aux
 
 
 def test_an_interval_bound_is_not_a_quoted_historical_headline(tmp_path, capsys):

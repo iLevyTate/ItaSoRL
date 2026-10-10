@@ -395,12 +395,13 @@ def corrected_table() -> str | None:
     ac = v.get("auxiliary_comparison")
     if ac:
         c = ac["paired"]
-        reading = ("holds" if ac["holds"] else
-                   "holds on the decodability clauses, conditional on the C1 gates"
-                   if ac.get("holds_on_decodability_clauses") else "does not hold")
+        reading = (r"\textsc{met}" if ac["holds"] else
+                   r"\textsc{not met} as registered (C1 does not meet its primary rule); "
+                   "the lead holds on the decodability clauses"
+                   if ac.get("holds_on_decodability_clauses") else r"\textsc{not met}")
         L.append(r"\midrule")
         L.append(f"C1 $-$ C2 & 0.45 & \\multicolumn{{5}}{{l}}{{{c['mean']:+.3f} {_iv(c['t90'], True)}; "
-                 f"auxiliary reading: {reading}}} \\\\")
+                 f"auxiliary rule: {reading}}} \\\\")
     L += [r"\bottomrule", r"\end{tabular}", ""]
     return "\n".join(L)
 
@@ -711,7 +712,12 @@ def tables() -> dict[str, str]:
     rl = rule_ledger_table()
     if rl is not None:
         out["rule_ledger.tex"] = rl
-    return out
+    # A negative number in text mode prints a hyphen; typeset it as a math minus. Only a sign
+    # directly before a digit and not inside math or a word is touched.
+    return {n: _TEX_MINUS.sub(r"$-$\1", t) for n, t in out.items()}
+
+
+_TEX_MINUS = re.compile(r"(?<![\w$\\-])-(\d)")
 
 
 # ------------------------------------------------------------------ the manuscript check

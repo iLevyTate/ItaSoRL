@@ -1887,8 +1887,8 @@ def main() -> int:
             ("C1 L0 TOST p", f"p = {_g['l0']['tost_p']:.3f}"),
             ("C1 L0 ROPE share", f"{_g['l0']['rope']['boot_share_in_rope']:.3f} of bootstrap means"),
             ("C1 speed min", f"at least {_g['speed']['min']:.3f}"),
-            ("C1 verdict", "MET on the decodability clauses, conditional on the open L0\ngate"
-             if _p["verdict"].endswith("l0") else _p["verdict"]),
+            ("C1 verdict", "NOT MET as registered, because the L0 gate is open; the\ndecodability clauses are met"
+             if _p["verdict"].startswith("NOT MET as registered (open gate(s): l0)") else _p["verdict"]),
         ] + [(f"C1 correction {d} {q}", f"{x['corrected']['mean'] if q == 'survival_target' else x['corrected']:.3f} | "
               f"{x['historical']['mean'] if q == 'survival_target' else x['historical']:.3f} | "
               f"{x['difference']['mean']:+.3f} {_sv(x['difference']['t90'])}")

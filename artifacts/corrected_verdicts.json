@@ -200,7 +200,7 @@
      "margin_untrained": true
     },
     "decodability": "MET",
-    "verdict": "MET on the decodability clauses, conditional on open gate(s): l0",
+    "verdict": "NOT MET as registered (open gate(s): l0); decodability clauses MET",
     "met": false
    },
    "drift_zero": {

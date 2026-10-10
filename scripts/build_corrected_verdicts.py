@@ -16,8 +16,8 @@ artifacts/corrected_verdicts.json with, in the order the spec requires
               or above 0.65 with the lower bound below it is INCONCLUSIVE; a non-finite
               decision cell (a pool with too few survivors) makes the decodability reading
               UNINFORMATIVE, as decide_h_b2 does, never a silent NOT MET; any failed gate
-              leaves every reading, NOT MET included, conditional on it (the suffix
-              "conditional on open gate(s): ...") and `met` False. The label reads
+              makes the registered verdict NOT MET and the label leads with it ("NOT MET as
+              registered (open gate(s): ...); decodability clauses ...") with `met` False. The label reads
               UNINFORMATIVE only for a non-finite cell; a failed engagement gate, which
               PREREGISTRATION_L3 sec. 8 routes to uninformative, is named in the suffix
   drift zero  the drift-0 pooled target of every arm on the registered evaluation-world
@@ -154,8 +154,11 @@ def primary(cells: dict, g: dict) -> dict:
         dec = "NOT MET"
     # The spec makes the run's verdict conditional on any gate that fails or is not shown,
     # whatever the decodability clauses read, so the suffix goes on every label.
+    # The registered rule is MET only when every gate passes too, so a run with a failed gate
+    # leads with NOT MET as registered and names the gate before the decodability reading.
     verdict = (dec if not g["failed"] else
-               f"{dec} on the decodability clauses, conditional on open gate(s): {', '.join(g['failed'])}")
+               f"NOT MET as registered (open gate(s): {', '.join(g['failed'])}); "
+               f"decodability clauses {dec}")
     return {"survival": s, "predictor": _summ(pred), "untrained": _summ(untr),
             "lead_over_predictor": lead_p, "lead_over_untrained": lead_u,
             "contrast_vs_predictor": paired_contrast(surv, pred),
