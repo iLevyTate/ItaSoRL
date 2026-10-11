@@ -97,6 +97,8 @@ caption that does not credit survival on its own, then re-uploading it and chang
 repository's social-preview setting. Both of those are owner actions. Until then the card is
 the one public surface still carrying the pre-revision framing unlabeled.
 
+*(Note 2026-10-11: the card is rebuilt from a committed source, `docs/social-card/index.html`, rendered by `docs/social-card/render.js`. It carries the README opening's numbers (87%, 53%, 73%, 72%) and says the 73% does not meet the registered rule; `tests/test_social_card.py` ties each percent to the README. The README shows the committed image. The repository's social-preview setting still has to point at it.)*
+
 `docs/BRAND_IDENTITY_BRIEF.md` is gitignored and lives only in the owner's checkout. Its
 early-finding copy (an organism "near chance" with survival adding "a faint trace ~60%")
 predates the whole L3 arc and should be rewritten from the current claim table before any of
