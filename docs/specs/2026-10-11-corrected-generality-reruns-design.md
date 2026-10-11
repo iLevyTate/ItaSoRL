@@ -48,7 +48,8 @@ load a file. On CPU that fit matches the exported fingerprints in `artifacts/sur
 (their `index.json`). The original hidden 7 and hidden 8 seed 2 runs fit theirs on CUDA,
 whose last float bits can differ, and their gate 0 was measured on that fit. So after each
 run finishes, gate 0 is measured again on the fingerprint the run used, on the same pinned
-stack: `python scripts/run_expA_l3.py --hiddens <h> --g-seed <s> --device cpu --json
+stack and on one thread, as the run workers fit it: `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+python scripts/run_expA_l3.py --hiddens <h> --g-seed <s> --device cpu --json
 <run>/gate0_cpu.json`. The frozen gate applies unchanged: oracle AUROC in [0.85, 0.95],
 mechanical leakage clean, untrained floor within 0.1 of 0.5. A fingerprint that falls
 outside the band here makes its run off-design under section 8; it is reported, not
