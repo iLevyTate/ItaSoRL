@@ -1,0 +1,40 @@
+{
+  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
+  "sigma_meas": 0.02,
+  "band": [
+    0.85,
+    0.95
+  ],
+  "floor_tol": 0.1,
+  "drift": 0.45,
+  "floor_seeds": [
+    0,
+    1,
+    2
+  ],
+  "g_seed": 0,
+  "rows": [
+    {
+      "hidden": 7,
+      "oracle_auroc": 0.9180555555555555,
+      "in_band": true,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.41944444444444445,
+      "floor": 0.6011019283746557,
+      "floor_per_seed": [
+        0.5698347107438018,
+        0.6219008264462811,
+        0.6115702479338843
+      ],
+      "floor_ok": false,
+      "pool_reward_leak_per_seed": [
+        0.4285123966942148,
+        0.5590909090909091,
+        0.5685950413223141
+      ],
+      "passes_gate0": false
+    }
+  ],
+  "regression_ok": null,
+  "selected_hidden": null
+}
