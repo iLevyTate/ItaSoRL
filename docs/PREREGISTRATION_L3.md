@@ -1277,6 +1277,18 @@ Rigor carried from the B-v3 audit (2026-07-10):
   equivalence (p = 0.147). The reading is "below the bar", not "no encoding"; FINDINGS 14.7
   and section 6 carry the same wording, and `docs/CORRECTIONS.md` both corrections.
 
+- **2026-10-11 - CORRECTED-TRAINER RERUNS OF THE GENERALITY RUNS ANNOUNCED (frozen BEFORE
+  launch; no rule changes).** Four runs, specified in
+  `docs/specs/2026-10-11-corrected-generality-reruns-design.md`: the hidden = 7 second
+  capacity, the hidden = 10 seed 1 and hidden = 8 seed 2 fingerprint instances, each on the
+  corrected trainer with saved agents, and a rerun of `C2` whose purpose is its saved agents.
+  Each runs in the cloud on the stack `C1` used, from `main`, with the explicit fold partition.
+  Each instance is read under the rule that adjudicated its historical run, every gate counted
+  over every arm, and its gate 0 is measured again on the fingerprint the run fits; a gate-0
+  miss makes that run off-design and is reported. The `C2` rerun must match the committed `C2`
+  cells to the bit before its agents stand in for `C2`'s. Results are recorded beside the
+  historical rows, which keep their labels.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
