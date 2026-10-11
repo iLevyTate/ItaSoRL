@@ -39,6 +39,13 @@ Each registered margin (survival at least 0.05 above the predictor and above the
 | `L3-H8-GS2-GPU` | historical | explicit | resid_trace | 0.660 [0.631, 0.689] | yes / no | +0.054 [+0.011, +0.097] | yes / no | +0.098 [+0.058, +0.137] | yes / yes |
 | `L3-H8-NOWM-U450` | historical | explicit | target | 0.717 [0.679, 0.755] | yes / yes | +0.129 [+0.075, +0.182] | yes / yes | +0.204 [+0.161, +0.247] | yes / yes |
 | `L3-H8-NOWM-U450` | historical | explicit | resid_trace | 0.724 [0.690, 0.757] | yes / yes | +0.134 [+0.087, +0.180] | yes / yes | +0.184 [+0.149, +0.220] | yes / yes |
+| `CORRECTED-C2-RERUN` | corrected | explicit | target | 0.613 [0.552, 0.675] | no / no | +0.025 [-0.053, +0.102] | no / no | +0.084 [+0.012, +0.156] | yes / no |
+| `CORRECTED-H10GS1-CORRECTED` | corrected | explicit | target | 0.626 [0.598, 0.654] | no / no | +0.092 [+0.045, +0.139] | yes / no | +0.112 [+0.075, +0.150] | yes / yes |
+| `CORRECTED-H10GS1-CORRECTED` | corrected | explicit | resid_trace | 0.637 [0.610, 0.664] | no / no | +0.072 [+0.025, +0.119] | yes / no | +0.098 [+0.059, +0.137] | yes / yes |
+| `CORRECTED-H7-CORRECTED` | corrected | explicit | target | 0.703 [0.650, 0.756] | yes / no | -0.000 [-0.063, +0.063] | no / no | +0.110 [+0.052, +0.168] | yes / yes |
+| `CORRECTED-H7-CORRECTED` | corrected | explicit | resid_trace | 0.717 [0.678, 0.757] | yes / yes | +0.019 [-0.024, +0.062] | no / no | +0.132 [+0.095, +0.169] | yes / yes |
+| `CORRECTED-H8GS2-CORRECTED` | corrected | explicit | target | 0.659 [0.619, 0.699] | yes / no | +0.031 [-0.006, +0.067] | no / no | +0.107 [+0.048, +0.167] | yes / no |
+| `CORRECTED-H8GS2-CORRECTED` | corrected | explicit | resid_trace | 0.630 [0.594, 0.666] | no / no | +0.027 [-0.009, +0.062] | no / no | +0.071 [+0.031, +0.111] | yes / no |
 | `CORRECTED-L3_H8_NOWM` | corrected | explicit | target | 0.613 [0.552, 0.675] | no / no | +0.025 [-0.053, +0.102] | no / no | +0.084 [+0.012, +0.156] | yes / no |
 | `CORRECTED-L3_H8_NOWM` | corrected | explicit | resid_trace | 0.642 [0.585, 0.698] | no / no | +0.050 [-0.017, +0.117] | yes / no | +0.093 [+0.031, +0.156] | yes / no |
 | `CORRECTED-L3_H8_WM` | corrected | explicit | target | 0.733 [0.669, 0.797] | yes / yes | +0.144 [+0.072, +0.217] | yes / yes | +0.210 [+0.135, +0.286] | yes / yes |

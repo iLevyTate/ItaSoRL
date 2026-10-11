@@ -545,6 +545,126 @@
    "status": "historical"
   },
   {
+   "run": "CORRECTED-C2-RERUN",
+   "partition": "explicit",
+   "source": "artifacts/expB2/corrected_C2-rerun.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.515083,
+    "sd": 0.025838,
+    "tost_p": 0.001035,
+    "equivalent": true,
+    "rope_interval": [
+     0.500248,
+     0.530537
+    ],
+    "rope_share_inside": 1.0,
+    "rope_accept": true,
+    "status": "pass"
+   },
+   "untrained_floor": {
+    "mean": 0.529421,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.787171,
+   "speed_basis": "pool",
+   "pool_leak_clean_all": true,
+   "deaths_total": 0,
+   "status": "corrected"
+  },
+  {
+   "run": "CORRECTED-H10GS1-CORRECTED",
+   "partition": "explicit",
+   "source": "artifacts/expB2/corrected_H10GS1-corrected.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.559421,
+    "sd": 0.017405,
+    "tost_p": 0.939448,
+    "equivalent": false,
+    "rope_interval": [
+     0.549752,
+     0.570248
+    ],
+    "rope_share_inside": 0.02835,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.513636,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.753126,
+   "speed_basis": "pool",
+   "pool_leak_clean_all": true,
+   "deaths_total": 0,
+   "status": "corrected"
+  },
+  {
+   "run": "CORRECTED-H7-CORRECTED",
+   "partition": "explicit",
+   "source": "artifacts/expB2/corrected_H7-corrected.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.559421,
+    "sd": 0.017405,
+    "tost_p": 0.939448,
+    "equivalent": false,
+    "rope_interval": [
+     0.549752,
+     0.570248
+    ],
+    "rope_share_inside": 0.02835,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.593306,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.772051,
+   "speed_basis": "pool",
+   "pool_leak_clean_all": false,
+   "deaths_total": 0,
+   "status": "corrected"
+  },
+  {
+   "run": "CORRECTED-H8GS2-CORRECTED",
+   "partition": "explicit",
+   "source": "artifacts/expB2/corrected_H8GS2-corrected.json",
+   "l0": {
+    "n": 10,
+    "mean": 0.559421,
+    "sd": 0.017405,
+    "tost_p": 0.939448,
+    "equivalent": false,
+    "rope_interval": [
+     0.549752,
+     0.570248
+    ],
+    "rope_share_inside": 0.02835,
+    "rope_accept": false,
+    "status": "inconclusive (not shown equivalent)"
+   },
+   "untrained_floor": {
+    "mean": 0.551694,
+    "ok": true,
+    "status": "pass"
+   },
+   "engagement": "20/20",
+   "speed_min": 0.725364,
+   "speed_basis": "pool",
+   "pool_leak_clean_all": true,
+   "deaths_total": 0,
+   "status": "corrected"
+  },
+  {
    "run": "CORRECTED-L3_H8_NOWM",
    "partition": "explicit",
    "source": "artifacts/expB2/corrected_l3_h8_nowm.json",

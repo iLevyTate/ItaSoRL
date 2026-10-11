@@ -20,7 +20,8 @@ Status vocabulary:
   historical  produced before the 2026-10 corrections; the number stands as a record of
               what that implementation measured and is cited as such.
   corrected   produced by the corrected implementation (revision step 4: the confirmation
-              runs C1 and C2 and the readouts on their saved agents).
+              runs C1 and C2 and the readouts on their saved agents; later corrected runs, such
+              as the goal-and-stakes runs and the 2026-10-11 reruns of the generality runs).
 
 GAE vocabulary (`survival_trainer` field):
   pre_transition_value   itasorl.experiment_b2.compute_gae as of 679fee6 (2026-06-28) up to
@@ -136,6 +137,15 @@ CPU_CLOUD = "cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu"
 CPU_REVISION = "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu"
 CLOUD_PINNED = ("Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, "
                 "scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)")
+PINNED_DEPS = "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1"
+CLOUD_READOUT = ("Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, "
+                 "scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)")
+POST_REVIEW_SEEDS = {
+    "r210": "800000 / 850000, the registered pair",
+    "r35_r206_r31": "2100000 + i (authentic, drift 0) / 2150000 + i (surrogate, drift 0.45)",
+    "r33": "2200000 + i for both members of a pair; continuity entry 800000 + i",
+    "scripted_policy": "action stream default_rng(600000 + i)",
+}
 
 RUNS = [
     # ---------------- agent-free and prediction-only arcs (no actor-critic) ----------------
@@ -753,6 +763,141 @@ RUNS = [
               "for the C1 mechanism readout. Pool targets equal C1 to the bit in 60 of 60 "
               "arm-cells; C1 reproduces exactly. Saved agents (60 base plus 30 budget snapshots) "
               "stay on branch run/C1-rerun."),
+    # ---------------- corrected reruns of the generality runs (2026-10-11, FINDINGS 20) ----------------
+    run("C2-RERUN", "Rerun of C2 that keeps its saved agents (reproduction)",
+        experiment="B-v2 L3", artifacts=["expB2/corrected_C2-rerun.json", "corrected_runs/c2-rerun"],
+        claims=[], survival_trainer="successor_value", status="corrected",
+        commit_at_run="f363f07, dcb3fda (run/C2-rerun; code as main 3036eb3)",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "world_model": False, "gae_bootstrap": "successor",
+                "budget_extend": 450, "budget_snapshots": [100, 200]},
+        agent_seeds=S10, surrogate=L3_H8,
+        budget={"survival_updates": 300, "budget_curve": [100, 200, 300, 450], "predictor_updates": 300},
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CLOUD_PINNED, deps=PINNED_DEPS,
+        local_run_dir="artifacts/goal_stakes/C2-rerun on branch run/C2-rerun",
+        notes="Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; FINDINGS 20.1. Read "
+              "under no rule. Config hash aff3863123e3e3ee, equal to C2's. Its 20 cells share 5000 values "
+              "with the committed C2 cells and all 5000 are bit-equal; 240 further leaves are fields the "
+              "runner gained after C2 ran. Its 90 saved agents (60 base agents and 30 survival snapshots at "
+              "100, 200 and 450 updates) stand in for C2's, which were not kept; they stay on branch "
+              "run/C2-rerun."),
+    run("H7-CORRECTED", "Hidden 7 second capacity on the corrected trainer, n = 10 (off-design: gate 0 "
+        "fails on the run's own fingerprint)", experiment="B-v2 L3",
+        artifacts=["expB2/corrected_H7-corrected.json", "corrected_runs/h7-corrected"], claims=[],
+        survival_trainer="successor_value", status="corrected",
+        commit_at_run="0a15071, d2bf9da (run/H7-corrected; code as main 3036eb3)",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor"},
+        agent_seeds=S10, surrogate={**L3_H8, "hidden": 7,
+                                    "gate0_cpu": "oracle 0.918 in band, floor 0.601 (fails)"},
+        budget={"survival_updates": 300, "predictor_updates": 300}, eval_seeds=BV2_EVAL_SEEDS,
+        folds="explicit", device=CLOUD_PINNED, deps=PINNED_DEPS,
+        local_run_dir="artifacts/goal_stakes/H7-corrected on branch run/H7-corrected",
+        notes="Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; read under "
+              "PREREGISTRATION_L3 sections 7 and 8 as the 2026-07-14 entry applied them; FINDINGS 20.2. "
+              "Config hash ce2a6fe1ba30cae7. OFF-DESIGN under section 8: gate 0 measured after the run "
+              "on its own CPU fit (gate0_cpu.json, one thread) fails on the untrained floor, 0.601, so "
+              "the run adjudicates nothing; the L0 gate (C1's drift-0 cells) and the reward-leak gate "
+              "(2 of 60 pools) are also open. Descriptive: survival 0.703 [0.650, 0.756], predictor "
+              "0.703, untrained 0.593, survival resid_trace 0.717. Rebuilt dumps reproduced 60 of 60 "
+              "pools. Reported beside L3-H7-N10, which keeps its label."),
+    run("H10GS1-CORRECTED", "Second fingerprint instance (G seed 1, hidden 10) on the corrected "
+        "trainer, n = 10", experiment="B-v2 L3",
+        artifacts=["expB2/corrected_H10GS1-corrected.json", "corrected_runs/h10gs1-corrected"], claims=[],
+        survival_trainer="successor_value", status="corrected",
+        commit_at_run="93c45cc, 74a7312 (run/H10GS1-corrected; code as main 3036eb3)",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor"},
+        agent_seeds=S10, surrogate={**L3_H8, "hidden": 10, "g_seed": 1,
+                                    "gate0_cpu": "oracle 0.893 in band, floor 0.485"},
+        budget={"survival_updates": 300, "predictor_updates": 300}, eval_seeds=BV2_EVAL_SEEDS,
+        folds="explicit", device=CLOUD_PINNED, deps=PINNED_DEPS,
+        local_run_dir="artifacts/goal_stakes/H10GS1-corrected on branch run/H10GS1-corrected",
+        notes="Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; read under "
+              "docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md; FINDINGS 20.2. Config "
+              "hash 03346353ac775154 (the same recipe hashes to d027bac1ad45f30b, L3-H10-GS1-CPU's, with "
+              "the historical trainer). Predictor and untrained targets bit-equal to L3-H10-GS1-CPU in 20 "
+              "of 20 cells. Replication not claimed: survival 0.626 [0.598, 0.654], resid_trace 0.637 "
+              "[0.610, 0.664]; both margins pass; the L0 gate is open (C1's drift-0 cells). Rebuilt "
+              "dumps reproduced 60 of 60 pools. Reported beside L3-H10-GS1-CPU, which keeps its label."),
+    run("H8GS2-CORRECTED", "Hidden 8 new-seed instance (G seed 2) on the corrected trainer, n = 10 "
+        "(uninformative: speed control and L0)", experiment="B-v2 L3",
+        artifacts=["expB2/corrected_H8GS2-corrected.json", "corrected_runs/h8gs2-corrected"], claims=[],
+        survival_trainer="successor_value", status="corrected",
+        commit_at_run="6f58a1f, 24ea329 (run/H8GS2-corrected; code as main 3036eb3)",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor"},
+        agent_seeds=S10, surrogate={**L3_H8, "g_seed": 2,
+                                    "gate0_cpu": "oracle 0.939 in band, floor 0.538"},
+        budget={"survival_updates": 300, "predictor_updates": 300}, eval_seeds=BV2_EVAL_SEEDS,
+        folds="explicit", device=CLOUD_PINNED, deps=PINNED_DEPS,
+        local_run_dir="artifacts/goal_stakes/H8GS2-corrected on branch run/H8GS2-corrected",
+        notes="Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; read under "
+              "docs/specs/2026-09-28-l3-hidden8-second-seed-design.md; FINDINGS 20.2. Config hash "
+              "2823452491c11037. UNINFORMATIVE under its spec's outcome table: the speed positive "
+              "control is under 0.75 in 1 of 60 pools (untrained, drift 0.45, seed 0, 0.725) and the "
+              "L0 gate is open (C1's drift-0 cells). Descriptive: survival 0.659 [0.619, 0.699], +0.031 "
+              "over the predictor. Rebuilt dumps reproduced 60 of 60 pools. Reported beside "
+              "L3-H8-GS2-GPU, which keeps its label."),
+    run("C1-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the C1 rerun's agents",
+        experiment="B-v2 L3", artifacts=["post_review/C1-rerun.json",
+                                         "post_review/C1-rerun.json.partial.jsonl"],
+        trains_survival=False, readout_of=["C1", "C1-RERUN"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="b77d0db (readouts/post-review-C1)", folds="explicit",
+        eval_seeds=POST_REVIEW_SEEDS, device=CLOUD_READOUT,
+        notes="scripts/run_post_review_readouts.py; frozen spec "
+              "docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.3 to 20.8, with dated "
+              "notes at 10.3, 17.4, 17.5, 17.6 and 17.8. Diagnostics: no registered verdict changes. "
+              "Integrity: all 60 r210 cells reproduce their recorded targets and shuffled controls as "
+              "floats, and the r33 continuity entry equals artifacts/l0_audit/corrected_l3_h8_wm.json "
+              "to the bit in 30 of 30 cells. Labels: R210 survival INCLUDES under the MLP and the forest; "
+              "R35 untrained TRUNK; R206 HIGHER; R31 NOT CAPACITY-LIMITED and STATE ABOVE on both "
+              "streams. The artifact's run_dir is the cloud session's temporary path."),
+    run("C2-RERUN-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the C2 rerun's "
+        "agents", experiment="B-v2 L3", artifacts=["post_review/C2-rerun.json",
+                                                   "post_review/C2-rerun.json.partial.jsonl"],
+        trains_survival=False, readout_of=["C2", "C2-RERUN"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="d3f2f75 (readouts/post-review-C2-rerun)", folds="explicit",
+        eval_seeds=POST_REVIEW_SEEDS, device=CLOUD_READOUT,
+        notes="scripts/run_post_review_readouts.py; frozen spec "
+              "docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.10. Diagnostics: no "
+              "registered verdict changes. Integrity: all 60 r210 cells reproduce their recorded targets, "
+              "which are C2's committed targets. Labels: R210 survival ABOVE under the MLP, INCLUDES under "
+              "the forest; R35 untrained SPLIT, predictor NORMALIZER; R206 MIXED; R31 NOT CAPACITY-LIMITED "
+              "and DECODER ABOVE on the own stream, EQUIVALENT on the scripted one."),
+    run("H10GS1-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the hidden 10, G "
+        "seed 1 rerun's agents", experiment="B-v2 L3",
+        artifacts=["post_review/H10GS1-corrected.json", "post_review/H10GS1-corrected.json.partial.jsonl"],
+        trains_survival=False, readout_of=["H10GS1-CORRECTED"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="60b4e6f (readouts/post-review-H10GS1-corrected)",
+        folds="explicit", eval_seeds=POST_REVIEW_SEEDS, device=CLOUD_READOUT,
+        notes="scripts/run_post_review_readouts.py; frozen spec "
+              "docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.11. Diagnostics on a run "
+              "whose replication rule is not met. Integrity: all 60 r210 cells reproduce their recorded "
+              "targets; the drift-0 readings equal C1's (the same agents). Labels: R210 survival INCLUDES "
+              "under both classes; R35 untrained TRUNK, predictor SPLIT; R206 HIGHER; R31 NOT "
+              "CAPACITY-LIMITED, UNRESOLVED on the own stream, EQUIVALENT on the scripted one."),
+    run("C1-C2-BALANCED-CONTRAST", "Draw-free C1 minus C2 contrast of the balanced survival target "
+        "(finding R33)", experiment="B-v2 L3", artifacts=["post_review/c1_minus_c2_balanced.json"],
+        trains_survival=False, readout_of=["C1", "C2", "C1-RERUN", "C2-RERUN"],
+        survival_trainer="successor_value", status="corrected", folds="explicit",
+        eval_seeds={"r33": "2200000 + i for both members of a pair (primary); 800000 + i (registered)"},
+        device="owner's workstation, offline from the two committed readout outputs",
+        notes="python scripts/run_post_review_readouts.py --contrast artifacts/post_review/C1-rerun.json "
+              "artifacts/post_review/C2-rerun.json --out artifacts/post_review/c1_minus_c2_balanced.json; "
+              "FINDINGS 20.12, dated notes at 17.4 and 17.5. Seed-paired C1 minus C2, agents raised at "
+              "drift 0.45: +0.121 [+0.074, +0.168] on the fresh base (primary) and +0.124 [+0.073, +0.175] "
+              "on the registered base, both HOLDS. The auxiliary rule stays NOT MET as registered, because "
+              "C1 does not meet its primary rule. The output records no commit; it is a deterministic "
+              "function of the two readout files."),
+    run("L1-CAPACITY-CURVE", "L1 stream-decoder capacity curve on the saved L1 agents (R31, L1 part)",
+        experiment="H2", artifacts=["post_review/l1_capacity_curve.json"], claims=[],
+        trains_survival=False, readout_of=["L1-ORGANISM"], commit_at_run="5ba16e0", folds="explicit",
+        eval_seeds={"pooled": "800000 / 850000, the registered pools of the L1 run"},
+        device=CLOUD_READOUT, local_run_dir="fullruns_upload/l1_heldout on branch upload/l1-heldout-agents",
+        notes="scripts/run_l1_capacity_curve.py; the 2026-10-11 amendment of "
+              "docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.9 and a dated note at "
+              "14.7.1. Pre-correction-trainer agents. Integrity gate passed: 30 state targets within 0.01 "
+              "of artifacts/fold_rescore/l1_heldout.json (15 bit-equal); the dump half was not checked, "
+              "because no states/ were uploaded. Record check: survival 1x 0.589 against the recorded "
+              "0.590, a stack difference inside the tolerance. Label READER-RELATIVE in all three arms; "
+              "the conv reader reads 0.667 on the survival streams."),
     run("GOAL-STAKES-DECISION", "Frozen goal-and-stakes wording from scripts/decide_goal_stakes.py",
         experiment="methods", artifacts=["goal_stakes/decision.json"], trains_survival=False,
         readout_of=["T-TOUCH", "S-IMMORTAL", "C1"], survival_trainer="successor_value",

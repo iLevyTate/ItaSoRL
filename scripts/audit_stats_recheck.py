@@ -18,8 +18,11 @@ values, recomputed where per-seed values exist, for FINDINGS 3.1, 10.1.1, 13.F, 
 of 2026-10-10 in FINDINGS 3.4, 9, 10.5, 10.9, 12, 13.E, 13.F, 14, 14.6, 16 and 17.11 (where
 they quote a committed artifact), section 19 and the dated notes of 2026-10-11 in FINDINGS
 10.1, 10.3, 10.5, 10.7, 10.9, 13.F, 14.5, 14.5.1 and 17.9 (every table row rebuilt from the
-agent-free artifacts), the 2026-10-11 entries of docs/CORRECTIONS.md, and PAPER_OUTLINE rows
-27, 40, 44, 46 and 54. In README.md, CITATION.cff,
+agent-free artifacts), section 20 (every table row rebuilt from the per-seed values of the
+corrected reruns, their historical counterparts, the post-review readouts and the L1 capacity
+curve, with the readouts' pre-stated labels derived again) and the 2026-10-11 notes that point
+to it, the 2026-10-11 results entry of PREREGISTRATION_L3, the 2026-10-11 entries of
+docs/CORRECTIONS.md, and PAPER_OUTLINE rows 27, 40, 44, 46 and 54. In README.md, CITATION.cff,
 the site, the rest of PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only,
 a few of which contain a number; a number edited outside those phrases is not caught. Numbers
 the notes take from gitignored run bundles under fullruns/ are not checked.
@@ -2633,7 +2636,7 @@ def main() -> int:
     _gt = _load_art("gate_table.json")["rows"]
     _key = lambda r: tuple(round(r["l0"][k], 6) for k in ("n", "mean", "sd", "tost_p"))
     _xh = [r for r in _gt if r["status"] == "historical" and r["partition"].startswith("explicit")]
-    _words = {5: "five", 10: "10", 12: "twelve", 22: "22"}
+    _words = {5: "five", 10: "10", 12: "twelve", 22: "22", 26: "26"}
     _nset, _nxh, _nxs = len({_key(r) for r in _gt}), len(_xh), len({_key(r) for r in _xh})
     check_true(f"16 note counts {_nset} drift-zero sets over {len(_gt)} gate-table rows, "
                f"{_nxs} over the {_nxh} explicit-partition historical rows",
@@ -2763,6 +2766,7 @@ def main() -> int:
     agent_free_checks(_read("docs/FINDINGS.md"), _read("docs/CORRECTIONS.md"))
     repro_check_checks(_read("docs/FINDINGS.md"), _read("docs/CORRECTIONS.md"),
                        _read("docs/REPRODUCE.md"))
+    post_review_checks(_read("docs/FINDINGS.md"), _read("docs/PREREGISTRATION_L3.md"))
 
     print()
     print(f"pins: {n_pins} of {n_checks} checks compare a value as stored in an artifact with a "
@@ -3153,6 +3157,605 @@ def agent_free_checks(findings: str, corrections: str) -> None:
                    "the shared training set"):
         check_true(f"CORRECTIONS carries the 2026-10-11 entry on {needle}",
                    "## 2026-10-11" in corrections and needle in corrections)
+
+
+# ---- FINDINGS 20: corrected-trainer reruns and post-review readouts (2026-10-11) ----------
+# The rerun integrity counts are recounted from the committed cells. Every table row of
+# section 20 is rebuilt from per-seed values (the reruns' expB2_results and behavior audits,
+# the historical artifacts beside them, the readouts' per_seed blocks, the L1 curve's cells) and
+# looked up in the text. Each summary the readout runners wrote is checked against the
+# recomputation, and each pre-stated label is derived again from its interval.
+
+S20_RUNS = {"C2-rerun": ("c2-rerun", "aff3863123e3e3ee"),
+            "H7-corrected": ("h7-corrected", "ce2a6fe1ba30cae7"),
+            "H10GS1-corrected": ("h10gs1-corrected", "03346353ac775154"),
+            "H8GS2-corrected": ("h8gs2-corrected", "2823452491c11037")}
+S20_ARMS = ("survival", "predictor", "untrained")
+S20_SEEDS = [str(i) for i in range(10)]
+
+
+def _s20_flat(o, p=""):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            yield from _s20_flat(v, f"{p}/{k}")
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            yield from _s20_flat(v, f"{p}[{i}]")
+    else:
+        yield p, o
+
+
+def _s20_same(a, b) -> bool:
+    if isinstance(a, float) and isinstance(b, float) and math.isnan(a) and math.isnan(b):
+        return True
+    return a == b
+
+
+def _s20_cells(run_dir: str, pattern: str = "cell_d*_s*.json") -> dict:
+    out = {}
+    for p in sorted(glob.glob(os.path.join(ARTROOT, *run_dir.split("/"), "cells", pattern))):
+        with open(p, encoding="utf-8") as fh:
+            out[os.path.basename(p)] = json.load(fh)
+    return out
+
+
+def _s20_compare(run_dir: str, ref_dir: str, pattern: str) -> dict:
+    a, b = _s20_cells(run_dir, pattern), _s20_cells(ref_dir, pattern)
+    shared = only_run = only_ref = 0
+    differ: list[str] = []
+    for name, cell in a.items():
+        fa, fb = dict(_s20_flat(cell["cell"])), dict(_s20_flat(b[name]["cell"]))
+        keys = fa.keys() & fb.keys()
+        shared += len(keys)
+        only_run += len(fa.keys() - fb.keys())
+        only_ref += len(fb.keys() - fa.keys())
+        differ += [k for k in keys if not _s20_same(fa[k], fb[k])]
+    return {"n": len(a), "shared": shared, "differ": differ, "only_run": only_run, "only_ref": only_ref}
+
+
+def _s20_label(t) -> str:
+    return "ABOVE" if t[0] > 0 else "BELOW" if t[1] < 0 else "INCLUDES"
+
+
+def _s20_ms(v) -> tuple:
+    return float(np.mean(v)), tuple(float(x) for x in t_ci90(v))
+
+
+def _s20_cell(v, sign: bool = False) -> str:
+    m, t = _s20_ms(v)
+    return (f"{m:+.3f} " if sign else f"{m:.3f} ") + _af_iv(t, sign)
+
+
+def _s20_agree(label: str, mine: tuple, block: dict) -> None:
+    check_true(f"{label}: runner summary equals the recomputation",
+               abs(mine[0] - block["mean"]) < 1e-12 and np.allclose(mine[1], block["t90"], rtol=0, atol=1e-12))
+
+
+def s20_integrity() -> dict:
+    """20.1: cells, bootstrap and hash of every rerun; C2-rerun against C2; the drift-0 cells
+    against C1; H10GS1-corrected against its historical CPU run; the rebuilt dumps."""
+    for name, (d, fp) in S20_RUNS.items():
+        cells = _s20_cells(f"corrected_runs/{d}")
+        check_true(f"20.1 {name}: 20 cells, each with the successor bootstrap and hash {fp}",
+                   len(cells) == 20 and all(c["cell"].get("gae_bootstrap") == "successor"
+                                            and c["fingerprint"] == fp for c in cells.values()))
+    c2 = _s20_compare("corrected_runs/c2-rerun", "corrected_runs/corrected_l3_h8_nowm", "cell_d*_s*.json")
+    check_true("20.1 C2-rerun: every shared value equals the committed C2 cell",
+               c2["n"] == 20 and not c2["differ"] and c2["only_ref"] == 0)
+    d0 = {}
+    for name in ("H7-corrected", "H10GS1-corrected", "H8GS2-corrected"):
+        r = _s20_compare(f"corrected_runs/{S20_RUNS[name][0]}", "corrected_runs/corrected_l3_h8_wm",
+                         "cell_d0.00_s*.json")
+        check_true(f"20.1 {name}: the drift-0 cells equal C1's except one value per cell, the "
+                   "cross-evaluation return at drift 0.45",
+                   r["n"] == 10 and r["only_ref"] == 0 and sorted(set(r["differ"])) == ["/xeval/0.45"]
+                   and len(r["differ"]) == 10)
+        d0[name] = r["shared"]
+    check_true("20.1 the three instance runs share as many drift-0 values with C1",
+               len(set(d0.values())) == 1)
+    h10 = _s20_cells("corrected_runs/h10gs1-corrected")
+    hist = _s20_cells("reviewer_gaps_runs/l3_h10_gseed1")
+    eq = {a: sum(h10[k]["cell"]["agents"][a]["pool"]["target"] == hist[k]["cell"]["agents"][a]["pool"]["target"]
+                 for k in h10) for a in S20_ARMS}
+    check_true("20.1 H10GS1-corrected: predictor and untrained targets bit-equal to L3-H10-GS1-CPU in "
+               "20 of 20 cells, survival in none",
+               eq["predictor"] == 20 and eq["untrained"] == 20 and eq["survival"] == 0)
+    for name in ("H7-corrected", "H10GS1-corrected", "H8GS2-corrected"):
+        rb = _af_load("corrected_runs", S20_RUNS[name][0], "state_dump_rebuild.json")
+        check_true(f"20.1 {name}: the rebuilt state dumps reproduce 60 of 60 pools",
+                   rb["n"] == 60 and rb["reproduced"] == 60 and rb["all_reproduced"] is True
+                   and all(c["target"] == c["recorded_target"] for c in rb["cells"]))
+    return {"c2": c2, "d0_shared": next(iter(d0.values()))}
+
+
+def _s20_run_row(label: str, trainer: str, res: dict, audit: dict, gate: tuple) -> tuple:
+    s, p, u = (res["0.45"][a]["pool_target"] for a in S20_ARMS)
+    rt = seed_vals(audit, "0.45", "survival", "resid_trace")
+    sp = np.asarray(s) - np.asarray(p)
+    su = np.asarray(s) - np.asarray(u)
+    oracle, floor, ok = gate
+    n65 = int(sum(x >= BAR for x in s))
+    row = (f"| {label} | {trainer} | {_s20_cell(s)} | {n65}/10 | {np.mean(p):.3f} | {np.mean(u):.3f} | "
+           f"{_s20_cell(sp, True)} | {_s20_cell(rt)} | {oracle:.3f}, {floor:.3f}{'' if ok else ' (fails)'} |")
+    return row, {"s": _s20_ms(s), "p": float(np.mean(p)), "u": float(np.mean(u)), "sp": _s20_ms(sp),
+                 "su": _s20_ms(su), "rt": _s20_ms(rt), "n65": n65, "oracle": oracle, "floor": floor,
+                 "gate0": ok}
+
+
+def _s20_gate_cpu(d: str) -> tuple:
+    rows = _af_load("corrected_runs", d, "gate0_cpu.json")["rows"]
+    g = rows[0]
+    ok = bool(g["in_band"] and g["mech_leak_pass"] and abs(g["floor"] - 0.5) < 0.1)
+    check_true(f"20.2 {d}: one gate-0 row, its pass flag agrees with band, leakage and floor",
+               len(rows) == 1 and ok == bool(g["passes_gate0"]))
+    return g["oracle_auroc"], g["floor"], ok
+
+
+def s20_instances() -> dict:
+    """20.2: each corrected instance run beside its historical row, from per-seed values."""
+    fr = _af_load("fold_rescore", "l3_h7_traces.json")
+
+    def fr_vals(arm, met):
+        cells = sorted([c for c in fr["cells"] if c["agent"] == arm and float(c["drift"]) == 0.45],
+                       key=lambda c: int(c["seed"]))
+        return [c["explicit"][met] for c in cells]
+
+    hist7 = {"0.45": {a: {"pool_target": fr_vals(a, "target")} for a in S20_ARMS}}
+    aud7 = {"cells": [{"drift": "0.45", "agent": "survival", "seed": i, "resid_trace": v}
+                      for i, v in enumerate(fr_vals("survival", "resid_trace"))]}
+    g7 = next(r for r in _af_load("fold_rescore", "gate0_h8h7_explicit.json")["rows"] if r["hidden"] == 7)
+    g10 = next(r for r in _af_load("reviewer_gaps_runs", "l3_gate0_seed1", "calibration.json")["rows"]
+               if r["hidden"] == 10)
+    g82 = _af_load("reviewer_gaps_runs", "l3_gate0_seed2_gpu", "calibration.json")["rows"][0]
+
+    def corr(d):
+        return (_af_load("corrected_runs", d, "expB2_results.json"),
+                _af_load("corrected_runs", d, "behavior_audit.json"), _s20_gate_cpu(d))
+
+    def hist(d):
+        return (_af_load("reviewer_gaps_runs", d, "expB2_results.json"),
+                _af_load("reviewer_gaps_runs", d, "behavior_audit.json"))
+
+    spec = [
+        ("h7_hist", "hidden 7, `L3-H7-N10` (10.5)", "historical, GPU, explicit re-score",
+         (hist7, aud7, (g7["oracle_auroc"], g7["floor"], bool(g7["passes_gate0"])))),
+        ("h7", "`H7-corrected`", "corrected, CPU", corr("h7-corrected")),
+        ("h10_hist", "hidden 10, G seed 1, `L3-H10-GS1-CPU` (10.9)", "historical, CPU",
+         (*hist("l3_h10_gseed1"), (g10["oracle_auroc"], g10["floor"], bool(g10["passes_gate0"])))),
+        ("h10", "`H10GS1-corrected`", "corrected, CPU", corr("h10gs1-corrected")),
+        ("h8s2_hist", "hidden 8, G seed 2, `L3-H8-GS2-GPU` (10.9)", "historical, GPU",
+         (*hist("l3_h8_gseed2_gpu"), (g82["oracle_auroc"], g82["floor"], bool(g82["passes_gate0"])))),
+        ("h8s2", "`H8GS2-corrected`", "corrected, CPU", corr("h8gs2-corrected")),
+    ]
+    rows, nums = [], {}
+    for key, label, trainer, (res, aud, gate) in spec:
+        row, n = _s20_run_row(label, trainer, res, aud, gate)
+        rows.append((f"20.2 row {key}", row))
+        nums[key] = n
+    for k in ("h7", "h10", "h8s2"):
+        check_true(f"20.2 {k}: the CPU gate-0 oracle equals the recorded oracle to the bit",
+                   nums[k]["oracle"] == nums[f"{k}_hist"]["oracle"])
+    prom = {k: _af_load("expB2", f"corrected_{n}.json") for k, n in
+            (("h7", "H7-corrected"), ("h10", "H10GS1-corrected"), ("h8s2", "H8GS2-corrected"),
+             ("c2", "C2-rerun"))}
+    for k in ("h7", "h10", "h8s2"):
+        check(f"20.2 {k}: promoted survival mean equals the recomputation",
+              prom[k]["decision"]["survival"], nums[k]["s"][0], 1e-12)
+        check(f"pinned: 20.2 {k}: drift-0 survival target (C1's L0 reading)",
+              prom[k]["gates"]["l0_survival_mean"], 0.559)
+        check_true(f"20.2 {k}: the L0 gate is open", prom[k]["gates"]["l0_tost"]["equivalent"] is False)
+    g8p = prom["h8s2"]["gates"]
+    check_true("20.2 H7-corrected: the open gates are L0 and reward leak",
+               prom["h7"]["decision"]["gates_open"] == ["l0", "reward_leak"])
+    check_true("20.2 H10GS1-corrected: the only open gate is L0", prom["h10"]["decision"]["gates_open"] == ["l0"])
+    check_true("20.2 H8GS2-corrected: the open gates are L0 and speed, one pool under 0.75 "
+               "(untrained, drift 0.45, seed index 0)",
+               prom["h8s2"]["decision"]["gates_open"] == ["l0", "speed"] and g8p["speed_n_below"] == 1
+               and g8p["speed_min_at"] == {"drift": "0.45", "arm": "untrained", "seed_index": 0})
+    res7 = _af_load("corrected_runs", "h7-corrected", "expB2_results.json")
+    unclean = sorted((d, a, i, round(res7[d][a]["pool_reward_leak"][i], 3)) for d in res7 for a in S20_ARMS
+                     for i, f in enumerate(res7[d][a]["pool_leak_clean"]) if not f)
+    check_true("20.2 H7-corrected: the two unclean reward-leak pools are drift 0.45, seed 8, predictor "
+               "0.629 and survival 0.600",
+               unclean == [("0.45", "predictor", 8, 0.629), ("0.45", "survival", 8, 0.6)])
+    c2_arms = _af_load("expB2", "corrected_l3_h8_nowm.json")["arms"]
+    check_true("20.2 C2-rerun: the promoted per-seed pooled targets equal C2's in every drift and arm",
+               all(prom["c2"]["arms"][d][a]["pool_target"]["per_seed"] == c2_arms[d][a]["pool_target"]["per_seed"]
+                   for d in c2_arms for a in S20_ARMS))
+    s_new = _af_load("corrected_runs", "h10gs1-corrected", "expB2_results.json")["0.45"]["survival"]["pool_target"]
+    s_old = _af_load("reviewer_gaps_runs", "l3_h10_gseed1", "expB2_results.json")["0.45"]["survival"]["pool_target"]
+    seeds7 = _af_load("corrected_runs", "h7-corrected", "gate0_cpu.json")["rows"][0]["floor_per_seed"]
+    return {"rows": rows, "nums": nums, "speed_min": g8p["speed_min"],
+            "h10_speed_min": prom["h10"]["gates"]["speed_min"],
+            "corr_h10": _s20_ms(np.asarray(s_new) - np.asarray(s_old)), "h7_floor_seeds": seeds7}
+
+
+def _s20_r210(ps: dict, sm: dict, tag: str) -> dict:
+    cls = ("linear", "mlp", "rf")
+    out = {}
+    for dr in ("0.45", "0.00"):
+        v = {a: {c: [ps[s]["cells"][dr][a]["classes"][c]["target"] for s in S20_SEEDS] for c in cls}
+             for a in S20_ARMS}
+        shm = [float(np.mean([ps[s]["cells"][dr][a]["classes"][c]["shuffled"] for s in S20_SEEDS]))
+               for a in S20_ARMS for c in cls]
+        rows = []
+        for a in S20_ARMS:
+            for c in cls:
+                _s20_agree(f"{tag} r210 {dr} {a} {c}", _s20_ms(v[a][c]), sm[dr]["arms"][a][c]["target"])
+            diffs = []
+            for c in ("mlp", "rf"):
+                m, t = _s20_ms(np.asarray(v[a][c]) - np.asarray(v[a]["linear"]))
+                blk = sm[dr]["class_minus_linear"][a][c]
+                _s20_agree(f"{tag} r210 {dr} {a} {c} minus linear", (m, t), blk)
+                check_true(f"{tag} r210 {dr} {a} {c}: label {_s20_label(t)} derived again",
+                           _s20_label(t) == blk["reading"])
+                diffs.append(f"{m:+.3f} {_af_iv(t, True)} {_s20_label(t)}")
+            rows.append((f"{tag} r210 drift {dr} row {a}",
+                         f"| {a} | {_s20_cell(v[a]['linear'])} | {_s20_cell(v[a]['mlp'])} | "
+                         f"{_s20_cell(v[a]['rf'])} | {diffs[0]} | {diffs[1]} |"))
+        margins = []
+        for b in ("predictor", "untrained"):
+            cells = []
+            for c in cls:
+                dv = np.asarray(v["survival"][c]) - np.asarray(v[b][c])
+                _s20_agree(f"{tag} r210 {dr} survival minus {b} {c}", _s20_ms(dv),
+                           sm[dr]["margins"][f"survival_minus_{b}"][c])
+                cells.append(_s20_cell(dv, True))
+            margins.append((f"{tag} r210 drift {dr} margin {b}",
+                            f"| survival minus {b} | " + " | ".join(cells) + " |"))
+        out[dr] = {"rows": rows, "margins": margins, "v": v, "sh_range": (min(shm), max(shm))}
+    return out
+
+
+def _s20_r35(ps: dict, sm: dict, tag: str) -> dict:
+    norms = ("own", "survival_norm", "refit", "refit_infold")
+    v = {a: {k: [ps[s]["arms"][a][k] for s in S20_SEEDS] for k in norms} for a in S20_ARMS}
+    rows = []
+    for a in S20_ARMS:
+        for k in norms:
+            _s20_agree(f"{tag} r35 {a} {k}", _s20_ms(v[a][k]), sm["arms"][a][k])
+        rows.append((f"{tag} r35 row {a}", f"| {a} | " + " | ".join(_s20_cell(v[a][k]) for k in norms) + " |"))
+    margins, labels = [], {}
+    for b in ("untrained", "predictor"):
+        ms = {}
+        for k in norms:
+            ref = v["survival"]["own"] if k == "survival_norm" else v["survival"][k]
+            ms[k] = _s20_ms(np.asarray(ref) - np.asarray(v[b][k]))
+            _s20_agree(f"{tag} r35 survival minus {b} {k}", ms[k], sm["margins"][f"survival_minus_{b}"][k])
+        cells = [f"{ms[k][0]:+.3f} {_af_iv(ms[k][1], True)}"
+                 + ("" if k == "own" else f" ({ms[k][0] / ms['own'][0]:.2f})") for k in norms]
+        margins.append((f"{tag} r35 margin {b}", f"| {b} | " + " | ".join(cells) + " |"))
+        # The refit entry is (c) unless (c) and (d) carry different labels, then (d) governs.
+        refit = "refit" if _s20_label(ms["refit"][1]) == _s20_label(ms["refit_infold"][1]) else "refit_infold"
+        pair = ("survival_norm", refit)
+        if all(_s20_label(ms[k][1]) == "ABOVE" and ms[k][0] / ms["own"][0] >= 0.5 for k in pair):
+            lab = "TRUNK"
+        elif all(_s20_label(ms[k][1]) in ("INCLUDES", "BELOW") for k in pair):
+            lab = "NORMALIZER"
+        else:
+            lab = "SPLIT"
+        check_true(f"{tag} r35 {b}: frozen label {lab} derived again", lab == sm["reading"][b])
+        labels[b] = lab
+    return {"rows": rows, "margins": margins, "labels": labels}
+
+
+S20_WALKS = {"survival_own": "survival agent's own", "predictor_own": "predictor's own",
+             "untrained_own": "untrained agent's own", "scripted": "scripted"}
+
+
+def _s20_r206(ps: dict, sm: dict, recorded: list, tag: str) -> dict:
+    w = {k: {m: [ps[s]["walks"][k][m] for s in S20_SEEDS] for m in ("sum_mean", "speed_mean", "acc_mean", "n_eps")}
+         for k in S20_WALKS}
+    check_true(f"{tag} r206: every walk kept 110 of 110 episodes in every seed",
+               all(x == 110 for k in S20_WALKS for x in w[k]["n_eps"]))
+    check_true(f"{tag} r206: the scripted walk's summed deviation is the same in every seed",
+               float(np.std(w["scripted"]["sum_mean"])) < 1e-12)
+    rows, above = [], []
+    for k, name in S20_WALKS.items():
+        _s20_agree(f"{tag} r206 {k}", _s20_ms(w[k]["sum_mean"]), sm["walks"][k]["sum_mean"])
+        if k == "survival_own":
+            minus = ""
+        else:
+            m, t = _s20_ms(np.asarray(w["survival_own"]["sum_mean"]) - np.asarray(w[k]["sum_mean"]))
+            _s20_agree(f"{tag} r206 survival minus {k}", (m, t), sm["survival_minus"][k])
+            above.append(t[0] > 0)
+            minus = f"{m:+.3f} {_af_iv(t, True)}"
+        dev = (f"{np.mean(w[k]['sum_mean']):.3f} (the same in every seed)" if k == "scripted"
+               else _s20_cell(w[k]["sum_mean"]))
+        rows.append((f"{tag} r206 row {k}", f"| {name} | {dev} | {np.mean(w[k]['speed_mean']):.3f} | "
+                     f"{np.mean(w[k]['acc_mean']):.3f} | {minus} |"))
+    lab = "HIGHER" if all(above) else "NOT HIGHER" if not any(above) else "MIXED"
+    check_true(f"{tag} r206: frozen label {lab} derived again", sm["reading"] == lab)
+    r = float(np.corrcoef(w["survival_own"]["sum_mean"], recorded)[0, 1])
+    check(f"{tag} r206: correlation with the recorded survival target", r,
+          sm["corr_with_recorded_target"]["pearson_r"], 1e-9)
+    return {"rows": rows, "r": r, "label": lab}
+
+
+def _s20_r33(ps: dict, sm: dict, tag: str) -> dict:
+    rows = []
+    for ad, adlab in ((0.45, "drift 0.45 (forward)"), (0.0, "drift 0 (reverse)")):
+        key = f"d{ad:.2f}"
+        for base, blab in (("registered", "registered, 800000"), ("fresh", "fresh, 2200000")):
+            v = {a: [next(c["target"] for c in ps[s]["cells"] if c["agent_drift"] == ad and c["arm"] == a
+                          and c["base"] == base) for s in S20_SEEDS] for a in S20_ARMS}
+            for a in S20_ARMS:
+                _s20_agree(f"{tag} r33 {key} {base} {a}", _s20_ms(v[a]), sm[f"{key}/{base}"]["arms"][a])
+            sp = np.asarray(v["survival"]) - np.asarray(v["predictor"])
+            su = np.asarray(v["survival"]) - np.asarray(v["untrained"])
+            _s20_agree(f"{tag} r33 {key} {base} survival minus predictor", _s20_ms(sp),
+                       sm[f"{key}/{base}"]["survival_minus_predictor"])
+            _s20_agree(f"{tag} r33 {key} {base} survival minus untrained", _s20_ms(su),
+                       sm[f"{key}/{base}"]["survival_minus_untrained"])
+            rows.append((f"{tag} r33 row {key} {base}",
+                         f"| {adlab} | {blab} | " + " | ".join(_s20_cell(v[a]) for a in S20_ARMS)
+                         + f" | {_s20_cell(sp, True)} | {_s20_cell(su, True)} |"))
+    check_int(f"{tag} r33: pairs dropped over all 120 balanced readouts",
+              sum(c["dropped_pairs"] for s in S20_SEEDS for c in ps[s]["cells"]), 0)
+    return {"rows": rows}
+
+
+S20_STREAMS = {"survival_own": "survival agent's own walk", "scripted": "scripted walk"}
+
+
+def _s20_r31(ps: dict, sm: dict, tag: str) -> dict:
+    widths = ("1x", "2x", "4x", "8x")
+    rows, contrasts, losses = [], [], []
+    for st, name in S20_STREAMS.items():
+        state = [ps[s][st]["state"] for s in S20_SEEDS]
+        dec = {k: [ps[s][st]["decoders"]["gru"][k]["auroc"] for s in S20_SEEDS] for k in widths}
+        dec["conv"] = [ps[s][st]["decoders"]["conv"]["auroc"] for s in S20_SEEDS]
+        losses += [x for s in S20_SEEDS for k in widths for x in ps[s][st]["decoders"]["gru"][k]["final_train_loss"]]
+        losses += [x for s in S20_SEEDS for x in ps[s][st]["decoders"]["conv"]["final_train_loss"]]
+        _s20_agree(f"{tag} r31 {st} state", _s20_ms(state), sm[st]["state"])
+        for k in dec:
+            _s20_agree(f"{tag} r31 {st} {k}", _s20_ms(dec[k]), sm[st]["decoders"][k])
+        rows.append((f"{tag} r31 row {st}", f"| {name} | {_s20_cell(state)} | "
+                     + " | ".join(_s20_cell(dec[k]) for k in (*widths, "conv")) + " |"))
+        cap, cells = False, []
+        for k in ("2x", "4x", "8x"):
+            m, t = _s20_ms(np.asarray(dec[k]) - np.asarray(dec["1x"]))
+            cap = cap or (t[0] > 0 and m >= 0.05)
+            cells.append(f"{m:+.3f} {_af_iv(t, True)}")
+        best = max(dec, key=lambda k: float(np.mean(dec[k])))
+        m, t = _s20_ms(np.asarray(state) - np.asarray(dec[best]))
+        _s20_agree(f"{tag} r31 {st} state minus best", (m, t), sm[st]["state_minus_best"])
+        slab = ("EQUIVALENT" if t[0] > -0.05 and t[1] < 0.05 else "DECODER ABOVE" if t[1] < 0
+                else "STATE ABOVE" if t[0] > 0 else "UNRESOLVED")
+        clab = "CAPACITY-LIMITED" if cap else "NOT CAPACITY-LIMITED"
+        check_true(f"{tag} r31 {st}: labels {clab} and {slab} derived again, best decoder {best}",
+                   clab == sm[st]["capacity_reading"] and slab == sm[st]["state_reading"]
+                   and best == sm[st]["best_decoder"])
+        contrasts.append((f"{tag} r31 contrast row {st}", f"| {name} | " + " | ".join(cells)
+                          + f" | {m:+.3f} {_af_iv(t, True)} ({best}) | {clab}; {slab} |"))
+    check_true(f"{tag} r31: every decoder's final training loss is below 0.001 in every fold", max(losses) < 0.001)
+    return {"rows": rows, "contrasts": contrasts}
+
+
+def s20_readout(fname: str, tag: str) -> dict:
+    """One post-review readout output, recomputed from its per_seed blocks: integrity, then the
+    rows of R210, R35, R206, R33 and R31 in the table formats of 20.4 to 20.8."""
+    doc = _af_load("post_review", fname)
+    ps, sm = doc["per_seed"], doc["summary"]
+    check_true(f"{tag} readout complete: five readouts on ten seeds, no errors, the C1 stack, explicit-v1",
+               doc["complete"] and doc["complete_all_readouts"] and not doc["errors"]
+               and all(sorted(ps[r], key=int) == S20_SEEDS for r in ("r210", "r35", "r206", "r33", "r31"))
+               and doc["stack"]["torch"] == "2.14.1+cpu" and doc["stack"]["numpy"] == "2.4.6"
+               and doc["stack"]["sklearn"] == "1.9.1" and doc["fold_version"] == "explicit-v1"
+               and not any(doc["integrity"]["unreproduced"].values()))
+    n = {"cells": 0, "rep": 0, "shuf": 0, "perm": 0, "hit": 0}
+    for s in S20_SEEDS:
+        for arms in ps["r210"][s]["cells"].values():
+            for c in arms.values():
+                n["cells"] += 1
+                n["rep"] += bool(c["reproduced"] and c["target"] == c["recorded_target"])
+                n["shuf"] += bool(c["shuffled_reproduced"] and c["shuffled"] == c["recorded_shuffled"])
+                n["perm"] += bool(c["perm_check"])
+                n["hit"] += c["classes"]["mlp"]["hit_max_iter"]
+    check_true(f"{tag} r210: all 60 cells reproduce the recorded target and shuffled control as floats "
+               "and pass the permutation check", n["cells"] == 60 and n["rep"] == n["shuf"] == n["perm"] == 60)
+    check_int(f"{tag} r210: MLP folds that stopped at the iteration cap", n["hit"], 0)
+    br = doc.get("balanced_reference_check")
+    if br is not None:
+        check_true(f"{tag} r33 continuity entry: 30 of 30 cells bit-equal to the l0 audit",
+                   br["n_checked"] == 30 and br["n_bit_equal"] == 30 and br["max_abs_dev"] == 0.0
+                   and br["reference"] == "artifacts/l0_audit/corrected_l3_h8_wm.json")
+    recorded = [ps["r210"][s]["cells"]["0.45"]["survival"]["recorded_target"] for s in S20_SEEDS]
+    return {"doc": doc, "n210": n, "recorded": recorded,
+            "r210": _s20_r210(ps["r210"], sm["r210"], tag), "r35": _s20_r35(ps["r35"], sm["r35"], tag),
+            "r206": _s20_r206(ps["r206"], sm["r206"], recorded, tag), "r33": _s20_r33(ps["r33"], sm["r33"], tag),
+            "r31": _s20_r31(ps["r31"], sm["r31"], tag),
+            "own_state": _s20_ms([ps["r31"][s]["survival_own"]["state"] for s in S20_SEEDS])}
+
+
+def s20_contrast() -> dict:
+    """20.12: the seed-paired C1 minus C2 contrast of the balanced survival target, recomputed from
+    the r33 per-seed blocks of the two readouts and compared with the committed contrast output."""
+    A, B = _af_load("post_review", "C1-rerun.json"), _af_load("post_review", "C2-rerun.json")
+    doc = _af_load("post_review", "c1_minus_c2_balanced.json")
+    check_true("20.12 contrast: the two readouts share seed bases and settings, and the output names them",
+               A["seed_bases"] == B["seed_bases"] and A["settings"] == B["settings"]
+               and doc["a_path"] == "artifacts/post_review/C1-rerun.json"
+               and doc["b_path"] == "artifacts/post_review/C2-rerun.json" and doc["primary"] == "d0.45/fresh")
+
+    def vals(D, ad, base):
+        return [next(c["target"] for c in D["per_seed"]["r33"][s]["cells"] if c["agent_drift"] == ad
+                     and c["arm"] == "survival" and c["base"] == base) for s in S20_SEEDS]
+
+    rows, out = [], {}
+    for ad, adlab in ((0.45, "drift 0.45 (forward)"), (0.0, "drift 0 (reverse)")):
+        for base, blab in (("registered", "registered, 800000"), ("fresh", "fresh, 2200000")):
+            a, b = vals(A, ad, base), vals(B, ad, base)
+            m, t = _s20_ms(np.asarray(a) - np.asarray(b))
+            lab = ("HOLDS" if t[0] > 0.05 else "DIRECTION ONLY" if t[0] > 0 else "REVERSED" if t[1] < 0
+                   else "NOT RESOLVED")
+            key = f"d{ad:.2f}/{base}"
+            c = doc["contrasts"][key]
+            check_true(f"20.12 contrast {key}: mean, interval and label recompute ({lab})",
+                       abs(c["mean"] - m) < 1e-12 and np.allclose(c["t90"], t, rtol=0, atol=1e-12)
+                       and c["reading"] == lab)
+            out[key] = (m, t, lab)
+            rows.append((f"20.12 contrast row {key}",
+                         f"| {adlab} | {blab} | {np.mean(a):.3f} | {np.mean(b):.3f} | "
+                         f"{m:+.3f} {_af_iv(t, True)} | {lab} |"))
+    return {"rows": rows, "c": out}
+
+
+def s20_l1() -> dict:
+    """20.9, recomputed from the 150 cells of the L1 capacity curve."""
+    doc = _af_load("post_review", "l1_capacity_curve.json")
+    ig, rc = doc["integrity"], doc["record_check"]
+    check_true("20.9 L1 curve complete and not void; integrity gate passed on 30 cells within 0.01",
+               doc["complete"] and not doc["void"] and not doc["errors"] and ig["pass"] is True
+               and ig["n_checked"] == 30 and ig["worst_abs_dev"] <= 0.01 and len(doc["cells"]) == 150)
+    check_int("20.9 L1 integrity: state targets bit-equal to the record", ig["n_bit_equal"], 15)
+    check_true("20.9 L1 record check: the survival 1x mean reproduces the recorded 0.590 within 0.01",
+               rc["survival_1x_mean_reproduced"] is True
+               and abs(rc["arms"]["survival"]["recorded_mean"] - 0.590) < 5e-4
+               and abs(rc["arms"]["survival"]["rescored_mean"] - rc["arms"]["survival"]["recorded_mean"]) < 0.01)
+    ks = ("1x", "2x", "4x", "8x", "conv")
+    rows, contrasts, labels, conv = [], [], {}, {}
+    for a in S20_ARMS:
+        cell = {(c["seed"], c["width"]): c for c in doc["cells"] if c["arm"] == a}
+        dec = {k: [cell[(s, k)]["decoder"]["auroc"] for s in S20_SEEDS] for k in ks}
+        state = [cell[(s, "1x")]["target"] for s in S20_SEEDS]
+        check_true(f"20.9 L1 {a}: every task of a cell regenerated the same state target",
+                   all(cell[(s, k)]["target"] == state[i] for i, s in enumerate(S20_SEEDS) for k in ks))
+        blk = doc["summary"][a]
+        _s20_agree(f"20.9 L1 {a} state", _s20_ms(state), blk["state"])
+        for k in ks:
+            _s20_agree(f"20.9 L1 {a} {k}", _s20_ms(dec[k]), blk["decoders"][k])
+        cells, avail = [], False
+        for k in ("2x", "4x", "8x", "conv"):
+            m, t = _s20_ms(np.asarray(dec[k]) - np.asarray(dec["1x"]))
+            if k != "conv":
+                avail = avail or (m >= 0.05 and t[0] > 0)
+            cells.append(f"{m:+.3f} {_af_iv(t, True)}")
+        lab = "SEAM AVAILABLE AT WIDTH" if avail else "READER-RELATIVE"
+        check_true(f"20.9 L1 {a}: label {lab} derived again", lab == blk["reading"])
+        labels[a], conv[a] = lab, _s20_cell(dec["conv"])
+        rows.append((f"20.9 L1 row {a}", f"| {a} | {_s20_cell(state)} | "
+                     + " | ".join(_s20_cell(dec[k]) for k in ks) + f" | {lab} |"))
+        contrasts.append((f"20.9 L1 contrast row {a}", f"| {a} | " + " | ".join(cells) + " |"))
+    check_true("20.9 L1: every decoder's final training loss is below 0.001 in every fold",
+               max(max(c["decoder"]["final_train_loss"]) for c in doc["cells"]) < 0.001)
+    return {"rows": rows, "contrasts": contrasts, "labels": labels, "conv": conv}
+
+
+def post_review_checks(findings: str, prereg: str) -> None:
+    print("\n== FINDINGS 20: corrected-trainer reruns and post-review readouts (2026-10-11) ==")
+    s20 = findings[findings.index("## 20. Corrected-trainer reruns"):]
+    heads = [f"### 20.{i} " for i in range(1, 14)]
+    sub = {}
+    for i, h in enumerate(heads):
+        end = s20.index(heads[i + 1]) if i + 1 < len(heads) else len(s20)
+        sub[f"20.{i + 1}"] = s20[s20.index(h):end]
+    flat = {k: " ".join(v.split()) for k, v in sub.items()}
+    ig = s20_integrity()
+    c2 = ig["c2"]
+    check_true("20.1 quotes the C2-rerun value counts",
+               f"{c2['shared']} values" in flat["20.1"] and f"{c2['only_run']} further leaves" in flat["20.1"])
+    check_true("20.1 quotes the drift-0 value counts",
+               f"share {ig['d0_shared']} values" in flat["20.1"]
+               and f"{ig['d0_shared'] - 10} are bit-equal" in flat["20.1"])
+    for name, (_, fp) in S20_RUNS.items():
+        check_true(f"20.1 names the {name} hash", f"`{fp}`" in flat["20.1"])
+    inst = s20_instances()
+    for label, needle in inst["rows"]:
+        check_true(f"FINDINGS {label} quoted", needle in sub["20.2"])
+    check_true("20.2 quotes the short speed pool", f"{inst['speed_min']:.3f}" in flat["20.2"])
+    n = inst["nums"]
+    for k in ("h7", "h10", "h8s2"):
+        su = n[k]["su"]
+        check_true(f"20.2 {k}: quotes the survival-minus-untrained margin",
+                   f"{su[0]:+.3f} {_af_iv(su[1], True)}" in flat["20.2"])
+    check_true("20.2 quotes the hidden 7 lower bound and floor seeds",
+               f"{n['h7']['s'][1][0]:.4f}" in flat["20.2"]
+               and ", ".join(f"{x:.3f}" for x in inst["h7_floor_seeds"]) in flat["20.2"])
+    ce = inst["corr_h10"]
+    check_true("20.2 quotes the hidden 10 correction effect, paired against the historical CPU run",
+               f"{ce[0]:+.3f} {_af_iv(ce[1], True)}" in flat["20.2"]
+               and f"{inst['h10_speed_min']:.3f}" in flat["20.2"])
+    T = s20_readout("C1-rerun.json", "C1")
+    check_true("20.3 quotes the integrity counts and the fresh-world survival reading",
+               f"all {T['n210']['cells']} (drift, seed, arm) cells" in flat["20.3"] and "30 of 30" in flat["20.3"]
+               and f"{T['own_state'][0]:.3f}" in flat["20.3"])
+    r210 = T["r210"]
+    for k, rows in (("20.4", r210["0.45"]["rows"] + r210["0.45"]["margins"] + r210["0.00"]["rows"]),
+                    ("20.5", T["r35"]["rows"] + T["r35"]["margins"]), ("20.6", T["r206"]["rows"]),
+                    ("20.7", T["r33"]["rows"]), ("20.8", T["r31"]["rows"] + T["r31"]["contrasts"])):
+        for label, needle in rows:
+            check_true(f"FINDINGS {label} quoted", needle in sub[k])
+    lo, hi = r210["0.45"]["sh_range"]
+    check_true("20.4 quotes the range of the drift-0.45 shuffled controls", f"{lo:.3f} to {hi:.3f}" in flat["20.4"])
+    check_true("20.5 quotes the frozen labels",
+               f"untrained arm: **{T['r35']['labels']['untrained']}**" in flat["20.5"]
+               and f"predictor arm: {T['r35']['labels']['predictor']}" in flat["20.5"])
+    check_true("20.6 quotes the label and the correlation",
+               "**HIGHER**" in flat["20.6"] and f"r = {T['r206']['r']:.3f}" in flat["20.6"])
+    L1 = s20_l1()
+    for label, needle in L1["rows"] + L1["contrasts"]:
+        check_true(f"FINDINGS {label} quoted", needle in sub["20.9"])
+    # 20.10 and 20.11: the same readouts on the C2-rerun and H10GS1-corrected agents
+    R = {}
+    for k, fname, tag in (("20.10", "C2-rerun.json", "C2-rerun"), ("20.11", "H10GS1-corrected.json", "H10GS1")):
+        X = s20_readout(fname, tag)
+        R[tag] = X
+        # The hidden 10 drift-0 agents are C1's, so their drift-0 table is 20.4's and is not repeated.
+        d0rows = X["r210"]["0.00"]["rows"] if tag == "C2-rerun" else []
+        rows = (X["r210"]["0.45"]["rows"] + X["r210"]["0.45"]["margins"] + d0rows
+                + X["r35"]["rows"] + X["r35"]["margins"] + X["r206"]["rows"] + X["r33"]["rows"]
+                + X["r31"]["rows"] + X["r31"]["contrasts"])
+        for label, needle in rows:
+            check_true(f"FINDINGS {k} {label} quoted", needle in sub[k])
+        check_true(f"{k} quotes the R35 labels, the R206 label and its correlation",
+                   f"untrained arm: **{X['r35']['labels']['untrained']}**" in flat[k]
+                   and f"predictor arm: {X['r35']['labels']['predictor']}" in flat[k]
+                   and f"**{X['r206']['label']}**" in flat[k] and f"r = {X['r206']['r']:.3f}" in flat[k])
+    check_true("20.11 H10GS1 readout: the drift-0 R210 readings equal C1's value for value",
+               R["H10GS1"]["r210"]["0.00"]["v"] == T["r210"]["0.00"]["v"])
+    c2cells = _s20_cells("corrected_runs/corrected_l3_h8_nowm")
+    check_true("20.10 C2-rerun readout: the recorded drift-0.45 survival targets are C2's committed targets",
+               R["C2-rerun"]["recorded"] == [c2cells[f"cell_d0.45_s{s}.json"]["cell"]["agents"]["survival"]["pool"]["target"]
+                                              for s in S20_SEEDS])
+    CT = s20_contrast()
+    for label, needle in CT["rows"]:
+        check_true(f"FINDINGS {label} quoted", needle in sub["20.12"])
+    check_true("20.13 says the remaining readouts are pending and names their spec",
+               "pending" in flat["20.13"] and "2026-10-11-post-review-readouts-design.md" in flat["20.13"])
+    notes = [" ".join(x.split()) for x in re.findall(r"\*\(Note 2026-10-11.*?\)\*", findings, flags=re.S)]
+
+    def in_note(needle: str) -> bool:
+        return any(needle in x for x in notes)
+
+    for label, needle in [
+        ("TL;DR: the reruns", "rerun with the corrected trainer (section 20)"),
+        ("10.5: H7-corrected gate-0 floor", f"floor {n['h7']['floor']:.3f}"),
+        ("10.9: H10GS1-corrected survival", f"{n['h10']['s'][0]:.3f} {_af_iv(n['h10']['s'][1])}"),
+        ("10.9: H8GS2-corrected lead", f"{n['h8s2']['sp'][0]:+.3f} over the predictor"),
+        ("methods note 4", "(section 20)"),
+        ("10.3: corrected forest on the untrained arm", _s20_cell(r210["0.45"]["v"]["untrained"]["rf"])),
+        ("14.7.1: READER-RELATIVE", "READER-RELATIVE"),
+        ("14.7.1: the conv reader on the survival streams", L1["conv"]["survival"]),
+        ("17.5: C2 agents kept", "`C2-rerun`"),
+        ("17.4 and 17.5: the draw-free contrast, fresh base",
+         f"{CT['c']['d0.45/fresh'][0]:+.3f} {_af_iv(CT['c']['d0.45/fresh'][1], True)}"),
+        ("17.4: the draw-free contrast, registered base",
+         f"{CT['c']['d0.45/registered'][0]:+.3f} {_af_iv(CT['c']['d0.45/registered'][1], True)}"),
+        ("17.6: R35", f"**{T['r35']['labels']['untrained']}**"),
+        ("17.6: R206", "**HIGHER**"),
+        ("17.8: R31", "NOT CAPACITY-LIMITED"),
+    ]:
+        check_true(f"FINDINGS dated note (2026-10-11) quotes {label}: {needle}", in_note(needle))
+    head_a = "CORRECTED-TRAINER RERUNS OF THE GENERALITY RUNS ANNOUNCED"
+    head_r = "CORRECTED-TRAINER RERUNS OF THE GENERALITY RUNS: RESULTS"
+    check_true("PREREGISTRATION_L3 carries the results entry after the announcement",
+               head_r in prereg and prereg.index(head_a) < prereg.index(head_r) < prereg.index("## 13. How to run"))
+    entry = " ".join(prereg[prereg.index(head_r):prereg.index("## 13. How to run")].split())
+    for needle in (f"{n['h7']['floor']:.3f}", f"{n['h10']['s'][0]:.3f} {_af_iv(n['h10']['s'][1])}",
+                   f"{n['h8s2']['s'][0]:.3f} {_af_iv(n['h8s2']['s'][1])}", f"{inst['speed_min']:.3f}",
+                   "off-design", "uninformative", f"{c2['shared']} values"):
+        check_true(f"PREREGISTRATION_L3 results entry quotes {needle}", needle in entry)
 
 
 def _find_all(haystack: str, needle: str) -> list[int]:

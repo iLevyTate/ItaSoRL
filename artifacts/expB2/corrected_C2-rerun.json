@@ -1,0 +1,330 @@
+{
+ "source_run": "artifacts/corrected_runs/c2-rerun",
+ "label": "C2 rerun with saved agents, corrected trainer (integrity only; read under no rule)",
+ "spec": "docs/specs/2026-10-11-corrected-generality-reruns-design.md",
+ "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
+ "execution": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, ITASORL_FOLDS=explicit (scripts/cloud_run_step.sh)",
+ "git_commit_at_promotion": "d20de7bc52d3c9393cd858183cd54151466830de",
+ "generated_by": "scripts/promote_reviewer_gaps_runs.py",
+ "bars": {
+  "auroc_floor": 0.65,
+  "margin": 0.05
+ },
+ "drifts": [
+  "0.0",
+  "0.45"
+ ],
+ "dmax": "0.45",
+ "arms": {
+  "0.0": {
+   "untrained": {
+    "pool_target": {
+     "per_seed": [
+      0.424793388429752,
+      0.4768595041322314,
+      0.48925619834710743,
+      0.524793388429752,
+      0.47809917355371895,
+      0.5318181818181819,
+      0.4615702479338843,
+      0.45495867768595044,
+      0.5095041322314049,
+      0.5289256198347108
+     ],
+     "mean": 0.4880578512396694,
+     "boot90": [
+      0.47024586776859495,
+      0.5051239669421488
+     ],
+     "t90": [
+      0.46740863106490343,
+      0.5087070714144354
+     ],
+     "t95": [
+      0.46257563435405846,
+      0.5135400681252803
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.8348087690234614,
+    "pool_reward_leak_mean": 0.5290082644628099,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.5,
+    "pool_shuffled_mean": 0.5106487480660243,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   },
+   "predictor": {
+    "pool_target": {
+     "per_seed": [
+      0.4314049586776859,
+      0.5537190082644629,
+      0.6074380165289256,
+      0.4830578512396694,
+      0.5351239669421488,
+      0.48636363636363633,
+      0.4826446280991735,
+      0.4231404958677686,
+      0.5487603305785125,
+      0.5268595041322314
+     ],
+     "mean": 0.5078512396694215,
+     "boot90": [
+      0.4797107438016529,
+      0.5359938016528926
+     ],
+     "t90": [
+      0.47464552101754526,
+      0.5410569583212976
+     ],
+     "t95": [
+      0.46687364742292514,
+      0.5488288319159178
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.9158997792525175,
+    "pool_reward_leak_mean": 0.5180165289256198,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.5,
+    "pool_shuffled_mean": 0.49179948783187044,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   },
+   "survival": {
+    "pool_target": {
+     "per_seed": [
+      0.4785123966942149,
+      0.5119834710743802,
+      0.5037190082644628,
+      0.5012396694214877,
+      0.4991735537190083,
+      0.5574380165289256,
+      0.48719008264462804,
+      0.5371900826446281,
+      0.5421487603305785,
+      0.5322314049586777
+     ],
+     "mean": 0.5150826446280992,
+     "boot90": [
+      0.5023553719008265,
+      0.527892561983471
+     ],
+     "t90": [
+      0.500105099543826,
+      0.5300601897123723
+     ],
+     "t95": [
+      0.4965995712228444,
+      0.5335657180333538
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.90317194896383,
+    "pool_reward_leak_mean": 0.5123140495867768,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.5,
+    "pool_shuffled_mean": 0.503537514731362,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   }
+  },
+  "0.45": {
+   "untrained": {
+    "pool_target": {
+     "per_seed": [
+      0.49958677685950414,
+      0.5103305785123966,
+      0.5446280991735537,
+      0.5938016528925619,
+      0.5198347107438017,
+      0.5181818181818182,
+      0.5301652892561983,
+      0.509504132231405,
+      0.49214876033057847,
+      0.5760330578512396
+     ],
+     "mean": 0.5294214876033058,
+     "boot90": [
+      0.513801652892562,
+      0.5462809917355372
+     ],
+     "t90": [
+      0.5102851729160155,
+      0.548557802290596
+     ],
+     "t95": [
+      0.5058062751582014,
+      0.5530367000484101
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.849448410560731,
+    "pool_reward_leak_mean": 0.5163223140495868,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.6123611111111111,
+    "pool_shuffled_mean": 0.5082059482453223,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   },
+   "predictor": {
+    "pool_target": {
+     "per_seed": [
+      0.5318181818181819,
+      0.6144628099173554,
+      0.6371900826446282,
+      0.587603305785124,
+      0.6165289256198347,
+      0.6041322314049588,
+      0.5595041322314049,
+      0.5351239669421487,
+      0.5743801652892561,
+      0.6252066115702479
+     ],
+     "mean": 0.588595041322314,
+     "boot90": [
+      0.5697913223140496,
+      0.6064070247933884
+     ],
+     "t90": [
+      0.5669701544624953,
+      0.6102199281821327
+     ],
+     "t95": [
+      0.5619088007560915,
+      0.6152812818885365
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.907435890339247,
+    "pool_reward_leak_mean": 0.5458677685950414,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.7134722222222223,
+    "pool_shuffled_mean": 0.49977201384648273,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   },
+   "survival": {
+    "pool_target": {
+     "per_seed": [
+      0.6793388429752067,
+      0.5731404958677686,
+      0.593801652892562,
+      0.5276859504132233,
+      0.5636363636363637,
+      0.4859504132231405,
+      0.8483471074380166,
+      0.6632231404958677,
+      0.6772727272727272,
+      0.5223140495867769
+     ],
+     "mean": 0.6134710743801653,
+     "boot90": [
+      0.5638429752066116,
+      0.6696280991735537
+     ],
+     "t90": [
+      0.5516147516985422,
+      0.6753273970617885
+     ],
+     "t95": [
+      0.5371371393947818,
+      0.6898050093655489
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 4
+    },
+    "pool_speed_mean": 0.8830389989835303,
+    "pool_reward_leak_mean": 0.556404958677686,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.7581944444444445,
+    "pool_shuffled_mean": 0.5059833683156619,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   }
+  }
+ },
+ "gates": {
+  "engagement": {
+   "0.00": {
+    "pass": 10,
+    "n": 10
+   },
+   "0.45": {
+    "pass": 10,
+    "n": 10
+   }
+  },
+  "l0_survival_mean": 0.5150826446280992,
+  "l0_tost": {
+   "mean": 0.5150826446280992,
+   "margin": 0.05,
+   "lower": 0.45,
+   "upper": 0.55,
+   "p_lower": 1.1455880417020566e-05,
+   "p_upper": 0.0010347236528882226,
+   "p_value": 0.0010347236528882226,
+   "equivalent": true,
+   "n": 10
+  },
+  "l0_rope": {
+   "mean": 0.5150826446280992,
+   "rope": [
+    0.45,
+    0.55
+   ],
+   "hdi": [
+    0.5002479338842976,
+    0.5305371900826445
+   ],
+   "p_in_rope": 1.0,
+   "accept": true,
+   "n": 10
+  },
+  "speed_min": 0.7871708233000803,
+  "speed_min_at": {
+   "drift": "0.0",
+   "arm": "untrained",
+   "seed_index": 0
+  },
+  "speed_n_pools": 60,
+  "speed_n_below": 0,
+  "speed_n_nonfinite": 0,
+  "speed_min_of_arm_means": 0.8348087690234614,
+  "pool_leak_clean_all": true,
+  "untrained_floor_at_dmax": 0.5294214876033058,
+  "untrained_floor_ok": true,
+  "deaths_total": 0
+ },
+ "decision": {
+  "survival": 0.6134710743801653,
+  "predictor": 0.588595041322314,
+  "untrained": 0.5294214876033058,
+  "survival_t90": [
+   0.5516147516985422,
+   0.6753273970617885
+  ],
+  "pass_bar": false,
+  "t90_excludes_bar": false,
+  "lead_over_predictor": 0.024876033057851354,
+  "lead_over_untrained": 0.08404958677685959,
+  "pass_margin_predictor": false,
+  "pass_margin_untrained": true,
+  "zone": "INTERMEDIATE (above chance, rule not met)",
+  "registered_rule_met": false,
+  "gates_open": []
+ },
+ "behavior_audit": null,
+ "gate0_calibration": null
+}
