@@ -445,3 +445,88 @@ Each readout's reading is entered in FINDINGS 17 beside the section it bears on 
 beside 17.8, r35 and r206 beside 17.6, r33 beside 17.4 and 17.5) with its numbers and the label
 fixed above, dated, and marked as a post-review diagnostic. No verdict line, abstract claim or
 registered number changes on the strength of any of them.
+
+## Amendment 2026-10-11, before any L1 readout ran
+
+Added on 2026-10-11 after the five readouts above were frozen (commit `28ec282`) and handed to
+the C1-rerun cloud session, which was set before this amendment was written to start from that
+commit at 16:12 UTC the same day. Nothing above changes: no
+procedure, base, statistic or reading of r210, r35, r206, r33 or r31 is altered, and the
+sentence of R31 that leaves L1 out stays as frozen. This section adds the L1 part of R31 as a
+separate runner, `scripts/run_l1_capacity_curve.py`, before any L1 number from it exists. It
+changes no registered verdict; the L1 run's own adjudication (registered encoding criterion not
+met) stands as recorded.
+
+**Finding.** FINDINGS 14.7.1 scored the L1 stream on the thirty drift-0.023 cells of the
+historical L1 held-out run. The supervised GRU at the trunk's capacity read the survival
+agents' own streams at 0.590 [0.547, 0.633] against a state of 0.552 [0.530, 0.574], while the
+summary-feature reader read 0.795. 14.7.1 concludes that the trunk holds about what a reader of
+its capacity extracts, and leaves open whether a recurrent reader with more capacity extracts
+more. This readout measures that.
+
+**Inputs.** The sixty saved agents of the historical L1 held-out run (pre-correction trainer;
+`drift_mode = l1`, grid spacing 0.023, sensor noise 0.01, ten seeds, three arms), copied with
+their cells to a run directory with `agents/` and `cells/` (`states/` optional). Only the
+thirty agents at the run's strongest drift, 0.023, are read, the slice 14.7.1 scored. Results
+are labelled historical wherever they are reported.
+
+**Procedure.**
+
+1. Regenerate each (arm, seed) pool exactly as `scripts/run_control_diagnostics.py` did for
+   14.7.1: one torch thread, its `setup_rung` at the L1 rung, its `collect_pool` call, the
+   registered seed bases 800000 (authentic, drift 0) and 850000 (surrogate, drift 0.023), 110
+   episodes of 24 steps, early deaths dropped. The sequence is the arm's normalized observation
+   (its own normalizer) and the previous env action, zeros at t = 0, 151 channels. Every arm is
+   read on its own streams.
+2. Decoders, the same as R31's L3 part and trained the same way (explicit-v1 folds, one group
+   per episode, training-fold standardization, Adam at 1e-3, batch 32, 60 epochs, torch seed
+   agent seed x 100 + fold): the GRU at 1x, 2x, 4x and 8x the trunk's recurrent width (hidden 96,
+   192, 384, 768, the per-step encoder at 64; 1x is 14.7.1's decoder exactly) and the 1D-conv
+   reader.
+3. One task is one (arm, seed, width), appended to a partial file when it finishes, so a session
+   that is cut off resumes. Each task regenerates its pools, so every task also reports the state
+   target of its cell; tasks of one cell that disagree are reported.
+
+**Seed bases.** The registered pair 800000 / 850000, by design: the integrity gate and the record
+check below need the recorded pools. No fresh worlds.
+
+**Integrity gate, checked before the curve is read.** The frozen L1 spec's gate
+(`docs/specs/2026-10-09-l1-stream-readout-design.md`): every regenerated state target must
+reproduce the recorded explicit-partition value (`artifacts/fold_rescore/l1_heldout.json`, the
+values 14.7.1 reproduced exactly) within 0.01, on every cell read. Where the run directory carries
+the run's `states/`, the regenerated pools must also bit-match the saved dumps; without them the
+output says the dump half was not checked. A failed gate voids the readout and no number from it
+is reported.
+
+**Record check.** The 1x decoder is 14.7.1's decoder, so it is compared with the recorded
+per-cell values (`artifacts/control_diagnostics/l1_stream_readout.json`), and the output states
+whether the survival arm's 1x mean reproduces the recorded 0.590 within 0.01. The record was made
+on the owner's laptop CPU (results manifest, `L1-STREAM-READOUT`), and the artifact records no
+package versions. A miss on another stack is reported as a stack difference and does not void the
+curve, which is read as differences from its own 1x decoder on its own stack. A miss on the
+record's stack is a reproduction failure and voids the curve.
+
+**Statistics.** Per arm and width, the decoder's AUROC across the ten seeds with the t-based 90%
+interval; seed-paired, each width minus 1x, and the state minus each width.
+
+**Reading, pre-stated, for the survival arm.** The predictor and untrained arms carry the same
+labels, descriptively.
+
+- SEAM AVAILABLE AT WIDTH: some wider GRU (2x, 4x or 8x) reads the survival agents' own stream at
+  a mean at least 0.05 above the 1x decoder, with the seed-paired interval above zero. The seam is
+  available in the stream to a recurrent reader with more capacity than the trunk, and a trunk of
+  the agents' capacity does not keep it. 14.7.1 says so beside the 0.590 row.
+- READER-RELATIVE: every wider GRU has been scored and none does. A recurrent reader with up to
+  eight times the trunk's width extracts no more than one of the trunk's width, so the distance
+  between the state (0.552) and the summary-feature reader (0.795) belongs to the reader's shape.
+  14.7.1's statement that the trunk holds about what a reader of its capacity extracts is then
+  stated as relative to the reader.
+- The conv reader is reported beside the GRU widths and does not enter the label. Whether any
+  reader reaches 0.65, the L1 spec's bar, is reported descriptively.
+
+**Expected compute.** On a 4-vCPU container with four workers, from the same costs as R31's L3
+part: per cell about 6 CPU minutes for 8x, 2 for 4x, 0.8 for 2x, 0.4 for 1x, 0.2 for the conv
+reader, and about 10 s of regeneration per task; about 300 CPU minutes for the thirty cells, so
+about 75 to 80 minutes of wall clock. The 8x tasks are about 60 percent of it and run first. If
+the 8x decoder runs at half the assumed speed, `--widths 8x` and `--widths 4x,2x,1x,conv` can run
+as two sessions into the same output.
