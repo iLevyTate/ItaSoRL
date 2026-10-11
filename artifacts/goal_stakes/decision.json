@@ -1,0 +1,115 @@
+{
+ "T-touch": {
+  "intervention": {
+   "pass": false,
+   "wording": "the decoded direction did not move behavior under the tested nudge",
+   "contrast": {
+    "n": 10,
+    "mean": -0.001291788381702106,
+    "ci90": [
+     -0.01372970292167425,
+     0.011146126158270039
+    ]
+   },
+   "n_informative": 10,
+   "floor_met": false,
+   "floor": {
+    "n": 10,
+    "mean": 0.2508806421829479,
+    "ci90": [
+     -0.02688121583486225,
+     0.5286425002007581
+    ]
+   },
+   "predictor": {
+    "n": 10,
+    "mean": -0.0007798948979467874,
+    "ci90": [
+     -0.005539855392820123,
+     0.003980065596926548
+    ]
+   }
+  },
+  "surprise": {
+   "auroc_met": true,
+   "corr_met": false,
+   "wording": "the surrogate is surprising to the agent, but the decoded direction is not explained by that surprise"
+  },
+  "adaptation": {
+   "informative": true,
+   "pass": true,
+   "wording": "foraging in the fake world recovers within a lifetime"
+  },
+  "primary": {
+   "met": true,
+   "gates_pass": true,
+   "gates": {
+    "per_gate": {
+     "engagement": true,
+     "l0_equivalence": true,
+     "speed": true,
+     "reward_leak": true,
+     "untrained_floor": true,
+     "deaths": true
+    },
+    "all": true,
+    "failed": [],
+    "not_shown": []
+   },
+   "zone": "ENCODING INDUCED (all clauses)",
+   "wording": "a pellet-directed goal without survival stakes produces walks from which the condition is decodable; survival is not required"
+  }
+ },
+ "S-immortal": {
+  "intervention": {
+   "pass": false,
+   "wording": "the decoded direction did not move behavior under the tested nudge",
+   "contrast": {
+    "n": 10,
+    "mean": -0.02939621810044026,
+    "ci90": [
+     -0.05694000876014827,
+     -0.001852427440732246
+    ]
+   },
+   "n_informative": 10,
+   "floor_met": false,
+   "floor": {
+    "n": 10,
+    "mean": 0.2508806421829479,
+    "ci90": [
+     -0.02688121583486225,
+     0.5286425002007581
+    ]
+   },
+   "predictor": {
+    "n": 10,
+    "mean": -0.0007798948979467874,
+    "ci90": [
+     -0.005539855392820123,
+     0.003980065596926548
+    ]
+   }
+  },
+  "surprise": {
+   "auroc_met": true,
+   "corr_met": true,
+   "wording": "the decoded direction tracks the agent's own prediction error"
+  },
+  "adaptation": {
+   "informative": true,
+   "pass": false,
+   "wording": "no within-lifetime recovery was detected"
+  }
+ },
+ "S-scarce": "not run",
+ "stakes": {
+  "pass": false,
+  "testable": false,
+  "descriptive_means": {
+   "S-immortal": 0.7444214876033058,
+   "C1": 0.7330165289256197
+  },
+  "wording": "not testable: the frozen calibration chose the registered density, so no scarcer rung exists"
+ }
+}

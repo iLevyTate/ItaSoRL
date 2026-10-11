@@ -1277,6 +1277,46 @@ Rigor carried from the B-v3 audit (2026-07-10):
   equivalence (p = 0.147). The reading is "below the bar", not "no encoding"; FINDINGS 14.7
   and section 6 carry the same wording, and `docs/CORRECTIONS.md` both corrections.
 
+- **2026-10-11 - GOAL AND STAKES: RESULTS (spec `docs/specs/2026-10-07-goal-and-stakes-design.md`;
+  FINDINGS 18; decision output `artifacts/goal_stakes/decision.json`).** Both runs executed in the
+  Claude Code cloud container pinned to the `C1` stack, on the predictor-mortal fix recorded above.
+  Integrity: every cell records the successor bootstrap and its run's objective and mortality, and
+  the predictor and untrained pooled targets equal `C1`'s to the bit in 20 of 20 cells of each run.
+  `T-touch` meets the primary rule with every gate passing: survival 0.796 [0.762, 0.830], ahead
+  of the predictor by +0.207 and of the untrained arm by +0.273, ten of ten seeds at or above
+  0.65, touch engagement 1.30 pellets against the better baseline's 0.52 (the 1.5x ratio passes),
+  and the L0 TOST at drift zero accepts equivalence (0.522). The frozen wording applies: "a
+  pellet-directed goal without survival stakes produces walks from which the condition is
+  decodable; survival is not required." `S-immortal` meets the decodability clauses (survival
+  0.744 [0.696, 0.793], +0.156 and +0.222 over the two control arms) with the L0 gate open (0.537,
+  not equivalent), as in `C1`. The stakes rule is not testable, as the 2026-10-10 calibration entry
+  records; the descriptive survival means are `S-immortal` 0.744 and `C1` 0.733 on the same seeds.
+  Mechanism readouts, frozen wording: intervention, in both runs "the decoded direction did not
+  move behavior under the tested nudge" (real minus sham, `T-touch` -0.001 [-0.014, +0.011],
+  `S-immortal` -0.029 [-0.057, -0.002], ten informative seeds each); surprise, `T-touch` "the
+  surrogate is surprising to the agent, but the decoded direction is not explained by that
+  surprise" (AUROC 0.912, correlation -0.146) and `S-immortal` "the decoded direction tracks the
+  agent's own prediction error" (AUROC 0.848, correlation -0.240); adaptation, `T-touch` "foraging
+  in the fake world recovers within a lifetime" and `S-immortal` "no within-lifetime recovery was
+  detected". No survival-specific wording is earned: it needs `T-touch` to fail and the stakes rule
+  to be met, and neither holds. The predictor and untrained floors of the intervention readout are
+  recorded beside it. Two earlier attempts of each run (an unpinned torch; the predictor inheriting
+  `--mortal off`) are quarantined on the run branches and enter no result. `C1` reran on the same
+  stack with its agents saved: pool targets equal `C1`'s to the bit in 60 of 60 arm-cells.
+
+- **2026-10-11 - WHITE-JITTER COMPARATOR-TRAINED RUN AT THE REGISTERED TRUNK: RESULT (spec
+  `docs/specs/2026-10-10-gn-comparator-trained-h96-design.md`; FINDINGS 18.6).** Integrity passes:
+  20 cells, successor bootstrap, survival objective, death on, and a 96-unit trunk in all 60 saved
+  agents. Under the registered matrix the run is **uninformative**: the L0 gate fails (the drift-0
+  survival target reads 0.559, TOST p = 0.94, not equivalent to chance), and the matrix requires
+  every gate for either verdict. The pre-written text for a gate failure applies: the run is
+  reported as uninformative, it is not promoted, it neither strengthens nor weakens the sufficiency
+  claim, and the limitation that no comparator-trained run supports that claim stays. Recorded
+  descriptively and not as a verdict: the survival arm reads 0.541 [0.523, 0.559] at drift 0.45,
+  zero of ten seeds at the bar, +0.040 over the predictor and +0.044 over the untrained arm.
+  Engagement passes in 20 of 20 cells and the speed positive control in 60 of 60 pools (minimum
+  0.772).
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
