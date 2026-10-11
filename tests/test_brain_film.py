@@ -227,5 +227,5 @@ def test_labeled_builds_ship_no_narration():
 
 def test_the_memory_readout_shows_two_brains_not_one_climbing_meter():
     src = BRAIN_JS.read_text(encoding="utf-8")
-    assert 'label: "an untrained brain"' in src and 'label: "this brain"' in src
+    assert 'label: "untrained brains"' in src and 'label: "brains like this one"' in src
     assert not re.search(r"lerp\([^)]*untrained[^)]*trained", src)

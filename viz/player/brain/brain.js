@@ -17,13 +17,16 @@
  * scripts/dump_brain_film_data.py refuses to write brain data while any display
  * there disagrees with the committed artifacts, and tests/test_brain_film.py
  * runs the same check in CI.
- *   an untrained brain     0.523  52%. Interval [0.491, 0.554] includes 0.5,
+ * Each figure is a mean over ten brains of one kind, so the rows and tiles say
+ * "untrained brains" and "brains like this one"; the brain drawn on screen is
+ * one of the ten (its own pooled target is in brain-data.js).
+ *   untrained brains       0.523  52%. Interval [0.491, 0.554] includes 0.5,
  *                                 so the film may call it a coin flip.
- *   this brain, trained    0.733  73%. Survival plus next-observation
+ *   brains like this one   0.733  73%. Survival plus next-observation
  *                                 prediction, 300 updates, 8 of 10 seeds at
  *                                 the bar, interval [0.669, 0.797].
  *   the bar                0.65   Registered before the run.
- *   predict-only brain     0.721  72%. A trunk trained only to predict, fed this
+ *   predict-only brains    0.721  72%. A trunk trained only to predict, fed this
  *                                 brain's own observation streams (17.6). It
  *                                 sits within about 0.01 of 0.733, so the
  *                                 reading that credited the survival objective
@@ -177,7 +180,7 @@ const SECTIONS = {
     zoom: 1.15,
     meter: "live",
     // Cut to the readout rows: the coin-flip line is up as the untrained row lands
-    // (u 0.20), and the 73% line as this brain's row lands with its rings (u 0.54).
+    // (u 0.20), and the 73% line as the trained row lands with the rings (u 0.54).
     narration: [
       { u0: 0.00, u1: 0.22, text: "Twelve real memory cells, by unit number." },
       // 52% and 73% are two different brains, an untrained one and this trained one,
@@ -185,8 +188,8 @@ const SECTIONS = {
       // ("Until the miss lands: a coin flip. 49%." / "After: 73%.") and its single
       // climbing meter told them as one brain's before and after, which was never
       // measured.
-      { u0: 0.22, u1: 0.44, text: "An untrained brain reads 52%: a coin flip." },
-      { u0: 0.44, u1: 0.72, text: "This brain reads 73%. The bar was 65%." },
+      { u0: 0.22, u1: 0.44, text: "Untrained brains read 52%: a coin flip." },
+      { u0: 0.44, u1: 0.72, text: "Brains like this one read 73%. The bar was 65%." },
       // Was "Teal rings hold the trace. Twins fade." (storage; FINDINGS 17.7).
       { u0: 0.72, u1: 1.00, text: "Rings mark the cells that differ most." },
     ],
@@ -543,8 +546,11 @@ const HEAD = SHOW_LABELS && !SHOW_CAPTION
 // chapter's two brains, then the scale caption. Text extents, top to bottom:
 //   wide      rows 26-70 and 80-124, scale 135-161, panel title 174-214
 //   vertical  rows 41-91 and 103-153, scale 174-202, panel title 235-277
+// caption=1 keeps the September panel geometry, whose 9:16 titles sit at y 150,
+// so its pointer lines move up (56 and 102) and its live readout is one text
+// line per row (drawReadoutLines) instead of the bars.
 const READOUT = LAYOUT === "vertical"
-  ? { big: 100, bigSize: 54, row1: 66, row2: 128, labelSize: 36, pctSize: 50,
+  ? { big: SHOW_CAPTION ? 56 : 100, bigSize: 54, row1: 66, row2: 128, labelSize: 36, pctSize: 50,
       track: 400, gap: 26, scale: 188, scaleSize: 28 }
   : { big: 62, bigSize: 48, row1: 48, row2: 102, labelSize: 32, pctSize: 44,
       track: 380, gap: 24, scale: 148, scaleSize: 26 };
@@ -1272,15 +1278,16 @@ const FILM = {
 };
 const SCALE_TEXT = `50% = coin flip   ·   ${FILM.bar.display} = the bar, set in advance`;
 
-// The memory chapter's readout: two brains on two rows, never one meter. An
-// untrained brain and this trained brain are different agents, each read once
-// after training. Each bar fills once and stays: the untrained row early, this
-// brain's row as its rings come up (the rings are its cells). Both drain in the
+// The memory chapter's readout: two kinds of brain on two rows, never one meter.
+// Untrained brains and trained brains like the one on screen are different
+// agents, ten of each, each read once after training, and each row gives its
+// kind's mean. Each bar fills once and stays: the untrained row early, the
+// trained row as the rings come up on the brain drawn here. Both drain in the
 // last half second of the loop, inside the tour's fade to black, so frame(0)
 // equals frame(T). A percent appears as its bar lands; no digit counts up.
 const ROWS = [
-  { key: "untrained", label: "an untrained brain", col: [170, 164, 194], t0: 0.08, t1: 0.20 },
-  { key: "trained", label: "this brain", col: TEAL, t0: BLOOM_AT, t1: BLOOM_AT + 0.14 },
+  { key: "untrained", label: "untrained brains", col: [170, 164, 194], t0: 0.08, t1: 0.20 },
+  { key: "trained", label: "brains like this one", col: TEAL, t0: BLOOM_AT, t1: BLOOM_AT + 0.14 },
 ];
 const DRAIN_AT = 0.955, DRAIN_LEN = 0.04;
 
@@ -1298,15 +1305,15 @@ function rowLen(row, u, track) {
 // what it is allowed to say:
 //
 //   "live"    the memory chapter, the only layer the probe actually reads: two
-//             labeled rows, an untrained brain and this brain, against the 50%
-//             chance tick and the 65% bar.
+//             labeled rows, untrained brains and brains like this one, against
+//             the 50% chance tick and the 65% bar.
 //   "pointer" every other chapter: names where the readout lives and shows no
 //             number at all. Every layer showing the same figure read as a
 //             claim that every layer carries the signal equally, which is not
 //             what was measured.
 // The September cut said "reads REAL - 75%", which claims the probe is that sure
 // about the frame on screen. It is a rate over many held-out snapshots, which is
-// why the rows name a brain and give its rate, and nothing names a frame.
+// why the rows name a kind of brain and give its rate, and nothing names a frame.
 function drawReadout(u) {
   const mode = SECTION.meter || "live";
   if (mode === "none") return;
@@ -1321,6 +1328,11 @@ function drawReadout(u) {
     ctx.font = `500 ${READOUT.scaleSize}px 'Segoe UI', sans-serif`;
     ctx.fillStyle = "rgba(152,146,178,0.9)";
     ctx.fillText("no number at this layer, and none claimed", cx, READOUT.big + 46);
+    textShadowOff();
+    return;
+  }
+  if (SHOW_CAPTION) {
+    drawReadoutLines(u);
     textShadowOff();
     return;
   }
@@ -1374,6 +1386,42 @@ function drawReadout(u) {
   ctx.fillStyle = "rgba(162,156,188,0.92)";
   ctx.fillText(SCALE_TEXT, cx, READOUT.scale);
   textShadowOff();
+}
+
+// caption=1 only: the two rows as text above the panel titles, one line on the
+// wide frame and one line per row on 9:16. Labels hold; each percent appears as
+// its row lands, on the same clock as the bars of the labeled build.
+function drawReadoutLines(u) {
+  const vert = LAYOUT === "vertical";
+  const font = `600 ${vert ? 30 : 28}px 'Segoe UI', sans-serif`;
+  const sep = "   ·   ";
+  ctx.font = font;
+  ctx.textAlign = "left";
+  const items = ROWS.map((row) => {
+    const label = row.label + " ";
+    const num = FILM[row.key].display;
+    const a = smooth((rowGrow(row, u) - 0.8) / 0.2) * rowDrain(u);
+    return { row, label, num, a, w: ctx.measureText(label).width + ctx.measureText(num).width };
+  });
+  const draw = (it, x, y) => {
+    ctx.fillStyle = rgba(it.row.col, 0.95);
+    ctx.fillText(it.label, x, y);
+    if (it.a > 0.01) {
+      ctx.fillStyle = rgba(it.row.col, 0.97 * it.a);
+      ctx.fillText(it.num, x + ctx.measureText(it.label).width, y);
+    }
+  };
+  if (vert) {
+    items.forEach((it, i) => draw(it, (W - it.w) / 2, i === 0 ? 44 : 86));
+    return;
+  }
+  const sw = ctx.measureText(sep).width;
+  let x = (W - (items[0].w + sw + items[1].w)) / 2;
+  draw(items[0], x, 30);
+  x += items[0].w;
+  ctx.fillStyle = "rgba(162,156,188,0.8)";
+  ctx.fillText(sep, x, 30);
+  draw(items[1], x + sw, 30);
 }
 
 // Wordless cut only: the same two rows as thin bars with no text, shared at the
@@ -1654,8 +1702,8 @@ function drawTitleCard(t) {
 //    17.7, retention not shown). The headline now says the brain carries a
 //    readable sign, which is what a probe reading its state at 73% shows.
 //  - One "probe accuracy 73%" (0.726, the pre-correction residual) became three
-//    tiles, so the predict-only brain fed the same senses (72%) sits beside this
-//    one (73%). The signal rides on what the forager lives through, and the
+//    tiles, so predict-only brains fed the same senses (72%) sit beside brains
+//    like this one (73%). The signal rides on what the forager lives through, and the
 //    reading that credited the survival objective is withdrawn (17.6).
 //  - The line about dropping the second job carries its budget: under the bar at
 //    300 updates (61%, 17.4), 69% at 450 (17.10).
@@ -1665,9 +1713,9 @@ function drawTitleCard(t) {
 // jobs, and scripts/audit_stats_recheck.py pins that wording and the
 // second-job line.
 const END_TILES = [
-  { key: "untrained", lines: ["an untrained brain"], col: [170, 164, 194] },
-  { key: "trained", lines: ["this brain"], col: TEAL },
-  { key: "replay", lines: ["predict-only brain,", "fed the same senses"], col: [214, 209, 232] },
+  { key: "untrained", lines: ["untrained brains"], col: [170, 164, 194] },
+  { key: "trained", lines: ["brains like this one"], col: TEAL },
+  { key: "replay", lines: ["predict-only brains,", "fed the same senses"], col: [214, 209, 232] },
 ];
 
 function roundRectPath(x, y, w, h, r) {
@@ -1722,9 +1770,9 @@ function drawEndCard() {
     L.head, L.headLH,
   );
 
-  // Three tiles, read left to right (top to bottom on 9:16): an untrained
-  // brain, this brain, and a brain trained only to predict that was fed this
-  // brain's own senses.
+  // Three tiles, read left to right (top to bottom on 9:16): untrained brains,
+  // brains like this one, and brains trained only to predict that were fed the
+  // trained brains' own senses. Each is a mean over ten.
   END_TILES.forEach((tile, i) => {
     const num = FILM[tile.key];
     const bw = L.tileW;

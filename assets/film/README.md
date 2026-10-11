@@ -123,14 +123,16 @@ encoder row, recurrent unit, motor head, or readout head, and teal rings mark th
 memory cells whose readings differ most between the two worlds.
 
 Every number on screen comes from the corrected trainer (`docs/FINDINGS.md`
-section 17) and sits in the `FILM` block of `brain.js`, one line each:
+section 17) and sits in the `FILM` block of `brain.js`, one line each. Each is a
+mean over ten brains of one kind, which is why the labels are plural; the brain
+drawn on screen is one of the ten trained ones:
 
 | On screen | Value | Source |
 |---|---|---|
-| an untrained brain, 52% | 0.523, interval [0.491, 0.554], so chance | `artifacts/corrected_verdicts.json` `runs.C1.primary.untrained` |
-| this brain, 73% | 0.733 [0.669, 0.797] | `runs.C1.primary.survival` |
+| untrained brains, 52% | 0.523, interval [0.491, 0.554], so chance | `artifacts/corrected_verdicts.json` `runs.C1.primary.untrained` |
+| brains like this one, 73% | 0.733 [0.669, 0.797] | `runs.C1.primary.survival` |
 | the bar, 65% | 0.65, registered before the run | `rules.bar` |
-| predict-only brain fed the same senses, 72% | 0.721 | `artifacts/policy_controls/corrected_l3_h8_wm.json` `aggregate["predictor replay"]` |
+| predict-only brains fed the same senses, 72% | 0.721 | `artifacts/policy_controls/corrected_l3_h8_wm.json` `aggregate["predictor replay"]` |
 | without the prediction job at 300 updates, 61% | 0.613, under the bar | `runs.C2.primary.survival` |
 | without it at 450 updates, 69% | 0.685 | `artifacts/budget_curve.json` `series["decoder off"]` |
 | two identical real worlds, 56% | 0.559, so the registered rule is not met | `runs.C1.gates.l0` |
@@ -148,14 +150,14 @@ What changed from the September cut, and why:
   were two different agents, an untrained one (0.488, the pre-correction floor) and
   a trained one (0.726, the pre-correction section 10.4 residual after a behavior
   control), each read once after training. The chapter now has two labeled rows,
-  "an untrained brain" at 52% and "this brain" at 73%, against the 50% and 65%
-  ticks. Each bar fills once and holds.
+  "untrained brains" at 52% and "brains like this one" at 73%, against the 50%
+  and 65% ticks. Each bar fills once and holds.
 - The end card said "this brain kept a trace of which world it was in" over a
   single 73%. Under identical input the difference fades within a few steps, so
   the frozen verdict on storage is "retention not shown" (FINDINGS 17.7). The card
   now says the brain carries a readable sign of which world it is in and shows
-  three tiles: 52%, 73%, and 72% for a brain trained only to predict and fed this
-  brain's own senses. That last reading sits within about 0.01 of 73%, so the
+  three tiles: 52%, 73%, and 72% for brains trained only to predict and fed the
+  trained brains' own senses. That last reading sits within about 0.01 of 73%, so the
   reading that credited the survival objective is withdrawn (17.6).
 - The card's second-job line now carries its budget: under the bar at 300 updates
   (61%), 69% at 450 (17.4, 17.10). A new line states the open gate: two identical
