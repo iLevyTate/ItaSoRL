@@ -1,0 +1,327 @@
+{
+ "source_run": "artifacts/goal_stakes/T-gn-h96/expB2_results.json",
+ "generated_by": "scripts/promote_texture_trained.py",
+ "git_commit_at_promotion": "aed9865",
+ "spec": "docs/specs/2026-10-09-gn-comparator-trained-design.md",
+ "family": "gn",
+ "family_param": 0.01,
+ "drift": 0.45,
+ "bars": {
+  "bar": 0.65,
+  "margin": 0.05
+ },
+ "primary": {
+  "untrained": {
+   "per_seed": [
+    0.3896694214876033,
+    0.5169421487603307,
+    0.5136363636363637,
+    0.4785123966942148,
+    0.5276859504132232,
+    0.4574380165289257,
+    0.5487603305785124,
+    0.5268595041322314,
+    0.5107438016528926,
+    0.49958677685950414
+   ],
+   "mean": 0.49698347107438023,
+   "n": 10,
+   "seeds_at_or_above_bar": 0,
+   "t90": [
+    0.47048304028107724,
+    0.5234839018676832
+   ]
+  },
+  "predictor": {
+   "per_seed": [
+    0.4309917355371901,
+    0.5115702479338843,
+    0.5842975206611569,
+    0.48140495867768596,
+    0.5214876033057851,
+    0.5458677685950414,
+    0.4826446280991735,
+    0.45371900826446276,
+    0.5132231404958677,
+    0.4814049586776859
+   ],
+   "mean": 0.5006611570247934,
+   "n": 10,
+   "seeds_at_or_above_bar": 0,
+   "t90": [
+    0.4748287697694911,
+    0.5264935442800958
+   ]
+  },
+  "survival": {
+   "per_seed": [
+    0.5714876033057851,
+    0.49049586776859505,
+    0.55,
+    0.5834710743801652,
+    0.53099173553719,
+    0.4979338842975207,
+    0.5504132231404959,
+    0.55,
+    0.5202479338842976,
+    0.5636363636363637
+   ],
+   "mean": 0.5408677685950413,
+   "n": 10,
+   "seeds_at_or_above_bar": 0,
+   "t90": [
+    0.523124203024032,
+    0.5586113341660506
+   ]
+  }
+ },
+ "l0_control": {
+  "untrained": {
+   "per_seed": [
+    0.40495867768595045,
+    0.49214876033057847,
+    0.5338842975206611,
+    0.49421487603305786,
+    0.5264462809917355,
+    0.5128099173553718,
+    0.4615702479338843,
+    0.4524793388429752,
+    0.4826446280991735,
+    0.5446280991735538
+   ],
+   "mean": 0.49057851239669426,
+   "n": 10,
+   "seeds_at_or_above_bar": 0,
+   "t90": [
+    0.4659241475478686,
+    0.5152328772455199
+   ]
+  },
+  "predictor": {
+   "per_seed": [
+    0.4314049586776859,
+    0.5537190082644629,
+    0.6074380165289256,
+    0.4830578512396694,
+    0.5351239669421488,
+    0.48636363636363633,
+    0.4826446280991735,
+    0.4231404958677686,
+    0.5487603305785125,
+    0.5268595041322314
+   ],
+   "mean": 0.5078512396694215,
+   "n": 10,
+   "seeds_at_or_above_bar": 0,
+   "t90": [
+    0.47464552101754526,
+    0.5410569583212976
+   ]
+  },
+  "survival": {
+   "per_seed": [
+    0.5727272727272728,
+    0.5504132231404959,
+    0.5640495867768596,
+    0.5735537190082645,
+    0.5380165289256198,
+    0.5384297520661157,
+    0.5942148760330579,
+    0.5603305785123968,
+    0.5524793388429752,
+    0.55
+   ],
+   "mean": 0.5594214876033058,
+   "n": 10,
+   "seeds_at_or_above_bar": 0,
+   "t90": [
+    0.5493319230565115,
+    0.5695110521501001
+   ]
+  }
+ },
+ "clauses": {
+  "bar": false,
+  "over_predictor": false,
+  "over_untrained": false
+ },
+ "rule_met": false,
+ "contrasts": {
+  "predictor": {
+   "mean": 0.04020661157024797,
+   "t90": [
+    0.0022075057219524893,
+    0.07820571741854346
+   ]
+  },
+  "untrained": {
+   "mean": 0.043884297520661156,
+   "t90": [
+    0.008666409589438852,
+    0.07910218545188347
+   ]
+  }
+ },
+ "gates": {
+  "l0_tost": {
+   "mean": 0.5594214876033058,
+   "p": 0.9394481311498581,
+   "margin": 0.05,
+   "pass": false
+  },
+  "speed_positive_control": {
+   "threshold": 0.75,
+   "n_pools": 60,
+   "n_below": 0,
+   "min_all_pools": 0.7720508542598326,
+   "mean_all_pools": 0.8952160369635287,
+   "min_survival": 0.9210007627765064,
+   "mean_survival": 0.9435218539223094,
+   "below_by_arm_drift": {},
+   "pass": true
+  },
+  "engagement": {
+   "cells_dir": "artifacts/goal_stakes/T-gn-h96/cells",
+   "n_cells": 20,
+   "n_engaged": 20,
+   "per_cell": [
+    {
+     "drift": 0.0,
+     "seed": 0,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 1,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 2,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 3,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 4,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 5,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 6,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 7,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 8,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 9,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 0,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 1,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 2,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 3,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 4,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 5,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 6,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 7,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 8,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 9,
+     "engaged": true
+    }
+   ],
+   "pass": true
+  },
+  "reward_leakage": {
+   "tolerance": 0.1,
+   "max_abs_dev": 0.08760330578512399,
+   "pass": true
+  },
+  "survivorship": {
+   "total_deaths": 0,
+   "pass": true
+  },
+  "untrained_floor": {
+   "mean": 0.49698347107438023,
+   "pass": true
+  },
+  "gate0_oracle_band": {
+   "oracle_auroc": 0.8652777777777778,
+   "in_band": true,
+   "floor": 0.4478714302824975,
+   "mech_leak_pass": true,
+   "pass": true,
+   "source": "artifacts/expH2/texture_knockout_h8.json"
+  }
+ },
+ "gates_failed": [
+  "l0_tost"
+ ],
+ "routing": "UNINFORMATIVE: the registered matrix requires every gate to pass for either verdict, and it names no cell for a failure of l0_tost; the run is not promoted as a negative and strengthens no claim",
+ "trunk_hidden": 96,
+ "registered_trunk_hidden": 96,
+ "trunk_check": {
+  "agents_dir": "run/T-gn-h96:artifacts/goal_stakes/T-gn-h96/agents (saved agents, kept on the run branch)",
+  "n_agents": 60,
+  "hidden_values": [
+   96
+  ],
+  "verified": true
+ }
+}

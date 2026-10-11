@@ -38,6 +38,7 @@ Usage:
 
 from __future__ import annotations
 
+import glob
 import json
 import re
 import math
@@ -48,7 +49,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from itasorl.stats import equivalence_test, mean_ci, rope_test  # noqa: E402
+from itasorl.stats import equivalence_test, mean_ci, rope_test, t_ci90  # noqa: E402
 
 ARTROOT = os.path.join(os.path.dirname(__file__), "..", "artifacts")
 ART = os.path.join(ARTROOT, "expB2")
@@ -2705,6 +2706,56 @@ def main() -> int:
     check_true("rule ledger matches its artifacts, and local manuscript tables, if present, are "
                "current (build_paper_tables --check)",
                build_paper_tables.main(["--check"]) == 0)
+
+    # ---- section 18: goal and stakes, and the white-jitter run at 96 (2026-10-11) ----
+    print("")
+    print("== FINDINGS 18: goal and stakes, and the registered-trunk white-jitter run ==")
+    _f18 = _read("docs/FINDINGS.md")
+    _f18 = " ".join(_f18[_f18.find("## 18. Goal and stakes"):].split())
+    for _run, _surv, _lo, _hi, _l0, _eq in (("T-touch", 0.796, 0.762, 0.830, 0.522, True),
+                                             ("S-immortal", 0.744, 0.696, 0.793, 0.537, False)):
+        _ga = _load_art("expB2", f"goal_stakes_{_run}.json")
+        _sv = _ga["decision"]["survival"]
+        check(f"18.2 {_run} survival mean", _sv, _surv)
+        _ps = _ga["arms"]["0.45"]["survival"]["pool_target"]["per_seed"]
+        _lo_r, _hi_r = t_ci90(_ps)
+        check(f"18.2 {_run} survival t90 lower", _lo_r, _lo)
+        check(f"18.2 {_run} survival t90 upper", _hi_r, _hi)
+        check(f"18.2 {_run} L0 mean at drift 0", _ga["gates"]["l0_survival_mean"], _l0)
+        check_true(f"18.2 {_run} L0 equivalence is {_eq}", bool(_ga["gates"]["l0_tost"]["equivalent"]) is _eq)
+        check_true(f"18.2 quotes {_run} survival {_surv:.3f} [{_lo:.3f}, {_hi:.3f}]",
+                   f"{_surv:.3f} [{_lo:.3f}, {_hi:.3f}]" in _f18)
+    check_true("18.2 T-touch passes every gate (promoted zone)",
+               _load_art("expB2", "goal_stakes_T-touch.json")["decision"]["zone"]
+               == "ENCODING INDUCED (all clauses)")
+    _dec = _load_art("goal_stakes", "decision.json")
+    check_true("18.2 quotes the T-touch primary wording from decision.json",
+               _dec["T-touch"]["primary"]["wording"].split("; ")[-1] in _f18)
+    check_true("18.2 records the stakes rule as not testable",
+               _dec["stakes"]["testable"] is False and "not testable" in _f18)
+    for _run, _mean in (("T-touch", -0.001), ("S-immortal", -0.029)):
+        check(f"18.3 {_run} intervention real minus sham", _dec[_run]["intervention"]["contrast"]["mean"], _mean)
+        check_true(f"18.3 {_run} intervention did not move behavior",
+                   _dec[_run]["intervention"]["pass"] is False)
+    _c1m = _load_art("goal_stakes", "C1", "mechanism.json")["summary"]
+    check("18.3 C1 intervention real minus sham", _c1m["intervention_real_minus_sham"]["mean"], 0.017)
+    check("18.3 C1 surprise AUROC", _c1m["surprise_auroc"]["mean"], 0.846)
+    check("18.3 C1 surprise correlation", _c1m["surprise_corr"]["mean"], -0.126)
+    _gn = _load_art("texture", "T_gn_l3_h96_wm.json")
+    check("18.6 white-jitter survival mean", _gn["primary"]["survival"]["mean"], 0.541)
+    check_true("18.6 white-jitter run routes UNINFORMATIVE on the L0 gate",
+               _gn["routing"].startswith("UNINFORMATIVE") and _gn["gates_failed"] == ["l0_tost"])
+    check_true("18.6 records the white-jitter run as uninformative", "**uninformative**" in _f18)
+    _c1r_same = 0
+    for _p in sorted(glob.glob(os.path.join(ARTROOT, "goal_stakes", "C1-rerun", "cells", "cell_d*_s*.json"))):
+        with open(_p, encoding="utf-8") as _fh:
+            _r = json.load(_fh)["cell"]["agents"]
+        with open(os.path.join(ARTROOT, "corrected_runs", "corrected_l3_h8_wm", "cells",
+                               os.path.basename(_p)), encoding="utf-8") as _fh:
+            _c = json.load(_fh)["cell"]["agents"]
+        _c1r_same += sum(_r[a]["pool"]["target"] == _c[a]["pool"]["target"]
+                         for a in ("survival", "predictor", "untrained"))
+    check_int("18.1 C1 rerun: arm-cells bit-equal to C1", _c1r_same, 60)
 
     print()
     print(f"pins: {n_pins} of {n_checks} checks compare a value as stored in an artifact with a "

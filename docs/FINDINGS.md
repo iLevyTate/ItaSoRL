@@ -3919,3 +3919,136 @@ authentic and learned-surrogate dynamics in its recurrent state; the difference 
 trajectories its foraging policy produces and is kept by a trunk shaped by the prediction
 objective; and the tested agents read coherent, state-dependent deviations from the true law,
 learned or hand-written, and not white noise of the same size.
+
+## 18. Goal and stakes, and the white-jitter run at the registered trunk (2026-10-11)
+
+Spec `docs/specs/2026-10-07-goal-and-stakes-design.md`; outcome entries in PREREGISTRATION_L3,
+2026-10-11. Two runs ask whether the decodable difference of section 17 needs survival:
+`T-touch` rewards the trained arm +1 per pellet consumed with death off, and `S-immortal` keeps the
+survival reward with death off. Everything else is `C1`'s protocol. `S-scarce` was not run: its
+frozen calibration chose the registered density (PREREGISTRATION_L3, 2026-10-10). Both runs
+executed in the Claude Code cloud container pinned to the `C1` stack (torch 2.14.1+cpu, numpy
+2.4.6, scikit-learn 1.9.1, 4 workers).
+
+### 18.1 Integrity
+
+Every cell records the successor bootstrap and its run's objective and mortality. The predictor
+and untrained arms train no actor-critic, so their pooled targets must equal `C1`'s at the same
+(drift, seed) to the bit. They do, in 20 of 20 cells of each run. Getting there took two
+discarded attempts per run, kept for the record under `artifacts/goal_stakes/quarantine/` on the
+run branches. The first ran on an unpinned torch. The second exposed a fault in the
+implementation: `--mortal off` reached the predictor arm's own 80-step scripted training
+episodes, which die in about half of all cases when death is on, so the predictor trained on
+different data from `C1`'s and matched it in 0 of 20 cells. The fix keeps those episodes mortal
+(PREREGISTRATION_L3, 2026-10-10). `C1` itself was rerun on the same stack to keep its agents, and
+its pool targets equal the committed `C1` cells in 60 of 60 arm-cells.
+
+### 18.2 The primary rule
+
+Pooled target at drift 0.45, n = 10, t-based 90% intervals; artifacts
+`artifacts/expB2/goal_stakes_T-touch.json`, `artifacts/expB2/goal_stakes_S-immortal.json`.
+
+| run | survival | seeds >= 0.65 | over predictor | over untrained | L0 at drift 0 | gates |
+|---|---|---|---|---|---|---|
+| `C1` (17.2) | 0.733 [0.669, 0.797] | 8 | +0.144 | +0.210 | 0.559, not equivalent | L0 open |
+| `S-immortal` | 0.744 [0.696, 0.793] | 9 | +0.156 | +0.222 | 0.537, not equivalent | L0 open |
+| `T-touch` | 0.796 [0.762, 0.830] | 10 | +0.207 | +0.273 | 0.522, equivalent | all six pass |
+
+The predictor (0.589) and untrained (0.523) arms are the same in all three runs by construction.
+`T-touch` is the first run of the corrected record to pass every gate. Its trained arm engages
+with the touch objective at 1.30 pellets per episode against 0.52 for the random walker and 0.20
+for the scripted one, past the registered 1.5x ratio. Frozen wording: "a pellet-directed goal
+without survival stakes produces walks from which the condition is decodable; survival is not
+required." The seed-paired difference from `C1` is +0.063 [-0.015, +0.141] for `T-touch` and
++0.011 [-0.024, +0.047] for `S-immortal`; neither interval excludes zero. The stakes rule is not
+testable without a scarce rung, and no wording about survival specificity is earned.
+
+### 18.3 Does the agent use the decoded direction?
+
+Mechanism readouts (`mechanism.json` in each run directory), frozen rules:
+
+| readout | `T-touch` | `S-immortal` | `C1` (descriptive reference) |
+|---|---|---|---|
+| intervention, real minus sham nudge | -0.001 [-0.014, +0.011]: did not move behavior | -0.029 [-0.057, -0.002]: did not move behavior | +0.017 [-0.019, +0.054]: did not move behavior |
+| surprise, prediction-error AUROC | 0.912 | 0.848 | 0.846 |
+| surprise, correlation with the direction | -0.146: not explained by surprise | -0.240: tracks the prediction error | -0.126: not explained by surprise |
+| adaptation within a lifetime | recovers | no recovery detected | no recovery detected |
+
+Nudging the recurrent state one standard deviation along the decoded direction changes behavior no
+more than a sham nudge in either run, with ten informative seeds each, and the same holds for `C1`
+(readout on the `C1` rerun's agents, whose cells equal `C1`'s to the bit;
+`artifacts/goal_stakes/C1/mechanism.json`). The direction is decodable and, under this test, not
+used.
+
+### 18.4 Where the signal lives
+
+Policy controls at drift 0.45 (`policy_controls.json`; `C1` from 17.6):
+
+| arm and protocol | `C1` | `S-immortal` | `T-touch` |
+|---|---|---|---|
+| trained arm, own policy | 0.733 | 0.744 | 0.796 |
+| trained arm, one scripted action sequence | 0.570 | 0.571 | 0.545 |
+| untrained trunk replaying the trained arm's episodes | 0.636 | 0.648 | 0.739 |
+| predictor trunk replaying them | 0.721 | 0.720 | 0.752 |
+| predictor trained on the trained arm's own batches, replaying them | 0.738 | 0.756 | 0.798 |
+
+In each run every retrained agent was bit-identical to its saved one (10 of 10). Driven by a
+common scripted sequence, the trained arm falls near chance; fed the trained arm's episodes, a
+trunk that never trained on the objective reads most of the signal.
+
+Control diagnostics on the trained arm (`control_diagnostics.json`; `C1` from 17.8):
+
+| basis removed or decoder | `C1` | `S-immortal` | `T-touch` |
+|---|---|---|---|
+| none: the primary probe | 0.733 | 0.744 | 0.796 |
+| behavior trace (ridge) | 0.723 | 0.738 | 0.763 |
+| observation history plus behavior (ridge) | 0.606 | 0.596 | 0.595 |
+| best nonlinear control (64-unit MLP) | 0.620 | 0.616 | 0.666 |
+| observation stream alone, no state: summary decoder | 0.715 | 0.726 | 0.797 |
+| observation stream alone, no state: sequence GRU | 0.724 | 0.736 | 0.777 |
+
+The state carries about what its input stream carries in all three runs. The one difference: in
+`T-touch` the best nonlinear control leaves 0.666, just over the bar, where `C1` and `S-immortal`
+fall under it. These runs saved no state dumps, so the dump bit-match check of 17.8 does not apply.
+
+### 18.5 Behavior mediation
+
+The two runs saved their agents but not their state dumps. `scripts/regenerate_state_dumps.py`
+rebuilt the dumps from the saved agents; each rebuilt pool reproduced its cell's recorded target to
+the bit (60 of 60 per run). The audit (`behavior_audit.json`; `C1` from its committed audit), drift
+0.45, survival arm, mean and seeds at the bar:
+
+| measure | `C1` | `S-immortal` | `T-touch` |
+|---|---|---|---|
+| primary target | 0.733 (8) | 0.744 (9) | 0.796 (10) |
+| behavior means alone | 0.667 (6) | 0.677 (8) | 0.723 (10) |
+| behavior traces alone | 0.811 (10) | 0.818 (10) | 0.862 (10) |
+| state after the per-episode control | 0.679 (7) | 0.677 (6) | 0.708 (9) |
+| state after the per-timestep control | 0.723 (8) | 0.738 (10) | 0.762 (10) |
+
+Behavior traces alone decode the world better than the state does, in every run.
+
+### 18.6 The white-jitter run at the registered trunk
+
+Spec `docs/specs/2026-10-10-gn-comparator-trained-h96-design.md`; artifact
+`artifacts/texture/T_gn_l3_h96_wm.json`. The 2026-10-09 run (14.5.1) trained an 8-unit trunk; this
+one trains the registered 96, read from all 60 saved agents, on the pinned cloud stack. It is
+**uninformative** under the registered matrix: the L0 gate fails (drift-0 survival 0.559, TOST
+p = 0.94), and either verdict needs every gate. Recorded descriptively and not as a verdict: the
+survival arm reads 0.541 [0.523, 0.559] at drift 0.45, zero of ten seeds at the bar, +0.040 over the
+predictor and +0.044 over the untrained arm; engagement passes in 20 of 20 cells and the speed
+positive control in 60 of 60 pools. The sufficiency claim gains no trained case, and the
+limitation that no comparator-trained run supports it stays.
+
+### 18.7 What this adds to section 17
+
+1. **Survival is not required** (18.2). A pellet-seeking goal with death off meets the registered
+   rule with every gate passing, the cleanest run of the corrected record.
+2. **Removing death changes nothing measurable** in the survival run (18.2). The stakes question
+   itself stays open, with no scarce rung.
+3. **The decoded direction is not used under the tested nudge** (18.3), in both runs and in `C1`.
+4. **The walk carries the signal** (18.4, 18.5), as in `C1`: a common scripted sequence removes it,
+   replaying the trained arm's episodes gives it to untrained trunks, and behavior traces alone
+   decode the world better than the state.
+5. **The white-jitter question stays open** (18.6). The run reads low, but its L0 gate fails, so it
+   is not evidence.
