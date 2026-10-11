@@ -68,6 +68,21 @@ python scripts/audit_behavior_mediation.py fullruns/l3_n10_audited/states \
     --json fullruns/l3_n10_audited/behavior_audit.json
 ```
 
+## regenerate_state_dumps.py
+
+Rebuilds the pooled-state dumps of a run that saved its agents (`--save-agents`) but not its
+dumps, by replaying the standard pooled readout on each saved agent. Each rebuilt pool must
+reproduce the target recorded in its cell to the bit, or the script exits non-zero and the dumps
+must not be audited. Run it on the stack that produced the run; a different platform's numerics
+move the target in the last digits.
+
+```bash
+ITASORL_FOLDS=explicit python scripts/regenerate_state_dumps.py \
+    --run-dir artifacts/goal_stakes/T-touch --out-dir /tmp/T-touch_states --workers 4
+python scripts/audit_behavior_mediation.py /tmp/T-touch_states \
+    --json artifacts/goal_stakes/T-touch/behavior_audit.json
+```
+
 ## L3 owed runs (human-launched, GPU)
 
 Pre-registered follow-ups needing fresh dumps (the audited n=10 run predates
