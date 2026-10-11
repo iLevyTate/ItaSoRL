@@ -1,0 +1,700 @@
+{
+ "status": "FAILED GATES",
+ "label": "FAILED GATES, UNINFORMATIVE (historical trainer): the hidden-4 L3 run. Its capacity was frozen from a pre-bugfix calibration on the wrong world; on world P its untrained floor fails gate 0. Bears on no rule.",
+ "generated_by": "scripts/promote_off_design_runs.py",
+ "git_commit": "a5eda5a",
+ "tracked_changes_at_generation": [],
+ "stack": {
+  "python": "3.13.2",
+  "numpy": "1.26.4",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "OMP_NUM_THREADS": "1",
+  "MKL_NUM_THREADS": "1",
+  "sklearn": "1.5.2",
+  "torch": "2.7.0+cu126",
+  "torch_threads": 1
+ },
+ "source_run": "fullruns/l3_h4_traces/expB2_results.json",
+ "run": {
+  "git_commit_at_run": ["bf8a74e"],
+  "config_fingerprint": ["fc3dff74475504fd"],
+  "gae_bootstrap": ["absent"]
+ },
+ "record": "FINDINGS 10.5 ('hidden = 4 was uninformative, not negative'); PREREGISTRATION_L3 sec. 12 entries 2026-07-13/14",
+ "recorded_in_prose": {
+  "untrained_floor": 0.891,
+  "reward_leak_clean_seeds": 0,
+  "engagement_share": 0.3
+ },
+ "family": "mlp",
+ "family_param": null,
+ "surrogate_hidden": 4,
+ "bars": {
+  "bar": 0.65,
+  "margin": 0.05
+ },
+ "pooled_target": {
+  "0.00": {
+   "untrained": {
+    "per_seed": [0.4156263367725819, 0.4602244922403025, 0.5045565764933354, 0.5252913094810328, 0.46192358366271413, 0.4631495645329638, 0.4868239138990127, 0.4478842632992831, 0.477267594066013, 0.5128578272847047],
+    "mean": 0.47556054617319443,
+    "n": 10,
+    "seeds_at_or_above_bar": 0,
+    "t90": [0.45646323631742297, 0.4946578560289659],
+    "seed_boot90": [0.45901007391817666, 0.4915116523792413]
+   },
+   "predictor": {
+    "per_seed": [0.3937349212052769, 0.49839159522953985, 0.586429512516469, 0.5074628270280445, 0.48923309891689337, 0.47395496466642706, 0.4433730301319233, 0.4057406361754188, 0.5297751655459166, 0.5157358451824855],
+    "mean": 0.48438315965983947,
+    "n": 10,
+    "seeds_at_or_above_bar": 0,
+    "t90": [0.45069196018266955, 0.5180743591370094],
+    "seed_boot90": [0.4556077588419486, 0.5127458335472169]
+   },
+   "survival": {
+    "per_seed": [0.5740482179217357, 0.5215047139948326, 0.44751125027804867, 0.5459507554369214, 0.5219555806512328, 0.4797306777543932, 0.4942225758431292, 0.5070444706808342, 0.5567150899166708, 0.5177993942816077],
+    "mean": 0.5166482726759407,
+    "n": 10,
+    "seeds_at_or_above_bar": 0,
+    "t90": [0.4950018398163805, 0.538294705535501],
+    "seed_boot90": [0.4982390534366819, 0.5351435201820577]
+   }
+  },
+  "0.45": {
+   "untrained": {
+    "per_seed": [0.9189415327755249, 0.834596102185035, 0.9330073747069795, 0.9081737761579658, 0.8634875006416507, 0.9102766798418973, 0.8871019625960337, 0.9019839843950516, 0.8469619971596256, 0.9090395770237668],
+    "mean": 0.8913570487483531,
+    "n": 10,
+    "seeds_at_or_above_bar": 10,
+    "t90": [0.872474547116704, 0.9102395503800021],
+    "seed_boot90": [0.8745611536026555, 0.9069951918963778]
+   },
+   "predictor": {
+    "per_seed": [0.9355046797734545, 0.923056653491436, 0.9565696490597675, 0.9561435929024862, 0.9424986739215988, 0.9180894204609619, 0.9561786698150334, 0.9549261673767603, 0.9590549766439095, 0.96114675837996],
+    "mean": 0.9463169241825369,
+    "n": 10,
+    "seeds_at_or_above_bar": 10,
+    "t90": [0.9372033378332133, 0.9554305105318605],
+    "seed_boot90": [0.9381695840391492, 0.9536344942935854]
+   },
+   "survival": {
+    "per_seed": [0.9499469568639528, 0.9425354619030507, 0.9714636483411188, 0.928062385572267, 0.9631957633933919, 0.9537018975754152, 0.949556833153671, 0.9466463049467002, 0.9694009547764487, 0.9561607035915337],
+    "mean": 0.953067091011755,
+    "n": 10,
+    "seeds_at_or_above_bar": 10,
+    "t90": [0.9455405903469813, 0.9605935916765287],
+    "seed_boot90": [0.9465364970997381, 0.9593922668240851]
+   }
+  }
+ },
+ "secondary_means": {
+  "0.00": {
+   "untrained": {
+    "pool_target_var": 0.49830929281522174,
+    "pool_target_full": 0.47470150402956734,
+    "mp_target": 0.13716977466977467,
+    "pool_shuffled": 0.5045711259945658
+   },
+   "predictor": {
+    "pool_target_var": 0.4461661790120289,
+    "pool_target_full": 0.4553776329072772,
+    "mp_target": 0.1368618881118881,
+    "pool_shuffled": 0.4848400153056233
+   },
+   "survival": {
+    "pool_target_var": 0.5000016255154595,
+    "pool_target_full": 0.5092123094297007,
+    "mp_target": 0.13391802641802641,
+    "pool_shuffled": 0.5167437204220899
+   }
+  },
+  "0.45": {
+   "untrained": {
+    "pool_target_var": 0.8672108721318207,
+    "pool_target_full": 0.9230830895060145,
+    "mp_target": 0.8664869852369852,
+    "pool_shuffled": 0.49711300145461657
+   },
+   "predictor": {
+    "pool_target_var": 0.9247843197645569,
+    "pool_target_full": 0.9591823657238677,
+    "mp_target": 0.9392696192696193,
+    "pool_shuffled": 0.5276590261674461
+   },
+   "survival": {
+    "pool_target_var": 0.9268035521790463,
+    "pool_target_full": 0.9559160207381552,
+    "mp_target": 0.958448912198912,
+    "pool_shuffled": 0.49932636101135836
+   }
+  }
+ },
+ "clauses_descriptive": {
+  "bar": true,
+  "over_predictor": false,
+  "over_untrained": true
+ },
+ "rule_met": false,
+ "rule_note": "Not adjudicated: the run is not the registered protocol and failed gates; the clauses above are descriptive.",
+ "gates": {
+  "gate0_oracle_band": {
+   "source": "artifacts/agent_free/gate0_pair_intervals.json",
+   "instance": "mlp_h4_s0",
+   "oracle_auroc_legacy": 0.9319444444444445,
+   "in_band": true,
+   "pair_cluster_ci95_legacy": [0.8619375, 0.9638958333333333],
+   "mech_leak_pass": true,
+   "floor": 0.8955150032225131,
+   "floor_per_seed": [0.9189415327755249, 0.834596102185035, 0.9330073747069795],
+   "floor_ok": false,
+   "floor_source": "fullruns/l3_gate0_recal/calibration.json",
+   "pass": false,
+   "note": "Measured on world P after the run: the oracle is in band, the untrained floor is not. The run itself used a capacity frozen from the pre-bugfix calibration on the wrong world (oracle 0.940 at sigma 0.05)."
+  },
+  "engagement": {
+   "cells_dir": "fullruns/l3_h4_traces/cells",
+   "n_cells": 20,
+   "n_engaged": 13,
+   "per_cell": [
+    {
+     "drift": 0.0,
+     "seed": 0,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 1,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 2,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 3,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 4,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 5,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 6,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 7,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 8,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 9,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 0,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 1,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 2,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 3,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 4,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 5,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 6,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 7,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 8,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 9,
+     "engaged": true
+    }
+   ],
+   "pass": false,
+   "engaged_by_drift": {
+    "0.00": {
+     "engaged": 10,
+     "cells": 10
+    },
+    "0.45": {
+     "engaged": 3,
+     "cells": 10
+    }
+   }
+  },
+  "l0_tost": {
+   "mean": 0.5166482726759407,
+   "p": 0.00995228623444076,
+   "margin": 0.05,
+   "pass": true
+  },
+  "speed_positive_control": {
+   "threshold": 0.75,
+   "n_pools": 60,
+   "n_below": 0,
+   "min_all_pools": 0.7837325034198864,
+   "mean_all_pools": 0.9363200155931537,
+   "min_survival": 0.9006874655202873,
+   "mean_survival": 0.9621405314286402,
+   "below_by_arm_drift": {},
+   "pass": true
+  },
+  "reward_leakage": {
+   "tolerance": 0.1,
+   "max_abs_dev": 0.20388498194822302,
+   "pass": false,
+   "per_seed": {
+    "untrained": [0.5115873586229317, 0.5827395924233869, 0.6174888352753964, 0.6633839809729138, 0.6311388874629982, 0.6245213284738977, 0.5165349143610014, 0.5016434816830074, 0.6088077271871738, 0.6501497185291651],
+    "predictor": [0.5612075013260783, 0.6145363858802594, 0.6228547473606761, 0.6294817172287528, 0.5963810892664647, 0.6414668993720378, 0.6252836096709615, 0.5111553137244836, 0.703884981948223, 0.6232551374843865],
+    "survival": [0.6369094673442499, 0.6360804544599011, 0.6331827592697159, 0.6331913146142394, 0.6427040021901681, 0.6352634190578856, 0.645179918895334, 0.6336036822202831, 0.6331801926663586, 0.6431249251407354]
+   },
+   "pool_leak_clean": {
+    "untrained": [true, true, false, false, false, false, true, true, false, false],
+    "predictor": [true, false, false, false, true, false, false, true, false, false],
+    "survival": [false, false, false, false, false, false, false, false, false, false]
+   },
+   "seeds_clean_survival": 0,
+   "matched_pair_leak_clean": {
+    "untrained": [false, true, false, true, true, false, false, false, true, false],
+    "predictor": [true, true, false, true, true, false, true, false, true, true],
+    "survival": [true, true, true, true, true, true, true, true, true, true]
+   }
+  },
+  "survivorship": {
+   "total_deaths": 0,
+   "pass": true
+  },
+  "untrained_floor": {
+   "mean": 0.8913570487483531,
+   "abs_dev": 0.3913570487483531,
+   "pass": false
+  }
+ },
+ "gates_failed": ["engagement", "gate0_oracle_band", "reward_leakage", "untrained_floor"],
+ "speed_pools": [
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 0,
+   "speed": 0.7837325034198864
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 1,
+   "speed": 0.8690274810828171
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 2,
+   "speed": 0.839629331818587
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 3,
+   "speed": 0.8328096284312156
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 4,
+   "speed": 0.8255412723559175
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 5,
+   "speed": 0.8117009515344236
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 6,
+   "speed": 0.851463032356313
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 7,
+   "speed": 0.8748427023130579
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 8,
+   "speed": 0.8573983189914124
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 9,
+   "speed": 0.857584177835894
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 0,
+   "speed": 0.9230198713059125
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 1,
+   "speed": 0.921593822843823
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 2,
+   "speed": 0.8847601454320824
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 3,
+   "speed": 0.9469304262608145
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 4,
+   "speed": 0.8965307209840457
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 5,
+   "speed": 0.909905442955214
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 6,
+   "speed": 0.8988598237511282
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 7,
+   "speed": 0.9544338913057449
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 8,
+   "speed": 0.9208678686997713
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 9,
+   "speed": 0.9430940381533267
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 0,
+   "speed": 0.9542330845255502
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 1,
+   "speed": 0.9442097117569347
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 2,
+   "speed": 0.9362562384221423
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 3,
+   "speed": 0.9006874655202873
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 4,
+   "speed": 0.942939495477825
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 5,
+   "speed": 0.9436516563146998
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 6,
+   "speed": 0.9272548058471222
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 7,
+   "speed": 0.9421008429658315
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 8,
+   "speed": 0.9361570229922634
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 9,
+   "speed": 0.9416004448132596
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 0,
+   "speed": 0.9597944578478176
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 1,
+   "speed": 0.9377362558390226
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 2,
+   "speed": 0.9557012815906096
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 3,
+   "speed": 0.9482658316650412
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 4,
+   "speed": 0.9285169310268124
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 5,
+   "speed": 0.9567387062698067
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 6,
+   "speed": 0.9725930607600567
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 7,
+   "speed": 0.9800672450079564
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 8,
+   "speed": 0.9249496304091165
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 9,
+   "speed": 0.9493443183957018
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 0,
+   "speed": 0.9717735656964906
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 1,
+   "speed": 0.9826197320466095
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 2,
+   "speed": 0.9900301575894461
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 3,
+   "speed": 0.9808215868453024
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 4,
+   "speed": 0.9817805383022774
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 5,
+   "speed": 0.9795757990016363
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 6,
+   "speed": 0.9821894409937888
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 7,
+   "speed": 0.9879580745341615
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 8,
+   "speed": 0.9825388198757764
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 9,
+   "speed": 0.9796694214876034
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 0,
+   "speed": 0.9912450912585093
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 1,
+   "speed": 0.9842519848399295
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 2,
+   "speed": 0.9854139969488941
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 3,
+   "speed": 0.9870512820512822
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 4,
+   "speed": 0.9841873492120528
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 5,
+   "speed": 0.9855054497544616
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 6,
+   "speed": 0.9912487313324634
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 7,
+   "speed": 0.9859126627654294
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 8,
+   "speed": 0.9937896754102287
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 9,
+   "speed": 0.9851136363636364
+  }
+ ],
+ "trunk_check": {
+  "agents_dir": "fullruns/l3_h4_traces/agents",
+  "n_agents": 0,
+  "hidden_values": [],
+  "verified": false,
+  "note": "agents directory not found; the trunk width is not verified"
+ },
+ "registered_trunk_hidden": 96,
+ "state_dim_check": {
+  "states_dir": "fullruns/l3_h4_traces/states",
+  "n_dumps": 60,
+  "state_dims": [96],
+  "verified": true
+ },
+ "trunk_hidden": 96,
+ "trunk_source": "dumped recurrent state dimension (no agents were kept)"
+}
