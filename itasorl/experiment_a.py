@@ -124,11 +124,15 @@ def _emit(clean: np.ndarray, quantize: bool, delta: float, sigma: float, rng) ->
 # ---------------------------------------------------------------------------
 
 def grouped_auroc(X: np.ndarray, y: np.ndarray, groups: np.ndarray, n_splits: int = 5,
-                  return_oof: bool = False):
+                  return_oof: bool = False, return_index: bool = False):
     """Grouped 5-fold CV AUROC with the scaler fit on TRAIN folds only (no leakage).
     With return_oof=True also returns the concatenated out-of-fold (y_true, y_score),
-    which lets callers bootstrap an AUROC CI without refitting the probe. Folds come
-    from itasorl.folds (the same partition on every scikit-learn / numpy stack)."""
+    which lets callers bootstrap an AUROC CI without refitting the probe. With
+    return_index=True as well, it also returns each out-of-fold score's sample index and
+    fold number, (auc, y, score, index, fold), so a caller can attach the cluster of every
+    score (for example the matched pair) for a cluster bootstrap. Neither flag changes the
+    point estimate. Folds come from itasorl.folds (the same partition on every scikit-learn
+    / numpy stack)."""
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import roc_auc_score
     from sklearn.pipeline import make_pipeline
@@ -137,8 +141,8 @@ def grouped_auroc(X: np.ndarray, y: np.ndarray, groups: np.ndarray, n_splits: in
     from itasorl import folds
 
     aucs = []
-    oof_y, oof_p = [], []
-    for tr, te in folds.split(groups, n_splits):
+    oof_y, oof_p, oof_i, oof_f = [], [], [], []
+    for k, (tr, te) in enumerate(folds.split(groups, n_splits)):
         if len(np.unique(y[te])) < 2:
             continue
         clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))
@@ -148,10 +152,16 @@ def grouped_auroc(X: np.ndarray, y: np.ndarray, groups: np.ndarray, n_splits: in
         if return_oof:
             oof_y.append(np.asarray(y[te]))
             oof_p.append(np.asarray(p))
+            oof_i.append(np.asarray(te))
+            oof_f.append(np.full(len(te), k))
     auc = float(np.mean(aucs)) if aucs else float("nan")  # NaN, not 0.5: never report the null as measured
     if return_oof:
         yv = np.concatenate(oof_y) if oof_y else np.zeros(0)
         pv = np.concatenate(oof_p) if oof_p else np.zeros(0)
+        if return_index:
+            iv = np.concatenate(oof_i) if oof_i else np.zeros(0, int)
+            fv = np.concatenate(oof_f) if oof_f else np.zeros(0, int)
+            return auc, yv, pv, iv, fv
         return auc, yv, pv
     return auc
 
