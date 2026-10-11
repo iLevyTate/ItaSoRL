@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- GitHub social-preview card for the repository. Source of social-preview.png:
+     `node docs/social-card/render.js` renders this page at 1280x640, device scale 2.
+     Every percent on it is one the README's opening states, and
+     tests/test_social_card.py checks that. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ITASORL social card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#f2f0fa; --soft:#b6b1d2; --dim:#8f89b3; --lav:#b3a6dd; --teal:#6fd3bf; --line:rgba(179,166,221,0.22); }
+  html, body { margin:0; width:1280px; height:640px; overflow:hidden; background:#1c1930; }
+  body { font-family:'Inter',sans-serif; color:var(--ink);
+         background:radial-gradient(900px 420px at 18% -10%, rgba(144,121,200,0.30), rgba(144,121,200,0) 70%),
+                    radial-gradient(700px 380px at 105% 110%, rgba(95,130,198,0.28), rgba(95,130,198,0) 70%),
+                    linear-gradient(140deg,#2a2549 0%,#232641 55%,#1f2b40 100%); }
+  .wrap { position:absolute; inset:46px 64px 42px 64px; display:flex; flex-direction:column; }
+  .kicker { font-family:'IBM Plex Mono',monospace; font-size:15px; letter-spacing:0.24em; text-transform:uppercase; color:var(--lav); display:flex; align-items:center; gap:12px; }
+  .kicker i { width:8px; height:8px; border-radius:50%; background:#9079c8; display:inline-block; }
+  h1 { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:64px; line-height:1.04; letter-spacing:-0.02em; margin:22px 0 14px; }
+  .sub { font-size:23px; line-height:1.45; color:var(--soft); max-width:1000px; margin:0; }
+  .tiles { display:flex; gap:22px; margin-top:36px; }
+  .tile { flex:1; border:1px solid var(--line); border-radius:18px; padding:26px 28px 26px; background:rgba(15,13,30,0.38); }
+  .tile.hl { border-color:rgba(111,211,191,0.45); background:rgba(20,40,44,0.40); }
+  .num { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:78px; line-height:1; font-variant-numeric:tabular-nums; }
+  .hl .num { color:var(--teal); }
+  .lab { font-family:'IBM Plex Mono',monospace; font-size:17px; line-height:1.45; color:var(--soft); margin-top:10px; }
+  .foot { margin-top:auto; display:flex; justify-content:space-between; align-items:flex-end; gap:40px; }
+  .note { font-size:18px; line-height:1.5; color:var(--dim); max-width:860px; }
+  .url { font-family:'IBM Plex Mono',monospace; font-size:19px; color:var(--ink); white-space:nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker"><i></i>ITASORL &nbsp;·&nbsp; read out, never rewarded</div>
+  <h1>Nobody paid it to look.</h1>
+  <p class="sub">An agent raised from nothing lives in a world with one rule of physics faked. We read its memory to see if it can tell.</p>
+  <div class="tiles">
+    <div class="tile"><div class="num">87%</div><div class="lab">a detector that knows the<br>true rules spots a hand-made fake</div></div>
+    <div class="tile"><div class="num">53%</div><div class="lab">the agent's own state,<br>same fake (bar set at 65%)</div></div>
+    <div class="tile hl"><div class="num">73%</div><div class="lab">the agent's state, a learned<br>fake (trained to survive and predict)</div></div>
+  </div>
+  <div class="foot">
+    <div class="note">A brain trained only to predict, fed the same senses, reads 72%. The 73% does not meet the registered rule: with both worlds real, the state reads 56%, not a coin flip.</div>
+    <div class="url">github.com/iLevyTate/ItaSoRL</div>
+  </div>
+</div>
+</body>
+</html>
