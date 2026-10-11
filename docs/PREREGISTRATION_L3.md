@@ -1090,6 +1090,26 @@ Rigor carried from the B-v3 audit (2026-07-10):
   cells on the fixed code, pinned to `C1`'s torch 2.14.1, numpy 2.4.6 and scikit-learn 1.9.1.
   Every gate, margin, and frozen wording is unchanged.
 
+- **2026-10-10 - WHITE-JITTER COMPARATOR-TRAINED RUN AT THE REGISTERED TRUNK, ANNOUNCED BEFORE THE
+  RUN (spec `docs/specs/2026-10-10-gn-comparator-trained-h96-design.md`).** The 2026-10-09
+  white-jitter run trained an 8-unit trunk instead of the registered 96 and is recorded above as
+  uninformative; that record stands. This entry announces the run the 2026-10-09 spec actually
+  described: the same question, gate 0, decision rule, gates, and pre-written outcome text, with the
+  agent trunk at its registered width of 96. It executes in the Claude Code cloud container pinned
+  to `C1`'s stack (torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, 4 workers), which reproduces
+  `C1`'s cells to the bit, on branch `run/T-gn-h96`. The integrity check before reading requires
+  every cell to record the successor bootstrap, the survival objective, death on, and a 96-unit
+  trunk. Section 5's readout, section 6's bar and margins, and every gate in section 7 are unchanged,
+  and this run cannot overturn a registered verdict.
+
+- **2026-10-10 - BEHAVIOR-MEDIATION AUDIT OF `T-touch` AND `S-immortal` FROM REBUILT STATE DUMPS.**
+  The two runs saved their agents but not their pooled-state dumps, which the behavior-mediation
+  audit reads. `scripts/regenerate_state_dumps.py` replays the standard pooled readout on each
+  saved agent (world seed bases 800000 and 850000, 110 episodes by 24 steps) and writes the dumps in
+  the run's own layout. A rebuilt dump is used only if its pool target equals the target the run
+  recorded in that cell to the bit; one failure stops the audit. The audit is descriptive, as it is
+  for every other run, and is not a gate.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
