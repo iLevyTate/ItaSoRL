@@ -111,11 +111,14 @@ def make_g_qd(*, eps: float, params) -> GQuadDrag:
 def perturbation_profile(g, *, params, n_eps: int = 60, steps: int = 40, seed: int = 77,
                          ray_steps: int = 5) -> dict:
     """Magnitude and temporal structure of a family's deviation from the authentic law,
-    on held-out authentic transitions (scripted policy, seeds disjoint from G's training
-    data at seed 0): RMS one-step deviation, mean deviation (bias), the share of deviation
-    variance a linear map of (vel, a) explains, and the lag-1 autocorrelation of the
-    deviation along trajectories. Used to match perturbations (step 9) and to report the
-    surrogate's held-out error (step 10)."""
+    on the seed-77 calibration sample of authentic transitions (scripted policy; episodes 77
+    to 136, which lie inside every G's training episodes, so for a learned G the profile is
+    in-sample; the untrained gn and qd families have nothing to overlap). The qd eps of 6.0
+    was matched on this sample, so the default seed stays 77. Reports the RMS one-step
+    deviation, mean deviation (bias), the share of deviation variance a linear map of
+    (vel, a) explains, and the lag-1 autocorrelation of the deviation along trajectories.
+    Used to match perturbations (step 9) and to report the deviation profile (step 10); the
+    held-out error is surrogate_l3.surrogate_diagnostics at HELDOUT_SEED."""
     from .surrogate_l3 import collect_authentic_transitions
     X, Y = collect_authentic_transitions(n_eps=n_eps, steps=steps, params=params,
                                          ray_steps=ray_steps, seed0=seed)

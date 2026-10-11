@@ -111,7 +111,8 @@ class GradedGMotion:
         self.dt = float(dt)
 
     def _true_law(self, vel, a, drag) -> np.ndarray:
-        # Exact arithmetic of patch_of_earth.py:177 `(1 - drag*dt)*vel + a*dt`.
+        # Exact arithmetic of the authentic branch of `PatchOfEarthV0._integrate_motion`
+        # (the path taken when no learned law is installed): `(1 - drag*dt)*vel + a*dt`.
         vel = np.asarray([vel[0], vel[1]], float)
         a = np.asarray([a[0], a[1]], float)
         return (1.0 - drag * self.dt) * vel + a * self.dt
@@ -150,23 +151,49 @@ def train_g_motion(*, hidden: int = 8, n_eps: int = 250, steps: int = 40, epochs
     return GMotion(net, (xm, xs, ym, ys))
 
 
+HELDOUT_SEED = 100_000
+"""Default first episode seed of the held-out sample. Episode i of
+`collect_authentic_transitions(seed0=s)` is seeded by s + i (world, weather, ecology and the
+action stream), so a sample starting at seed s with n episodes is the episode range
+[s, s + n). Every G the project trained starts at its training seed (0, 1 or 2) and spans 250
+episodes, so 100000 is disjoint from all of them."""
+
+
 def surrogate_diagnostics(g, *, params, n_train_eps: int = 250, train_steps: int = 40,
                           train_seed: int = 0, heldout_eps: int = 60, heldout_steps: int = 40,
-                          heldout_seed: int = 77, horizons=(1, 5, 10, 24), ray_steps: int = 5) -> dict:
+                          heldout_seed: int = HELDOUT_SEED, horizons=(1, 5, 10, 24),
+                          ray_steps: int = 5, allow_overlap: bool = False) -> dict:
     """What the surrogate is, measured (revision step 10).
 
     In a uniform-drag world (k_land == k_water, as in world P) the authentic velocity law
     vel' = (1 - drag*dt) vel + a dt is LINEAR in (vel, a) with constant coefficients, so
     withholding drag from G withholds a constant. The linear-fit control fits an ordinary
-    least-squares map (vel, a) -> vel' on G's own training transitions: it recovers the law to
+    least-squares map (vel, a) -> vel' on the training sample: it recovers the law to
     rounding, so a linear surrogate would carry no fingerprint, and G's fingerprint is the
     approximation error of a finite-trained ReLU MLP (fixed epochs, no early stopping).
 
-    Reports one-step RMS error of G and of the linear fit on the training transitions and on
-    HELD-OUT authentic transitions (disjoint seeds), and the open-loop ROLLOUT divergence:
-    from held-out authentic states, iterate G and the authentic law under the same recorded
-    accelerations and report the RMS velocity gap after each horizon. One-step error and
-    rollout divergence are different quantities; the second compounds the first."""
+    The training sample is episodes [train_seed, train_seed + n_train_eps). It is G's own
+    training data only when `train_seed` is the seed G was trained with and the sizes match
+    its recipe (`train_g_motion` draws episodes from its own `seed`), so a caller scoring a G
+    trained at seed k passes `train_seed=k`. The held-out sample is episodes
+    [heldout_seed, heldout_seed + heldout_eps), and the two ranges must not overlap: a held-out
+    range inside the training range would score G on transitions it was fit to (the seed-77
+    default used before 2026-10-10 did exactly that, see docs/CORRECTIONS.md). Only
+    `allow_overlap=True` lifts that refusal, to regenerate the seed-77 calibration-sample
+    numbers kept in artifacts/surrogate_diagnostics.json; the output then carries
+    heldout_overlaps_training: True, so its "held-out" columns cannot be read as held out.
+
+    Reports one-step RMS error of G and of the linear fit on the training sample and on the
+    held-out sample, and the open-loop ROLLOUT divergence: from held-out authentic states,
+    iterate G and the authentic law under the same recorded accelerations and report the RMS
+    velocity gap after each horizon. One-step error and rollout divergence are different
+    quantities; the second compounds the first."""
+    overlap = heldout_seed < train_seed + n_train_eps and train_seed < heldout_seed + heldout_eps
+    if overlap and not allow_overlap:
+        raise ValueError(
+            f"held-out episodes [{heldout_seed}, {heldout_seed + heldout_eps}) overlap the "
+            f"training episodes [{train_seed}, {train_seed + n_train_eps}); pick a disjoint "
+            "heldout_seed")
     X, Y = collect_authentic_transitions(n_eps=n_train_eps, steps=train_steps, params=params,
                                          ray_steps=ray_steps, seed0=train_seed)
     Xh, Yh = collect_authentic_transitions(n_eps=heldout_eps, steps=heldout_steps, params=params,
@@ -189,7 +216,10 @@ def surrogate_diagnostics(g, *, params, n_train_eps: int = 250, train_steps: int
                           "rms_heldout": rms(lin_ho, Yh.astype(float))},
            "g_one_step": {"rms_train": rms(g_pred(X), Y.astype(float)),
                           "rms_heldout": rms(g_pred(Xh), Yh.astype(float))},
-           "n_train": int(len(X)), "n_heldout": int(len(Xh))}
+           "n_train": int(len(X)), "n_heldout": int(len(Xh)),
+           "train_seed": int(train_seed), "heldout_seed": int(heldout_seed)}
+    if overlap:
+        out["heldout_overlaps_training"] = True
     # Open-loop rollout divergence along held-out trajectories (same accelerations).
     traj = Xh.reshape(heldout_eps, heldout_steps, 4).astype(float)
     a_dt = params.dt

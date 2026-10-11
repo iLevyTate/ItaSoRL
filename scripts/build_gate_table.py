@@ -88,7 +88,11 @@ def _summary_row(run_id, rel, partition):
     return {"run": run_id, "partition": partition, "source": f"artifacts/{rel}",
             "l0": l0_block(l0), "untrained_floor": floor_block(unt),
             "engagement": f"{sum(v['pass'] for v in eng.values())}/{sum(v['n'] for v in eng.values())}",
-            "speed_min": g.get("speed_min"), "pool_leak_clean_all": g.get("pool_leak_clean_all"),
+            "speed_min": g.get("speed_min"),
+            # promote_reviewer_gaps_runs.py wrote the lowest arm MEAN until 2026-10-10; an
+            # artifact refreshed since (or promoted after) records the lowest pool.
+            "speed_basis": "pool" if "speed_n_pools" in g else "arm mean",
+            "pool_leak_clean_all": g.get("pool_leak_clean_all"),
             "deaths_total": g.get("deaths_total")}
 
 
@@ -163,6 +167,10 @@ def render_md(t: dict) -> str:
          "Every L0 row conditions on one pair of evaluation-world samples shared by all agent "
          "seeds; `artifacts/l0_audit/` measures how far the statistic moves across independent "
          "world samples.", "",
+         "Speed min is the speed probe in the lowest pool over every drift, arm and seed (gate 3 "
+         "needs at least 0.75 in every pool). A value marked (lowest arm mean) comes from an "
+         "artifact promoted before 2026-10-10 that recorded the lowest arm mean instead, which "
+         "can sit above a pool under the threshold.", "",
          "| Run | Status | Partition | L0 mean | L0 TOST p | L0 | ROPE share | Untrained floor | "
          "Engagement | Speed min | Pooled leak clean | Deaths |",
          "|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -171,12 +179,20 @@ def render_md(t: dict) -> str:
         L.append(f"| `{r['run']}` | {r['status']} | {r['partition']} | {_fmt(l0['mean'])} | "
                  f"{_fmt(l0.get('tost_p'))} | {l0['status']} | {_fmt(l0.get('rope_share_inside'))} | "
                  f"{_fmt(fl['mean'])} ({fl['status']}) | {_fmt(r.get('engagement'))} | "
-                 f"{_fmt(r.get('speed_min'))} | {_fmt(r.get('pool_leak_clean_all'))} | "
+                 f"{_fmt(r.get('speed_min'))}"
+                 f"{' (lowest arm mean)' if r.get('speed_basis') == 'arm mean' else ''} | "
+                 f"{_fmt(r.get('pool_leak_clean_all'))} | "
                  f"{_fmt(r.get('deaths_total'))} |")
     open_rows = [r for r in t["rows"] if r["l0"]["status"] != "pass"]
     L += ["", f"L0 not shown equivalent: {len(open_rows)} of {len(t['rows'])} rows "
           + ("(" + ", ".join(f"`{r['run']}` {r['partition']}" for r in open_rows) + ")."
              if open_rows else "."), ""]
+    slow = [r for r in t["rows"] if isinstance(r.get("speed_min"), (int, float))
+            and np.isfinite(r["speed_min"]) and r["speed_min"] < 0.75]
+    L += [f"Speed positive control under 0.75 in its lowest pool: {len(slow)} of "
+          f"{len(t['rows'])} rows"
+          + (" (" + ", ".join(f"`{r['run']}` {r['partition']} {_fmt(r['speed_min'])}" for r in slow)
+             + ")." if slow else "."), ""]
     return "\n".join(L)
 
 

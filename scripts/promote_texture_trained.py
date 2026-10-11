@@ -7,11 +7,22 @@ must trace to a committed artifact rather than to a gitignored run bundle. This 
 per-seed decision values and the full gate battery, recomputes the rule and every gate from
 them, and records the routing.
 
+It also checks the configuration the battery cannot see: the agent's GRU trunk width, read
+from the constructor record and the recurrent weights of every saved agent (the run's agents/
+directory). The registered trunk is 96. A run whose agents were built at another width is not
+the registered protocol, whatever its gates say: the artifact records trunk_hidden beside
+registered_trunk_hidden, a configuration_deviation note, rule_met false, and an UNINFORMATIVE
+routing. Without saved agents the width is not verified, which is recorded and blocks the
+rule the same way. (The white-jitter run T_gn ran an 8-unit trunk: its launch passed
+--hidden 8 beside --l3-hidden 8.)
+
 Usage:
     python scripts/promote_texture_trained.py \\
         --run fullruns/T_gn_l3_h8_wm/expB2_results.json \\
+        --cells fullruns/T_gn_l3_h8_wm/cells \\
         --out artifacts/texture/T_gn_l3_h8_wm.json \\
-        --family gn --family-param 0.01 --gate0 artifacts/expH2/texture_knockout_h8.json
+        --family gn --family-param 0.01 --gate0 artifacts/expH2/texture_knockout_h8.json \\
+        [--agents fullruns/T_gn_l3_h8_wm/agents] [--deviation-note "<why the width differs>"]
 """
 
 from __future__ import annotations
@@ -21,11 +32,13 @@ import _bootstrap  # noqa: F401
 import argparse  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
+import re  # noqa: E402
 
 import numpy as np  # noqa: E402
 
 from itasorl.results_io import git_head  # noqa: E402
 from itasorl.stats import equivalence_test, paired_contrast, t_ci90  # noqa: E402
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 ARMS = ("untrained", "predictor", "survival")
 # The full section 7 battery. Named here so a gate cannot go missing from a promoted artifact
@@ -34,6 +47,7 @@ REGISTERED_GATES = ("gate0_oracle_band", "engagement", "l0_tost", "speed_positiv
                     "reward_leakage", "survivorship", "untrained_floor")
 BAR = 0.65
 MARGIN = 0.05
+REGISTERED_TRUNK = 96      # the agent's GRU width under the registered protocol
 SPEED_GATE = 0.75          # preregistration section 7, gate 3
 LEAK_TOL = 0.1             # gate 4
 L0_ROPE = 0.05             # gate 2 margin
@@ -79,7 +93,8 @@ def engagement_gate(cells_dir: str | None) -> dict:
     verifiable from the repository rather than asserted in prose. A missing cells directory is
     a failed gate, never an absent one.
     """
-    out = {"cells_dir": cells_dir, "n_cells": 0, "n_engaged": 0, "per_cell": [], "pass": False}
+    out = {"cells_dir": repo_rel(cells_dir) if cells_dir else cells_dir, "n_cells": 0,
+           "n_engaged": 0, "per_cell": [], "pass": False}
     if not cells_dir or not os.path.isdir(cells_dir):
         out["note"] = "cells directory not found; engagement cannot be verified"
         return out
@@ -95,6 +110,41 @@ def engagement_gate(cells_dir: str | None) -> dict:
         out["n_cells"] += 1
         out["n_engaged"] += int(ok)
     out["pass"] = out["n_cells"] > 0 and out["n_engaged"] == out["n_cells"]
+    return out
+
+
+def trunk_check(agents_dir: str | None) -> dict:
+    """The agent trunk width of every saved agent: its constructor record and the second
+    dimension of its recurrent weight_hh (3*hidden, hidden), which must agree."""
+    out = {"agents_dir": repo_rel(agents_dir) if agents_dir else None, "n_agents": 0,
+           "hidden_values": [], "verified": False}
+    if not agents_dir or not os.path.isdir(agents_dir):
+        out["note"] = "agents directory not found; the trunk width is not verified"
+        return out
+    import torch
+    widths = set()
+    for name in sorted(os.listdir(agents_dir)):
+        if not name.endswith(".pt"):
+            continue
+        # weights_only=False: the bundle holds the normalizer as numpy arrays (own files only,
+        # as itasorl.experiment_b2.load_agent_bundle). Nothing is evaluated.
+        blob = torch.load(os.path.join(agents_dir, name), map_location="cpu", weights_only=False)
+        hidden = int(blob["ctor"]["hidden"])
+        # GRUCell names its recurrent weight weight_hh, nn.GRU weight_hh_l<k>. A bundle with
+        # neither cannot confirm its constructor record, so it is refused, not passed.
+        whh = [tuple(v.shape) for k, v in blob["state_dict"].items()
+               if re.search(r"weight_hh(?:_l\d+)?$", k)]
+        if not whh:
+            raise SystemExit(f"{name}: no recurrent weight_hh in the state dict; the trunk width "
+                             f"cannot be checked against ctor hidden {hidden}")
+        if any(sh != (3 * hidden, hidden) for sh in whh):
+            raise SystemExit(f"{name}: ctor hidden {hidden} disagrees with weight_hh {whh}")
+        widths.add(hidden)
+        out["n_agents"] += 1
+    out["hidden_values"] = sorted(widths)
+    out["verified"] = out["n_agents"] > 0 and len(widths) == 1
+    if out["n_agents"] and len(widths) > 1:
+        out["note"] = "agents of more than one trunk width"
     return out
 
 
@@ -117,6 +167,12 @@ def main() -> int:
     ap.add_argument("--cells", default=None,
                     help="the run's cells/ directory, which carries the engagement records")
     ap.add_argument("--drift", type=float, default=0.45)
+    ap.add_argument("--agents", default=None,
+                    help="the run's agents/ directory (default: agents/ beside --run); the "
+                         "trunk width is read from every saved agent")
+    ap.add_argument("--deviation-note", default=None,
+                    help="recorded as configuration_deviation when the trunk is not the "
+                         "registered width (default: a sentence stating the two widths)")
     a = ap.parse_args()
 
     with open(a.run, encoding="utf-8") as fh:
@@ -166,30 +222,50 @@ def main() -> int:
     contrasts = {b: paired_contrast(v["survival"]["pool_target"], v[b]["pool_target"])
                  for b in ("predictor", "untrained")}
 
+    agents_dir = a.agents or os.path.join(os.path.dirname(os.path.abspath(a.run)), "agents")
+    trunk = trunk_check(agents_dir)
+    trunk_hidden = trunk["hidden_values"][0] if trunk["verified"] else None
+    registered_config = trunk_hidden == REGISTERED_TRUNK
+
     # The registered matrix (section 8) names two reachable verdicts and both require every
     # gate to pass. With a gate open neither is reached, and the matrix routes only gate-0 and
     # engagement failures to "uninformative", so a failure of another gate has no cell at all.
+    # A run that is not the registered configuration reaches no verdict either.
     if failed:
         routing = ("UNINFORMATIVE: the registered matrix requires every gate to pass for either "
                    "verdict, and it names no cell for a failure of " + ", ".join(failed) +
                    "; the run is not promoted as a negative and strengthens no claim")
+    elif not registered_config:
+        routing = ("UNINFORMATIVE: not the registered configuration (agent trunk "
+                   f"{trunk_hidden if trunk_hidden is not None else 'not verified'}, registered "
+                   f"{REGISTERED_TRUNK}); the run is not promoted as a negative and strengthens "
+                   "no claim")
     elif all(clauses.values()):
         routing = "ENCODING INDUCED (conditional on this fingerprint)"
     else:
         routing = "STRENGTHENED NEGATIVE"
 
     out = {
-        "source_run": a.run.replace("\\", "/"),
+        "source_run": repo_rel(a.run),
         "generated_by": "scripts/promote_texture_trained.py",
         "git_commit_at_promotion": git_head(),
         "spec": "docs/specs/2026-10-09-gn-comparator-trained-design.md",
         "family": a.family, "family_param": a.family_param, "drift": a.drift,
         "bars": {"bar": BAR, "margin": MARGIN},
         "primary": primary, "l0_control": l0,
-        "clauses": clauses, "rule_met": bool(all(clauses.values()) and not failed),
+        "clauses": clauses,
+        "rule_met": bool(all(clauses.values()) and not failed and registered_config),
         "contrasts": {k: {"mean": c["mean"], "t90": c["t90"]} for k, c in contrasts.items()},
         "gates": gates, "gates_failed": failed, "routing": routing,
+        "trunk_hidden": trunk_hidden, "registered_trunk_hidden": REGISTERED_TRUNK,
+        "trunk_check": trunk,
     }
+    if not registered_config:
+        out["configuration_deviation"] = a.deviation_note or (
+            f"The agent trunk was {trunk_hidden} units, not the registered {REGISTERED_TRUNK} "
+            f"(read from {trunk['n_agents']} saved agents)." if trunk_hidden is not None else
+            "The agent trunk width was not verified (no saved agents were read), so the run "
+            "is not shown to be the registered configuration.")
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1)
@@ -198,6 +274,8 @@ def main() -> int:
           f"[{primary['survival']['t90'][0]:.3f}, {primary['survival']['t90'][1]:.3f}], "
           f"{primary['survival']['seeds_at_or_above_bar']}/10 at the bar")
     print(f"  gates failed: {failed or 'none'}")
+    print(f"  agent trunk: {trunk_hidden} (registered {REGISTERED_TRUNK}; "
+          f"{trunk['n_agents']} agents read)")
     print(f"  routing: {routing}")
     return 0
 

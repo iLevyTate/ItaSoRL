@@ -1,0 +1,2539 @@
+{
+ "about": "Every frozen decision rule in this repository adjudicated at the 0.65 bar or the 0.05 margin, one row per rule and run, as recorded at the time. No rule is re-adjudicated and no threshold is changed here. Each clause names the artifact value it reads; scripts/build_paper_tables.py recomputes every value, checks it against the recorded reading and the recorded outcome, and renders docs/RULE_LEDGER.md.",
+ "rows": [
+  {
+   "id": "BV2-PRIMARY",
+   "rule": "B-v2 primary rule (H_B2), L2 rollout drift",
+   "short": "B-v2 primary (L2 AR(1) drift)",
+   "source": "docs/PREREGISTRATION.md",
+   "source_part": "sec. 6 and 8",
+   "frozen": "2026-06-28",
+   "run": "BV2-L2-AR1",
+   "trainer": "historical",
+   "n": 3,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/expB2_results.json",
+      "path": "0.45/survival/pool_target",
+      "stat": "mean"
+     },
+     "reading": "0.523",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/expB2_results.json",
+        "path": "0.45/survival/pool_target",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expB2/expB2_results.json",
+        "path": "0.45/predictor/pool_target",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.013",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/expB2_results.json",
+        "path": "0.45/survival/pool_target",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expB2/expB2_results.json",
+        "path": "0.45/untrained/pool_target",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.047",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "NOT MET",
+   "outcome_class": "threshold not met",
+   "recorded_in": "FINDINGS 9; PREREGISTRATION sec. 12",
+   "note": "n = 3 seeds; the run predates the t-interval adjudication of the later rungs."
+  },
+  {
+   "id": "BV3-PRIMARY",
+   "rule": "B-v3 primary rule, L2 per-episode drag regime",
+   "short": "B-v3 primary (L2 regime)",
+   "source": "docs/PREREGISTRATION_Bv3.md",
+   "source_part": "sec. 6 and 8",
+   "frozen": "2026-07-01",
+   "run": "BV3-REGIME-N10",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/bv3_n10_summary.json",
+      "path": "pooled_target_drift045/survival/pool_target_per_seed",
+      "stat": "mean"
+     },
+     "reading": "0.610",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/bv3_n10_summary.json",
+        "path": "pooled_target_drift045/survival/pool_target_per_seed",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expB2/bv3_n10_summary.json",
+        "path": "pooled_target_drift045/predictor/pool_target_per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.097",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/bv3_n10_summary.json",
+        "path": "pooled_target_drift045/survival/pool_target_per_seed",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expB2/bv3_n10_summary.json",
+        "path": "pooled_target_drift045/untrained/pool_target_per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.110",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/bv3_n10_summary.json",
+      "path": "pooled_target_drift045/survival/pool_target_per_seed",
+      "stat": "t90_lower"
+     },
+     "reading": "0.581",
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "NOT MET: both margins pass and the bar is missed",
+   "outcome_class": "threshold not met",
+   "recorded_in": "FINDINGS 7.1; PREREGISTRATION_Bv3 sec. 12",
+   "note": "The t-interval adjudication came with the B-v3 audit of 2026-07-10, after this freeze; the interval misses the bar as well."
+  },
+  {
+   "id": "L3-PRIMARY-H8",
+   "rule": "L3 primary rule, historical headline at hidden 8",
+   "short": "L3 primary, hidden 8",
+   "source": "docs/PREREGISTRATION_L3.md",
+   "source_part": "sec. 6, 8 and 10",
+   "frozen": "2026-07-10",
+   "run": "L3-H8-N10",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "mean"
+     },
+     "reading": "0.752",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "t90_lower"
+     },
+     "reading": "0.698",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+        "path": "cells",
+        "where": {
+         "drift": 0.45,
+         "agent": "survival"
+        },
+        "key": "target",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+        "path": "cells",
+        "where": {
+         "drift": 0.45,
+         "agent": "predictor"
+        },
+        "key": "target",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.179",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+        "path": "cells",
+        "where": {
+         "drift": 0.45,
+         "agent": "survival"
+        },
+        "key": "target",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+        "path": "cells",
+        "where": {
+         "drift": 0.45,
+         "agent": "untrained"
+        },
+        "key": "target",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.265",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "MET (encoding induced, conditional on this fingerprint)",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-12; FINDINGS 10.2",
+   "note": "Legacy partition, the one the verdict used. The explicit-partition re-score of the same agents (2026-09-29) reads 0.774 [0.727, 0.821] with the L0 gate open (0.539, TOST p 0.207); no verdict was re-adjudicated."
+  },
+  {
+   "id": "L3-PRIMARY-H7",
+   "rule": "L3 primary rule at the second capacity, hidden 7",
+   "short": "L3 primary, hidden 7",
+   "source": "docs/PREREGISTRATION_L3.md",
+   "source_part": "sec. 6, 8 and 10; sec. 11 two-capacity clause",
+   "frozen": "2026-07-10",
+   "freeze_note": "The rule is from the original freeze; the hidden-7 selection itself was committed with its result (2026-07-16 entry).",
+   "run": "L3-H7-N10",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "mean"
+     },
+     "reading": "0.737",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "t90_lower"
+     },
+     "reading": "0.682",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+        "path": "cells",
+        "where": {
+         "drift": 0.45,
+         "agent": "survival"
+        },
+        "key": "target",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+        "path": "cells",
+        "where": {
+         "drift": 0.45,
+         "agent": "predictor"
+        },
+        "key": "target",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.023",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+        "path": "cells",
+        "where": {
+         "drift": 0.45,
+         "agent": "survival"
+        },
+        "key": "target",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+        "path": "cells",
+        "where": {
+         "drift": 0.45,
+         "agent": "untrained"
+        },
+        "key": "target",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.151",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "NOT MET: the predictor margin fails (dissociation not replicated)",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-14; FINDINGS 10.5",
+   "note": "Misses the margin by 0.027, so it is not a boundary case."
+  },
+  {
+   "id": "BEHAVIOR-H8",
+   "rule": "Per-timestep behavior control, hidden 8",
+   "short": "Behavior control, hidden 8",
+   "source": "docs/specs/2026-07-12-l3-behavior-audit-design.md",
+   "source_part": "Decision rule",
+   "frozen": "2026-07-12",
+   "run": "L3-H8-N10",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "resid_trace",
+      "stat": "mean"
+     },
+     "reading": "0.726",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "resid_trace",
+      "stat": "t90_lower"
+     },
+     "reading": null,
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "at or above 0.65: the behavior-independent claim strengthens",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-13; FINDINGS 10.4"
+  },
+  {
+   "id": "BEHAVIOR-H7",
+   "rule": "Per-timestep behavior control, hidden 7",
+   "short": "Behavior control, hidden 7",
+   "source": "docs/specs/2026-07-12-l3-behavior-audit-design.md",
+   "source_part": "Decision rule",
+   "frozen": "2026-07-12",
+   "run": "L3-H7-N10",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "resid_trace",
+      "stat": "mean"
+     },
+     "reading": "0.722",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "resid_trace",
+      "stat": "t90_lower"
+     },
+     "reading": null,
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "at or above 0.65: the behavior-independent claim strengthens",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-14; FINDINGS 10.5"
+  },
+  {
+   "id": "TRANSFER-FORWARD",
+   "rule": "Held-out fingerprint transfer, trained hidden 8 to unseen hidden 7",
+   "short": "Transfer, hidden 8 to 7",
+   "source": "docs/specs/2026-07-14-l3-heldout-common-garden-probe-design.md",
+   "source_part": "Channel 1 decision rule",
+   "frozen": "2026-07-14",
+   "run": "L3-H8-HELDOUT",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/heldout_l3_h8_summary.json",
+      "path": "aggregate/d=0.45 survival/transfer_target/mean"
+     },
+     "reading": "0.773",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/heldout_l3_h8_summary.json",
+        "path": "aggregate/d=0.45 survival/transfer_target/mean"
+       },
+       {
+        "artifact": "expB2/heldout_l3_h8_summary.json",
+        "path": "aggregate/d=0.45 untrained/transfer_target/mean"
+       }
+      ]
+     },
+     "reading": "0.204",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/heldout_l3_h8_summary.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "transfer_target",
+      "stat": "t90_lower"
+     },
+     "reading": "0.722",
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "passes: generalizes to an unseen same-recipe fingerprint",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-14; FINDINGS 10.6"
+  },
+  {
+   "id": "COMMON-GARDEN-FORWARD",
+   "rule": "Common garden, prefix in the hidden-8 surrogate",
+   "short": "Common garden, hidden 8",
+   "source": "docs/specs/2026-07-14-l3-heldout-common-garden-probe-design.md",
+   "source_part": "Channel 2 decision rule",
+   "frozen": "2026-07-14",
+   "run": "L3-H8-HELDOUT",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/heldout_l3_h8_cg_rescore.json",
+      "path": "strong_drift/survival/cg_tail_mean"
+     },
+     "reading": "0.666",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/heldout_l3_h8_cg_rescore.json",
+        "path": "strong_drift/survival/cg_tail_mean"
+       },
+       {
+        "artifact": "expB2/heldout_l3_h8_cg_rescore.json",
+        "path": "strong_drift/untrained/cg_tail_mean"
+       }
+      ]
+     },
+     "reading": "0.097",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/heldout_l3_h8_cg_rescore.json",
+      "path": "strong_drift/survival/cg_tail_per_seed",
+      "stat": "t90_lower"
+     },
+     "reading": "0.624",
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "passes on the re-score under the fixed estimator (the first scoring, 0.557, used the biased estimator and failed)",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-18 correction; FINDINGS 10.6.1",
+   "note": "Passes on its mean basis while the t90 lower bound sits under the bar. Reads the prefix's physical footprint, not retention (FINDINGS 17.7)."
+  },
+  {
+   "id": "TRANSFER-REVERSE",
+   "rule": "Held-out fingerprint transfer, trained hidden 7 to unseen hidden 8",
+   "short": "Transfer, hidden 7 to 8",
+   "source": "docs/PREREGISTRATION_L3.md",
+   "source_part": "sec. 12, 2026-07-14 entry, announced before launch",
+   "frozen": "2026-07-14",
+   "run": "L3-H7-REVERSE",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/heldout_l3_h7_reverse_summary.json",
+      "path": "aggregate/d=0.45 survival/transfer_target/mean"
+     },
+     "reading": "0.638",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/heldout_l3_h7_reverse_summary.json",
+        "path": "aggregate/d=0.45 survival/transfer_target/mean"
+       },
+       {
+        "artifact": "expB2/heldout_l3_h7_reverse_summary.json",
+        "path": "aggregate/d=0.45 untrained/transfer_target/mean"
+       }
+      ]
+     },
+     "reading": "0.113",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/heldout_l3_h7_reverse_summary.json",
+      "path": "cells",
+      "where": {
+       "drift": 0.45,
+       "agent": "survival"
+      },
+      "key": "transfer_target",
+      "stat": "t90_lower"
+     },
+     "reading": "0.600",
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "fails on the bar (informative negative)",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-16; FINDINGS 10.6"
+  },
+  {
+   "id": "COMMON-GARDEN-REVERSE",
+   "rule": "Common garden, prefix in the hidden-7 surrogate",
+   "short": "Common garden, hidden 7",
+   "source": "docs/PREREGISTRATION_L3.md",
+   "source_part": "sec. 12, 2026-07-14 entry, announced before launch",
+   "frozen": "2026-07-14",
+   "run": "L3-H7-REVERSE",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/heldout_l3_h7_reverse_cg_rescore.json",
+      "path": "strong_drift/survival/cg_tail_mean"
+     },
+     "reading": "0.684",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/heldout_l3_h7_reverse_cg_rescore.json",
+        "path": "strong_drift/survival/cg_tail_mean"
+       },
+       {
+        "artifact": "expB2/heldout_l3_h7_reverse_cg_rescore.json",
+        "path": "strong_drift/untrained/cg_tail_mean"
+       }
+      ]
+     },
+     "reading": "0.112",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/heldout_l3_h7_reverse_cg_rescore.json",
+      "path": "strong_drift/survival/cg_tail_per_seed",
+      "stat": "t90_lower"
+     },
+     "reading": "0.645",
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "passes on the re-score under the fixed estimator",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-18 correction; FINDINGS 10.6.1",
+   "note": "Passes on its mean basis while the t90 lower bound sits under the bar."
+  },
+  {
+   "id": "CROSS-RECIPE",
+   "rule": "Cross-recipe transfer to the random-Fourier-features family",
+   "short": "Cross-recipe transfer",
+   "source": "docs/specs/2026-07-15-l3-crossrecipe-transfer-probe-design.md",
+   "source_part": "Decision rules, channel 1",
+   "frozen": "2026-07-15",
+   "run": "L3-H8-HELDOUT",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "l3_crossrecipe/summary.json",
+      "path": "transfer_rff/survival_per_seed",
+      "stat": "mean"
+     },
+     "reading": "0.684",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "l3_crossrecipe/summary.json",
+        "path": "transfer_rff/survival_per_seed",
+        "stat": "mean"
+       },
+       {
+        "artifact": "l3_crossrecipe/summary.json",
+        "path": "transfer_rff/untrained_per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.137",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "l3_crossrecipe/summary.json",
+      "path": "transfer_rff/survival_per_seed",
+      "stat": "t90_lower"
+     },
+     "reading": "0.654",
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "passes",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-16; FINDINGS 10.7",
+   "note": "Readout-only on the saved held-out agents. The t90 lower bound clears the bar by 0.004."
+  },
+  {
+   "id": "TEXTURE-KNOCKOUT-H8",
+   "rule": "Texture knockout: transfer to matched-band white jitter, hidden 8",
+   "short": "Jitter knockout, hidden 8",
+   "source": "docs/specs/2026-07-22-h2-substrate-grounding-ablations-design.md",
+   "source_part": "Channel 1 positive rule on G_gn",
+   "frozen": "2026-07-22",
+   "run": "L3-H8-HELDOUT",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expH2/texture_knockout_h8.json",
+      "path": "channels/gn/survival/per_seed_full",
+      "stat": "mean"
+     },
+     "reading": "0.539",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expH2/texture_knockout_h8.json",
+        "path": "channels/gn/survival/per_seed_full",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expH2/texture_knockout_h8.json",
+        "path": "channels/gn/untrained/per_seed_full",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "-0.002",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "positive rule fails both clauses (recorded as texture-specific; reworded 2026-10-06)",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-23 and 2026-10-06; FINDINGS 14.5",
+   "note": "A failed positive rule is the reading the knockout looked for; it establishes no learned-texture mechanism (2026-10-06 wording amendment)."
+  },
+  {
+   "id": "TEXTURE-KNOCKOUT-H7",
+   "rule": "Texture knockout: transfer to matched-band white jitter, hidden 7",
+   "short": "Jitter knockout, hidden 7",
+   "source": "docs/specs/2026-07-22-h2-substrate-grounding-ablations-design.md",
+   "source_part": "Channel 1 positive rule on G_gn",
+   "frozen": "2026-07-22",
+   "run": "L3-H7-REVERSE",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expH2/texture_knockout_h7.json",
+      "path": "channels/gn/survival/per_seed_full",
+      "stat": "mean"
+     },
+     "reading": "0.510",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expH2/texture_knockout_h7.json",
+        "path": "channels/gn/survival/per_seed_full",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expH2/texture_knockout_h7.json",
+        "path": "channels/gn/untrained/per_seed_full",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "-0.010",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "positive rule fails both clauses (recorded as texture-specific; reworded 2026-10-06)",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-23 and 2026-10-06; FINDINGS 14.5",
+   "note": "A failed positive rule is the reading the knockout looked for; it establishes no learned-texture mechanism (2026-10-06 wording amendment)."
+  },
+  {
+   "id": "NOISE-KNOCKOUT-L1",
+   "rule": "Noise knockout at L1: transfer to matched-band observation noise",
+   "short": "Noise knockout, L1",
+   "source": "docs/specs/2026-07-22-h2-substrate-grounding-ablations-design.md",
+   "source_part": "Channel 1 positive rule, applied at L1",
+   "frozen": "2026-07-22",
+   "run": "L1-ORGANISM",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expL1/h2_ablations.json",
+      "path": "a2_noise_knockout/survival_per_seed",
+      "stat": "mean"
+     },
+     "reading": "0.525",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expL1/h2_ablations.json",
+        "path": "a2_noise_knockout/survival_per_seed",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expL1/h2_ablations.json",
+        "path": "a2_noise_knockout/untrained_per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.017",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "positive rule fails both clauses; vacuous, since the L1 primary reading is null",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-25; FINDINGS 14.7"
+  },
+  {
+   "id": "L1-PRIMARY",
+   "rule": "Primary rule (H_B2) at L1, observation quantization",
+   "short": "L1 primary (H_B2)",
+   "source": "docs/PREREGISTRATION.md",
+   "source_part": "sec. 6 and 8, rule H_B2 under the B-v2 protocol the L1 run used",
+   "frozen": "2026-06-28",
+   "freeze_note": "The 2026-07-21 H2 spec names the L1 run (A3) without a rule of its own; the record applies H_B2.",
+   "run": "L1-ORGANISM",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expL1/organism_summary.json",
+      "path": "arms/0.023/survival/pool_target",
+      "stat": "mean"
+     },
+     "reading": "0.533",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expL1/organism_summary.json",
+        "path": "arms/0.023/survival/pool_target",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expL1/organism_summary.json",
+        "path": "arms/0.023/predictor/pool_target",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.045",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expL1/organism_summary.json",
+        "path": "arms/0.023/survival/pool_target",
+        "stat": "mean"
+       },
+       {
+        "artifact": "expL1/organism_summary.json",
+        "path": "arms/0.023/untrained/pool_target",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.039",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "NOT MET",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-25; FINDINGS 14.7"
+  },
+  {
+   "id": "SENSORY-ECHO-H8",
+   "rule": "Sensory-echo control, hidden 8",
+   "short": "Sensory echo, hidden 8",
+   "source": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md",
+   "source_part": "Decision rules",
+   "frozen": "2026-09-26",
+   "freeze_note": "The spec was first committed together with its result, after the run's output was written, so the freeze is commit-simultaneous (as with hidden 7).",
+   "run": "L3-H8-HELDOUT",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/sensory_echo_l3_h8.json",
+      "path": "decision/survival_resid_obs"
+     },
+     "reading": "0.731",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/sensory_echo_l3_h8.json",
+        "path": "decision/survival_resid_obs"
+       },
+       {
+        "artifact": "expB2/sensory_echo_l3_h8.json",
+        "path": "decision/untrained_resid_obs"
+       }
+      ]
+     },
+     "reading": "0.197",
+     "role": "rule"
+    },
+    {
+     "clause": "t90 lower bound minus the untrained mean",
+     "basis": "difference",
+     "op": ">",
+     "threshold": 0.0,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/sensory_echo_l3_h8.json",
+        "path": "decision/survival_t90/0"
+       },
+       {
+        "artifact": "expB2/sensory_echo_l3_h8.json",
+        "path": "decision/untrained_resid_obs"
+       }
+      ]
+     },
+     "reading": "0.156",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "passes: sensory-independent",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-26; FINDINGS 10.4.2"
+  },
+  {
+   "id": "SENSORY-ECHO-H7",
+   "rule": "Sensory-echo control, hidden 7",
+   "short": "Sensory echo, hidden 7",
+   "source": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md",
+   "source_part": "Decision rules",
+   "frozen": "2026-09-26",
+   "run": "L3-H7-REVERSE",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/sensory_echo_l3_h7.json",
+      "path": "decision/survival_resid_obs"
+     },
+     "reading": "0.684",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/sensory_echo_l3_h7.json",
+        "path": "decision/survival_resid_obs"
+       },
+       {
+        "artifact": "expB2/sensory_echo_l3_h7.json",
+        "path": "decision/untrained_resid_obs"
+       }
+      ]
+     },
+     "reading": "0.135",
+     "role": "rule"
+    },
+    {
+     "clause": "t90 lower bound minus the untrained mean",
+     "basis": "difference",
+     "op": ">",
+     "threshold": 0.0,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/sensory_echo_l3_h7.json",
+        "path": "decision/survival_t90/0"
+       },
+       {
+        "artifact": "expB2/sensory_echo_l3_h7.json",
+        "path": "decision/untrained_resid_obs"
+       }
+      ]
+     },
+     "reading": "0.078",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/sensory_echo_l3_h7.json",
+      "path": "decision/survival_t90/0"
+     },
+     "reading": "0.627",
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "passes",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29; FINDINGS 10.4.2",
+   "note": "Passes on its mean basis while the t90 lower bound sits under the bar.",
+   "freeze_note": "Noted 2026-10-10: the spec's \"Out of scope\" section lists hidden = 7. The rule was frozen for the hidden-8 agents; the 2026-09-29 entry applied it to the hidden-7 agents after that, so this row's rule was not registered for this run before it ran."
+  },
+  {
+   "id": "NONLINEAR-JOINT-CONTROL",
+   "rule": "Nonlinear joint input-plus-behavior control, hidden 8",
+   "short": "Nonlinear joint control",
+   "source": "docs/specs/2026-09-27-local-strengthening-probes-design.md",
+   "source_part": "Probe B decision rule",
+   "frozen": "2026-09-27",
+   "freeze_note": "The spec was committed about three minutes after the first cell was written and before the first survival cell.",
+   "run": "L3-H8-HELDOUT",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/sensory_echo_l3_h8_mlp.json",
+      "path": "decision_nonlinear/survival_resid_obs_beh_mlp"
+     },
+     "reading": "0.654",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "expB2/sensory_echo_l3_h8_mlp.json",
+        "path": "decision_nonlinear/survival_resid_obs_beh_mlp"
+       },
+       {
+        "artifact": "expB2/sensory_echo_l3_h8_mlp.json",
+        "path": "decision_nonlinear/untrained_resid_obs_beh_mlp"
+       }
+      ]
+     },
+     "reading": "0.145",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/sensory_echo_l3_h8_mlp.json",
+      "path": "decision_nonlinear/survival_t90/0"
+     },
+     "reading": "0.621",
+     "role": "reported"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "passes at the mean",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-28; FINDINGS 10.4.2",
+   "note": "Superseded by the corrected-agent control of FINDINGS 17.8 (0.620, no frozen margin)."
+  },
+  {
+   "id": "ARCH-BASELINE",
+   "rule": "Architecture baseline: does the positive survive without the auxiliary",
+   "short": "Architecture baseline",
+   "source": "docs/specs/2026-09-26-l3-architecture-baseline-design.md",
+   "source_part": "Decision rules",
+   "frozen": "2026-09-26",
+   "run": "L3-H8-NOWM-CPU",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/arch_baseline_l3_h8_nowm.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.601",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/arch_baseline_l3_h8_nowm.json",
+      "path": "decision/survival_t90/0"
+     },
+     "reading": "0.549",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/arch_baseline_l3_h8_nowm.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.013",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/arch_baseline_l3_h8_nowm.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.072",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "the positive is auxiliary-conditional (survival under the bar)",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-27; FINDINGS 10.8"
+  },
+  {
+   "id": "DEVICE-CONTROL",
+   "rule": "Device control: the hidden-8 protocol with the auxiliary on the CPU",
+   "short": "Device control",
+   "source": "docs/specs/2026-09-26-l3-architecture-baseline-design.md",
+   "source_part": "Addendum of 2026-09-27, frozen before launch",
+   "frozen": "2026-09-27",
+   "run": "L3-H8-WM-CPU",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/device_control_l3_h8_wm_cpu.json",
+      "path": "device_control/decoder_survival"
+     },
+     "reading": "0.730",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/device_control_l3_h8_wm_cpu.json",
+      "path": "device_control/decoder_survival_t90/0"
+     },
+     "reading": "0.668",
+     "role": "rule"
+    },
+    {
+     "clause": "lead over the no-auxiliary run",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/device_control_l3_h8_wm_cpu.json",
+      "path": "device_control/lead"
+     },
+     "reading": "0.128",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "device is not the cause; the auxiliary-conditional verdict stands",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-28; FINDINGS 10.8"
+  },
+  {
+   "id": "SECOND-INSTANCE-CPU",
+   "rule": "Second surrogate instance (seed 1, hidden 10): replication",
+   "short": "Second instance, CPU",
+   "source": "docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md",
+   "source_part": "Gates and decision rules",
+   "frozen": "2026-09-26",
+   "run": "L3-H10-GS1-CPU",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1.json",
+      "path": "arms/0.45/survival/pool_target/t90/0"
+     },
+     "reading": "0.610",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1.json",
+      "path": "behavior_audit/survival/resid_trace/t90/0"
+     },
+     "reading": "0.625",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.105",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.126",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.639",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1.json",
+      "path": "behavior_audit/survival/resid_trace/mean"
+     },
+     "reading": "0.658",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "NOT MET: replication not claimed; both margins pass",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-27; FINDINGS 10.9"
+  },
+  {
+   "id": "SECOND-INSTANCE-GPU",
+   "rule": "Second surrogate instance (seed 1, hidden 10): replication",
+   "short": "Second instance, GPU",
+   "source": "docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md",
+   "source_part": "Gates and decision rules",
+   "frozen": "2026-09-26",
+   "run": "L3-H10-GS1-GPU",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
+      "path": "arms/0.45/survival/pool_target/t90/0"
+     },
+     "reading": "0.582",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
+      "path": "behavior_audit/survival/resid_trace/t90/0"
+     },
+     "reading": "0.612",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.083",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.091",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.612",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
+      "path": "behavior_audit/survival/resid_trace/mean"
+     },
+     "reading": "0.638",
+     "role": "rule"
+    },
+    {
+     "clause": "speed positive control in every pool",
+     "basis": "minimum over 60 pools",
+     "op": ">=",
+     "threshold": 0.75,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
+      "path": "gates/speed_min"
+     },
+     "reading": "0.748",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": false,
+   "outcome": "NOT MET: replication not claimed; both margins pass",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29 and 2026-10-10 (speed control); FINDINGS 10.9 addendum",
+   "note": "Gate added 2026-10-10. Read over every drift, arm and seed, the speed positive control is short in one pool of 60 (untrained arm, drift 0.45, seed index 6: 0.748 against 0.75); the figure first recorded, 0.833, was the lowest arm mean. By the rule applied to the white-jitter run, the readings of this run are descriptive. The replication rule was not met in any case, so the outcome does not move."
+  },
+  {
+   "id": "HIDDEN8-SEED2",
+   "rule": "Hidden 8 at a new surrogate seed (seed 2): replication",
+   "short": "Hidden 8, surrogate seed 2",
+   "source": "docs/specs/2026-09-28-l3-hidden8-second-seed-design.md",
+   "source_part": "Gates and decision rules",
+   "frozen": "2026-09-29",
+   "run": "L3-H8-GS2-GPU",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_seed_l3_h8_gseed2_gpu.json",
+      "path": "arms/0.45/survival/pool_target/t90/0"
+     },
+     "reading": "0.636",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_seed_l3_h8_gseed2_gpu.json",
+      "path": "behavior_audit/survival/resid_trace/t90/0"
+     },
+     "reading": "0.631",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/second_seed_l3_h8_gseed2_gpu.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.0491",
+     "role": "rule",
+     "note": "it sets the spec's outcome row, margins fail"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/second_seed_l3_h8_gseed2_gpu.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.126",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_seed_l3_h8_gseed2_gpu.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.676",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/second_seed_l3_h8_gseed2_gpu.json",
+      "path": "behavior_audit/survival/resid_trace/mean"
+     },
+     "reading": "0.660",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "NOT MET: replication not claimed; the predictor margin misses by 0.0009",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29; FINDINGS 10.9",
+   "note": "The spec header records the freeze on 2026-09-29, the day after the design date."
+  },
+  {
+   "id": "SKILL-MATCHED",
+   "rule": "Skill-matched no-auxiliary baseline at 450 updates",
+   "short": "Skill-matched baseline",
+   "source": "docs/specs/2026-09-29-l3-skill-matched-baseline-design.md",
+   "source_part": "Gates and decision rules; amendment of 2026-09-30, before any stage-2 cell",
+   "frozen": "2026-09-29",
+   "run": "L3-H8-NOWM-U450",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/skill_matched_l3_h8_nowm_u450.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.717",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/skill_matched_l3_h8_nowm_u450.json",
+      "path": "decision/survival_t90/0"
+     },
+     "reading": "0.679",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/skill_matched_l3_h8_nowm_u450.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.129",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/skill_matched_l3_h8_nowm_u450.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.204",
+     "role": "rule"
+    },
+    {
+     "clause": "skill match: return at most reference + 0.05",
+     "basis": "mean return",
+     "op": "<=",
+     "threshold": -0.169,
+     "value": {
+      "artifact": "expB2/skill_matched_l3_h8_nowm_u450.json",
+      "path": "skill_match/match_return"
+     },
+     "reading": "-0.1559",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": false,
+   "outcome": "no skill-mediation verdict: the probe reads at or above the bar, and the return overshoots the match window by 0.0131",
+   "outcome_class": "no verdict",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-30; FINDINGS 10.8.1"
+  },
+  {
+   "id": "C1-PRIMARY",
+   "rule": "Corrected primary rule, with the auxiliary",
+   "short": "Corrected primary, C1",
+   "source": "docs/specs/2026-10-06-corrected-trainer-confirmation-design.md",
+   "source_part": "Decision rules, primary and gates",
+   "frozen": "2026-10-06",
+   "run": "C1",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C1/primary/survival/mean"
+     },
+     "reading": "0.733",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C1/primary/survival/t90/0"
+     },
+     "reading": "0.669",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C1/primary/lead_over_predictor"
+     },
+     "reading": "0.144",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C1/primary/lead_over_untrained"
+     },
+     "reading": "0.210",
+     "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C1/gates/l0/tost_p"
+     },
+     "reading": "0.939",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": false,
+   "outcome": "NOT MET: the L0 gate is open; the decodability clauses are met",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-06; FINDINGS 17.2; artifacts/corrected_verdicts.json"
+  },
+  {
+   "id": "C2-PRIMARY",
+   "rule": "Corrected primary rule, without the auxiliary",
+   "short": "Corrected primary, C2",
+   "source": "docs/specs/2026-10-06-corrected-trainer-confirmation-design.md",
+   "source_part": "Decision rules, primary and gates",
+   "frozen": "2026-10-06",
+   "run": "C2",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C2/primary/survival/mean"
+     },
+     "reading": "0.613",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C2/primary/survival/t90/0"
+     },
+     "reading": "0.552",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C2/primary/lead_over_predictor"
+     },
+     "reading": "0.025",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C2/primary/lead_over_untrained"
+     },
+     "reading": "0.084",
+     "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "runs/C2/gates/l0/tost_p"
+     },
+     "reading": "0.001",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": true,
+   "outcome": "NOT MET",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-06; FINDINGS 17.4; artifacts/corrected_verdicts.json"
+  },
+  {
+   "id": "AUXILIARY-COMPARISON",
+   "rule": "Auxiliary comparison: C1 meets the primary rule and leads C2 by more than 0.05",
+   "short": "Auxiliary comparison",
+   "source": "docs/specs/2026-10-06-corrected-trainer-confirmation-design.md",
+   "source_part": "Auxiliary comparison",
+   "frozen": "2026-10-06",
+   "run": "C1, C2",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "C1 minus C2",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "auxiliary_comparison/c1_minus_c2"
+     },
+     "reading": "0.120",
+     "role": "rule"
+    },
+    {
+     "clause": "C1 meets the primary rule",
+     "basis": "verdict",
+     "op": "is_true",
+     "threshold": null,
+     "value": {
+      "artifact": "corrected_verdicts.json",
+      "path": "auxiliary_comparison/c1_meets_primary"
+     },
+     "reading": null,
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": false,
+   "outcome": "NOT MET as registered: C1 does not meet its primary rule; the lead holds on the decodability clauses",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-06 and 2026-10-10; FINDINGS 17.4; artifacts/corrected_verdicts.json",
+   "note": "Outcome restated 2026-10-10 with the registered result first (PREREGISTRATION_L3 sec. 12, 2026-10-10 entry; artifacts/corrected_verdicts.json, holds false, holds_on_decodability_clauses true). Until then this row read \"does not hold; holds on the decodability clauses, conditional on the C1 gates\". The lead is +0.120 [+0.065, +0.174] at the 300-update budget; no reading moved."
+  },
+  {
+   "id": "TEXTURE-GN-Q1",
+   "rule": "Texture comparator gn, question 1 (transfer of the original direction)",
+   "short": "Comparator gn, transfer",
+   "source": "docs/specs/2026-10-06-texture-comparator-design.md",
+   "source_part": "Frozen wording rules",
+   "frozen": "2026-10-06",
+   "run": "C1",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "texture/corrected_l3_h8_wm_gn.json",
+      "path": "aggregate/survival transfer/mean"
+     },
+     "reading": "0.527",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "texture/corrected_l3_h8_wm_gn.json",
+        "path": "aggregate/survival transfer/mean"
+       },
+       {
+        "artifact": "texture/corrected_l3_h8_wm_gn.json",
+        "path": "aggregate/untrained transfer/mean"
+       }
+      ]
+     },
+     "reading": "-0.013",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "the original direction does not transfer",
+   "outcome_class": "threshold not met",
+   "recorded_in": "FINDINGS 17.9",
+   "note": null
+  },
+  {
+   "id": "TEXTURE-GN-Q2",
+   "rule": "Texture comparator gn, question 2 (fresh probe)",
+   "short": "Comparator gn, fresh probe",
+   "source": "docs/specs/2026-10-06-texture-comparator-design.md",
+   "source_part": "Frozen wording rules",
+   "frozen": "2026-10-06",
+   "run": "C1",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "texture/corrected_l3_h8_wm_gn.json",
+      "path": "aggregate/survival fresh/mean"
+     },
+     "reading": "0.488",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "texture/corrected_l3_h8_wm_gn.json",
+        "path": "aggregate/survival fresh/mean"
+       },
+       {
+        "artifact": "texture/corrected_l3_h8_wm_gn.json",
+        "path": "aggregate/untrained fresh/mean"
+       }
+      ]
+     },
+     "reading": "-0.043",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "a fresh probe did not meet the registered criterion",
+   "outcome_class": "threshold not met",
+   "recorded_in": "FINDINGS 17.9",
+   "note": null
+  },
+  {
+   "id": "TEXTURE-QD-Q1",
+   "rule": "Texture comparator qd, question 1 (transfer of the original direction)",
+   "short": "Comparator qd, transfer",
+   "source": "docs/specs/2026-10-06-texture-comparator-design.md",
+   "source_part": "Frozen wording rules",
+   "frozen": "2026-10-06",
+   "run": "C1",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "texture/corrected_l3_h8_wm_qd.json",
+      "path": "aggregate/survival transfer/mean"
+     },
+     "reading": "0.721",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "texture/corrected_l3_h8_wm_qd.json",
+        "path": "aggregate/survival transfer/mean"
+       },
+       {
+        "artifact": "texture/corrected_l3_h8_wm_qd.json",
+        "path": "aggregate/untrained transfer/mean"
+       }
+      ]
+     },
+     "reading": "0.109",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "the L3 direction reads the comparator",
+   "outcome_class": "threshold met",
+   "recorded_in": "FINDINGS 17.9",
+   "note": "qd failed its gate 0; its untrained floor is outside tolerance, so the spec's amendment makes the survival-minus-untrained margin the comparison that carries meaning."
+  },
+  {
+   "id": "TEXTURE-QD-Q2",
+   "rule": "Texture comparator qd, question 2 (fresh probe)",
+   "short": "Comparator qd, fresh probe",
+   "source": "docs/specs/2026-10-06-texture-comparator-design.md",
+   "source_part": "Frozen wording rules",
+   "frozen": "2026-10-06",
+   "run": "C1",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "texture/corrected_l3_h8_wm_qd.json",
+      "path": "aggregate/survival fresh/mean"
+     },
+     "reading": "0.754",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "texture/corrected_l3_h8_wm_qd.json",
+        "path": "aggregate/survival fresh/mean"
+       },
+       {
+        "artifact": "texture/corrected_l3_h8_wm_qd.json",
+        "path": "aggregate/untrained fresh/mean"
+       }
+      ]
+     },
+     "reading": "0.142",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "the state separates the comparator when a probe is fit to it",
+   "outcome_class": "threshold met",
+   "recorded_in": "FINDINGS 17.9",
+   "note": "qd failed its gate 0; its untrained floor is outside tolerance, so the spec's amendment makes the survival-minus-untrained margin the comparison that carries meaning."
+  },
+  {
+   "id": "PERSISTENCE",
+   "rule": "Controlled persistence: retention under identical input",
+   "short": "Controlled persistence",
+   "source": "docs/specs/2026-10-06-controlled-persistence-design.md",
+   "source_part": "Frozen decision rule",
+   "frozen": "2026-10-06",
+   "run": "C1",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "persistence/corrected_l3_h8_wm.json",
+      "path": "aggregate/d=0.45 survival replay:prefix/window_mean"
+     },
+     "reading": "0.561",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "persistence/corrected_l3_h8_wm.json",
+      "path": "aggregate/d=0.45 survival replay:prefix/window_t90/0"
+     },
+     "reading": "0.545",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "persistence/corrected_l3_h8_wm.json",
+        "path": "aggregate/d=0.45 survival replay:prefix/window_mean"
+       },
+       {
+        "artifact": "persistence/corrected_l3_h8_wm.json",
+        "path": "aggregate/d=0.45 untrained replay:prefix/window_mean"
+       }
+      ]
+     },
+     "reading": "0.033",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": null,
+   "outcome": "not shown",
+   "outcome_class": "threshold not met",
+   "recorded_in": "FINDINGS 17.7"
+  },
+  {
+   "id": "DRIFT045-WORLD-SAMPLES",
+   "rule": "Drift-0.45 world-sample sensitivity",
+   "short": "Drift-0.45 world samples",
+   "source": "docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md",
+   "source_part": "Outcomes R1 to R3",
+   "frozen": "2026-10-08",
+   "run": "L3-H8-HELDOUT",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "every independent draw at the bar",
+     "basis": "minimum over eight draws",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "l0_audit/d045_world_samples_l3_h8_heldout.json",
+      "path": "summary/survival/min"
+     },
+     "reading": "0.728",
+     "role": "rule"
+    },
+    {
+     "clause": "registered draw at or below the median",
+     "basis": "rank of nine, 1 = largest",
+     "op": ">=",
+     "threshold": 5,
+     "value": {
+      "artifact": "l0_audit/d045_world_samples_l3_h8_heldout.json",
+      "path": "summary/survival/registered_rank"
+     },
+     "reading": "5",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "SECURE (R1)",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-08; FINDINGS 17.5.1",
+   "note": "The registered draw ranks exactly at the bound the rule requires."
+  },
+  {
+   "id": "REVERSE-DIRECTION",
+   "rule": "Reverse direction: authentic-raised agents against a surrogate never lived in",
+   "short": "Reverse direction",
+   "source": "docs/specs/2026-10-09-reverse-direction-readout-design.md",
+   "source_part": "Outcomes R1 to R3",
+   "frozen": "2026-10-09",
+   "run": "L3-H8-HELDOUT",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "l0_audit/reverse_direction_l3_h8_heldout.json",
+      "path": "summary/survival"
+     },
+     "reading": "0.760",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "l0_audit/reverse_direction_l3_h8_heldout.json",
+      "path": "summary/margin_over_untrained"
+     },
+     "reading": "0.255",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "CARRIED (R1)",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-09; FINDINGS 17.5.2"
+  },
+  {
+   "id": "WHITE-JITTER-TRAINED",
+   "rule": "Comparator-trained run on the white-jitter family",
+   "short": "Jitter-trained comparator",
+   "source": "docs/specs/2026-10-09-gn-comparator-trained-design.md",
+   "source_part": "Decision rule and gates",
+   "frozen": "2026-10-09",
+   "run": "T-GN-TRAINED",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "texture/T_gn_l3_h8_wm.json",
+      "path": "primary/survival/mean"
+     },
+     "reading": "0.522",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "texture/T_gn_l3_h8_wm.json",
+        "path": "primary/survival/mean"
+       },
+       {
+        "artifact": "texture/T_gn_l3_h8_wm.json",
+        "path": "primary/predictor/mean"
+       }
+      ]
+     },
+     "reading": "0.011",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "texture/T_gn_l3_h8_wm.json",
+        "path": "primary/survival/mean"
+       },
+       {
+        "artifact": "texture/T_gn_l3_h8_wm.json",
+        "path": "primary/untrained/mean"
+       }
+      ]
+     },
+     "reading": "-0.030",
+     "role": "rule"
+    },
+    {
+     "clause": "speed positive control in every pool",
+     "basis": "minimum over 60 pools",
+     "op": ">=",
+     "threshold": 0.75,
+     "value": {
+      "artifact": "texture/T_gn_l3_h8_wm.json",
+      "path": "gates/speed_positive_control/min_all_pools"
+     },
+     "reading": "0.686",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": false,
+   "outcome": "UNINFORMATIVE: the speed positive control fails, and the agent trunk was 8 units wide, not the registered 96",
+   "outcome_class": "uninformative",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-09 (three entries); FINDINGS 14.5.1",
+   "note": "The survival, predictor and untrained readings are descriptive only and are not a reading of the jitter, because the trunk width differs from every other run."
+  },
+  {
+   "id": "L1-STREAM",
+   "rule": "L1 stream readout: does the agent's own stream carry the seam",
+   "short": "L1 stream readout",
+   "source": "docs/specs/2026-10-09-l1-stream-readout-design.md",
+   "source_part": "The reading, fixed in advance",
+   "frozen": "2026-10-09",
+   "run": "L1-STREAM-READOUT",
+   "trainer": "historical",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "larger stream decoder at the bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "max": [
+       {
+        "artifact": "control_diagnostics/l1_stream_readout.json",
+        "path": "aggregate/d=0.02 survival obs_summary_only/mean"
+       },
+       {
+        "artifact": "control_diagnostics/l1_stream_readout.json",
+        "path": "aggregate/d=0.02 survival seq_gru/mean"
+       }
+      ]
+     },
+     "reading": "0.795",
+     "role": "rule"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": null,
+   "outcome": "S1: the stream carries it",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-09; FINDINGS 14.7.1",
+   "note": "The state probe on the same agents reads 0.552 under the explicit partition."
+  },
+  {
+   "id": "EXPC-EMERGENCE",
+   "rule": "Experiment C emergence under selection",
+   "short": "Experiment C emergence",
+   "source": "docs/PREREGISTRATION_C.md",
+   "source_part": "sec. 6 and 8",
+   "frozen": "2026-07-16",
+   "run": "EXPC-M3-PER-INDIVIDUAL",
+   "trainer": "no actor-critic",
+   "n": 3,
+   "clauses": [
+    {
+     "clause": "contrast at the margin",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expC/emergence_pilot_per_individual_summary.json",
+      "path": "estimand/mean_contrast"
+     },
+     "reading": "-0.002",
+     "role": "rule"
+    },
+    {
+     "clause": "contrast interval excludes zero",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.0,
+     "value": {
+      "artifact": "expC/emergence_pilot_per_individual_summary.json",
+      "path": "estimand/t_ci90/0"
+     },
+     "reading": "-0.013",
+     "role": "rule"
+    },
+    {
+     "clause": "final treatment AUROC at the bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expC/emergence_pilot_per_individual_summary.json",
+      "path": "estimand/mean_final_treat_auroc"
+     },
+     "reading": "0.510",
+     "role": "rule"
+    },
+    {
+     "clause": "gate 1, exploitability",
+     "basis": "gate",
+     "op": "is_true",
+     "threshold": null,
+     "value": {
+      "artifact": "expC/emergence_pilot_per_individual_summary.json",
+      "path": "gates/gate1_exploitability/passes_gate1"
+     },
+     "reading": null,
+     "role": "gate",
+     "note": "the runner applies a 0.005 margin that appears only in the unratified section 14 draft (items 3 and 4); frozen section 7 gives gate 1 no number, and against its wording the treatment gap, 0.00228 with 90% CI [0.00109, 0.00377] and a control gap of 0, is a weak positive"
+    },
+    {
+     "clause": "gate 5, speed control",
+     "basis": "gate",
+     "op": "is_true",
+     "threshold": null,
+     "value": {
+      "artifact": "expC/emergence_pilot_per_individual_summary.json",
+      "path": "gates/gate5_speed_control/pass"
+     },
+     "reading": null,
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": false,
+   "outcome": "UNINFORMATIVE: the speed control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the unratified section-14 margin",
+   "outcome_class": "uninformative",
+   "recorded_in": "PREREGISTRATION_C sec. 7 and 2026-10-10 amendment; FINDINGS 13.F",
+   "note": "The pooled re-run of 2026-07-18 (FINDINGS 13.D) fails every clause as well. The gate-1 clause reads the runner's verdict, which applies the 0.005 margin of the unratified section-14 draft; frozen section 7 gives gate 1 no number, and against its wording the treatment gap (0.00228, 90% CI [0.00109, 0.00377], control gap 0) is a weak positive. The routing rests on gate 5 (2026-10-10)."
+  }
+ ]
+}

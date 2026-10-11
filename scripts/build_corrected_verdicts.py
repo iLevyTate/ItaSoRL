@@ -13,8 +13,16 @@ artifacts/corrected_verdicts.json with, in the order the spec requires
               0.5, untrained floor within 0.1 of 0.5, no deaths
   primary     decide_h_b2: MET if every gate passes, survival mean >= 0.65 with the t-based
               90% lower bound >= 0.65, and survival >= 0.05 above both baselines; a mean at
-              or above 0.65 with the lower bound below it is INCONCLUSIVE; a failed gate
-              leaves the verdict conditional on it
+              or above 0.65 with the lower bound below it is INCONCLUSIVE; a non-finite
+              decision cell (a pool with too few survivors) makes the decodability reading
+              UNINFORMATIVE, as decide_h_b2 does, never a silent NOT MET; any failed gate
+              makes the registered verdict NOT MET and the label leads with it ("NOT MET as
+              registered (open gate(s): ...); decodability clauses ...") with `met` False. The label reads
+              UNINFORMATIVE only for a non-finite cell; a failed engagement gate, which
+              PREREGISTRATION_L3 sec. 8 routes to uninformative, is named in the suffix
+  drift zero  the drift-0 pooled target of every arm on the registered evaluation-world
+              pair, each arm scored on episodes its own actor generates (reported beside
+              the L0 gate, which reads the survival arm alone; not thresholded)
   auxiliary   C1 meets the primary rule and the C1 minus C2 survival difference exceeds 0.05;
               the seed-paired difference and its t-based 90% CI beside it
   correction  C1 minus L3-H8-WM-CPU and C2 minus L3-H8-NOWM-CPU, survival target and
@@ -128,23 +136,51 @@ def gates(cells: dict) -> dict:
 
 def primary(cells: dict, g: dict) -> dict:
     surv, pred, untr = (_vals(cells, 0.45, a) for a in ("survival", "predictor", "untrained"))
+    # A non-finite pooled target is a pool with too few survivors: a broken precondition,
+    # not a negative. np.mean over it is NaN, every clause then compares False, and the
+    # reading would print as a clean NOT MET. Route it the way decide_h_b2 does.
+    n_bad = int(np.count_nonzero(~np.isfinite(np.r_[surv, pred, untr])))
     s = _summ(surv)
     lead_p, lead_u = s["mean"] - float(np.mean(pred)), s["mean"] - float(np.mean(untr))
     clauses = {"mean_at_bar": s["mean"] >= BAR, "lower_bound_at_bar": s["t90"][0] >= BAR,
                "margin_predictor": lead_p >= MARGIN, "margin_untrained": lead_u >= MARGIN}
-    if all(clauses.values()):
+    if n_bad:
+        dec = "UNINFORMATIVE"
+    elif all(clauses.values()):
         dec = "MET"
     elif clauses["mean_at_bar"] and clauses["margin_predictor"] and clauses["margin_untrained"]:
         dec = "INCONCLUSIVE"
     else:
         dec = "NOT MET"
-    verdict = dec if not g["failed"] or dec == "NOT MET" else f"{dec} on the decodability clauses, conditional on open gate(s): {', '.join(g['failed'])}"
+    # The spec makes the run's verdict conditional on any gate that fails or is not shown,
+    # whatever the decodability clauses read, so the suffix goes on every label.
+    # The registered rule is MET only when every gate passes too, so a run with a failed gate
+    # leads with NOT MET as registered and names the gate before the decodability reading.
+    verdict = (dec if not g["failed"] else
+               f"NOT MET as registered (open gate(s): {', '.join(g['failed'])}); "
+               f"decodability clauses {dec}")
     return {"survival": s, "predictor": _summ(pred), "untrained": _summ(untr),
             "lead_over_predictor": lead_p, "lead_over_untrained": lead_u,
             "contrast_vs_predictor": paired_contrast(surv, pred),
             "contrast_vs_untrained": paired_contrast(surv, untr),
+            "non_finite_cells": n_bad,
             "clauses": clauses, "decodability": dec, "verdict": verdict,
             "met": dec == "MET" and not g["failed"]}
+
+
+def drift_zero(cells: dict) -> dict:
+    """The drift-0 pooled target of every arm on the registered evaluation-world pair. Each
+    arm is scored on episodes its own actor generates, so the three readings share the world
+    draw but not the episodes. The L0 gate reads the survival arm alone; the baselines are
+    reported beside it, not thresholded."""
+    out = {}
+    for arm in ARMS:
+        v = np.asarray(_vals(cells, 0.0, arm), float)
+        out[arm] = {"per_seed": v.tolist(), "mean": float(v.mean()),
+                    "t90": [float(x) for x in t_ci90(v)]}
+    out["note"] = ("registered evaluation-world pair; each arm scored on episodes its own actor "
+                   "generates; reported, not thresholded")
+    return out
 
 
 def correction(cells: dict, hist: dict) -> dict:
@@ -187,7 +223,8 @@ def build() -> dict:
         hist = load_cells(r["historical"])
         g = gates(cells)
         entry.update({"status": "complete", "integrity": integrity(cells, hist), "gates": g,
-                      "primary": primary(cells, g), "correction_effect": correction(cells, hist)})
+                      "primary": primary(cells, g), "drift_zero": drift_zero(cells),
+                      "correction_effect": correction(cells, hist)})
         out["runs"][name] = entry
         loaded[name] = cells
     if "C1" in loaded and "C2" in loaded:

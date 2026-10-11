@@ -6,9 +6,10 @@ music. The second is Two Minds, the labeled brain film.
 
 ## What is in git and what is not
 
-This directory is gitignored by default. Only the nine files the site actually
+This directory is gitignored by default. Only the five files the site actually
 serves are allowlisted by name in `.gitignore`: the two 720p web encodes, their
-two poster frames, the four companion loop mp4s, and this README. Everything
+two poster frames, and this README. The four companion loop mp4s that used to
+be allowlisted were retired on 2026-10-10 (last section). Everything
 else here is a local build output and stays on local disk, including all of
 `clips/`, every 1080p and 9:16 master, the textless passes, the loop gifs, and
 the voiced `.mov` masters. That is about 930 MB kept out of the repo across
@@ -32,6 +33,22 @@ Drive. The picture is the `viz/player` capture (beats in `viz/player/beats.json`
 scene in `viz/data/scene.json`); the voice follows the script in
 `docs/specs/2026-07-22-outreach-video-vo-music.md`. The three numbers on screen
 (99%, 50%, 73%) are the published displays, sourced in `beats.json`.
+
+The web encode is a historical cut, and the site labels it that way. Its
+numbers come from the pre-correction trainer. The 50% is the untrained
+network's floor (0.488) and the historical L0 check (0.517), not a trained
+creature with nothing at stake; a creature trained only to predict reads 0.589
+on the corrected trainer. The 73% is the 0.726 residual after a behavior
+control; on the corrected agents the best-fitting control leaves 0.620, under
+the bar (FINDINGS 17.8). From 45 s to the end, picture and voice credit
+survival for the creature noticing ("It learned because its life depended on
+it"; the end card's "The creature only noticed when survival made it matter").
+That reading is withdrawn (FINDINGS 17.6): fed the survival agent's own
+senses, a brain trained only to predict reads the world within about 0.01 of the
+survival brain (0.721 against 0.733). The caveat
+sits beside the player and the download link on the site. A downloaded copy
+carries none of it, so a clean cut needs a new edit of the master (two VO lines
+and the end card).
 
 Rebuild the web encode from the master with ffmpeg:
 
@@ -85,19 +102,47 @@ corrected agents the best-fitting control leaves 0.620, under the bar
 family and are not shown as numbers; the senses chapter states that direction
 in words.
 
-The live player's end card was reworded on 2026-10-08 to drop the reading that
-credited survival on its own (withdrawn in FINDINGS 17.6), and its footer now
-names the pre-correction trainer. The rendered mp4 files keep the original end
-card: they are not re-rendered, and the pages that publish them carry the label
-instead.
+Two lines of the Two Minds narration said more than was measured, and the
+web encode still shows them. The memory chapter ("Until the miss lands: a coin
+flip. 49%." then "After: 73%.") presents the untrained floor and the trained
+residual as one brain's before and after, a time course no experiment
+measured: each brain is read once, after training. The senses chapter ("Cover
+the eyes and the trace fades.") overstates the masking result: against the
+fingerprint the film uses, masking vision moves 0.752 to 0.686 with 7 of 10
+seeds still over the bar, and against the coarser fingerprint it raises the
+signal from 0.737 to 0.764 (FINDINGS 14.6, pre-correction trainer). On
+2026-10-10 the live renderer's lines were changed to "An untrained brain reads
+49%: a coin flip.", "A trained brain reads 73%. The bar was 65%." and "Cover
+the eyes and the trace weakens, but stays." The meter in the memory chapter
+still climbs from 49% to 73% inside one brain, so a re-render also needs a
+meter that shows two brains side by side. The site carries both corrections in
+text beside the film.
+
+The live player of film one (`viz/player/`) had its end card reworded on
+2026-10-08 to drop the reading that credited survival on its own (withdrawn in
+FINDINGS 17.6), and its footer names the pre-correction trainer
+(`viz/player/beats.json`). On 2026-10-10 its end-card tiles were relabeled
+"untrained mind" and "trained mind" (they read "its mind, idle" and "its mind,
+surviving"), and the 45 to 80 s beats still tell the survival story in their
+captions; rewriting those beats is left to the owner. Until then a line under the
+site's links to the two live cuts says so. Since 2026-10-10 the Two Minds live renderer
+(`viz/player/brain/`) carries a footer on its end card as well, naming the
+pre-correction trainer and the 300-update budget, because its line about
+dropping the second job holds at that budget only: at 450 updates the arm
+without the decoder clears the bar (0.717 on the pre-correction trainer, 0.685
+on the corrected one; FINDINGS 10.8.1, 17.10). The rendered mp4 files keep
+the original end card: they are not re-rendered, and the pages that publish
+them carry the label instead.
 
 On 2026-10-09 the caveats were extended on every surface that publishes the films
 (the site film block, the live player's end-card footer, and this file) with the corrected
 record: the survival state reads 0.733 under the corrected trainer with the registered rule
 as a whole not met, because the authentic-versus-authentic gate is open on the registered
 pair of evaluation worlds (0.559, the largest of nine draws on record), and the level is not
-a product of that draw, since every one of eight independent draws at drift 0.45 clears the
-bar (0.728 to 0.860, SECURE under a rule frozen before the run; FINDINGS 17.5.1). The mp4
+a product of that draw: on the agents of the historical hidden-8 run, every one of eight
+independent draws at drift 0.45 clears the bar (0.728 to 0.860, SECURE under a rule frozen
+before the run; FINDINGS 17.5.1). The corrected agents are not in the repository, so the
+draws were not scored on them; the live player's footer says so since 2026-10-10. The mp4
 files are unchanged; the caveats sit beside them, never inside them.
 
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
@@ -115,14 +160,25 @@ ffmpeg -ss 2 -i assets/film/clips/two-minds-tour.mp4 -frames:v 1 \
   -vf scale=1280:720 -q:v 4 assets/film/two-minds-poster.jpg
 ```
 
-## Companion loops (the "More ways to see it" row)
+## Retired companion loops (2026-10-10)
 
-| File | What it shows | Source |
-|------|---------------|--------|
-| `loop-idle-clouds.mp4` | Idle mind: memories from both worlds sit in one mixed blob. | `viz/player` capture |
-| `loop-survival-clouds.mp4` | Surviving mind: the two worlds' memories drift into separate islands. | `viz/player` capture |
-| `loop-race.mp4` | Two brains train side by side; the detection score only climbs when the fake matters. | `viz/player` capture |
-| `loop-brain-pair.mp4` | Teal rings on the memory cells that hold the clue, present only under survival. | `scripts/render_brain_pair_tour.py` |
-| `clips/loop-brain-pair-*` (local only) | The earlier brain-pair tour and its per-section loops (wide, vertical, GIF). Superseded by Two Minds for outreach. | `scripts/render_brain_pair_tour.py` |
+Until 2026-10-10 the site's "More ways to see it" row autoplayed four short
+loops: `loop-idle-clouds.mp4`, `loop-survival-clouds.mp4`, `loop-race.mp4` and
+`loop-brain-pair.mp4`. They were July 2026 demo renders of an early short run,
+eight frames each at under one frame a second, and each opened on a title card. Their
+burned-in text stated readings the record no longer supports: "YES. It knows
+this world is fake." over two clouds that mostly overlap, a race whose perfect
+copy "never learns" and whose brain "is taught", and a detection score climbing
+over training steps 0 to 24, a time course that was never measured. The
+generator of the cloud and race loops is not on `main`, and the loops did not
+start and end on the same frame. The row, the player gallery's copies, and the
+four `.gitignore` allowlist lines are gone; the files stay in git history.
 
-All loops start and end on the same frame.
+A data-drawn replacement set (`loop-two-worlds`, `loop-four-brains`,
+`loop-echoes`, `loop-seam-dial`, drawn by `viz/player/loops/` from committed
+artifacts) was written on a side branch (commit `47a6423`) and never merged. It
+was not carried over here: its pictures carry pre-correction numbers with no
+trainer label (0.752 as "the published brain"; 0.654 "at the bar" where the
+corrected agents leave 0.620, under it), and re-rendering it on the corrected
+record is a film build, left to the owner. The section-03 readout chart on the
+site now draws the corrected per-seed readouts directly.

@@ -1,5 +1,5 @@
 {
- "states_dir": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_n10/states",
+ "states_dir": "fullruns/l3_n10/states",
  "label": "l3_n10",
  "spec": "docs/specs/2026-09-28-explicit-cv-folds.md",
  "generated_by": "scripts/rescore_fold_split.py",
@@ -63,6 +63,10 @@
    "drift": "0.00",
    "seed": 0,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.3937349212052769
    },
@@ -74,6 +78,10 @@
    "drift": "0.00",
    "seed": 0,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5740482179217357
    },
@@ -85,6 +93,10 @@
    "drift": "0.00",
    "seed": 0,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4156263367725819
    },
@@ -96,6 +108,10 @@
    "drift": "0.00",
    "seed": 1,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.49839159522953985
    },
@@ -107,6 +123,10 @@
    "drift": "0.00",
    "seed": 1,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5215047139948326
    },
@@ -118,6 +138,10 @@
    "drift": "0.00",
    "seed": 1,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4602244922403025
    },
@@ -129,6 +153,10 @@
    "drift": "0.00",
    "seed": 2,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.586429512516469
    },
@@ -140,6 +168,10 @@
    "drift": "0.00",
    "seed": 2,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.44751125027804867
    },
@@ -151,6 +183,10 @@
    "drift": "0.00",
    "seed": 2,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5045565764933354
    },
@@ -162,6 +198,10 @@
    "drift": "0.00",
    "seed": 3,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5074628270280445
    },
@@ -173,6 +213,10 @@
    "drift": "0.00",
    "seed": 3,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5459507554369214
    },
@@ -184,6 +228,10 @@
    "drift": "0.00",
    "seed": 3,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5252913094810328
    },
@@ -195,6 +243,10 @@
    "drift": "0.00",
    "seed": 4,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.48923309891689337
    },
@@ -206,6 +258,10 @@
    "drift": "0.00",
    "seed": 4,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5219555806512328
    },
@@ -217,6 +273,10 @@
    "drift": "0.00",
    "seed": 4,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.46192358366271413
    },
@@ -228,6 +288,10 @@
    "drift": "0.00",
    "seed": 5,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.47395496466642706
    },
@@ -239,6 +303,10 @@
    "drift": "0.00",
    "seed": 5,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4797306777543932
    },
@@ -250,6 +318,10 @@
    "drift": "0.00",
    "seed": 5,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4631495645329638
    },
@@ -261,6 +333,10 @@
    "drift": "0.00",
    "seed": 6,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4433730301319233
    },
@@ -272,6 +348,10 @@
    "drift": "0.00",
    "seed": 6,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4942225758431292
    },
@@ -283,6 +363,10 @@
    "drift": "0.00",
    "seed": 6,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4868239138990127
    },
@@ -294,6 +378,10 @@
    "drift": "0.00",
    "seed": 7,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4057406361754188
    },
@@ -305,6 +393,10 @@
    "drift": "0.00",
    "seed": 7,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5070444706808342
    },
@@ -316,6 +408,10 @@
    "drift": "0.00",
    "seed": 7,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4478842632992831
    },
@@ -327,6 +423,10 @@
    "drift": "0.00",
    "seed": 8,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5297751655459166
    },
@@ -338,6 +438,10 @@
    "drift": "0.00",
    "seed": 8,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5567150899166708
    },
@@ -349,6 +453,10 @@
    "drift": "0.00",
    "seed": 8,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.477267594066013
    },
@@ -360,6 +468,10 @@
    "drift": "0.00",
    "seed": 9,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5157358451824855
    },
@@ -371,6 +483,10 @@
    "drift": "0.00",
    "seed": 9,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5177993942816077
    },
@@ -382,6 +498,10 @@
    "drift": "0.00",
    "seed": 9,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5128578272847047
    },
@@ -393,6 +513,10 @@
    "drift": "0.45",
    "seed": 0,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.494603288674435
    },
@@ -404,6 +528,10 @@
    "drift": "0.45",
    "seed": 0,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.8527650873500676
    },
@@ -415,6 +543,10 @@
    "drift": "0.45",
    "seed": 0,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.48308779494550247
    },
@@ -426,6 +558,10 @@
    "drift": "0.45",
    "seed": 1,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.596831955922865
    },
@@ -437,6 +573,10 @@
    "drift": "0.45",
    "seed": 1,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.6364731447735401
    },
@@ -448,6 +588,10 @@
    "drift": "0.45",
    "seed": 1,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.41397686634840786
    },
@@ -459,6 +603,10 @@
    "drift": "0.45",
    "seed": 2,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.6290086066765908
    },
@@ -470,6 +618,10 @@
    "drift": "0.45",
    "seed": 2,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.8411982615539928
    },
@@ -481,6 +633,10 @@
    "drift": "0.45",
    "seed": 2,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5487449309583696
    },
@@ -492,6 +648,10 @@
    "drift": "0.45",
    "seed": 3,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5789812295741149
    },
@@ -503,6 +663,10 @@
    "drift": "0.45",
    "seed": 3,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.8234416439950036
    },
@@ -514,6 +678,10 @@
    "drift": "0.45",
    "seed": 3,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5430436493677601
    },
@@ -525,6 +693,10 @@
    "drift": "0.45",
    "seed": 4,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.6112708108755539
    },
@@ -536,6 +708,10 @@
    "drift": "0.45",
    "seed": 4,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.8299873380901047
    },
@@ -547,6 +723,10 @@
    "drift": "0.45",
    "seed": 4,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.46812706397686643
    },
@@ -558,6 +738,10 @@
    "drift": "0.45",
    "seed": 5,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5967686463733894
    },
@@ -569,6 +753,10 @@
    "drift": "0.45",
    "seed": 5,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5728795578597949
    },
@@ -580,6 +768,10 @@
    "drift": "0.45",
    "seed": 5,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5091063087110518
    },
@@ -591,6 +783,10 @@
    "drift": "0.45",
    "seed": 6,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4938230412538712
    },
@@ -602,6 +798,10 @@
    "drift": "0.45",
    "seed": 6,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.7046686515065962
    },
@@ -613,6 +813,10 @@
    "drift": "0.45",
    "seed": 6,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.45245538387830875
    },
@@ -624,6 +828,10 @@
    "drift": "0.45",
    "seed": 7,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5236118953510258
    },
@@ -635,6 +843,10 @@
    "drift": "0.45",
    "seed": 7,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.781641941720993
    },
@@ -646,6 +858,10 @@
    "drift": "0.45",
    "seed": 7,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4880404838902862
    },
@@ -657,6 +873,10 @@
    "drift": "0.45",
    "seed": 8,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.5649769861232311
    },
@@ -668,6 +888,10 @@
    "drift": "0.45",
    "seed": 8,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.7593595469089539
    },
@@ -679,6 +903,10 @@
    "drift": "0.45",
    "seed": 8,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.4127397635302773
    },
@@ -690,6 +918,10 @@
    "drift": "0.45",
    "seed": 9,
    "agent": "predictor",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.6434876717485413
    },
@@ -701,6 +933,10 @@
    "drift": "0.45",
    "seed": 9,
    "agent": "survival",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.7225339219410365
    },
@@ -712,6 +948,10 @@
    "drift": "0.45",
    "seed": 9,
    "agent": "untrained",
+   "state_dim": 96,
+   "steps": 24,
+   "n_auth": 110,
+   "n_surr": 110,
    "legacy": {
     "target": 0.559168762726075
    },

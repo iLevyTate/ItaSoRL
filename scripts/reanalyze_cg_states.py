@@ -31,6 +31,7 @@ where known, and flags the two decision-relevant readouts:
 from __future__ import annotations
 
 import _bootstrap  # noqa: F401
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 import argparse
 import glob
@@ -41,6 +42,7 @@ from collections import defaultdict
 
 import numpy as np
 
+from itasorl import folds
 from itasorl.experiment_b2 import cg_probe
 
 # non-greedy agent token so "survival_cg" parses as agent="survival"
@@ -162,7 +164,10 @@ def main() -> None:
         if d:
             os.makedirs(d, exist_ok=True)
         with open(a.json, "w", encoding="utf-8") as fh:
-            json.dump({"states_dir": a.states_dir, "estimator": "cg_probe (pair-grouped, post-1633bca)",
+            # The fold scheme is recorded in the JSON, not only implied by the file name
+            # (artifacts/fold_rescore/cg_h*_{legacy,explicit}.json predate this field).
+            json.dump({"states_dir": repo_rel(a.states_dir), "estimator": "cg_probe (pair-grouped, post-1633bca)",
+                       "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
                        "cells": cells, "aggregate": summary}, fh, indent=1, default=float)
         print(f"\nwrote {a.json}")
 

@@ -343,6 +343,11 @@ def main():
             "auroc_gen0": a0, "auroc_final_treat": at, "auroc_final_ctrl": ac,
             "fit_series_treat": series_t, "fit_series_ctrl": series_c,
             "n_qualifiers_treat": quals_t, "n_qualifiers_ctrl": quals_c,
+            # series[-1] is the fitness of the last generation evolve() SCORED, the one
+            # before the final reproduction; the panel below reads the population that
+            # reproduction made, whose fitness is never evaluated. So fit_delta and gate 2
+            # describe a population one generation earlier than the scored AUROC (see the
+            # evolve docstring; recorded 2026-10-10, behavior unchanged).
             "fit_delta_treat": round(series_t[-1] - series_t[0], 6),
             "fit_delta_ctrl": round(series_c[-1] - series_c[0], 6),
             "l0_gen0": panel_gen0["l0_auroc"], "l0_final_treat": panel_t["l0_auroc"],
@@ -399,6 +404,10 @@ def main():
     # before the emergence contrast is interpreted; sec. 8 routes failures to
     # UNINFORMATIVE). Gate 0 (surrogate band re-validation) runs externally via
     # scripts/run_expA_l3.py and is recorded here as an external prerequisite.
+    # Gate 3 is satisfied by construction in this design: the panel's L0 branches are
+    # bit-identical (see experiment_c.common_garden_panel), every l0_auroc is exactly 0.5,
+    # and equivalence_test forces se to 1e-12 for zero spread. It certifies the estimator,
+    # not the apparatus (recorded 2026-10-10, behavior unchanged).
     l0_vals = [p["l0_auroc"] for p in all_panels if np.isfinite(p.get("l0_auroc", float("nan")))]
     g3 = equivalence_test(l0_vals, h0=0.5, margin=0.05) if len(l0_vals) >= 2 else None
     gate3_pass = bool(g3.equivalent) if g3 is not None else False

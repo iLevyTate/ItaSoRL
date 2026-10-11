@@ -6,8 +6,12 @@ GroupKFold orders equal-sized groups with `np.argsort`, which before the stable
 sort landed in scikit-learn was the default (unstable) kind. With one group per
 episode every group has the same size, so fold membership then depended on the
 numpy build and the CPU's sort path. The published GPU numbers were scored on
-the split (24,20), (22,22), (21,23), (21,23), (22,22) for a 110 + 110 pool; current
-scikit-learn and the 2026-09 cloud runs use five balanced 22/22 folds.
+the split (22,22), (22,22), (22,22), (21,23), (23,21) for a 110 + 110 pool, as
+measured on the owner's stack by the 2026-09 re-score (artifacts/fold_rescore/*.json
+`partition_110_110.legacy`); that measurement superseded the split first inferred from
+fold means, (24,20), (22,22), (21,23), (21,23), (22,22) (spec section "Correction after
+the run (2026-09-29)"). Current scikit-learn and the 2026-09 cloud runs use five
+balanced 22/22 folds.
 
 `split` reproduces current scikit-learn's non-shuffled GroupKFold exactly (stable
 sort of group sizes, largest first, each group to the lightest fold, ties to the

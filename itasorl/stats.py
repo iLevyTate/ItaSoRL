@@ -7,13 +7,14 @@ control must be shown to sit AT chance, and "we failed to reject a difference fr
 claim positively: it rejects the null of a meaningful difference in favour of
 equivalence within a pre-registered margin. (ITASORL.md sec.13 item #2.)
 
-Deliberately dependency-light (numpy + scipy.stats.t if available, else a normal
-approximation) so it runs anywhere the rest of the pipeline runs.
+Dependency-light: numpy, plus scipy.stats.t for every t-based quantity. scipy is a
+declared dependency. Without it the t-based helpers (equivalence_test, t_ci90) raise
+instead of falling back to a normal approximation, which is anti-conservative at the
+n = 10 these gates run on and would report a normal p-value or interval under a t label.
 """
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -26,13 +27,16 @@ except Exception:  # pragma: no cover - scipy optional
 
 
 def _t_sf(tstat: float, df: int) -> float:
-    """Upper-tail P(T > tstat). Student-t if scipy is present, else normal approx."""
+    """Upper-tail P(T > tstat) under Student-t. Refuses without scipy, as t_ci90 does: the
+    normal tail is anti-conservative at df = 9 and could flip the L0 TOST verdict while the
+    result still reads as a t test."""
     if df <= 0:
         return float("nan")
-    if _HAVE_SCIPY:
-        return float(_student_t.sf(tstat, df))
-    # normal approximation to the t survival function
-    return float(0.5 * math.erfc(tstat / math.sqrt(2.0)))
+    if not _HAVE_SCIPY:
+        raise RuntimeError(
+            "equivalence_test needs scipy for the Student-t tail; the normal approximation "
+            "would silently report an anti-conservative p under a t label. Install scipy.")
+    return float(_student_t.sf(tstat, df))
 
 
 @dataclass

@@ -97,3 +97,26 @@ the readout-only batteries can be repeated on them.
 Ten seeds, two drift levels, three arms at 300 updates. The comparable historical run took about
 6.5 hours on the owner's laptop GPU; on CPU with two workers expect roughly 8 to 12 hours. The run
 is resumable (`--resume` skips finished cells), so an interruption costs at most one cell.
+
+## Correction (2026-10-10)
+
+The command block under "What is run" carries `--hidden 8`, which sets the agent's GRU width,
+beside `--l3-hidden 8`, which sets the surrogate's. The registered trunk is 96 units, so the
+block contradicts the sentence above it ("the registered L3 configuration ... and nothing else
+changed"). The block was in this spec when it was frozen (`d341091`), and the launch copied it.
+The run therefore executed with an 8-unit trunk and is uninformative for that reason as well as
+for its positive control (FINDINGS 14.5.1). The block is left as frozen. Any later run of this
+family needs a new frozen spec whose command states `--hidden 96`. Dated entry:
+`docs/PREREGISTRATION_L3.md` section 12, 2026-10-10.
+
+## Provenance note (2026-10-10)
+
+The header date, 2026-10-09, is the UTC date. This spec and its section-12 entry were committed
+in `d341091` at 2026-10-08 21:41:15 local time (UTC-4); the device paragraph followed in
+`60eb355` at 21:57:27. `d341091` lives on `origin/feat/final-review-fixes`. The run's own
+lineage holds its rebased copy, `caa2ce0`, with the same spec and entry text and the same
+timestamp: `caa2ce0` is the parent of `60eb355` on `origin/feat/direction-and-comparator-runs`,
+which reached `main` in the squash merge `c05d791` (#130). The launcher queued the run at
+21:57:09, 18 seconds before that paragraph was committed, and the run started at 22:00:55
+(`fullruns/T_gn_l3_h8_wm/run.log`, local time, gitignored). The header is left as written. Dated
+entry: `docs/PREREGISTRATION_L3.md` section 12, 2026-10-10.

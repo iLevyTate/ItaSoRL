@@ -46,12 +46,12 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 
 | Claims | What the corrected agents showed | Wording from here on |
 |---|---|---|
-| 12 to 16 | `C1` replaces the device control: 0.733 [0.669, 0.797], margins clear 0.05, L0 open on the registered pair and equivalent across independent pairs (17.2, 17.5) | "Under the stated protocol, with each arm's own policy driving the episodes, the condition is decodable from the survival agent's state above the predictor and untrained arms; MET on the decodability clauses, L0 open." |
+| 12 to 16 | `C1` replaces the device control: 0.733 [0.669, 0.797], margins clear 0.05, L0 open on the registered pair and equivalent across independent pairs (17.2, 17.5) | "Under the stated protocol, with each arm's own policy driving the episodes, the condition is decodable from the survival agent's state above the predictor and untrained arms; NOT MET as registered, because L0 is open; the decodability clauses are met." (Changed 2026-10-10 to lead with the registered outcome; it had read "MET on the decodability clauses, L0 open".) |
 | 12 to 14, every "survival-specific" phrase | On replayed survival streams the predictor reads 0.721 and the exposure-matched predictor 0.738 against 0.733; under one scripted policy every arm reads 0.55 to 0.58 (17.6) | The margin over the predictor is a difference between training regimes. At matched input it is not a difference of objective; the signal rides on the trajectories the survival policy generates. "Survival-specific" and "encoded by the survival objective" are withdrawn. |
-| 17 to 20, 28 | The best-fitting nonlinear control leaves 0.620, under the bar; a decoder of the observation stream alone reads 0.724 (17.8) | Name the basis and model; say that the strongest well-fit control leaves a signal under the bar. |
+| 17 to 20, 28 | The best-fitting nonlinear control leaves 0.620, under the bar; a decoder of the observation and action stream reads 0.724, and the observation trace alone 0.715 (17.8; inputs named 2026-10-10, the row had credited 0.724 to the observation stream alone) | Name the basis and model; say that the strongest well-fit control leaves a signal under the bar. |
 | 24 | Retention under identical input not shown; the tail is decodable mostly from the physical footprint (17.7) | "Prefix condition remains decodable after restoring authentic dynamics, mostly through the physical footprint of the prefix." |
 | 32, 33 | White jitter is read by no arm; a hand-authored coherent drag at matched one-step RMS is read (17.9) | Decoding tracks temporally coherent, state-dependent deviations among the tested classes; nothing specific to learned dynamics. |
-| 29, 30 | `C2` 0.613 at 300 updates against `C1` 0.733 on one device, +0.120 [+0.065, +0.174]; 0.685 without the decoder at 450 updates (17.4, 17.10) | "At the registered 300-update budget the auxiliary-conditional reading holds on the decodability clauses; without the decoder the arm approaches the bar with more training, and at 450 updates the decoder arm still reads higher." |
+| 29, 30 | `C2` 0.613 at 300 updates against `C1` 0.733 on one device, +0.120 [+0.065, +0.174]; 0.685 without the decoder at 450 updates (17.4, 17.10) | "At the registered 300-update budget the auxiliary rule is NOT MET as registered, because `C1` does not meet its primary rule, and the lead holds on the decodability clauses; without the decoder the arm approaches the bar with more training, and at 450 updates the decoder arm still reads higher." (Changed 2026-10-10 to lead with the registered outcome; it had read "the auxiliary-conditional reading holds on the decodability clauses".) |
 | 27 | The pooled probe reads 0.609 where independent individuals average 0.649 (17.11) | Restricted to the pooled readout; informative about individual signals of that size. |
 
 ## Steps and status
@@ -61,15 +61,15 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 1 | Results manifest, provenance, claim decisions | Done 2026-10-06: `docs/RESULTS_MANIFEST.md`, `artifacts/results_manifest.json`, this file, `docs/CORRECTIONS.md` |
 | 2 | Successor-state bootstrap in `itasorl/experiment_b2.py` | Done 2026-10-06; historical trainer kept as `--gae-bootstrap pre_transition`, verified bit-identical to `4b6e1f3` |
 | 3 | Tests for the intended bootstrap semantics | Done 2026-10-06: `tests/test_gae_bootstrap.py`; mutation-checked |
-| 4 | Measure the correction: diagnostic, frozen protocol, corrected confirmation runs | Done 2026-10-06 (FINDINGS 17.1 to 17.4, `docs/CORRECTIONS.md`): `C1` 0.733 [0.669, 0.797], MET on the decodability clauses conditional on the open L0 gate; `C2` 0.613, NOT MET; `C1` minus `C2` +0.120 [+0.065, +0.174]; correction effect +0.003 and +0.012 at drift 0.45 |
+| 4 | Measure the correction: diagnostic, frozen protocol, corrected confirmation runs | Done 2026-10-06 (FINDINGS 17.1 to 17.4, `docs/CORRECTIONS.md`): `C1` 0.733 [0.669, 0.797], NOT MET as registered because the L0 gate is open, decodability clauses met (label changed 2026-10-10 to lead with the registered outcome); `C2` 0.613, NOT MET; `C1` minus `C2` +0.120 [+0.065, +0.174]; correction effect +0.003 and +0.012 at drift 0.45 |
 | 5 | L0 and the fold partition | Done 2026-10-06: primary analysis frozen; folds versioned and serialized; `docs/GATE_TABLE.md`; pre-intervention audit; agent-based audit on the `C1` agents (FINDINGS 17.5: independent world-sample pairs average 0.493, sd 0.049; balanced readout 0.767). 2026-10-08: the eight pairs carried to drift 0.45 on the historical hidden-8 held-out agents (FINDINGS 17.5.1; diagnostic, historical trainer): independent draws 0.728 to 0.860, registered 0.774 ranks 5 of 9, verdict SECURE under the frozen rule |
 | 6 | Arm-by-arm training and evaluation table; predictor evaluated under its own policy | Done 2026-10-06: `docs/METHODS_ARMS.md`; readouts on the `C1` agents (FINDINGS 17.6): on replayed survival streams the predictor reads 0.721 and the exposure-matched predictor 0.738 against survival 0.733, so the survival-over-predictor margin is not a difference of objective at matched input |
 | 7 | Memory: controlled persistence test or narrower claim | Done 2026-10-06 (FINDINGS 17.7): retention under identical input not shown (replay 0.561); with memory zeroed the tail still reads 0.662, so the common-garden signal is mostly the prefix's physical footprint; narrow wording kept |
-| 8 | Behavioral and sensory controls | Done 2026-10-06 (FINDINGS 17.8): the best-fitting control (MLP, held-out R^2 0.89) leaves 0.620, under the bar; a decoder of the observation stream alone reads 0.724; "behavior-independent" retired |
+| 8 | Behavioral and sensory controls | Done 2026-10-06 (FINDINGS 17.8): the best-fitting control (MLP, held-out R^2 0.89) leaves 0.620, under the bar; a decoder of the observation and action stream reads 0.724 (inputs named 2026-10-10, the row had said the observation stream alone); "behavior-independent" retired |
 | 9 | Texture knockout interpretation | Done 2026-10-06 (FINDINGS 17.9): white jitter is read by no arm; a hand-authored coherent drag at matched one-step RMS is read (transfer 0.721, fresh 0.754); the tested classes separate on temporal coherence, not learnedness. A `qd`-trained run was executed on 2026-10-06 and set aside (gate 0 failed; descriptive record in FINDINGS 17.9); no `gn`-trained run exists |
 | 10 | Oracle and surrogate descriptions | Done 2026-10-06: FINDINGS 10.1.1 (surrogate as implemented, linear-fit control, held-out one-step error vs rollout divergence, detector-side sigma, privileged detector score, agent-accessible detector at 0.991); PREREGISTRATION_L3 amendment on fixed epochs; audited |
 | 11 | Auxiliary-loss conclusion bounded by budget | Done 2026-10-06 (FINDINGS 17.10): without the decoder 0.613 at 300 and 0.685 at 450 updates; at 450 the decoder arm still reads +0.136 higher at about equal return; skill-matched baseline stays a failed match; exploratory cross-replay splits the effect between trunk and trajectories |
-| 12 | Evolutionary readout | Done 2026-10-06: per-individual readout, lineage summary, value of world information; validation on the `C1` agents (FINDINGS 17.11): the pooled probe reads 0.609 where individuals average 0.649. The evolution was rerun with the per-individual readout on 2026-10-07 and routes UNINFORMATIVE on gates 1 and 5 (FINDINGS 13.F; amendment in PREREGISTRATION_C), so the claim stays restricted to the pooled readout |
+| 12 | Evolutionary readout | Done 2026-10-06: per-individual readout, lineage summary, value of world information; validation on the `C1` agents (FINDINGS 17.11): the pooled probe reads 0.609 where individuals average 0.649. The evolution was rerun with the per-individual readout on 2026-10-07 and routes UNINFORMATIVE (FINDINGS 13.F; amendment in PREREGISTRATION_C), so the claim stays restricted to the pooled readout. 2026-10-10: the routing rests on the speed control (gate 5) under section 7; gate 1 fails only against the margin of the unratified section-14 draft (FINDINGS 13.F, second note) |
 | 13 | Statistical terminology and estimators | Done 2026-10-06: ROPE relabeled as a bootstrap check (FINDINGS methods note 9, `itasorl/stats.py`); per-cell intervals tied to their estimator, pair-level resampling for paired readouts, `fold_mean_auroc_ci`; seed-paired margin intervals for every run (`docs/CONTRAST_INTERVALS.md`); conditioning stated; analysis tiers fixed |
 | 14 | Claims and methods rewritten consistently | Done 2026-10-06: FINDINGS (banner, TL;DR, narrowed sections, section 17), README, CITATION.cff, the site (numbers generated from the corrected artifacts), PAPER_OUTLINE (status column, rows 38 to 49), LEARNING (Act 10), ITASORL.md, METHODS_ARMS, the world spec; retired phrasings guarded by the audit on `README.md`, `index.html` and `CITATION.cff`; the manuscript checker (`scripts/build_paper_tables.py --manuscript`, tightened 2026-10-07) requires at least one generated table to be `\input`, requires every headline number of `artifacts/corrected_verdicts.json` to be quoted, matches retired wording after LaTeX markup is stripped, and flags any pre-correction headline without a historical label; it reports, the author decides |
 | 15 | Related work and the reproducibility package | Done 2026-10-06. Meta-RL comparison (RL^2, Mikulik et al., VariBAD, PEARL, RMA) in `docs/ITASORL.md`; `docs/REPRODUCE.md`; `scripts/reproduce.py` (tables without training, retrain recipes, anonymized supplement); frozen surrogates in `artifacts/surrogates/`; manuscript tables and check (`scripts/build_paper_tables.py`); the audit's stated purpose corrected. 2026-10-07: the 2026-10-06 claim that the extracted supplement passed its tests and audit did not hold (it shipped 483 gitignored files and the author's name in five files, and two tests failed to collect); the file list now follows `git ls-files`, every text member is scrubbed including `.cff`, `.html`, `.js` and extensionless files, `viz/collect.py` and the Colab notebook are packaged, and the extracted archive was re-verified on 2026-10-07 to pass the test suite and the 1188-check audit; `reproduce.py tables` reports whether the committed pages were already current before rewriting them |
@@ -101,6 +101,64 @@ the one public surface still carrying the pre-revision framing unlabeled.
 early-finding copy (an organism "near chance" with survival adding "a faint trace ~60%")
 predates the whole L3 arc and should be rewritten from the current claim table before any of
 it is reused.
+
+## The unmerged site and film commits (2026-10-10)
+
+Five commits made on 2026-09-29 sit on `origin/claude/wizardly-euler-e47s59` and were never
+merged. PR #109 merged that branch on 2026-09-28; these came after it, and `git cherry` against
+`main` finds no equivalent patch for any of them.
+
+| commit | what it does |
+|---|---|
+| `a87bf07` | site: the readout chart plots the per-seed results instead of a made-up curve |
+| `47a6423` | film: replaces the four demo loops with loops drawn from committed data |
+| `9a79c12` | film (Two Minds): the end card no longer says "trained only to survive" |
+| `eda1ad0` | site: the surrogate ladder shows what each rung measured, and under 720 px it stacks as a list (the five-column row collided at phone width) |
+| `7276243` | docs: labels the walkthrough PDFs as the July 2026 edition |
+
+Until they are dealt with, `main` and the live site keep the demo loops, the colliding ladder
+and the made-up chart. The site group of the 2026-10-10 review pass evaluates
+the five commits in that pass. A commit it carries forward is rebased onto `main`, its
+numbers are brought to the corrected record (`C1` 0.733 [0.669, 0.797], predictor 0.589,
+untrained 0.523, L0 open at 0.559, with the historical label kept on 0.752, 0.726, 0.601 and
+0.730), `index.html` is rebuilt from the template, and `scripts/audit_stats_recheck.py` is run.
+A commit it does not carry forward is listed in this section as superseded, with the reason.
+The outcome for each commit is added here when that evaluation reports, and the branch stays
+on the remote until the list is complete.
+
+**Outcome (2026-10-10).** The site group reviewed the five commits:
+
+- `a87bf07`: carried forward in the site template (`index.template.html`, rendered to
+  `index.html`). The readout chart plots per-seed results on the corrected record, drawn from
+  `artifacts/corrected_verdicts.json`, `artifacts/policy_controls/corrected_l3_h8_wm.json` and
+  `artifacts/expB2/corrected_l3_h8_nowm.json`.
+- `47a6423`: not carried forward. Its data-drawn loops show pre-correction numbers without a
+  trainer label; the four July demo loops it replaced were retired instead: their files were
+  removed from `assets/film/`, and neither the site nor the player's gallery
+  (`viz/player/index.html`) references them.
+- `9a79c12`: superseded by #113 (`be56bc2`), which re-rendered the Two Minds encode after the
+  mirroring fix of #112; its encode would undo #112.
+- `eda1ad0`: carried forward in `index.template.html` for its phone layout only (the ladder
+  stacks as a list below 720 px). Its per-rung numbers predate the correction and are not
+  carried.
+- `7276243`: superseded by a dated cover page put in front of both July 2026 walkthrough PDFs
+  (`docs/itasorl-series-plain-english.pdf`, `docs/itasorl-series-research.pdf`), which says
+  what the correction changed. The cover was regenerated on 2026-10-10 so that its item 6
+  names gate 5 as the gate that decides the Experiment C verdict.
+
+Every commit has an outcome. The branch stays on the remote all the same: this section cites
+its five commits, and they live only there. Before `origin/claude/wizardly-euler-e47s59` is
+deleted, its head (`7276243`) should be tagged so the citations keep resolving; both are owner
+actions.
+
+**A review-branch commit recorded by artifacts (2026-10-10).**
+`artifacts/expA/l2_inconfig_oracle.json` (`git_commit`), `artifacts/texture/T_gn_l3_h8_wm.json`
+and `artifacts/expH2/summary_h7.json` (`git_commit_at_promotion`) record a commit of the
+2026-10-10 review branch, the one that holds the provenance code for the round-2 findings, and
+`artifacts/results_manifest.json` copies those fields. A squash merge leaves that commit off
+`main`. The fields stay as recorded, since they are provenance facts, and the branch's commits
+stay reachable through its pull request; `docs/RESULTS_MANIFEST.md` says so beside the commits
+that are not on `main`.
 
 ## Where the manuscript lives
 

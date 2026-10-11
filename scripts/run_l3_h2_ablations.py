@@ -126,8 +126,13 @@ def cfg():
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--channels", nargs="+", choices=("gn", "ladder"),
                     default=["gn", "ladder"])
+    # NOTE: --hidden here is the SURROGATE's capacity, not the agent trunk (which
+    # run_expB2.py calls --hidden; its surrogate flag is --l3-hidden). See
+    # scripts/run_expH2_ablation.py. The flag keeps its name so recorded commands still run.
     ap.add_argument("--hidden", type=int, default=8,
-                    help="GMotion capacity of the saved agents (7 or 8); default 8")
+                    help="capacity of the frozen L3 surrogate G_motion the saved agents were "
+                         "trained against (8 forward, 7 reverse); default 8. NOT the agent's GRU "
+                         "trunk width, which run_expB2.py calls --hidden")
     ap.add_argument("--gn-json", default=None, help="gate-0 calibration JSON for gn")
     ap.add_argument("--ladder-json", default=None,
                     help="gate-0 calibration JSON for mlp hidden 16/32/64")

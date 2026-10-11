@@ -46,6 +46,7 @@ from itasorl.l0_audit import (  # noqa: E402
     AUDIT_BASES, STANDARD_BASES, world_sample_scan, world_sample_summary,
 )
 from itasorl.world import WorldParams  # noqa: E402
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
@@ -76,6 +77,33 @@ def _reference(path: str, drift: float, arm: str) -> dict:
             out[int(c["seed"])] = float(c[scheme]["target"])
     return out
 
+
+
+VOID_VERDICT = "VOID (integrity gate failed)"
+
+
+def adjudicate(cells: list, arms, bases, bar: float, integrity_passed: bool) -> dict:
+    """Per arm, the frozen rule on the per-draw means (draw 0 is the registered pair).
+
+    The verdict is written only when the integrity gate passed. A failed gate means the
+    registered draw did not reproduce the recorded targets, so no draw can be trusted: the
+    summary then reads VOID_VERDICT and keeps the label the rule would have given under
+    `verdict_if_valid`, so a saved artifact can never carry a live verdict from a void run.
+    """
+    summary = {}
+    for arm in arms:
+        per_arm = [c for c in cells if c["arm"] == arm]
+        if not per_arm:
+            continue
+        draw_means = [float(np.mean([c["rows"][k]["target"] for c in per_arm]))
+                      for k in range(len(bases))]
+        s = world_sample_summary(draw_means[1:], draw_means[0], bar=bar)
+        s["per_draw_bases"] = [list(b) for b in bases[1:]]
+        if not integrity_passed:
+            s["verdict_if_valid"] = s["verdict"]
+            s["verdict"] = VOID_VERDICT
+        summary[arm] = s
+    return summary
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -123,7 +151,7 @@ def main() -> int:
         "generated_by": "scripts/run_world_sample_sensitivity.py",
         "git_commit": git_head(),
         "spec": "docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md",
-        "agents_dir": a.agents_dir, "drift": a.drift, "arms": arms, "bar": a.bar,
+        "agents_dir": repo_rel(a.agents_dir), "drift": a.drift, "arms": arms, "bar": a.bar,
         "bases": [list(b) for b in bases], "registered_bases": list(STANDARD_BASES),
         "n_eps": a.n_eps, "steps": a.steps,
         "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
@@ -160,21 +188,12 @@ def main() -> int:
                            "abs_dev": abs(got - want)})
     worst = max((c["abs_dev"] for c in checks), default=float("nan"))
     passed = bool(checks) and worst <= a.integrity_tol
-    out["integrity"] = {"reference": a.integrity_ref, "tolerance": a.integrity_tol,
+    out["integrity"] = {"reference": repo_rel(a.integrity_ref), "tolerance": a.integrity_tol,
                         "n_checked": len(checks), "worst_abs_dev": worst,
                         "pass": passed, "per_seed": checks}
 
     # ---- adjudication under the frozen rule ----
-    out["summary"] = {}
-    for arm in arms:
-        per_arm = [c for c in out["cells"] if c["arm"] == arm]
-        if not per_arm:
-            continue
-        draw_means = [float(np.mean([c["rows"][k]["target"] for c in per_arm]))
-                      for k in range(len(bases))]
-        s = world_sample_summary(draw_means[1:], draw_means[0], bar=a.bar)
-        s["per_draw_bases"] = [list(b) for b in bases[1:]]
-        out["summary"][arm] = s
+    out["summary"] = adjudicate(out["cells"], arms, bases, a.bar, passed)
 
     out["wall_seconds"] = time.time() - t0
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
@@ -189,7 +208,7 @@ def main() -> int:
               f"sd {s['between_draw_sd']:.4f}, {s['n_at_or_above_bar']}/{s['n_draws']} at "
               f"or above {a.bar}")
         print(f"  verdict under the frozen rule: {s['verdict']}"
-              + ("" if passed else "  (VOID: integrity gate failed)"))
+              + ("" if passed else f"  (would read {s['verdict_if_valid']})"))
     print(f"saved {a.out}")
     return 0 if passed else 1
 

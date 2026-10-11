@@ -24,9 +24,12 @@ from .world import SeedBundle, WorldParams
 
 def _oracle_policy(rng) -> np.ndarray:
     """Explore motion (random thrust + turn) with NO foraging. Eat/drink do not enter
-    _integrate_motion, so dropping them leaves the motion distribution identical to the
-    training policy while ensuring reward/length cannot leak from the dynamics difference
-    (the dynamics-altering-rung confound noted for L2, docs/FINDINGS.md section 2.2)."""
+    _integrate_motion, so dropping them changes no motion input, and reward/length cannot
+    leak from the dynamics difference (the dynamics-altering-rung confound noted for L2,
+    docs/FINDINGS.md section 2.2). The motion distribution is close to G's training
+    distribution but not identical: thrust here is U(0.1, 0.6), while the scripted policy
+    that generated G's training transitions (experiment_b.scripted_policy) draws U(0.0, 0.6).
+    Turn is U(-1, 1) in both."""
     return np.array([rng.uniform(0.1, 0.6), rng.uniform(-1.0, 1.0), 0.0, 0.0, 0.0], np.float32)
 
 

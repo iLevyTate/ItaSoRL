@@ -84,6 +84,40 @@ def test_paired_readout_twins_share_the_initial_state_under_drift(monkeypatch):
     assert r["identical_first_state"] is True and np.isfinite(r["target"])
 
 
+def test_paired_readout_twins_share_the_initial_state_under_the_l3_surrogate(monkeypatch):
+    """The headline rung: a learned law installed, same seeds, so the first states match and
+    any separation comes from the surrogate's dynamics."""
+    import itasorl.experiment_b2 as b2
+    from itasorl.surrogate_l3 import train_g_motion
+    g = train_g_motion(hidden=2, n_eps=6, steps=10, epochs=3, device="cpu", seed=0, params=P)
+    monkeypatch.setattr(b2, "DRIFT_MODE", "l3")
+    monkeypatch.setattr(b2, "_L3_GMOTION", g)
+    agent, norm = _agent_norm()
+    r = paired_pooled_readout(agent, norm, P, 0.45, n_eps=12, steps=5, ray_steps=RS)
+    assert r["identical_first_state"] is True and np.isfinite(r["target"])
+
+
+def test_paired_readout_refuses_l1_with_sensor_noise_at_drift(monkeypatch):
+    """The documented L1 exception. With sensor noise on, a drift > 0 world seeds its noise
+    stream after its drift stream, so same-seed twins see different noise from the first
+    observation. The readout refuses rather than report a pairing that is not
+    surrogate-only. At drift 0 neither twin draws a drift stream, so they still match."""
+    import itasorl.experiment_b2 as b2
+    from itasorl.world import SeedBundle
+    monkeypatch.setattr(b2, "DRIFT_MODE", "l1")
+    monkeypatch.setattr(b2, "L1_DELTA", 0.0)          # no grid: noise is the only difference
+    monkeypatch.setattr(b2, "SENSOR_SIGMA", 0.01)
+    sb = SeedBundle(world=800_000, weather=807_000, ecology=813_000)
+    auth = np.asarray(b2.make_world(P, 0.0, RS).reset(sb).obs)
+    surr = np.asarray(b2.make_world(P, 0.023, RS).reset(sb).obs)
+    assert not np.array_equal(auth, surr), "the seeding caveat this guard exists for"
+    agent, norm = _agent_norm()
+    with pytest.raises(ValueError, match="sensor noise"):
+        paired_pooled_readout(agent, norm, P, 0.023, n_eps=12, steps=5, ray_steps=RS)
+    r = paired_pooled_readout(agent, norm, P, 0.0, n_eps=12, steps=5, ray_steps=RS)
+    assert r["identical_first_state"] is True
+
+
 def test_pre_intervention_probe_on_one_sample_is_chance():
     r = pre_intervention_probe(P, bases=(5000, 5000), n=20, ray_steps=RS)
     assert r["target"] == pytest.approx(0.5, abs=1e-12)

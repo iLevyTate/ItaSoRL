@@ -4,6 +4,8 @@
 
 L0 rule: TOST with margin 0.05 and alpha 0.05 on the ten drift-0 survival targets; the ROPE column is the share of bootstrap means inside [0.45, 0.55] (a bootstrap containment proportion, not a posterior probability). A test that does not show equivalence is reported as **inconclusive**, never as a pass, and no margin is changed after the fact. Every L0 row conditions on one pair of evaluation-world samples shared by all agent seeds; `artifacts/l0_audit/` measures how far the statistic moves across independent world samples.
 
+Speed min is the speed probe in the lowest pool over every drift, arm and seed (gate 3 needs at least 0.75 in every pool). A value marked (lowest arm mean) comes from an artifact promoted before 2026-10-10 that recorded the lowest arm mean instead, which can sit above a pool under the threshold.
+
 | Run | Status | Partition | L0 mean | L0 TOST p | L0 | ROPE share | Untrained floor | Engagement | Speed min | Pooled leak clean | Deaths |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `BV2-L2-AR1` | historical | legacy | 0.520 | 0.203 | inconclusive (not shown equivalent) | 0.854 | 0.476 (pass) | not recorded | not recorded | not recorded | not recorded |
@@ -20,13 +22,15 @@ L0 rule: TOST with margin 0.05 and alpha 0.05 on the ten drift-0 survival target
 | `L3-H7-REVERSE` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.600 (pass) | not recorded | not recorded | not recorded | not recorded |
 | `L1-ORGANISM` | historical | legacy | 0.522 | 0.029 | pass | 0.989 | 0.494 (pass) | 20/20 | 0.779 | yes | 0 |
 | `L1-ORGANISM` | historical | explicit | 0.546 | 0.374 | inconclusive (not shown equivalent) | 0.628 | 0.513 (pass) | 20/20 | 0.779 | yes | 0 |
-| `L3-H8-NOWM-CPU` | historical | explicit (= legacy on that stack) | 0.514 | 0.006 | pass | 1.000 | 0.529 (pass) | 20/20 | 0.835 | yes | 0.000 |
-| `L3-H8-WM-CPU` | historical | explicit (= legacy on that stack) | 0.529 | 0.039 | pass | 0.983 | 0.523 (pass) | 20/20 | 0.830 | yes | 0.000 |
-| `L3-H10-GS1-CPU` | historical | explicit (= legacy on that stack) | 0.529 | 0.039 | pass | 0.983 | 0.514 (pass) | 20/20 | 0.830 | yes | 0.000 |
-| `L3-H10-GS1-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.521 (pass) | 20/20 | 0.833 | yes | 0.000 |
-| `L3-H8-GS2-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.550 (pass) | 20/20 | 0.814 | yes | 0.000 |
-| `L3-H8-NOWM-U450` | historical | explicit | 0.539 | 0.285 | inconclusive (not shown equivalent) | 0.736 | 0.513 (pass) | 20/20 | 0.837 | yes | 0.000 |
-| `CORRECTED-L3_H8_NOWM` | corrected | explicit | 0.515 | 0.001 | pass | 1.000 | 0.529 (pass) | 20/20 | 0.835 | yes | 0.000 |
-| `CORRECTED-L3_H8_WM` | corrected | explicit | 0.559 | 0.939 | inconclusive (not shown equivalent) | 0.028 | 0.523 (pass) | 20/20 | 0.830 | yes | 0.000 |
+| `L3-H8-NOWM-CPU` | historical | explicit (= legacy on that stack) | 0.514 | 0.006 | pass | 1.000 | 0.529 (pass) | 20/20 | 0.787 | yes | 0.000 |
+| `L3-H8-WM-CPU` | historical | explicit (= legacy on that stack) | 0.529 | 0.039 | pass | 0.983 | 0.523 (pass) | 20/20 | 0.772 | yes | 0.000 |
+| `L3-H10-GS1-CPU` | historical | explicit (= legacy on that stack) | 0.529 | 0.039 | pass | 0.983 | 0.514 (pass) | 20/20 | 0.753 | yes | 0.000 |
+| `L3-H10-GS1-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.521 (pass) | 20/20 | 0.748 | yes | 0.000 |
+| `L3-H8-GS2-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.550 (pass) | 20/20 | 0.758 | yes | 0.000 |
+| `L3-H8-NOWM-U450` | historical | explicit | 0.539 | 0.285 | inconclusive (not shown equivalent) | 0.736 | 0.513 (pass) | 20/20 | 0.790 | yes | 0.000 |
+| `CORRECTED-L3_H8_NOWM` | corrected | explicit | 0.515 | 0.001 | pass | 1.000 | 0.529 (pass) | 20/20 | 0.787 | yes | 0.000 |
+| `CORRECTED-L3_H8_WM` | corrected | explicit | 0.559 | 0.939 | inconclusive (not shown equivalent) | 0.028 | 0.523 (pass) | 20/20 | 0.772 | yes | 0.000 |
 
 L0 not shown equivalent: 11 of 22 rows (`BV2-L2-AR1` legacy, `L3-H8-N10` explicit, `L3-H7-N10` explicit, `L3-H4` explicit, `L3-H8-HELDOUT` explicit, `L3-H7-REVERSE` explicit, `L1-ORGANISM` explicit, `L3-H10-GS1-GPU` explicit, `L3-H8-GS2-GPU` explicit, `L3-H8-NOWM-U450` explicit, `CORRECTED-L3_H8_WM` explicit).
+
+Speed positive control under 0.75 in its lowest pool: 1 of 22 rows (`L3-H10-GS1-GPU` explicit 0.748).

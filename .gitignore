@@ -228,11 +228,8 @@ viz/out/
 !/assets/film/detectable-all-along-poster.jpg
 !/assets/film/two-minds-web.mp4
 !/assets/film/two-minds-poster.jpg
-# The four companion loops in the site's "More ways to see it" row, 182 KB total.
-!/assets/film/loop-idle-clouds.mp4
-!/assets/film/loop-survival-clouds.mp4
-!/assets/film/loop-race.mp4
-!/assets/film/loop-brain-pair.mp4
+# The four July demo loops (loop-*.mp4) were retired from the site on 2026-10-10 and are
+# no longer allowlisted; assets/film/README.md says why.
 
 # Editing masters and NLE project files wherever they land: too large for git and
 # not reproducible from code, so they live on local disk or the owner's Drive.

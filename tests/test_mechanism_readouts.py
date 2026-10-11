@@ -323,4 +323,4 @@ def test_decide_touch_primary_reads_the_promoted_layout():
     t = dg.touch_primary(str(ROOT / "artifacts" / "expB2" / "corrected_l3_h8_wm.json"))
     assert t["met"] is True and t["gates_pass"] is False
     assert t["wording"].startswith("pellet-seeking without stakes did not meet")
-    assert t["zone"].startswith("ENCODING INDUCED")
+    assert t["zone"] == "DECODABILITY CLAUSES MET, GATE OPEN: l0"

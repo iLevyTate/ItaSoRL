@@ -156,7 +156,14 @@ def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int,
     for k, v in {**SURVIVAL_METAB, **SURVIVAL_FOOD, **(food_override or {})}.items():
         setattr(w, k, v)
     w.mortal = MORTAL if mortal is None else mortal
-    if DRIFT_MODE == "l3" and drift_sigma > 0.0 and _L3_GMOTION is not None:
+    if DRIFT_MODE == "l3" and drift_sigma > 0.0:
+        # Fail closed. Without a learned law the l3 world integrates the authentic velocity
+        # law, so a "surrogate" pool would be an authentic pool under another seed base and
+        # the target would read near 0.5 with no error. This raises only on that
+        # misconfiguration; a world built with G installed is unchanged.
+        if _L3_GMOTION is None:
+            raise RuntimeError("l3 mode with no surrogate installed; call setup_l3_surrogate "
+                               "first (or assign experiment_b2._L3_GMOTION)")
         w._g_motion = _L3_GMOTION  # surrogate (drift_sigma>0) uses learned dynamics; authentic does not
     return w
 
@@ -1199,6 +1206,10 @@ def cg_probe(auth_tails: list, surr_tails: list, *, late_k: int = 8, seed: int =
     y = np.concatenate([np.zeros(n), np.ones(n)]).astype(int)
     # Matched pairs share the prefix world state: same group id for both members so
     # GroupKFold keeps each pair in one fold (see probe_world_identity).
+    # When the tails pool several individuals on the same pair seeds (Experiment C,
+    # itasorl/experiment_c.py _pooled_common_garden), the group is still the pooled row, so
+    # the same world seed's pairs from related individuals can straddle folds; see the note
+    # in experiment_c.common_garden_panel. Behavior unchanged.
     g = np.concatenate([np.arange(n), np.arange(n)])
     X = np.stack([_episode_feature(H) for H in auth_tails + surr_tails])
     k = min(late_k, auth_tails[0].shape[0])

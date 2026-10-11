@@ -11,17 +11,23 @@
  *   window.__seek(t)  render the exact frame at time t (pure function of t)
  *   window.__sceneSource = "stylized"  (this film is illustrative art)
  *
- * Numbers are REAL - the canonical L3 headline result (docs/FINDINGS.md TL;DR,
- * n = 10 seeds, read out never rewarded):
+ * Numbers are REAL, and they are HISTORICAL: the L3 arc as run on the
+ * pre-correction trainer (docs/CORRECTIONS.md), n = 10 seeds, read out never
+ * rewarded. The corrected headline is 0.733 (docs/FINDINGS.md 17.2), and the
+ * film is not re-rendered with it; the end card's footer says so.
  *   untrained mind        0.488  (chance floor)
  *   pre-registered bar    0.65   ("past this line = it can tell")
  *   survival-trained mind 0.726  (section 10.4 residual after the four behavior
  *                                 channels are regressed out; 90% CI [0.685,
- *                                 0.765], 9/10 seeds)
+ *                                 0.765], 9/10 seeds). A residual is what that
+ *                                 basis and model could not explain, not
+ *                                 independence from behavior: on the corrected
+ *                                 agents the best-fitting control leaves 0.620,
+ *                                 under the bar (FINDINGS 17.8).
  *   outside watcher gate  0.928  (oracle, a different quantity from the probe)
  * The raw pooled target is 0.752, and so are the masked-sense figures
  * (0.686 / 0.500). Neither appears as a number on screen: they belong to the
- * uncontrolled family and would mix with the 0.726 the write-up quotes.
+ * uncontrolled family and would mix with the 0.726 residual on screen.
  * The layout/motion remain stylized; the numbers are not. Since the labeled
  * pass, the dots are grounded too: sense/action/readout names mirror the real
  * obs and head spec (viz_mind_learning.py SENSOR_GROUPS / MOTOR_HEADS), the
@@ -112,7 +118,10 @@ const SECTIONS = {
     narration: [
       { u0: 0.00, u1: 0.25, text: "Ten senses. Every world arrives through them." },
       { u0: 0.25, u1: 0.50, text: "The flaw enters at speed: how things move." },
-      { u0: 0.50, u1: 1.00, text: "Cover the eyes and the trace fades." },
+      // Was "Cover the eyes and the trace fades." Against this fingerprint masking vision
+      // moves 0.752 to 0.686 with 7 of 10 seeds still over the bar, and against the
+      // coarser one it raises the signal (FINDINGS 14.6), so it weakens and stays.
+      { u0: 0.50, u1: 1.00, text: "Cover the eyes and the trace weakens, but stays." },
     ],
   },
   process: {
@@ -141,8 +150,13 @@ const SECTIONS = {
     // said "before the miss" at u 0.40, after the miss, over a climbing meter.
     narration: [
       { u0: 0.00, u1: 0.22, text: "Twelve real memory cells, by unit number." },
-      { u0: 0.22, u1: 0.44, text: "Until the miss lands: a coin flip. 49%." },
-      { u0: 0.44, u1: 0.72, text: "After: 73%. Our bar, set in advance, was 65%." },
+      // 49% and 73% are two different brains, untrained and trained, each read once
+      // after training. The old lines ("Until the miss lands: a coin flip. 49%." /
+      // "After: 73%.") told them as one brain's before and after, which was never
+      // measured. The meter still climbs inside one brain; a re-render needs a meter
+      // that shows the two brains side by side.
+      { u0: 0.22, u1: 0.44, text: "An untrained brain reads 49%: a coin flip." },
+      { u0: 0.44, u1: 0.72, text: "A trained brain reads 73%. The bar was 65%." },
       { u0: 0.72, u1: 1.00, text: "Teal rings hold the trace. Twins fade." },
     ],
   },
@@ -1170,14 +1184,17 @@ function drawMind(panel, t) {
   ctx.restore(); // close jitter/scanline wrapper
 }
 
-// REAL canonical numbers (docs/FINDINGS.md, L3, n = 10 seeds).
+// REAL numbers from the pre-correction trainer (docs/FINDINGS.md section 10, L3,
+// n = 10 seeds); historical, kept because the rendered films carry them. The
+// corrected headline is 0.733 (FINDINGS 17.2).
 //
-// The peak is 0.726, NOT the 0.752 headline: 0.726 is the section 10.4 residual
-// after the four behavior channels are regressed out (90% CI [0.685, 0.765],
-// 9/10 seeds over the bar),
-// which is the number the write-up and the post both quote. 0.752 is the raw
-// pooled target before behaviour is residualised out. Mixing the two is what
-// put "75%" on screen under a post that said 73%.
+// The peak is 0.726, NOT the 0.752 pre-correction headline: 0.726 is the section
+// 10.4 residual after the four behavior channels are regressed out (90% CI
+// [0.685, 0.765], 9/10 seeds over the bar), which is the number the historical
+// write-up and post quoted. It is a residual, not independence from behavior; on the corrected
+// agents the best-fitting control leaves 0.620, under the bar (FINDINGS 17.8).
+// 0.752 is the raw pooled target before behaviour is residualised out. Mixing
+// the two is what put "75%" on screen under a post that said 73%.
 //
 // Because the peak now comes from the controlled family, the masked-sense
 // figures (0.686 / 0.500, FINDINGS 14.6 A2) are NOT shown as numbers anywhere:
@@ -1537,10 +1554,12 @@ function drawEndCard() {
   const L = vert
     ? { mark: 600, markSize: 32, head: 730, headSize: 54, headLH: 66, headMax: 960,
         num: 940, numSize: 72, scale: 1020, seeds: 1064, aux: 1108, small: 30,
-        url: 1250, urlSize: 50, colab: 1310, colabSize: 30 }
+        url: 1250, urlSize: 50, colab: 1310, colabSize: 30,
+        foot: 1446, footSize: 26, footLH: 36 }
     : { mark: 280, markSize: 28, head: 378, headSize: 48, headLH: 58, headMax: 1360,
         num: 524, numSize: 64, scale: 592, seeds: 632, aux: 672, small: 28,
-        url: 756, urlSize: 46, colab: 806, colabSize: 28 };
+        url: 756, urlSize: 46, colab: 806, colabSize: 28,
+        foot: 918, footSize: 24, footLH: 34 };
 
   ctx.save();
   ctx.letterSpacing = "10px";
@@ -1574,6 +1593,15 @@ function drawEndCard() {
   // a different run family than the 0.726 on the card above, and putting two
   // percentages side by side is what previously mixed families on screen.
   ctx.fillText("drop the second job and the trace falls below the bar", W / 2, L.aux);
+  // That line and the 73% hold at the 300-update budget of the pre-correction
+  // trainer. Trained to 450 updates the arm without the decoder clears the bar
+  // (0.717 on the pre-correction trainer, FINDINGS 10.8.1; 0.685 on the corrected
+  // one, 17.10), so the footer carries the budget and the trainer rather than
+  // leaving both lines unconditioned.
+  ctx.font = `500 ${L.footSize}px 'Segoe UI', sans-serif`;
+  ctx.fillStyle = "rgba(180,174,206,0.72)";
+  const FOOT = ["pre-correction trainer, 300 training updates", "corrected record: FINDINGS 17"];
+  fillBlock(vert ? FOOT : [FOOT.join("   ·   ")], L.foot, L.footLH);
 
   ctx.font = `700 ${L.urlSize}px 'Segoe UI', sans-serif`;
   ctx.fillStyle = INK;

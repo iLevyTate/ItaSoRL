@@ -26,6 +26,7 @@ python scripts/reproduce.py tables        # rebuild every table and gate without
 python scripts/build_results_manifest.py # which code, config, seeds and trainer produced each artifact
 python scripts/dump_brain_film_data.py   # per-unit world-signal -> viz/player/brain/brain-data.js
 python scripts/render_brain_pair_tour.py # the earlier brain-pair tour and section loops
+python scripts/plot_record_figures.py    # Experiment A, B and B-v2 record figures from committed artifacts (docs/figures, artifacts/expB2)
 ```
 
 `dump_brain_film_data.py` reads the saved held-out state pools under
@@ -145,3 +146,23 @@ explained by the controlled behavior channels; [0.60, 0.65) weakens it to a
 below-bar trace; < 0.60 means the L3 signal is largely behavior-mediated. The
 residual is relative to that basis and that model, not independence from behavior
 in general: name both when reporting it (FINDINGS 17.8).
+
+## Provenance records from local bundles (agent free, read only)
+
+Records added 2026-10-10 for numbers whose only source was a gitignored bundle. Each reads
+`fullruns/` (or `--runs-root` in another checkout) and writes a committed artifact that its
+test recomputes without the bundle.
+
+```bash
+python scripts/promote_expH2_summary.py --run fullruns/l3_h7_ablation/aggregate.json \
+    --l3-hidden 7 --out artifacts/expH2/summary_h7.json --commit-at-run "<curated note>"
+python scripts/rescore_fold_split.py --annotate-shapes artifacts/fold_rescore/l3_n10.json \
+    --runs-root fullruns      # adds state_dim (the agent trunk width) per cell
+python scripts/audit_engagement_margin.py --with-inputs \
+    --json artifacts/engagement_margin_gpu_runs.json fullruns/l3_h8_heldout/cells ...
+python scripts/record_wall_clock.py --runs-root fullruns --out artifacts/wall_clock_gpu_runs.json
+python scripts/promote_reviewer_gaps_runs.py --refresh-gates artifacts/expB2/<artifact>.json
+ITASORL_FOLDS=legacy python scripts/run_expA_l2_inconfig.py \
+    --sigmas 0.0002 0.001 0.005 0.01 0.02 0.05 --l3-hiddens 8 7 --noise-seeds 8 \
+    --json artifacts/expA/l2_inconfig_oracle.json
+```

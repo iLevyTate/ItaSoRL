@@ -76,8 +76,19 @@ def cfg():
                     choices=("none", "vision", "intero", "smell", "all"))
     ap.add_argument("--drift-mode", choices=("l1", "l3"), default="l3",
                     help="rung: l3 (learned velocity law) or l1 (observation discretization)")
-    ap.add_argument("--hidden", type=int, default=8)
-    ap.add_argument("--l1-delta", type=float, default=1.0 / 64)
+    # NOTE: --hidden here is the SURROGATE's capacity, not the agent trunk (which
+    # run_expB2.py calls --hidden; its surrogate flag is --l3-hidden). The --l1-delta default
+    # (1/64) predates the frozen in-band grid; the recorded L1 runs pass --l1-delta 0.023
+    # explicitly (usage above). Flags and defaults keep their names and values so recorded
+    # commands still run.
+    ap.add_argument("--hidden", type=int, default=8,
+                    help="drift-mode l3 only: capacity of the frozen L3 surrogate G_motion the "
+                         "saved agents were trained against (8 forward, 7 reverse); default 8. "
+                         "NOT the agent's GRU trunk width, which run_expB2.py calls --hidden")
+    ap.add_argument("--l1-delta", type=float, default=1.0 / 64,
+                    help="drift-mode l1 only: quantization grid spacing. The default 1/64 is "
+                         "NOT the frozen in-band value; pass --l1-delta 0.023 to read the "
+                         "registered L1 organism (FINDINGS 14.7)")
     ap.add_argument("--sensor-sigma", type=float, default=0.01)
     ap.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     ap.add_argument("--n-eps", type=int, default=110)

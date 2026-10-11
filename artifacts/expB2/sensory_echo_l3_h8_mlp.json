@@ -1,5 +1,5 @@
 {
- "source_run": "C:/Users/benja/Documents/GitHub/ITASORL/fullruns/l3_h8_sensory_echo_mlp",
+ "source_run": "fullruns/l3_h8_sensory_echo_mlp",
  "spec": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md",
  "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
  "surrogate": "L3 GMotion hidden=8 seed=0 trained on P",

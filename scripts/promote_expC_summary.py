@@ -25,6 +25,8 @@ import json
 import os
 import subprocess
 
+from promote_bv3_gates import repo_rel
+
 CONFIG_KEYS = ["n", "generations", "seeds", "sigma", "q", "drift_sigma",
                "n_eps", "max_steps", "embed", "hidden", "l3_hidden", "l3_seed",
                "panel_pairs", "panel_prefix", "panel_tail"]
@@ -75,7 +77,7 @@ def main() -> int:
 
     est = run["estimand"]
     out = {
-        "source_run": args.run.replace("\\", "/"),
+        "source_run": repo_rel(args.run),
         "world": run["world"],
         "surrogate": run["surrogate"],
         "control_food": run["control_food"],

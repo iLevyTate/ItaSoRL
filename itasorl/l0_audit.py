@@ -15,7 +15,16 @@ are measured here.
 3. Balanced sampling. `paired_pooled_readout` draws both pools from the SAME seeds, so each
    authentic episode has a surrogate twin with an identical initial state, and both twins
    share a CV group. At drift 0 the twins are identical and the target is exactly 0.5 by
-   construction; at drift > 0 any separation comes from the dynamics alone.
+   construction; at drift > 0 any separation comes from the surrogate alone.
+
+   Scope. The twin guarantee holds for the dynamics rungs (l3, and the ar1 and regime L2
+   modes), which run without sensor noise. It does not hold when sensor noise is on
+   (sensor_sigma > 0, the L1 rung): a world with drift_sigma > 0 draws its drift stream's
+   seed from the world RNG before it draws the observation-noise seed, so same-seed twins
+   receive different noise realizations from the first observation on. The seeding is
+   left as recorded, because changing it would alter the bits of the recorded L1 run, and
+   `paired_pooled_readout` refuses that combination instead. A future world version could
+   seed the observation stream from the unused weather stream so that twins share it.
 
 All readouts use the standard probe family (`grouped_auroc`) and the active fold scheme,
 and record the partition they used (`itasorl.folds.partition_record`).
@@ -25,6 +34,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from . import experiment_b2 as _b2
 from . import folds
 from .experiment_a import grouped_auroc
 from .experiment_b import episode_features
@@ -32,8 +42,20 @@ from .experiment_b2 import _seeds, collect_pool, make_world, pooled_readout
 from .stats import auroc_ci, cluster_auroc_ci, t_ci90
 
 STANDARD_BASES = (800_000, 850_000)
-# Independent world-sample pairs for the L0 audit, disjoint from every seed base the
-# pipeline uses (training <= 285_800; evaluation 555_000 to 970_109).
+# Independent world-sample pairs for the L0 audit. The eight pairs are disjoint from each
+# other, from the registered pair (800_000 / 850_000) and from every training seed (survival
+# and predictor training seeds stay below 285_800). They are NOT disjoint from every
+# evaluation base: besides 555_000 to 970_109 (warmup, matched pairs, pooled, held-out,
+# common garden, gn), evaluation also uses the H2 ladder bases 980_000 to 1_030_109
+# (scripts/run_l3_h2_ablations.py SEED_BASES), the persistence base 980_000, the mechanism
+# readout base 1_400_000 (scripts/run_mechanism_readouts.py WORLD_BASE, shared by its
+# authentic and surrogate rollouts) and the qd bases
+# 1_900_000 / 1_950_000 (scripts/run_texture_fresh_probe.py). Two of those coincide with
+# audit pools: the h32 ladder's authentic base 1_000_000 is audit draw 1's authentic pool,
+# and the mechanism readout's 1_400_000 is audit draw 5's authentic base. The audit draws
+# stay independent of each other and of the registered pair, which is what the audit needs,
+# so no recorded audit number depends on this; tests/test_l0_audit_seed_bases.py pins the
+# overlaps so a new one cannot appear unnoticed.
 AUDIT_BASES = tuple((1_000_000 + 100_000 * k, 1_050_000 + 100_000 * k) for k in range(8))
 
 
@@ -134,7 +156,11 @@ def world_sample_summary(independent_means, registered_mean: float, *,
 
 
 def _first_state_target(agent, norm, params, base_a, base_b, n, ray_steps, device) -> float:
-    """Decode pool membership from h_1, the state after the reset observation only."""
+    """Decode pool membership from h_1, the state after the reset observation only.
+
+    Both pools are authentic (drift 0) and come from different seed bases, so no world
+    draws a drift stream and the twin seeding caveat in the module docstring does not
+    apply here."""
     Ha, _ = collect_pool(agent, norm, params, 0.0, n, 1, device, base_a, ray_steps)
     Hb, _ = collect_pool(agent, norm, params, 0.0, n, 1, device, base_b, ray_steps)
     X = np.concatenate([Ha[:, 0], Hb[:, 0]])
@@ -148,7 +174,16 @@ def paired_pooled_readout(agent, norm, params, drift_sigma: float, *, n_eps: int
     """Pooled readout with balanced initial states: authentic and surrogate episodes come
     from the same world seeds, both members of a pair share a CV group, and a pair is kept
     only if both members survive (symmetric, so survivorship cannot separate the pools).
-    The CI resamples pairs (cluster bootstrap) and is conditional on the fitted probes."""
+    The CI resamples pairs (cluster bootstrap) and is conditional on the fitted probes.
+
+    Refuses drift > 0 with sensor noise on (experiment_b2.SENSOR_SIGMA > 0): those twins
+    get different observation-noise streams (module docstring, Scope), so the balanced
+    design would not isolate the surrogate."""
+    if float(drift_sigma) > 0.0 and float(_b2.SENSOR_SIGMA) > 0.0:
+        raise ValueError(
+            "paired_pooled_readout: with sensor noise on (SENSOR_SIGMA > 0, the L1 rung) a "
+            "world with drift_sigma > 0 seeds its observation noise after its drift stream, "
+            "so same-seed twins do not share noise and the pairing is not surrogate-only")
     Ha, _, ia = collect_pool(agent, norm, params, 0.0, n_eps, steps, device, seed_base,
                              ray_steps, return_index=True)
     Hs, _, is_ = collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device,

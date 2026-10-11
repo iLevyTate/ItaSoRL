@@ -9,11 +9,22 @@ summary JSON per run under artifacts/expB2/ with provenance:
   * per (drift, arm): per-seed pooled targets, mean, t-based 90% CI, seed-bootstrap
     90% CI, t-based 95% CI, seeds >= 0.65, speed / reward-leak / death means
   * gates: engagement pass count per drift (from cells/), L0 TOST and ROPE on the
-    survival drift-0 targets, pooled leakage clean count, untrained floor
+    survival drift-0 targets, pooled leakage clean count, untrained floor, and the speed
+    positive control as the registered gate reads it: the minimum over every pool (every
+    drift, arm and seed), with where it sits and how many pools fall under 0.75. Until
+    2026-10-10 speed_min was the minimum of the per-arm MEANS, which hid single pools under
+    the threshold; that figure is kept as speed_min_of_arm_means
   * behavior audit aggregates (resid_trace etc.) with t-based 90% CI recomputed from
     the audit cells
   * gate-0 calibration rows when a calibration.json is given
-  * the frozen decision rule for the run (spec named in --spec)
+  * the frozen decision rule for the run (spec named in --spec). The zone reads
+    "ENCODING INDUCED" only when the four decodability clauses hold (mean at the 0.65 bar,
+    t-based 90% interval excluding the bar as PREREGISTRATION_L3 sec. 10 requires, and both
+    0.05 margins) AND every registered gate passes (sec. 8). Clauses met with a gate open
+    read "DECODABILITY CLAUSES MET, GATE OPEN: <gates>", naming gates as
+    artifacts/corrected_verdicts.json does, and decision.registered_rule_met is false. A
+    mean at the bar with both margins but an interval that straddles the bar reads
+    "MEAN AT BAR, T90 STRADDLES 0.65" (the INCONCLUSIVE row of build_corrected_verdicts.py)
   * with --device-control-against <no-auxiliary run dir>, the device-control rule
     frozen in the 2026-09-27 addendum to the architecture-baseline spec: the
     decoder-carrying survival target on the same device against the no-auxiliary one
@@ -25,6 +36,23 @@ Usage:
     python scripts/promote_reviewer_gaps_runs.py --run artifacts/reviewer_gaps_runs/l3_h8_wm_cpu \
         --out artifacts/expB2/device_control_l3_h8_wm_cpu.json --spec <spec path> \
         --label "device control" --device-control-against artifacts/reviewer_gaps_runs/l3_h8_nowm
+    python scripts/promote_reviewer_gaps_runs.py --relabel artifacts/expB2/<artifact>.json
+
+--relabel brings the zone of an artifact promoted before the gate-aware rule up to date. It
+re-promotes from the artifact's own source_run with its recorded spec, label, execution and
+comparison arguments, refuses unless every recorded field other than the zone agrees (floats
+within 1e-9), and then rewrites only decision.zone, decision.registered_rule_met and
+decision.gates_open, adding a zone_relabelled note. git_commit_at_promotion and every number
+stay those of the original promotion.
+
+--refresh-gates brings the gates block of an artifact promoted before the per-pool speed rule
+up to date the same way: it re-promotes from source_run, refuses unless every field outside
+the gates block's speed, death-count and leak-default keys agrees (the zone keys and the
+gate-0 calibration excepted), and then rewrites only those gate keys, adding a gates_refreshed
+note with the previous values. The decision block, its zone included, is left as it was:
+a zone change is --relabel's job.
+
+    python scripts/promote_reviewer_gaps_runs.py --refresh-gates artifacts/expB2/<artifact>.json
 """
 
 from __future__ import annotations
@@ -33,18 +61,25 @@ import _bootstrap  # noqa: F401
 
 import argparse
 import dataclasses
+import datetime
 import glob
 import json
+import math
 import os
 import subprocess
+import tempfile
 
 import numpy as np
 
 from itasorl.stats import equivalence_test, mean_ci, rope_test, t_ci90
+from promote_bv3_gates import REPO_ROOT, repo_rel
 
 BAR = 0.65
 MARGIN = 0.05
+SPEED_MIN = 0.75
 ARMS = ("untrained", "predictor", "survival")
+# Gate names as artifacts/corrected_verdicts.json writes them.
+GATES = ("engagement", "l0", "speed", "reward_leak", "untrained_floor", "deaths")
 
 
 def git_head() -> str:
@@ -79,6 +114,63 @@ def _nanmean(xs) -> float:
         return float(np.nanmean(np.asarray(xs, float)))
     except Exception:
         return float("nan")
+
+
+def speed_gate(res: dict, drifts) -> dict:
+    """The speed positive control (gate 3) as registered: every pool, not every arm mean.
+
+    speed_min is the lowest pool over every drift, arm and seed, which is what
+    scripts/promote_bv3_gates.py, scripts/promote_texture_trained.py and
+    scripts/build_corrected_verdicts.py read. speed_min_of_arm_means is the figure this script
+    wrote before 2026-10-10, kept so a quoted older value can be traced. A pool whose probe
+    could not be scored (NaN, or None in the results file) is counted in speed_n_nonfinite and
+    does not set the minimum; gate_status then reads the gate as not recorded unless a scored
+    pool already sits under the threshold."""
+    def score(x) -> float:
+        try:
+            return float("nan") if x is None else float(x)
+        except (TypeError, ValueError):
+            return float("nan")
+
+    pools = [(d, a, i, score(x)) for d in drifts for a in ARMS
+             for i, x in enumerate(res[d][a].get("pool_speed", []))]
+    finite = [q for q in pools if math.isfinite(q[3])]
+    lo = min(finite, key=lambda q: q[3]) if finite else None
+    arm_means = [_nanmean(res[d][a]["pool_speed"]) for d in drifts for a in ARMS
+                 if "pool_speed" in res[d][a]]
+    return {
+        "speed_min": lo[3] if lo else float("nan"),
+        "speed_min_at": {"drift": lo[0], "arm": lo[1], "seed_index": lo[2]} if lo else None,
+        "speed_n_pools": len(pools),
+        "speed_n_below": int(sum(q[3] < SPEED_MIN for q in finite)),
+        "speed_n_nonfinite": len(pools) - len(finite),
+        "speed_min_of_arm_means": float(min(arm_means)) if arm_means else float("nan"),
+    }
+
+
+def leak_clean_all(res: dict, drifts) -> bool | None:
+    """The reward-leak gate over every pool: False when any recorded pool is unclean, None
+    (not recorded) when no recorded pool is unclean but some arm carries no leakage flag, and
+    True only when every arm recorded every pool clean. A missing flag is not a pass, and it
+    is not a leak either: nothing was measured."""
+    flags = [res[d][a].get("pool_leak_clean") for d in drifts for a in ARMS]
+    if any(f is not None and not all(bool(x) for x in f) for f in flags):
+        return False
+    if any(f is None for f in flags):
+        return None
+    return True
+
+
+def deaths_count(res: dict, drifts) -> int:
+    """Pool deaths summed over every pool (counts, not per-arm means)."""
+    total = 0
+    for d in drifts:
+        for a in ARMS:
+            for k in ("pool_deaths_auth", "pool_deaths_surr"):
+                for x in res[d][a].get(k, []):
+                    if x is not None and math.isfinite(float(x)):
+                        total += int(round(float(x)))
+    return total
 
 
 def device_control(res: dict, compare_res: dict, dmax: str) -> dict:
@@ -159,6 +251,81 @@ def skill_match(run_dir: str, res: dict, dmax: str, reference: float, tol: float
             "verdict": verdict}
 
 
+def gate_status(gates: dict) -> dict:
+    """Each registered gate as True (passes), False (open) or None (not recorded).
+
+    Read from a promoted gates block: engagement in every cell at every drift, L0 TOST
+    equivalence on the drift-0 survival targets, speed control at least 0.75 in every pool,
+    every pool clean of reward leakage, untrained floor within 0.1 of 0.5, and no deaths.
+    The speed gate is open when a scored pool sits under 0.75; when none does but some pool
+    could not be scored (speed_n_nonfinite > 0), it is not recorded, never passed.
+    """
+    def num(v):
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return None
+        return None if math.isnan(f) else f
+
+    eng = gates.get("engagement")
+    g_eng = None
+    if isinstance(eng, dict) and eng and all(isinstance(v, dict) and "pass" in v and "n" in v
+                                             for v in eng.values()):
+        g_eng = all(v["pass"] == v["n"] for v in eng.values())
+    tost = gates.get("l0_tost")
+    equiv = tost.get("equivalent") if isinstance(tost, dict) else None
+    speed, deaths = num(gates.get("speed_min")), num(gates.get("deaths_total"))
+    leak, floor = gates.get("pool_leak_clean_all"), gates.get("untrained_floor_ok")
+    g_speed = None if speed is None else speed >= SPEED_MIN
+    if g_speed and (num(gates.get("speed_n_nonfinite")) or 0) > 0:
+        g_speed = None
+    return {
+        "engagement": g_eng,
+        "l0": None if equiv is None else bool(equiv),
+        "speed": g_speed,
+        "reward_leak": None if leak is None else bool(leak),
+        "untrained_floor": None if floor is None else bool(floor),
+        "deaths": None if deaths is None else deaths == 0,
+    }
+
+
+def zone_for(decision: dict, gates: dict) -> dict:
+    """The zone of the frozen decision matrix (PREREGISTRATION_L3 sec. 8), gates included.
+
+    The decodability clauses are the four that scripts/decide_goal_stakes.py and
+    scripts/build_corrected_verdicts.py read: survival mean at the 0.65 bar, its t-based 90%
+    interval excluding the bar (sec. 10; run_expB2.decide_h_b2 returns NOT met when the
+    interval straddles it), and both 0.05 margins. "Encoding induced" and "strengthened
+    negative" both require every gate to pass. When the clauses hold but a gate is open, or
+    was not recorded, the zone says so and never carries the registered verdict's name. A
+    mean at the bar with both margins whose interval straddles the bar has its own zone.
+    """
+    st = gate_status(gates)
+    open_ = [k for k in GATES if st[k] is False]
+    unshown = [k for k in GATES if st[k] is None]
+    note = ""
+    if open_:
+        note = "GATE OPEN: " + ", ".join(open_)
+    if unshown:
+        note += ("; " if note else "") + "GATE NOT RECORDED: " + ", ".join(unshown)
+    mean_clauses = bool(decision["pass_bar"] and decision["pass_margin_predictor"]
+                        and decision["pass_margin_untrained"])
+    t90 = decision.get("t90_excludes_bar")
+    if t90 is None and decision.get("survival_t90"):
+        t90 = decision["survival_t90"][0] > BAR
+    clauses = mean_clauses and t90 is True
+    if clauses:
+        zone = f"DECODABILITY CLAUSES MET, {note}" if note else "ENCODING INDUCED (all clauses)"
+    elif mean_clauses:
+        zone = "MEAN AT BAR, " + ("T90 STRADDLES 0.65" if t90 is False else "T90 NOT RECORDED")
+        zone += f", {note}" if note else ""
+    elif decision["survival"] < 0.55 and decision["predictor"] < 0.55 and decision["untrained"] < 0.55:
+        zone = f"ALL ARMS NEAR CHANCE, {note}" if note else "STRENGTHENED NEGATIVE (all arms near chance)"
+    else:
+        zone = "INTERMEDIATE (above chance, rule not met)"
+    return {"zone": zone, "registered_rule_met": clauses and not note, "gates_open": open_}
+
+
 CLOUD_EXECUTION = "cloud CPU sandbox (4 vCPU, 3 workers, torch 2.14+cpu); published runs were GPU"
 
 
@@ -205,13 +372,11 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
         "engagement": eng,
         "l0_survival_mean": float(np.mean(l0_vals)),
         "l0_tost": tost, "l0_rope": rope,
-        "speed_min": float(min(_nanmean(res[d][a]["pool_speed"]) for d in drifts for a in ARMS)),
-        "pool_leak_clean_all": all(all(bool(x) for x in res[d][a].get("pool_leak_clean", [True]))
-                                   for d in drifts for a in ARMS),
+        **speed_gate(res, drifts),
+        "pool_leak_clean_all": leak_clean_all(res, drifts),
         "untrained_floor_at_dmax": untr["mean"],
         "untrained_floor_ok": abs(untr["mean"] - 0.5) < 0.1,
-        "deaths_total": float(sum(_nanmean(res[d][a]["pool_deaths_auth"]) + _nanmean(res[d][a]["pool_deaths_surr"])
-                                  for d in drifts for a in ARMS if "pool_deaths_auth" in res[d][a])),
+        "deaths_total": deaths_count(res, drifts),
     }
     decision = {
         "survival": surv["mean"], "predictor": pred["mean"], "untrained": untr["mean"],
@@ -223,12 +388,7 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
         "pass_margin_predictor": surv["mean"] > pred["mean"] + MARGIN,
         "pass_margin_untrained": surv["mean"] > untr["mean"] + MARGIN,
     }
-    if decision["pass_bar"] and decision["pass_margin_predictor"] and decision["pass_margin_untrained"]:
-        decision["zone"] = "ENCODING INDUCED (all clauses)"
-    elif surv["mean"] < 0.55 and pred["mean"] < 0.55 and untr["mean"] < 0.55:
-        decision["zone"] = "STRENGTHENED NEGATIVE (all arms near chance)"
-    else:
-        decision["zone"] = "INTERMEDIATE (above chance, rule not met)"
+    decision.update(zone_for(decision, gates))
     audit_out = None
     ba_path = os.path.join(run_dir, "behavior_audit.json")
     if os.path.exists(ba_path):
@@ -255,9 +415,9 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
     if compare_run:
         with open(os.path.join(compare_run, "expB2_results.json"), encoding="utf-8") as fh:
             cres = json.load(fh)
-        dc_out = {"compare_run": compare_run.replace("\\", "/"), **device_control(res, cres, dmax)}
+        dc_out = {"compare_run": repo_rel(compare_run), **device_control(res, cres, dmax)}
     out = {
-        "source_run": run_dir.replace("\\", "/"),
+        "source_run": repo_rel(run_dir),
         "label": label, "spec": spec,
         "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
         "execution": execution or CLOUD_EXECUTION,
@@ -280,12 +440,162 @@ def promote(run_dir: str, out_path: str, *, spec: str, label: str, calibration: 
     return out
 
 
+_RELABEL_KEYS = ("zone", "registered_rule_met", "gates_open")
+
+
+def _diff(a, b, path="", tol=1e-9) -> list[str]:
+    """Paths where two JSON values differ; floats agree within tol, NaN equals NaN."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        out = []
+        for k in sorted(set(a) | set(b), key=str):
+            if k not in a or k not in b:
+                out.append(f"{path}/{k} (only in {'new' if k in b else 'old'})")
+            else:
+                out += _diff(a[k], b[k], f"{path}/{k}", tol)
+        return out
+    if isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            return [f"{path} (length {len(a)} vs {len(b)})"]
+        return [d for i, (x, y) in enumerate(zip(a, b)) for d in _diff(x, y, f"{path}[{i}]", tol)]
+    if isinstance(a, bool) or isinstance(b, bool) or not (
+            isinstance(a, (int, float)) and isinstance(b, (int, float))):
+        return [] if a == b else [path]
+    if math.isnan(a) and math.isnan(b):
+        return []
+    return [] if abs(a - b) <= tol else [path]
+
+
+def relabel(art_path: str, *, calibration: str | None = None, on: str | None = None) -> dict:
+    """Bring an artifact's zone up to the gate-aware rule without re-promoting its numbers.
+
+    The artifact is re-promoted from its recorded source_run into a temporary file with its
+    recorded arguments. Every field except the three zone keys must agree with the
+    committed file, or nothing is written. Returns {"changed": bool, "zone": ..., ...}.
+    """
+    with open(art_path, encoding="utf-8") as fh:
+        old = json.load(fh)
+    if old.get("generated_by") != "scripts/promote_reviewer_gaps_runs.py":
+        raise SystemExit(f"{art_path} was not written by this script")
+    if old.get("gate0_calibration") is not None and calibration is None:
+        raise SystemExit(f"{art_path} records a gate-0 calibration; pass --calibration")
+    kw = {"spec": old["spec"], "label": old["label"], "execution": old.get("execution"),
+          "head": old.get("git_commit_at_promotion"), "calibration": calibration}
+    if "device_control" in old:
+        kw["compare_run"] = old["device_control"]["compare_run"]
+    if "skill_match" in old:
+        kw["skill_match_reference"] = old["skill_match"]["reference_return"]
+        kw["skill_match_tol"] = old["skill_match"]["tol"]
+    def here(path):
+        return path if os.path.isabs(path) else os.path.join(REPO_ROOT, path)
+
+    if "compare_run" in kw:
+        kw["compare_run"] = here(kw["compare_run"])
+    with tempfile.TemporaryDirectory() as tmp:
+        fresh = promote(here(old["source_run"]), os.path.join(tmp, "fresh.json"), **kw)
+    strip = {k: v for k, v in old.items() if k not in ("zone_relabelled", "gates_refreshed")}
+    strip["decision"] = {k: v for k, v in old["decision"].items() if k not in _RELABEL_KEYS}
+    cmp = {**fresh, "decision": {k: v for k, v in fresh["decision"].items() if k not in _RELABEL_KEYS}}
+    bad = _diff(strip, json.loads(json.dumps(cmp, default=float)))
+    if bad:
+        raise SystemExit(f"{art_path}: re-promotion from {old['source_run']} disagrees at "
+                         f"{bad[:10]}; zone not relabelled")
+    new = {k: fresh["decision"][k] for k in _RELABEL_KEYS}
+    prev = old["decision"].get("zone")
+    if prev == new["zone"]:
+        return {"changed": False, **new}          # a correct zone is left byte for byte
+    old["decision"].update(new)
+    old["zone_relabelled"] = {
+        "on": on or datetime.date.today().isoformat(),
+        "previous_zone": prev,
+        "why": ("the zone now requires every registered gate to pass (PREREGISTRATION_L3 "
+                "sec. 8) and the t-based 90% interval to exclude the bar (sec. 10); numbers and "
+                "git_commit_at_promotion are the original promotion's, checked against a "
+                "re-promotion from source_run before writing"),
+    }
+    with open(art_path, "w", encoding="utf-8") as fh:
+        json.dump(old, fh, indent=1, default=float)
+    return {"changed": True, "previous_zone": prev, **new}
+
+
+GATE_REFRESH_KEYS = ("speed_min", "speed_min_at", "speed_n_pools", "speed_n_below",
+                     "speed_n_nonfinite", "speed_min_of_arm_means", "deaths_total",
+                     "pool_leak_clean_all")
+
+
+def _recorded_kwargs(old: dict) -> dict:
+    kw = {"spec": old["spec"], "label": old["label"], "execution": old.get("execution"),
+          "head": old.get("git_commit_at_promotion")}
+    if "device_control" in old:
+        kw["compare_run"] = old["device_control"]["compare_run"]
+    if "skill_match" in old:
+        kw["skill_match_reference"] = old["skill_match"]["reference_return"]
+        kw["skill_match_tol"] = old["skill_match"]["tol"]
+    return kw
+
+
+def _here(path: str) -> str:
+    return path if os.path.isabs(path) else os.path.join(REPO_ROOT, path)
+
+
+def refresh_gates(art_path: str, *, on: str | None = None) -> dict:
+    """Bring an artifact's gates block up to the per-pool speed rule without touching its
+    numbers or its decision block (see the module docstring). Returns {"changed": bool, ...}."""
+    with open(art_path, encoding="utf-8") as fh:
+        old = json.load(fh)
+    if old.get("generated_by") != "scripts/promote_reviewer_gaps_runs.py":
+        raise SystemExit(f"{art_path} was not written by this script")
+    kw = _recorded_kwargs(old)
+    if "compare_run" in kw:
+        kw["compare_run"] = _here(kw["compare_run"])
+    with tempfile.TemporaryDirectory() as tmp:
+        fresh = json.loads(json.dumps(promote(_here(old["source_run"]),
+                                              os.path.join(tmp, "fresh.json"), **kw), default=float))
+
+    def comparable(doc):
+        out = {k: v for k, v in doc.items()
+               if k not in ("zone_relabelled", "gates_refreshed", "gate0_calibration")}
+        out["decision"] = {k: v for k, v in doc["decision"].items() if k not in _RELABEL_KEYS}
+        out["gates"] = {k: v for k, v in doc["gates"].items() if k not in GATE_REFRESH_KEYS}
+        return out
+
+    bad = _diff(comparable(old), comparable(fresh))
+    if bad:
+        raise SystemExit(f"{art_path}: re-promotion from {old['source_run']} disagrees at "
+                         f"{bad[:10]}; gates not refreshed")
+    changed = [k for k in GATE_REFRESH_KEYS
+               if k not in old["gates"] or old["gates"][k] != fresh["gates"][k]]
+    if not changed:
+        return {"changed": False}
+    previous = {k: old["gates"][k] for k in changed if k in old["gates"]}
+    added = [k for k in changed if k not in old["gates"]]
+    # A key whose value did not change keeps its recorded form (0.0 stays 0.0).
+    old["gates"] = {k: (fresh["gates"][k] if k in changed else old["gates"][k])
+                    for k in fresh["gates"]}
+    old["gates_refreshed"] = {
+        "on": on or datetime.date.today().isoformat(),
+        "previous": previous, "added": added,
+        "why": ("speed_min is now the lowest pool over every drift, arm and seed, as the "
+                "registered gate 3 reads it, not the lowest arm mean; deaths_total is a count; "
+                "an arm with no leakage flag no longer reads as clean. Re-promoted from "
+                "source_run and checked to agree everywhere else before writing; the decision "
+                "block and git_commit_at_promotion are the original promotion's"),
+    }
+    with open(art_path, "w", encoding="utf-8") as fh:
+        json.dump(old, fh, indent=1, default=float)
+    return {"changed": True, "previous": previous, "added": added,
+            "now": {k: old["gates"][k] for k in changed}}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--run", required=True)
-    ap.add_argument("--out", required=True)
-    ap.add_argument("--spec", required=True)
-    ap.add_argument("--label", required=True)
+    ap.add_argument("--relabel", default=None, metavar="ARTIFACT",
+                    help="update the zone of an already promoted artifact (see the module docstring)")
+    ap.add_argument("--refresh-gates", default=None, metavar="ARTIFACT",
+                    help="update the per-pool speed gate of an already promoted artifact")
+    ap.add_argument("--run")
+    ap.add_argument("--out")
+    ap.add_argument("--spec")
+    ap.add_argument("--label")
     ap.add_argument("--calibration", default=None)
     ap.add_argument("--device-control-against", default=None,
                     help="no-auxiliary run dir on the same device; adds the frozen device-control rule")
@@ -296,6 +606,19 @@ def main() -> int:
     ap.add_argument("--skill-match-tol", type=float, default=MARGIN,
                     help="half-width of the skill-match window (default: the 0.05 margin)")
     a = ap.parse_args()
+    if a.refresh_gates:
+        r = refresh_gates(a.refresh_gates)
+        print(f"{a.refresh_gates}: " + (f"gates {r['previous']} -> {r['now']}" if r["changed"]
+                                        else "gates already current"))
+        return 0
+    if a.relabel:
+        r = relabel(a.relabel, calibration=a.calibration)
+        print(f"{a.relabel}: " + (f"zone {r.get('previous_zone')!r} -> {r['zone']!r}" if r["changed"]
+                                  else f"zone already current ({r['zone']})"))
+        return 0
+    missing = [f"--{k}" for k in ("run", "out", "spec", "label") if not getattr(a, k)]
+    if missing:
+        ap.error("the following arguments are required: " + ", ".join(missing))
     out = promote(a.run, a.out, spec=a.spec, label=a.label, calibration=a.calibration,
                   compare_run=a.device_control_against, execution=a.execution,
                   skill_match_reference=a.skill_match_reference,

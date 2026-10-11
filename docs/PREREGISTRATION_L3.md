@@ -1110,6 +1110,173 @@ Rigor carried from the B-v3 audit (2026-07-10):
   recorded in that cell to the bit; one failure stops the audit. The audit is descriptive, as it is
   for every other run, and is not a gate.
 
+- **2026-10-10 - THIRD CORRECTION TO THE WHITE-JITTER RUN, AND ONE FOR THE QUADRATIC-DRAG RUN:
+  BOTH COMPARATOR-TRAINED RUNS HAD AN 8-UNIT TRUNK, AND THE FROZEN SPECS CARRIED THE ERROR (the
+  2026-10-09 entries above stand as written, per the append-only rule).** The second correction
+  above places the error in "the launch command". It was in the frozen design. The command block
+  of `docs/specs/2026-10-09-gn-comparator-trained-design.md` (line 44, committed in `d341091`
+  before the run, rebased with the same text as `caa2ce0`, the parent of the run commit
+  `60eb355`, and unchanged since) reads `--l3-hidden 8 --hidden 8`, and the launch copied
+  it, so the spec's own sentence that the run is "the registered L3 configuration ... and
+  nothing else changed" contradicted its command. The conflation began in the 2026-10-06 texture
+  comparator spec, which describes the comparator-trained protocol as "corrected trainer,
+  auxiliary on, hidden 8 trunk". The same entry's "`(288, 96)` for every other run in the
+  project" is also wrong. The quadratic-drag comparator-trained run (`T-qd`, executed on
+  2026-10-06 against that spec's "not run" line and set aside in FINDINGS 17.9) has
+  `cell.weight_hh` `(24, 8)` on all 60 saved agents, and its recorded config fingerprint
+  `23a620e51d4e26fd` is reproduced by its flags with `--hidden 8` only (`--hidden 96` gives
+  `f947a5bce5be281b`). Its speed positive control is short in 8 of 60 pools, worst 0.7018
+  (untrained, drift 0, seed 2), which no entry reported, and its three short untrained drift-0
+  pools equal the white-jitter run's to every digit; at drift 0 no surrogate is installed, so
+  that fits the trunk-width reading. The other saved agent sets checked from their weights on
+  2026-10-10 all have `(288, 96)`: `l1_heldout`, `l3_h7_heldout`, `l3_h8_heldout`,
+  `l3_h8_gseed2_gpu`, `l3_h10_gseed1_gpu`, `l3_h8_nowm` and `l3_h8_nowm_skill_u450`. Runs whose
+  agents were not kept cannot be checked this way. **No verdict changes**: the white-jitter run
+  was already UNINFORMATIVE, `T-qd` was already excluded from the learned-texture rule, and
+  neither supports any claim. Any later comparator-trained run needs a new frozen spec whose
+  command states `--hidden 96`. FINDINGS 14.5.1 and 17.9 carry dated corrections; both specs
+  carry dated notes at their end; `docs/CORRECTIONS.md`, 2026-10-10.
+
+- **2026-10-10 - FREEZE TIMING THAT GIT DOES NOT SUPPORT: FOUR RUNS WHOSE SPEC WAS NOT
+  COMMITTED BEFORE THE RUN (no earlier entry is edited).** Several entries and specs say a
+  design was "frozen before the run". For four runs no committed timestamp precedes the run.
+  (1) The hidden = 7 selection, already recorded in the 2026-07-16 freeze-timing entry above as
+  commit-simultaneous with its result. (2) The sensory-echo control of 2026-09-26: its spec,
+  runner, the 2026-09-26 entry above and the promoted artifact all first appear in one commit,
+  `a641ca0` at 17:45:13, while the run's cells were written at 16:37:16 and its aggregate at
+  16:38:53 (local time, UTC-4, as are all times here). The spec's "frozen before any run" and
+  its "Amendment, 2026-09-26, before any run" are statements in a file first committed about an
+  hour after the run ended; no ref holds an earlier version. (3) The nonlinear joint control
+  (probe B of `docs/specs/2026-09-27-local-strengthening-probes-design.md`, recorded in the
+  2026-09-28 entry above): its spec was first committed in `791a30a` at 2026-09-27 19:23:54,
+  about seven minutes after the run started. The first predictor trace was written at 19:20:45
+  and the first survival trace at 19:24:28, 34 seconds after the commit, so the spec landed
+  mid-run, before any survival cell had finished. (4) The A1 graded-seam ablation: its spec,
+  which reads "FROZEN for the A1 launch", was first committed in `c4e4417` at 2026-07-21
+  23:55:04, 87 seconds after the run wrote its aggregate (23:53:37). The written-before-launch
+  statements may be true; git cannot show it. These are the cases the 2026-10-10 review checked
+  and found; it did not audit every other spec's timing. No number, rule or verdict changes.
+  FINDINGS 10.4.2 now describes the sensory-echo spec this way.
+
+- **2026-10-10 - PROVENANCE OF THE THREE ENTRIES AND SPECS HEADED 2026-10-09 (dates only; the
+  headers and entries stay as written).** The reverse-direction, white-jitter comparator-trained
+  and L1 stream entries above, and their specs, are headed 2026-10-09, while their commits and
+  run logs read 2026-10-08. The headers carry the UTC date; the commits and logs carry local time,
+  UTC-4. Each was committed before its run started. Reverse direction: spec and entry
+  `8aa2b9f` at 2026-10-08 21:39:03, run started 21:39:23 (`fullruns/reverse_direction/run.log`).
+  White jitter: spec and entry `d341091` at 21:41:15; the spec's device paragraph `60eb355` at
+  21:57:27; the launcher queued the run at 21:57:09, 18 seconds before that paragraph was
+  committed, and the run started at 22:00:55 (`fullruns/T_gn_l3_h8_wm/run.log`). L1 stream:
+  spec and entry `e4686f2` at 22:35:15, run started 22:39:14
+  (`fullruns/l1_stream_readout/run.log`). The run logs are gitignored local files. `8aa2b9f`
+  and `d341091` live on `origin/feat/final-review-fixes`; the runs' own lineage,
+  `origin/feat/direction-and-comparator-runs`, holds their rebased copies `13f60bc` and
+  `caa2ce0` with the same text and timestamps (`caa2ce0` is the parent of `60eb355`), together
+  with `60eb355` and `e4686f2`, and reached `main` in the squash merge `c05d791` (#130).
+
+- **2026-10-10 - IN-PLACE EDITS TO EXISTING LINES OF THIS DOCUMENT (a record; nothing is changed
+  by this entry).** The deviation log is meant to grow only by appended entries. Six commits
+  changed existing lines of this file instead (`git log --numstat`). `ba254ec` (2026-07-10)
+  rewrote section 4's description of how `G` becomes a world into the two-stage construction, 81
+  minutes after the registration commit `0217263` and before the first entry in this section was
+  written. `c594c3d` (2026-07-10) replaced this section's "(none yet)" placeholder with the
+  first entry. `15b1fc7` (2026-07-14) replaced the closing "STILL OWED" sentence of the
+  2026-07-14 hidden = 7 entry when the owed probe was recorded the same day. Three
+  repository-wide passes followed: `75c49a2` (2026-07-20) changed the hardware string "RTX 4050"
+  to "local GPU" and moved spec paths from `docs/superpowers/specs/` to `docs/specs/` in twelve
+  lines, `5e9e84b` (2026-07-20 local, 2026-07-21 UTC) replaced a long dash with a hyphen in one
+  line, and `8eb9174` (2026-08-23) did the same in two lines. The passes also touched one to
+  twenty lines each of `docs/PREREGISTRATION.md`, `docs/PREREGISTRATION_Bv3.md` and
+  `docs/PREREGISTRATION_C.md`, including a reworded background paragraph and an added reader
+  note. Apart from the pre-run section 4 resolution, none of these edits changed a number, a
+  rule, a gate or a verdict.
+
+- **2026-10-10 - CLARIFICATION: WHERE THE L0 GATE'S MARGIN IS REGISTERED (nothing is
+  re-adjudicated).** Section 7 gate 2 above reads "equivalent to 0.5 by TOST" with no margin. It
+  inherits the B-v3 gates ("The four B-v3 gates"), `docs/PREREGISTRATION_Bv3.md` section 7 says
+  its gates are "Identical to B-v2", and the margin, plus or minus 0.05, is written in
+  `docs/PREREGISTRATION.md` section 7 gate 2. The test level of 0.05, which every L0 adjudication
+  on record uses and which the 2026-10-06 primary-analysis spec states, and the [0.45, 0.55] ROPE
+  band appear in no preregistration. They are the defaults of `itasorl.stats.equivalence_test`
+  and `itasorl.stats.rope_test`, applied as the project's reporting convention.
+
+- **2026-10-10 - OBSERVATION-CHANNEL LOCALIZATION: WHAT THE TWO 2026-07-24 ENTRIES CAN SHOW
+  (a record; those entries stay as written and no verdict is re-adjudicated).** Both entries
+  say the positive controls (speed, energy, food) "remain readable in every mask condition, so
+  the chance collapse is not a dead-probe artifact". That holds for the single-channel masks
+  only. With all 146 dimensions masked the trunk receives a constant input and, under the
+  deterministic policy, its own constant previous action, so every episode in both pools
+  produces the same state sequence and every probe reads exactly 0.500: speed and energy read
+  0.500 in all 30 all-mask cells of `fullruns/l3_h8_obs_localization/cells.json` and of the
+  hidden-7 counterpart. The all-mask collapse is true by construction and tests nothing. A
+  masked channel is zeroed before the frozen normalizer, so it enters the trunk as the constant
+  -mean/sd: for the hidden-8 seed-0 survival agent at drift 0.45 the interoceptive channels sit
+  as far as 31.8 sd below their training mean, the vision channels at a median of 1.0 sd. The
+  single-channel masks are constant-input lesions, so the hidden-8 entry's "VISUAL, NOT
+  INTEROCEPTIVE" reading is narrowed to what such a lesion shows. At hidden 7 the masks also
+  lift the untrained arm (0.724 under the vision mask with 8 of 10 seeds at the bar, 0.646
+  under the interoception mask with 5 of 10); paired by seed, survival minus untrained is
+  +0.041 [-0.017, +0.098] and +0.096 [+0.024, +0.169] against +0.151 [+0.099, +0.202] unmasked
+  (`artifacts/expH2/obs_localization_h7.json`). The hidden-7 entry's "ROBUST TO SINGLE-CHANNEL
+  MASKING" therefore describes a reading that is not specific to training, and its clause
+  that the coarser surrogate's artifacts propagate into both streams is withdrawn. FINDINGS
+  14.6 carries the same note.
+
+- **2026-10-10 - THE HIDDEN = 7 GATES, COUNTED OVER EVERY ARM, AND THE HIDDEN = 8 REGRESSION
+  CHECK (a record; the 2026-07-13 and 2026-07-14 entries stay as written).** The 2026-07-14
+  hidden = 7 entry reports "ALL gates passing" with "speed positive control 0.959, pooled
+  reward-leak 0.567 clean in 10/10 seeds". Those two figures are the survival arm's at drift
+  0.45. Section 7 gate 4 ("reward-sum / length / lifetime each within 0.1 of 0.5") names no
+  arm, and the comparator-trained runs are scored over every arm
+  (`scripts/promote_texture_trained.py`). Counted that way, one pool of the 60 is outside the
+  tolerance: predictor, drift 0.45, seed 8, reward-sum AUROC 0.616
+  (`fullruns/l3_h7_traces`; the same value in `artifacts/expB2/heldout_l3_h7_reverse_summary.json`).
+  The other 59 pools are clean. The speed control's minimum over every pool is 0.784 (untrained,
+  drift 0, seed 0), which passes. The hidden = 7 claims are historical and secondary and none
+  rests on the predictor pool; the exception is recorded rather than rounded away, as the
+  B-v3 gate entry of 2026-09-26 does for its one leakage cell. Separately, the 2026-07-13 entry
+  calls the hidden = 8 regression "EXACT (oracle 0.928, floor 0.482)". `scripts/run_expA_l3.py`
+  passes that check when the oracle is within 0.05 of 0.928 and the floor within 0.1 of 0.483.
+  The recalibration's floor, 0.482, is the mean of three floor seeds (0.4831, 0.4140, 0.5487),
+  while the 0.483 frozen on 2026-07-10 matches the seed-0 floor; the oracle reads 0.9278. The
+  check passed within its tolerances, which is what "EXACT" should have said. FINDINGS 10.5
+  carries both notes.
+
+- **2026-10-10 - THE SPEED POSITIVE CONTROL OF SIX ENTRIES WAS THE LOWEST ARM MEAN, NOT THE
+  LOWEST POOL (a record; the entries stay as written and the threshold is not relaxed).** Gate 3
+  asks for the speed probe at or above 0.75 in every pool. The architecture-baseline,
+  second-instance, device-control, GPU re-measure, hidden-8 new-seed and skill-matched entries
+  above (2026-09-27 to 2026-09-30) quote a minimum that `scripts/promote_reviewer_gaps_runs.py`
+  computed over arm means. Read over every drift, arm and seed, the lowest pools are:
+  architecture baseline 0.835 -> 0.787; second instance on CPU 0.830 -> 0.753; device control
+  0.830 -> 0.772; GPU re-measure 0.833 -> 0.748; hidden-8 new seed 0.814 -> 0.758; skill-matched
+  baseline 0.837 -> 0.790. The corrected runs `C1` and `C2` read 0.772 and 0.787, which their
+  verdicts already used. Every run but the GPU re-measure still passes. There, one pool of 60
+  (untrained, drift 0.45, seed index 6) reads 0.748, so the positive control is not met on that
+  run; by the rule applied to the white-jitter run (2026-10-09 entries above), its readings are
+  descriptive. Its rule was not met in any case, so no verdict moves. The artifacts record the
+  per-pool value with its location and keep the arm-mean figure beside it
+  (`gates.speed_min`, `speed_min_at`, `speed_min_of_arm_means`); FINDINGS 10.9 carries the
+  table, and `docs/CORRECTIONS.md` the correction. Runs promoted after this change, the
+  goal-and-stakes runs included, record the per-pool minimum and are read under the per-pool
+  rule.
+
+- **2026-10-10 - TWO RECORDED VERDICT WORDINGS RESTATED (a record; the entries stay as written,
+  no reading moves and no margin changes).** (1) The 2026-10-06 results entry gives the `C1`
+  verdict as "MET on the decodability clauses, conditional on the open L0 gate" and says the
+  auxiliary-conditional reading "holds on the decodability clauses, conditional on `C1`'s L0
+  gate". The frozen rule counts every gate, so with L0 open the registered verdict is NOT MET;
+  the decodability clauses are met. The auxiliary rule asks for `C1` to meet its primary rule,
+  so it is NOT MET as registered, while its lead, +0.120 [+0.065, +0.174], holds on the
+  decodability clauses. `artifacts/corrected_verdicts.json` now labels the run "NOT MET as
+  registered (open gate(s): l0); decodability clauses MET", and FINDINGS 17.2, 17.4 and 17.12
+  lead with the registered outcome. (2) The 2026-07-25 L1 entry says the oracle-detectable L1
+  artifact "leaves no incidental world-identity encoding". Primary H_B2 is not met, as
+  recorded. The survival mean, 0.533, sits above chance: the t-based 90% interval of its ten
+  seeds is [0.506, 0.561], and the TOST against 0.5 at the 0.05 margin does not accept
+  equivalence (p = 0.147). The reading is "below the bar", not "no encoding"; FINDINGS 14.7
+  and section 6 carry the same wording, and `docs/CORRECTIONS.md` both corrections.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

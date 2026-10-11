@@ -107,6 +107,13 @@ def evolve(
 
     Deterministic given ``rng``. Returns ``(final_population, history)`` where
     ``history[g]`` is that generation's record.
+
+    Fitness is recorded BEFORE each reproduction, so ``history[-1]`` describes the population
+    of generation ``generations - 1``, and ``final_population`` (the product of the last
+    reproduction) is never scored here. A caller that reads ``history[-1]`` as the fitness of
+    the population it then panels (scripts/run_expC_milestone3.py ``fit_delta`` and gate 2)
+    describes the generation before it (recorded 2026-10-10, behavior unchanged). A future
+    run should evaluate ``final_population`` once after this returns.
     """
     pop = list(population)
     history: list[dict[str, Any]] = []

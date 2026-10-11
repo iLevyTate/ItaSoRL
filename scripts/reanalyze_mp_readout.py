@@ -16,8 +16,9 @@ deterministic from the saved agent bundles (fixed seed_base=700_000), verified
 by reproducing a stored pre-fix cell value bit-for-bit. This script therefore:
 
   1. regenerates each cell's matched-pair rollout from `agents/agent_*.pt`,
-  2. re-scores the OLD way (singleton groups) as a per-cell determinism gate -
-     it must equal the stored `mp.target` exactly or the cell is flagged,
+  2. re-scores the OLD way (singleton groups, always on the legacy partition the stored
+     values used) as a per-cell determinism gate - it must equal the stored `mp.target`
+     exactly or the cell is flagged,
   3. re-scores with the FIXED pair-grouped probe (the corrected number).
 
 Run ON THE MACHINE THAT HOLDS the gitignored fullruns/ archives:
@@ -34,6 +35,7 @@ rides on it, so this re-score corrects the record rather than any verdict.
 from __future__ import annotations
 
 import _bootstrap  # noqa: F401
+from promote_bv3_gates import repo_rel  # noqa: E402
 
 import argparse
 import glob
@@ -45,6 +47,7 @@ from collections import defaultdict
 import numpy as np
 
 import itasorl.experiment_b2 as b2
+from itasorl import folds
 from itasorl.experiment_a import grouped_auroc
 from itasorl.experiment_b2 import (
     _episode_feature,
@@ -79,7 +82,14 @@ def rescore_cell(path: str, drift: float, probe_seed: int, device: str) -> dict:
         branch_steps=MP_BRANCH, ray_steps=RAY_STEPS, device=device, seed_base=700_000)
     X = np.stack([_episode_feature(e["H"]) for e in a_eps + s_eps])
     y = np.array([e["label"] for e in a_eps + s_eps])
-    old = grouped_auroc(X, y, np.arange(len(y)))          # pre-fix: singleton groups
+    # The determinism gate compares this "old way" score with the stored pre-fix value, which
+    # was scored on the legacy partition (the installed scikit-learn GroupKFold). It is
+    # therefore always scored under the legacy scheme, whatever scheme is active for the
+    # corrected number. Before 2026-10-10 it followed the active scheme, so a run under
+    # ITASORL_FOLDS=explicit flagged every cell as failing the gate
+    # (artifacts/fold_rescore/mp_h*_explicit.json: reproduces_stored false in all 60 cells).
+    with folds.fold_scheme("legacy"):
+        old = grouped_auroc(X, y, np.arange(len(y)))      # pre-fix: singleton groups
     fixed = probe_world_identity(a_eps, s_eps, seed=probe_seed)["target"]
     return {"mp_old": float(old), "mp_fixed": float(fixed), "n_pairs": len(a_eps)}
 
@@ -162,7 +172,9 @@ def main() -> None:
         if d:
             os.makedirs(d, exist_ok=True)
         with open(a.json, "w", encoding="utf-8") as fh:
-            json.dump({"bundle": a.bundle, "l3_hidden": a.l3_hidden,
+            json.dump({"bundle": repo_rel(a.bundle), "l3_hidden": a.l3_hidden,
+                       "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
+                       "gate_fold_scheme": "legacy",
                        "estimator": "probe_world_identity (pair-grouped, post-1633bca)",
                        "mp_config": {"n_pairs": MP_PAIRS, "prefix_steps": MP_PREFIX,
                                      "branch_steps": MP_BRANCH, "ray_steps": RAY_STEPS},

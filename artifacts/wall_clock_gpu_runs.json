@@ -1,0 +1,191 @@
+{
+ "generated_by": "scripts/record_wall_clock.py",
+ "method": "start = creation time of run.log (or of the run directory when there is no run.log); end = modification time of expB2_results.json; cell times are modification times of cells/cell_*.json; chain-log events are the launching chain's own UTC stamps. File times are NTFS metadata of the original bundles on the machine that ran them. Wall times include any other load on that machine.",
+ "runs": [
+  {
+   "run_dir": "fullruns/l3_n10",
+   "start": "2026-07-10T22:58:13-04:00",
+   "start_source": "creation time of the run directory (no run.log)",
+   "end": "2026-07-11T04:47:57-04:00",
+   "end_source": "modification time of expB2_results.json",
+   "wall_hours": 5.83,
+   "n_cells": 20,
+   "first_cell_written": "2026-07-10T23:22:58-04:00",
+   "last_cell_written": "2026-07-11T04:47:57-04:00",
+   "workers_at_launch": null
+  },
+  {
+   "run_dir": "fullruns/l3_h8_traces",
+   "start": "2026-07-12T20:10:20-04:00",
+   "start_source": "creation time of run.log",
+   "end": "2026-07-13T04:05:04-04:00",
+   "end_source": "modification time of expB2_results.json",
+   "wall_hours": 7.91,
+   "n_cells": 20,
+   "first_cell_written": "2026-07-12T20:39:49-04:00",
+   "last_cell_written": "2026-07-13T04:05:04-04:00",
+   "workers_at_launch": 1
+  },
+  {
+   "run_dir": "fullruns/l3_h7_traces",
+   "start": "2026-07-13T17:17:46-04:00",
+   "start_source": "creation time of run.log",
+   "end": "2026-07-14T02:18:03-04:00",
+   "end_source": "modification time of expB2_results.json",
+   "wall_hours": 9.0,
+   "n_cells": 20,
+   "first_cell_written": "2026-07-13T17:40:31-04:00",
+   "last_cell_written": "2026-07-14T02:18:03-04:00",
+   "workers_at_launch": 1
+  },
+  {
+   "run_dir": "fullruns/l3_h4_traces",
+   "start": "2026-07-13T07:51:42-04:00",
+   "start_source": "creation time of run.log",
+   "end": "2026-07-13T14:42:03-04:00",
+   "end_source": "modification time of expB2_results.json",
+   "wall_hours": 6.84,
+   "n_cells": 20,
+   "first_cell_written": "2026-07-13T08:20:06-04:00",
+   "last_cell_written": "2026-07-13T14:42:03-04:00",
+   "workers_at_launch": 1
+  },
+  {
+   "run_dir": "fullruns/l3_h8_heldout",
+   "start": "2026-07-14T10:54:22-04:00",
+   "start_source": "creation time of run.log",
+   "end": "2026-07-14T17:47:39-04:00",
+   "end_source": "modification time of expB2_results.json",
+   "wall_hours": 6.89,
+   "n_cells": 20,
+   "first_cell_written": "2026-07-14T11:14:48-04:00",
+   "last_cell_written": "2026-07-14T17:47:39-04:00",
+   "workers_at_launch": 1
+  },
+  {
+   "run_dir": "fullruns/l3_h7_heldout",
+   "start": "2026-07-14T21:37:15-04:00",
+   "start_source": "creation time of run.log",
+   "end": "2026-07-15T14:44:52-04:00",
+   "end_source": "modification time of expB2_results.json",
+   "wall_hours": 17.13,
+   "n_cells": 20,
+   "first_cell_written": "2026-07-14T22:01:04-04:00",
+   "last_cell_written": "2026-07-15T14:44:52-04:00",
+   "workers_at_launch": 1
+  },
+  {
+   "run_dir": "fullruns/l3_h10_gseed1_gpu",
+   "start": "2026-09-28T17:14:16-04:00",
+   "start_source": "creation time of run.log",
+   "end": "2026-09-28T22:58:24-04:00",
+   "end_source": "modification time of expB2_results.json",
+   "wall_hours": 5.74,
+   "n_cells": 20,
+   "first_cell_written": "2026-09-28T17:31:24-04:00",
+   "last_cell_written": "2026-09-28T22:58:23-04:00",
+   "workers_at_launch": 1,
+   "chain_log": {
+    "file": "fullruns/second_instance_gpu_chain.log",
+    "events": [
+     {
+      "utc": "2026-09-28T21:14:16Z",
+      "event": "STEP B organism run hidden 10 seed 1 cuda -> fullruns/l3_h10_gseed1_gpu"
+     },
+     {
+      "utc": "2026-09-28T22:03:00Z",
+      "event": "STEP B exit 127"
+     },
+     {
+      "utc": "2026-09-28T22:03:17Z",
+      "event": "RESUME step B with workers=2 device=cuda (commit 283f3ab)"
+     },
+     {
+      "utc": "2026-09-28T22:03:17Z",
+      "event": "cells already done: 1"
+     },
+     {
+      "utc": "2026-09-29T02:58:26Z",
+      "event": "STEP B exit 0"
+     }
+    ],
+    "wall_hours_first_start_to_exit_0": 5.74,
+    "resumed": true
+   }
+  },
+  {
+   "run_dir": "fullruns/l3_h8_gseed2_gpu",
+   "start": "2026-09-29T09:45:13-04:00",
+   "start_source": "creation time of run.log",
+   "end": "2026-09-29T16:17:06-04:00",
+   "end_source": "modification time of expB2_results.json",
+   "wall_hours": 6.53,
+   "n_cells": 20,
+   "first_cell_written": "2026-09-29T10:18:26-04:00",
+   "last_cell_written": "2026-09-29T16:17:06-04:00",
+   "workers_at_launch": 3,
+   "chain_log": {
+    "file": "fullruns/gpu_queue_chain.log",
+    "events": [
+     {
+      "utc": "2026-09-29T13:45:13Z",
+      "event": "Q3 organism run hidden 8 G seed 2 (cuda, workers=3, explicit folds) -> fullruns/l3_h8_gseed2_gpu"
+     },
+     {
+      "utc": "2026-09-29T20:17:08Z",
+      "event": "Q3 organism exit 0"
+     }
+    ],
+    "wall_hours_first_start_to_exit_0": 6.53,
+    "resumed": false
+   }
+  },
+  {
+   "run_dir": "fullruns/l3_h8_nowm_skill_u450",
+   "start": "2026-09-29T22:09:15-04:00",
+   "start_source": "creation time of run.log",
+   "end": "2026-09-30T19:55:09-04:00",
+   "end_source": "modification time of expB2_results.json",
+   "wall_hours": 21.76,
+   "n_cells": 20,
+   "first_cell_written": "2026-09-30T01:12:15-04:00",
+   "last_cell_written": "2026-09-30T19:55:08-04:00",
+   "workers_at_launch": 2,
+   "chain_log": {
+    "file": "fullruns/q4_skill_matched_chain.log",
+    "events": [
+     {
+      "utc": "2026-09-30T02:09:15Z",
+      "event": "Q4 stage2 organism run survival_updates=450 (cuda, workers=2, explicit folds) -> fullruns/l3_h8_nowm_skill_u450"
+     },
+     {
+      "utc": "2026-09-30T16:17:20Z",
+      "event": "Q4 stage2 exit 127"
+     },
+     {
+      "utc": "2026-09-30T16:18:40Z",
+      "event": "Q4 stage2 RELAUNCH workers=4 (owner's instruction; resume keeps 8 cells; worktree commit 9d5d047)"
+     },
+     {
+      "utc": "2026-09-30T16:30:00Z",
+      "event": "Q4 stage2 exit 127"
+     },
+     {
+      "utc": "2026-09-30T16:30:29Z",
+      "event": "Q4 stage2 RELAUNCH workers=4 (owner's instruction; resume keeps 8 cells; worktree commit 9d5d047)"
+     },
+     {
+      "utc": "2026-09-30T22:32:32Z",
+      "event": "Q4 stage2 RELAUNCH 3 workers=4 (owner approved; previous tree vanished 20:11Z with no exit line, watchdog gone too; resume keeps 16 cells; worktree commit 9d5d047)"
+     },
+     {
+      "utc": "2026-09-30T23:55:10Z",
+      "event": "Q4 stage2 exit 0"
+     }
+    ],
+    "wall_hours_first_start_to_exit_0": 21.77,
+    "resumed": true
+   }
+  }
+ ]
+}

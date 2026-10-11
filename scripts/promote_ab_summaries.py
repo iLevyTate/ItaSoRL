@@ -12,34 +12,59 @@ Sources (local run bundles, gitignored):
     fullruns/07062026            B-v3 regime n=10 (survival 0.610)
     fullruns/07092026            sysid-aux capacity ceiling n=10 (0.596)
 
+Recorded argv flags are written repo-relative (scripts/promote_bv3_gates.rel_flags) and the
+GPU is named by vendor only, so a rerun reproduces the committed summaries byte for byte and
+never brings a machine-local path or a machine model back into them. --runs-root reads
+the bundles from another checkout's fullruns/ (for a promotion from a worktree).
+
 Usage:
-    python scripts/promote_ab_summaries.py
+    python scripts/promote_ab_summaries.py [--runs-root <checkout>/fullruns]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from itasorl.stats import mean_ci  # noqa: E402
+from promote_bv3_gates import rel_flags  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
+RUNS_ROOT = None          # --runs-root; None reads ROOT/fullruns
+
+
+def _src(path: str) -> str:
+    """Where a `fullruns/...` source path is read from."""
+    if RUNS_ROOT and path.replace("\\", "/").startswith("fullruns/"):
+        return os.path.join(RUNS_ROOT, *path.replace("\\", "/").split("/")[1:])
+    return os.path.join(ROOT, path)
 
 
 def load(path: str):
-    with open(os.path.join(ROOT, path), encoding="utf-8") as fh:
+    with open(_src(path), encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def generic_device(env):
+    """The committed summaries name the GPU vendor, not the machine's model (machine-specific
+    strings were removed from the public tree in 75c49a2); done here so a rerun writes the
+    committed form instead of needing a hand edit."""
+    if isinstance(env, dict) and str(env.get("cuda_device") or "").startswith("NVIDIA"):
+        return {**env, "cuda_device": "NVIDIA GPU"}
+    return env
 
 
 def provenance(bundle: str) -> dict:
     m = load(f"fullruns/{bundle}/manifest.json")
     return {"source_run": f"fullruns/{bundle}", "run_id": m.get("run_id"),
             "git_commit": m.get("git_commit"), "quick": m.get("quick"),
-            "environment": m.get("environment"),
+            "environment": generic_device(m.get("environment")),
             "generated_by": "scripts/promote_ab_summaries.py"}
 
 
@@ -57,7 +82,7 @@ def parse_kstep_rerun(log_path: str) -> list[dict]:
     pat = re.compile(r"open_horizon=\s*(\d+):\s+drift0\.45 target=([\d.]+).([\d.]+)"
                      r"\s+control target=([\d.]+).([\d.]+)")
     rows = []
-    with open(os.path.join(ROOT, log_path), encoding="utf-8", errors="replace") as fh:
+    with open(_src(log_path), encoding="utf-8", errors="replace") as fh:
         for line in fh:
             m = pat.search(line)
             if m:
@@ -71,7 +96,7 @@ def parse_kstep_rerun(log_path: str) -> list[dict]:
 
 def log_sections(bundle: str) -> dict[str, str]:
     """Split a bundle's combined.log into per-step chunks ('STEP <name>' headers)."""
-    path = os.path.join(ROOT, f"fullruns/{bundle}/combined.log")
+    path = _src(f"fullruns/{bundle}/combined.log")
     sections: dict[str, list[str]] = {}
     current = "_preamble"
     with open(path, encoding="utf-8", errors="replace") as fh:
@@ -104,7 +129,12 @@ def pool_summary(bundle: str, drift: str = "0.45") -> dict:
     return out
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    global RUNS_ROOT
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--runs-root", default=None,
+                    help="directory holding the run bundles (default: fullruns/ here); only read")
+    RUNS_ROOT = ap.parse_args(argv).runs_root
     # -- Experiment A: oracle detectability ceilings (L1, L2) -----------------
     expa = provenance("06302026")
     expa["expA_l1"] = load("fullruns/06302026/steps/expA_l1.json")
@@ -137,13 +167,13 @@ def main() -> int:
 
     # -- B-v3 regime, n = 10 (FINDINGS 7.1: survival 0.610 [0.585, 0.634]) ----
     bv3 = provenance("07062026")
-    bv3["flags"] = load("fullruns/07062026/b2_flags.json")
+    bv3["flags"] = rel_flags(load("fullruns/07062026/b2_flags.json"))
     bv3["pooled_target_drift045"] = pool_summary("07062026")
     write("artifacts/expB2/bv3_n10_summary.json", bv3)
 
     # -- sysid-aux capacity ceiling, n = 10 (FINDINGS 7.1: 0.596 [0.577,0.616])
     ceil = provenance("07092026")
-    ceil["flags"] = load("fullruns/07092026/b2_flags.json")
+    ceil["flags"] = rel_flags(load("fullruns/07092026/b2_flags.json"))
     ceil["pooled_target_drift045"] = pool_summary("07092026")
     write("artifacts/expB2/sysid_ceiling_n10_summary.json", ceil)
     return 0

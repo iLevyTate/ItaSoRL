@@ -54,7 +54,8 @@ def test_mean_ci_handles_single_value():
 
 def test_t_ci90_matches_l3_headline_decision_interval():
     # FINDINGS sec.10.2 canonical L3 survival, one AUROC per seed (n=10). The decision
-    # layer reports the t-based 90% CI over these cells; index.html quotes [0.698, 0.807].
+    # layer reports the t-based 90% CI over these cells; README and FINDINGS quote
+    # [0.698, 0.807] for the historical GPU headline.
     per_seed = [0.853, 0.636, 0.841, 0.823, 0.830, 0.573, 0.705, 0.782, 0.759, 0.723]
     lo, hi = t_ci90(per_seed)
     assert round(lo, 3) == 0.698
@@ -80,3 +81,15 @@ def test_rope_and_tost_agree_on_a_chance_sample():
     vals = [0.50, 0.49, 0.51, 0.50, 0.48, 0.52, 0.50, 0.49]
     assert equivalence_test(vals).equivalent is True
     assert rope_test(vals).accept is True
+
+
+def test_tost_refuses_without_scipy_instead_of_a_normal_tail(monkeypatch):
+    """The L0 gate is a TOST at n = 10 (df 9). A normal tail there is anti-conservative and
+    could flip the verdict while the result still reads as a t test, so the helper refuses,
+    as t_ci90 does."""
+    import itasorl.stats as st
+    monkeypatch.setattr(st, "_HAVE_SCIPY", False)
+    with pytest.raises(RuntimeError, match="scipy"):
+        st.equivalence_test([0.5, 0.51, 0.49])
+    # n < 2 never reaches the tail and still fails closed without raising.
+    assert st.equivalence_test([0.5]).equivalent is False

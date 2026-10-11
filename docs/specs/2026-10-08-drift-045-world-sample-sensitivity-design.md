@@ -96,3 +96,16 @@ Output is a committed artifact under `artifacts/l0_audit/`, owned by a run regis
 recorded, because the agents themselves are gitignored and not in the repository. Every number
 quoted anywhere from this run comes from that artifact, and `scripts/audit_stats_recheck.py`
 binds the prose to it.
+
+## Correction (2026-10-10)
+
+"This is the only in-band hidden-8 instance with saved weights" above is wrong. The seed-2
+hidden-8 instance (`L3-H8-GS2-GPU`, `fullruns/l3_h8_gseed2_gpu/agents/`, oracle 0.939, in band)
+also kept its 60 agents, the same arms, drifts and seeds as the held-out run. The held-out run
+is the only retained agent set of the headline fingerprint (hidden 8, G seed 0, the fingerprint
+the corrected `C1` agents were raised under) trained under `C1`'s protocol, next-observation
+auxiliary on at 300 updates. Two no-auxiliary runs of that fingerprint also kept agents,
+`l3_h8_nowm` (six drift-0 agents) and `l3_h8_nowm_skill_u450` (60 agents, the survival arm at
+450 updates); none of these other agent sets was scored by this design. The text above is left
+as frozen, and the scored agents and the result do not change. Dated entry:
+`docs/CORRECTIONS.md`, 2026-10-10.
