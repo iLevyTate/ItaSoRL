@@ -262,3 +262,22 @@ def test_policy_readout_retrains_with_the_runs_objective_and_mortality():
                                                                        "mortal": False}
     assert prc.run_knobs({"mortal": False}) == {"objective": "survival", "mortal": False}
     assert prc.run_knobs({}) == {"objective": "survival", "mortal": True}   # pre-flag cells
+
+
+def test_dump_regeneration_tasks_carry_each_cells_recorded_target_and_knobs(tmp_path):
+    import json
+    import regenerate_state_dumps as rsd
+    (tmp_path / "agents").mkdir()
+    (tmp_path / "cells").mkdir()
+    cell = {"cell": {"objective": "touch", "mortal": False, "knobs": {"l3_hidden": 8},
+                     "agents": {a: {"pool": {"target": t}} for a, t in
+                                (("untrained", 0.51), ("predictor", 0.6), ("survival", 0.8))}}}
+    (tmp_path / "cells" / "cell_d0.45_s3.json").write_text(json.dumps(cell), encoding="utf-8")
+    for arm in ("survival", "untrained"):
+        (tmp_path / "agents" / f"agent_d0.45_s3_{arm}.pt").write_bytes(b"")
+    (tmp_path / "agents" / "notes.txt").write_text("ignored", encoding="utf-8")
+    tasks = {t["arm"]: t for t in rsd.tasks_for(str(tmp_path))}
+    assert set(tasks) == {"survival", "untrained"}
+    t = tasks["survival"]
+    assert (t["drift"], t["drift_tag"], t["seed"], t["recorded_target"]) == (0.45, "0.45", 3, 0.8)
+    assert (t["objective"], t["mortal"], t["knobs"]) == ("touch", False, {"l3_hidden": 8})
