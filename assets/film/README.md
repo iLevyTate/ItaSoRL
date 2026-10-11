@@ -32,7 +32,8 @@ a 320 kb/s AAC track, 239.8 MB, exported from DaVinci Resolve and released on
 Drive. The picture is the `viz/player` capture (beats in `viz/player/beats.json`,
 scene in `viz/data/scene.json`); the voice follows the script in
 `docs/specs/2026-07-22-outreach-video-vo-music.md`. The three numbers on screen
-(99%, 50%, 73%) are the published displays, sourced in `beats.json`.
+(99%, 50%, 73%) are the August displays. `beats.json` has since been rewritten on
+the corrected record (below), so the August beats live in its git history.
 
 The web encode is a historical cut, and the site labels it that way. Its
 numbers come from the pre-correction trainer. The 50% is the untrained
@@ -63,8 +64,19 @@ ffmpeg -ss 1.5 -i ItasorlOverview.mov -frames:v 1 -vf scale=1280:720 -q:v 4 \
 ```
 
 The captions-only 4:5 cut is no longer shipped as a file. It plays live in the
-browser at `viz/player/` (same beats, same scene, transport bar included), and
-`viz/player/capture/` re-renders it to MP4 when a silent social cut is needed.
+browser at `viz/player/` (transport bar included), and `viz/player/capture/`
+re-renders it to MP4 when a silent social cut is needed.
+
+On 2026-10-11 the live cut was rewritten on the corrected record: `beats.json`
+carries 99% (the outside watcher, 0.991), 52% (an untrained mind, 0.523), 73% (the
+forager's mind, 0.733), 72% (a mind trained only to predict, fed the same senses,
+0.721) and the open gate (two identical real worlds read 56%, 0.559). The living
+beat shows the recorded creature of the C1 rerun's seed 0 (`viz/data/scene.json`).
+`viz/collect.py` checks every number on screen against the committed artifacts,
+and `tests/test_viz_collect.py` runs that check in CI. The silent 4:5 and 9:16
+masters of this cut are local build outputs. A voiced corrected cut needs a new
+voice track over the new picture; until one exists, the web encode above stays the
+historical cut.
 
 ## Film two: Two Minds (66 s, seven chapters)
 
@@ -83,56 +95,22 @@ with `viz/player/capture/build-two-minds.ps1`; the site links the web encode.
 | `clips/two-minds-<section>-vertical.mp4` (local only) | 9:16 of each section. | Same. |
 | `clips/two-minds-<section>-loop.gif` (local only) | 560 px wide, 10 fps loop GIF of each section. | Same. |
 
-The renderer is `viz/player/brain/` (open `index.html?sec=overview&layout=wide`
-in a browser for a live loop). Every dot on screen is named after a real
-sensor group, encoder row, recurrent unit, motor head, or readout head. The
-twelve memory cells and the teal-ringed clue cells come from
-`viz/player/brain/brain-data.js`, which `scripts/dump_brain_film_data.py`
-computes from the saved held-out state pools: the representative brain is the
-seed closest to the 0.752 pooled survival mean, and ring strength is that
-unit's measured rank AUROC between worlds. Numbers on screen are canonical
-FINDINGS values only, and one chapter carries the live meter: 0.488 floor
-(49%), 0.65 bar, 0.726 survival (73%, the residual of section 10.4 after the
-four behavior channels are regressed out, 90% CI 0.685 to 0.765), 0.928 watcher
-gate (93%). Those are historical-trainer numbers, and the residual is what that
-basis and that model could not explain, not independence from behavior; on the
-corrected agents the best-fitting control leaves 0.620, under the bar
-(FINDINGS 17.8). The pooled
-0.752 and the masked-sense figures (0.686, 0.500) belong to the uncontrolled
-family and are not shown as numbers; the senses chapter states that direction
-in words.
+The tracked web encode is the October 2026 cut, rebuilt on 2026-10-11 from the
+corrected renderer and the corrected C1 brain (seed 9) by the rebuild at the end
+of this section. It replaced the September cut, whose numbers and brain data were
+pre-correction, in place. All 22 build outputs were decode-checked: 14 section
+clips at 12.0 s, two tours at 65.9 s (1977 frames), six loop GIFs.
 
-Two lines of the Two Minds narration said more than was measured, and the
-web encode still shows them. The memory chapter ("Until the miss lands: a coin
-flip. 49%." then "After: 73%.") presents the untrained floor and the trained
-residual as one brain's before and after, a time course no experiment
-measured: each brain is read once, after training. The senses chapter ("Cover
-the eyes and the trace fades.") overstates the masking result: against the
-fingerprint the film uses, masking vision moves 0.752 to 0.686 with 7 of 10
-seeds still over the bar, and against the coarser fingerprint it raises the
-signal from 0.737 to 0.764 (FINDINGS 14.6, pre-correction trainer). On
-2026-10-10 the live renderer's lines were changed to "An untrained brain reads
-49%: a coin flip.", "A trained brain reads 73%. The bar was 65%." and "Cover
-the eyes and the trace weakens, but stays." The meter in the memory chapter
-still climbs from 49% to 73% inside one brain, so a re-render also needs a
-meter that shows two brains side by side. The site carries both corrections in
-text beside the film.
+### Labels on the published cuts
 
 The live player of film one (`viz/player/`) had its end card reworded on
 2026-10-08 to drop the reading that credited survival on its own (withdrawn in
 FINDINGS 17.6), and its footer names the pre-correction trainer
 (`viz/player/beats.json`). On 2026-10-10 its end-card tiles were relabeled
 "untrained mind" and "trained mind" (they read "its mind, idle" and "its mind,
-surviving"), and the 45 to 80 s beats still tell the survival story in their
-captions; rewriting those beats is left to the owner. Until then a line under the
-site's links to the two live cuts says so. Since 2026-10-10 the Two Minds live renderer
-(`viz/player/brain/`) carries a footer on its end card as well, naming the
-pre-correction trainer and the 300-update budget, because its line about
-dropping the second job holds at that budget only: at 450 updates the arm
-without the decoder clears the bar (0.717 on the pre-correction trainer, 0.685
-on the corrected one; FINDINGS 10.8.1, 17.10). The rendered mp4 files keep
-the original end card: they are not re-rendered, and the pages that publish
-them carry the label instead.
+surviving"). On 2026-10-11 the 45 to 80 s beats were rewritten on the corrected
+record (film one, above), so the two live cuts no longer tell the survival
+story.
 
 On 2026-10-09 the caveats were extended on every surface that publishes the films
 (the site film block, the live player's end-card footer, and this file) with the corrected
@@ -142,12 +120,117 @@ pair of evaluation worlds (0.559, the largest of nine draws on record), and the 
 a product of that draw: on the agents of the historical hidden-8 run, every one of eight
 independent draws at drift 0.45 clears the bar (0.728 to 0.860, SECURE under a rule frozen
 before the run; FINDINGS 17.5.1). The corrected agents are not in the repository, so the
-draws were not scored on them; the live player's footer says so since 2026-10-10. The mp4
-files are unchanged; the caveats sit beside them, never inside them.
+draws were not scored on them; the live player's footer says so since 2026-10-10. The
+film-one mp4 is unchanged, and its caveats sit beside it. The Two Minds mp4 was
+re-rendered on the corrected record on 2026-10-11 and carries its caveats on its
+end card.
 
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
 the same way as film one and replace `two-minds-web.mp4` in place so the site
 and the player pick it up without a markup change.
+
+### What the renderer shows (corrected record, October 2026)
+
+The renderer is `viz/player/brain/` (open `index.html?sec=overview&layout=wide`
+in a browser for a live loop). One trained brain, frozen, runs in the real world
+and in the fake copy. Every dot on screen is named after a real sensor group,
+encoder row, recurrent unit, motor head, or readout head, and teal rings mark the
+memory cells whose readings differ most between the two worlds.
+
+Every number on screen comes from the corrected trainer (`docs/FINDINGS.md`
+section 17) and sits in the `FILM` block of `brain.js`, one line each. Each is a
+mean over ten brains of one kind, which is why the labels are plural; the brain
+drawn on screen is one of the ten trained ones:
+
+| On screen | Value | Source |
+|---|---|---|
+| untrained brains, 52% | 0.523, interval [0.491, 0.554], so chance | `artifacts/corrected_verdicts.json` `runs.C1.primary.untrained` |
+| brains like this one, 73% | 0.733 [0.669, 0.797] | `runs.C1.primary.survival` |
+| the bar, 65% | 0.65, registered before the run | `rules.bar` |
+| predict-only brains fed the same senses, 72% | 0.721 | `artifacts/policy_controls/corrected_l3_h8_wm.json` `aggregate["predictor replay"]` |
+| without the prediction job at 300 updates, 61% | 0.613, under the bar | `runs.C2.primary.survival` |
+| without it at 450 updates, 69% | 0.685 | `artifacts/budget_curve.json` `series["decoder off"]` |
+| two identical real worlds, 56% | 0.559, so the registered rule is not met | `runs.C1.gates.l0` |
+
+`python scripts/dump_brain_film_data.py --check-only` compares each display with
+those artifacts and stops on any mismatch. It also checks the sentences built on
+them: the untrained interval includes 0.5, the trained arm clears the bar, the arm
+without the prediction job is under it at 300 updates, and the L0 gate did not
+pass. `tests/test_brain_film.py` runs the same check in CI, along with checks that
+no withdrawn wording, historical figure or stack name renders.
+
+What changed from the September cut, and why:
+
+- The memory chapter's one meter climbed from 49% to 73% inside one brain. Those
+  were two different agents, an untrained one (0.488, the pre-correction floor) and
+  a trained one (0.726, the pre-correction section 10.4 residual after a behavior
+  control), each read once after training. The chapter now has two labeled rows,
+  "untrained brains" at 52% and "brains like this one" at 73%, against the 50%
+  and 65% ticks. Each bar fills once and holds.
+- The end card said "this brain kept a trace of which world it was in" over a
+  single 73%. Under identical input the difference fades within a few steps, so
+  the frozen verdict on storage is "retention not shown" (FINDINGS 17.7). The card
+  now says the brain carries a readable sign of which world it is in and shows
+  three tiles: 52%, 73%, and 72% for brains trained only to predict and fed the
+  trained brains' own senses. That last reading sits within about 0.01 of 73%, so the
+  reading that credited the survival objective is withdrawn (17.6).
+- The card's second-job line now carries its budget: under the bar at 300 updates
+  (61%), 69% at 450 (17.4, 17.10). A new line states the open gate: two identical
+  real worlds read 56%, so the preregistered test is not passed (17.2).
+- Labeled builds carry no on-screen narration. Narration renders only with
+  `caption=1`, and the voice is recorded over the labeled cut. The labeled panels
+  took the freed band: wide panels grew from 624 to 700 px tall, 9:16 panels from
+  580 to 660.
+- The narration that renders with `caption=1` lost the lines the record does not
+  support: the masking line (its run is pre-correction and has no corrected
+  counterpart), "the miss leaves a mark in memory", "that is what memory picks
+  up", and the stack name in the caption subline.
+
+Chapter lengths are unchanged (title 9.5 s, overview 12, senses 9, process 9,
+memory 12, actions 12, end 6), so a music bed cut to the 65.9 s September picture
+still fits.
+
+### Brain data
+
+The twelve memory cells and the ringed cells come from
+`viz/player/brain/brain-data.js`, which `scripts/dump_brain_film_data.py` computes
+from drift-0.45 state pools rebuilt out of the corrected C1 agents. The
+representative brain is the seed whose committed survival target sits closest to
+the C1 mean: seed 9, at 0.738 against 0.733. Ring strength is each unit's measured
+rank AUROC between worlds. The script writes nothing unless that seed's rebuilt
+survival and untrained pools reproduce the committed C1 cells' pooled targets
+within `--atol` (default 1e-9, which only a rebuild on the stack that ran C1 can
+meet).
+
+The committed `brain-data.js` was rebuilt on the owner's Windows stack, not the
+cloud stack that ran C1, so its pools agree with the committed targets to within
+0.002 rather than to the bit: survival 0.7372 against 0.7384, untrained 0.5760
+against 0.5756. The data records both readings and the tolerance used
+(`rebuild_atol` 0.005), and `tests/test_brain_film.py` refuses a tolerance above
+0.005.
+
+### Rebuild
+
+The C1 agents were not kept by the original run. A cloud rerun of C1 saved them,
+and its cells match the committed C1 cells bit for bit. Only the seed-9 drift-0.45
+survival and untrained agents are needed. From the repo root, in PowerShell, one
+step at a time:
+
+```powershell
+$run = '<C1 rerun dir, holding agents\ and cells\>'
+$sub = "$env:TEMP\two-minds-c1-s9"
+New-Item -ItemType Directory -Force "$sub\agents", "$sub\cells", "$sub\states" | Out-Null
+Copy-Item "$run\agents\agent_d0.45_s9_survival.pt", "$run\agents\agent_d0.45_s9_untrained.pt" "$sub\agents"
+Copy-Item "$run\cells\cell_d0.45_s9.json" "$sub\cells"
+$env:ITASORL_FOLDS = 'explicit'
+python scripts/regenerate_state_dumps.py --run-dir $sub --out-dir "$sub\states" --report "$sub\states\report.json"
+python scripts/dump_brain_film_data.py --states "$sub\states" --report "$sub\states\report.json"
+```
+
+Then serve the renderer on port 8877 from `viz/player/brain/` and run
+`viz/player/capture/build-two-minds.ps1`. It decode-checks every clip and the
+tour stitch; check the tours with `ffprobe` (65.9 s) before encoding the web cut
+below.
 
 Web encode:
 
