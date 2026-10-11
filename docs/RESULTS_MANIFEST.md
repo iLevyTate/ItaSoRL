@@ -46,6 +46,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `SENSORY-ECHO` | historical | B-v2 L3 | 28 | inherited: pre_transition_value | L3-H8-HELDOUT, L3-H7-REVERSE | not recorded | legacy | cuda |
 | `EXPC-M3-PER-INDIVIDUAL` | historical | C | 27 | none | - | 06ecc10 | explicit | owner's laptop CPU |
 | `L1-STREAM-READOUT` | historical | H2 | 35, 53 | inherited: pre_transition_value | L1-ORGANISM | 5666f59 | explicit | owner's laptop CPU, 4 workers |
+| `T-GN-H96` | corrected | B-v2 L3 | - | successor_value | - | 33311bf, 57dd347 (run/T-gn-h96; code as main 3036eb3) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `T-GN-TRAINED` | corrected | B-v2 L3 | 52 | successor_value | - | 60eb355 (curated) | explicit | owner's laptop CPU, 4 workers |
 | `T-QD-TRAINED` | off-design | B-v2 L3 | - | successor_value | - | 2606e7f | explicit | owner's laptop CPU, 3 workers |
 | `H8-HELDOUT-REVERSE-DIRECTION` | historical | L0 audit | 51 | inherited: pre_transition_value | L3-H8-HELDOUT | 8aa2b9f | explicit | owner's laptop CPU, one thread per readout |
@@ -67,10 +68,12 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `C1-CONTROL-DIAG` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-TEXTURE` | corrected | H2 | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `C1-POPULATION` | corrected | C | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `T-TOUCH` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `S-IMMORTAL` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `T-TOUCH` | corrected | B-v2 L3 | - | successor_value | - | 067efb2, 6625b05 (run/T-touch; code as main 2f4174b) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
+| `S-IMMORTAL` | corrected | B-v2 L3 | - | successor_value | - | 9c2c864, 443c197 (run/S-immortal; code as main 2f4174b) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `S-SCARCE` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-MECHANISM` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
+| `C1-MECHANISM` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | run/C1-rerun | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
+| `C1-RERUN` | corrected | B-v2 L3 | - | successor_value | - | fb3a393, 2fce6a5, 5580816 (run/C1-rerun; code as main 07e18ef) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
+| `GOAL-STAKES-DECISION` | corrected | methods | - | inherited: successor_value | T-TOUCH, S-IMMORTAL, C1 | not recorded | explicit | not recorded |
 | `BUDGET-CURVE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | not recorded | explicit | not recorded |
 | `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 7870bba (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
@@ -551,6 +554,22 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: scripts/run_control_diagnostics.py --drift-mode l1 --l1-delta 0.023 --l1-sigma 0.01; spec docs/specs/2026-10-09-l1-stream-readout-design.md; FINDINGS 14.7.1. Asks whether the quantization seam reaches the agent's own observation stream. Integrity gate passed: all 30 regenerated state pools bit-match the run's dumps and every per-seed target reproduces the explicit-partition record exactly. Branch S1: the stream carries it. Pre-correction-trainer agents.
 - Artifacts: `artifacts/control_diagnostics/l1_stream_readout.json`
 
+### `T-GN-H96`: Comparator-trained run on the white-jitter family at the registered trunk (frozen 2026-10-10)
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: 33311bf, 57dd347 (run/T-gn-h96; code as main 3036eb3)
+- Commit source: partly curated: the artifacts record 33311bf, 57dd347
+- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Surrogate: {"family": "G_gn (iid velocity jitter on the authentic law)", "sigma_v": 0.01, "gate0": "oracle 0.8653 in band, floor 0.4479"}
+- Budget: {"survival_updates": 300}
+- Folds: explicit
+- Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
+- Local run directory (not in git): artifacts/goal_stakes/T-gn-h96
+- Notes: Frozen: docs/specs/2026-10-10-gn-comparator-trained-h96-design.md. Trunk 96 read from all 60 saved agents. UNINFORMATIVE under the registered matrix: the L0 gate fails (drift-0 survival 0.559, not equivalent to chance), so neither verdict is reached. Descriptively the rule is not met (survival 0.541 [0.523, 0.559], 0 of 10 seeds at the bar). Not promoted as a negative; strengthens no claim. Saved agents stay on branch run/T-gn-h96.
+- Config (beyond the standard protocol): {"drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01, "gae_bootstrap": "successor"}
+- Artifacts: `artifacts/texture/T_gn_l3_h96_wm.json`, `artifacts/goal_stakes/T-gn-h96`
+
 ### `T-GN-TRAINED`: Comparator-trained run on the white-jitter family (frozen 2026-10-09)
 
 - Status: corrected
@@ -795,31 +814,33 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: successor_value
-- Commit at run: pending
+- Commit at run: 067efb2, 6625b05 (run/T-touch; code as main 2f4174b)
+- Commit source: partly curated: the artifacts record 067efb2, 6625b05
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
 - Folds: explicit
-- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
+- Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
 - Local run directory (not in git): artifacts/goal_stakes/T-touch
-- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. Cells committed from the cloud session as they land; mechanism.json from scripts/run_mechanism_readouts.py. Directory registered ahead of the run (.gitkeep placeholder until cells land).
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Primary rule met with all six gates passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Readouts in the directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) stay on branch run/T-touch.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "objective": "touch", "mortal": false}
-- Artifacts: `artifacts/goal_stakes/T-touch`
+- Artifacts: `artifacts/goal_stakes/T-touch`, `artifacts/expB2/goal_stakes_T-touch.json`
 
 ### `S-IMMORTAL`: Survival objective, death off, registered food, n = 10 (goal-and-stakes)
 
 - Status: corrected
 - Trainer: successor_value
-- Commit at run: pending
+- Commit at run: 9c2c864, 443c197 (run/S-immortal; code as main 2f4174b)
+- Commit source: partly curated: the artifacts record 443c197, 9c2c864
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
 - Folds: explicit
-- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
+- Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
 - Local run directory (not in git): artifacts/goal_stakes/S-immortal
-- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. Directory registered ahead of the run (.gitkeep placeholder until cells land).
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 [0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable (S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined attempts stay on branch run/S-immortal.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "mortal": false}
-- Artifacts: `artifacts/goal_stakes/S-immortal`
+- Artifacts: `artifacts/goal_stakes/S-immortal`, `artifacts/expB2/goal_stakes_S-immortal.json`
 
 ### `S-SCARCE`: Survival objective, death on, scarce food (calibrated), n = 10 (goal-and-stakes)
 
@@ -840,11 +861,35 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: pending
+- Commit at run: run/C1-rerun
 - Folds: explicit
-- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
-- Notes: scripts/run_mechanism_readouts.py; goal-and-stakes spec. Output lands as artifacts/goal_stakes/C1/mechanism.json; the directory is registered ahead of the readout (.gitkeep placeholder) and owns the file by prefix.
+- Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
+- Notes: scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and S-immortal mechanism readouts; decide_goal_stakes.py does not read it.
 - Artifacts: `artifacts/goal_stakes/C1`
+
+### `C1-RERUN`: Rerun of C1 that keeps its saved agents (reproduction)
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: fb3a393, 2fce6a5, 5580816 (run/C1-rerun; code as main 07e18ef)
+- Commit source: partly curated: the artifacts record 2fce6a5, 5580816, fb3a393
+- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Budget: {"survival_updates": 300, "predictor_updates": 300}
+- Folds: explicit
+- Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
+- Local run directory (not in git): artifacts/goal_stakes/C1-rerun
+- Notes: The C1 command without --dump-states, on the pinned cloud stack, so the agents exist for the C1 mechanism readout. Pool targets equal C1 to the bit in 60 of 60 arm-cells; C1 reproduces exactly. Saved agents (60 base plus 30 budget snapshots) stay on branch run/C1-rerun.
+- Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "budget_extend": 450, "budget_snapshots": [100, 200]}
+- Artifacts: `artifacts/goal_stakes/C1-rerun`
+
+### `GOAL-STAKES-DECISION`: Frozen goal-and-stakes wording from scripts/decide_goal_stakes.py
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Folds: explicit
+- Notes: python scripts/decide_goal_stakes.py --runs artifacts/goal_stakes --c1 artifacts/expB2/corrected_l3_h8_wm.json --touch-promoted artifacts/expB2/goal_stakes_T-touch.json
+- Artifacts: `artifacts/goal_stakes/decision.json`
 
 ### `BUDGET-CURVE`: Return and decodability against survival updates, decoder on and off
 

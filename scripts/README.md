@@ -29,9 +29,10 @@ python scripts/render_brain_pair_tour.py # the earlier brain-pair tour and secti
 python scripts/plot_record_figures.py    # Experiment A, B and B-v2 record figures from committed artifacts (docs/figures, artifacts/expB2)
 ```
 
-`dump_brain_film_data.py` reads the saved held-out state pools under
-`fullruns/l3_h8_heldout/states` (no model, no GPU) and picks the representative
-brain for the Two Minds film. The film itself is captured by
+`dump_brain_film_data.py` reads state pools rebuilt from the corrected C1 brains (`--states`, from
+`scripts/regenerate_state_dumps.py` run on the C1 rerun's saved agents; no model, no GPU), picks
+the representative brain for the Two Minds film, and refuses to write data whose readings or
+on-screen numbers disagree with the committed corrected artifacts. The film itself is captured by
 `viz/player/capture/build-two-minds.ps1`; the web encodes the site serves are
 documented in `assets/film/README.md`.
 

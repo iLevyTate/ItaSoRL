@@ -12,52 +12,64 @@ vc = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(vc)
 
 
-def _beats(surv="73%", untr="50%", orac="99%"):
+def _beats(surv="73%", untr="52%", orac="99%", replay="72%", l0="56%"):
     return {
         "numbers": {
             "oracle_l2": {"display": orac},
             "probe_chance": {"display": untr},
             "probe_survival": {"display": surv},
+            "probe_replay": {"display": replay},
+            "l0_gate": {"display": l0},
         },
         "beats": [
             {"id": "observer", "gauge": {"display": orac}},
             {"id": "nocare", "gauge": {"display": untr}},
             {"id": "survival", "gauge": {"display": surv}},
+            {"id": "close", "endcard": {"recap": [{"pct": orac}, {"pct": untr}, {"pct": surv}, {"pct": replay}],
+                                        "foot": f"... reads {replay} ... read {l0} instead of 50% ..."}},
         ],
     }
 
 
-def _cells(surv=0.726, untr=0.488):
-    out = []
-    for s in range(3):
-        out.append({"agent": "survival", "drift": "0.45", "seed": s,
-                    "resid_trace": surv, "target": 0.75})
-        out.append({"agent": "untrained", "drift": "0.45", "seed": s,
-                    "resid_trace": 0.5, "target": untr})
-        out.append({"agent": "survival", "drift": "0.00", "seed": s,
-                    "resid_trace": 0.5, "target": 0.5})
-    return out
+def _record(surv=0.733, untr=0.5226, lo=0.4914, hi=0.5538, orac=0.9909, replay=0.721, l0=0.5594):
+    return {"survival": surv, "untrained": untr, "untrained_t90": [lo, hi],
+            "oracle": orac, "replay": replay, "l0": l0}
 
 
 def test_verify_numbers_passes_on_published_values():
-    got = vc.verify_numbers(_beats(), _cells(), "oracle AUROC 0.993 etc")
-    assert got["survival_resid_trace_pooled"] == 0.726
-    assert got["untrained_target_pooled"] == 0.488
+    got = vc.verify_numbers(_beats(), _record())
+    assert got["survival"] == 0.733 and got["untrained"] == 0.5226
 
 
 def test_verify_numbers_fails_on_drifted_survival():
     with pytest.raises(SystemExit):
-        vc.verify_numbers(_beats(), _cells(surv=0.61), "0.993")
+        vc.verify_numbers(_beats(), _record(surv=0.61))
 
 
 def test_verify_numbers_fails_when_untrained_leaves_chance():
     with pytest.raises(SystemExit):
-        vc.verify_numbers(_beats(), _cells(untr=0.60), "0.993")
+        vc.verify_numbers(_beats(untr="60%"), _record(untr=0.60, lo=0.57, hi=0.63))
 
 
-def test_verify_numbers_fails_without_findings_oracle():
+def test_verify_numbers_fails_when_the_end_card_drops_the_replay_reading():
+    b = _beats()
+    b["beats"][-1]["endcard"]["recap"] = b["beats"][-1]["endcard"]["recap"][:3]
     with pytest.raises(SystemExit):
-        vc.verify_numbers(_beats(), _cells(), "no oracle number here")
+        vc.verify_numbers(b, _record())
+
+
+def test_verify_numbers_fails_when_the_foot_drops_the_l0_reading():
+    b = _beats()
+    b["beats"][-1]["endcard"]["foot"] = "reads 72%"
+    with pytest.raises(SystemExit):
+        vc.verify_numbers(b, _record())
+
+
+def test_committed_beats_match_the_corrected_record():
+    """The film's numbers, read from the committed beats.json, agree with the committed
+    corrected-trainer artifacts. Runs in CI: no agents, no surrogate training."""
+    beats = json.loads((ROOT / "viz" / "player" / "beats.json").read_text(encoding="utf-8"))
+    vc.verify_numbers(beats, vc.load_record(ROOT))
 
 
 def test_sample_fields_normalized_grid():

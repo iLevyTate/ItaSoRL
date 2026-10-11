@@ -3,7 +3,8 @@
 Record-then-render (spec docs/superpowers/specs/2026-07-14-outreach-video-design.md):
 rolls a saved survival agent in the authentic world and the L3 learned-surrogate
 world on identical seeds, samples the terrain fields the player bakes, and fails
-loudly if the film's caption numbers drift from the committed artifacts.
+loudly if the film's caption numbers drift from the committed corrected-trainer
+artifacts (artifacts/corrected_verdicts.json, surrogate diagnostics, policy controls).
 CPU only: fullruns/ is read-only and the GPU may be busy with a live run.
 """
 from __future__ import annotations
@@ -83,41 +84,62 @@ def in_split_window(pts, i0=TRICK_I0, i1=TRICK_I1, lo=SPLIT_LO, hi=SPLIT_HI):
     return all(lo <= p[0] <= hi for p in pts[i0:i1 + 1])
 
 
-def _pooled(cells, agent, key):
-    vals = [float(c[key]) for c in cells
-            if c["agent"] == agent and abs(float(c["drift"]) - 0.45) < 1e-9]
-    if not vals:
-        raise SystemExit("number honesty: no drift=0.45 cells for agent '" + agent + "'")
-    return sum(vals) / len(vals)
+def load_record(root: Path = WT_ROOT) -> dict:
+    """The corrected-trainer numbers the film shows, read from the committed artifacts."""
+    art = root / "artifacts"
+    v = json.loads((art / "corrected_verdicts.json").read_text(encoding="utf-8"))
+    c1 = v["runs"]["C1"]
+    diag = json.loads((art / "surrogate_diagnostics.json").read_text(encoding="utf-8"))
+    pol = json.loads((art / "policy_controls" / "corrected_l3_h8_wm.json").read_text(encoding="utf-8"))
+    return {
+        "survival": float(c1["primary"]["survival"]["mean"]),
+        "untrained": float(c1["primary"]["untrained"]["mean"]),
+        "untrained_t90": [float(x) for x in c1["primary"]["untrained"]["t90"]],
+        "oracle": float(diag["surrogates"]["gmotion_h8_s0"]["agent_accessible_detector"]["auroc"]),
+        "replay": float(pol["aggregate"]["predictor replay"]["mean"]),
+        "l0": float(c1["gates"]["l0"]["mean"]),
+    }
 
 
-def verify_numbers(beats, cells, findings_text):
-    """Binding spec rule: the film's three numbers must match the committed
-    artifacts. Fails loudly; returns the verified values for scene meta."""
+def _pct(x: float) -> str:
+    return f"{x * 100:.0f}%"
+
+
+def verify_numbers(beats, record):
+    """Binding spec rule: every number the film shows must match the committed
+    artifacts of the corrected trainer. Fails loudly; returns the verified values."""
     disp = {b["id"]: b["gauge"]["display"] for b in beats["beats"] if "gauge" in b}
     nums = beats["numbers"]
+    recap = {r["pct"] for b in beats["beats"] if "endcard" in b for r in b["endcard"].get("recap", [])}
+
+    def need(cond, msg):
+        if not cond:
+            raise SystemExit("number honesty: " + msg)
 
     # The film shows whole percents (the lay reading of AUROC on a balanced
     # one-real-one-fake comparison); each must still match the artifacts.
-    surv = _pooled(cells, "survival", "resid_trace")
-    if (f"{surv * 100:.0f}%" != disp["survival"]
-            or disp["survival"] != nums["probe_survival"]["display"]):
-        raise SystemExit("number honesty: survival resid_trace pools to "
-                         + f"{surv:.4f}, film shows " + disp["survival"])
-
-    untr = _pooled(cells, "untrained", "target")
-    if (abs(untr - 0.50) > 0.03 or disp["nocare"] != "50%"
-            or nums["probe_chance"]["display"] != "50%"):
-        raise SystemExit("number honesty: untrained target pools to "
-                         + f"{untr:.4f}, film shows " + disp["nocare"] + " as chance")
-
-    if ("0.993" not in findings_text or disp["observer"] != "99%"
-            or nums["oracle_l2"]["display"] != "99%"):
-        raise SystemExit("number honesty: 0.993 missing from FINDINGS or gauge is not 99%")
-
-    return {"survival_resid_trace_pooled": round(surv, 4),
-            "untrained_target_pooled": round(untr, 4),
-            "oracle_l2": 0.993}
+    s = _pct(record["survival"])
+    need(disp.get("survival") == s == nums["probe_survival"]["display"],
+         f"C1 survival reads {record['survival']:.4f}, film shows {disp.get('survival')}")
+    u = _pct(record["untrained"])
+    lo, hi = record["untrained_t90"]
+    need(lo <= 0.5 <= hi, f"untrained interval [{lo:.3f}, {hi:.3f}] excludes chance, so it is not a coin flip")
+    need(disp.get("nocare") == u == nums["probe_chance"]["display"],
+         f"untrained reads {record['untrained']:.4f}, film shows {disp.get('nocare')}")
+    o = _pct(record["oracle"])
+    need(disp.get("observer") == o == nums["oracle_l2"]["display"],
+         f"watcher reads {record['oracle']:.4f}, film shows {disp.get('observer')}")
+    r = _pct(record["replay"])
+    need(nums.get("probe_replay", {}).get("display") == r and r in recap,
+         f"predict-only replay reads {record['replay']:.4f}; the end card must show {r}")
+    g = _pct(record["l0"])
+    need(nums.get("l0_gate", {}).get("display") == g,
+         f"L0 gate reads {record['l0']:.4f}; numbers.l0_gate must show {g}")
+    for b in beats["beats"]:
+        foot = b.get("endcard", {}).get("foot", "")
+        if foot:
+            need(g in foot and r in foot, "the end-card foot must quote the L0 and replay readings")
+    return {k: round(v, 4) if isinstance(v, float) else v for k, v in record.items()}
 
 
 def _round_traj(pts):
@@ -168,10 +190,7 @@ def main(argv=None):
     from itasorl.experiment_b2 import _seeds, load_agent_bundle, make_world
 
     beats = json.loads((WT_ROOT / "viz" / "player" / "beats.json").read_text(encoding="utf-8"))
-    audit = WT_ROOT / "artifacts" / "expB2" / "behavior_audit_l3_h8_traces.json"
-    cells = json.loads(audit.read_text(encoding="utf-8"))["cells"]
-    findings = (WT_ROOT / "docs" / "FINDINGS.md").read_text(encoding="utf-8")
-    numbers = verify_numbers(beats, cells, findings)
+    numbers = verify_numbers(beats, load_record())
     print("numbers verified against artifacts: " + str(numbers), flush=True)
 
     b2.DRIFT_MODE = "l3"

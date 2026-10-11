@@ -492,6 +492,8 @@ SUPPLEMENT_EXCLUDE = [
     # plot are in the JSON files beside them.
     ("artifacts/goal_stakes/*", "run-script figures not viewed for names"),
     ("fullruns/*", "run-script figures not viewed for names"),
+    # The GitHub social-preview card and its source page print the repository address.
+    ("docs/social-card/*", "the repository's social-preview card, which names the repository"),
 ]
 _EXCLUDE_IMAGES_ONLY = {"run-script figures not viewed for names"}
 

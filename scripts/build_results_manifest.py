@@ -134,6 +134,8 @@ L3_H8 = {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0
 GPU_OWNER = "owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126"
 CPU_CLOUD = "cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu"
 CPU_REVISION = "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu"
+CLOUD_PINNED = ("Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, "
+                "scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)")
 
 RUNS = [
     # ---------------- agent-free and prediction-only arcs (no actor-critic) ----------------
@@ -431,6 +433,23 @@ RUNS = [
               "Integrity gate passed: all 30 regenerated state pools bit-match the run's dumps "
               "and every per-seed target reproduces the explicit-partition record exactly. "
               "Branch S1: the stream carries it. Pre-correction-trainer agents."),
+    run("T-GN-H96", "Comparator-trained run on the white-jitter family at the registered trunk "
+        "(frozen 2026-10-10)", experiment="B-v2 L3",
+        artifacts=["texture/T_gn_l3_h96_wm.json", "goal_stakes/T-gn-h96"], claims=[],
+        survival_trainer="successor_value", status="corrected",
+        commit_at_run="33311bf, 57dd347 (run/T-gn-h96; code as main 3036eb3)",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01,
+                "gae_bootstrap": "successor"},
+        agent_seeds=S10, surrogate={"family": "G_gn (iid velocity jitter on the authentic law)",
+                                    "sigma_v": 0.01, "gate0": "oracle 0.8653 in band, floor 0.4479"},
+        budget={"survival_updates": 300}, eval_seeds=BV2_EVAL_SEEDS, folds="explicit",
+        device=CLOUD_PINNED, local_run_dir="artifacts/goal_stakes/T-gn-h96",
+        notes="Frozen: docs/specs/2026-10-10-gn-comparator-trained-h96-design.md. Trunk 96 read "
+              "from all 60 saved agents. UNINFORMATIVE under the registered matrix: the L0 gate "
+              "fails (drift-0 survival 0.559, not equivalent to chance), so neither verdict is "
+              "reached. Descriptively the rule is not met (survival 0.541 [0.523, 0.559], 0 of 10 "
+              "seeds at the bar). Not promoted as a negative; strengthens no claim. Saved agents "
+              "stay on branch run/T-gn-h96."),
     run("T-GN-TRAINED", "Comparator-trained run on the white-jitter family (frozen 2026-10-09)",
         experiment="B-v2 L3", artifacts=["texture/T_gn_l3_h8_wm.json"], claims=[52],
         survival_trainer="successor_value", status="corrected", commit_at_run="60eb355",
@@ -667,25 +686,36 @@ RUNS = [
               "the artifact."),
     # ---------------- goal and stakes runs (docs/specs/2026-10-07-goal-and-stakes-design.md) ----------------
     run("T-TOUCH", "Pellet-touch objective, death off, registered food, n = 10 (goal-and-stakes)",
-        experiment="B-v2 L3", artifacts=["goal_stakes/T-touch"], claims=[],
-        survival_trainer="successor_value", status="corrected", commit_at_run="pending",
+        experiment="B-v2 L3", artifacts=["goal_stakes/T-touch", "expB2/goal_stakes_T-touch.json"],
+        claims=[], survival_trainer="successor_value", status="corrected",
+        commit_at_run="067efb2, 6625b05 (run/T-touch; code as main 2f4174b)",
         config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor",
                 "objective": "touch", "mortal": False},
         agent_seeds=S10, surrogate=L3_H8, budget={"survival_updates": 300, "predictor_updates": 300},
-        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CPU_REVISION,
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CLOUD_PINNED,
         local_run_dir="artifacts/goal_stakes/T-touch",
-        notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. Cells committed from the "
-              "cloud session as they land; mechanism.json from scripts/run_mechanism_readouts.py. "
-              "Directory registered ahead of the run (.gitkeep placeholder until cells land)."),
+        notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in "
+              "PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained "
+              "targets bit-equal to C1 in 20 of 20 cells. Primary rule met with all six gates "
+              "passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Readouts in the "
+              "directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on "
+              "state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents "
+              "and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) "
+              "stay on branch run/T-touch."),
     run("S-IMMORTAL", "Survival objective, death off, registered food, n = 10 (goal-and-stakes)",
-        experiment="B-v2 L3", artifacts=["goal_stakes/S-immortal"], claims=[],
-        survival_trainer="successor_value", status="corrected", commit_at_run="pending",
+        experiment="B-v2 L3", artifacts=["goal_stakes/S-immortal", "expB2/goal_stakes_S-immortal.json"],
+        claims=[], survival_trainer="successor_value", status="corrected",
+        commit_at_run="9c2c864, 443c197 (run/S-immortal; code as main 2f4174b)",
         config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor", "mortal": False},
         agent_seeds=S10, surrogate=L3_H8, budget={"survival_updates": 300, "predictor_updates": 300},
-        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CPU_REVISION,
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CLOUD_PINNED,
         local_run_dir="artifacts/goal_stakes/S-immortal",
-        notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. Directory registered "
-              "ahead of the run (.gitkeep placeholder until cells land)."),
+        notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in "
+              "PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained "
+              "targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 "
+              "[0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable "
+              "(S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined "
+              "attempts stay on branch run/S-immortal."),
     run("S-SCARCE", "Survival objective, death on, scarce food (calibrated), n = 10 (goal-and-stakes)",
         experiment="B-v2 L3", artifacts=["goal_stakes/S-scarce", "goal_stakes/calibration.json"],
         claims=[], survival_trainer="successor_value", status="corrected", commit_at_run="pending",
@@ -702,13 +732,34 @@ RUNS = [
               "The directory keeps its .gitkeep placeholder; no cell exists."),
     run("C1-MECHANISM", "Mechanism readouts 6 to 9 and the scripted-walk stream decoder, C1 agents",
         experiment="B-v2 L3", artifacts=["goal_stakes/C1"], trains_survival=False,
-        readout_of=["C1"], survival_trainer="successor_value", status="corrected",
-        commit_at_run="pending", folds="explicit",
+        readout_of=["C1", "C1-RERUN"], survival_trainer="successor_value", status="corrected",
+        commit_at_run="run/C1-rerun", folds="explicit",
         eval_seeds={"mechanism": "1400000 + i (authentic) / 1450000 + i (surrogate), i < 64"},
-        device=CPU_REVISION,
-        notes="scripts/run_mechanism_readouts.py; goal-and-stakes spec. Output lands as "
-              "artifacts/goal_stakes/C1/mechanism.json; the directory is registered ahead of the "
-              "readout (.gitkeep placeholder) and owns the file by prefix."),
+        device=CLOUD_PINNED,
+        notes="scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, "
+              "whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: "
+              "artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and "
+              "S-immortal mechanism readouts; decide_goal_stakes.py does not read it."),
+    run("C1-RERUN", "Rerun of C1 that keeps its saved agents (reproduction)",
+        experiment="B-v2 L3", artifacts=["goal_stakes/C1-rerun"], claims=[],
+        survival_trainer="successor_value", status="corrected",
+        commit_at_run="fb3a393, 2fce6a5, 5580816 (run/C1-rerun; code as main 07e18ef)",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor",
+                "budget_extend": 450, "budget_snapshots": [100, 200]},
+        agent_seeds=S10, surrogate=L3_H8, budget={"survival_updates": 300, "predictor_updates": 300},
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CLOUD_PINNED,
+        local_run_dir="artifacts/goal_stakes/C1-rerun",
+        notes="The C1 command without --dump-states, on the pinned cloud stack, so the agents exist "
+              "for the C1 mechanism readout. Pool targets equal C1 to the bit in 60 of 60 "
+              "arm-cells; C1 reproduces exactly. Saved agents (60 base plus 30 budget snapshots) "
+              "stay on branch run/C1-rerun."),
+    run("GOAL-STAKES-DECISION", "Frozen goal-and-stakes wording from scripts/decide_goal_stakes.py",
+        experiment="methods", artifacts=["goal_stakes/decision.json"], trains_survival=False,
+        readout_of=["T-TOUCH", "S-IMMORTAL", "C1"], survival_trainer="successor_value",
+        status="corrected", folds="explicit",
+        notes="python scripts/decide_goal_stakes.py --runs artifacts/goal_stakes --c1 "
+              "artifacts/expB2/corrected_l3_h8_wm.json --touch-promoted "
+              "artifacts/expB2/goal_stakes_T-touch.json"),
     run("BUDGET-CURVE", "Return and decodability against survival updates, decoder on and off",
         experiment="B-v2 L3", artifacts=["budget_curve.json"], trains_survival=False,
         readout_of=["C1", "C2"], survival_trainer="successor_value", status="corrected",

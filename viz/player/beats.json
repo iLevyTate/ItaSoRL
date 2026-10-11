@@ -3,9 +3,11 @@
   "fps": 24,
   "size": [1080, 1350],
   "numbers": {
-    "oracle_l2": { "display": "99%", "source": "docs/FINDINGS.md sec 2.2 (L2, 0.993); sec 15: the L3 fingerprint the 73% creature lives with reads 1.000 at the same low detector noise" },
-    "probe_chance": { "display": "50%", "source": "artifacts h8 untrained target 0.488 / L0 0.517" },
-    "probe_survival": { "display": "73%", "source": "artifacts h8 survival resid_trace 0.726 / h7 0.722; PRE-CORRECTION TRAINER (docs/CORRECTIONS.md). A residual after the four behavior channels, not independence from behavior: on the corrected agents the best-fitting control leaves 0.620, under the bar (FINDINGS 17.8). The reading that credited the survival objective is withdrawn (FINDINGS 17.6)." }
+    "oracle_l2": { "display": "99%", "source": "artifacts/surrogate_diagnostics.json surrogates/gmotion_h8_s0/agent_accessible_detector/auroc 0.991: a watcher that knows the real law, reading only what the creature senses, catches the headline L3 fingerprint (FINDINGS 17.6)" },
+    "probe_chance": { "display": "52%", "source": "artifacts/corrected_verdicts.json runs.C1.primary.untrained.mean 0.523, t90 [0.491, 0.554], which includes 0.5: chance (corrected trainer)" },
+    "probe_survival": { "display": "73%", "source": "artifacts/corrected_verdicts.json runs.C1.primary.survival.mean 0.733, t90 [0.669, 0.797] (corrected trainer). The registered rule is not met because its L0 gate does not pass (0.559); the decodability clauses are met (FINDINGS 17.4)." },
+    "probe_replay": { "display": "72%", "source": "artifacts/policy_controls/corrected_l3_h8_wm.json aggregate['predictor replay'].mean 0.721: fed the forager's own observation streams, a mind trained only to predict reads the world within about 0.01 of it (FINDINGS 17.6)" },
+    "l0_gate": { "display": "56%", "source": "artifacts/corrected_verdicts.json runs.C1.gates.l0.mean 0.559: two authentic world samples did not read as equivalent, so the registered rule is not met (FINDINGS 17.4)" }
   },
   "beats": [
     {
@@ -16,7 +18,7 @@
       "caption": {
         "kicker": "MEET THE CREATURE",
         "headline": "Born knowing ((nothing at all.))",
-        "subline": "No rules, no lessons. It just lives here - and the little rays are its senses."
+        "subline": "No rules, no lessons. It just lives here, and the little rays are its senses."
       }
     },
     {
@@ -40,7 +42,7 @@
       "caption": {
         "kicker": "THE REVEAL",
         "headline": "The copy is on the ((right.))",
-        "subline": "Wrong grip, so it slides a hair too far - every single step. By eye, you would never know."
+        "subline": "Wrong grip, so it slides a hair too far, every single step. By eye, you would never know."
       }
     },
     {
@@ -51,7 +53,7 @@
       "caption": {
         "kicker": "WHAT IS ACTUALLY DIFFERENT",
         "headline": "The real world has rules. The copy just ((guesses.))",
-        "subline": "The creature is what really happens. The red ring is the copy's guess - close, but wrong every step."
+        "subline": "The creature is what really happens. The red ring is the copy's guess: close, but wrong every step."
       }
     },
     {
@@ -84,32 +86,32 @@
         "source": "the creature's mind",
         "reference": { "value": 0.99, "label": "outside watcher" },
         "wobble": true,
-        "from": 0.5, "to": 0.5, "display": "50%",
+        "from": 0.5, "to": 0.523, "display": "52%",
         "sweep": [1200, 5200]
       },
       "caption": {
         "kicker": "NOW LOOK INSIDE ITS MIND",
-        "headline": "But the creature itself ((never notices.))",
-        "subline": "We read its mind each time the fake glitches. Does it catch them? No - a coin flip. It never had a reason to care."
+        "headline": "A brand-new mind ((can't tell.))",
+        "subline": "Before it has learned anything, we read its mind each time the copy glitches. Does it catch them? A coin flip."
       }
     },
     {
       "id": "survival",
       "t0": 60000,
       "t1": 80000,
-      "world": { "mode": "forage", "zoom": [1.0, 1.08], "energy": true, "stage": 3, "fan": "calm", "probe": true, "glitch": true, "worldT0": 0 },
+      "world": { "mode": "single", "zoom": [1.0, 1.06], "follow": 0.45, "stage": 3, "fan": "calm", "probe": true, "glitch": true, "worldT0": 50000 },
       "gauge": {
         "label": "does its mind know NOW?",
         "unit": "pct",
         "source": "the creature's mind",
         "reference": { "value": 0.99, "label": "outside watcher" },
-        "from": 0.5, "to": 0.73, "display": "73%",
+        "from": 0.523, "to": 0.733, "display": "73%",
         "sweep": [4000, 14000]
       },
       "caption": {
-        "kicker": "UNLESS ITS LIFE DEPENDS ON IT",
-        "headline": "Now make the fake ((cost it dinner.))",
-        "subline": "Now the copy's bad physics makes food hard to catch. To eat, it must tell real from fake - so it learns. Unasked."
+        "kicker": "THEN LET IT LIVE THERE",
+        "headline": "After a life in the copy, ((its mind can tell.))",
+        "subline": "It forages in the copy day after day. Nobody rewards it for noticing the fake, and its mind picks it up anyway."
       }
     },
     {
@@ -118,14 +120,15 @@
       "t1": 90000,
       "world": { "mode": "none" },
       "endcard": {
-        "headline": "The fake was detectable all along. Its own mind showed it only after a life spent foraging in the copy.",
+        "headline": "The fake was detectable all along. A mind picked it up only once it had learned to live there.",
         "recap": [
           { "label": "outside watcher", "pct": "99%" },
-          { "label": "untrained mind", "pct": "50%" },
-          { "label": "trained mind", "pct": "73%" }
+          { "label": "untrained mind", "pct": "52%" },
+          { "label": "the forager's mind", "pct": "73%" },
+          { "label": "predict-only mind, same senses", "pct": "72%" }
         ],
         "url": "ilevytate.github.io/ItaSoRL",
-        "foot": "Real runs, 10 each. 50% = coin flip, 100% = always right. Read out, never rewarded. Pre-correction trainer. The survival-only reading is withdrawn: fed the same senses, a mind trained only to predict reads within about 0.01 of the survival mind (FINDINGS 17.6). Corrected trainer: 0.733, the registered rule not met on its authentic-versus-authentic gate. On the historical hidden-8 agents, eight independent draws of evaluation worlds all clear the bar (0.728 to 0.860, FINDINGS 17.5.1). docs/CORRECTIONS.md."
+        "foot": "Real runs, 10 each, corrected trainer (October 2026). 50% = coin flip, 100% = always right. The mind is read out, never rewarded for it. Fed the same senses, a mind trained only to predict reads 72%, so what it lived through matters, not which goal it was trained on. One check came out uneven: two identical real worlds read 56% instead of 50%, so the preregistered test is not passed. docs/CORRECTIONS.md."
       }
     }
   ]
