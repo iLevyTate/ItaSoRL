@@ -8,9 +8,9 @@
 #   two-minds-<sec>.mp4            1920x1080 30fps 12s seamless loop
 #   two-minds-<sec>-vertical.mp4   1080x1920 30fps 12s seamless loop
 #   two-minds-<sec>-loop.gif       560w 10fps (title and end get no gif)
-#   two-minds-tour[-vertical].mp4  68.1s fadeblack stitch: title card (trimmed
-#                                  to 7.2s) + the 5 sections + end card
-#                                  (trimmed to 4.5s)
+#   two-minds-tour[-vertical].mp4  65.9s fadeblack stitch: title card + the 5
+#                                  sections + end card, each trimmed by reading
+#                                  time (see assets/film/README.md)
 #   two-minds-tour-loop.gif        420w 7fps
 
 param([switch]$Textless, [switch]$Resume)

@@ -283,7 +283,11 @@ def main(argv=None) -> None:
     fa3, fs3, t_surv = load_checked_pool(Path(a.states), seed, "survival", cell["survival"], a.atol)
     ua3, us3, t_untr = load_checked_pool(Path(a.states), seed, "untrained", cell["untrained"], a.atol)
     need(fa3.shape[-1] == HIDDEN, f"survival pool has {fa3.shape[-1]} units, the registered trunk has {HIDDEN}")
-    print(f"rebuilt pools reproduce the committed targets: survival {t_surv!r}, untrained {t_untr!r}", flush=True)
+    exact = a.atol <= 1e-9
+    print(("rebuilt pools reproduce the committed targets: " if exact else
+           f"rebuilt pools within {a.atol} of the committed targets (cross-stack rebuild): ")
+          + f"survival {t_surv!r} vs {cell['survival']!r}, untrained {t_untr!r} vs {cell['untrained']!r}",
+          flush=True)
 
     flat = lambda h: h.reshape(-1, h.shape[-1])
     units = brain_data(flat(fa3), flat(fs3), flat(ua3), flat(us3))
@@ -295,6 +299,13 @@ def main(argv=None) -> None:
         "seed": seed,
         "seed_pooled_target": round(t_surv, 4),
         "untrained_pooled_target": round(t_untr, 4),
+        "committed_seed_pooled_target": round(cell["survival"], 4),
+        "committed_untrained_pooled_target": round(cell["untrained"], 4),
+        "rebuild_atol": a.atol,
+        "rebuild_note": ("the rebuilt pools reproduce the committed cells exactly" if exact else
+                         "the state pools were regenerated on a different software stack from the run's, "
+                         f"so the pooled readings agree with the committed cells within {a.atol}, not to the bit; "
+                         "the on-screen numbers come from the committed artifacts, not from these pools"),
         "hidden": int(fa3.shape[-1]),
         **units,
         "film_numbers": numbers,

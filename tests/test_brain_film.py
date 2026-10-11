@@ -182,8 +182,16 @@ def test_committed_brain_data_comes_from_the_corrected_c1_brain():
     rec = dbf.load_record(ROOT)
     seed = dbf.representative_seed(rec["cells"], rec["trained"])
     assert data["seed"] == seed
-    assert data["seed_pooled_target"] == round(rec["cells"][seed]["survival"], 4)
-    assert data["untrained_pooled_target"] == round(rec["cells"][seed]["untrained"], 4)
+    cell = rec["cells"][seed]
+    # The committed readings are carried exactly; the rebuilt pools agree with them within the
+    # recorded tolerance (a rebuild on another software stack is close, not bit-identical),
+    # and that tolerance is never loose enough to hide a different brain.
+    assert data["committed_seed_pooled_target"] == round(cell["survival"], 4)
+    assert data["committed_untrained_pooled_target"] == round(cell["untrained"], 4)
+    atol = float(data["rebuild_atol"])
+    assert atol <= 0.005
+    assert abs(data["seed_pooled_target"] - cell["survival"]) <= atol + 5e-5
+    assert abs(data["untrained_pooled_target"] - cell["untrained"]) <= atol + 5e-5
     assert data["record_mean"] == round(rec["trained"], 4)
     assert data["film_numbers"] == dbf.verify_film_numbers(dbf.renderer_numbers(BRAIN_JS), rec)
     assert len(data["display_units"]) == 12 and set(data["ring_units"]) <= set(data["display_units"])
