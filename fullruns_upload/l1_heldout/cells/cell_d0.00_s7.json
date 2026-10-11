@@ -1,0 +1,199 @@
+{
+  "fingerprint": "250cd3eba1d482cf",
+  "git_commit": "8a71593",
+  "cell": {
+    "drift": 0.0,
+    "seed": 7,
+    "eng": {
+      "trained_return": -0.27973869412511476,
+      "random_return": -1.027085541499457,
+      "scripted_return": -1.4342897983015648,
+      "trained_len": 72.25,
+      "random_len": 69.359375,
+      "scripted_len": 63.75,
+      "better_return": true,
+      "not_worse_life": true,
+      "engaged": true
+    },
+    "xeval": {
+      "0.00": -0.02920886390923999,
+      "0.02": -0.06093389343798654
+    },
+    "agents": {
+      "untrained": {
+        "pool": {
+          "target": 0.4532373423677772,
+          "target_lo": 0.3722231404958678,
+          "target_hi": 0.534396694214876,
+          "target_var": 0.5090635319884332,
+          "target_var_lo": 0.42462603305785124,
+          "target_var_hi": 0.583642561983471,
+          "target_full": 0.49130520336053934,
+          "target_full_lo": 0.41148553719008263,
+          "target_full_hi": 0.565793388429752,
+          "shuffled": 0.509729511078914,
+          "shuffled_var": 0.5116639965866231,
+          "shuffled_full": 0.5258763923763644,
+          "selectivity": -0.05649216871113677,
+          "selectivity_var": -0.0026004645981898555,
+          "selectivity_full": -0.034571189015825066,
+          "speed": 0.8720986962093681,
+          "anchor_energy": 0.9167771924236454,
+          "anchor_food": 0.6907453143728888,
+          "ceiling_drag": NaN,
+          "pool_reward_leak": 0.5289564190749962,
+          "pool_leak_clean": true,
+          "pool_leak_max_dev": 0.028956419074996242,
+          "pool_leakage": {
+            "reward_sum": 0.5289564190749962,
+            "length": 0.5,
+            "lifetime": 0.5,
+            "max_abs_dev": 0.028956419074996242,
+            "margin": 0.1,
+            "clean": true
+          },
+          "pool_n_eps": 110,
+          "deaths_auth": 0,
+          "deaths_surr": 0,
+          "n": 220,
+          "n_auth": 110,
+          "n_surr": 110,
+          "too_few_survivors": false
+        },
+        "mp": {
+          "target": 0.5,
+          "shuffled": 0.5534807716793011,
+          "speed": 0.8853637566137567,
+          "n": 120,
+          "leakage_clean": true,
+          "leakage_max_dev": 0.0,
+          "leakage": {
+            "reward_sum": 0.5,
+            "length": 0.5,
+            "lifetime": 0.5,
+            "max_abs_dev": 0.0,
+            "margin": 0.1,
+            "clean": true
+          },
+          "n_pairs": 60
+        }
+      },
+      "predictor": {
+        "pool": {
+          "target": 0.4690168198073336,
+          "target_lo": 0.3893780991735538,
+          "target_hi": 0.5432293388429751,
+          "target_var": 0.4901065995927656,
+          "target_var_lo": 0.4198285123966942,
+          "target_var_hi": 0.5704979338842975,
+          "target_full": 0.4458403914925654,
+          "target_full_lo": 0.37592975206611573,
+          "target_full_hi": 0.5289256198347108,
+          "shuffled": 0.4960020452381485,
+          "shuffled_var": 0.5118296325945866,
+          "shuffled_full": 0.4991703361823392,
+          "selectivity": -0.026985225430814885,
+          "selectivity_var": -0.02172303300182099,
+          "selectivity_full": -0.05332994468977381,
+          "speed": 0.9518711124243161,
+          "anchor_energy": 0.7174818718460317,
+          "anchor_food": 0.8093469491641428,
+          "ceiling_drag": NaN,
+          "pool_reward_leak": 0.4714610817377616,
+          "pool_leak_clean": true,
+          "pool_leak_max_dev": 0.028538918262238422,
+          "pool_leakage": {
+            "reward_sum": 0.4714610817377616,
+            "length": 0.5,
+            "lifetime": 0.5,
+            "max_abs_dev": 0.028538918262238422,
+            "margin": 0.1,
+            "clean": true
+          },
+          "pool_n_eps": 110,
+          "deaths_auth": 0,
+          "deaths_surr": 0,
+          "n": 220,
+          "n_auth": 110,
+          "n_surr": 110,
+          "too_few_survivors": false
+        },
+        "mp": {
+          "target": 0.5,
+          "shuffled": 0.5674594400697341,
+          "speed": 0.9292857142857143,
+          "n": 120,
+          "leakage_clean": true,
+          "leakage_max_dev": 0.0,
+          "leakage": {
+            "reward_sum": 0.5,
+            "length": 0.5,
+            "lifetime": 0.5,
+            "max_abs_dev": 0.0,
+            "margin": 0.1,
+            "clean": true
+          },
+          "n_pairs": 60
+        }
+      },
+      "survival": {
+        "pool": {
+          "target": 0.46896805434354844,
+          "target_lo": 0.39725826446280993,
+          "target_hi": 0.5454710743801652,
+          "target_var": 0.5152807008538234,
+          "target_var_lo": 0.44206404958677686,
+          "target_var_hi": 0.5966136363636363,
+          "target_full": 0.5036548431805349,
+          "target_full_lo": 0.4262789256198347,
+          "target_full_hi": 0.5760640495867767,
+          "shuffled": 0.5152612973058579,
+          "shuffled_var": 0.506662828822668,
+          "shuffled_full": 0.5069179955184628,
+          "selectivity": -0.04629324296230947,
+          "selectivity_var": 0.008617872031155382,
+          "selectivity_full": -0.0032631523379279548,
+          "speed": 0.9260310400657291,
+          "anchor_energy": 0.7788845755693583,
+          "anchor_food": 0.8320470350905135,
+          "ceiling_drag": NaN,
+          "pool_reward_leak": 0.44380678609927615,
+          "pool_leak_clean": true,
+          "pool_leak_max_dev": 0.05619321390072385,
+          "pool_leakage": {
+            "reward_sum": 0.44380678609927615,
+            "length": 0.5,
+            "lifetime": 0.5,
+            "max_abs_dev": 0.05619321390072385,
+            "margin": 0.1,
+            "clean": true
+          },
+          "pool_n_eps": 110,
+          "deaths_auth": 0,
+          "deaths_surr": 0,
+          "n": 220,
+          "n_auth": 110,
+          "n_surr": 110,
+          "too_few_survivors": false
+        },
+        "mp": {
+          "target": 0.5,
+          "shuffled": 0.4320783791372027,
+          "speed": 0.8955555555555555,
+          "n": 120,
+          "leakage_clean": true,
+          "leakage_max_dev": 0.0,
+          "leakage": {
+            "reward_sum": 0.5,
+            "length": 0.5,
+            "lifetime": 0.5,
+            "max_abs_dev": 0.0,
+            "margin": 0.1,
+            "clean": true
+          },
+          "n_pairs": 60
+        }
+      }
+    }
+  }
+}
