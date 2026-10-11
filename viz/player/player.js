@@ -979,14 +979,18 @@ class Player {
         label(cp[0], cp[1] - 66 * worldScale, "IT DOESN'T REACT",
           calloutAlpha(tl, 8600, 12000), 1);
       } else if (beat.id === "survival") {
-        label(cp[0] - 34 * worldScale, cp[1] - 82 * worldScale, "ENERGY",
-          calloutAlpha(tl, 1200, 3800), -1);
+        // The energy labels belong to the energy bar; a beat without one gets neither.
+        const hasEnergy = !!(beat.world && beat.world.energy);
+        if (hasEnergy) {
+          label(cp[0] - 34 * worldScale, cp[1] - 82 * worldScale, "ENERGY",
+            calloutAlpha(tl, 1200, 3800), -1);
+        }
         const gl = glitchAt(1, 1, 1900);
         if (gl) {
           label(cp[0] + 44 * worldScale, cp[1] - 64 * worldScale, "NOW IT NOTICES",
             Math.min(1, gl.phase / 300, (1900 - gl.phase) / 400), 1);
         }
-        if (pos.energy < 0.24) {
+        if (hasEnergy && pos.energy < 0.24) {
           label(cp[0] - 34 * worldScale, cp[1] - 82 * worldScale, "STARVING",
             Math.min(1, (0.24 - pos.energy) / 0.05), -1);
         }
