@@ -76,9 +76,11 @@ training is about 9 and predictor training about 7. A 20-cell run on 4 workers t
 two to three hours; the corrected runs, which extend the survival arm to 450 updates for the
 budget curve, take longer. On this container the original code at `4b6e1f3` reran a committed
 historical CPU cell and reproduced its recorded values, including survival target 0.66570 and
-engagement return -0.65194, so CPU reruns can be compared with the historical CPU runs. The
-rerun cell was not saved, so how many values were compared cannot be shown
-(`docs/CORRECTIONS.md`, 2026-10-10).
+engagement return -0.65194, so CPU reruns can be compared with the historical CPU runs. That
+rerun cell was not saved. A second rerun on 2026-10-11, saved this time, reproduces all 157
+recorded values of both seed-0 cells of that run exactly
+(`artifacts/repro_check/per_value_4b6e1f3_l3_h8_wm_cpu_s0.json`; `docs/CORRECTIONS.md`,
+2026-10-10 and 2026-10-11).
 
 The readout-only follow-ups on a run's saved agents (L0 world-sample audit, policy-controlled
 readouts, controlled persistence, control diagnostics, both texture comparators, population

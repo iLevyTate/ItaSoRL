@@ -278,6 +278,17 @@ RUNS = [
         deps="torch 2.14+cpu",
         notes="Training code is byte-identical to 4b6e1f3; the like-for-like baseline for "
               "the corrected CPU reruns of step 4."),
+    run("REPRO-4B6E1F3", "Per-value rerun of the device control's seed-0 cells at 4b6e1f3",
+        experiment="B-v2 L3", artifacts=["repro_check"], claims=[], commit_at_run="4b6e1f3",
+        config={**BV2_PROTOCOL, "drift_mode": "l3"}, agent_seeds=[0], surrogate=L3_H8,
+        budget={"survival_updates": 300}, eval_seeds=BV2_EVAL_SEEDS,
+        folds="legacy (= explicit on this stack)",
+        device="cloud CPU sandbox, 2 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+        deps="torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+        notes="2026-10-11 integrity check. The original code reran the drift 0 and drift 0.45 "
+              "seed-0 cells of L3-H8-WM-CPU; every one of the 157 recorded values of each cell "
+              "matches the committed cell and the config fingerprints match. Backs the step-4 "
+              "machine check (FINDINGS 17.1; docs/CORRECTIONS.md, 2026-10-11)."),
     run("L3-H10-GS1-CPU", "Second fingerprint instance (G seed 1, hidden 10), CPU, n = 10",
         experiment="B-v2 L3", artifacts=["expB2/second_instance_l3_h10_gseed1.json",
                                          "reviewer_gaps_runs/l3_h10_gseed1",

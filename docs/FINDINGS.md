@@ -3266,7 +3266,11 @@ Before launch, the original code at `4b6e1f3` reran one committed cell of the hi
 device control there and reproduced the committed cell's recorded values, including survival
 target 0.66570 and engagement return -0.65194; the rerun cell was not saved. (Corrected
 2026-10-10: this sentence said "all 156 of its recorded values exactly", a count that the
-committed cell, with 157 leaves, cannot back; `docs/CORRECTIONS.md`.) The only
+committed cell, with 157 leaves, cannot back; `docs/CORRECTIONS.md`.) (Note 2026-10-11: a
+second rerun at `4b6e1f3` on the same stack, saved this time, reproduces all 157 recorded
+values of both seed-0 cells of that run, drift 0 and drift 0.45, exactly, with matching config
+fingerprints. Each cell carries 139 numbers, 3 of them NaN, and 18 booleans;
+`artifacts/repro_check/per_value_4b6e1f3_l3_h8_wm_cpu_s0.json`.) The only
 difference between a corrected cell and its historical CPU cell is the bootstrap. On this
 stack the explicit-v1 and legacy fold partitions coincide for the pooled design, so the
 historical CPU numbers and the corrected numbers share one partition.

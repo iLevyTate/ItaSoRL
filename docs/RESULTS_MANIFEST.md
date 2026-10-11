@@ -28,6 +28,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `L1-ORGANISM` | historical | B-v2 L1 | 35 | pre_transition_value | - | 8a71593 | both | cpu, 4 workers (run log header) |
 | `L3-H8-NOWM-CPU` | historical | B-v2 L3 | 29 | pre_transition_value | - | a641ca0 | legacy (= explicit on this stack) | cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu |
 | `L3-H8-WM-CPU` | historical | B-v2 L3 | 30 | pre_transition_value | - | 3f36cc2 | legacy (= explicit on this stack) | cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu |
+| `REPRO-4B6E1F3` | historical | B-v2 L3 | - | pre_transition_value | - | 4b6e1f3 (curated) | legacy (= explicit on this stack) | cloud CPU sandbox, 2 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 |
 | `L3-H10-GS1-CPU` | historical | B-v2 L3 | 31 | pre_transition_value | - | a641ca0 | legacy (= explicit on this stack) | cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu |
 | `L3-H10-GS1-GPU` | historical | B-v2 L3 | 31 | pre_transition_value | - | 283f3ab | explicit (the itasorl.folds default at 283f3ab) | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
 | `L3-H8-GS2-GPU` | historical | B-v2 L3 | 31 | pre_transition_value | - | d67dd51 | explicit | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126, ITASORL_FOLDS=explicit |
@@ -359,6 +360,22 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: Training code is byte-identical to 4b6e1f3; the like-for-like baseline for the corrected CPU reruns of step 4.
 - Config (beyond the standard protocol): {"drift_mode": "l3"}
 - Artifacts: `artifacts/expB2/device_control_l3_h8_wm_cpu.json`, `artifacts/reviewer_gaps_runs/l3_h8_wm_cpu`
+
+### `REPRO-4B6E1F3`: Per-value rerun of the device control's seed-0 cells at 4b6e1f3
+
+- Status: historical
+- Trainer: pre_transition_value
+- Commit at run: 4b6e1f3
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Agent seeds: [0]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Budget: {"survival_updates": 300}
+- Folds: legacy (= explicit on this stack)
+- Device: cloud CPU sandbox, 2 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1
+- Dependencies: torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1
+- Notes: 2026-10-11 integrity check. The original code reran the drift 0 and drift 0.45 seed-0 cells of L3-H8-WM-CPU; every one of the 157 recorded values of each cell matches the committed cell and the config fingerprints match. Backs the step-4 machine check (FINDINGS 17.1; docs/CORRECTIONS.md, 2026-10-11).
+- Config (beyond the standard protocol): {"drift_mode": "l3"}
+- Artifacts: `artifacts/repro_check`
 
 ### `L3-H10-GS1-CPU`: Second fingerprint instance (G seed 1, hidden 10), CPU, n = 10
 

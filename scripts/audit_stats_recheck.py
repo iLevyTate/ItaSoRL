@@ -2710,6 +2710,8 @@ def main() -> int:
                build_paper_tables.main(["--check"]) == 0)
 
     agent_free_checks(_read("docs/FINDINGS.md"), _read("docs/CORRECTIONS.md"))
+    repro_check_checks(_read("docs/FINDINGS.md"), _read("docs/CORRECTIONS.md"),
+                       _read("docs/REPRODUCE.md"))
 
     print()
     print(f"pins: {n_pins} of {n_checks} checks compare a value as stored in an artifact with a "
@@ -2722,6 +2724,51 @@ def main() -> int:
         return 1
     print(f"RESULT: all {n_checks} checks passed.")
     return 0
+
+
+# ---- The per-value rerun at 4b6e1f3 (CORRECTIONS 2026-10-11) -------------------------------
+# The prose says the second rerun reproduced all 157 recorded values of both seed-0 cells with
+# matching fingerprints. Recount that from the saved rerun cells and the committed cells, so
+# the sentence cannot outlive the files.
+
+def repro_check_checks(findings: str, corrections: str, reproduce: str) -> None:
+    print("\n== per-value rerun at 4b6e1f3 (CORRECTIONS 2026-10-11) ==")
+    import math
+
+    def flat(o, p=""):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                yield from flat(v, f"{p}/{k}")
+        elif isinstance(o, list):
+            for i, v in enumerate(o):
+                yield from flat(v, f"{p}[{i}]")
+        else:
+            yield p, o
+
+    def same(a, b):
+        nan = isinstance(a, float) and isinstance(b, float) and math.isnan(a) and math.isnan(b)
+        return nan or a == b
+
+    rep = _af_load("repro_check", "per_value_4b6e1f3_l3_h8_wm_cpu_s0.json")
+    for name in ("cell_d0.00_s0.json", "cell_d0.45_s0.json"):
+        rerun = _af_load("repro_check", "rerun_cells", name)
+        committed = _af_load("reviewer_gaps_runs", "l3_h8_wm_cpu", "cells", name)
+        fr, fc = dict(flat(rerun["cell"])), dict(flat(committed["cell"]))
+        diff = [k for k in fr.keys() & fc.keys() if not same(fr[k], fc[k])]
+        check_true(f"{name}: the rerun at 4b6e1f3 has the committed cell's 157 leaves and "
+                   "fingerprint, and every value matches",
+                   len(fc) == 157 and fr.keys() == fc.keys() and not diff
+                   and rerun["fingerprint"] == committed["fingerprint"]
+                   and rep["cells"][name]["n_differ"] == 0)
+    check_true("the per-value report records 4b6e1f3 and the pinned stack",
+               rep["commit_rerun"] == "4b6e1f3" and rep["stack"]["torch"].startswith("2.14.1")
+               and rep["all_shared_values_identical"] is True)
+    for where, text in (("FINDINGS 17.1", findings), ("CORRECTIONS", corrections),
+                        ("REPRODUCE", reproduce)):
+        flat_text = " ".join(text.split())
+        check_true(f"{where} states the 157-value rerun and points at its report",
+                   "157 recorded values" in flat_text
+                   and "per_value_4b6e1f3_l3_h8_wm_cpu_s0.json" in flat_text)
 
 
 # ---- FINDINGS 19: post-review analyses without agents (2026-10-11) ------------------------

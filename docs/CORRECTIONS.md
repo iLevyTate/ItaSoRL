@@ -712,3 +712,20 @@ FINDINGS 19.2 report it. The scope note is left as written.
 **What this does not change.** The scope note's conclusion: hidden 7 is a capacity variant of
 one recipe, and the recipe-level generalization claim rests on the `G_rff` transfer of
 FINDINGS 10.7. No number or rule outcome.
+
+## 2026-10-11: the per-value reproduction check, rerun and saved
+
+**What was wrong.** The 2026-10-10 entry above found that the step-4 machine check (the
+original code at `4b6e1f3` rerunning one committed cell of the historical CPU device control)
+could not be backed value by value, because the rerun cell was not saved.
+
+**Change.** The check was run again on 2026-10-11 in a cloud session on the same stack (torch
+2.14.1 CPU, numpy 2.4.6, scikit-learn 1.9.1), and this time saved. The code at `4b6e1f3` reran
+both seed-0 cells of that run, drift 0 and drift 0.45. Every one of the 157 recorded values of
+each cell (139 numbers, 3 of them NaN, and 18 booleans) equals the committed cell, and the
+config fingerprints match (`artifacts/repro_check/per_value_4b6e1f3_l3_h8_wm_cpu_s0.json`, with
+the rerun cells beside it). FINDINGS 17.1, `docs/REPRODUCE.md` and the frozen spec carry a dated
+note.
+
+**What this does not change.** No number moves. The like-for-like comparison of step 4 stood on
+the two quoted values before; it now stands on every recorded value of two cells.
