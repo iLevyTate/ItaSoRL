@@ -1,6 +1,6 @@
 # ItaSoRL
 
-<img width="2560" height="1280" alt="GitHub social preview 1280x640@2x" src="https://github.com/user-attachments/assets/e1af8c43-470d-4758-baef-7859619b24ac" />
+<img width="2560" height="1280" alt="GitHub social preview 1280x640@2x" src="https://raw.githubusercontent.com/iLevyTate/ItaSoRL/main/docs/social-card/social-preview.png" />
 
 I raised a small agent from nothing and asked whether it would notice it was
 living in a fake world. Nobody paid it to look. A detector that knows the true
@@ -27,18 +27,19 @@ changed, and what did not get rerun, is in
 The 90-second film is the one to watch. Voice and music are in. Nothing clipped
 out. [ilevytate.github.io/ItaSoRL](https://ilevytate.github.io/ItaSoRL/)
 
-Two films play on that page, both made on the original trainer before the
-correction. *Detectable All Along* is the 90-second story, released 24 August
-2026 with the voice and music track. Its closing line, that the creature
-noticed because survival made it matter, is withdrawn: a brain trained only to
-predict, fed the same senses, reads the fake within about 0.01 of the survival
-brain ([FINDINGS §17.6](docs/FINDINGS.md#176-who-drives-the-evaluation-episodes-revision-step-6)).
+Two films play on that page. *Detectable All Along* is the 90-second story,
+released 24 August 2026 with the voice and music track and made on the original
+trainer. Its closing line, that the creature noticed because survival made it
+matter, is withdrawn: a brain trained only to predict, fed the same senses,
+reads the fake within about 0.01 of the survival brain ([FINDINGS §17.6](docs/FINDINGS.md#176-who-drives-the-evaluation-episodes-revision-step-6)).
+The captions-only cut that plays live on the page tells the corrected story.
 *Two Minds* goes inside the creature's head: one brain, two worlds, one flaw,
 every dot named after a real sensor, unit, or motor head, and the clue cells
-ringed from measured data. Its motion is illustrative, and its 49% and 73% are
-two different brains, not one brain before and after. The page prints these
-caveats beside both players. Provenance and rebuild commands for both:
-[`assets/film/README.md`](assets/film/README.md).
+ringed from measured data. It was re-rendered on the corrected record in
+October 2026. Its motion is illustrative, and its 52% and 73% are two different
+brains, an untrained one and a trained one, not one brain before and after. The
+page prints these caveats beside both players. Provenance and rebuild commands
+for both: [`assets/film/README.md`](assets/film/README.md).
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/iLevyTate/ItaSoRL/blob/main/notebooks/colab_gpu.ipynb)
 
