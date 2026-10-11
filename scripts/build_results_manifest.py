@@ -206,7 +206,7 @@ RUNS = [
         local_run_dir="fullruns/l3_h8_traces",
         notes="Primary published numbers on the legacy partition (0.752 / 0.726); explicit "
               "partition 0.774 / 0.750 (FINDINGS methods note 8). "
-              "agent_free/rf_probe_l3_n10_historical.json (2026-10-11, FINDINGS 18.3) re-scores "
+              "agent_free/rf_probe_l3_n10_historical.json (2026-10-11, FINDINGS 19.3) re-scores "
               "the 60 fullruns/l3_n10 state dumps with the Experiment B random forest and the "
               "registered linear probe, both partitions; the linear values reproduce this run's "
               "record exactly."),
@@ -217,7 +217,7 @@ RUNS = [
         surrogate={**L3_H8, "hidden": 4}, eval_seeds=BV2_EVAL_SEEDS, folds="both",
         device=GPU_OWNER, local_run_dir="fullruns/l3_h4_traces",
         notes="expB2/failed_gates_l3_h4_traces.json (scripts/promote_off_design_runs.py --which "
-              "h4, 2026-10-11, FINDINGS 18.4) promotes the run record: untrained floor 0.891, "
+              "h4, 2026-10-11, FINDINGS 19.4) promotes the run record: untrained floor 0.891, "
               "pooled reward leak clean in 0/10 survival seeds, engagement 3/10 at drift 0.45, "
               "speed control at or above 0.75 in all 60 pools. No agents were kept; the trunk "
               "width (96) is read from the dumped state dimension."),
@@ -405,7 +405,7 @@ RUNS = [
               "only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, "
               "second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE "
               "correction does not apply to it. expC/selection_intensity.json "
-              "(scripts/expC_selection_intensity.py, 2026-10-11, FINDINGS 18.5) carries the "
+              "(scripts/expC_selection_intensity.py, 2026-10-11, FINDINGS 19.5) carries the "
               "per-generation qualifier counts and fitness series; they are identical to the "
               "main milestone run's (a0cb850) series and thresholds."),
     run("L1-STREAM-READOUT", "L1 stream and control readout on the saved L1 agents "
@@ -464,7 +464,7 @@ RUNS = [
         device="owner's laptop CPU, 3 workers", local_run_dir="fullruns/T_qd_l3_h8_wm",
         notes="OFF-DESIGN: not the registered configuration (8-unit agent trunk) and its family "
               "failed gate 0; it bears on no rule. scripts/run_expB2.py --l3-family qd, then "
-              "scripts/promote_off_design_runs.py --which tqd (FINDINGS 17.9 addendum, 18.4). "
+              "scripts/promote_off_design_runs.py --which tqd (FINDINGS 17.9 addendum, 19.4). "
               "Drift 0.45: survival 0.580 (t 90% [0.537, 0.624], seed bootstrap [0.542, 0.615]), "
               "predictor 0.573, untrained 0.608; engagement 16 of 20 cells; speed control short "
               "in 8 of 60 pools (worst 0.7018); untrained floor 0.108 from 0.5."),
@@ -564,7 +564,7 @@ RUNS = [
         folds="both", device="owner's laptop CPU, one thread",
         config={"runners": "scripts/gate0_pair_intervals.py, "
                            "scripts/residual_field_correlation.py"},
-        notes="FINDINGS 18.1 and 18.2. Gate 0's oracle side recomputed for ten calibrated "
+        notes="FINDINGS 19.1 and 19.2. Gate 0's oracle side recomputed for ten calibrated "
               "instances from the committed CPU exports (seed-1 hidden 7, 8, 9 retrained on CPU); "
               "every recorded point reproduced under its recorded partition; pair-clustered "
               "bootstrap intervals. Residual fields of every export and G_rff (D = 80) on 250 "

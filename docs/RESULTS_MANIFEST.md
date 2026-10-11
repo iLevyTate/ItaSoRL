@@ -254,7 +254,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: both
 - Device: owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 (local GPU; per-run stack not recorded)
 - Local run directory (not in git): fullruns/l3_h8_traces
-- Notes: Primary published numbers on the legacy partition (0.752 / 0.726); explicit partition 0.774 / 0.750 (FINDINGS methods note 8). agent_free/rf_probe_l3_n10_historical.json (2026-10-11, FINDINGS 18.3) re-scores the 60 fullruns/l3_n10 state dumps with the Experiment B random forest and the registered linear probe, both partitions; the linear values reproduce this run's record exactly.
+- Notes: Primary published numbers on the legacy partition (0.752 / 0.726); explicit partition 0.774 / 0.750 (FINDINGS methods note 8). agent_free/rf_probe_l3_n10_historical.json (2026-10-11, FINDINGS 19.3) re-scores the 60 fullruns/l3_n10 state dumps with the Experiment B random forest and the registered linear probe, both partitions; the linear values reproduce this run's record exactly.
 - Config (beyond the standard protocol): {"drift_mode": "l3"}
 - Artifacts: `artifacts/expB2/behavior_audit_l3_n10.json`, `artifacts/expB2/behavior_audit_l3_h8_traces.json`, `artifacts/expB2/behavior_audit_l3_covar_n10.json`, `artifacts/fold_rescore/l3_n10.json`, `artifacts/fold_rescore/l3_h8_traces.json`, `artifacts/agent_free/rf_probe_l3_n10_historical.json`
 
@@ -269,7 +269,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: both
 - Device: owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126
 - Local run directory (not in git): fullruns/l3_h4_traces
-- Notes: expB2/failed_gates_l3_h4_traces.json (scripts/promote_off_design_runs.py --which h4, 2026-10-11, FINDINGS 18.4) promotes the run record: untrained floor 0.891, pooled reward leak clean in 0/10 survival seeds, engagement 3/10 at drift 0.45, speed control at or above 0.75 in all 60 pools. No agents were kept; the trunk width (96) is read from the dumped state dimension.
+- Notes: expB2/failed_gates_l3_h4_traces.json (scripts/promote_off_design_runs.py --which h4, 2026-10-11, FINDINGS 19.4) promotes the run record: untrained floor 0.891, pooled reward leak clean in 0/10 survival seeds, engagement 3/10 at drift 0.45, speed control at or above 0.75 in all 60 pools. No agents were kept; the trunk width (96) is read from the dumped state dimension.
 - Config (beyond the standard protocol): {"drift_mode": "l3"}
 - Artifacts: `artifacts/fold_rescore/l3_h4_traces.json`, `artifacts/expB2/failed_gates_l3_h4_traces.json`
 
@@ -519,7 +519,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: explicit
 - Device: owner's laptop CPU
 - Local run directory (not in git): fullruns/expC_milestone3
-- Notes: scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE: the speed positive control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE correction does not apply to it. expC/selection_intensity.json (scripts/expC_selection_intensity.py, 2026-10-11, FINDINGS 18.5) carries the per-generation qualifier counts and fitness series; they are identical to the main milestone run's (a0cb850) series and thresholds.
+- Notes: scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE: the speed positive control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE correction does not apply to it. expC/selection_intensity.json (scripts/expC_selection_intensity.py, 2026-10-11, FINDINGS 19.5) carries the per-generation qualifier counts and fitness series; they are identical to the main milestone run's (a0cb850) series and thresholds.
 - Artifacts: `artifacts/expC/emergence_pilot_per_individual_summary.json`, `artifacts/expC/selection_intensity.json`
 
 ### `L1-STREAM-READOUT`: L1 stream and control readout on the saved L1 agents (frozen 2026-10-09)
@@ -562,7 +562,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: explicit
 - Device: owner's laptop CPU, 3 workers
 - Local run directory (not in git): fullruns/T_qd_l3_h8_wm
-- Notes: OFF-DESIGN: not the registered configuration (8-unit agent trunk) and its family failed gate 0; it bears on no rule. scripts/run_expB2.py --l3-family qd, then scripts/promote_off_design_runs.py --which tqd (FINDINGS 17.9 addendum, 18.4). Drift 0.45: survival 0.580 (t 90% [0.537, 0.624], seed bootstrap [0.542, 0.615]), predictor 0.573, untrained 0.608; engagement 16 of 20 cells; speed control short in 8 of 60 pools (worst 0.7018); untrained floor 0.108 from 0.5.
+- Notes: OFF-DESIGN: not the registered configuration (8-unit agent trunk) and its family failed gate 0; it bears on no rule. scripts/run_expB2.py --l3-family qd, then scripts/promote_off_design_runs.py --which tqd (FINDINGS 17.9 addendum, 19.4). Drift 0.45: survival 0.580 (t 90% [0.537, 0.624], seed bootstrap [0.542, 0.615]), predictor 0.573, untrained 0.608; engagement 16 of 20 cells; speed control short in 8 of 60 pools (worst 0.7018); untrained floor 0.108 from 0.5.
 - Config (beyond the standard protocol): {"hidden": 8, "drift_mode": "l3", "l3_family": "qd", "l3_family_param": 6.0, "hidden_deviation": "the registered trunk is 96; the run's 60 saved agents carry an 8-unit GRU (--hidden 8 beside --l3-hidden 8, FINDINGS 14.5.1 correction 2026-10-10)", "config_fingerprint": "23a620e51d4e26fd"}
 - Artifacts: `artifacts/texture/T_qd_l3_h8_wm.json`
 
@@ -662,7 +662,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Commit source: recorded
 - Folds: both
 - Device: owner's laptop CPU, one thread
-- Notes: FINDINGS 18.1 and 18.2. Gate 0's oracle side recomputed for ten calibrated instances from the committed CPU exports (seed-1 hidden 7, 8, 9 retrained on CPU); every recorded point reproduced under its recorded partition; pair-clustered bootstrap intervals. Residual fields of every export and G_rff (D = 80) on 250 fresh episodes from seed 100000.
+- Notes: FINDINGS 19.1 and 19.2. Gate 0's oracle side recomputed for ten calibrated instances from the committed CPU exports (seed-1 hidden 7, 8, 9 retrained on CPU); every recorded point reproduced under its recorded partition; pair-clustered bootstrap intervals. Residual fields of every export and G_rff (D = 80) on 250 fresh episodes from seed 100000.
 - Config (beyond the standard protocol): {"runners": "scripts/gate0_pair_intervals.py, scripts/residual_field_correlation.py"}
 - Artifacts: `artifacts/agent_free/gate0_pair_intervals.json`, `artifacts/agent_free/residual_field_correlation.json`
 
