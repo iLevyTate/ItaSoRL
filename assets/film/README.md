@@ -32,7 +32,8 @@ a 320 kb/s AAC track, 239.8 MB, exported from DaVinci Resolve and released on
 Drive. The picture is the `viz/player` capture (beats in `viz/player/beats.json`,
 scene in `viz/data/scene.json`); the voice follows the script in
 `docs/specs/2026-07-22-outreach-video-vo-music.md`. The three numbers on screen
-(99%, 50%, 73%) are the published displays, sourced in `beats.json`.
+(99%, 50%, 73%) are the August displays. `beats.json` has since been rewritten on
+the corrected record (below), so the August beats live in its git history.
 
 The web encode is a historical cut, and the site labels it that way. Its
 numbers come from the pre-correction trainer. The 50% is the untrained
@@ -63,8 +64,19 @@ ffmpeg -ss 1.5 -i ItasorlOverview.mov -frames:v 1 -vf scale=1280:720 -q:v 4 \
 ```
 
 The captions-only 4:5 cut is no longer shipped as a file. It plays live in the
-browser at `viz/player/` (same beats, same scene, transport bar included), and
-`viz/player/capture/` re-renders it to MP4 when a silent social cut is needed.
+browser at `viz/player/` (transport bar included), and `viz/player/capture/`
+re-renders it to MP4 when a silent social cut is needed.
+
+On 2026-10-11 the live cut was rewritten on the corrected record: `beats.json`
+carries 99% (the outside watcher, 0.991), 52% (an untrained mind, 0.523), 73% (the
+forager's mind, 0.733), 72% (a mind trained only to predict, fed the same senses,
+0.721) and the open gate (two identical real worlds read 56%, 0.559). The living
+beat shows the recorded creature of the C1 rerun's seed 0 (`viz/data/scene.json`).
+`viz/collect.py` checks every number on screen against the committed artifacts,
+and `tests/test_viz_collect.py` runs that check in CI. The silent 4:5 and 9:16
+masters of this cut are local build outputs. A voiced corrected cut needs a new
+voice track over the new picture; until one exists, the web encode above stays the
+historical cut.
 
 ## Film two: Two Minds (66 s, seven chapters)
 
@@ -83,10 +95,11 @@ with `viz/player/capture/build-two-minds.ps1`; the site links the web encode.
 | `clips/two-minds-<section>-vertical.mp4` (local only) | 9:16 of each section. | Same. |
 | `clips/two-minds-<section>-loop.gif` (local only) | 560 px wide, 10 fps loop GIF of each section. | Same. |
 
-The tracked web encode is the September 2026 cut. Its numbers and its brain data
-are pre-correction, and two of its lines say more than was measured (below). It
-stays historical until the rebuild at the end of this section replaces it in
-place, and the site labels it that way.
+The tracked web encode is the October 2026 cut, rebuilt on 2026-10-11 from the
+corrected renderer and the corrected C1 brain (seed 9) by the rebuild at the end
+of this section. It replaced the September cut, whose numbers and brain data were
+pre-correction, in place. All 22 build outputs were decode-checked: 14 section
+clips at 12.0 s, two tours at 65.9 s (1977 frames), six loop GIFs.
 
 ### Labels on the published cuts
 
@@ -95,9 +108,9 @@ The live player of film one (`viz/player/`) had its end card reworded on
 FINDINGS 17.6), and its footer names the pre-correction trainer
 (`viz/player/beats.json`). On 2026-10-10 its end-card tiles were relabeled
 "untrained mind" and "trained mind" (they read "its mind, idle" and "its mind,
-surviving"), and the 45 to 80 s beats still tell the survival story in their
-captions; rewriting those beats is left to the owner. Until then a line under the
-site's links to the two live cuts says so.
+surviving"). On 2026-10-11 the 45 to 80 s beats were rewritten on the corrected
+record (film one, above), so the two live cuts no longer tell the survival
+story.
 
 On 2026-10-09 the caveats were extended on every surface that publishes the films
 (the site film block, the live player's end-card footer, and this file) with the corrected
@@ -107,8 +120,10 @@ pair of evaluation worlds (0.559, the largest of nine draws on record), and the 
 a product of that draw: on the agents of the historical hidden-8 run, every one of eight
 independent draws at drift 0.45 clears the bar (0.728 to 0.860, SECURE under a rule frozen
 before the run; FINDINGS 17.5.1). The corrected agents are not in the repository, so the
-draws were not scored on them; the live player's footer says so since 2026-10-10. The mp4
-files are unchanged; the caveats sit beside them, never inside them.
+draws were not scored on them; the live player's footer says so since 2026-10-10. The
+film-one mp4 is unchanged, and its caveats sit beside it. The Two Minds mp4 was
+re-rendered on the corrected record on 2026-10-11 and carries its caveats on its
+end card.
 
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
 the same way as film one and replace `two-minds-web.mp4` in place so the site
@@ -183,12 +198,16 @@ from drift-0.45 state pools rebuilt out of the corrected C1 agents. The
 representative brain is the seed whose committed survival target sits closest to
 the C1 mean: seed 9, at 0.738 against 0.733. Ring strength is each unit's measured
 rank AUROC between worlds. The script writes nothing unless that seed's rebuilt
-survival and untrained pools reproduce the committed C1 cells' pooled targets.
+survival and untrained pools reproduce the committed C1 cells' pooled targets
+within `--atol` (default 1e-9, which only a rebuild on the stack that ran C1 can
+meet).
 
-Until the rebuild runs, the committed `brain-data.js` still holds the
-pre-correction pools (seed 8 of the historical held-out run). The renderer draws
-it anyway, and its end-card footer then reads "cells shown: a pre-correction
-brain"; `tests/test_brain_film.py` skips its data check with the same message.
+The committed `brain-data.js` was rebuilt on the owner's Windows stack, not the
+cloud stack that ran C1, so its pools agree with the committed targets to within
+0.002 rather than to the bit: survival 0.7372 against 0.7384, untrained 0.5760
+against 0.5756. The data records both readings and the tolerance used
+(`rebuild_atol` 0.005), and `tests/test_brain_film.py` refuses a tolerance above
+0.005.
 
 ### Rebuild
 
