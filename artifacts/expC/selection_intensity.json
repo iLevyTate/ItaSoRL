@@ -1,18 +1,19 @@
 {
  "generated_by": "scripts/expC_selection_intensity.py",
- "git_commit": "dfd943c",
+ "git_commit_at_promotion": "17cab3c",
  "tracked_changes_at_generation": [],
  "stack": {
   "python": "3.13.2",
   "numpy": "1.26.4",
   "platform": "Windows-11-10.0.26300-SP0",
   "machine": "AMD64",
-  "OMP_NUM_THREADS": null,
-  "MKL_NUM_THREADS": null,
+  "OMP_NUM_THREADS": "1",
+  "MKL_NUM_THREADS": "1",
   "sklearn": "1.5.2",
   "torch": "2.7.0+cu126",
-  "torch_threads": 10
+  "torch_threads": 1
  },
+ "git_commit_at_run": "06ecc10d8f7c60cbe1a428581f92f6b2308336e0",
  "finding": "Q5: Experiment C selection intensity under the frozen generation-0 median",
  "status": "DESCRIPTIVE: milestone 3 is routed UNINFORMATIVE (gates 1 and 5 failed)",
  "sources": {
