@@ -64,8 +64,12 @@ def tracked_changes() -> list[str] | None:
     return [line[3:] for line in out.splitlines() if line.strip()]
 
 
-def provenance(generated_by: str) -> dict:
-    return {"generated_by": generated_by, "git_commit": git_head(),
+def provenance(generated_by: str, commit_key: str = "git_commit") -> dict:
+    """Generator, commit, tracked changes and stack. An analysis that IS the run (the
+    agent-free computations) records `git_commit`; a promotion or readout of an earlier run
+    records `git_commit_at_promotion`, because scripts/build_results_manifest.py reads
+    `git_commit` as the commit a run executed at."""
+    return {"generated_by": generated_by, commit_key: git_head(),
             "tracked_changes_at_generation": tracked_changes(), "stack": stack_record()}
 
 

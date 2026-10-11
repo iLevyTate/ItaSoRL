@@ -232,7 +232,7 @@ def main() -> int:
             "note": "RF on states, legacy split (the split of July 2026); random_state 0 is the "
                     "scripts/run_expB_nonlinear.py convention, random_state = cell seed the "
                     "itasorl.behavior_audit convention",
-            "provenance": provenance("scripts/rf_probe_historical_h8.py --attempts"),
+            "provenance": provenance("scripts/rf_probe_historical_h8.py --attempts", "git_commit_at_promotion"),
             "summary": attempts_summary(doc["cells"])}
         write_json(out_path, doc)
         print(json.dumps(doc["reproduction_attempts"]["summary"], indent=1))
@@ -256,7 +256,7 @@ def main() -> int:
               f"  ({time.time() - t0:.0f} s)", flush=True)
     cells = sorted(kept + cells, key=lambda c: (c["drift"], c["agent"], c["seed"]))
     doc = {
-        **provenance("scripts/rf_probe_historical_h8.py"),
+        **provenance("scripts/rf_probe_historical_h8.py", "git_commit_at_promotion"),
         "label": "HISTORICAL: hidden-8 L3 run fullruns/l3_n10, pre-correction (pre-transition "
                  "value) trainer; post-hoc probes on its dumped recurrent states",
         "states_dir": STATES, "n_cells": len(cells), "complete": len(cells) == 60,

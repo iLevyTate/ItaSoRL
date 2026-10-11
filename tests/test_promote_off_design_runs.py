@@ -86,6 +86,6 @@ def test_live_promotion_when_bundle_present(which):
     pytest.importorskip("torch")
     again = json.loads(json.dumps(po.promote(which)))
     doc = _load(which)
-    skip = {"git_commit", "tracked_changes_at_generation", "stack", "generated_by"}
+    skip = {"git_commit_at_promotion", "tracked_changes_at_generation", "stack", "generated_by"}
     assert {k: v for k, v in again.items() if k not in skip} == \
            {k: v for k, v in doc.items() if k not in skip}

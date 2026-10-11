@@ -220,11 +220,14 @@ def promote(which: str) -> dict:
     failed = sorted(k for k, g in gates.items() if not g["pass"])
     agents_dir = os.path.join(run_dir, "agents")
     trunk = trunk_check(agents_dir)
+    runprov = cell_provenance(cells_dir)
     out = {
         "status": spec["status"], "label": spec["label"],
-        **provenance("scripts/promote_off_design_runs.py"),
+        **provenance("scripts/promote_off_design_runs.py", "git_commit_at_promotion"),
+        "git_commit_at_run": (runprov["git_commit_at_run"][0]
+                              if len(runprov["git_commit_at_run"]) == 1 else None),
         "source_run": repo_rel(os.path.join(run_dir, "expB2_results.json")),
-        "run": cell_provenance(cells_dir),
+        "run": runprov,
         "record": spec["record"], "recorded_in_prose": spec["recorded"],
         "family": spec["family"], "family_param": spec["family_param"],
         "surrogate_hidden": spec["surrogate_hidden"],

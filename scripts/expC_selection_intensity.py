@@ -120,7 +120,8 @@ def main() -> int:
     if main_doc is not None and not all(body["main_run_series_identical"].values()):
         raise SystemExit("main milestone output and per-individual rerun disagree on a series")
     doc = {
-        **provenance("scripts/expC_selection_intensity.py"),
+        **provenance("scripts/expC_selection_intensity.py", "git_commit_at_promotion"),
+        "git_commit_at_run": per_ind.get("git_commit_at_run"),
         "finding": "Q5: Experiment C selection intensity under the frozen generation-0 median",
         "status": "DESCRIPTIVE: milestone 3 is routed UNINFORMATIVE (gates 1 and 5 failed)",
         "sources": {"per_individual": {"path": PER_IND,
