@@ -1,6 +1,6 @@
 {
  "generated_by": "scripts/rf_probe_historical_h8.py",
- "git_commit": "bc10e92",
+ "git_commit_at_promotion": "d8ad6dc",
  "tracked_changes_at_generation": [],
  "stack": {
   "python": "3.13.2",
@@ -2038,7 +2038,7 @@
    }
   }
  ],
- "seconds_this_call": 257.8,
+ "seconds_this_call": 172.8,
  "reproduction_attempts": {
   "recorded": {
    "untrained d=0.45": 0.517,
@@ -2048,7 +2048,7 @@
   "note": "RF on states, legacy split (the split of July 2026); random_state 0 is the scripts/run_expB_nonlinear.py convention, random_state = cell seed the itasorl.behavior_audit convention",
   "provenance": {
    "generated_by": "scripts/rf_probe_historical_h8.py --attempts",
-   "git_commit": "0ad1033",
+   "git_commit_at_promotion": "d8ad6dc",
    "tracked_changes_at_generation": [],
    "stack": {
     "python": "3.13.2",
