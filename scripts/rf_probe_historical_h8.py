@@ -168,11 +168,48 @@ def reproduction(cells: list[dict], rec: dict | None) -> dict:
     return out
 
 
+def attempt_cell(path: str, seed: int) -> dict:
+    """Reproduction attempt for the recorded 0.517 / 0.506 / 0.483: the same forest with
+    random_state set to the cell seed (the convention of itasorl.behavior_audit, whose RF takes
+    a seed argument), legacy split, target and first-permutation shuffled control."""
+    from itasorl import folds
+    from itasorl.experiment_b import episode_features
+    with np.load(path) as z:
+        Ha, Hs = np.asarray(z["Ha"]), np.asarray(z["Hs"])
+    y = np.concatenate([np.zeros(len(Ha)), np.ones(len(Hs))]).astype(int)
+    X = episode_features(np.concatenate([Ha, Hs]))
+    perm = np.random.default_rng(seed).permutation(y)
+    with folds.fold_scheme("legacy"):
+        return {"rf_rs_seed": rf_auroc(X, y, seed=seed),
+                "rf_rs_seed_shuffled_first": rf_auroc(X, perm, seed=seed)}
+
+
+def attempts_summary(cells: list[dict]) -> dict:
+    out = {}
+    for drift in ("0.00", "0.45"):
+        rows = [c for c in cells if c["drift"] == drift and c["agent"] == "untrained"
+                and "attempt" in c]
+        if not rows:
+            continue
+        out[f"d={drift} untrained"] = {
+            "n": len(rows),
+            "rf_random_state_0": float(np.mean([c["legacy"]["rf"] for c in rows])),
+            "rf_random_state_0_shuffled": float(np.mean([c["legacy"]["rf_shuffled_first"]
+                                                         for c in rows])),
+            "rf_random_state_seed": float(np.mean([c["attempt"]["rf_rs_seed"] for c in rows])),
+            "rf_random_state_seed_shuffled": float(np.mean(
+                [c["attempt"]["rf_rs_seed_shuffled_first"] for c in rows]))}
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default="artifacts/agent_free/rf_probe_l3_n10_historical.json")
     ap.add_argument("--drift", default=None, help="score only this drift (0.00 or 0.45); "
                     "cells already in --out for the other drift are kept")
+    ap.add_argument("--attempts", action="store_true",
+                    help="add the random_state = seed reproduction attempt to the untrained "
+                         "cells already in --out (legacy split)")
     a = ap.parse_args()
     pin_one_thread()
     out_path = a.out if os.path.isabs(a.out) else os.path.join(ROOT, a.out)
@@ -180,6 +217,26 @@ def main() -> int:
     files = sorted(glob.glob(os.path.join(states, "states_*.npz")))
     if not files:
         raise SystemExit(f"no dumps under {STATES}")
+    if a.attempts:
+        with open(out_path, encoding="utf-8") as fh:
+            doc = json.load(fh)
+        t0 = time.time()
+        for c in doc["cells"]:
+            if c["agent"] == "untrained":
+                c["attempt"] = attempt_cell(os.path.join(states, os.path.basename(c["dump"])),
+                                            c["seed"])
+                print(f"d={c['drift']} s{c['seed']} untrained rf(rs=seed) "
+                      f"{c['attempt']['rf_rs_seed']:.3f}  ({time.time() - t0:.0f} s)", flush=True)
+        doc["reproduction_attempts"] = {
+            "recorded": RECORDED_RF,
+            "note": "RF on states, legacy split (the split of July 2026); random_state 0 is the "
+                    "scripts/run_expB_nonlinear.py convention, random_state = cell seed the "
+                    "itasorl.behavior_audit convention",
+            "provenance": provenance("scripts/rf_probe_historical_h8.py --attempts"),
+            "summary": attempts_summary(doc["cells"])}
+        write_json(out_path, doc)
+        print(json.dumps(doc["reproduction_attempts"]["summary"], indent=1))
+        return 0
     kept = []
     if a.drift is not None and os.path.exists(out_path):
         with open(out_path, encoding="utf-8") as fh:
