@@ -2737,6 +2737,10 @@ def main() -> int:
         check(f"18.3 {_run} intervention real minus sham", _dec[_run]["intervention"]["contrast"]["mean"], _mean)
         check_true(f"18.3 {_run} intervention did not move behavior",
                    _dec[_run]["intervention"]["pass"] is False)
+    _c1m = _load_art("goal_stakes", "C1", "mechanism.json")["summary"]
+    check("18.3 C1 intervention real minus sham", _c1m["intervention_real_minus_sham"]["mean"], 0.017)
+    check("18.3 C1 surprise AUROC", _c1m["surprise_auroc"]["mean"], 0.846)
+    check("18.3 C1 surprise correlation", _c1m["surprise_corr"]["mean"], -0.126)
     _gn = _load_art("texture", "T_gn_l3_h96_wm.json")
     check("18.6 white-jitter survival mean", _gn["primary"]["survival"]["mean"], 0.541)
     check_true("18.6 white-jitter run routes UNINFORMATIVE on the L0 gate",

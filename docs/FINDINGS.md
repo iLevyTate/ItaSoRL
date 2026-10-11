@@ -3969,14 +3969,16 @@ Mechanism readouts (`mechanism.json` in each run directory), frozen rules:
 
 | readout | `T-touch` | `S-immortal` | `C1` (descriptive reference) |
 |---|---|---|---|
-| intervention, real minus sham nudge | -0.001 [-0.014, +0.011]: did not move behavior | -0.029 [-0.057, -0.002]: did not move behavior | C1MECH_INTERVENTION |
-| surprise, prediction-error AUROC | 0.912 | 0.848 | C1MECH_SURPRISE_AUROC |
-| surprise, correlation with the direction | -0.146: not explained by surprise | -0.240: tracks the prediction error | C1MECH_SURPRISE_CORR |
-| adaptation within a lifetime | recovers | no recovery detected | C1MECH_ADAPTATION |
+| intervention, real minus sham nudge | -0.001 [-0.014, +0.011]: did not move behavior | -0.029 [-0.057, -0.002]: did not move behavior | +0.017 [-0.019, +0.054]: did not move behavior |
+| surprise, prediction-error AUROC | 0.912 | 0.848 | 0.846 |
+| surprise, correlation with the direction | -0.146: not explained by surprise | -0.240: tracks the prediction error | -0.126: not explained by surprise |
+| adaptation within a lifetime | recovers | no recovery detected | no recovery detected |
 
 Nudging the recurrent state one standard deviation along the decoded direction changes behavior no
-more than a sham nudge in either run, with ten informative seeds each. The direction is decodable
-and, under this test, not used.
+more than a sham nudge in either run, with ten informative seeds each, and the same holds for `C1`
+(readout on the `C1` rerun's agents, whose cells equal `C1`'s to the bit;
+`artifacts/goal_stakes/C1/mechanism.json`). The direction is decodable and, under this test, not
+used.
 
 ### 18.4 Where the signal lives
 
@@ -4044,7 +4046,7 @@ limitation that no comparator-trained run supports it stays.
    rule with every gate passing, the cleanest run of the corrected record.
 2. **Removing death changes nothing measurable** in the survival run (18.2). The stakes question
    itself stays open, with no scarce rung.
-3. **The decoded direction is not used under the tested nudge** (18.3), in both runs.
+3. **The decoded direction is not used under the tested nudge** (18.3), in both runs and in `C1`.
 4. **The walk carries the signal** (18.4, 18.5), as in `C1`: a common scripted sequence removes it,
    replaying the trained arm's episodes gives it to untrained trunks, and behavior traces alone
    decode the world better than the state.

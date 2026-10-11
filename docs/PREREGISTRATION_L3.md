@@ -1302,7 +1302,11 @@ Rigor carried from the B-v3 audit (2026-07-10):
   to be met, and neither holds. The predictor and untrained floors of the intervention readout are
   recorded beside it. Two earlier attempts of each run (an unpinned torch; the predictor inheriting
   `--mortal off`) are quarantined on the run branches and enter no result. `C1` reran on the same
-  stack with its agents saved: pool targets equal `C1`'s to the bit in 60 of 60 arm-cells.
+  stack with its agents saved: pool targets equal `C1`'s to the bit in 60 of 60 arm-cells. The
+  mechanism readout on those agents, a descriptive reference that `decide_goal_stakes.py` does not
+  read, gives `C1` the same intervention wording (real minus sham +0.017 [-0.019, +0.054]), "the
+  surrogate is surprising to the agent, but the decoded direction is not explained by that
+  surprise" (AUROC 0.846, correlation -0.126), and no within-lifetime recovery.
 
 - **2026-10-11 - WHITE-JITTER COMPARATOR-TRAINED RUN AT THE REGISTERED TRUNK: RESULT (spec
   `docs/specs/2026-10-10-gn-comparator-trained-h96-design.md`; FINDINGS 18.6).** Integrity passes:
