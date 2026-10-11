@@ -2,7 +2,7 @@
  "status": "OFF-DESIGN",
  "label": "OFF-DESIGN, descriptive only: comparator-trained qd run (finding R72). The qd family failed gate 0, the untrained arm reads above the survival arm, and the agent trunk is 8 units, not the registered 96. Bears on no rule.",
  "generated_by": "scripts/promote_off_design_runs.py",
- "git_commit": "a5eda5a",
+ "git_commit_at_promotion": "a5f0192",
  "tracked_changes_at_generation": [],
  "stack": {
   "python": "3.13.2",
@@ -15,6 +15,7 @@
   "torch": "2.7.0+cu126",
   "torch_threads": 1
  },
+ "git_commit_at_run": "2606e7f",
  "source_run": "fullruns/T_qd_l3_h8_wm/expB2_results.json",
  "run": {
   "git_commit_at_run": ["2606e7f"],
