@@ -16,7 +16,10 @@ What it reads from the documents. Numbers in the document text are compared with
 values, recomputed where per-seed values exist, for FINDINGS 3.1, 10.1.1, 13.F, 14.5.1,
 14.7, 14.7.1 and section 17, the Experiment C lines of the FINDINGS summary, the dated notes
 of 2026-10-10 in FINDINGS 3.4, 9, 10.5, 10.9, 12, 13.E, 13.F, 14, 14.6, 16 and 17.11 (where
-they quote a committed artifact), and PAPER_OUTLINE rows 27, 40, 44, 46 and 54. In README.md, CITATION.cff,
+they quote a committed artifact), section 19 and the dated notes of 2026-10-11 in FINDINGS
+10.1, 10.3, 10.5, 10.7, 10.9, 13.F, 14.5, 14.5.1 and 17.9 (every table row rebuilt from the
+agent-free artifacts), the 2026-10-11 entries of docs/CORRECTIONS.md, and PAPER_OUTLINE rows
+27, 40, 44, 46 and 54. In README.md, CITATION.cff,
 the site, the rest of PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only,
 a few of which contain a number; a number edited outside those phrases is not caught. Numbers
 the notes take from gitignored run bundles under fullruns/ are not checked.
@@ -2706,6 +2709,8 @@ def main() -> int:
                "current (build_paper_tables --check)",
                build_paper_tables.main(["--check"]) == 0)
 
+    agent_free_checks(_read("docs/FINDINGS.md"), _read("docs/CORRECTIONS.md"))
+
     print()
     print(f"pins: {n_pins} of {n_checks} checks compare a value as stored in an artifact with a "
           "constant in this script (labels start 'pinned:'): readings stored without per-seed "
@@ -2717,6 +2722,339 @@ def main() -> int:
         return 1
     print(f"RESULT: all {n_checks} checks passed.")
     return 0
+
+
+# ---- FINDINGS 19: post-review analyses without agents (2026-10-11) ------------------------
+# Each table row of section 19, and each number its dated notes elsewhere quote, is rebuilt
+# here from the committed artifacts. Gate-0 points, pooled AUROCs and intervals are recomputed
+# from the stored out-of-fold rows; the correlation matrix and its bootstrap from the stored
+# per-episode sums; the random-forest and promotion summaries from their per-seed values; the
+# selection-intensity readings from the stored per-generation counts.
+
+AF_G0_LABEL = {"mlp_h8_s0": "hidden 8, G seed 0", "mlp_h7_s0": "hidden 7, G seed 0",
+               "mlp_h4_s0": "hidden 4, G seed 0", "mlp_h8_s1": "hidden 8, G seed 1",
+               "mlp_h7_s1": "hidden 7, G seed 1", "mlp_h9_s1": "hidden 9, G seed 1",
+               "mlp_h10_s1": "hidden 10, G seed 1", "mlp_h8_s2": "hidden 8, G seed 2",
+               "rff_D80": "`G_rff`, D = 80", "gn_0.01": "`G_gn`, sigma_v = 0.01"}
+AF_RF_NAME = {"h8_s0": "h8 s0", "h7_s0": "h7 s0", "h4_s0": "h4 s0", "h10_s1": "h10 s1",
+              "h8_s2": "h8 s2", "rff_D80": "rff D80"}
+AF_RF_PAIRS = (("h8_s0", "h7_s0"), ("h8_s0", "h8_s2"), ("h8_s0", "h10_s1"),
+               ("h10_s1", "h8_s2"), ("h8_s0", "rff_D80"), ("h10_s1", "rff_D80"),
+               ("h8_s2", "rff_D80"))
+
+
+def _af_load(*parts) -> dict:
+    with open(os.path.join(ARTROOT, *parts), encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _af_iv(t, sign: bool = False) -> str:
+    f = "{:+.3f}" if sign else "{:.3f}"
+    return f"[{f.format(t[0])}, {f.format(t[1])}]"
+
+
+def af_gate0() -> dict:
+    """Section 19.1 rows, recomputed from the stored out-of-fold rows."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from gate0_pair_intervals import intervals_from_oof
+    from itasorl.stats import auroc
+    doc = _af_load("agent_free", "gate0_pair_intervals.json")
+    rows_rep, rows_iv, recomputed = [], [], {}
+    for inst in doc["instances"]:
+        iid, lab = inst["id"], AF_G0_LABEL[inst["id"]]
+        sch = inst["schemes"]
+        for s, b in sch.items():
+            o = b["oof"]
+            y, p, f = np.asarray(o["label"]), np.asarray(o["score"]), np.asarray(o["fold"])
+            pt = float(np.mean([auroc(y[f == k], p[f == k]) for k in sorted(set(f.tolist()))]))
+            check(f"19.1 {iid} {s}: fold-mean oracle AUROC recomputed from the OOF rows",
+                  pt, b["oracle_auroc"], 1e-12)
+        seen, rec = set(), []
+        for r in inst["recorded"]:
+            if r["value"] is None or "rounded" in r["note"]:
+                continue
+            key = (round(r["value"], 6), r["scheme"])
+            if key not in seen:
+                seen.add(key)
+                rec.append(f"{r['value']:.6f} {r['scheme']}")
+            check_true(f"19.1 {iid}: recorded {r['value']:.6f} ({r['scheme']}, {r['source']}) "
+                       "reproduces exactly", abs(sch[r["scheme"]]["oracle_auroc"] - r["value"]) <= 1e-12)
+        rows_rep.append((f"19.1 reproduction row {iid}",
+                         f"| {lab} | {'; '.join(rec)} | {sch['legacy']['oracle_auroc']:.6f} | "
+                         f"{sch['explicit']['oracle_auroc']:.6f} |"))
+        split = inst["recorded"][0]["scheme"]
+        iv = intervals_from_oof(sch[split]["oof"])
+        for k in ("pair_cluster_ci95", "fold_mean_ci95", "share_draws_in_band"):
+            check_true(f"19.1 {iid} {split}: {k} recomputes from the OOF rows",
+                       np.allclose(iv[k], sch[split][k], rtol=0, atol=1e-12))
+        recomputed[iid] = {"split": split, **iv, "explicit": sch["explicit"]["oracle_auroc"],
+                           "legacy": sch["legacy"]["oracle_auroc"]}
+        rows_iv.append((f"19.1 interval row {iid}",
+                        f"| {lab} | {split} | {iv['point_fold_mean']:.3f} | "
+                        f"{iv['pooled_oof_auroc']:.3f} | {_af_iv(iv['pair_cluster_ci95'])} | "
+                        f"{_af_iv(iv['fold_mean_ci95'])} | {iv['share_draws_in_band']:.3f} | "
+                        f"{iv['share_draws_below_band']:.3f} | {iv['share_draws_above_band']:.3f} |"))
+    widths = [r["pair_cluster_ci95"][1] - r["pair_cluster_ci95"][0] for r in recomputed.values()]
+    straddle = all(not (0.85 <= r[k][0] and r[k][1] <= 0.95) and r[k][0] <= 0.95 and r[k][1] >= 0.85
+                   for r in recomputed.values() for k in ("pair_cluster_ci95", "fold_mean_ci95"))
+    check_true("19.1: every 95% interval of either kind straddles a band edge", straddle)
+    return {"rows": rows_rep + rows_iv, "recomputed": recomputed,
+            "width_lo": min(widths), "width_hi": max(widths)}
+
+
+def af_residual() -> dict:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from residual_field_correlation import summarize
+    doc = _af_load("agent_free", "residual_field_correlation.json")
+    names = doc["names"]
+    s = summarize(doc["episode_stats"], names)
+    check_true("19.2: correlation matrix and bootstrap recompute from the stored per-episode sums",
+               np.allclose(s["matrices"]["pooled"]["r"], doc["matrices"]["pooled"]["r"], atol=1e-12)
+               and np.allclose(s["matrices"]["pooled"]["ci95_lo"], doc["matrices"]["pooled"]["ci95_lo"],
+                               atol=1e-12))
+    R = np.asarray(s["matrices"]["pooled"]["r"])
+    rows = []
+    for i, a in enumerate(names[:-1]):
+        cells = ["" if j < i else "1" if j == i else f"{R[i, j]:+.3f}" for j in range(len(names))]
+        rows.append((f"19.2 matrix row {a}", f"| {AF_RF_NAME[a]} | " + " | ".join(cells) + " |"))
+    pairs = {(p["a"], p["b"]): p for p in s["pairs"]}
+    for a, b in AF_RF_PAIRS:
+        p = pairs[(a, b)]
+        rows.append((f"19.2 pair row {a} {b}",
+                     f"| {AF_RF_NAME[a]}, {AF_RF_NAME[b]} | {p['r_pooled']:+.3f} | "
+                     f"{_af_iv(p['ci95_pooled'], True)} | {p['r_x']:+.3f} | {p['r_y']:+.3f} |"))
+    rows.append(("19.2 field sizes", ", ".join(f"{AF_RF_NAME[f['name']]} {f['rms']:.3f}"
+                                                for f in doc["fields"])))
+    mlp = [R[i, j] for i in range(len(names)) for j in range(i + 1, len(names))
+           if "rff" not in names[i] and "rff" not in names[j]]
+    rff = [R[i, names.index("rff_D80")] for i in range(len(names)) if names[i] != "rff_D80"]
+    lo_hi = (f"{min(mlp):+.2f} and {max(mlp):+.2f}", f"{min(rff):+.2f} and {max(rff):+.2f}")
+    rows.append(("19.2 MLP range", f"between {lo_hi[0]}"))
+    rows.append(("19.2 rff range", f"between {lo_hi[1]}"))
+    h87, h8r = pairs[("h8_s0", "h7_s0")], pairs[("h8_s0", "rff_D80")]
+    return {"rows": rows, "h87": h87, "h8r": h8r}
+
+
+def af_rf() -> dict:
+    doc = _af_load("agent_free", "rf_probe_l3_n10_historical.json")
+    check_true("19.3: random-forest artifact is complete and labeled historical",
+               doc["complete"] and doc["label"].startswith("HISTORICAL"))
+    check_true("19.3: linear probe reproduces the run record and the fold re-score exactly",
+               doc["reproduction"]["vs_run_record"]["max_abs_diff_linear_target"] == 0.0
+               and doc["reproduction"]["vs_run_record"]["max_abs_diff_linear_shuffled_first"] == 0.0
+               and doc["reproduction"]["vs_fold_rescore"]["max_abs_diff_legacy"] == 0.0
+               and doc["reproduction"]["vs_fold_rescore"]["max_abs_diff_explicit"] == 0.0)
+    cells = doc["cells"]
+
+    def agg(drift, arm, split, metric):
+        v = [c[split][metric] for c in sorted(cells, key=lambda c: c["seed"])
+             if c["drift"] == drift and c["agent"] == arm]
+        st = doc["aggregate"][f"d={drift} {arm}"][split][metric]
+        check(f"19.3 d={drift} {arm} {split} {metric} mean from cells",
+              float(np.mean(v)), st["mean"], 1e-12)
+        return float(np.mean(v)), t_ci(v), int(sum(x >= BAR for x in v))
+
+    def cell(m):
+        return f"{m[0]:.3f} {_af_iv(m[1])}, {m[2]}/10"
+
+    rows = []
+    for drift, dshow in (("0.45", "0.45"), ("0.00", "0")):
+        for arm in ("survival", "predictor", "untrained"):
+            lin, rf = agg(drift, arm, "legacy", "linear"), agg(drift, arm, "legacy", "rf")
+            s1 = agg(drift, arm, "legacy", "linear_shuffled_first")[0]
+            s8 = agg(drift, arm, "legacy", "linear_shuffled_mean8")[0]
+            rfs = agg(drift, arm, "legacy", "rf_shuffled_first")
+            rows.append((f"19.3 legacy row d={drift} {arm}",
+                         f"| {dshow} | {arm} | {cell(lin)} | {s1:.3f} / {s8:.3f} | {cell(rf)} | "
+                         f"{rfs[0]:.3f} {_af_iv(rfs[1])} |"))
+            le, re_ = agg(drift, arm, "explicit", "linear"), agg(drift, arm, "explicit", "rf")
+            rse = agg(drift, arm, "explicit", "rf_shuffled_first")
+            rows.append((f"19.3 explicit row d={drift} {arm}",
+                         f"| {dshow} | {arm} | {cell(le)} | {cell(re_)} | {rse[0]:.3f} {_af_iv(rse[1])} |"))
+    att = doc["reproduction_attempts"]
+    rec, sm = att["recorded"], att["summary"]
+    u45, u0 = sm["d=0.45 untrained"], sm["d=0.00 untrained"]
+    for lab, r, a, b in (("drift 0.45, target", rec["untrained d=0.45"], u45["rf_random_state_0"],
+                          u45["rf_random_state_seed"]),
+                         ("drift 0.45, shuffled", rec["untrained d=0.45 shuffled"],
+                          u45["rf_random_state_0_shuffled"], u45["rf_random_state_seed_shuffled"]),
+                         ("drift 0, target", rec["untrained d=0.00"], u0["rf_random_state_0"],
+                          u0["rf_random_state_seed"])):
+        rows.append((f"19.3 attempt row {lab}", f"| {lab} | {r:.3f} | {a:.3f} | {b:.3f} |"))
+    ue = agg("0.45", "untrained", "explicit", "rf")
+    return {"rows": rows, "untrained_explicit": f"{ue[0]:.3f} {_af_iv(ue[1])}",
+            "closest": (f"{u45['rf_random_state_0']:.3f}", f"{u45['rf_random_state_seed']:.3f}")}
+
+
+def af_promotions() -> dict:
+    rows = {}
+    for key, fn in (("tqd", ("texture", "T_qd_l3_h8_wm.json")),
+                    ("h4", ("expB2", "failed_gates_l3_h4_traces.json"))):
+        doc = _af_load(*fn)
+        out = []
+        for drift, dshow in (("0.45", "0.45"), ("0.00", "0")):
+            for arm in ("survival", "predictor", "untrained"):
+                e = doc["pooled_target"][drift][arm]
+                v = e["per_seed"]
+                m, t, b = float(np.mean(v)), t_ci(v), mean_ci(v, level=0.90)
+                check(f"19.4 {key} d={drift} {arm} mean from per-seed", m, e["mean"], 1e-12)
+                check_true(f"19.4 {key} d={drift} {arm} intervals from per-seed",
+                           np.allclose(t, e["t90"], atol=1e-9) and np.allclose(b[1:], e["seed_boot90"], atol=1e-12))
+                out.append((f"19.4 {key} row d={drift} {arm}",
+                            f"| {dshow} | {arm} | {m:.3f} | {_af_iv(t)} | {_af_iv(b[1:])} | "
+                            f"{sum(x >= BAR for x in v)}/10 |"))
+        pools = doc["speed_pools"]
+        n_below = sum(p["speed"] < 0.75 for p in pools)
+        check_int(f"19.4 {key}: speed pools below 0.75 recomputed", n_below,
+                  doc["gates"]["speed_positive_control"]["n_below"])
+        rows[key] = {"rows": out, "doc": doc, "n_below": n_below,
+                     "worst": min(p["speed"] for p in pools)}
+    return rows
+
+
+def af_selection() -> dict:
+    doc = _af_load("expC", "selection_intensity.json")
+    n = doc["n_individuals"]
+    rows = []
+    for b in doc["per_seed"]:
+        for arm in ("treatment", "control"):
+            e = b[arm]
+            q = np.asarray(e["n_qualifiers"])
+            fr = q / n
+            first = int(np.flatnonzero(fr >= 0.9)[0])
+            stays = next((g for g in range(len(fr)) if np.all(fr[g:] >= 0.9)), None)
+            below = [g for g in range(first + 1, len(fr)) if fr[g] < 0.9]
+            late = float(fr[5:].mean())
+            f = np.asarray(e["mean_fitness"])
+            pk = int(np.argmax(f))
+            check_true(f"19.5 seed {b['seed']} {arm}: first/stays/late share recomputed",
+                       first == e["first_gen_at_least_90pct"]
+                       and stays == e["first_gen_staying_at_least_90pct"]
+                       and abs(late - e["mean_share_gens_5_to_29"]) < 1e-12)
+            rows.append((f"19.5 counts row seed {b['seed']} {arm}",
+                         f"| {b['seed']} | {arm} | {e['threshold_gen0_median']:.3f} | "
+                         + " | ".join(str(int(x)) for x in q[:8]) + " |"))
+            rows.append((f"19.5 summary row seed {b['seed']} {arm}",
+                         f"| {b['seed']} | {arm} | {first} | "
+                         f"{stays if stays is not None else 'never'} | "
+                         f"{', '.join(str(g) for g in below) if below else 'none'} | {late:.3f} | "
+                         f"{f[0]:+.3f}, {f[pk]:+.3f} ({pk}), {f[-1]:+.3f} |"))
+    check_true("19.5: main milestone run and per-individual rerun share every series",
+               all(doc["main_run_series_identical"].values()))
+    return {"rows": rows, "doc": doc}
+
+
+def af_tables() -> dict:
+    """Every row and phrase section 19 and its dated notes quote, keyed by subsection."""
+    return {"g0": af_gate0(), "rfc": af_residual(), "rf": af_rf(), "promo": af_promotions(),
+            "sel": af_selection()}
+
+
+def agent_free_checks(findings: str, corrections: str) -> None:
+    print("\n== FINDINGS 19: post-review analyses without agents (2026-10-11) ==")
+    T = af_tables()
+    s19 = findings[findings.index("## 19. Post-review analyses without agents"):]
+    sub = {k: s19[s19.index(h):] for k, h in (("19.1", "### 19.1"), ("19.2", "### 19.2"),
+                                               ("19.3", "### 19.3"), ("19.4", "### 19.4"),
+                                               ("19.5", "### 19.5"))}
+    for k, nxt in (("19.1", "### 19.2"), ("19.2", "### 19.3"), ("19.3", "### 19.4"),
+                   ("19.4", "### 19.5")):
+        sub[k] = sub[k][:sub[k].index(nxt)]
+    flat = {k: " ".join(v.split()) for k, v in sub.items()}
+    g0 = T["g0"]
+    for label, needle in g0["rows"]:
+        check_true(f"FINDINGS {label} quoted", needle in sub["19.1"])
+    check_true("19.1 quotes the 95% pair-interval widths",
+               f"{g0['width_lo']:.2f} to {g0['width_hi']:.2f} wide" in flat["19.1"])
+    for label, needle in T["rfc"]["rows"]:
+        check_true(f"FINDINGS {label} quoted", needle in flat["19.2"] or needle in sub["19.2"])
+    for label, needle in T["rf"]["rows"]:
+        check_true(f"FINDINGS {label} quoted", needle in sub["19.3"])
+    for key in ("tqd", "h4"):
+        for label, needle in T["promo"][key]["rows"]:
+            check_true(f"FINDINGS {label} quoted", needle in sub["19.4"])
+    tq = T["promo"]["tqd"]
+    check_true("19.4 quotes T-qd's short pools and worst pool",
+               f"{tq['n_below']} of 60 pools" in flat["19.4"] and f"{tq['worst']:.4f}" in flat["19.4"])
+    h4 = T["promo"]["h4"]["doc"]["gates"]
+    check_true("19.4 quotes the hidden-4 leak and engagement counts",
+               f"clean in {h4['reward_leakage']['seeds_clean_survival']}/10 survival seeds" in flat["19.4"]
+               and f"{h4['engagement']['engaged_by_drift']['0.45']['engaged']}/10 at drift 0.45" in flat["19.4"])
+    for label, needle in T["sel"]["rows"]:
+        check_true(f"FINDINGS {label} quoted", needle in sub["19.5"])
+    # The dated notes elsewhere in FINDINGS (2026-10-11) quote numbers from the same artifacts.
+    r = g0["recomputed"]
+    notes = [n for n in re.findall(r"\*\(Note 2026-10-11:.*?\)\*", findings, flags=re.S)]
+    flatn = [" ".join(n.split()) for n in notes]
+    check_true("FINDINGS carries the 2026-10-11 dated notes (at least eight)", len(notes) >= 8)
+
+    _h4d = T["promo"]["h4"]["doc"]
+    _h4g = _h4d["gates"]
+    _pp = {(p["a"], p["b"]): p for p in _af_load("agent_free", "residual_field_correlation.json")["pairs"]}
+
+    def in_note(needle: str) -> bool:
+        return any(needle in n for n in flatn)
+
+    for label, needle in [
+        ("gate-0 note: typical pair-interval width",
+         f"{g0['width_lo']:.2f} to {g0['width_hi']:.2f} wide"),
+        ("gate-0 note: hidden 7 seed 1 share above the band",
+         f"{r['mlp_h7_s1']['share_draws_above_band']:.3f} of its pair-bootstrap draws above 0.95"),
+        ("gate-0 note: G_gn share below the band",
+         f"{r['gn_0.01']['share_draws_below_band']:.3f} of its draws below 0.85"),
+        ("gate-0 note: G_gn under the explicit split",
+         f"{r['gn_0.01']['explicit']:.3f} under the explicit split"),
+        ("gate-0 note: hidden 8 seed 0 pair interval",
+         f"0.928, pair 95% {_af_iv(r['mlp_h8_s0']['pair_cluster_ci95'])}"),
+        ("10.3 note: closest forest values",
+         f"{T['rf']['closest'][0]} and {T['rf']['closest'][1]}"),
+        ("10.3 note: explicit untrained forest", f"{T['rf']['untrained_explicit']}"),
+        ("10.5 note: h8/h7 correlation",
+         f"{T['rfc']['h87']['r_pooled']:+.3f} {_af_iv(T['rfc']['h87']['ci95_pooled'], True)}"),
+        ("10.5 note: rff share of variance", f"{T['rfc']['h8r']['r_pooled'] ** 2 * 100:.0f}%"),
+        ("17.9 / 14.5.1 note: T-qd artifact", "artifacts/texture/T_qd_l3_h8_wm.json"),
+        ("10.5 note: hidden-4 artifact", "artifacts/expB2/failed_gates_l3_h4_traces.json"),
+        ("13 note: selection-intensity artifact", "artifacts/expC/selection_intensity.json"),
+        ("10.5 note: hidden 7 seed 0 pair interval",
+         f"hidden 7 reads 0.922 with a pair 95% interval of {_af_iv(r['mlp_h7_s0']['pair_cluster_ci95'])}"),
+        ("10.5 note: hidden 4 on world P", f"0.932 {_af_iv(r['mlp_h4_s0']['pair_cluster_ci95'])}"),
+        ("10.5 note: hidden-4 gates",
+         f"untrained floor {_h4d['pooled_target']['0.45']['untrained']['mean']:.3f}, pooled reward "
+         f"leak clean in {_h4g['reward_leakage']['seeds_clean_survival']}/10 survival seeds, "
+         f"engagement {_h4g['engagement']['engaged_by_drift']['0.45']['engaged']}/10 at drift 0.45"),
+        ("10.5 scope note: MLP maps at other G seeds",
+         f"correlate {_pp[('h8_s0', 'h10_s1')]['r_pooled']:+.2f} and "
+         f"{_pp[('h8_s0', 'h8_s2')]['r_pooled']:+.2f} with it"),
+        ("10.3 note: both forest conventions",
+         f"reads {T['rf']['closest'][0]} with random_state 0 and {T['rf']['closest'][1]} with "
+         "random_state set to the seed"),
+        ("10.7 note: G_rff interval, share below, explicit",
+         f"Its pair 95% interval is {_af_iv(r['rff_D80']['pair_cluster_ci95'])}, "
+         f"{r['rff_D80']['share_draws_below_band']:.3f} of its pair-bootstrap draws fall below 0.85, "
+         f"and it reads {r['rff_D80']['explicit']:.3f} on the explicit partition"),
+        ("10.9 note: hidden 7 seed 1 interval",
+         f"0.957 has a pair 95% interval of {_af_iv(r['mlp_h7_s1']['pair_cluster_ci95'])}"),
+        ("10.9 note: hidden 9 share above",
+         f"against {r['mlp_h9_s1']['share_draws_above_band']:.3f} for hidden 9"),
+        ("10.9 note: hidden 10 seed 1",
+         f"0.893 {_af_iv(r['mlp_h10_s1']['pair_cluster_ci95'])}, with "
+         f"{r['mlp_h10_s1']['share_draws_below_band']:.3f} of its draws below 0.85"),
+        ("10.9 note: hidden 8 seed 2", f"0.939 {_af_iv(r['mlp_h8_s2']['pair_cluster_ci95'])}"),
+        ("14.5 note: G_gn pooled AUROC and interval",
+         f"its pooled out-of-fold AUROC is {r['gn_0.01']['pooled_oof_auroc']:.3f}, its pair 95% "
+         f"interval {_af_iv(r['gn_0.01']['pair_cluster_ci95'])}"),
+        ("17.9 note: T-qd t interval",
+         f"the t-based interval {_af_iv(T['promo']['tqd']['doc']['pooled_target']['0.45']['survival']['t90'])} included"),
+    ]:
+        check_true(f"FINDINGS dated note quotes {label}: {needle}", in_note(needle))
+    check_true("FINDINGS 17.9 addendum no longer says T-qd 'is not promoted to `artifacts/`' "
+               "without its dated correction",
+               "is not promoted to `artifacts/`" not in findings
+               or in_note("now promoted, labeled off-design"))
+    for needle in ("the random-forest floor of FINDINGS 10.3",
+                   "the shared training set"):
+        check_true(f"CORRECTIONS carries the 2026-10-11 entry on {needle}",
+                   "## 2026-10-11" in corrections and needle in corrections)
 
 
 def _find_all(haystack: str, needle: str) -> list[int]:
