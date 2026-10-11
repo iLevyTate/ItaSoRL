@@ -3718,6 +3718,29 @@ def post_review_checks(findings: str, prereg: str) -> None:
     check_true("20.10 C2-rerun readout: the recorded drift-0.45 survival targets are C2's committed targets",
                R["C2-rerun"]["recorded"] == [c2cells[f"cell_d0.45_s{s}.json"]["cell"]["agents"]["survival"]["pool"]["target"]
                                               for s in S20_SEEDS])
+    # PAPER_OUTLINE 4.5 and row 44, and the REVISION claim table: dated notes that point here.
+    def _doc(rel):
+        with open(os.path.join(ARTROOT, "..", *rel.split("/")), encoding="utf-8") as fh:
+            return " ".join(fh.read().split())
+    _po, _rv = _doc("docs/PAPER_OUTLINE.md"), _doc("docs/REVISION_2026-10.md")
+    _m35 = T["doc"]["summary"]["r35"]["margins"]["survival_minus_untrained"]
+    _lab = (f"{T['r35']['labels']['untrained']} on the `C1` agents",
+            f"{R['C2-rerun']['r35']['labels']['untrained']} on the `C2` agents")
+    _row44 = next((ln for ln in _po.split("| 44 |")[1:2]), "")
+    check_true("PAPER_OUTLINE 4.5 note quotes the R35 margins and labels of C1 and C2",
+               all(x in _po for x in (f"{_m35['survival_norm']['mean']:+.3f} on the survival agent's normalizer",
+                                      f"{_m35['refit']['mean']:+.3f} on one refit",
+                                      f"{_m35['own']['mean']:+.3f} on each trunk's own", *_lab)))
+    check_true("PAPER_OUTLINE row 44 carries the dated note with both labels",
+               "Note 2026-10-11" in _row44.split("| FINDINGS 17.6 |")[0]
+               and all(x in _row44 for x in (f"{T['r35']['labels']['untrained']} on the `C1` agents, "
+                                             f"{R['C2-rerun']['r35']['labels']['untrained']} on the `C2` agents",)))
+    _rvn = _rv[_rv.index("*(Note 2026-10-11, claims 21, 22 and 31"):]
+    check_true("REVISION note gives each rerun's outcome and the inherited L0 gate",
+               all(x in _rvn for x in (f"({n['h7']['floor']:.3f})",
+                                       f"{n['h10']['s'][0]:.3f} {_af_iv(n['h10']['s'][1])}",
+                                       f"{inst['speed_min']:.3f}", "off-design", "uninformative",
+                                       "open L0 gate (0.559")))
     CT = s20_contrast()
     for label, needle in CT["rows"]:
         check_true(f"FINDINGS {label} quoted", needle in sub["20.12"])
