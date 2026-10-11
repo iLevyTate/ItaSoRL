@@ -608,7 +608,8 @@
         "expB2/behavior_audit_l3_h8_traces.json",
         "expB2/behavior_audit_l3_covar_n10.json",
         "fold_rescore/l3_n10.json",
-        "fold_rescore/l3_h8_traces.json"
+        "fold_rescore/l3_h8_traces.json",
+        "agent_free/rf_probe_l3_n10_historical.json"
       ],
       "budget": {
         "predictor_updates": 300,
@@ -665,9 +666,24 @@
       "folds": "both",
       "id": "L3-H8-N10",
       "local_run_dir": "fullruns/l3_h8_traces",
-      "notes": "Primary published numbers on the legacy partition (0.752 / 0.726); explicit partition 0.774 / 0.750 (FINDINGS methods note 8).",
+      "notes": "Primary published numbers on the legacy partition (0.752 / 0.726); explicit partition 0.774 / 0.750 (FINDINGS methods note 8). agent_free/rf_probe_l3_n10_historical.json (2026-10-11, FINDINGS 18.3) re-scores the 60 fullruns/l3_n10 state dumps with the Experiment B random forest and the registered linear probe, both partitions; the linear values reproduce this run's record exactly.",
       "readout_only_on": null,
       "recorded_provenance": {
+        "agent_free/rf_probe_l3_n10_historical.json": {
+          "generated_by": "scripts/rf_probe_historical_h8.py",
+          "git_commit_at_promotion": "d8ad6dc",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        },
         "expB2/behavior_audit_l3_covar_n10.json": {},
         "expB2/behavior_audit_l3_h8_traces.json": {},
         "expB2/behavior_audit_l3_n10.json": {},
@@ -721,13 +737,15 @@
         9
       ],
       "artifacts": [
-        "fold_rescore/l3_h4_traces.json"
+        "fold_rescore/l3_h4_traces.json",
+        "expB2/failed_gates_l3_h4_traces.json"
       ],
       "budget": null,
       "claims": [
         22
       ],
-      "commit_at_run": null,
+      "commit_at_run": "bf8a74e",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -767,9 +785,26 @@
       "folds": "both",
       "id": "L3-H4",
       "local_run_dir": "fullruns/l3_h4_traces",
-      "notes": "",
+      "notes": "expB2/failed_gates_l3_h4_traces.json (scripts/promote_off_design_runs.py --which h4, 2026-10-11, FINDINGS 18.4) promotes the run record: untrained floor 0.891, pooled reward leak clean in 0/10 survival seeds, engagement 3/10 at drift 0.45, speed control at or above 0.75 in all 60 pools. No agents were kept; the trunk width (96) is read from the dumped state dimension.",
       "readout_only_on": null,
       "recorded_provenance": {
+        "expB2/failed_gates_l3_h4_traces.json": {
+          "generated_by": "scripts/promote_off_design_runs.py",
+          "git_commit_at_promotion": "d102cc4",
+          "git_commit_at_run": "bf8a74e",
+          "source_run": "fullruns/l3_h4_traces/expB2_results.json",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        },
         "fold_rescore/l3_h4_traces.json": {
           "generated_by": "scripts/rescore_fold_split.py",
           "spec": "docs/specs/2026-09-28-explicit-cv-folds.md",
@@ -2088,7 +2123,7 @@
       "folds": "legacy",
       "id": "H2-TEXTURE",
       "local_run_dir": null,
-      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). A gn-trained run (T-GN-TRAINED) was executed 2026-10-08/09 and is uninformative. Both comparator-trained runs ran an 8-unit agent trunk (FINDINGS 14.5.1 correction 2026-10-10): T-qd's 60 saved agents have cell.weight_hh (24, 8), its fingerprint 23a620e51d4e26fd reproduces only at --hidden 8, and its speed control is short in 8 of 60 pools (worst 0.7018).",
+      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0 and it bears on no rule (FINDINGS 17.9 addendum); it is promoted as off-design on 2026-10-11 (row T-QD-TRAINED, texture/T_qd_l3_h8_wm.json). A gn-trained run (T-GN-TRAINED) was executed 2026-10-08/09 and is uninformative. Both comparator-trained runs ran an 8-unit agent trunk (FINDINGS 14.5.1 correction 2026-10-10): T-qd's 60 saved agents have cell.weight_hh (24, 8), its fingerprint 23a620e51d4e26fd reproduces only at --hidden 8, and its speed control is short in 8 of 60 pools (worst 0.7018).",
       "readout_only_on": [
         "L3-H8-HELDOUT",
         "L3-H7-REVERSE"
@@ -2254,7 +2289,8 @@
       "affected_by_gae_correction": false,
       "agent_seeds": null,
       "artifacts": [
-        "expC/emergence_pilot_per_individual_summary.json"
+        "expC/emergence_pilot_per_individual_summary.json",
+        "expC/selection_intensity.json"
       ],
       "budget": null,
       "claims": [
@@ -2270,7 +2306,7 @@
       "folds": "explicit",
       "id": "EXPC-M3-PER-INDIVIDUAL",
       "local_run_dir": "fullruns/expC_milestone3",
-      "notes": "scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE: the speed positive control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.",
+      "notes": "scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE: the speed positive control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE correction does not apply to it. expC/selection_intensity.json (scripts/expC_selection_intensity.py, 2026-10-11, FINDINGS 18.5) carries the per-generation qualifier counts and fitness series; they are identical to the main milestone run's (a0cb850) series and thresholds.",
       "readout_only_on": null,
       "recorded_provenance": {
         "expC/emergence_pilot_per_individual_summary.json": {
@@ -2278,6 +2314,22 @@
           "git_commit_at_promotion": "177605f9dd41bc27d91da4b0a17a103473902b24",
           "git_commit_at_run": "06ecc10d8f7c60cbe1a428581f92f6b2308336e0",
           "source_run": "fullruns/expC_milestone3/emergence_pilot_per_individual.json"
+        },
+        "expC/selection_intensity.json": {
+          "generated_by": "scripts/expC_selection_intensity.py",
+          "git_commit_at_promotion": "17cab3c",
+          "git_commit_at_run": "06ecc10d8f7c60cbe1a428581f92f6b2308336e0",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
         }
       },
       "status": "historical",
@@ -2406,6 +2458,102 @@
       },
       "survival_trainer": "successor_value",
       "title": "Comparator-trained run on the white-jitter family (frozen 2026-10-09)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "artifacts": [
+        "texture/T_qd_l3_h8_wm.json"
+      ],
+      "budget": {
+        "survival_updates": 300
+      },
+      "claims": [],
+      "commit_at_run": "2606e7f",
+      "commit_at_run_source": "recorded",
+      "config": {
+        "config_fingerprint": "23a620e51d4e26fd",
+        "drift_mode": "l3",
+        "drifts": [
+          0.0,
+          0.45
+        ],
+        "embed": 64,
+        "hidden": 8,
+        "hidden_deviation": "the registered trunk is 96; the run's 60 saved agents carry an 8-unit GRU (--hidden 8 beside --l3-hidden 8, FINDINGS 14.5.1 correction 2026-10-10)",
+        "l3_family": "qd",
+        "l3_family_param": 6.0,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)"
+      },
+      "deps": null,
+      "device": "owner's laptop CPU, 3 workers",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "T-QD-TRAINED",
+      "local_run_dir": "fullruns/T_qd_l3_h8_wm",
+      "notes": "OFF-DESIGN: not the registered configuration (8-unit agent trunk) and its family failed gate 0; it bears on no rule. scripts/run_expB2.py --l3-family qd, then scripts/promote_off_design_runs.py --which tqd (FINDINGS 17.9 addendum, 18.4). Drift 0.45: survival 0.580 (t 90% [0.537, 0.624], seed bootstrap [0.542, 0.615]), predictor 0.573, untrained 0.608; engagement 16 of 20 cells; speed control short in 8 of 60 pools (worst 0.7018); untrained floor 0.108 from 0.5.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "texture/T_qd_l3_h8_wm.json": {
+          "generated_by": "scripts/promote_off_design_runs.py",
+          "git_commit_at_promotion": "a5f0192",
+          "git_commit_at_run": "2606e7f",
+          "source_run": "fullruns/T_qd_l3_h8_wm/expB2_results.json",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        }
+      },
+      "status": "off-design",
+      "surrogate": {
+        "eps": 6.0,
+        "family": "G_qd (authentic law plus quadratic drag)",
+        "gate0": "no eps of the frozen sweep reaches the band (highest oracle 0.768 at eps 16); eps 6.0 was matched on one-step magnitude, not calibrated"
+      },
+      "survival_trainer": "successor_value",
+      "title": "Comparator-trained run on the quadratic-drag family (2026-10-06, set aside; promoted 2026-10-11)"
     },
     {
       "affected_by_gae_correction": true,
@@ -2728,6 +2876,66 @@
       "surrogate": null,
       "survival_trainer": "none",
       "title": "Frozen L3 fingerprints (G_motion instances), serialized"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
+        "agent_free/gate0_pair_intervals.json",
+        "agent_free/residual_field_correlation.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "cef1f72, 5dd869b",
+      "commit_at_run_source": "recorded",
+      "config": {
+        "runners": "scripts/gate0_pair_intervals.py, scripts/residual_field_correlation.py"
+      },
+      "deps": null,
+      "device": "owner's laptop CPU, one thread",
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "both",
+      "id": "AGENT-FREE-2026-10-11",
+      "local_run_dir": null,
+      "notes": "FINDINGS 18.1 and 18.2. Gate 0's oracle side recomputed for ten calibrated instances from the committed CPU exports (seed-1 hidden 7, 8, 9 retrained on CPU); every recorded point reproduced under its recorded partition; pair-clustered bootstrap intervals. Residual fields of every export and G_rff (D = 80) on 250 fresh episodes from seed 100000.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "agent_free/gate0_pair_intervals.json": {
+          "generated_by": "scripts/gate0_pair_intervals.py",
+          "git_commit": "cef1f72",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        },
+        "agent_free/residual_field_correlation.json": {
+          "generated_by": "scripts/residual_field_correlation.py",
+          "git_commit": "5dd869b",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Agent-free post-review analyses: pair-clustered gate-0 intervals and the residual-field correlation of the fingerprints"
     },
     {
       "affected_by_gae_correction": false,
