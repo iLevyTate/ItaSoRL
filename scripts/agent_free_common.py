@@ -51,9 +51,10 @@ def pin_one_thread() -> None:
         pass
 
 
-def tracked_changes() -> list[str] | None:
-    """Tracked files that differ from HEAD (None outside a git checkout). Empty means the
-    artifact was generated from exactly the recorded commit."""
+def tracked_changes(exclude: tuple[str, ...] = ()) -> list[str] | None:
+    """Tracked files that differ from HEAD (None outside a git checkout), leaving out the
+    paths in `exclude` (the artifact being written, which a multi-call script updates in
+    place). Empty means the artifact was generated from exactly the recorded commit."""
     import subprocess
     try:
         out = subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=no"],
@@ -61,16 +62,19 @@ def tracked_changes() -> list[str] | None:
                                       stderr=subprocess.DEVNULL, text=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
-    return [line[3:] for line in out.splitlines() if line.strip()]
+    skip = {e.replace("\\", "/") for e in exclude}
+    return [line[3:] for line in out.splitlines() if line.strip() and line[3:] not in skip]
 
 
-def provenance(generated_by: str, commit_key: str = "git_commit") -> dict:
+def provenance(generated_by: str, commit_key: str = "git_commit",
+               output: str | None = None) -> dict:
     """Generator, commit, tracked changes and stack. An analysis that IS the run (the
     agent-free computations) records `git_commit`; a promotion or readout of an earlier run
     records `git_commit_at_promotion`, because scripts/build_results_manifest.py reads
     `git_commit` as the commit a run executed at."""
     return {"generated_by": generated_by, commit_key: git_head(),
-            "tracked_changes_at_generation": tracked_changes(), "stack": stack_record()}
+            "tracked_changes_at_generation": tracked_changes((output,) if output else ()),
+            "stack": stack_record()}
 
 
 NL = chr(10)
