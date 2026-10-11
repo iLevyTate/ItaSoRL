@@ -198,19 +198,29 @@ RUNS = [
         "l3_h8_traces are deterministic replications)", experiment="B-v2 L3",
         artifacts=["expB2/behavior_audit_l3_n10.json", "expB2/behavior_audit_l3_h8_traces.json",
                    "expB2/behavior_audit_l3_covar_n10.json", "fold_rescore/l3_n10.json",
-                   "fold_rescore/l3_h8_traces.json"],
+                   "fold_rescore/l3_h8_traces.json", "agent_free/rf_probe_l3_n10_historical.json"],
         claims=[12, 13, 14, 15, 16, 17, 18, 19], commit_at_run="2888d37 (l3_h8_traces)",
         config={**BV2_PROTOCOL, "drift_mode": "l3"}, agent_seeds=S10, surrogate=L3_H8,
         budget={"survival_updates": 300, "predictor_updates": 300}, eval_seeds=BV2_EVAL_SEEDS,
         folds="both", device=GPU_OWNER + " (local GPU; per-run stack not recorded)",
         local_run_dir="fullruns/l3_h8_traces",
         notes="Primary published numbers on the legacy partition (0.752 / 0.726); explicit "
-              "partition 0.774 / 0.750 (FINDINGS methods note 8)."),
+              "partition 0.774 / 0.750 (FINDINGS methods note 8). "
+              "agent_free/rf_probe_l3_n10_historical.json (2026-10-11, FINDINGS 19.3) re-scores "
+              "the 60 fullruns/l3_n10 state dumps with the Experiment B random forest and the "
+              "registered linear probe, both partitions; the linear values reproduce this run's "
+              "record exactly."),
     run("L3-H4", "L3 hidden 4 run (gate failure, uninformative)", experiment="B-v2 L3",
-        artifacts=["fold_rescore/l3_h4_traces.json"], claims=[22],
+        artifacts=["fold_rescore/l3_h4_traces.json", "expB2/failed_gates_l3_h4_traces.json"],
+        claims=[22], commit_at_run="bf8a74e",
         config={**BV2_PROTOCOL, "drift_mode": "l3"}, agent_seeds=S10,
         surrogate={**L3_H8, "hidden": 4}, eval_seeds=BV2_EVAL_SEEDS, folds="both",
-        device=GPU_OWNER, local_run_dir="fullruns/l3_h4_traces"),
+        device=GPU_OWNER, local_run_dir="fullruns/l3_h4_traces",
+        notes="expB2/failed_gates_l3_h4_traces.json (scripts/promote_off_design_runs.py --which "
+              "h4, 2026-10-11, FINDINGS 19.4) promotes the run record: untrained floor 0.891, "
+              "pooled reward leak clean in 0/10 survival seeds, engagement 3/10 at drift 0.45, "
+              "speed control at or above 0.75 in all 60 pools. No agents were kept; the trunk "
+              "width (96) is read from the dumped state dimension."),
     run("L3-H7-N10", "L3 hidden 7 second capacity, n = 10", experiment="B-v2 L3",
         artifacts=["expB2/behavior_audit_l3_h7_traces.json", "fold_rescore/l3_h7_traces.json"],
         claims=[20, 21, 22], config={**BV2_PROTOCOL, "drift_mode": "l3"}, agent_seeds=S10,
@@ -357,8 +367,9 @@ RUNS = [
                               "probe and no Gaussian-trained agents (revision step 9). A "
                               "qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored "
                               "fullruns/T_qd_l3_h8_wm) was executed and set aside: its family "
-                              "failed gate 0, so it is not promoted and bears on no rule "
-                              "(FINDINGS 17.9 addendum). A gn-trained run (T-GN-TRAINED) "
+                              "failed gate 0 and it bears on no rule (FINDINGS 17.9 addendum); "
+                              "it is promoted as off-design on 2026-10-11 (row T-QD-TRAINED, "
+                              "texture/T_qd_l3_h8_wm.json). A gn-trained run (T-GN-TRAINED) "
                               "was executed 2026-10-08/09 and is uninformative. Both "
                               "comparator-trained runs ran an 8-unit agent trunk (FINDINGS "
                               "14.5.1 correction 2026-10-10): T-qd's 60 saved agents have "
@@ -383,7 +394,8 @@ RUNS = [
               "previous-action channels fed to the GRU are not in the basis."),
     run("EXPC-M3-PER-INDIVIDUAL", "Experiment C milestone 3 rerun with the per-individual "
         "readout (2026-10-07)", experiment="C",
-        artifacts=["expC/emergence_pilot_per_individual_summary.json"], claims=[27],
+        artifacts=["expC/emergence_pilot_per_individual_summary.json",
+                   "expC/selection_intensity.json"], claims=[27],
         trains_survival=False, survival_trainer="none", commit_at_run="06ecc10", folds="explicit",
         device="owner's laptop CPU", local_run_dir="fullruns/expC_milestone3",
         notes="scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. "
@@ -392,7 +404,10 @@ RUNS = [
               "fails and section 7 interprets no contrast unless every gate passes; gate 1 fails "
               "only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, "
               "second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE "
-              "correction does not apply to it."),
+              "correction does not apply to it. expC/selection_intensity.json "
+              "(scripts/expC_selection_intensity.py, 2026-10-11, FINDINGS 19.5) carries the "
+              "per-generation qualifier counts and fitness series; they are identical to the "
+              "main milestone run's (a0cb850) series and thresholds."),
     run("L1-STREAM-READOUT", "L1 stream and control readout on the saved L1 agents "
         "(frozen 2026-10-09)", experiment="H2",
         artifacts=["control_diagnostics/l1_stream_readout.json"], claims=[35, 53],
@@ -433,6 +448,26 @@ RUNS = [
               "pass, are not reached, and the matrix names no cell for this "
               "failure. Not promoted as a negative; it strengthens no claim. The descriptive "
               "outcome is recorded because the preregistration log and the manuscript quote it."),
+    run("T-QD-TRAINED", "Comparator-trained run on the quadratic-drag family (2026-10-06, set "
+        "aside; promoted 2026-10-11)", experiment="B-v2 L3",
+        artifacts=["texture/T_qd_l3_h8_wm.json"], claims=[],
+        survival_trainer="successor_value", status="off-design", commit_at_run="2606e7f",
+        config={**BV2_PROTOCOL, "drift_mode": "l3", "l3_family": "qd", "l3_family_param": 6.0,
+                "hidden": 8, "hidden_deviation": "the registered trunk is 96; the run's 60 saved "
+                "agents carry an 8-unit GRU (--hidden 8 beside --l3-hidden 8, FINDINGS 14.5.1 "
+                "correction 2026-10-10)", "config_fingerprint": "23a620e51d4e26fd"},
+        agent_seeds=S10, surrogate={"family": "G_qd (authentic law plus quadratic drag)",
+                                    "eps": 6.0, "gate0": "no eps of the frozen sweep reaches "
+                                    "the band (highest oracle 0.768 at eps 16); eps 6.0 was "
+                                    "matched on one-step magnitude, not calibrated"},
+        budget={"survival_updates": 300}, eval_seeds=BV2_EVAL_SEEDS, folds="explicit",
+        device="owner's laptop CPU, 3 workers", local_run_dir="fullruns/T_qd_l3_h8_wm",
+        notes="OFF-DESIGN: not the registered configuration (8-unit agent trunk) and its family "
+              "failed gate 0; it bears on no rule. scripts/run_expB2.py --l3-family qd, then "
+              "scripts/promote_off_design_runs.py --which tqd (FINDINGS 17.9 addendum, 19.4). "
+              "Drift 0.45: survival 0.580 (t 90% [0.537, 0.624], seed bootstrap [0.542, 0.615]), "
+              "predictor 0.573, untrained 0.608; engagement 16 of 20 cells; speed control short "
+              "in 8 of 60 pools (worst 0.7018); untrained floor 0.108 from 0.5."),
     run("H8-HELDOUT-REVERSE-DIRECTION", "Reverse-direction readout: drift-0 agents probed "
         "against a surrogate they never lived in (frozen 2026-10-09)", experiment="L0 audit",
         artifacts=["l0_audit/reverse_direction_l3_h8_heldout.json"], claims=[51], trains_survival=False,
@@ -521,6 +556,19 @@ RUNS = [
         survival_trainer="none", folds="n/a",
         config={"runner": "scripts/export_surrogates.py", "instances": "h8 s0, h7 s0, h10 s1, h8 s2, h4 s0"},
         device="cpu", notes="CPU-trained; GPU-published runs trained G on CUDA (see index.json)."),
+    run("AGENT-FREE-2026-10-11", "Agent-free post-review analyses: pair-clustered gate-0 "
+        "intervals and the residual-field correlation of the fingerprints", experiment="methods",
+        artifacts=["agent_free/gate0_pair_intervals.json",
+                   "agent_free/residual_field_correlation.json"],
+        trains_survival=False, survival_trainer="none", commit_at_run="cef1f72, 5dd869b",
+        folds="both", device="owner's laptop CPU, one thread",
+        config={"runners": "scripts/gate0_pair_intervals.py, "
+                           "scripts/residual_field_correlation.py"},
+        notes="FINDINGS 19.1 and 19.2. Gate 0's oracle side recomputed for ten calibrated "
+              "instances from the committed CPU exports (seed-1 hidden 7, 8, 9 retrained on CPU); "
+              "every recorded point reproduced under its recorded partition; pair-clustered "
+              "bootstrap intervals. Residual fields of every export and G_rff (D = 80) on 250 "
+              "fresh episodes from seed 100000."),
     run("L0-PRE-INTERVENTION", "Pool membership decoded from the reset observation (agent free)",
         experiment="L0 audit", artifacts=["l0_audit/pre_intervention.json"], trains_survival=False,
         survival_trainer="none", folds="explicit",
@@ -871,7 +919,8 @@ def render_md(m: dict) -> str:
          f"Reviewed at commit `{m['reviewed_commit']}`. Rows with status **historical** record "
          "what the pre-correction implementation measured. Corrected results are added as new "
          "rows with status **corrected** (trainer `successor_value`); historical rows are never "
-         "overwritten.", "",
+         "overwritten. A row with status **off-design** ran a configuration the registered "
+         "protocol does not cover and bears on no rule.", "",
          "## Which trainer produced each survival agent", "",
          "`pre_transition_value` is `compute_gae` as it stood from "
          f"`{m['gae_history']['padding_fix']}` (2026-06-28) to `{m['reviewed_commit']}`: an "

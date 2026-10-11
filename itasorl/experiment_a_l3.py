@@ -162,8 +162,14 @@ def oracle_features_L3(trans: list, sigma_meas: float, rng, dt: float) -> np.nda
 
 
 def run_experiment_a_l3(eps: list[dict], sigma_meas: float, contaminate: float = 0.0,
-                        seed: int = 0, leak_tol: float = 0.1, dt: float | None = None) -> dict:
-    """Grouped-AUROC oracle + leakage battery (reward/length/metadata must stay ~0.5)."""
+                        seed: int = 0, leak_tol: float = 0.1, dt: float | None = None,
+                        return_oof: bool = False) -> dict:
+    """Grouped-AUROC oracle + leakage battery (reward/length/metadata must stay ~0.5).
+
+    With return_oof=True the result also carries "oracle_oof": the oracle's out-of-fold
+    scores from the same fit that gives oracle_auroc, one row per branch, with its matched
+    pair id, label and fold, so the oracle AUROC can be given a pair-clustered interval
+    (itasorl.stats.cluster_auroc_ci). The flag changes no number."""
     dt = WorldParams().dt if dt is None else dt
     rng = np.random.default_rng(seed)
     Xo, y, g, Xr, Xl, Xm = [], [], [], [], [], []
@@ -184,6 +190,13 @@ def run_experiment_a_l3(eps: list[dict], sigma_meas: float, contaminate: float =
         "length": grouped_auroc(np.asarray(Xl), y, g),
         "metadata": grouped_auroc(np.asarray(Xm), y, g),
     }
+    if return_oof:
+        oracle, oy, op, oi, of = grouped_auroc(np.asarray(Xo), y, g, return_oof=True,
+                                               return_index=True)
+        oof = {"pair": g[oi].tolist(), "label": oy.astype(int).tolist(),
+               "score": op.astype(float).tolist(), "fold": of.astype(int).tolist()}
+    else:
+        oracle, oof = grouped_auroc(np.asarray(Xo), y, g), None
     # `reward` is EXCLUDED from the pass criterion: for a dynamics-altering rung, different
     # dynamics -> different movement cost -> different reward is a legitimate downstream
     # consequence, not a nuisance the oracle exploits (the oracle uses ONLY the velocity
@@ -192,19 +205,25 @@ def run_experiment_a_l3(eps: list[dict], sigma_meas: float, contaminate: float =
     # (length, metadata) must stay at chance - they confirm the oracle is not cheating on
     # episode length/timing.
     mechanical = {"length": leaks["length"], "metadata": leaks["metadata"]}
-    return {
-        "oracle_auroc": grouped_auroc(np.asarray(Xo), y, g),
+    out = {
+        "oracle_auroc": oracle,
         "leakage": leaks,
         "leakage_pass": all(abs(a - 0.5) < leak_tol for a in mechanical.values()),
         "reward_leak": float(leaks["reward"]),
     }
+    if oof is not None:
+        out["oracle_oof"] = oof
+    return out
 
 
 def calibrate_l3(*, hiddens=(4, 8, 16, 32, 64), sigma_meas: float, n_pairs: int = 60,
-                 branch: int = 30, train_kwargs: dict | None = None, seed: int = 0) -> list[dict]:
+                 branch: int = 30, train_kwargs: dict | None = None, seed: int = 0,
+                 return_oof: bool = False) -> list[dict]:
     """Sweep G_motion capacity; for each, train, generate pairs, and score the oracle. Returns
     per-capacity {hidden, oracle_auroc, in_band, leakage_pass}. The frozen (sigma, capacity)
-    is the smallest capacity whose oracle AUROC lands in [0.85, 0.95] (prereg gate 0)."""
+    is the smallest capacity whose oracle AUROC lands in [0.85, 0.95] (prereg gate 0).
+    return_oof=True adds each row's out-of-fold oracle scores with pair ids ("oracle_oof",
+    see run_experiment_a_l3) and changes no number."""
     from .surrogate_l3 import train_g_motion
     train_kwargs = dict(train_kwargs or {})
     params = train_kwargs.get("params")   # score pairs on the SAME world G trains on (no train/deploy mismatch)
@@ -212,10 +231,13 @@ def calibrate_l3(*, hiddens=(4, 8, 16, 32, 64), sigma_meas: float, n_pairs: int 
     for h in hiddens:
         g = train_g_motion(hidden=h, seed=seed, **train_kwargs)
         eps = generate_l3_pairs(g, n_pairs=n_pairs, branch=branch, seed0=3000 + seed, params=params)
-        res = run_experiment_a_l3(eps, sigma_meas=sigma_meas, seed=seed)
+        res = run_experiment_a_l3(eps, sigma_meas=sigma_meas, seed=seed, return_oof=return_oof)
         auc = float(res["oracle_auroc"])
-        out.append({"hidden": h, "oracle_auroc": auc,
-                    "in_band": 0.85 <= auc <= 0.95, "leakage_pass": res["leakage_pass"]})
+        row = {"hidden": h, "oracle_auroc": auc,
+               "in_band": 0.85 <= auc <= 0.95, "leakage_pass": res["leakage_pass"]}
+        if return_oof:
+            row["oracle_oof"] = res["oracle_oof"]
+        out.append(row)
     return out
 
 

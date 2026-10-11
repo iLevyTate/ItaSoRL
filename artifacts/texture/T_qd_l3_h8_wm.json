@@ -1,0 +1,749 @@
+{
+ "status": "OFF-DESIGN",
+ "label": "OFF-DESIGN, descriptive only: comparator-trained qd run (finding R72). The qd family failed gate 0, the untrained arm reads above the survival arm, and the agent trunk is 8 units, not the registered 96. Bears on no rule.",
+ "generated_by": "scripts/promote_off_design_runs.py",
+ "git_commit_at_promotion": "a5f0192",
+ "tracked_changes_at_generation": [],
+ "stack": {
+  "python": "3.13.2",
+  "numpy": "1.26.4",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "OMP_NUM_THREADS": "1",
+  "MKL_NUM_THREADS": "1",
+  "sklearn": "1.5.2",
+  "torch": "2.7.0+cu126",
+  "torch_threads": 1
+ },
+ "git_commit_at_run": "2606e7f",
+ "source_run": "fullruns/T_qd_l3_h8_wm/expB2_results.json",
+ "run": {
+  "git_commit_at_run": ["2606e7f"],
+  "config_fingerprint": ["23a620e51d4e26fd"],
+  "gae_bootstrap": ["successor"]
+ },
+ "record": "FINDINGS 17.9 addendum (2026-10-07) and its note of 2026-10-10; CORRECTIONS 2026-10-10; RESULTS_MANIFEST T-qd note",
+ "recorded_in_prose": {
+  "survival_mean": 0.58,
+  "survival_boot90": [0.542, 0.615],
+  "survival_t90": [0.537, 0.624],
+  "predictor_mean": 0.573,
+  "predictor_boot90": [0.549, 0.595],
+  "untrained_mean": 0.608,
+  "untrained_boot90": [0.584, 0.63],
+  "l0_mean": 0.523,
+  "l0_tost_p": 0.02,
+  "speed_pools_below": 8,
+  "speed_worst": 0.7018,
+  "engaged_cells": 16,
+  "trunk": 8
+ },
+ "family": "qd",
+ "family_param": 6.0,
+ "surrogate_hidden": null,
+ "bars": {
+  "bar": 0.65,
+  "margin": 0.05
+ },
+ "pooled_target": {
+  "0.00": {
+   "untrained": {
+    "per_seed": [0.5520661157024793, 0.5326446280991736, 0.5669421487603306, 0.4946280991735537, 0.48512396694214877, 0.5570247933884297, 0.5355371900826447, 0.5665289256198347, 0.5822314049586776, 0.5004132231404959],
+    "mean": 0.5373140495867768,
+    "n": 10,
+    "seeds_at_or_above_bar": 0,
+    "t90": [0.5177154843715903, 0.5569126148019632],
+    "seed_boot90": [0.5201652892561984, 0.5537190082644627]
+   },
+   "predictor": {
+    "per_seed": [0.516115702479339, 0.5152892561983471, 0.4884297520661157, 0.5557851239669421, 0.5760330578512396, 0.4830578512396694, 0.4814049586776859, 0.6004132231404959, 0.4607438016528926, 0.487603305785124],
+    "mean": 0.5164876033057851,
+    "n": 10,
+    "seeds_at_or_above_bar": 0,
+    "t90": [0.4897047020620105, 0.5432705045495597],
+    "seed_boot90": [0.4947913223140496, 0.5401260330578512]
+   },
+   "survival": {
+    "per_seed": [0.5396694214876033, 0.4768595041322314, 0.5541322314049586, 0.4962809917355372, 0.48966942148760334, 0.5962809917355372, 0.5388429752066115, 0.5289256198347108, 0.5070247933884298, 0.5004132231404959],
+    "mean": 0.522809917355372,
+    "n": 10,
+    "seeds_at_or_above_bar": 0,
+    "t90": [0.5019789202459677, 0.5436409144647762],
+    "seed_boot90": [0.5055785123966942, 0.5411570247933885]
+   }
+  },
+  "0.45": {
+   "untrained": {
+    "per_seed": [0.6148760330578513, 0.6119834710743801, 0.6223140495867769, 0.5723140495867768, 0.5871900826446281, 0.6735537190082643, 0.5045454545454545, 0.6252066115702479, 0.6049586776859505, 0.662396694214876],
+    "mean": 0.6079338842975207,
+    "n": 10,
+    "seeds_at_or_above_bar": 2,
+    "t90": [0.580444668790584, 0.6354230998044574],
+    "seed_boot90": [0.5835537190082645, 0.6298367768595041]
+   },
+   "predictor": {
+    "per_seed": [0.5520661157024793, 0.534710743801653, 0.6008264462809917, 0.606198347107438, 0.6260330578512396, 0.612396694214876, 0.4698347107438017, 0.5706611570247934, 0.6037190082644628, 0.5578512396694215],
+    "mean": 0.5734297520661157,
+    "n": 10,
+    "seeds_at_or_above_bar": 0,
+    "t90": [0.5461271135866991, 0.6007323905455323],
+    "seed_boot90": [0.5490495867768594, 0.5953326446280991]
+   },
+   "survival": {
+    "per_seed": [0.6557851239669421, 0.509090909090909, 0.6169421487603307, 0.6541322314049587, 0.609504132231405, 0.6400826446280992, 0.5024793388429751, 0.6016528925619835, 0.5809917355371901, 0.43264462809917353],
+    "mean": 0.5803305785123968,
+    "n": 10,
+    "seeds_at_or_above_bar": 2,
+    "t90": [0.5369925384441467, 0.6236686185806468],
+    "seed_boot90": [0.541611570247934, 0.6152913223140497]
+   }
+  }
+ },
+ "secondary_means": {
+  "0.00": {
+   "untrained": {
+    "pool_target_var": 0.5135537190082645,
+    "pool_target_full": 0.5375206611570247,
+    "mp_target": 0.5,
+    "pool_shuffled": 0.498586484945044
+   },
+   "predictor": {
+    "pool_target_var": 0.5020661157024794,
+    "pool_target_full": 0.49561983471074383,
+    "mp_target": 0.5,
+    "pool_shuffled": 0.49356765166306643
+   },
+   "survival": {
+    "pool_target_var": 0.5077272727272728,
+    "pool_target_full": 0.5206198347107438,
+    "mp_target": 0.5,
+    "pool_shuffled": 0.5041655233239265
+   }
+  },
+  "0.45": {
+   "untrained": {
+    "pool_target_var": 0.5697520661157025,
+    "pool_target_full": 0.6165289256198347,
+    "mp_target": 0.591111111111111,
+    "pool_shuffled": 0.5034934412163954
+   },
+   "predictor": {
+    "pool_target_var": 0.580413223140496,
+    "pool_target_full": 0.6073553719008264,
+    "mp_target": 0.5913888888888889,
+    "pool_shuffled": 0.500286495909085
+   },
+   "survival": {
+    "pool_target_var": 0.5768181818181819,
+    "pool_target_full": 0.6000826446280992,
+    "mp_target": 0.6466666666666667,
+    "pool_shuffled": 0.5002740058316597
+   }
+  }
+ },
+ "clauses_descriptive": {
+  "bar": false,
+  "over_predictor": false,
+  "over_untrained": false
+ },
+ "rule_met": false,
+ "rule_note": "Not adjudicated: the run is not the registered protocol and failed gates; the clauses above are descriptive.",
+ "gates": {
+  "gate0_oracle_band": {
+   "source": "artifacts/texture/gate0_qd.json",
+   "sweep": [
+    {
+     "eps": 0.5,
+     "oracle_auroc": 0.601388888888889,
+     "in_band": false,
+     "floor": 0.4736914600550965,
+     "passes_gate0": false
+    },
+    {
+     "eps": 1.0,
+     "oracle_auroc": 0.6041666666666667,
+     "in_band": false,
+     "floor": 0.4822314049586776,
+     "passes_gate0": false
+    },
+    {
+     "eps": 2.0,
+     "oracle_auroc": 0.6222222222222223,
+     "in_band": false,
+     "floor": 0.4984848484848485,
+     "passes_gate0": false
+    },
+    {
+     "eps": 4.0,
+     "oracle_auroc": 0.6555555555555556,
+     "in_band": false,
+     "floor": 0.5601928374655648,
+     "passes_gate0": false
+    },
+    {
+     "eps": 8.0,
+     "oracle_auroc": 0.6972222222222222,
+     "in_band": false,
+     "floor": 0.6816804407713498,
+     "passes_gate0": false
+    },
+    {
+     "eps": 16.0,
+     "oracle_auroc": 0.7680555555555555,
+     "in_band": false,
+     "floor": 0.8139118457300274,
+     "passes_gate0": false
+    }
+   ],
+   "any_in_band": false,
+   "note": "No eps in the frozen qd sweep reaches the band (highest oracle 0.768); eps 6.0 was matched to the learned map's one-step magnitude, not calibrated through gate 0.",
+   "pass": false
+  },
+  "engagement": {
+   "cells_dir": "fullruns/T_qd_l3_h8_wm/cells",
+   "n_cells": 20,
+   "n_engaged": 16,
+   "per_cell": [
+    {
+     "drift": 0.0,
+     "seed": 0,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 1,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 2,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 3,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 4,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 5,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 6,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 7,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 8,
+     "engaged": true
+    },
+    {
+     "drift": 0.0,
+     "seed": 9,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 0,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 1,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 2,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 3,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 4,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 5,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 6,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 7,
+     "engaged": false
+    },
+    {
+     "drift": 0.45,
+     "seed": 8,
+     "engaged": true
+    },
+    {
+     "drift": 0.45,
+     "seed": 9,
+     "engaged": false
+    }
+   ],
+   "pass": false,
+   "engaged_by_drift": {
+    "0.00": {
+     "engaged": 10,
+     "cells": 10
+    },
+    "0.45": {
+     "engaged": 6,
+     "cells": 10
+    }
+   }
+  },
+  "l0_tost": {
+   "mean": 0.522809917355372,
+   "p": 0.02018887004958279,
+   "margin": 0.05,
+   "pass": true
+  },
+  "speed_positive_control": {
+   "threshold": 0.75,
+   "n_pools": 60,
+   "n_below": 8,
+   "min_all_pools": 0.7017699872591178,
+   "mean_all_pools": 0.8185406424835533,
+   "min_survival": 0.745871005108973,
+   "mean_survival": 0.8382825523002557,
+   "below_by_arm_drift": {
+    "untrained": {
+     "0.0": 3,
+     "0.45": 4
+    },
+    "survival": {
+     "0.45": 1
+    }
+   },
+   "pass": false
+  },
+  "reward_leakage": {
+   "tolerance": 0.1,
+   "max_abs_dev": 0.07851239669421495,
+   "pass": true,
+   "per_seed": {
+    "untrained": [0.5636363636363637, 0.5537190082644627, 0.5359504132231405, 0.5491735537190083, 0.5495867768595042, 0.5512396694214876, 0.553305785123967, 0.5413223140495868, 0.5012396694214877, 0.48181818181818176],
+    "predictor": [0.5165289256198347, 0.5582644628099174, 0.5049586776859505, 0.534297520661157, 0.4570247933884297, 0.487603305785124, 0.5516528925619835, 0.5169421487603307, 0.534710743801653, 0.5747933884297521],
+    "survival": [0.578512396694215, 0.5698347107438017, 0.5611570247933885, 0.5475206611570248, 0.5640495867768595, 0.5557851239669421, 0.5652892561983471, 0.5483471074380166, 0.5694214876033058, 0.5636363636363637]
+   },
+   "pool_leak_clean": {
+    "untrained": [true, true, true, true, true, true, true, true, true, true],
+    "predictor": [true, true, true, true, true, true, true, true, true, true],
+    "survival": [true, true, true, true, true, true, true, true, true, true]
+   },
+   "seeds_clean_survival": 10,
+   "matched_pair_leak_clean": {
+    "untrained": [true, false, true, true, true, false, false, false, true, false],
+    "predictor": [true, true, true, true, true, true, true, true, true, true],
+    "survival": [true, true, true, true, true, true, true, true, true, true]
+   }
+  },
+  "survivorship": {
+   "total_deaths": 0,
+   "pass": true
+  },
+  "untrained_floor": {
+   "mean": 0.6079338842975207,
+   "abs_dev": 0.10793388429752071,
+   "pass": false
+  }
+ },
+ "gates_failed": ["engagement", "gate0_oracle_band", "speed_positive_control", "untrained_floor"],
+ "speed_pools": [
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 0,
+   "speed": 0.7449438032092494
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 1,
+   "speed": 0.7061689005121499
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 2,
+   "speed": 0.7017699872591178
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 3,
+   "speed": 0.7675651564699889
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 4,
+   "speed": 0.8446575405906069
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 5,
+   "speed": 0.8030060728744939
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 6,
+   "speed": 0.7684436362645746
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 7,
+   "speed": 0.7755560491168245
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 8,
+   "speed": 0.782219627245371
+  },
+  {
+   "drift": "0.00",
+   "arm": "untrained",
+   "seed": 9,
+   "speed": 0.8001498380846208
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 0,
+   "speed": 0.8557155388471178
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 1,
+   "speed": 0.8101921952316689
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 2,
+   "speed": 0.8802036565992776
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 3,
+   "speed": 0.7812017467708005
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 4,
+   "speed": 0.8242388356621765
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 5,
+   "speed": 0.7998718807889287
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 6,
+   "speed": 0.8811111111111112
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 7,
+   "speed": 0.8683995577787442
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 8,
+   "speed": 0.8816064509653027
+  },
+  {
+   "drift": "0.00",
+   "arm": "predictor",
+   "seed": 9,
+   "speed": 0.8488540609480507
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 0,
+   "speed": 0.8787519205622752
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 1,
+   "speed": 0.8659607463474741
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 2,
+   "speed": 0.7830689600254817
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 3,
+   "speed": 0.8886923574657087
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 4,
+   "speed": 0.8586399041981526
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 5,
+   "speed": 0.8568783043581805
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 6,
+   "speed": 0.8080781838934012
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 7,
+   "speed": 0.8346386351553814
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 8,
+   "speed": 0.8988424517257471
+  },
+  {
+   "drift": "0.00",
+   "arm": "survival",
+   "seed": 9,
+   "speed": 0.8314329212488454
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 0,
+   "speed": 0.741140023972976
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 1,
+   "speed": 0.768966588966589
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 2,
+   "speed": 0.7398676071403344
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 3,
+   "speed": 0.7235736896589299
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 4,
+   "speed": 0.8043460215381032
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 5,
+   "speed": 0.8240521226687235
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 6,
+   "speed": 0.817746971719885
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 7,
+   "speed": 0.7982394598155468
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 8,
+   "speed": 0.745417428421381
+  },
+  {
+   "drift": "0.45",
+   "arm": "untrained",
+   "seed": 9,
+   "speed": 0.8149399116776792
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 0,
+   "speed": 0.8575717032430159
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 1,
+   "speed": 0.7872296214983963
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 2,
+   "speed": 0.8920488945328764
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 3,
+   "speed": 0.8154354336230767
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 4,
+   "speed": 0.8511911202060279
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 5,
+   "speed": 0.8613888872378576
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 6,
+   "speed": 0.8626236985259398
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 7,
+   "speed": 0.8460085542188205
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 8,
+   "speed": 0.8292399519672248
+  },
+  {
+   "drift": "0.45",
+   "arm": "predictor",
+   "seed": 9,
+   "speed": 0.8398841660445233
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 0,
+   "speed": 0.8370058548332496
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 1,
+   "speed": 0.8485403811761207
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 2,
+   "speed": 0.745871005108973
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 3,
+   "speed": 0.8593964069354125
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 4,
+   "speed": 0.8083479337945597
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 5,
+   "speed": 0.8478277115714187
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 6,
+   "speed": 0.7735252942137952
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 7,
+   "speed": 0.83705178511781
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 8,
+   "speed": 0.87432745285018
+  },
+  {
+   "drift": "0.45",
+   "arm": "survival",
+   "seed": 9,
+   "speed": 0.8287728354229479
+  }
+ ],
+ "trunk_check": {
+  "agents_dir": "fullruns/T_qd_l3_h8_wm/agents",
+  "n_agents": 60,
+  "hidden_values": [8],
+  "verified": true
+ },
+ "registered_trunk_hidden": 96,
+ "trunk_hidden": 8,
+ "trunk_source": "saved agents (ctor record and weight_hh shape)",
+ "configuration_deviation": "The agent trunk was 8 units, not the registered 96 (saved agents (ctor record and weight_hh shape))."
+}

@@ -751,6 +751,13 @@ oracle-under-handicap, chosen to leave headroom; "subtle" means subtle *to the
 handicapped oracle*, and σ was tuned post-registration with its values frozen in
 the PREREGISTRATION_L3 §12 deviation log.)
 
+*(Note 2026-10-11: the band [0.85, 0.95] is a registered selection rule applied to the point
+estimate, the grouped 5-fold oracle AUROC over 60 matched pairs; no interval entered any gate-0
+call. On the pair bootstrap of 19.1 the 95% intervals of the ten calibrated instances on record
+are 0.06 to 0.15 wide, and none lies wholly inside the band. This fingerprint reads 0.928, pair
+95% [0.859, 0.964]. Every recorded gate-0 oracle value reproduces exactly from the committed CPU
+exports, the CUDA-calibrated ones included (19.1).)*
+
 Two honesty notes from the audit trail (full detail: `PREREGISTRATION_L3.md`
 sec. 12). First, an earlier observation-channel construction was retired because it
 was trivially detectable at every capacity; the dynamics-level construction above
@@ -864,6 +871,14 @@ registered budget, not to the survival objective alone; the earlier wording
 - **Nonlinear-probe floor:** a random-forest probe on the untrained agent reads
   0.517 (shuffled baseline 0.506; L0 untrained 0.483), so the survival-vs-untrained
   dissociation is not a linear-probe artifact.
+  *(Note 2026-10-11: no committed code produced the 0.517, 0.506 and 0.483. The committed
+  random forest of `itasorl/behavior_audit.py` fits behavior features, not states. Re-scored on
+  the same dumps with the Experiment B forest of `scripts/run_expB_nonlinear.py` on the legacy
+  partition, the untrained arm at drift 0.45 reads 0.514 with random_state 0 and 0.518 with
+  random_state set to the seed; the closest values are 0.514 and 0.518, and neither is 0.517.
+  On the explicit partition the untrained forest reads 0.557 [0.545, 0.569], an interval that
+  excludes 0.5, so the near-chance nonlinear reading holds on the published partition only.
+  19.3; `docs/CORRECTIONS.md`, 2026-10-11.)*
 - **Shuffled negative control:** at chance for every arm.
 
 ### 10.4 Behavior mediation: how much of the signal is just "acting differently"?
@@ -1099,6 +1114,13 @@ and adjudications in `PREREGISTRATION_L3.md` sec. 12, entries 2026-07-13/14):
   seeds, 0 early deaths (110/110 per pool), pooled untrained floor 0.586 (inside
   the frozen tolerance, though violated per-seed in 2 of 10 seeds).
 
+*(Note 2026-10-11: the hidden-4 statements above now have a committed source,
+`artifacts/expB2/failed_gates_l3_h4_traces.json` (19.4): untrained floor 0.891, pooled reward
+leak clean in 0/10 survival seeds, engagement 3/10 at drift 0.45, trunk 96 read from the dumped
+states. The gate-0 oracle values in this trail are point estimates under the registered band
+rule: hidden 7 reads 0.922 with a pair 95% interval of [0.841, 0.958], and hidden 4 on world
+`P` reads 0.932 [0.862, 0.964] (19.1).)*
+
 *(Notes 2026-10-10.)* The hidden-8 regression check is a tolerance check, not an exact one:
 `scripts/run_expA_l3.py` passes it when the oracle is within 0.05 of 0.928 and the floor
 within 0.1 of 0.483. The oracle reads 0.9278. The floor 0.482 is the mean of the three floor
@@ -1227,6 +1249,15 @@ of scope for this run (spec 2026-07-14) and is closed by section 10.7.
 > by section 10.7, whose two maps are near-orthogonal in fingerprint space.
 > This note changes no number and no rule outcome; it narrows the wording.
 
+*(Note 2026-10-11: the residual-field comparison is now committed
+(`artifacts/agent_free/residual_field_correlation.json`, 19.2). Hidden 8 against hidden 7
+reads r = +0.607 [+0.573, +0.639] and hidden 8 against `G_rff` +0.174; both match the quoted
+values. The attribution to the bit-identical training set is not supported: `G_rff` is fit on
+exactly the same episodes and shares 3% of variance with hidden 8, while MLP maps at other G
+seeds correlate +0.43 and +0.52 with it. The recipe the MLP maps share explains their overlap
+better than the shared dataset does. The note's conclusion stands. `docs/CORRECTIONS.md`,
+2026-10-11.)*
+
 **Channel 2, common garden: NEGATIVE (informative).** Two groups run a 20-step
 prefix in different worlds (authentic vs the hidden = 8 surrogate), then continue
 under identical authentic dynamics for a 24-step tail; the probe reads tail-only
@@ -1341,6 +1372,11 @@ state separates the worlds; the family was DROPPED per the pre-stated rule. This
 is itself informative: in world P, coefficient-bias artifacts cannot be made
 subtle-but-detectable, which independently motivates the learned-texture
 construction of the L3 rung.
+
+*(Note 2026-10-11: the frozen D = 80 oracle, 0.8875 on the legacy partition, reproduces exactly.
+Its pair 95% interval is [0.824, 0.945], 0.102 of its pair-bootstrap draws fall below 0.85,
+and it reads 0.897 on the explicit partition. The in-band call is the registered rule applied
+to the point (19.1).)*
 
 **Integrity gate (fourth determinism check).** All 60 saved agents regenerated
 their standard pools bit-identically against the saved dumps, and the drift-0.45
@@ -1596,6 +1632,12 @@ hidden-8 map is oracle-identical (0.928) but mechanically leaky (floor 0.664).
 And oracle detectability is not monotone in capacity at this seed (hidden 9 reads
 0.982). The selected instance is subtler to the oracle than the published one
 (0.893 against 0.928).
+
+*(Note 2026-10-11: the four oracle values in this table and the seed-2 value below reproduce
+exactly (19.1), and the band is applied to the point. The hidden 7 exclusion is a near call:
+0.957 has a pair 95% interval of [0.890, 0.978] and 0.354 of its pair-bootstrap draws above
+0.95, against 0.901 for hidden 9. The selected hidden 10 reads 0.893 [0.817, 0.941], with 0.148
+of its draws below 0.85, and the seed-2 hidden 8 map reads 0.939 [0.871, 0.971].)*
 
 **Gates (all pass).** Engagement 20/20; L0 control 0.529 (TOST p = 0.039, ROPE
 P = 0.983, both accept); speed at least 0.830; pooled reward-leak clean in every
@@ -2444,6 +2486,10 @@ promoted summaries under `artifacts/expC/`, and the runner at `06ecc10`.
   control. After the first few generations each generation removes only the lowest few
   individuals. Seed-0 treatment fitness peaked at generation 15 (-0.863) and ended at -1.122.
   "Selection had grip" in 13.D rests on endpoint fitness deltas.
+  *(Note 2026-10-11: these numbers now have a committed source,
+  `artifacts/expC/selection_intensity.json` (19.5). It also shows that seed-1 treatment falls
+  back under 90% in five later generations and that the main milestone run's fitness series
+  and thresholds are identical to the rerun's.)*
 - *Fitness is scored on fixed layouts.* Each lifetime is 2 authentic and 2 surrogate episodes
   of 80 steps on the same two layouts (seed base 320000 plus 10000 per lineage), identical for
   every individual, generation and arm, under a deterministic policy. Section 4 of the
@@ -2624,6 +2670,12 @@ is the jitter's magnitude. Gate 0 at `sigma_v=0.01` yields oracle AUROC **0.865*
 (in-band), mechanical leakage pass, untrained floor **0.448** (within tolerance).
 This is matched-band detectability with zero learned structure.
 
+*(Note 2026-10-11: 0.865 is the point estimate on the legacy partition and reproduces exactly.
+It is the weakest in-band call on record: its pooled out-of-fold AUROC is 0.843, its pair 95%
+interval [0.766, 0.913], 0.533 of its draws below 0.85, and it reads 0.889 under the explicit
+split. "Matched-band" holds for the point under the registered rule, with less margin than any
+learned map has (19.1).)*
+
 *Hidden=8 result:* survival `transfer_gn_target` = **0.539** (n=10, mean),
 untrained floor **0.542**, predictor **0.556**. The frozen positive rule fails both
 clauses; the structured-texture direction does NOT read the matched-magnitude
@@ -2746,6 +2798,11 @@ and the 8-unit trunk, so equal values there point at the trunk width and not at 
 perturbation. No verdict changes: this run was already uninformative, the `qd` run was already
 excluded, and no claim rests on either. Dated entries: `docs/PREREGISTRATION_L3.md` section 12
 and `docs/CORRECTIONS.md`, 2026-10-10.
+
+*(Note 2026-10-11: the `qd`-trained run is now promoted, labeled off-design, as
+`artifacts/texture/T_qd_l3_h8_wm.json` (19.4), where its 8-unit trunk is read from all 60 saved
+agents and its 8 short pools are listed one by one. On the `G_gn` gate 0 quoted above (0.8653),
+see the note at 14.5 and 19.1.)*
 
 ## 14.6 A2 observation-channel localization
 
@@ -3766,6 +3823,12 @@ ten survival values is [0.537, 0.624], computed from the local, unpromoted
 the 14.5.1 correction of the same date. The last sentence above was overtaken on 2026-10-08,
 when the `gn`-trained run of 14.5.1 was executed.)*
 
+*(Note 2026-10-11: this run is now promoted, labeled off-design, as
+`artifacts/texture/T_qd_l3_h8_wm.json` (19.4; results manifest row `T-QD-TRAINED`). "Is not
+promoted to `artifacts/`" above and "local, unpromoted" in the note of 2026-10-10 are out of
+date. The promotion reproduces every value quoted here, the t-based interval [0.537, 0.624]
+included, and changes no reading: the run stays excluded and bears on no rule.)*
+
 **Reading.** At the same one-step magnitude, a hand-authored perturbation that is coherent
 over time and depends on the state is read by the survival agent's state, through the very
 direction fit on the learned law, while white jitter is read by none of the arms. What the
@@ -3919,3 +3982,317 @@ authentic and learned-surrogate dynamics in its recurrent state; the difference 
 trajectories its foraging policy produces and is kept by a trunk shaped by the prediction
 objective; and the tested agents read coherent, state-dependent deviations from the true law,
 learned or hand-written, and not white noise of the same size.
+
+## 19. Post-review analyses without agents (2026-10-11)
+
+**Status: MEASURED; no agent was trained or run, and no recorded verdict changes.** Five
+analyses answer review findings from committed fingerprints, gitignored run outputs and saved
+state dumps. Each subsection names its artifact, script and test, and says what it changes and
+what it does not. Everything ran on one CPU thread on the owner's workstation (Python 3.13.2,
+numpy 1.26.4, scikit-learn 1.5.2, torch 2.7.0+cu126). `scripts/audit_stats_recheck.py`
+rebuilds every table row below from the artifacts.
+
+### 19.1 Gate-0 oracle AUROCs with pair-clustered intervals (finding R26)
+
+Artifact `artifacts/agent_free/gate0_pair_intervals.json`; script
+`scripts/gate0_pair_intervals.py`; test `tests/test_gate0_pair_intervals.py`.
+
+Every gate-0 in-band or out-of-band call in this record is a point estimate: the grouped
+5-fold oracle AUROC over 60 matched pairs, with no interval. `run_experiment_a_l3` and
+`calibrate_l3` (`itasorl/experiment_a_l3.py`) now take `return_oof=True` and return the
+oracle's out-of-fold scores with matched-pair ids and folds, from the same fit that gives the
+point; the flag changes no number. The oracle side of gate 0 was recomputed for ten
+calibrated instances exactly as `scripts/run_expA_l3.py` computes it (60 pairs, branch 30,
+seed0 3000, sigma_meas 0.02, oracle seed 0), under both fold partitions. The untrained-floor
+side needs agents and is not covered.
+
+Fingerprints come from the committed CPU exports (`artifacts/surrogates/`). Hidden 8, 7 and 4
+at G seed 0 and hidden 8 at G seed 2 were calibrated on CUDA, and hidden 10 at G seed 1 on both
+CPU and CUDA; all are scored here from the CPU export. The seed-1 hidden 7, 8 and 9 maps were
+never exported and were retrained on CPU, one thread, from `train_g_motion`, as the cloud CPU
+calibration fit them. `G_rff` is a numpy closed-form fit and `G_gn` has no fitted part.
+
+**Reproduction.** Every recorded point reproduces to the last digit under its recorded
+partition, the CUDA-calibrated instances included.
+
+| instance | recorded value and partition | recomputed, legacy | recomputed, explicit |
+|---|---|---|---|
+| hidden 8, G seed 0 | 0.927778 legacy; 0.929167 explicit | 0.927778 | 0.929167 |
+| hidden 7, G seed 0 | 0.922222 legacy; 0.918056 explicit | 0.922222 | 0.918056 |
+| hidden 4, G seed 0 | 0.931944 legacy | 0.931944 | 0.933333 |
+| hidden 8, G seed 1 | 0.927778 explicit | 0.925000 | 0.927778 |
+| hidden 7, G seed 1 | 0.956944 explicit | 0.956944 | 0.956944 |
+| hidden 9, G seed 1 | 0.981944 explicit | 0.979167 | 0.981944 |
+| hidden 10, G seed 1 | 0.893056 explicit | 0.884722 | 0.893056 |
+| hidden 8, G seed 2 | 0.938889 explicit | 0.934722 | 0.938889 |
+| `G_rff`, D = 80 | 0.887500 legacy | 0.887500 | 0.897222 |
+| `G_gn`, sigma_v = 0.01 | 0.865278 legacy | 0.865278 | 0.888889 |
+
+Sources: `artifacts/fold_rescore/gate0_h8h7_*.json` (seed 0), the gitignored recalibration
+`fullruns/l3_gate0_recal/calibration.json` (hidden 4, which 10.5 cites by its floor only),
+`artifacts/reviewer_gaps_runs/l3_gate0_seed1*/` and `l3_gate0_seed2_gpu/`, the gitignored
+bisection JSON of 10.7 (0.887 in `artifacts/l3_crossrecipe/summary.json`), and
+`artifacts/expH2/texture_knockout_h8.json` for `G_gn`.
+
+**Intervals, on the recorded partition.** "Pair 95%" is `itasorl.stats.cluster_auroc_ci`:
+whole pairs resampled, 2000 draws, seed 0. It brackets the pooled out-of-fold AUROC, which sits
+below the recorded fold-mean point for every instance except `G_rff`, so both are given.
+"Fold-mean 95%" resamples whole pairs inside each test fold and is aligned with the recorded
+point (`itasorl.stats.fold_mean_auroc_ci`). The last three numeric columns are the shares of
+pair-bootstrap draws inside [0.85, 0.95], below it and above it. Both intervals hold the fitted
+oracle fixed, so they carry pair-sampling variation only.
+
+| instance | partition | point | pooled OOF | pair 95% | fold-mean 95% | in band | below | above | recorded call |
+|---|---|---|---|---|---|---|---|---|---|
+| hidden 8, G seed 0 | legacy | 0.928 | 0.916 | [0.859, 0.964] | [0.867, 0.971] | 0.897 | 0.015 | 0.087 | in band, gate 0 passes |
+| hidden 7, G seed 0 | legacy | 0.922 | 0.905 | [0.841, 0.958] | [0.861, 0.967] | 0.897 | 0.049 | 0.053 | in band |
+| hidden 4, G seed 0 | legacy | 0.932 | 0.920 | [0.862, 0.964] | [0.874, 0.971] | 0.878 | 0.009 | 0.113 | in band, floor fails |
+| hidden 8, G seed 1 | explicit | 0.928 | 0.917 | [0.856, 0.964] | [0.874, 0.972] | 0.876 | 0.018 | 0.106 | in band, floor fails |
+| hidden 7, G seed 1 | explicit | 0.957 | 0.939 | [0.890, 0.978] | [0.915, 0.990] | 0.645 | 0.001 | 0.354 | out of band |
+| hidden 9, G seed 1 | explicit | 0.982 | 0.973 | [0.934, 0.998] | [0.949, 1.000] | 0.099 | 0.000 | 0.901 | out of band |
+| hidden 10, G seed 1 | explicit | 0.893 | 0.882 | [0.817, 0.941] | [0.832, 0.947] | 0.840 | 0.148 | 0.011 | in band, gate 0 passes |
+| hidden 8, G seed 2 | explicit | 0.939 | 0.927 | [0.871, 0.971] | [0.885, 0.981] | 0.809 | 0.006 | 0.184 | in band, gate 0 passes |
+| `G_rff`, D = 80 | legacy | 0.887 | 0.890 | [0.824, 0.945] | [0.819, 0.943] | 0.883 | 0.102 | 0.014 | in band |
+| `G_gn`, sigma_v = 0.01 | legacy | 0.865 | 0.843 | [0.766, 0.913] | [0.807, 0.933] | 0.467 | 0.533 | 0.000 | in band |
+
+**Reading.** No 95% interval of either kind lies inside the band, and none lies wholly outside
+it. The pair intervals are 0.06 to 0.15 wide, against a band 0.10 wide. The in-band calls on
+the learned maps rest on points whose pair bootstrap puts 81% to 90% of its mass in the band.
+The two seed-1 out-of-band calls differ in strength: hidden 9 sits above the band in 90% of
+draws, hidden 7 in only 35%, so the hidden 7 exclusion is a near call on the point. `G_gn` is
+the weakest in-band call: its pooled out-of-fold AUROC (0.843) is below 0.85, more than half its
+draws fall below the band, and under the explicit partition it reads 0.889. The `G_gn` and
+`G_rff` points move by 0.024 and 0.010 between the two partitions.
+
+**What this changes and what it does not.** The band is a registered selection rule applied to
+the point estimate, and every recorded value stands as recorded, so no gate is re-adjudicated.
+The intervals say how far each call sits from its band edges. Dated notes at 10.1, 10.5, 10.7,
+10.9 and 14.5 point here.
+
+### 19.2 Residual-field correlation of the L3 fingerprints
+
+Artifact `artifacts/agent_free/residual_field_correlation.json`; script
+`scripts/residual_field_correlation.py`; test `tests/test_residual_field_correlation.py`.
+
+The 10.5 scope note (2026-07-18) quotes Pearson r of about +0.60 between the hidden 8 and
+hidden 7 residual fields and about +0.20 between hidden 8 and `G_rff`, with no committed
+artifact. The residual field of a velocity law G is G(vel, a) minus the authentic world-P law
+(1 - 1.5 dt) vel + a dt, on the inputs of fresh authentic scripted-policy transitions: 250
+episodes of 40 steps from `HELDOUT_SEED` (episodes 100000 to 100249, 10000 transitions), a
+range checked disjoint from every fingerprint's training range before scoring. The fingerprints
+are the five committed CPU exports and `G_rff` at D = 80, rebuilt from its frozen recipe. r
+pools both velocity components; intervals are percentile bootstraps over episodes (2000 draws,
+seed 0), computed from per-episode sums the artifact stores.
+
+The two quoted values reproduce: hidden 8 against hidden 7 reads +0.607 (r squared 0.37), and
+hidden 8 against `G_rff` reads +0.174 (r squared 0.03).
+
+| | h8 s0 | h7 s0 | h4 s0 | h10 s1 | h8 s2 | rff D80 |
+|---|---|---|---|---|---|---|
+| h8 s0 | 1 | +0.607 | +0.470 | +0.430 | +0.518 | +0.174 |
+| h7 s0 |  | 1 | +0.653 | +0.423 | +0.585 | +0.151 |
+| h4 s0 |  |  | 1 | +0.329 | +0.667 | +0.228 |
+| h10 s1 |  |  |  | 1 | +0.571 | +0.182 |
+| h8 s2 |  |  |  |  | 1 | +0.260 |
+
+| pair | r | 95% | r on x | r on y |
+|---|---|---|---|---|
+| h8 s0, h7 s0 | +0.607 | [+0.573, +0.639] | +0.560 | +0.724 |
+| h8 s0, h8 s2 | +0.518 | [+0.479, +0.557] | +0.657 | +0.393 |
+| h8 s0, h10 s1 | +0.430 | [+0.358, +0.496] | +0.515 | +0.366 |
+| h10 s1, h8 s2 | +0.571 | [+0.511, +0.625] | +0.549 | +0.596 |
+| h8 s0, rff D80 | +0.174 | [+0.133, +0.217] | +0.294 | +0.039 |
+| h10 s1, rff D80 | +0.182 | [+0.146, +0.215] | +0.256 | +0.103 |
+| h8 s2, rff D80 | +0.260 | [+0.208, +0.314] | +0.319 | +0.180 |
+
+Field sizes (RMS of the two-component residual): h8 s0 0.036, h7 s0 0.056, h4 s0 0.115, h10 s1 0.025, h8 s2 0.035, rff D80 0.043.
+
+**Reading.** Every pair of MLP fields correlates between +0.33 and +0.67, whatever the capacity
+or G seed, and `G_rff` correlates between +0.15 and +0.26 with every MLP. The scope note
+attributes the hidden 8 and hidden 7 overlap to their shared training set. Two entries of the
+matrix weigh against that. `G_rff` is fit on exactly the hidden 8 seed-0 episodes [0, 250) and
+shares only 3% of variance with it, and the MLPs at other G seeds share about as much with
+hidden 8 seed 0 (+0.43 at hidden 10 seed 1, +0.52 at hidden 8 seed 2) as hidden 7 does
+(+0.61). One caution on "other seeds": `train_g_motion` draws episodes [s, s + 250), so the
+seed-1 and seed-2 maps share 249 and 248 of their 250 training episodes with the seed-0 maps,
+and what changes between them is mostly the weight initialisation. The overlap among MLP
+fields is best described as a property of the recipe (a small ReLU MLP fit for 300 epochs to
+these transitions); the matrix cannot separate recipe from data any further.
+
+**What this changes and what it does not.** The scope note's attribution to the shared dataset
+is corrected (dated note at 10.5; `docs/CORRECTIONS.md`, 2026-10-11). Its conclusion stands:
+hidden 7 is a capacity variant of one recipe, and the recipe-level generalization claim rests
+on `G_rff`, the one fingerprint in the set that is close to orthogonal to all the others.
+
+### 19.3 Random-forest probe on the historical hidden-8 dumps
+
+Artifact `artifacts/agent_free/rf_probe_l3_n10_historical.json`; script
+`scripts/rf_probe_historical_h8.py`; test `tests/test_rf_probe_historical.py`. HISTORICAL:
+the 60 dumps of `fullruns/l3_n10/states` come from the hidden-8 n = 10 run trained by the
+pre-correction trainer.
+
+10.3 reports a random-forest probe on the untrained agent at 0.517 (shuffled baseline 0.506,
+L0 untrained 0.483). The committed random-forest path in `itasorl/behavior_audit.py` fits
+behavior features, not recurrent states, so it is not the source. No committed code fits a
+forest to the L3 states: the preregistration entry of 2026-07-12 calls the check post hoc, and
+the commit that made the behavior audit canonical says the figures of that time came from an
+uncommitted analysis. The closest committed code is `scripts/run_expB_nonlinear.py`: 200
+trees, random_state 0, `episode_features` of the states, episode-grouped folds, one label
+permutation from default_rng(seed) as the shuffled control. That forest is scored here beside
+the registered linear probe, under both partitions.
+
+**Reproduction.** The linear probe matches the run's own record (`pool_target` and the
+single-draw `pool_shuffled`) and the committed fold re-score of these dumps exactly in all 60
+cells. The forest comes close to the three recorded values and matches none of them exactly:
+
+| untrained arm, legacy partition | recorded (10.3) | forest, random_state 0 | forest, random_state = cell seed |
+|---|---|---|---|
+| drift 0.45, target | 0.517 | 0.514 | 0.518 |
+| drift 0.45, shuffled | 0.506 | 0.508 | 0.502 |
+| drift 0, target | 0.483 | 0.485 | 0.483 |
+
+Per arm and drift, mean over 10 seeds with its t-based 90% interval and the seeds at or above
+0.65. Legacy partition (the one the run was published on); the linear shuffled column gives
+the single historical draw and the mean of eight draws:
+
+| drift | arm | linear | linear shuffled (1 / 8 draws) | forest | forest shuffled |
+|---|---|---|---|---|---|
+| 0.45 | survival | 0.752 [0.698, 0.807], 8/10 | 0.518 / 0.496 | 0.773 [0.721, 0.825], 9/10 | 0.544 [0.523, 0.565] |
+| 0.45 | predictor | 0.573 [0.542, 0.604], 0/10 | 0.490 / 0.499 | 0.577 [0.550, 0.605], 0/10 | 0.500 [0.466, 0.534] |
+| 0.45 | untrained | 0.488 [0.457, 0.518], 0/10 | 0.511 / 0.504 | 0.514 [0.487, 0.540], 0/10 | 0.508 [0.473, 0.544] |
+| 0 | survival | 0.517 [0.495, 0.538], 0/10 | 0.517 / 0.506 | 0.509 [0.491, 0.528], 0/10 | 0.528 [0.503, 0.553] |
+| 0 | predictor | 0.484 [0.451, 0.518], 0/10 | 0.485 / 0.492 | 0.493 [0.483, 0.504], 0/10 | 0.493 [0.464, 0.521] |
+| 0 | untrained | 0.476 [0.456, 0.495], 0/10 | 0.505 / 0.504 | 0.485 [0.458, 0.511], 0/10 | 0.524 [0.493, 0.554] |
+
+Explicit partition:
+
+| drift | arm | linear | forest | forest shuffled |
+|---|---|---|---|---|
+| 0.45 | survival | 0.774 [0.727, 0.821], 9/10 | 0.786 [0.734, 0.838], 9/10 | 0.527 [0.501, 0.553] |
+| 0.45 | predictor | 0.588 [0.562, 0.615], 0/10 | 0.619 [0.593, 0.644], 2/10 | 0.490 [0.464, 0.516] |
+| 0.45 | untrained | 0.513 [0.490, 0.536], 0/10 | 0.557 [0.545, 0.569], 0/10 | 0.516 [0.483, 0.548] |
+| 0 | survival | 0.539 [0.516, 0.562], 0/10 | 0.526 [0.510, 0.543], 0/10 | 0.514 [0.499, 0.529] |
+| 0 | predictor | 0.507 [0.475, 0.540], 0/10 | 0.537 [0.527, 0.547], 0/10 | 0.507 [0.474, 0.540] |
+| 0 | untrained | 0.480 [0.455, 0.506], 0/10 | 0.511 [0.492, 0.530], 0/10 | 0.519 [0.497, 0.541] |
+
+**Reading.** On the legacy partition the forest agrees with 10.3: the untrained agent's states
+sit at chance for a nonlinear reader too (0.514, interval spanning 0.5), and the survival agent
+reads 0.773, a little above its linear 0.752. The forest reads 0.004 to 0.044 above the linear
+probe in ten of the twelve arm, drift and partition cells, and 0.008 and 0.013 below it in the
+two drift-0 survival cells. On the explicit partition the untrained forest at drift 0.45 reads
+0.557 with an interval that excludes 0.5, against a shuffled control of 0.516, while the linear
+untrained probe stays at 0.513. The survival-versus-untrained gap stays large under every probe
+and partition (0.23 to 0.26 for the forest).
+
+**What this changes and what it does not.** The 0.517 in 10.3 has no committed source and does
+not reproduce exactly (the closest values are 0.514 and 0.518), and the "near-chance even
+nonlinearly" reading holds on the published partition only (dated note at 10.3;
+`docs/CORRECTIONS.md`, 2026-10-11). The historical headline and its dissociation from the
+untrained arm are unchanged.
+
+### 19.4 Two runs promoted for the record: T-qd (off-design) and hidden 4 (failed gates)
+
+Artifacts `artifacts/texture/T_qd_l3_h8_wm.json` and
+`artifacts/expB2/failed_gates_l3_h4_traces.json`; script `scripts/promote_off_design_runs.py`,
+which reuses the gate helpers of `scripts/promote_texture_trained.py`; test
+`tests/test_promote_off_design_runs.py`. Neither run bears on any rule.
+
+**T-qd** (`fullruns/T_qd_l3_h8_wm`, finding R72), labeled OFF-DESIGN: the survival run in the
+quadratic-drag family at eps 6.0 of the 17.9 addendum, corrected (successor) trainer, run
+commit `2606e7f`, config fingerprint `23a620e51d4e26fd`. Every value the record states in prose
+reproduces from the bundle. The seed-bootstrap column is the run's own printed interval
+(`itasorl.stats.mean_ci`, 10000 draws, seed 0).
+
+| drift | arm | pooled target | t-based 90% | seed-bootstrap 90% | seeds at or above 0.65 |
+|---|---|---|---|---|---|
+| 0.45 | survival | 0.580 | [0.537, 0.624] | [0.542, 0.615] | 2/10 |
+| 0.45 | predictor | 0.573 | [0.546, 0.601] | [0.549, 0.595] | 0/10 |
+| 0.45 | untrained | 0.608 | [0.580, 0.635] | [0.584, 0.630] | 2/10 |
+| 0 | survival | 0.523 | [0.502, 0.544] | [0.506, 0.541] | 0/10 |
+| 0 | predictor | 0.516 | [0.490, 0.543] | [0.495, 0.540] | 0/10 |
+| 0 | untrained | 0.537 | [0.518, 0.557] | [0.520, 0.554] | 0/10 |
+
+The speed positive control falls below 0.75 in 8 of 60 pools, worst 0.7018. Seven of the eight
+are untrained pools (drift 0 seeds 0, 1 and 2; drift 0.45 seeds 0, 2, 3 and 8) and the eighth
+is the drift-0.45 survival pool of seed 2. Engagement holds in 10 of 10 cells at drift 0 and 6
+of 10 at drift 0.45; L0 reads 0.523 (TOST p 0.020, equivalent); pooled reward leakage stays
+within 0.079 of 0.5 in every pool; no episode ends early; the untrained floor (0.608) lies
+0.108 from 0.5, outside the 0.1 tolerance. No eps of the frozen qd sweep reaches the gate-0 band
+(highest oracle 0.768 at eps 16), and eps 6.0 was matched on one-step magnitude, not
+calibrated. All 60 saved agents carry an 8-unit trunk (constructor record and `weight_hh`
+shape agree), against the registered 96. Gates failed: gate 0, engagement, speed positive
+control, untrained floor.
+
+**Hidden 4** (`fullruns/l3_h4_traces`), labeled FAILED GATES, UNINFORMATIVE: the run of 10.5,
+historical trainer, run commit `bf8a74e`, CUDA. Before this, only the fold re-score of its
+dumped states was committed (`artifacts/fold_rescore/l3_h4_traces.json`). No agents were kept,
+so the trunk width is read from the dumped recurrent states: 96 in all 60 dumps, the
+registered width.
+
+| drift | arm | pooled target | t-based 90% | seed-bootstrap 90% | seeds at or above 0.65 |
+|---|---|---|---|---|---|
+| 0.45 | survival | 0.953 | [0.946, 0.961] | [0.947, 0.959] | 10/10 |
+| 0.45 | predictor | 0.946 | [0.937, 0.955] | [0.938, 0.954] | 10/10 |
+| 0.45 | untrained | 0.891 | [0.872, 0.910] | [0.875, 0.907] | 10/10 |
+| 0 | survival | 0.517 | [0.495, 0.538] | [0.498, 0.535] | 0/10 |
+| 0 | predictor | 0.484 | [0.451, 0.518] | [0.456, 0.513] | 0/10 |
+| 0 | untrained | 0.476 | [0.456, 0.495] | [0.459, 0.492] | 0/10 |
+
+Gates: untrained floor 0.891, which fails; pooled reward leak clean in 0/10 survival seeds (3/10
+predictor, 4/10 untrained, worst deviation 0.204), which fails; engagement 10/10 at drift 0 and
+3/10 at drift 0.45, which fails; speed control at or above 0.75 in all 60 pools (worst 0.784);
+L0 0.517, TOST p 0.010; no early deaths. Gate 0 measured on world `P` after the run (19.1): the
+oracle reads 0.932 in band, and the untrained floor of the local recalibration reads 0.896, so
+gate 0 fails on the floor. The drift-0 cells are the published hidden-8 run's (no surrogate is
+installed at drift 0), so the L0 numbers are not independent of that run.
+
+**What this changes and what it does not.** The 17.9 addendum's "is not promoted" and the
+hidden-4 statements of 10.5 now have committed sources (dated notes there). T-qd stays
+excluded from the learned-texture rule and hidden 4 stays UNINFORMATIVE.
+
+### 19.5 Experiment C selection intensity per generation (finding Q5)
+
+Artifact `artifacts/expC/selection_intensity.json`; script `scripts/expC_selection_intensity.py`;
+test `tests/test_expC_selection_intensity.py`.
+
+Each arm's reproduction threshold is the median of that arm's generation-0 fitness and stays
+fixed for all 30 generations. A qualifier is an individual of generation g whose lifetime
+fitness reaches that threshold, counted before generation g reproduces. The per-individual
+rerun of 13.F (run commit `06ecc10`) recorded the counts; the main milestone output
+(`a0cb850`) did not. Both carry identical fitness series and thresholds for every seed and arm,
+so the counts describe both. Milestone 3 is routed uninformative, so this is descriptive.
+
+Qualifiers out of 48, generations 0 to 7:
+
+| seed | arm | threshold | g0 | g1 | g2 | g3 | g4 | g5 | g6 | g7 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | treatment | -1.844 | 24 | 33 | 39 | 44 | 46 | 48 | 48 | 48 |
+| 0 | control | 0.054 | 24 | 34 | 40 | 44 | 47 | 47 | 47 | 48 |
+| 1 | treatment | -0.053 | 24 | 33 | 39 | 40 | 42 | 41 | 43 | 44 |
+| 1 | control | 6.045 | 24 | 32 | 36 | 40 | 42 | 43 | 43 | 46 |
+| 2 | treatment | -0.575 | 24 | 34 | 39 | 42 | 45 | 43 | 42 | 44 |
+| 2 | control | 6.147 | 24 | 34 | 39 | 39 | 44 | 46 | 48 | 46 |
+
+Per seed and arm (90% means at least 44 of 48):
+
+| seed | arm | first generation at or above 90% | stays at or above 90% from | later generations below 90% | mean share, generations 5 to 29 | mean fitness g0, peak (generation), g29 |
+|---|---|---|---|---|---|---|
+| 0 | treatment | 3 | 3 | none | 0.988 | -1.470, -0.863 (15), -1.122 |
+| 0 | control | 3 | 22 | 20, 21 | 0.962 | +2.033, +6.218 (7), +5.294 |
+| 1 | treatment | 7 | never | 10, 17, 19, 20, 29 | 0.922 | -0.540, +0.765 (26), +0.672 |
+| 1 | control | 7 | 7 | none | 0.973 | +2.621, +6.300 (13), +6.297 |
+| 2 | treatment | 4 | 7 | 5, 6 | 0.951 | -0.935, +0.015 (9), +0.008 |
+| 2 | control | 4 | 18 | 17 | 0.968 | +2.633, +6.319 (25), +6.281 |
+
+**Reading.** These are the numbers the 13.F selection-intensity note already quotes, now with a
+committed source. 90% of each population reaches the threshold within three to seven
+generations, and from generation 5 on each generation drops on average 0.6 to 3.7 of its 48
+individuals. In seed 0, treatment fitness peaks at generation 15 and falls back by 0.26 by
+generation 29 while nearly every individual still qualifies, so the fixed generation-0 median
+exerts almost no selection over most of the run. Seed-1 treatment is the one series that never
+settles above 90%: it dips below in five later generations and has the lowest late share
+(0.922). The series describes generation g before it reproduces, so the population finally
+panelled (the product of generation 29's reproduction) has no fitness value in either output.
+
+**What this changes and what it does not.** The selection-intensity numbers of 13.F gain a
+committed source (dated note there). Milestone 3 stays UNINFORMATIVE.
