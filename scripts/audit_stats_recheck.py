@@ -3643,10 +3643,68 @@ def s20_l1() -> dict:
     return {"rows": rows, "contrasts": contrasts, "labels": labels, "conv": conv}
 
 
+def s20_r205() -> dict:
+    """20.15: the mean-h / h_T decomposition of the registered probe on the C1 rerun's agents,
+    recomputed from the per_seed block; integrity against the recorded targets and against the
+    r210 output, and the pre-stated MEAN CARRIES / FINAL CARRIES / BOTH label derived again."""
+    doc = _af_load("post_review", "C1-rerun_r205.json")
+    ps, sm = doc["per_seed"]["r205"], doc["summary"]["r205"]
+    check_true("20.15 r205 output complete on ten seeds, the C1 stack, explicit-v1, no errors",
+               doc["complete"] and not doc["errors"] and doc["requested"]["readouts"] == ["r205"]
+               and sorted(ps, key=int) == S20_SEEDS and doc["stack"]["torch"] == "2.14.1+cpu"
+               and doc["fold_version"] == "explicit-v1" and doc["integrity"]["checked_by"] == "r205"
+               and not any(doc["integrity"]["unreproduced"].values()))
+    r210 = _af_load("post_review", "C1-rerun.json")["per_seed"]["r210"]
+    n = {"cells": 0, "ok": 0, "same_as_r210": 0}
+    for s in S20_SEEDS:
+        for dr, arms in ps[s]["cells"].items():
+            for arm, c in arms.items():
+                n["cells"] += 1
+                n["ok"] += bool(c["reproduced"] and c["shuffled_reproduced"] and c["perm_check"]
+                                and c["target"] == c["recorded_target"]
+                                and c["sets"]["concat"]["target"] == c["recorded_target"])
+                n["same_as_r210"] += c["recorded_target"] == r210[s]["cells"][dr][arm]["recorded_target"]
+    check_true("20.15 r205: in all 60 cells the concatenation equals the recorded pooled target as a float, "
+               "the shuffled control reproduces and the permutation check passes",
+               n["cells"] == 60 and n["ok"] == 60)
+    check_int("20.15 r205: recorded targets equal to r210's", n["same_as_r210"], 60)
+    sets = ("mean", "final", "concat")
+    out = {"n": n}
+    for dr in ("0.45", "0.00"):
+        rows, sh = [], []
+        for a in S20_ARMS:
+            v = {k: [ps[s]["cells"][dr][a]["sets"][k]["target"] for s in S20_SEEDS] for k in sets}
+            sh += [float(np.mean([ps[s]["cells"][dr][a]["sets"][k]["shuffled"] for s in S20_SEEDS])) for k in sets]
+            blk = sm[dr]["arms"][a]
+            cells = []
+            for k in sets:
+                _s20_agree(f"20.15 r205 {dr} {a} {k}", _s20_ms(v[k]), blk[k]["target"])
+                n65 = int(sum(x >= BAR for x in v[k]))
+                check_int(f"20.15 r205 {dr} {a} {k}: seeds at or above 0.65", n65, blk[k]["target"]["n_at_or_above_bar"])
+                cells.append(f"{_s20_cell(v[k])}, {n65}/10")
+            d = {}
+            for key, x, y in (("mean_minus_final", "mean", "final"), ("concat_minus_mean", "concat", "mean"),
+                              ("concat_minus_final", "concat", "final")):
+                d[key] = _s20_ms(np.asarray(v[x]) - np.asarray(v[y]))
+                _s20_agree(f"20.15 r205 {dr} {a} {key}", d[key], sm[dr]["differences"][a][key])
+            cm, cf = d["concat_minus_mean"][0], d["concat_minus_final"][0]
+            lab = ("MEAN CARRIES" if cm <= 0.02 and cf >= 0.05 else "FINAL CARRIES" if cf <= 0.02 and cm >= 0.05
+                   else "BOTH")
+            check_true(f"20.15 r205 {dr} {a}: label {lab} derived again", lab == sm[dr]["reading"][a])
+            rows.append((f"20.15 r205 drift {dr} row {a}",
+                         f"| {a} | " + " | ".join(cells) + " | "
+                         + " | ".join(f"{d[k][0]:+.3f} {_af_iv(d[k][1], True)}"
+                                      for k in ("mean_minus_final", "concat_minus_mean", "concat_minus_final"))
+                         + f" | {lab} |"))
+            out[(dr, a)] = {"v": v, "d": d, "label": lab}
+        out[dr] = {"rows": rows, "sh_range": (min(sh), max(sh))}
+    return out
+
+
 def post_review_checks(findings: str, prereg: str) -> None:
     print("\n== FINDINGS 20: corrected-trainer reruns and post-review readouts (2026-10-11) ==")
     s20 = findings[findings.index("## 20. Corrected-trainer reruns"):]
-    heads = [f"### 20.{i} " for i in range(1, 15)]
+    heads = [f"### 20.{i} " for i in range(1, 16)]
     sub = {}
     for i, h in enumerate(heads):
         end = s20.index(heads[i + 1]) if i + 1 < len(heads) else len(s20)
@@ -3791,6 +3849,39 @@ def post_review_checks(findings: str, prereg: str) -> None:
         ("17.8: R31", "NOT CAPACITY-LIMITED"),
     ]:
         check_true(f"FINDINGS dated note (2026-10-11) quotes {label}: {needle}", in_note(needle))
+    # 20.15: R205, the mean-h / h_T decomposition, and the 2026-10-12 notes that point to it.
+    D = s20_r205()
+    for dr in ("0.45", "0.00"):
+        for label, needle in D[dr]["rows"]:
+            check_true(f"FINDINGS {label} quoted", needle in sub["20.15"])
+    lo, hi = min(D["0.45"]["sh_range"][0], D["0.00"]["sh_range"][0]), max(D["0.45"]["sh_range"][1], D["0.00"]["sh_range"][1])
+    check_true("20.15 quotes the range of the shuffled controls", f"{lo:.3f} to {hi:.3f}" in flat["20.15"])
+    labs = {D[(dr, a)]["label"] for dr in ("0.45", "0.00") for a in S20_ARMS}
+    check_true("20.15 says the label is BOTH for every arm at both drifts",
+               labs == {"BOTH"} and "The label is BOTH for every arm at both drifts" in flat["20.15"])
+    sv, sv0 = D[("0.45", "survival")], D[("0.00", "survival")]
+    _cm, _cf, _mf = sv["d"]["concat_minus_mean"], sv["d"]["concat_minus_final"], sv["d"]["mean_minus_final"]
+    for needle in (f"short of the concatenation's {np.mean(sv['v']['concat']):.3f} by {_cm[0]:+.3f} {_af_iv(_cm[1], True)}",
+                   f"The final state alone reads {np.mean(sv['v']['final']):.3f}, within {_cf[0]:.3f} of the "
+                   f"concatenation ({_cf[0]:+.3f} {_af_iv(_cf[1], True)})",
+                   f"mean h minus h_T is {_mf[0]:+.3f} {_af_iv(_mf[1], True)}",
+                   f"it falls {_cm[0]:.3f} short",
+                   f"({sv0['d']['mean_minus_final'][0]:+.3f} {_af_iv(sv0['d']['mean_minus_final'][1], True)})"):
+        check_true(f"20.15 reading quotes: {needle}", needle in flat["20.15"])
+    check_true("20.15: the survival arm's mean h alone falls short of the concatenation (interval above zero) "
+               "and h_T alone reads above mean h on the seed means", _cm[1][0] > 0 and _mf[0] < 0)
+    _n12 = [" ".join(x.split()) for x in re.findall(r"\*\(Note 2026-10-12.*?\)\*", findings, flags=re.S)]
+    _r205 = (f"{np.mean(sv['v']['mean']):.3f} from mean h alone, {np.mean(sv['v']['final']):.3f} from h_T alone "
+             f"and {np.mean(sv['v']['concat']):.3f} from the concatenation")
+    check_true("17.7 note (2026-10-12) quotes the R205 decomposition and its label",
+               any(_r205 in x and "label is BOTH" in x and f"{_mf[0]:+.3f} {_af_iv(_mf[1], True)}" in x for x in _n12))
+    check_true("20.4 carries a 2026-10-12 pointer to 20.15",
+               "*(Note 2026-10-12: R205 splits the registered linear feature" in sub["20.4"])
+    with open(os.path.join(ARTROOT, "..", "docs", "PAPER_OUTLINE.md"), encoding="utf-8") as fh:
+        _po12 = " ".join(fh.read().split())
+    check_true("PAPER_OUTLINE 4.3 note (2026-10-12) quotes the R205 halves and label",
+               f"Mean h alone reads {np.mean(sv['v']['mean']):.3f} and h_T alone {np.mean(sv['v']['final']):.3f}" in _po12
+               and "the pre-stated label is BOTH" in _po12)
     head_a = "CORRECTED-TRAINER RERUNS OF THE GENERALITY RUNS ANNOUNCED"
     head_r = "CORRECTED-TRAINER RERUNS OF THE GENERALITY RUNS: RESULTS"
     check_true("PREREGISTRATION_L3 carries the results entry after the announcement",

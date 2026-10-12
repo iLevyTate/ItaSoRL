@@ -3761,6 +3761,13 @@ footprint of the prefix, not by memory. The historical common-garden numbers (0.
 stay as recorded under the same narrow wording; the agents behind them are not in this
 repository, so this test cannot be run on them.
 
+*(Note 2026-10-12: the spec of R205 cites the fading per-step reading above as a hint that the
+registered reading might rest on the time-averaged half of the probe feature [mean h, h_T]. R205
+measures it on the `C1` rerun's agents (20.15). At drift 0.45 the survival arm reads 0.692 from
+mean h alone, 0.716 from h_T alone and 0.733 from the concatenation, so the time-averaged state
+alone does not carry the reading, and the final state alone reads at least as high on the seed
+means (mean h minus h_T -0.025 [-0.052, +0.003]). The pre-stated label is BOTH.)*
+
 ### 17.8 What each behavior and sensory control removes (revision step 8)
 
 Every control regresses a named basis out of h_t in-fold and probes what is left. It shows
@@ -4537,7 +4544,8 @@ the second capacity and the two further fingerprint instances on the corrected t
 their agents saved, and reran `C2` to keep its agents. `docs/specs/2026-10-11-post-review-readouts-design.md`,
 frozen before any readout ran, names five readouts on saved agents (R210, R35, R206, R33, R31)
 and, in its amendment, the L1 part of R31. They are recorded here on the agents of all five
-reruns (`C1`, `C2` and the three instances), with the draw-free C1 minus C2 contrast. Every run and readout executed in the Claude Code
+reruns (`C1`, `C2` and the three instances), with the draw-free C1 minus C2 contrast. A second
+amendment, of 2026-10-12, adds R205, run on the `C1` rerun's agents (20.15). Every run and readout executed in the Claude Code
 cloud container on the `C1` stack (torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1) under the
 explicit-v1 fold partition; the contrast was computed afterwards from two committed readout
 outputs (20.12). `scripts/promote_reviewer_gaps_runs.py` promoted each rerun to
@@ -4712,6 +4720,9 @@ reading: linear 0.733 against 0.559, MLP 0.747 against 0.544, forest 0.730 again
 does not hold on the corrected agents: the forest reads the untrained state at 0.559, as 19.3
 found for the historical dumps under the explicit partition (0.557). The survival margin over the
 untrained arm stays large under every class.
+
+*(Note 2026-10-12: R205 splits the registered linear feature into its two halves on the same
+pools; 20.15.)*
 
 ### 20.5 R35: normalizer-matched replay (beside 17.6)
 
@@ -5247,3 +5258,47 @@ agents and on all three instance reruns, and SPLIT on the `C2` agents. R206 read
 and the hidden 10 instance, MIXED on `C2` and the hidden 8 seed 2 instance, and NOT HIGHER on the
 off-design hidden 7 run. No wider GRU reads the survival agent's own stream at least 0.05 above
 the trunk-width one in any run.
+
+### 20.15 R205: which half of the registered feature carries the reading (beside 20.4)
+
+Artifact `artifacts/post_review/C1-rerun_r205.json` with its partial file; the runner of 20.3 run
+with `--readouts r205`, commit `ab0388c`, on the same stack. Spec: the amendment of 2026-10-12 to
+`docs/specs/2026-10-11-post-review-readouts-design.md`, written before any R205 number existed.
+The registered probe reads the episode feature [mean h, h_T], 192 columns. R205 scores the
+registered linear probe, unchanged, on mean h alone (the first 96 columns), on h_T alone (the last
+96) and on the concatenation, for every arm of the `C1` rerun at both drifts, on the registered
+pools. The output is complete on all ten seeds. In all 60 arm-cells (20 cells, three arms each)
+the regenerated concatenation equals the recorded pooled target as a float, the shuffled control
+reproduces, and the permutation check passes; the recorded targets are the ones R210 checked
+(20.3). The shuffled controls of every set read 0.492 to 0.511. The pre-stated labels, per arm on
+the seed-paired mean differences: MEAN CARRIES when the concatenation minus mean h is at most 0.02
+and the concatenation minus h_T at least 0.05, FINAL CARRIES for the mirror case, BOTH otherwise.
+
+Drift 0.45 (target with its t-based 90% interval and seeds at or above 0.65):
+
+| arm | mean h only | h_T only | concatenation (registered) | mean h minus h_T | concatenation minus mean h | concatenation minus h_T | label |
+|---|---|---|---|---|---|---|---|
+| survival | 0.692 [0.639, 0.745], 6/10 | 0.716 [0.655, 0.778], 8/10 | 0.733 [0.669, 0.797], 8/10 | -0.025 [-0.052, +0.003] | +0.041 [+0.022, +0.060] | +0.017 [-0.002, +0.035] | BOTH |
+| predictor | 0.575 [0.551, 0.599], 0/10 | 0.618 [0.584, 0.652], 4/10 | 0.589 [0.567, 0.610], 0/10 | -0.043 [-0.068, -0.017] | +0.013 [-0.002, +0.029] | -0.029 [-0.046, -0.012] | BOTH |
+| untrained | 0.526 [0.494, 0.558], 0/10 | 0.536 [0.500, 0.573], 0/10 | 0.523 [0.491, 0.554], 0/10 | -0.010 [-0.051, +0.030] | -0.003 [-0.029, +0.023] | -0.014 [-0.038, +0.010] | BOTH |
+
+Drift 0, authentic against authentic on the registered pair:
+
+| arm | mean h only | h_T only | concatenation (registered) | mean h minus h_T | concatenation minus mean h | concatenation minus h_T | label |
+|---|---|---|---|---|---|---|---|
+| survival | 0.552 [0.535, 0.569], 0/10 | 0.518 [0.501, 0.535], 0/10 | 0.559 [0.549, 0.570], 0/10 | +0.033 [+0.010, +0.057] | +0.008 [-0.010, +0.025] | +0.041 [+0.025, +0.057] | BOTH |
+| predictor | 0.501 [0.472, 0.530], 0/10 | 0.515 [0.496, 0.535], 0/10 | 0.508 [0.475, 0.541], 0/10 | -0.014 [-0.041, +0.012] | +0.007 [-0.015, +0.028] | -0.008 [-0.030, +0.014] | BOTH |
+| untrained | 0.492 [0.465, 0.518], 0/10 | 0.491 [0.462, 0.520], 0/10 | 0.491 [0.466, 0.515], 0/10 | +0.000 [-0.024, +0.024] | -0.001 [-0.025, +0.022] | -0.001 [-0.021, +0.019] | BOTH |
+
+**Reading.** The label is BOTH for every arm at both drifts. For the survival arm at drift 0.45 the
+time-averaged state alone does not carry the registered reading: mean h reads 0.692, short of the
+concatenation's 0.733 by +0.041 [+0.022, +0.060]. The final state alone reads 0.716, within
+0.017 of the concatenation (+0.017 [-0.002, +0.035]), and higher than the time average on the seed means: mean h minus h_T
+is -0.025 [-0.052, +0.003], an interval that includes zero. The named case nearest the result is
+FINAL CARRIES, which needs mean h to fall at least 0.05 short; it falls 0.041 short, so neither
+half alone accounts for the registered reading. For the predictor, h_T alone reads 0.618, above
+both mean h (0.575) and the registered concatenation (0.589). At drift 0 the order turns over for
+the survival arm: mean h separates the two authentic world samples at 0.552 against 0.518 for h_T
+(+0.033 [+0.010, +0.057]), so the world-sample difference behind the open L0 gate (17.5) sits more
+in the time average than in the final state. These are post-review diagnostics: the registered
+estimand stays the concatenation, and no verdict changes.

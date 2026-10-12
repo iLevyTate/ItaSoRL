@@ -4427,6 +4427,52 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "post_review/C1-rerun_r205.json",
+        "post_review/C1-rerun_r205.json.partial.jsonl"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "ab0388c (research/r205-decomposition)",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": null,
+      "device": "Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)",
+      "eval_seeds": {
+        "r205": "800000 / 850000, the registered pair"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "C1-R205",
+      "local_run_dir": null,
+      "notes": "scripts/run_post_review_readouts.py --readouts r205; the 2026-10-12 amendment of docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.15, with dated notes at 17.7 and 20.4 and in PAPER_OUTLINE 4.3. Diagnostic: the registered estimand stays the concatenation and no verdict changes. Integrity: in all 60 arm-cells the concatenation equals the recorded pooled target as a float. Drift 0.45 survival: mean h 0.692, h_T 0.716, concatenation 0.733; label BOTH for every arm at both drifts.",
+      "readout_only_on": [
+        "C1",
+        "C1-RERUN"
+      ],
+      "recorded_provenance": {
+        "post_review/C1-rerun_r205.json": {
+          "generated_by": "scripts/run_post_review_readouts.py",
+          "git_commit": "ab0388c",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md",
+          "stack": {
+            "numpy": "2.4.6",
+            "python": "3.11.17",
+            "scipy": "1.17.1",
+            "sklearn": "1.9.1",
+            "torch": "2.14.1+cpu"
+          }
+        },
+        "post_review/C1-rerun_r205.json.partial.jsonl": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Post-review readout R205: the mean-h / h_T decomposition of the registered probe, C1 rerun's agents"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "post_review/C2-rerun.json",
         "post_review/C2-rerun.json.partial.jsonl"
       ],

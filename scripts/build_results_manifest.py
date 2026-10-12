@@ -849,6 +849,18 @@ RUNS = [
               "to the bit in 30 of 30 cells. Labels: R210 survival INCLUDES under the MLP and the forest; "
               "R35 untrained TRUNK; R206 HIGHER; R31 NOT CAPACITY-LIMITED and STATE ABOVE on both "
               "streams. The artifact's run_dir is the cloud session's temporary path."),
+    run("C1-R205", "Post-review readout R205: the mean-h / h_T decomposition of the registered probe, "
+        "C1 rerun's agents", experiment="B-v2 L3",
+        artifacts=["post_review/C1-rerun_r205.json", "post_review/C1-rerun_r205.json.partial.jsonl"],
+        trains_survival=False, readout_of=["C1", "C1-RERUN"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="ab0388c (research/r205-decomposition)", folds="explicit",
+        eval_seeds={"r205": "800000 / 850000, the registered pair"}, device=CLOUD_READOUT,
+        notes="scripts/run_post_review_readouts.py --readouts r205; the 2026-10-12 amendment of "
+              "docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.15, with dated notes at "
+              "17.7 and 20.4 and in PAPER_OUTLINE 4.3. Diagnostic: the registered estimand stays the "
+              "concatenation and no verdict changes. Integrity: in all 60 arm-cells the concatenation "
+              "equals the recorded pooled target as a float. Drift 0.45 survival: mean h 0.692, h_T 0.716, "
+              "concatenation 0.733; label BOTH for every arm at both drifts."),
     run("C2-RERUN-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the C2 rerun's "
         "agents", experiment="B-v2 L3", artifacts=["post_review/C2-rerun.json",
                                                    "post_review/C2-rerun.json.partial.jsonl"],

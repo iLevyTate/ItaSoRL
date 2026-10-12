@@ -530,3 +530,68 @@ reader, and about 10 s of regeneration per task; about 300 CPU minutes for the t
 about 75 to 80 minutes of wall clock. The 8x tasks are about 60 percent of it and run first. If
 the 8x decoder runs at half the assumed speed, `--widths 8x` and `--widths 4x,2x,1x,conv` can run
 as two sessions into the same output.
+
+## Amendment 2026-10-12, before any R205 readout ran
+
+Added on 2026-10-12, after the readouts above ran on the five corrected runs and before any
+number from this one exists. It adds one readout, `r205`, to the same runner. No procedure,
+base, statistic or reading above changes. Like every readout here it is descriptive, and no
+registered verdict changes on its strength; the registered estimand stays the concatenated
+feature.
+
+**Finding R205.** The registered probe reads [mean h, h_T], and nothing in the record says which
+half carries the signal. The controlled persistence test (FINDINGS 17.7) suggests the time average:
+under identical input the per-step reading starts at 0.677 on the first tail step and falls below
+0.55 by the fifth. The finding asks for three probes per cell on the corrected agents and a
+sentence in the Discussion saying which component carries the signal.
+
+**Inputs.** Every saved agent of the run, both drifts, three arms, as for r210.
+
+**Procedure.**
+
+1. Regenerate each cell's registered 24-step pools exactly as r210 does
+   (`experiment_b2.pooled_readout`, authentic 800000 + i at drift 0, surrogate 850000 + i at the
+   cell's drift, 110 episodes, early deaths dropped), with r210's bit check: the concatenated
+   linear target must equal the cell's recorded pooled target as a float. A (drift, seed) whose
+   three arms do not all reproduce is excluded at that drift and listed, and an unreproduced cell
+   is not scored. In an output without r210, the integrity block lists r205's unreproduced seeds.
+2. Split `experiment_b.episode_features` into its two halves and score three feature sets:
+   (a) mean h only, the first 96 columns; (b) h_T only, the last 96; (c) the concatenation, the
+   registered feature, whose target is the bit-checked value itself.
+3. Each set is read by the registered linear probe with its preprocessing unchanged (standard
+   scaler and logistic regression fit in-fold through `experiment_a.grouped_auroc`, explicit-v1
+   folds, one group per episode), as the mean of the five fold AUROCs.
+4. Shuffled control per set: the eight label permutations pooled_readout draws, each scored with
+   the same probe and partition, averaged. For (c) it is pooled_readout's own value, and r210's
+   permutation check (the linear control recomputed from those permutations must equal it to the
+   bit) is repeated and reported.
+
+**Seed base.** The registered pair, by design. No fresh worlds.
+
+**Statistics.** Per drift, arm and feature set: the mean target with its t-based 90% interval and
+the number of seeds at or above 0.65, the shuffled control and the selectivity. Per drift and arm,
+seed-paired: (a) minus (b), (c) minus (a), (c) minus (b).
+
+**Reading, pre-stated, per arm at drift 0.45.** On the seed-paired mean differences, with their
+intervals reported beside:
+
+- MEAN CARRIES: (c) minus (a) is at most 0.02, so mean h alone reads within 0.02 of the
+  concatenation or above it, and (c) minus (b) is at least 0.05.
+- FINAL CARRIES: the mirror case, (c) minus (b) at most 0.02 and (c) minus (a) at least 0.05.
+- BOTH: anything else.
+
+The two named cases cannot hold together. The drift-0 cells (authentic against authentic on the
+registered pair) carry the same labels, descriptively; they say which half reads the world-sample
+difference behind the open L0 gate (FINDINGS 17.5).
+
+**What is written.** The label and its numbers go into FINDINGS 20 beside the R210 subsection, and
+the Discussion states, for the survival arm at drift 0.45, which component carries the signal:
+the time-averaged state (MEAN CARRIES), the final state (FINAL CARRIES), or both halves, with
+neither alone accounting for the registered reading (BOTH). The predictor and untrained arms are
+reported in the same table.
+
+**Expected compute.** Six pooled-readout regenerations per seed, as in r210, and about 26 further
+linear cross-validations per cell. From the costs measured in the C1-rerun session (the balanced
+readouts of r33 ran at about 35 to 50 s each on four workers), about 7 to 8 CPU minutes per seed,
+about 75 for ten seeds, so about 20 to 25 minutes of wall clock on four workers. It runs alone
+with `--readouts r205` into its own output and partial file.

@@ -66,6 +66,11 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      open on the registered world pair (0.559); the decodability clauses are met, and
      across eight independent pairs L0 averages 0.493 (TOST over pairs p 0.022). The
      historical 0.752 [0.698, 0.807] is reported beside it.
+     *(Note 2026-10-12: which half of the registered feature [mean h, h_T] carries the 0.733 is
+     measured (FINDINGS 20.15, R205). Mean h alone reads 0.692 and h_T alone 0.716, so the
+     time-averaged state alone does not carry the reading and the final state alone reads at
+     least as high on the seed means; the pre-stated label is BOTH. For the Discussion: neither
+     half alone accounts for the registered reading, and the final state comes closer.)*
    - 4.4 The auxiliary contrast, bounded by budget (FINDINGS 10.8, 10.8.1, 17): the
      corrected decoder-on minus decoder-off difference, +0.120 [+0.065, +0.174] (0.733
      against 0.613), and the budget curve: without the decoder 0.685 at 450 updates;
@@ -223,6 +228,8 @@ note 9.
   22 cites the gate-0 regression artifact, and row 11 says its floor is the seed-0 value.
   Row 46 says the 0.724 sequence decoder reads observations and previous actions, and gives
   the 0.715 of the observation trace alone (FINDINGS 17.8).
+- 2026-10-12: section 4.3 carries a dated note on R205, which half of the probe feature carries
+  the primary reading (FINDINGS 20.15).
 - 2026-10-11: section 4.5 and row 44 carry a dated note that the replay split between trunk
   and normalizer is now measured (FINDINGS 20.5, 20.10). The row's recorded figures are
   unchanged.
