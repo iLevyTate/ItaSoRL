@@ -608,7 +608,8 @@
         "expB2/behavior_audit_l3_h8_traces.json",
         "expB2/behavior_audit_l3_covar_n10.json",
         "fold_rescore/l3_n10.json",
-        "fold_rescore/l3_h8_traces.json"
+        "fold_rescore/l3_h8_traces.json",
+        "agent_free/rf_probe_l3_n10_historical.json"
       ],
       "budget": {
         "predictor_updates": 300,
@@ -665,9 +666,24 @@
       "folds": "both",
       "id": "L3-H8-N10",
       "local_run_dir": "fullruns/l3_h8_traces",
-      "notes": "Primary published numbers on the legacy partition (0.752 / 0.726); explicit partition 0.774 / 0.750 (FINDINGS methods note 8).",
+      "notes": "Primary published numbers on the legacy partition (0.752 / 0.726); explicit partition 0.774 / 0.750 (FINDINGS methods note 8). agent_free/rf_probe_l3_n10_historical.json (2026-10-11, FINDINGS 19.3) re-scores the 60 fullruns/l3_n10 state dumps with the Experiment B random forest and the registered linear probe, both partitions; the linear values reproduce this run's record exactly.",
       "readout_only_on": null,
       "recorded_provenance": {
+        "agent_free/rf_probe_l3_n10_historical.json": {
+          "generated_by": "scripts/rf_probe_historical_h8.py",
+          "git_commit_at_promotion": "d8ad6dc",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        },
         "expB2/behavior_audit_l3_covar_n10.json": {},
         "expB2/behavior_audit_l3_h8_traces.json": {},
         "expB2/behavior_audit_l3_n10.json": {},
@@ -721,13 +737,15 @@
         9
       ],
       "artifacts": [
-        "fold_rescore/l3_h4_traces.json"
+        "fold_rescore/l3_h4_traces.json",
+        "expB2/failed_gates_l3_h4_traces.json"
       ],
       "budget": null,
       "claims": [
         22
       ],
-      "commit_at_run": null,
+      "commit_at_run": "bf8a74e",
+      "commit_at_run_source": "recorded",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -767,9 +785,26 @@
       "folds": "both",
       "id": "L3-H4",
       "local_run_dir": "fullruns/l3_h4_traces",
-      "notes": "",
+      "notes": "expB2/failed_gates_l3_h4_traces.json (scripts/promote_off_design_runs.py --which h4, 2026-10-11, FINDINGS 19.4) promotes the run record: untrained floor 0.891, pooled reward leak clean in 0/10 survival seeds, engagement 3/10 at drift 0.45, speed control at or above 0.75 in all 60 pools. No agents were kept; the trunk width (96) is read from the dumped state dimension.",
       "readout_only_on": null,
       "recorded_provenance": {
+        "expB2/failed_gates_l3_h4_traces.json": {
+          "generated_by": "scripts/promote_off_design_runs.py",
+          "git_commit_at_promotion": "d102cc4",
+          "git_commit_at_run": "bf8a74e",
+          "source_run": "fullruns/l3_h4_traces/expB2_results.json",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        },
         "fold_rescore/l3_h4_traces.json": {
           "generated_by": "scripts/rescore_fold_split.py",
           "spec": "docs/specs/2026-09-28-explicit-cv-folds.md",
@@ -1426,6 +1461,74 @@
       },
       "survival_trainer": "pre_transition_value",
       "title": "Device control: published hidden 8 protocol on the CPU sandbox, n = 10"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0
+      ],
+      "artifacts": [
+        "repro_check"
+      ],
+      "budget": {
+        "survival_updates": 300
+      },
+      "claims": [],
+      "commit_at_run": "4b6e1f3",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "config": {
+        "drift_mode": "l3",
+        "drifts": [
+          0.0,
+          0.45
+        ],
+        "embed": 64,
+        "hidden": 96,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)"
+      },
+      "deps": "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+      "device": "cloud CPU sandbox, 2 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "legacy (= explicit on this stack)",
+      "id": "REPRO-4B6E1F3",
+      "local_run_dir": null,
+      "notes": "2026-10-11 integrity check. The original code reran the drift 0 and drift 0.45 seed-0 cells of L3-H8-WM-CPU; every one of the 157 recorded values of each cell matches the committed cell and the config fingerprints match. Backs the step-4 machine check (FINDINGS 17.1; docs/CORRECTIONS.md, 2026-10-11).",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "repro_check": {}
+      },
+      "status": "historical",
+      "surrogate": {
+        "family": "GMotion (itasorl/surrogate_l3.py)",
+        "g_seed": 0,
+        "hidden": 8,
+        "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"
+      },
+      "survival_trainer": "pre_transition_value",
+      "title": "Per-value rerun of the device control's seed-0 cells at 4b6e1f3"
     },
     {
       "affected_by_gae_correction": true,
@@ -2088,7 +2191,7 @@
       "folds": "legacy",
       "id": "H2-TEXTURE",
       "local_run_dir": null,
-      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0, so it is not promoted and bears on no rule (FINDINGS 17.9 addendum). A gn-trained run (T-GN-TRAINED) was executed 2026-10-08/09 and is uninformative. Both comparator-trained runs ran an 8-unit agent trunk (FINDINGS 14.5.1 correction 2026-10-10): T-qd's 60 saved agents have cell.weight_hh (24, 8), its fingerprint 23a620e51d4e26fd reproduces only at --hidden 8, and its speed control is short in 8 of 60 pools (worst 0.7018).",
+      "notes": "Transfer of the ORIGINAL direction only; no fresh Gaussian probe and no Gaussian-trained agents (revision step 9). A qd-trained run (T-qd, 2026-10-06, commit 2606e7f, gitignored fullruns/T_qd_l3_h8_wm) was executed and set aside: its family failed gate 0 and it bears on no rule (FINDINGS 17.9 addendum); it is promoted as off-design on 2026-10-11 (row T-QD-TRAINED, texture/T_qd_l3_h8_wm.json). A gn-trained run (T-GN-TRAINED) was executed 2026-10-08/09 and is uninformative. Both comparator-trained runs ran an 8-unit agent trunk (FINDINGS 14.5.1 correction 2026-10-10): T-qd's 60 saved agents have cell.weight_hh (24, 8), its fingerprint 23a620e51d4e26fd reproduces only at --hidden 8, and its speed control is short in 8 of 60 pools (worst 0.7018).",
       "readout_only_on": [
         "L3-H8-HELDOUT",
         "L3-H7-REVERSE"
@@ -2254,7 +2357,8 @@
       "affected_by_gae_correction": false,
       "agent_seeds": null,
       "artifacts": [
-        "expC/emergence_pilot_per_individual_summary.json"
+        "expC/emergence_pilot_per_individual_summary.json",
+        "expC/selection_intensity.json"
       ],
       "budget": null,
       "claims": [
@@ -2270,7 +2374,7 @@
       "folds": "explicit",
       "id": "EXPC-M3-PER-INDIVIDUAL",
       "local_run_dir": "fullruns/expC_milestone3",
-      "notes": "scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE: the speed positive control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE correction does not apply to it.",
+      "notes": "scripts/run_expC_milestone3.py then scripts/promote_expC_summary.py; FINDINGS 13.F. Identical configuration to the re-run pilot, with one probe per individual added on the same common-garden panel. Routes UNINFORMATIVE: the speed positive control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the 0.005 margin of the unratified section-14 draft (FINDINGS 13.F, second note of 2026-10-10). Evolution is not an actor-critic trainer, so the GAE correction does not apply to it. expC/selection_intensity.json (scripts/expC_selection_intensity.py, 2026-10-11, FINDINGS 19.5) carries the per-generation qualifier counts and fitness series; they are identical to the main milestone run's (a0cb850) series and thresholds.",
       "readout_only_on": null,
       "recorded_provenance": {
         "expC/emergence_pilot_per_individual_summary.json": {
@@ -2278,6 +2382,22 @@
           "git_commit_at_promotion": "177605f9dd41bc27d91da4b0a17a103473902b24",
           "git_commit_at_run": "06ecc10d8f7c60cbe1a428581f92f6b2308336e0",
           "source_run": "fullruns/expC_milestone3/emergence_pilot_per_individual.json"
+        },
+        "expC/selection_intensity.json": {
+          "generated_by": "scripts/expC_selection_intensity.py",
+          "git_commit_at_promotion": "17cab3c",
+          "git_commit_at_run": "06ecc10d8f7c60cbe1a428581f92f6b2308336e0",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
         }
       },
       "status": "historical",
@@ -2501,6 +2621,102 @@
       },
       "survival_trainer": "successor_value",
       "title": "Comparator-trained run on the white-jitter family (frozen 2026-10-09)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "artifacts": [
+        "texture/T_qd_l3_h8_wm.json"
+      ],
+      "budget": {
+        "survival_updates": 300
+      },
+      "claims": [],
+      "commit_at_run": "2606e7f",
+      "commit_at_run_source": "recorded",
+      "config": {
+        "config_fingerprint": "23a620e51d4e26fd",
+        "drift_mode": "l3",
+        "drifts": [
+          0.0,
+          0.45
+        ],
+        "embed": 64,
+        "hidden": 8,
+        "hidden_deviation": "the registered trunk is 96; the run's 60 saved agents carry an 8-unit GRU (--hidden 8 beside --l3-hidden 8, FINDINGS 14.5.1 correction 2026-10-10)",
+        "l3_family": "qd",
+        "l3_family_param": 6.0,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)"
+      },
+      "deps": null,
+      "device": "owner's laptop CPU, 3 workers",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "T-QD-TRAINED",
+      "local_run_dir": "fullruns/T_qd_l3_h8_wm",
+      "notes": "OFF-DESIGN: not the registered configuration (8-unit agent trunk) and its family failed gate 0; it bears on no rule. scripts/run_expB2.py --l3-family qd, then scripts/promote_off_design_runs.py --which tqd (FINDINGS 17.9 addendum, 19.4). Drift 0.45: survival 0.580 (t 90% [0.537, 0.624], seed bootstrap [0.542, 0.615]), predictor 0.573, untrained 0.608; engagement 16 of 20 cells; speed control short in 8 of 60 pools (worst 0.7018); untrained floor 0.108 from 0.5.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "texture/T_qd_l3_h8_wm.json": {
+          "generated_by": "scripts/promote_off_design_runs.py",
+          "git_commit_at_promotion": "a5f0192",
+          "git_commit_at_run": "2606e7f",
+          "source_run": "fullruns/T_qd_l3_h8_wm/expB2_results.json",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        }
+      },
+      "status": "off-design",
+      "surrogate": {
+        "eps": 6.0,
+        "family": "G_qd (authentic law plus quadratic drag)",
+        "gate0": "no eps of the frozen sweep reaches the band (highest oracle 0.768 at eps 16); eps 6.0 was matched on one-step magnitude, not calibrated"
+      },
+      "survival_trainer": "successor_value",
+      "title": "Comparator-trained run on the quadratic-drag family (2026-10-06, set aside; promoted 2026-10-11)"
     },
     {
       "affected_by_gae_correction": true,
@@ -2823,6 +3039,66 @@
       "surrogate": null,
       "survival_trainer": "none",
       "title": "Frozen L3 fingerprints (G_motion instances), serialized"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
+        "agent_free/gate0_pair_intervals.json",
+        "agent_free/residual_field_correlation.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "cef1f72, 5dd869b",
+      "commit_at_run_source": "recorded",
+      "config": {
+        "runners": "scripts/gate0_pair_intervals.py, scripts/residual_field_correlation.py"
+      },
+      "deps": null,
+      "device": "owner's laptop CPU, one thread",
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "both",
+      "id": "AGENT-FREE-2026-10-11",
+      "local_run_dir": null,
+      "notes": "FINDINGS 19.1 and 19.2. Gate 0's oracle side recomputed for ten calibrated instances from the committed CPU exports (seed-1 hidden 7, 8, 9 retrained on CPU); every recorded point reproduced under its recorded partition; pair-clustered bootstrap intervals. Residual fields of every export and G_rff (D = 80) on 250 fresh episodes from seed 100000.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "agent_free/gate0_pair_intervals.json": {
+          "generated_by": "scripts/gate0_pair_intervals.py",
+          "git_commit": "cef1f72",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        },
+        "agent_free/residual_field_correlation.json": {
+          "generated_by": "scripts/residual_field_correlation.py",
+          "git_commit": "5dd869b",
+          "stack": {
+            "MKL_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 1
+          }
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Agent-free post-review analyses: pair-clustered gate-0 intervals and the residual-field correlation of the fingerprints"
     },
     {
       "affected_by_gae_correction": false,
@@ -3698,6 +3974,727 @@
       },
       "survival_trainer": "successor_value",
       "title": "Rerun of C1 that keeps its saved agents (reproduction)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "artifacts": [
+        "expB2/corrected_C2-rerun.json",
+        "corrected_runs/c2-rerun"
+      ],
+      "budget": {
+        "budget_curve": [
+          100,
+          200,
+          300,
+          450
+        ],
+        "predictor_updates": 300,
+        "survival_updates": 300
+      },
+      "claims": [],
+      "commit_at_run": "f363f07, dcb3fda (run/C2-rerun; code as main 3036eb3)",
+      "commit_at_run_source": "partly curated: the artifacts record dcb3fda, f363f07",
+      "config": {
+        "budget_extend": 450,
+        "budget_snapshots": [
+          100,
+          200
+        ],
+        "drift_mode": "l3",
+        "drifts": [
+          0.0,
+          0.45
+        ],
+        "embed": 64,
+        "gae_bootstrap": "successor",
+        "hidden": 96,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)",
+        "world_model": false
+      },
+      "deps": "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+      "device": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "C2-RERUN",
+      "local_run_dir": "artifacts/goal_stakes/C2-rerun on branch run/C2-rerun",
+      "notes": "Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; FINDINGS 20.1. Read under no rule. Config hash aff3863123e3e3ee, equal to C2's. Its 20 cells share 5000 values with the committed C2 cells and all 5000 are bit-equal; 240 further leaves are fields the runner gained after C2 ran. Its 90 saved agents (60 base agents and 30 survival snapshots at 100, 200 and 450 updates) stand in for C2's, which were not kept; they stay on branch run/C2-rerun.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "corrected_runs/c2-rerun": {
+          "cell_commits": {
+            "dcb3fda": 8,
+            "f363f07": 12
+          },
+          "cell_fingerprints": {
+            "aff3863123e3e3ee": 20
+          },
+          "n_cells": 20
+        },
+        "expB2/corrected_C2-rerun.json": {
+          "execution": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, ITASORL_FOLDS=explicit (scripts/cloud_run_step.sh)",
+          "generated_by": "scripts/promote_reviewer_gaps_runs.py",
+          "git_commit_at_promotion": "d20de7bc52d3c9393cd858183cd54151466830de",
+          "source_run": "artifacts/corrected_runs/c2-rerun",
+          "spec": "docs/specs/2026-10-11-corrected-generality-reruns-design.md"
+        }
+      },
+      "status": "corrected",
+      "surrogate": {
+        "family": "GMotion (itasorl/surrogate_l3.py)",
+        "g_seed": 0,
+        "hidden": 8,
+        "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"
+      },
+      "survival_trainer": "successor_value",
+      "title": "Rerun of C2 that keeps its saved agents (reproduction)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "artifacts": [
+        "expB2/corrected_H7-corrected.json",
+        "corrected_runs/h7-corrected"
+      ],
+      "budget": {
+        "predictor_updates": 300,
+        "survival_updates": 300
+      },
+      "claims": [],
+      "commit_at_run": "0a15071, d2bf9da (run/H7-corrected; code as main 3036eb3)",
+      "commit_at_run_source": "partly curated: the artifacts record 0a15071, d2bf9da",
+      "config": {
+        "drift_mode": "l3",
+        "drifts": [
+          0.0,
+          0.45
+        ],
+        "embed": 64,
+        "gae_bootstrap": "successor",
+        "hidden": 96,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)"
+      },
+      "deps": "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+      "device": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "H7-CORRECTED",
+      "local_run_dir": "artifacts/goal_stakes/H7-corrected on branch run/H7-corrected",
+      "notes": "Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; read under PREREGISTRATION_L3 sections 7 and 8 as the 2026-07-14 entry applied them; FINDINGS 20.2. Config hash ce2a6fe1ba30cae7. OFF-DESIGN under section 8: gate 0 measured after the run on its own CPU fit (gate0_cpu.json, one thread) fails on the untrained floor, 0.601, so the run adjudicates nothing; the L0 gate (C1's drift-0 cells) and the reward-leak gate (2 of 60 pools) are also open. Descriptive: survival 0.703 [0.650, 0.756], predictor 0.703, untrained 0.593, survival resid_trace 0.717. Rebuilt dumps reproduced 60 of 60 pools. Reported beside L3-H7-N10, which keeps its label.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "corrected_runs/h7-corrected": {
+          "cell_commits": {
+            "0a15071": 14,
+            "d2bf9da": 6
+          },
+          "cell_fingerprints": {
+            "ce2a6fe1ba30cae7": 20
+          },
+          "n_cells": 20
+        },
+        "expB2/corrected_H7-corrected.json": {
+          "execution": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, ITASORL_FOLDS=explicit (scripts/cloud_run_step.sh)",
+          "generated_by": "scripts/promote_reviewer_gaps_runs.py",
+          "git_commit_at_promotion": "d20de7bc52d3c9393cd858183cd54151466830de",
+          "source_run": "artifacts/corrected_runs/h7-corrected",
+          "spec": "docs/specs/2026-10-11-corrected-generality-reruns-design.md"
+        }
+      },
+      "status": "corrected",
+      "surrogate": {
+        "family": "GMotion (itasorl/surrogate_l3.py)",
+        "g_seed": 0,
+        "gate0_cpu": "oracle 0.918 in band, floor 0.601 (fails)",
+        "hidden": 7,
+        "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"
+      },
+      "survival_trainer": "successor_value",
+      "title": "Hidden 7 second capacity on the corrected trainer, n = 10 (off-design: gate 0 fails on the run's own fingerprint)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "artifacts": [
+        "expB2/corrected_H10GS1-corrected.json",
+        "corrected_runs/h10gs1-corrected"
+      ],
+      "budget": {
+        "predictor_updates": 300,
+        "survival_updates": 300
+      },
+      "claims": [],
+      "commit_at_run": "93c45cc, 74a7312 (run/H10GS1-corrected; code as main 3036eb3)",
+      "commit_at_run_source": "partly curated: the artifacts record 74a7312, 93c45cc",
+      "config": {
+        "drift_mode": "l3",
+        "drifts": [
+          0.0,
+          0.45
+        ],
+        "embed": 64,
+        "gae_bootstrap": "successor",
+        "hidden": 96,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)"
+      },
+      "deps": "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+      "device": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "H10GS1-CORRECTED",
+      "local_run_dir": "artifacts/goal_stakes/H10GS1-corrected on branch run/H10GS1-corrected",
+      "notes": "Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; read under docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md; FINDINGS 20.2. Config hash 03346353ac775154 (the same recipe hashes to d027bac1ad45f30b, L3-H10-GS1-CPU's, with the historical trainer). Predictor and untrained targets bit-equal to L3-H10-GS1-CPU in 20 of 20 cells. Replication not claimed: survival 0.626 [0.598, 0.654], resid_trace 0.637 [0.610, 0.664]; both margins pass; the L0 gate is open (C1's drift-0 cells). Rebuilt dumps reproduced 60 of 60 pools. Reported beside L3-H10-GS1-CPU, which keeps its label.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "corrected_runs/h10gs1-corrected": {
+          "cell_commits": {
+            "74a7312": 4,
+            "93c45cc": 16
+          },
+          "cell_fingerprints": {
+            "03346353ac775154": 20
+          },
+          "n_cells": 20
+        },
+        "expB2/corrected_H10GS1-corrected.json": {
+          "execution": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, ITASORL_FOLDS=explicit (scripts/cloud_run_step.sh)",
+          "generated_by": "scripts/promote_reviewer_gaps_runs.py",
+          "git_commit_at_promotion": "d20de7bc52d3c9393cd858183cd54151466830de",
+          "source_run": "artifacts/corrected_runs/h10gs1-corrected",
+          "spec": "docs/specs/2026-10-11-corrected-generality-reruns-design.md"
+        }
+      },
+      "status": "corrected",
+      "surrogate": {
+        "family": "GMotion (itasorl/surrogate_l3.py)",
+        "g_seed": 1,
+        "gate0_cpu": "oracle 0.893 in band, floor 0.485",
+        "hidden": 10,
+        "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"
+      },
+      "survival_trainer": "successor_value",
+      "title": "Second fingerprint instance (G seed 1, hidden 10) on the corrected trainer, n = 10"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "artifacts": [
+        "expB2/corrected_H8GS2-corrected.json",
+        "corrected_runs/h8gs2-corrected"
+      ],
+      "budget": {
+        "predictor_updates": 300,
+        "survival_updates": 300
+      },
+      "claims": [],
+      "commit_at_run": "6f58a1f, 24ea329 (run/H8GS2-corrected; code as main 3036eb3)",
+      "commit_at_run_source": "partly curated: the artifacts record 24ea329, 6f58a1f",
+      "config": {
+        "drift_mode": "l3",
+        "drifts": [
+          0.0,
+          0.45
+        ],
+        "embed": 64,
+        "gae_bootstrap": "successor",
+        "hidden": 96,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)"
+      },
+      "deps": "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1",
+      "device": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "H8GS2-CORRECTED",
+      "local_run_dir": "artifacts/goal_stakes/H8GS2-corrected on branch run/H8GS2-corrected",
+      "notes": "Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; read under docs/specs/2026-09-28-l3-hidden8-second-seed-design.md; FINDINGS 20.2. Config hash 2823452491c11037. UNINFORMATIVE under its spec's outcome table: the speed positive control is under 0.75 in 1 of 60 pools (untrained, drift 0.45, seed 0, 0.725) and the L0 gate is open (C1's drift-0 cells). Descriptive: survival 0.659 [0.619, 0.699], +0.031 over the predictor. Rebuilt dumps reproduced 60 of 60 pools. Reported beside L3-H8-GS2-GPU, which keeps its label.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "corrected_runs/h8gs2-corrected": {
+          "cell_commits": {
+            "24ea329": 10,
+            "6f58a1f": 10
+          },
+          "cell_fingerprints": {
+            "2823452491c11037": 20
+          },
+          "n_cells": 20
+        },
+        "expB2/corrected_H8GS2-corrected.json": {
+          "execution": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, ITASORL_FOLDS=explicit (scripts/cloud_run_step.sh)",
+          "generated_by": "scripts/promote_reviewer_gaps_runs.py",
+          "git_commit_at_promotion": "d20de7bc52d3c9393cd858183cd54151466830de",
+          "source_run": "artifacts/corrected_runs/h8gs2-corrected",
+          "spec": "docs/specs/2026-10-11-corrected-generality-reruns-design.md"
+        }
+      },
+      "status": "corrected",
+      "surrogate": {
+        "family": "GMotion (itasorl/surrogate_l3.py)",
+        "g_seed": 2,
+        "gate0_cpu": "oracle 0.939 in band, floor 0.538",
+        "hidden": 8,
+        "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"
+      },
+      "survival_trainer": "successor_value",
+      "title": "Hidden 8 new-seed instance (G seed 2) on the corrected trainer, n = 10 (uninformative: speed control and L0)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "post_review/C1-rerun.json",
+        "post_review/C1-rerun.json.partial.jsonl"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "b77d0db (readouts/post-review-C1)",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": null,
+      "device": "Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)",
+      "eval_seeds": {
+        "r210": "800000 / 850000, the registered pair",
+        "r33": "2200000 + i for both members of a pair; continuity entry 800000 + i",
+        "r35_r206_r31": "2100000 + i (authentic, drift 0) / 2150000 + i (surrogate, drift 0.45)",
+        "scripted_policy": "action stream default_rng(600000 + i)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "C1-POST-REVIEW",
+      "local_run_dir": null,
+      "notes": "scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.3 to 20.8, with dated notes at 10.3, 17.4, 17.5, 17.6 and 17.8. Diagnostics: no registered verdict changes. Integrity: all 60 r210 cells reproduce their recorded targets and shuffled controls as floats, and the r33 continuity entry equals artifacts/l0_audit/corrected_l3_h8_wm.json to the bit in 30 of 30 cells. Labels: R210 survival INCLUDES under the MLP and the forest; R35 untrained TRUNK; R206 HIGHER; R31 NOT CAPACITY-LIMITED and STATE ABOVE on both streams. The artifact's run_dir is the cloud session's temporary path.",
+      "readout_only_on": [
+        "C1",
+        "C1-RERUN"
+      ],
+      "recorded_provenance": {
+        "post_review/C1-rerun.json": {
+          "generated_by": "scripts/run_post_review_readouts.py",
+          "git_commit": "b77d0db",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md",
+          "stack": {
+            "numpy": "2.4.6",
+            "python": "3.11.17",
+            "scipy": "1.17.1",
+            "sklearn": "1.9.1",
+            "torch": "2.14.1+cpu"
+          }
+        },
+        "post_review/C1-rerun.json.partial.jsonl": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Post-review readouts R210, R35, R206, R33 and R31 on the C1 rerun's agents"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "post_review/C2-rerun.json",
+        "post_review/C2-rerun.json.partial.jsonl"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "d3f2f75 (readouts/post-review-C2-rerun)",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": null,
+      "device": "Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)",
+      "eval_seeds": {
+        "r210": "800000 / 850000, the registered pair",
+        "r33": "2200000 + i for both members of a pair; continuity entry 800000 + i",
+        "r35_r206_r31": "2100000 + i (authentic, drift 0) / 2150000 + i (surrogate, drift 0.45)",
+        "scripted_policy": "action stream default_rng(600000 + i)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "C2-RERUN-POST-REVIEW",
+      "local_run_dir": null,
+      "notes": "scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.10. Diagnostics: no registered verdict changes. Integrity: all 60 r210 cells reproduce their recorded targets, which are C2's committed targets. Labels: R210 survival ABOVE under the MLP, INCLUDES under the forest; R35 untrained SPLIT, predictor NORMALIZER; R206 MIXED; R31 NOT CAPACITY-LIMITED and DECODER ABOVE on the own stream, EQUIVALENT on the scripted one.",
+      "readout_only_on": [
+        "C2",
+        "C2-RERUN"
+      ],
+      "recorded_provenance": {
+        "post_review/C2-rerun.json": {
+          "generated_by": "scripts/run_post_review_readouts.py",
+          "git_commit": "d3f2f75",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md",
+          "stack": {
+            "numpy": "2.4.6",
+            "python": "3.11.17",
+            "scipy": "1.17.1",
+            "sklearn": "1.9.1",
+            "torch": "2.14.1+cpu"
+          }
+        },
+        "post_review/C2-rerun.json.partial.jsonl": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Post-review readouts R210, R35, R206, R33 and R31 on the C2 rerun's agents"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "post_review/H10GS1-corrected.json",
+        "post_review/H10GS1-corrected.json.partial.jsonl"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "60b4e6f (readouts/post-review-H10GS1-corrected)",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": null,
+      "device": "Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)",
+      "eval_seeds": {
+        "r210": "800000 / 850000, the registered pair",
+        "r33": "2200000 + i for both members of a pair; continuity entry 800000 + i",
+        "r35_r206_r31": "2100000 + i (authentic, drift 0) / 2150000 + i (surrogate, drift 0.45)",
+        "scripted_policy": "action stream default_rng(600000 + i)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "H10GS1-POST-REVIEW",
+      "local_run_dir": null,
+      "notes": "scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.11. Diagnostics on a run whose replication rule is not met. Integrity: all 60 r210 cells reproduce their recorded targets; the drift-0 readings equal C1's (the same agents). Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor SPLIT; R206 HIGHER; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, EQUIVALENT on the scripted one.",
+      "readout_only_on": [
+        "H10GS1-CORRECTED"
+      ],
+      "recorded_provenance": {
+        "post_review/H10GS1-corrected.json": {
+          "generated_by": "scripts/run_post_review_readouts.py",
+          "git_commit": "60b4e6f",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md",
+          "stack": {
+            "numpy": "2.4.6",
+            "python": "3.11.17",
+            "scipy": "1.17.1",
+            "sklearn": "1.9.1",
+            "torch": "2.14.1+cpu"
+          }
+        },
+        "post_review/H10GS1-corrected.json.partial.jsonl": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Post-review readouts R210, R35, R206, R33 and R31 on the hidden 10, G seed 1 rerun's agents"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "post_review/H7-corrected.json",
+        "post_review/H7-corrected.json.partial.jsonl"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "300602d (readouts/post-review-H7-corrected)",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": null,
+      "device": "Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)",
+      "eval_seeds": {
+        "r210": "800000 / 850000, the registered pair",
+        "r33": "2200000 + i for both members of a pair; continuity entry 800000 + i",
+        "r35_r206_r31": "2100000 + i (authentic, drift 0) / 2150000 + i (surrogate, drift 0.45)",
+        "scripted_policy": "action stream default_rng(600000 + i)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "H7-POST-REVIEW",
+      "local_run_dir": null,
+      "notes": "scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.13. Descriptive only: the run's gate 0 fails on the untrained floor, so it is off-design. Integrity: all 60 r210 cells reproduce their recorded targets; the drift-0 readings equal C1's (the same agents). Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor SPLIT; R206 NOT HIGHER; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, DECODER ABOVE on the scripted one.",
+      "readout_only_on": [
+        "H7-CORRECTED"
+      ],
+      "recorded_provenance": {
+        "post_review/H7-corrected.json": {
+          "generated_by": "scripts/run_post_review_readouts.py",
+          "git_commit": "300602d",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md",
+          "stack": {
+            "numpy": "2.4.6",
+            "python": "3.11.17",
+            "scipy": "1.17.1",
+            "sklearn": "1.9.1",
+            "torch": "2.14.1+cpu"
+          }
+        },
+        "post_review/H7-corrected.json.partial.jsonl": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Post-review readouts R210, R35, R206, R33 and R31 on the hidden 7 rerun's agents (descriptive: the run is off-design)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "post_review/H8GS2-corrected.json",
+        "post_review/H8GS2-corrected.json.partial.jsonl"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "a0b57f1 (readouts/post-review-H8GS2-corrected)",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": null,
+      "device": "Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)",
+      "eval_seeds": {
+        "r210": "800000 / 850000, the registered pair",
+        "r33": "2200000 + i for both members of a pair; continuity entry 800000 + i",
+        "r35_r206_r31": "2100000 + i (authentic, drift 0) / 2150000 + i (surrogate, drift 0.45)",
+        "scripted_policy": "action stream default_rng(600000 + i)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "H8GS2-POST-REVIEW",
+      "local_run_dir": null,
+      "notes": "scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.14. Descriptive only: the run is uninformative under its spec (speed control and L0). The output records itself complete with no errors (the branch's final commit message names no exit code). Integrity: all 60 r210 cells reproduce their recorded targets; the drift-0 readings equal C1's. Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor NORMALIZER; R206 MIXED; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, DECODER ABOVE on the scripted one.",
+      "readout_only_on": [
+        "H8GS2-CORRECTED"
+      ],
+      "recorded_provenance": {
+        "post_review/H8GS2-corrected.json": {
+          "generated_by": "scripts/run_post_review_readouts.py",
+          "git_commit": "a0b57f1",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md",
+          "stack": {
+            "numpy": "2.4.6",
+            "python": "3.11.17",
+            "scipy": "1.17.1",
+            "sklearn": "1.9.1",
+            "torch": "2.14.1+cpu"
+          }
+        },
+        "post_review/H8GS2-corrected.json.partial.jsonl": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Post-review readouts R210, R35, R206, R33 and R31 on the hidden 8, G seed 2 rerun's agents (descriptive: the run is uninformative)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "post_review/c1_minus_c2_balanced.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": "owner's workstation, offline from the two committed readout outputs",
+      "eval_seeds": {
+        "r33": "2200000 + i for both members of a pair (primary); 800000 + i (registered)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "C1-C2-BALANCED-CONTRAST",
+      "local_run_dir": null,
+      "notes": "python scripts/run_post_review_readouts.py --contrast artifacts/post_review/C1-rerun.json artifacts/post_review/C2-rerun.json --out artifacts/post_review/c1_minus_c2_balanced.json; FINDINGS 20.12, dated notes at 17.4 and 17.5. Seed-paired C1 minus C2, agents raised at drift 0.45: +0.121 [+0.074, +0.168] on the fresh base (primary) and +0.124 [+0.073, +0.175] on the registered base, both HOLDS. The auxiliary rule stays NOT MET as registered, because C1 does not meet its primary rule. The output records no commit; it is a deterministic function of the two readout files.",
+      "readout_only_on": [
+        "C1",
+        "C2",
+        "C1-RERUN",
+        "C2-RERUN"
+      ],
+      "recorded_provenance": {
+        "post_review/c1_minus_c2_balanced.json": {
+          "generated_by": "scripts/run_post_review_readouts.py --contrast",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Draw-free C1 minus C2 contrast of the balanced survival target (finding R33)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "post_review/l1_capacity_curve.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "5ba16e0",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": null,
+      "device": "Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)",
+      "eval_seeds": {
+        "pooled": "800000 / 850000, the registered pools of the L1 run"
+      },
+      "experiment": "H2",
+      "folds": "explicit",
+      "id": "L1-CAPACITY-CURVE",
+      "local_run_dir": "fullruns_upload/l1_heldout on branch upload/l1-heldout-agents",
+      "notes": "scripts/run_l1_capacity_curve.py; the 2026-10-11 amendment of docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.9 and a dated note at 14.7.1. Pre-correction-trainer agents. Integrity gate passed: 30 state targets within 0.01 of artifacts/fold_rescore/l1_heldout.json (15 bit-equal); the dump half was not checked, because no states/ were uploaded. Record check: survival 1x 0.589 against the recorded 0.590, a stack difference inside the tolerance. Label READER-RELATIVE in all three arms; the conv reader reads 0.667 on the survival streams.",
+      "readout_only_on": [
+        "L1-ORGANISM"
+      ],
+      "recorded_provenance": {
+        "post_review/l1_capacity_curve.json": {
+          "generated_by": "scripts/run_l1_capacity_curve.py",
+          "git_commit": "5ba16e0",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md",
+          "stack": {
+            "numpy": "2.4.6",
+            "python": "3.11.17",
+            "scipy": "1.17.1",
+            "sklearn": "1.9.1",
+            "torch": "2.14.1+cpu"
+          }
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "inherited: pre_transition_value",
+      "title": "L1 stream-decoder capacity curve on the saved L1 agents (R31, L1 part)"
     },
     {
       "affected_by_gae_correction": true,

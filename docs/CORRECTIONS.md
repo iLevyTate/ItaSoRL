@@ -665,3 +665,67 @@ Before writing, it checked every number against a re-promotion from the committe
 **What this does not change.** No number moves, and no other committed artifact's zone
 changes. The corrected verdicts, the gate table and FINDINGS already read `C1`'s registered
 rule as not met.
+
+## 2026-10-11: the random-forest floor of FINDINGS 10.3 has no committed source
+
+**What was wrong.** FINDINGS 10.3 and the `docs/PREREGISTRATION_L3.md` entry of 2026-07-12
+report a random-forest probe on the untrained hidden-8 agent at 0.517 (shuffled baseline 0.506,
+L0 untrained 0.483) as a control that passes. No committed code produced these numbers. The
+committed random forest (`itasorl/behavior_audit.py`) fits behavior features, not recurrent
+states, and the check on the states was run post hoc and never committed. Re-scored on the same
+dumps (`fullruns/l3_n10/states`) with the Experiment B forest of `scripts/run_expB_nonlinear.py`
+on the legacy partition, the three values come close and none reproduces exactly: 0.514, 0.508
+and 0.485 with random_state 0, and 0.518, 0.502 and 0.483 with random_state set to the seed. On
+the explicit partition the untrained forest at drift 0.45 reads 0.557 [0.545, 0.569], an
+interval that excludes 0.5, against a shuffled control of 0.516.
+
+**Change.** `artifacts/agent_free/rf_probe_l3_n10_historical.json`
+(`scripts/rf_probe_historical_h8.py`) records the forest and the registered linear probe, with
+their shuffled controls, per arm and drift under both partitions; its linear values reproduce
+the run's record exactly. A dated note at FINDINGS 10.3 and FINDINGS 19.3 report it. The
+preregistration entry is left as written.
+
+**What this does not change.** The historical headline (0.752 on the legacy partition) and the
+survival-versus-untrained gap, which the forest puts at 0.23 to 0.26 under both partitions. No
+verdict. The near-chance reading of the untrained state under a nonlinear probe holds on the
+published partition only.
+
+## 2026-10-11: the 10.5 scope note credited the shared training set
+
+**What was wrong.** The FINDINGS 10.5 scope note (2026-07-18) quotes a residual-field
+correlation of about +0.60 between the hidden 8 and hidden 7 maps and about +0.20 between
+hidden 8 and `G_rff`, attributes the first to the shared training set (both maps were fit on
+the bit-identical authentic transitions), and committed no artifact. Measured on 250 fresh
+episodes from seed 100000, both values reproduce: +0.607 [+0.573, +0.639] and +0.174
+[+0.133, +0.217]. The attribution does not. `G_rff` is fit on exactly the hidden 8 seed-0
+episodes and shares 3% of variance with that map, while the MLP maps at G seeds 1 and 2, which
+share 249 and 248 of their 250 training episodes with it and differ mainly in their weight
+initialisation, correlate +0.43 and +0.52 with it. The recipe the MLP maps share explains their
+overlap better than the shared training set does; the matrix cannot separate recipe from data
+further.
+
+**Change.** `artifacts/agent_free/residual_field_correlation.json`
+(`scripts/residual_field_correlation.py`) holds the full correlation matrix of every exported
+fingerprint and `G_rff` with episode-bootstrap intervals. A dated note at the scope note and
+FINDINGS 19.2 report it. The scope note is left as written.
+
+**What this does not change.** The scope note's conclusion: hidden 7 is a capacity variant of
+one recipe, and the recipe-level generalization claim rests on the `G_rff` transfer of
+FINDINGS 10.7. No number or rule outcome.
+
+## 2026-10-11: the per-value reproduction check, rerun and saved
+
+**What was wrong.** The 2026-10-10 entry above found that the step-4 machine check (the
+original code at `4b6e1f3` rerunning one committed cell of the historical CPU device control)
+could not be backed value by value, because the rerun cell was not saved.
+
+**Change.** The check was run again on 2026-10-11 in a cloud session on the same stack (torch
+2.14.1 CPU, numpy 2.4.6, scikit-learn 1.9.1), and this time saved. The code at `4b6e1f3` reran
+both seed-0 cells of that run, drift 0 and drift 0.45. Every one of the 157 recorded values of
+each cell (139 numbers, 3 of them NaN, and 18 booleans) equals the committed cell, and the
+config fingerprints match (`artifacts/repro_check/per_value_4b6e1f3_l3_h8_wm_cpu_s0.json`, with
+the rerun cells beside it). FINDINGS 17.1, `docs/REPRODUCE.md` and the frozen spec carry a dated
+note.
+
+**What this does not change.** No number moves. The like-for-like comparison of step 4 stood on
+the two quoted values before; it now stands on every recorded value of two cells.

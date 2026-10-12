@@ -1,0 +1,44 @@
+{
+ "commit_rerun": "4b6e1f3",
+ "committed_dir": "artifacts/reviewer_gaps_runs/l3_h8_wm_cpu/cells",
+ "stack": {
+  "python": "3.11.17",
+  "torch": "2.14.1+cpu",
+  "numpy": "2.4.6",
+  "sklearn": "1.9.1",
+  "os": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39"
+ },
+ "cells": {
+  "cell_d0.00_s0.json": {
+   "fingerprint_rerun": "64b48957dbb91736",
+   "fingerprint_committed": "64b48957dbb91736",
+   "fingerprint_match": true,
+   "n_shared_leaves": 157,
+   "shared_kinds": {
+    "number": 139,
+    "bool": 18,
+    "nan": 3
+   },
+   "only_in_rerun": [],
+   "only_in_committed": [],
+   "n_differ": 0,
+   "differences": []
+  },
+  "cell_d0.45_s0.json": {
+   "fingerprint_rerun": "64b48957dbb91736",
+   "fingerprint_committed": "64b48957dbb91736",
+   "fingerprint_match": true,
+   "n_shared_leaves": 157,
+   "shared_kinds": {
+    "number": 139,
+    "bool": 18,
+    "nan": 3
+   },
+   "only_in_rerun": [],
+   "only_in_committed": [],
+   "n_differ": 0,
+   "differences": []
+  }
+ },
+ "all_shared_values_identical": true
+}

@@ -395,8 +395,8 @@ def check_anon_name(name: str, old: str | None) -> None:
         raise SystemExit("--anon-name must not contain an identity term")
 
 
-TEXT_EXT = {".py", ".md", ".json", ".txt", ".sh", ".toml", ".ini", ".cfg", ".log", ".yml", ".yaml",
-            ".cff", ".html", ".js", ".css", ".err", ".tex", ".bib", ".csv", ".ipynb"}
+TEXT_EXT = {".py", ".md", ".json", ".jsonl", ".txt", ".sh", ".toml", ".ini", ".cfg", ".log", ".yml",
+            ".yaml", ".cff", ".html", ".js", ".css", ".err", ".tex", ".bib", ".csv", ".ipynb"}
 
 
 def is_text(name: str) -> bool:

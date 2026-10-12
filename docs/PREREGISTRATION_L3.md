@@ -1321,6 +1321,53 @@ Rigor carried from the B-v3 audit (2026-07-10):
   Engagement passes in 20 of 20 cells and the speed positive control in 60 of 60 pools (minimum
   0.772).
 
+- **2026-10-11 - CORRECTED-TRAINER RERUNS OF THE GENERALITY RUNS ANNOUNCED (frozen BEFORE
+  launch; no rule changes).** Four runs, specified in
+  `docs/specs/2026-10-11-corrected-generality-reruns-design.md`: the hidden = 7 second
+  capacity, the hidden = 10 seed 1 and hidden = 8 seed 2 fingerprint instances, each on the
+  corrected trainer with saved agents, and a rerun of `C2` whose purpose is its saved agents.
+  Each runs in the cloud on the stack `C1` used, from `main`, with the explicit fold partition.
+  Each instance is read under the rule that adjudicated its historical run, every gate counted
+  over every arm, and its gate 0 is measured again on the fingerprint the run fits; a gate-0
+  miss makes that run off-design and is reported. The `C2` rerun must match the committed `C2`
+  cells to the bit before its agents stand in for `C2`'s. Results are recorded beside the
+  historical rows, which keep their labels.
+
+- **2026-10-11 - CORRECTED-TRAINER RERUNS OF THE GENERALITY RUNS: RESULTS (spec
+  `docs/specs/2026-10-11-corrected-generality-reruns-design.md`; FINDINGS 20; summaries
+  `artifacts/expB2/corrected_{C2-rerun,H7-corrected,H10GS1-corrected,H8GS2-corrected}.json`, cells
+  and post-run checks under `artifacts/corrected_runs/`).** All four ran in the cloud on the `C1`
+  stack from `main` at `3036eb3`. Every cell records the successor bootstrap and the config hash
+  the spec computed before launch. `C2-rerun`: its cells share 5000 values with the committed `C2`
+  cells and all 5000 are bit-equal, so its saved agents stand in for `C2`'s; it is read under no
+  rule. The drift-0 cells of the three instance runs are `C1`'s agents (1590 of 1600 shared
+  values bit-equal; the ten that differ are the cross-evaluation return in each run's own
+  surrogate), so all three carry `C1`'s open L0 gate (0.559, TOST p = 0.939). Rebuilt state dumps
+  reproduced 60 of 60 pools in each instance run before `resid_trace` was scored. Hidden 7: gate 0
+  measured on the run's own CPU fit fails on the untrained floor (oracle 0.918 in band, mechanical
+  leakage clean, floor 0.601 outside the 0.1 tolerance), so the run is off-design under section 8
+  and is reported, not rescued, and no other capacity is substituted. Recorded descriptively and
+  not as a verdict: survival 0.703 [0.650, 0.756] with a lower bound of 0.6496, predictor 0.703,
+  untrained 0.593, survival `resid_trace` 0.717, and two pools at drift 0.45, seed 8, outside the
+  reward-leak tolerance. Hidden 10 at G seed 1: gate 0 passes (oracle 0.893, equal to the recorded
+  value, floor 0.485); survival 0.626 [0.598, 0.654] and `resid_trace` 0.637 [0.610, 0.664], so
+  replication is not claimed under the 2026-09-26 rule; both margin clauses pass (+0.092 over the
+  predictor, +0.112 over the untrained arm); the L0 gate is open, so no verdict that needs every
+  gate is reached either way. Hidden 8 at G seed 2: gate 0 passes (oracle 0.939, equal to the
+  recorded value, floor 0.538); the speed positive control falls under 0.75 in one pool of 60
+  (untrained, drift 0.45, seed 0, 0.725) and the L0 gate is open, so the run is uninformative under
+  its spec's outcome table; descriptively survival 0.659 [0.619, 0.699] leads the predictor by
+  +0.031, under the 0.05 margin. Each result is reported beside its historical row, which keeps its
+  label, and a margin over the predictor is read as a difference between training regimes. No bar,
+  margin or tolerance changed. The post-review readouts (`docs/specs/2026-10-11-post-review-readouts-design.md`
+  and its amendment) on the agents of all five reruns, and the L1 stream-decoder capacity curve,
+  are recorded in FINDINGS 20 as diagnostics and change no registered verdict; those on the hidden
+  7 and hidden 8 seed 2 reruns are descriptive, because those runs are off-design and
+  uninformative. The draw-free
+  `C1` minus `C2` contrast on balanced pairs reads +0.121 [+0.074, +0.168] on a fresh world base
+  and +0.124 [+0.073, +0.175] on the registered one, both above the auxiliary rule's 0.05; the
+  auxiliary rule stays NOT MET as registered, because `C1` does not meet its primary rule.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

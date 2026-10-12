@@ -77,6 +77,13 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      one; the signal rides on the foraging trajectories and is kept by a trunk shaped by
      prediction.
      This is the section that withdraws "survival-specific".
+     *(Note 2026-10-11: the split of that 0.10 between trunk and normalizer is measured since
+     (FINDINGS 20.5, 20.10). On fresh worlds, with every trunk reading identical normalized
+     input, the survival trunk's replay margin over the untrained trunk stays above zero: +0.059
+     on the survival agent's normalizer and +0.092 on one refit to the replayed streams, against
+     +0.076 on each trunk's own. The pre-stated reading is TRUNK on the `C1` agents and SPLIT on
+     the `C2` agents; it is TRUNK on all three instance reruns as well (20.11, 20.13, 20.14). The
+     figures above stay as recorded.)*
    - 4.5b Controls, named by basis (FINDINGS 10.4, 10.4.1, 10.4.2, 17.8): what remains
      after per-timestep linear residualization on speed, energy, food, and drag
      (historical 0.726; corrected 0.723 with position and heading), after regressing
@@ -168,7 +175,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 41 | Corrected primary run: survival with the auxiliary, 300 updates, n = 10; NOT MET as registered (L0 open on the registered pair), decodability clauses met | corrected; primary | 0.733 [0.669, 0.797], 8/10; predictor 0.589, untrained 0.523; margins +0.144 [+0.072, +0.217], +0.210 [+0.135, +0.286]; L0 0.559 (TOST p 0.939) | FINDINGS 17.2 | artifacts/expB2/corrected_l3_h8_wm.json; artifacts/corrected_verdicts.json | - |
 | 42 | Corrected auxiliary contrast on one device, and the budget curve to 450 updates | corrected; primary (contrast), exploratory (curve) | without the auxiliary 0.613 [0.552, 0.675], NOT MET; C1 minus C2 +0.120 [+0.065, +0.174]; at 450 updates 0.821 with and 0.685 without, return difference -0.054 [-0.198, +0.090] | FINDINGS 17.4, 17.10 | artifacts/expB2/corrected_l3_h8_nowm.json; artifacts/budget_curve.json | budget_curve.png |
 | 43 | L0 across independent world-sample pairs; balanced readout | corrected; secondary | eight independent pairs: signed means 0.406 to 0.557, average 0.493 (sd 0.049, TOST over pairs p 0.022), gate accepts at 2 of 8; balanced survival readout 0.767 [0.718, 0.816] | FINDINGS 17.5 | artifacts/l0_audit/corrected_l3_h8_wm.json | - |
-| 44 | At matched evaluation input a prediction-trained trunk reads the world within about 0.01 of the survival trunk, and trained agents read about 0.10 above the untrained one | corrected; secondary | replay: survival 0.733, predictor 0.721, exposure-matched predictor 0.738; survival minus predictor +0.012 [-0.002, +0.026], minus predictor_logged -0.005 [-0.038, +0.027], minus untrained +0.097 [+0.066, +0.128]; predictor_logged minus untrained +0.102 [+0.067, +0.137]; each trunk reads the replay through its own normalizer; scripted policy 0.55 to 0.58 for every arm | FINDINGS 17.6 | artifacts/policy_controls/corrected_l3_h8_wm.json | - |
+| 44 | At matched evaluation input a prediction-trained trunk reads the world within about 0.01 of the survival trunk, and trained agents read about 0.10 above the untrained one | corrected; secondary | replay: survival 0.733, predictor 0.721, exposure-matched predictor 0.738; survival minus predictor +0.012 [-0.002, +0.026], minus predictor_logged -0.005 [-0.038, +0.027], minus untrained +0.097 [+0.066, +0.128]; predictor_logged minus untrained +0.102 [+0.067, +0.137]; each trunk reads the replay through its own normalizer; scripted policy 0.55 to 0.58 for every arm. *(Note 2026-10-11: the trunk and normalizer split is measured since, FINDINGS 20.5 and 20.10: TRUNK on the `C1` agents, SPLIT on the `C2` agents; the figures in this row stay as recorded.)* | FINDINGS 17.6 | artifacts/policy_controls/corrected_l3_h8_wm.json | - |
 | 45 | Retention under identical input not shown; the common garden reads the physical footprint | corrected; exploratory | replay 0.561 [0.545, 0.577]; reset hidden 0.662 [0.638, 0.687]; factorial physical 0.658, hidden 0.569 | FINDINGS 17.7 | artifacts/persistence/corrected_l3_h8_wm.json | - |
 | 46 | The best-fitting control leaves a signal under the bar; the observation stream alone carries the world | corrected; secondary | MLP joint control 0.620 [0.584, 0.656] (held-out R^2 0.89); sequence GRU on observations and previous actions 0.724; summary features of the observation trace alone 0.715; post hoc paired state minus readout, t 90% CI and TOST p against a borrowed 0.05: sequence GRU +0.009 [-0.011, +0.029] (p 0.002), summary features +0.018 [-0.004, +0.040] (p 0.013), MLP control residual +0.113 [+0.065, +0.161] (p 0.980) | FINDINGS 17.8 | artifacts/control_diagnostics/corrected_l3_h8_wm.json | - |
 | 47 | A hand-authored coherent drag is read; white jitter is not | corrected; exploratory | qd transfer 0.721, fresh 0.754 (+0.142 over untrained); gn transfer 0.527, fresh 0.488 | FINDINGS 17.9 | artifacts/texture/corrected_l3_h8_wm_{gn,qd}.json | - |
@@ -216,6 +223,9 @@ note 9.
   22 cites the gate-0 regression artifact, and row 11 says its floor is the seed-0 value.
   Row 46 says the 0.724 sequence decoder reads observations and previous actions, and gives
   the 0.715 of the observation trace alone (FINDINGS 17.8).
+- 2026-10-11: section 4.5 and row 44 carry a dated note that the replay split between trunk
+  and normalizer is now measured (FINDINGS 20.5, 20.10). The row's recorded figures are
+  unchanged.
 - Rows 28 to 37 added 2026-09-28 for the sections that resolved after July
   (10.4.2, 10.8, 10.9, 11 note 2, 14 to 14.7, 15). Row 12 is narrowed by 10.8, and
   row 27 now records the 13.D re-run. The published GPU L3 cells are not committed,

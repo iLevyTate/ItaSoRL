@@ -43,3 +43,32 @@ def test_l3_residual_larger_for_surrogate():
     auth = [oracle_features_L3(e["trans"], 1e-4, rng, dt)[2] for e in eps if e["label"] == 0]
     l3 = [oracle_features_L3(e["trans"], 1e-4, rng, dt)[2] for e in eps if e["label"] == 1]
     assert np.mean(l3) > np.mean(auth), "L3 residual should exceed the ~zero authentic residual"
+
+
+def test_return_oof_changes_no_number_and_carries_pair_ids():
+    """R26: the oracle's out-of-fold scores come back with their pair ids, from the same fit
+    that gives oracle_auroc, and asking for them changes nothing else."""
+    from itasorl.stats import auroc
+    eps = _pairs(n_pairs=16)
+    plain = run_experiment_a_l3(eps, sigma_meas=0.05, seed=0)
+    res = run_experiment_a_l3(eps, sigma_meas=0.05, seed=0, return_oof=True)
+    assert "oracle_oof" not in plain
+    assert res["oracle_auroc"] == plain["oracle_auroc"]
+    assert res["leakage"] == plain["leakage"] and res["reward_leak"] == plain["reward_leak"]
+    oof = res["oracle_oof"]
+    y, s, f, pair = (np.asarray(oof[k]) for k in ("label", "score", "fold", "pair"))
+    assert sorted(pair.tolist()) == sorted([e["pair"] for e in eps])
+    for p in np.unique(pair):                     # both branches of a pair, in one test fold
+        assert sorted(y[pair == p].tolist()) == [0, 1] and len(set(f[pair == p].tolist())) == 1
+    fold_mean = np.mean([auroc(y[f == k], s[f == k]) for k in np.unique(f)])
+    assert abs(fold_mean - res["oracle_auroc"]) < 1e-12
+
+
+def test_calibrate_l3_return_oof_passthrough():
+    from itasorl.experiment_a_l3 import calibrate_l3
+    kw = dict(hiddens=(4,), sigma_meas=0.05, n_pairs=8, branch=12,
+              train_kwargs={"n_eps": 10, "steps": 12, "epochs": 20, "ray_steps": 3})
+    a = calibrate_l3(**kw)
+    b = calibrate_l3(**kw, return_oof=True)
+    assert a[0]["oracle_auroc"] == b[0]["oracle_auroc"] and "oracle_oof" not in a[0]
+    assert len(b[0]["oracle_oof"]["pair"]) == 16

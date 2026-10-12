@@ -106,3 +106,10 @@ it was compared with (`artifacts/reviewer_gaps_runs/l3_h8_wm_cpu/cells/cell_d0.4
 has 157 leaves under `cell`: 139 numbers, 3 of them NaN, and 18 booleans. The two values the
 section quotes, survival target 0.66570 and engagement return -0.65194, match that cell. The
 section above stays as written; `docs/CORRECTIONS.md` (2026-10-10) records the correction.
+
+## Note (2026-10-11): the reproduction check, rerun and saved
+
+A second rerun at `4b6e1f3` on the same stack, saved this time, reproduces all 157 recorded
+values of both seed-0 cells of the historical CPU device control exactly, with matching config
+fingerprints (`artifacts/repro_check/per_value_4b6e1f3_l3_h8_wm_cpu_s0.json`;
+`docs/CORRECTIONS.md`, 2026-10-11).

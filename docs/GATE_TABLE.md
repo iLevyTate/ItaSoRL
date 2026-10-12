@@ -28,9 +28,13 @@ Speed min is the speed probe in the lowest pool over every drift, arm and seed (
 | `L3-H10-GS1-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.521 (pass) | 20/20 | 0.748 | yes | 0.000 |
 | `L3-H8-GS2-GPU` | historical | explicit | 0.539 | 0.207 | inconclusive (not shown equivalent) | 0.816 | 0.550 (pass) | 20/20 | 0.758 | yes | 0.000 |
 | `L3-H8-NOWM-U450` | historical | explicit | 0.539 | 0.285 | inconclusive (not shown equivalent) | 0.736 | 0.513 (pass) | 20/20 | 0.790 | yes | 0.000 |
+| `CORRECTED-C2-RERUN` | corrected | explicit | 0.515 | 0.001 | pass | 1.000 | 0.529 (pass) | 20/20 | 0.787 | yes | 0 |
+| `CORRECTED-H10GS1-CORRECTED` | corrected | explicit | 0.559 | 0.939 | inconclusive (not shown equivalent) | 0.028 | 0.514 (pass) | 20/20 | 0.753 | yes | 0 |
+| `CORRECTED-H7-CORRECTED` | corrected | explicit | 0.559 | 0.939 | inconclusive (not shown equivalent) | 0.028 | 0.593 (pass) | 20/20 | 0.772 | no | 0 |
+| `CORRECTED-H8GS2-CORRECTED` | corrected | explicit | 0.559 | 0.939 | inconclusive (not shown equivalent) | 0.028 | 0.552 (pass) | 20/20 | 0.725 | yes | 0 |
 | `CORRECTED-L3_H8_NOWM` | corrected | explicit | 0.515 | 0.001 | pass | 1.000 | 0.529 (pass) | 20/20 | 0.787 | yes | 0.000 |
 | `CORRECTED-L3_H8_WM` | corrected | explicit | 0.559 | 0.939 | inconclusive (not shown equivalent) | 0.028 | 0.523 (pass) | 20/20 | 0.772 | yes | 0.000 |
 
-L0 not shown equivalent: 11 of 22 rows (`BV2-L2-AR1` legacy, `L3-H8-N10` explicit, `L3-H7-N10` explicit, `L3-H4` explicit, `L3-H8-HELDOUT` explicit, `L3-H7-REVERSE` explicit, `L1-ORGANISM` explicit, `L3-H10-GS1-GPU` explicit, `L3-H8-GS2-GPU` explicit, `L3-H8-NOWM-U450` explicit, `CORRECTED-L3_H8_WM` explicit).
+L0 not shown equivalent: 14 of 26 rows (`BV2-L2-AR1` legacy, `L3-H8-N10` explicit, `L3-H7-N10` explicit, `L3-H4` explicit, `L3-H8-HELDOUT` explicit, `L3-H7-REVERSE` explicit, `L1-ORGANISM` explicit, `L3-H10-GS1-GPU` explicit, `L3-H8-GS2-GPU` explicit, `L3-H8-NOWM-U450` explicit, `CORRECTED-H10GS1-CORRECTED` explicit, `CORRECTED-H7-CORRECTED` explicit, `CORRECTED-H8GS2-CORRECTED` explicit, `CORRECTED-L3_H8_WM` explicit).
 
-Speed positive control under 0.75 in its lowest pool: 1 of 22 rows (`L3-H10-GS1-GPU` explicit 0.748).
+Speed positive control under 0.75 in its lowest pool: 2 of 26 rows (`L3-H10-GS1-GPU` explicit 0.748, `CORRECTED-H8GS2-CORRECTED` explicit 0.725).

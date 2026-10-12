@@ -36,6 +36,11 @@ is read out afterward with a probe, and nothing in training names the condition.
 **Status of the numbers.** The two primary comparisons were rerun with the corrected
 trainer (banner above; section 17), and the corrected numbers lead this summary. Every
 other survival-trained number is historical, labeled as such, and kept as recorded.
+*(Note 2026-10-11: the second capacity and the two further fingerprint instances have since been
+rerun with the corrected trainer (section 20). The hidden 7 rerun is off-design, because its
+gate 0 fails on the untrained floor; the hidden 8 seed 2 rerun is uninformative, on one
+speed-control pool and the L0 gate; the hidden 10 seed 1 rerun reads 0.626 [0.598, 0.654],
+under the bar, with both margins passing. The historical rows keep their labels.)*
 
 **Hand-authored flaws (L1, L2) did not meet the registered encoding criterion.** A
 detector that knows the true rules finds the L2 drifting coefficient almost perfectly from
@@ -751,6 +756,13 @@ oracle-under-handicap, chosen to leave headroom; "subtle" means subtle *to the
 handicapped oracle*, and σ was tuned post-registration with its values frozen in
 the PREREGISTRATION_L3 §12 deviation log.)
 
+*(Note 2026-10-11: the band [0.85, 0.95] is a registered selection rule applied to the point
+estimate, the grouped 5-fold oracle AUROC over 60 matched pairs; no interval entered any gate-0
+call. On the pair bootstrap of 19.1 the 95% intervals of the ten calibrated instances on record
+are 0.06 to 0.15 wide, and none lies wholly inside the band. This fingerprint reads 0.928, pair
+95% [0.859, 0.964]. Every recorded gate-0 oracle value reproduces exactly from the committed CPU
+exports, the CUDA-calibrated ones included (19.1).)*
+
 Two honesty notes from the audit trail (full detail: `PREREGISTRATION_L3.md`
 sec. 12). First, an earlier observation-channel construction was retired because it
 was trivially detectable at every capacity; the dynamics-level construction above
@@ -864,6 +876,19 @@ registered budget, not to the survival objective alone; the earlier wording
 - **Nonlinear-probe floor:** a random-forest probe on the untrained agent reads
   0.517 (shuffled baseline 0.506; L0 untrained 0.483), so the survival-vs-untrained
   dissociation is not a linear-probe artifact.
+  *(Note 2026-10-11: no committed code produced the 0.517, 0.506 and 0.483. The committed
+  random forest of `itasorl/behavior_audit.py` fits behavior features, not states. Re-scored on
+  the same dumps with the Experiment B forest of `scripts/run_expB_nonlinear.py` on the legacy
+  partition, the untrained arm at drift 0.45 reads 0.514 with random_state 0 and 0.518 with
+  random_state set to the seed; the closest values are 0.514 and 0.518, and neither is 0.517.
+  On the explicit partition the untrained forest reads 0.557 [0.545, 0.569], an interval that
+  excludes 0.5, so the near-chance nonlinear reading holds on the published partition only.
+  19.3; `docs/CORRECTIONS.md`, 2026-10-11.)*
+  *(Note 2026-10-11, second: on the corrected agents of the `C1` rerun, R210 (20.4) reads the
+  untrained arm's states at drift 0.45 with a random forest at 0.559 [0.540, 0.578], against a
+  shuffled control of 0.503 and the linear probe's 0.523 (forest minus linear +0.037 [+0.012,
+  +0.062]). The near-chance nonlinear floor does not hold on the corrected agents either. Under
+  the forest the survival arm leads the untrained arm by +0.171 [+0.104, +0.238].)*
 - **Shuffled negative control:** at chance for every arm.
 
 ### 10.4 Behavior mediation: how much of the signal is just "acting differently"?
@@ -1099,6 +1124,13 @@ and adjudications in `PREREGISTRATION_L3.md` sec. 12, entries 2026-07-13/14):
   seeds, 0 early deaths (110/110 per pool), pooled untrained floor 0.586 (inside
   the frozen tolerance, though violated per-seed in 2 of 10 seeds).
 
+*(Note 2026-10-11: the hidden-4 statements above now have a committed source,
+`artifacts/expB2/failed_gates_l3_h4_traces.json` (19.4): untrained floor 0.891, pooled reward
+leak clean in 0/10 survival seeds, engagement 3/10 at drift 0.45, trunk 96 read from the dumped
+states. The gate-0 oracle values in this trail are point estimates under the registered band
+rule: hidden 7 reads 0.922 with a pair 95% interval of [0.841, 0.958], and hidden 4 on world
+`P` reads 0.932 [0.862, 0.964] (19.1).)*
+
 *(Notes 2026-10-10.)* The hidden-8 regression check is a tolerance check, not an exact one:
 `scripts/run_expA_l3.py` passes it when the oracle is within 0.05 of 0.928 and the floor
 within 0.1 of 0.483. The oracle reads 0.9278. The floor 0.482 is the mean of the three floor
@@ -1146,6 +1178,14 @@ that survives both runs is a reward-clean, survivorship-clean world-signal of
 ≈ 0.72 remaining after the seven-channel behavior control in the survival agent's state at both
 frozen capacities. The survival-*specific* "encoding induced" verdict is
 conditional on the subtler hidden = 8 artifact.
+
+*(Note 2026-10-11: corrected-trainer rerun `H7-corrected` (20.2). Gate 0 measured on the run's
+own CPU fit of the hidden 7 fingerprint fails on the untrained floor (oracle 0.918 in band,
+floor 0.601), so the rerun is off-design under section 8 and adjudicates nothing.
+Descriptively: survival 0.703 [0.650, 0.756], predictor 0.703, untrained 0.593, survival
+`resid_trace` 0.717 [0.678, 0.757]. The historical hidden 7 gate 0 fails the same way under
+the explicit partition (floor 0.615; section 16). The rows above keep their historical
+label.)*
 
 ### 10.6 Held-out fingerprint (common-garden) probe
 
@@ -1226,6 +1266,15 @@ of scope for this run (spec 2026-07-14) and is closed by section 10.7.
 > an independent fingerprint. The recipe-level generalization claim is carried
 > by section 10.7, whose two maps are near-orthogonal in fingerprint space.
 > This note changes no number and no rule outcome; it narrows the wording.
+
+*(Note 2026-10-11: the residual-field comparison is now committed
+(`artifacts/agent_free/residual_field_correlation.json`, 19.2). Hidden 8 against hidden 7
+reads r = +0.607 [+0.573, +0.639] and hidden 8 against `G_rff` +0.174; both match the quoted
+values. The attribution to the bit-identical training set is not supported: `G_rff` is fit on
+exactly the same episodes and shares 3% of variance with hidden 8, while MLP maps at other G
+seeds correlate +0.43 and +0.52 with it. The recipe the MLP maps share explains their overlap
+better than the shared dataset does. The note's conclusion stands. `docs/CORRECTIONS.md`,
+2026-10-11.)*
 
 **Channel 2, common garden: NEGATIVE (informative).** Two groups run a 20-step
 prefix in different worlds (authentic vs the hidden = 8 surrogate), then continue
@@ -1341,6 +1390,11 @@ state separates the worlds; the family was DROPPED per the pre-stated rule. This
 is itself informative: in world P, coefficient-bias artifacts cannot be made
 subtle-but-detectable, which independently motivates the learned-texture
 construction of the L3 rung.
+
+*(Note 2026-10-11: the frozen D = 80 oracle, 0.8875 on the legacy partition, reproduces exactly.
+Its pair 95% interval is [0.824, 0.945], 0.102 of its pair-bootstrap draws fall below 0.85,
+and it reads 0.897 on the explicit partition. The in-band call is the registered rule applied
+to the point (19.1).)*
 
 **Integrity gate (fourth determinism check).** All 60 saved agents regenerated
 their standard pools bit-identically against the saved dumps, and the drift-0.45
@@ -1597,6 +1651,12 @@ And oracle detectability is not monotone in capacity at this seed (hidden 9 read
 0.982). The selected instance is subtler to the oracle than the published one
 (0.893 against 0.928).
 
+*(Note 2026-10-11: the four oracle values in this table and the seed-2 value below reproduce
+exactly (19.1), and the band is applied to the point. The hidden 7 exclusion is a near call:
+0.957 has a pair 95% interval of [0.890, 0.978] and 0.354 of its pair-bootstrap draws above
+0.95, against 0.901 for hidden 9. The selected hidden 10 reads 0.893 [0.817, 0.941], with 0.148
+of its draws below 0.85, and the seed-2 hidden 8 map reads 0.939 [0.871, 0.971].)*
+
 **Gates (all pass).** Engagement 20/20; L0 control 0.529 (TOST p = 0.039, ROPE
 P = 0.983, both accept); speed at least 0.830; pooled reward-leak clean in every
 cell; untrained floor 0.514; 0 early deaths. (The secondary matched-pair leakage
@@ -1751,6 +1811,15 @@ and the 0.75 threshold is not relaxed. The corrected verdicts already used the p
 (`artifacts/corrected_verdicts.json`). The gate table (`docs/GATE_TABLE.md`) shows the same
 values; PREREGISTRATION_L3 carries a dated entry and `docs/CORRECTIONS.md` the correction.
 
+*(Note 2026-10-11: corrected-trainer reruns of both instances, `H10GS1-corrected` and
+`H8GS2-corrected` (20.2). Hidden 10 at G seed 1 passes gate 0 on its own fit and reads 0.626
+[0.598, 0.654], 3 of 10 seeds at the bar, with `resid_trace` 0.637 [0.610, 0.664]. Replication
+is not claimed, both margins pass, and the L0 gate is open because the run's drift-0 cells are
+`C1`'s. Hidden 8 at G seed 2 is uninformative (one untrained pool at 0.725 under the speed
+control's 0.75, and the L0 gate); descriptively it reads 0.659 [0.619, 0.699], +0.031 over the
+predictor. A margin over the predictor is a difference between training regimes. The rows above
+keep their historical labels.)*
+
 ## 11. Methods notes and limitations
 
 Stated once, plainly, with pointers into the code.
@@ -1801,6 +1870,10 @@ Stated once, plainly, with pointers into the code.
    trained against an independently trained instance (seed 1, hidden 10)
    reproduces the survival-specific dissociation at 0.639, below the bar; the
    absolute level is instance-conditional.
+   *(Note 2026-10-11: both instances and the second capacity now also have corrected-trainer
+   reruns (section 20). Hidden 7 is off-design on its own fingerprint, hidden 8 at G seed 2 is
+   uninformative, and hidden 10 at G seed 1 does not meet its replication rule; in all three
+   the survival arm leads the untrained arm by about 0.11.)*
 5. **CI methodology at the decision boundary.** The percentile bootstrap of a seed
    mean under-covers near the bar at n ≤ 10, so "clears / misses 0.65"
    adjudications use the t-based interval, with both reported
@@ -2444,6 +2517,10 @@ promoted summaries under `artifacts/expC/`, and the runner at `06ecc10`.
   control. After the first few generations each generation removes only the lowest few
   individuals. Seed-0 treatment fitness peaked at generation 15 (-0.863) and ended at -1.122.
   "Selection had grip" in 13.D rests on endpoint fitness deltas.
+  *(Note 2026-10-11: these numbers now have a committed source,
+  `artifacts/expC/selection_intensity.json` (19.5). It also shows that seed-1 treatment falls
+  back under 90% in five later generations and that the main milestone run's fitness series
+  and thresholds are identical to the rerun's.)*
 - *Fitness is scored on fixed layouts.* Each lifetime is 2 authentic and 2 surrogate episodes
   of 80 steps on the same two layouts (seed base 320000 plus 10000 per lineage), identical for
   every individual, generation and arm, under a deterministic policy. Section 4 of the
@@ -2624,6 +2701,12 @@ is the jitter's magnitude. Gate 0 at `sigma_v=0.01` yields oracle AUROC **0.865*
 (in-band), mechanical leakage pass, untrained floor **0.448** (within tolerance).
 This is matched-band detectability with zero learned structure.
 
+*(Note 2026-10-11: 0.865 is the point estimate on the legacy partition and reproduces exactly.
+It is the weakest in-band call on record: its pooled out-of-fold AUROC is 0.843, its pair 95%
+interval [0.766, 0.913], 0.533 of its draws below 0.85, and it reads 0.889 under the explicit
+split. "Matched-band" holds for the point under the registered rule, with less margin than any
+learned map has (19.1).)*
+
 *Hidden=8 result:* survival `transfer_gn_target` = **0.539** (n=10, mean),
 untrained floor **0.542**, predictor **0.556**. The frozen positive rule fails both
 clauses; the structured-texture direction does NOT read the matched-magnitude
@@ -2746,6 +2829,15 @@ and the 8-unit trunk, so equal values there point at the trunk width and not at 
 perturbation. No verdict changes: this run was already uninformative, the `qd` run was already
 excluded, and no claim rests on either. Dated entries: `docs/PREREGISTRATION_L3.md` section 12
 and `docs/CORRECTIONS.md`, 2026-10-10.
+
+*(Note 2026-10-11: the `qd`-trained run is now promoted, labeled off-design, as
+`artifacts/texture/T_qd_l3_h8_wm.json` (19.4), where its 8-unit trunk is read from all 60 saved
+agents and its 8 short pools are listed one by one. On the `G_gn` gate 0 quoted above (0.8653),
+see the note at 14.5 and 19.1.)*
+
+*(Note 2026-10-11, second: the `C1` and `C2` reruns keep their agents (18.1, 20.1). Their config
+hashes equal `C1`'s and `C2`'s, which `tests/test_expb2_trunk_guard.py` derives from the 96-unit
+recipe; the width has not been read from their weights.)*
 
 ## 14.6 A2 observation-channel localization
 
@@ -2970,6 +3062,14 @@ stronger leg of the sufficiency argument than it was, and the limitation recordi
 had been measured on the corrected L3 agents only is discharged. The L1 run's own adjudication
 (the registered encoding criterion not met) stands exactly as recorded.
 
+*(Note 2026-10-11: the open question is measured, on the same thirty cells (20.9; spec amendment
+of 2026-10-11). GRU readers at 2, 4 and 8 times the trunk's width read the survival agents' own
+streams at 0.582, 0.565 and 0.548, against 0.589 for the trunk-width reader (8x minus 1x -0.041
+[-0.062, -0.020]), so a wider recurrent reader extracts no more: READER-RELATIVE. The statement
+that the trunk holds about what a reader of its capacity extracts is relative to the reader's
+shape. A 1D convolutional reader reads the same streams at 0.667 [0.621, 0.713], and the
+predictor's and untrained agents' streams at 0.652 and 0.655.)*
+
 ## 15. Matched-handicap oracle ceilings across rungs (2026-09-27)
 
 **Status: MEASURED; it qualifies the cross-rung comparison, it does not change
@@ -3181,13 +3281,15 @@ cause and not a measured one. The argument and the costings behind both decision
 *Note (2026-10-10): rows that share drift-zero agents.* At drift 0 the surrogate is off, so
 runs that differ only in their surrogate share one set of drift-zero agents and pools, and
 `docs/GATE_TABLE.md` lists that set under each run's name. Grouping its rows by their
-drift-zero statistics (agreement to six decimals in `artifacts/gate_table.json`), the 22 rows
+drift-zero statistics (agreement to six decimals in `artifacts/gate_table.json`), the 26 rows
 hold 10 distinct sets. The twelve explicit-partition historical rows hold five: three
 inconclusive (the GPU set at 0.539 that seven rows share, the L1 organism at 0.546, and the
 no-auxiliary 450-update run at 0.539 with p = 0.285) and two passing (the cloud no-auxiliary
 run at 0.514, and 0.529, which the cloud world-model and second-instance CPU runs share). The
 eight legacy rows hold three, and the B-v3 row shares the L3 legacy set. Rows of one set are
-not independent tests of L0.
+not independent tests of L0. (Updated 2026-10-11: the table held 22 rows before the four reruns of
+section 20 joined it. Their drift-zero sets are `C1`'s and `C2`'s, so the number of sets is
+unchanged.)
 
 ---
 
@@ -3209,7 +3311,11 @@ Before launch, the original code at `4b6e1f3` reran one committed cell of the hi
 device control there and reproduced the committed cell's recorded values, including survival
 target 0.66570 and engagement return -0.65194; the rerun cell was not saved. (Corrected
 2026-10-10: this sentence said "all 156 of its recorded values exactly", a count that the
-committed cell, with 157 leaves, cannot back; `docs/CORRECTIONS.md`.) The only
+committed cell, with 157 leaves, cannot back; `docs/CORRECTIONS.md`.) (Note 2026-10-11: a
+second rerun at `4b6e1f3` on the same stack, saved this time, reproduces all 157 recorded
+values of both seed-0 cells of that run, drift 0 and drift 0.45, exactly, with matching config
+fingerprints. Each cell carries 139 numbers, 3 of them NaN, and 18 booleans;
+`artifacts/repro_check/per_value_4b6e1f3_l3_h8_wm_cpu_s0.json`.) The only
 difference between a corrected cell and its historical CPU cell is the bootstrap. On this
 stack the explicit-v1 and legacy fold partitions coincide for the pooled design, so the
 historical CPU numbers and the corrected numbers share one partition.
@@ -3337,6 +3443,15 @@ auxiliary-conditional reading therefore holds on the decodability clauses, condi
 `C1`'s open gate", which led with the clause that holds; the reading is unchanged.) Sections
 17.6 and 17.10 say what the decoder changes.
 
+*(Note 2026-10-11: the draw-free version of this contrast is measured (20.12), on the agents of
+`C2-rerun`, whose cells equal `C2`'s to the bit (20.1). On balanced pairs, where both members of a
+pair share a world seed, the seed-paired `C1` minus `C2` difference of the survival arm (agents
+raised at drift 0.45) reads +0.121 [+0.074, +0.168] on a fresh world base and +0.124 [+0.073, +0.175] on the registered base,
+both HOLDS under the spec's labels (interval above 0.05), beside the +0.120 [+0.065, +0.174]
+recorded above on the registered draw. The decoder's lead does not rest on that one
+evaluation-world draw. The auxiliary rule stays NOT MET as registered, because `C1` does not meet
+its primary rule.)*
+
 ### 17.5 The L0 gate across world samples (revision step 5)
 
 The registered L0 rule reads one pair of evaluation-world samples: the authentic pool from
@@ -3390,6 +3505,15 @@ read 0.515 [0.500, 0.530], so the decoder-carrying agents read 0.044 higher at d
 minus `C2` contrast of 17.4 and the budget curve of 17.10 are read on this one registered
 draw. No balanced readout exists for `C2`, because its agents were not kept outside the
 revision container.
+
+*(Note 2026-10-11: `C2-rerun` reproduces every value of the committed `C2` cells to the bit and
+keeps its agents, which now stand in for `C2`'s (20.1). Its balanced readout exists: survival 0.643
+[0.595, 0.691] on the registered base (20.10). The `C1` minus `C2` contrast of 17.4 is now also read
+on balanced pairs, where it holds above 0.05 on the registered base and on a fresh one (+0.124
+[+0.073, +0.175] and +0.121 [+0.074, +0.168]; 20.12), so it no longer rests on the one registered
+draw. The budget curve of 17.10 still does. R33 reproduces the `C1` balanced readout above to the
+bit and adds a fresh world base, where survival reads 0.784 [0.748, 0.821], predictor 0.646 and
+untrained 0.591 (20.7).)*
 
 ### 17.5.1 Drift-0.45 world-sample sensitivity (2026-10-08, historical hidden-8 held-out agents)
 
@@ -3562,6 +3686,14 @@ was fitted on 8 episodes of 40 steps of its own random policy
 during training. How the 0.1 splits between trunk and normalizer is not measured. (Paragraph
 revised 2026-10-10: it had said "as well as" and credited the 0.1 to training of the trunk.)
 
+*(Note 2026-10-11: measured since by R35 (20.5), on the `C1` rerun's agents and fresh worlds,
+where the own-normalizer replay margin of the survival trunk over the untrained trunk is +0.076
+[+0.047, +0.104]. With every trunk reading identical normalized input it stays above zero:
++0.059 [+0.030, +0.088] on the survival agent's normalizer (0.78 of it) and +0.092 [+0.066,
++0.118] on a normalizer refit to the replayed streams (1.22 of it; +0.091 with the refit inside
+each fold). Pre-stated reading: **TRUNK**, the replay margin over the untrained arm comes from
+training of the trunk. The predictor's margin is near zero on every normalizer.)*
+
 The survival-over-predictor margin of the primary readout (+0.144) is therefore a
 difference between training regimes, and at matched evaluation input it is not a difference
 of objective. What carries the world signal is the trajectories the survival policy
@@ -3578,6 +3710,15 @@ more). The primary verdict of 17.2 is unchanged, since it is defined
 on the `own` protocol. The wording of every claim that calls the signal survival-specific,
 or credits it to the survival objective, is narrowed to this reading (the closing summary
 of this section and the public pages).
+
+*(Note 2026-10-11: recorded since by R206 (20.6). Along the survival agent's own walk in the
+surrogate worlds the learned law departs from the authentic one by 0.546 per 24-step episode,
+against 0.482 along the predictor's walk, 0.467 along the untrained walk and 0.468 along the
+scripted walk, and all three seed-paired differences lie above zero. Pre-stated reading:
+**HIGHER**, which restores the withdrawn sentence: the survival policy visits states where the
+two laws differ more. Its walk is also the fastest (mean speed 0.158 against 0.147 to 0.150),
+and the deviation grows with speed. Across seeds the deviation correlates with the recorded
+survival target at r = 0.945, descriptive at n = 10.)*
 
 This also bears on the auxiliary comparison. An arm without the next-observation decoder
 forages differently, so a lower reading for it can come from the episodes its policy
@@ -3692,6 +3833,16 @@ committed artifact.
 By this test the state reads the same as either stream decoder to within 0.05. It reads 0.113
 above what the best-fitting control leaves, and that difference is not within 0.05.
 
+*(Note 2026-10-11: two post-review readouts on the `C1` rerun's agents bear on this section.
+R31 (20.8) widened the stream decoder to 2, 4 and 8 times the trunk's width on fresh worlds. No
+wider GRU reads the survival agent's own stream better than the trunk-width one (NOT
+CAPACITY-LIMITED), and the state reads +0.045 [+0.020, +0.070] above the best decoder, so on
+those worlds the label is STATE ABOVE rather than EQUIVALENT. The registered-pair contrasts
+above stand as recorded. R210 (20.4) scored an MLP and a random forest on the registered pools.
+On the survival state they read 0.747 and 0.730 against the linear 0.733, neither more than the
+linear probe, and both margins of 17.2 keep their means above 0.05 under both classes; under
+the forest the interval of the margin over the predictor reaches down to +0.046.)*
+
 ### 17.9 Texture comparators: three questions, two answered (revision step 9)
 
 The published texture knockout (14.5) asked one question: does the world-identity direction
@@ -3765,6 +3916,12 @@ ten survival values is [0.537, 0.624], computed from the local, unpromoted
 `fullruns/T_qd_l3_h8_wm/expB2_results.json`. The exclusion stands and no reading changes; see
 the 14.5.1 correction of the same date. The last sentence above was overtaken on 2026-10-08,
 when the `gn`-trained run of 14.5.1 was executed.)*
+
+*(Note 2026-10-11: this run is now promoted, labeled off-design, as
+`artifacts/texture/T_qd_l3_h8_wm.json` (19.4; results manifest row `T-QD-TRAINED`). "Is not
+promoted to `artifacts/`" above and "local, unpromoted" in the note of 2026-10-10 are out of
+date. The promotion reproduces every value quoted here, the t-based interval [0.537, 0.624]
+included, and changes no reading: the run stays excluded and bears on no rule.)*
 
 **Reading.** At the same one-step magnitude, a hand-authored perturbation that is coherent
 over time and depends on the state is read by the survival agent's state, through the very
@@ -4052,3 +4209,1041 @@ limitation that no comparator-trained run supports it stays.
    decode the world better than the state.
 5. **The white-jitter question stays open** (18.6). The run reads low, but its L0 gate fails, so it
    is not evidence.
+
+## 19. Post-review analyses without agents (2026-10-11)
+
+**Status: MEASURED; no agent was trained or run, and no recorded verdict changes.** Five
+analyses answer review findings from committed fingerprints, gitignored run outputs and saved
+state dumps. Each subsection names its artifact, script and test, and says what it changes and
+what it does not. Everything ran on one CPU thread on the owner's workstation (Python 3.13.2,
+numpy 1.26.4, scikit-learn 1.5.2, torch 2.7.0+cu126). `scripts/audit_stats_recheck.py`
+rebuilds every table row below from the artifacts.
+
+### 19.1 Gate-0 oracle AUROCs with pair-clustered intervals (finding R26)
+
+Artifact `artifacts/agent_free/gate0_pair_intervals.json`; script
+`scripts/gate0_pair_intervals.py`; test `tests/test_gate0_pair_intervals.py`.
+
+Every gate-0 in-band or out-of-band call in this record is a point estimate: the grouped
+5-fold oracle AUROC over 60 matched pairs, with no interval. `run_experiment_a_l3` and
+`calibrate_l3` (`itasorl/experiment_a_l3.py`) now take `return_oof=True` and return the
+oracle's out-of-fold scores with matched-pair ids and folds, from the same fit that gives the
+point; the flag changes no number. The oracle side of gate 0 was recomputed for ten
+calibrated instances exactly as `scripts/run_expA_l3.py` computes it (60 pairs, branch 30,
+seed0 3000, sigma_meas 0.02, oracle seed 0), under both fold partitions. The untrained-floor
+side needs agents and is not covered.
+
+Fingerprints come from the committed CPU exports (`artifacts/surrogates/`). Hidden 8, 7 and 4
+at G seed 0 and hidden 8 at G seed 2 were calibrated on CUDA, and hidden 10 at G seed 1 on both
+CPU and CUDA; all are scored here from the CPU export. The seed-1 hidden 7, 8 and 9 maps were
+never exported and were retrained on CPU, one thread, from `train_g_motion`, as the cloud CPU
+calibration fit them. `G_rff` is a numpy closed-form fit and `G_gn` has no fitted part.
+
+**Reproduction.** Every recorded point reproduces to the last digit under its recorded
+partition, the CUDA-calibrated instances included.
+
+| instance | recorded value and partition | recomputed, legacy | recomputed, explicit |
+|---|---|---|---|
+| hidden 8, G seed 0 | 0.927778 legacy; 0.929167 explicit | 0.927778 | 0.929167 |
+| hidden 7, G seed 0 | 0.922222 legacy; 0.918056 explicit | 0.922222 | 0.918056 |
+| hidden 4, G seed 0 | 0.931944 legacy | 0.931944 | 0.933333 |
+| hidden 8, G seed 1 | 0.927778 explicit | 0.925000 | 0.927778 |
+| hidden 7, G seed 1 | 0.956944 explicit | 0.956944 | 0.956944 |
+| hidden 9, G seed 1 | 0.981944 explicit | 0.979167 | 0.981944 |
+| hidden 10, G seed 1 | 0.893056 explicit | 0.884722 | 0.893056 |
+| hidden 8, G seed 2 | 0.938889 explicit | 0.934722 | 0.938889 |
+| `G_rff`, D = 80 | 0.887500 legacy | 0.887500 | 0.897222 |
+| `G_gn`, sigma_v = 0.01 | 0.865278 legacy | 0.865278 | 0.888889 |
+
+Sources: `artifacts/fold_rescore/gate0_h8h7_*.json` (seed 0), the gitignored recalibration
+`fullruns/l3_gate0_recal/calibration.json` (hidden 4, which 10.5 cites by its floor only),
+`artifacts/reviewer_gaps_runs/l3_gate0_seed1*/` and `l3_gate0_seed2_gpu/`, the gitignored
+bisection JSON of 10.7 (0.887 in `artifacts/l3_crossrecipe/summary.json`), and
+`artifacts/expH2/texture_knockout_h8.json` for `G_gn`.
+
+**Intervals, on the recorded partition.** "Pair 95%" is `itasorl.stats.cluster_auroc_ci`:
+whole pairs resampled, 2000 draws, seed 0. It brackets the pooled out-of-fold AUROC, which sits
+below the recorded fold-mean point for every instance except `G_rff`, so both are given.
+"Fold-mean 95%" resamples whole pairs inside each test fold and is aligned with the recorded
+point (`itasorl.stats.fold_mean_auroc_ci`). The last three numeric columns are the shares of
+pair-bootstrap draws inside [0.85, 0.95], below it and above it. Both intervals hold the fitted
+oracle fixed, so they carry pair-sampling variation only.
+
+| instance | partition | point | pooled OOF | pair 95% | fold-mean 95% | in band | below | above | recorded call |
+|---|---|---|---|---|---|---|---|---|---|
+| hidden 8, G seed 0 | legacy | 0.928 | 0.916 | [0.859, 0.964] | [0.867, 0.971] | 0.897 | 0.015 | 0.087 | in band, gate 0 passes |
+| hidden 7, G seed 0 | legacy | 0.922 | 0.905 | [0.841, 0.958] | [0.861, 0.967] | 0.897 | 0.049 | 0.053 | in band |
+| hidden 4, G seed 0 | legacy | 0.932 | 0.920 | [0.862, 0.964] | [0.874, 0.971] | 0.878 | 0.009 | 0.113 | in band, floor fails |
+| hidden 8, G seed 1 | explicit | 0.928 | 0.917 | [0.856, 0.964] | [0.874, 0.972] | 0.876 | 0.018 | 0.106 | in band, floor fails |
+| hidden 7, G seed 1 | explicit | 0.957 | 0.939 | [0.890, 0.978] | [0.915, 0.990] | 0.645 | 0.001 | 0.354 | out of band |
+| hidden 9, G seed 1 | explicit | 0.982 | 0.973 | [0.934, 0.998] | [0.949, 1.000] | 0.099 | 0.000 | 0.901 | out of band |
+| hidden 10, G seed 1 | explicit | 0.893 | 0.882 | [0.817, 0.941] | [0.832, 0.947] | 0.840 | 0.148 | 0.011 | in band, gate 0 passes |
+| hidden 8, G seed 2 | explicit | 0.939 | 0.927 | [0.871, 0.971] | [0.885, 0.981] | 0.809 | 0.006 | 0.184 | in band, gate 0 passes |
+| `G_rff`, D = 80 | legacy | 0.887 | 0.890 | [0.824, 0.945] | [0.819, 0.943] | 0.883 | 0.102 | 0.014 | in band |
+| `G_gn`, sigma_v = 0.01 | legacy | 0.865 | 0.843 | [0.766, 0.913] | [0.807, 0.933] | 0.467 | 0.533 | 0.000 | in band |
+
+**Reading.** No 95% interval of either kind lies inside the band, and none lies wholly outside
+it. The pair intervals are 0.06 to 0.15 wide, against a band 0.10 wide. The in-band calls on
+the learned maps rest on points whose pair bootstrap puts 81% to 90% of its mass in the band.
+The two seed-1 out-of-band calls differ in strength: hidden 9 sits above the band in 90% of
+draws, hidden 7 in only 35%, so the hidden 7 exclusion is a near call on the point. `G_gn` is
+the weakest in-band call: its pooled out-of-fold AUROC (0.843) is below 0.85, more than half its
+draws fall below the band, and under the explicit partition it reads 0.889. The `G_gn` and
+`G_rff` points move by 0.024 and 0.010 between the two partitions.
+
+**What this changes and what it does not.** The band is a registered selection rule applied to
+the point estimate, and every recorded value stands as recorded, so no gate is re-adjudicated.
+The intervals say how far each call sits from its band edges. Dated notes at 10.1, 10.5, 10.7,
+10.9 and 14.5 point here.
+
+### 19.2 Residual-field correlation of the L3 fingerprints
+
+Artifact `artifacts/agent_free/residual_field_correlation.json`; script
+`scripts/residual_field_correlation.py`; test `tests/test_residual_field_correlation.py`.
+
+The 10.5 scope note (2026-07-18) quotes Pearson r of about +0.60 between the hidden 8 and
+hidden 7 residual fields and about +0.20 between hidden 8 and `G_rff`, with no committed
+artifact. The residual field of a velocity law G is G(vel, a) minus the authentic world-P law
+(1 - 1.5 dt) vel + a dt, on the inputs of fresh authentic scripted-policy transitions: 250
+episodes of 40 steps from `HELDOUT_SEED` (episodes 100000 to 100249, 10000 transitions), a
+range checked disjoint from every fingerprint's training range before scoring. The fingerprints
+are the five committed CPU exports and `G_rff` at D = 80, rebuilt from its frozen recipe. r
+pools both velocity components; intervals are percentile bootstraps over episodes (2000 draws,
+seed 0), computed from per-episode sums the artifact stores.
+
+The two quoted values reproduce: hidden 8 against hidden 7 reads +0.607 (r squared 0.37), and
+hidden 8 against `G_rff` reads +0.174 (r squared 0.03).
+
+| | h8 s0 | h7 s0 | h4 s0 | h10 s1 | h8 s2 | rff D80 |
+|---|---|---|---|---|---|---|
+| h8 s0 | 1 | +0.607 | +0.470 | +0.430 | +0.518 | +0.174 |
+| h7 s0 |  | 1 | +0.653 | +0.423 | +0.585 | +0.151 |
+| h4 s0 |  |  | 1 | +0.329 | +0.667 | +0.228 |
+| h10 s1 |  |  |  | 1 | +0.571 | +0.182 |
+| h8 s2 |  |  |  |  | 1 | +0.260 |
+
+| pair | r | 95% | r on x | r on y |
+|---|---|---|---|---|
+| h8 s0, h7 s0 | +0.607 | [+0.573, +0.639] | +0.560 | +0.724 |
+| h8 s0, h8 s2 | +0.518 | [+0.479, +0.557] | +0.657 | +0.393 |
+| h8 s0, h10 s1 | +0.430 | [+0.358, +0.496] | +0.515 | +0.366 |
+| h10 s1, h8 s2 | +0.571 | [+0.511, +0.625] | +0.549 | +0.596 |
+| h8 s0, rff D80 | +0.174 | [+0.133, +0.217] | +0.294 | +0.039 |
+| h10 s1, rff D80 | +0.182 | [+0.146, +0.215] | +0.256 | +0.103 |
+| h8 s2, rff D80 | +0.260 | [+0.208, +0.314] | +0.319 | +0.180 |
+
+Field sizes (RMS of the two-component residual): h8 s0 0.036, h7 s0 0.056, h4 s0 0.115, h10 s1 0.025, h8 s2 0.035, rff D80 0.043.
+
+**Reading.** Every pair of MLP fields correlates between +0.33 and +0.67, whatever the capacity
+or G seed, and `G_rff` correlates between +0.15 and +0.26 with every MLP. The scope note
+attributes the hidden 8 and hidden 7 overlap to their shared training set. Two entries of the
+matrix weigh against that. `G_rff` is fit on exactly the hidden 8 seed-0 episodes [0, 250) and
+shares only 3% of variance with it, and the MLPs at other G seeds share about as much with
+hidden 8 seed 0 (+0.43 at hidden 10 seed 1, +0.52 at hidden 8 seed 2) as hidden 7 does
+(+0.61). One caution on "other seeds": `train_g_motion` draws episodes [s, s + 250), so the
+seed-1 and seed-2 maps share 249 and 248 of their 250 training episodes with the seed-0 maps,
+and what changes between them is mostly the weight initialisation. The overlap among MLP
+fields is best described as a property of the recipe (a small ReLU MLP fit for 300 epochs to
+these transitions); the matrix cannot separate recipe from data any further.
+
+**What this changes and what it does not.** The scope note's attribution to the shared dataset
+is corrected (dated note at 10.5; `docs/CORRECTIONS.md`, 2026-10-11). Its conclusion stands:
+hidden 7 is a capacity variant of one recipe, and the recipe-level generalization claim rests
+on `G_rff`, the one fingerprint in the set that is close to orthogonal to all the others.
+
+### 19.3 Random-forest probe on the historical hidden-8 dumps
+
+Artifact `artifacts/agent_free/rf_probe_l3_n10_historical.json`; script
+`scripts/rf_probe_historical_h8.py`; test `tests/test_rf_probe_historical.py`. HISTORICAL:
+the 60 dumps of `fullruns/l3_n10/states` come from the hidden-8 n = 10 run trained by the
+pre-correction trainer.
+
+10.3 reports a random-forest probe on the untrained agent at 0.517 (shuffled baseline 0.506,
+L0 untrained 0.483). The committed random-forest path in `itasorl/behavior_audit.py` fits
+behavior features, not recurrent states, so it is not the source. No committed code fits a
+forest to the L3 states: the preregistration entry of 2026-07-12 calls the check post hoc, and
+the commit that made the behavior audit canonical says the figures of that time came from an
+uncommitted analysis. The closest committed code is `scripts/run_expB_nonlinear.py`: 200
+trees, random_state 0, `episode_features` of the states, episode-grouped folds, one label
+permutation from default_rng(seed) as the shuffled control. That forest is scored here beside
+the registered linear probe, under both partitions.
+
+**Reproduction.** The linear probe matches the run's own record (`pool_target` and the
+single-draw `pool_shuffled`) and the committed fold re-score of these dumps exactly in all 60
+cells. The forest comes close to the three recorded values and matches none of them exactly:
+
+| untrained arm, legacy partition | recorded (10.3) | forest, random_state 0 | forest, random_state = cell seed |
+|---|---|---|---|
+| drift 0.45, target | 0.517 | 0.514 | 0.518 |
+| drift 0.45, shuffled | 0.506 | 0.508 | 0.502 |
+| drift 0, target | 0.483 | 0.485 | 0.483 |
+
+Per arm and drift, mean over 10 seeds with its t-based 90% interval and the seeds at or above
+0.65. Legacy partition (the one the run was published on); the linear shuffled column gives
+the single historical draw and the mean of eight draws:
+
+| drift | arm | linear | linear shuffled (1 / 8 draws) | forest | forest shuffled |
+|---|---|---|---|---|---|
+| 0.45 | survival | 0.752 [0.698, 0.807], 8/10 | 0.518 / 0.496 | 0.773 [0.721, 0.825], 9/10 | 0.544 [0.523, 0.565] |
+| 0.45 | predictor | 0.573 [0.542, 0.604], 0/10 | 0.490 / 0.499 | 0.577 [0.550, 0.605], 0/10 | 0.500 [0.466, 0.534] |
+| 0.45 | untrained | 0.488 [0.457, 0.518], 0/10 | 0.511 / 0.504 | 0.514 [0.487, 0.540], 0/10 | 0.508 [0.473, 0.544] |
+| 0 | survival | 0.517 [0.495, 0.538], 0/10 | 0.517 / 0.506 | 0.509 [0.491, 0.528], 0/10 | 0.528 [0.503, 0.553] |
+| 0 | predictor | 0.484 [0.451, 0.518], 0/10 | 0.485 / 0.492 | 0.493 [0.483, 0.504], 0/10 | 0.493 [0.464, 0.521] |
+| 0 | untrained | 0.476 [0.456, 0.495], 0/10 | 0.505 / 0.504 | 0.485 [0.458, 0.511], 0/10 | 0.524 [0.493, 0.554] |
+
+Explicit partition:
+
+| drift | arm | linear | forest | forest shuffled |
+|---|---|---|---|---|
+| 0.45 | survival | 0.774 [0.727, 0.821], 9/10 | 0.786 [0.734, 0.838], 9/10 | 0.527 [0.501, 0.553] |
+| 0.45 | predictor | 0.588 [0.562, 0.615], 0/10 | 0.619 [0.593, 0.644], 2/10 | 0.490 [0.464, 0.516] |
+| 0.45 | untrained | 0.513 [0.490, 0.536], 0/10 | 0.557 [0.545, 0.569], 0/10 | 0.516 [0.483, 0.548] |
+| 0 | survival | 0.539 [0.516, 0.562], 0/10 | 0.526 [0.510, 0.543], 0/10 | 0.514 [0.499, 0.529] |
+| 0 | predictor | 0.507 [0.475, 0.540], 0/10 | 0.537 [0.527, 0.547], 0/10 | 0.507 [0.474, 0.540] |
+| 0 | untrained | 0.480 [0.455, 0.506], 0/10 | 0.511 [0.492, 0.530], 0/10 | 0.519 [0.497, 0.541] |
+
+**Reading.** On the legacy partition the forest agrees with 10.3: the untrained agent's states
+sit at chance for a nonlinear reader too (0.514, interval spanning 0.5), and the survival agent
+reads 0.773, a little above its linear 0.752. The forest reads 0.004 to 0.044 above the linear
+probe in ten of the twelve arm, drift and partition cells, and 0.008 and 0.013 below it in the
+two drift-0 survival cells. On the explicit partition the untrained forest at drift 0.45 reads
+0.557 with an interval that excludes 0.5, against a shuffled control of 0.516, while the linear
+untrained probe stays at 0.513. The survival-versus-untrained gap stays large under every probe
+and partition (0.23 to 0.26 for the forest).
+
+**What this changes and what it does not.** The 0.517 in 10.3 has no committed source and does
+not reproduce exactly (the closest values are 0.514 and 0.518), and the "near-chance even
+nonlinearly" reading holds on the published partition only (dated note at 10.3;
+`docs/CORRECTIONS.md`, 2026-10-11). The historical headline and its dissociation from the
+untrained arm are unchanged.
+
+*(Note 2026-10-11: the corrected agents agree with the explicit-partition reading. R210 reads
+the untrained arm of the `C1` rerun at 0.559 [0.540, 0.578] with a forest at drift 0.45 (20.4).)*
+
+### 19.4 Two runs promoted for the record: T-qd (off-design) and hidden 4 (failed gates)
+
+Artifacts `artifacts/texture/T_qd_l3_h8_wm.json` and
+`artifacts/expB2/failed_gates_l3_h4_traces.json`; script `scripts/promote_off_design_runs.py`,
+which reuses the gate helpers of `scripts/promote_texture_trained.py`; test
+`tests/test_promote_off_design_runs.py`. Neither run bears on any rule.
+
+**T-qd** (`fullruns/T_qd_l3_h8_wm`, finding R72), labeled OFF-DESIGN: the survival run in the
+quadratic-drag family at eps 6.0 of the 17.9 addendum, corrected (successor) trainer, run
+commit `2606e7f`, config fingerprint `23a620e51d4e26fd`. Every value the record states in prose
+reproduces from the bundle. The seed-bootstrap column is the run's own printed interval
+(`itasorl.stats.mean_ci`, 10000 draws, seed 0).
+
+| drift | arm | pooled target | t-based 90% | seed-bootstrap 90% | seeds at or above 0.65 |
+|---|---|---|---|---|---|
+| 0.45 | survival | 0.580 | [0.537, 0.624] | [0.542, 0.615] | 2/10 |
+| 0.45 | predictor | 0.573 | [0.546, 0.601] | [0.549, 0.595] | 0/10 |
+| 0.45 | untrained | 0.608 | [0.580, 0.635] | [0.584, 0.630] | 2/10 |
+| 0 | survival | 0.523 | [0.502, 0.544] | [0.506, 0.541] | 0/10 |
+| 0 | predictor | 0.516 | [0.490, 0.543] | [0.495, 0.540] | 0/10 |
+| 0 | untrained | 0.537 | [0.518, 0.557] | [0.520, 0.554] | 0/10 |
+
+The speed positive control falls below 0.75 in 8 of 60 pools, worst 0.7018. Seven of the eight
+are untrained pools (drift 0 seeds 0, 1 and 2; drift 0.45 seeds 0, 2, 3 and 8) and the eighth
+is the drift-0.45 survival pool of seed 2. Engagement holds in 10 of 10 cells at drift 0 and 6
+of 10 at drift 0.45; L0 reads 0.523 (TOST p 0.020, equivalent); pooled reward leakage stays
+within 0.079 of 0.5 in every pool; no episode ends early; the untrained floor (0.608) lies
+0.108 from 0.5, outside the 0.1 tolerance. No eps of the frozen qd sweep reaches the gate-0 band
+(highest oracle 0.768 at eps 16), and eps 6.0 was matched on one-step magnitude, not
+calibrated. All 60 saved agents carry an 8-unit trunk (constructor record and `weight_hh`
+shape agree), against the registered 96. Gates failed: gate 0, engagement, speed positive
+control, untrained floor.
+
+**Hidden 4** (`fullruns/l3_h4_traces`), labeled FAILED GATES, UNINFORMATIVE: the run of 10.5,
+historical trainer, run commit `bf8a74e`, CUDA. Before this, only the fold re-score of its
+dumped states was committed (`artifacts/fold_rescore/l3_h4_traces.json`). No agents were kept,
+so the trunk width is read from the dumped recurrent states: 96 in all 60 dumps, the
+registered width.
+
+| drift | arm | pooled target | t-based 90% | seed-bootstrap 90% | seeds at or above 0.65 |
+|---|---|---|---|---|---|
+| 0.45 | survival | 0.953 | [0.946, 0.961] | [0.947, 0.959] | 10/10 |
+| 0.45 | predictor | 0.946 | [0.937, 0.955] | [0.938, 0.954] | 10/10 |
+| 0.45 | untrained | 0.891 | [0.872, 0.910] | [0.875, 0.907] | 10/10 |
+| 0 | survival | 0.517 | [0.495, 0.538] | [0.498, 0.535] | 0/10 |
+| 0 | predictor | 0.484 | [0.451, 0.518] | [0.456, 0.513] | 0/10 |
+| 0 | untrained | 0.476 | [0.456, 0.495] | [0.459, 0.492] | 0/10 |
+
+Gates: untrained floor 0.891, which fails; pooled reward leak clean in 0/10 survival seeds (3/10
+predictor, 4/10 untrained, worst deviation 0.204), which fails; engagement 10/10 at drift 0 and
+3/10 at drift 0.45, which fails; speed control at or above 0.75 in all 60 pools (worst 0.784);
+L0 0.517, TOST p 0.010; no early deaths. Gate 0 measured on world `P` after the run (19.1): the
+oracle reads 0.932 in band, and the untrained floor of the local recalibration reads 0.896, so
+gate 0 fails on the floor. The drift-0 cells are the published hidden-8 run's (no surrogate is
+installed at drift 0), so the L0 numbers are not independent of that run.
+
+**What this changes and what it does not.** The 17.9 addendum's "is not promoted" and the
+hidden-4 statements of 10.5 now have committed sources (dated notes there). T-qd stays
+excluded from the learned-texture rule and hidden 4 stays UNINFORMATIVE.
+
+### 19.5 Experiment C selection intensity per generation (finding Q5)
+
+Artifact `artifacts/expC/selection_intensity.json`; script `scripts/expC_selection_intensity.py`;
+test `tests/test_expC_selection_intensity.py`.
+
+Each arm's reproduction threshold is the median of that arm's generation-0 fitness and stays
+fixed for all 30 generations. A qualifier is an individual of generation g whose lifetime
+fitness reaches that threshold, counted before generation g reproduces. The per-individual
+rerun of 13.F (run commit `06ecc10`) recorded the counts; the main milestone output
+(`a0cb850`) did not. Both carry identical fitness series and thresholds for every seed and arm,
+so the counts describe both. Milestone 3 is routed uninformative, so this is descriptive.
+
+Qualifiers out of 48, generations 0 to 7:
+
+| seed | arm | threshold | g0 | g1 | g2 | g3 | g4 | g5 | g6 | g7 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | treatment | -1.844 | 24 | 33 | 39 | 44 | 46 | 48 | 48 | 48 |
+| 0 | control | 0.054 | 24 | 34 | 40 | 44 | 47 | 47 | 47 | 48 |
+| 1 | treatment | -0.053 | 24 | 33 | 39 | 40 | 42 | 41 | 43 | 44 |
+| 1 | control | 6.045 | 24 | 32 | 36 | 40 | 42 | 43 | 43 | 46 |
+| 2 | treatment | -0.575 | 24 | 34 | 39 | 42 | 45 | 43 | 42 | 44 |
+| 2 | control | 6.147 | 24 | 34 | 39 | 39 | 44 | 46 | 48 | 46 |
+
+Per seed and arm (90% means at least 44 of 48):
+
+| seed | arm | first generation at or above 90% | stays at or above 90% from | later generations below 90% | mean share, generations 5 to 29 | mean fitness g0, peak (generation), g29 |
+|---|---|---|---|---|---|---|
+| 0 | treatment | 3 | 3 | none | 0.988 | -1.470, -0.863 (15), -1.122 |
+| 0 | control | 3 | 22 | 20, 21 | 0.962 | +2.033, +6.218 (7), +5.294 |
+| 1 | treatment | 7 | never | 10, 17, 19, 20, 29 | 0.922 | -0.540, +0.765 (26), +0.672 |
+| 1 | control | 7 | 7 | none | 0.973 | +2.621, +6.300 (13), +6.297 |
+| 2 | treatment | 4 | 7 | 5, 6 | 0.951 | -0.935, +0.015 (9), +0.008 |
+| 2 | control | 4 | 18 | 17 | 0.968 | +2.633, +6.319 (25), +6.281 |
+
+**Reading.** These are the numbers the 13.F selection-intensity note already quotes, now with a
+committed source. 90% of each population reaches the threshold within three to seven
+generations, and from generation 5 on each generation drops on average 0.6 to 3.7 of its 48
+individuals. In seed 0, treatment fitness peaks at generation 15 and falls back by 0.26 by
+generation 29 while nearly every individual still qualifies, so the fixed generation-0 median
+exerts almost no selection over most of the run. Seed-1 treatment is the one series that never
+settles above 90%: it dips below in five later generations and has the lowest late share
+(0.922). The series describes generation g before it reproduces, so the population finally
+panelled (the product of generation 29's reproduction) has no fitness value in either output.
+
+**What this changes and what it does not.** The selection-intensity numbers of 13.F gain a
+committed source (dated note there). Milestone 3 stays UNINFORMATIVE.
+
+## 20. Corrected-trainer reruns of the generality runs, and post-review readouts on saved agents (2026-10-11)
+
+**Status: MEASURED; every run and readout the two specs name is complete; no recorded verdict
+changes, and no bar, margin or tolerance moved.** Two
+frozen specs govern this section. `docs/specs/2026-10-11-corrected-generality-reruns-design.md`
+(announced in PREREGISTRATION_L3 section 12 before launch; results entry of the same day) reran
+the second capacity and the two further fingerprint instances on the corrected trainer with
+their agents saved, and reran `C2` to keep its agents. `docs/specs/2026-10-11-post-review-readouts-design.md`,
+frozen before any readout ran, names five readouts on saved agents (R210, R35, R206, R33, R31)
+and, in its amendment, the L1 part of R31. They are recorded here on the agents of all five
+reruns (`C1`, `C2` and the three instances), with the draw-free C1 minus C2 contrast. Every run and readout executed in the Claude Code
+cloud container on the `C1` stack (torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1) under the
+explicit-v1 fold partition; the contrast was computed afterwards from two committed readout
+outputs (20.12). `scripts/promote_reviewer_gaps_runs.py` promoted each rerun to
+`artifacts/expB2/corrected_<run>.json`; the cells and post-run checks are under
+`artifacts/corrected_runs/<run>/` and the readout outputs under `artifacts/post_review/`. Saved
+agents stay on the run branches (`run/<run>`). `scripts/audit_stats_recheck.py` rebuilds every
+table row below from per-seed values.
+
+### 20.1 Integrity of the four reruns
+
+Each run has its 20 cells (drifts 0 and 0.45, seeds 0 to 9). Every cell records
+`gae_bootstrap = successor` and carries the config hash the spec computed before launch:
+`aff3863123e3e3ee` for `C2-rerun`, `ce2a6fe1ba30cae7` for `H7-corrected`, `03346353ac775154`
+for `H10GS1-corrected` and `2823452491c11037` for `H8GS2-corrected`. The runs executed the code
+of `main` at `3036eb3`; their branches add progress commits only.
+
+**`C2-rerun` reproduces `C2`.** Its 20 cells share 5000 values with the committed `C2` cells
+(`artifacts/corrected_runs/corrected_l3_h8_nowm/cells`), and every one is bit-equal. The rerun
+cells carry 240 further leaves, fields the runner gained after `C2` ran (the cell's knobs,
+objective and mortality, and the objective label of the engagement block). Under check 2 of the
+spec its 90 saved agents (the 60 base agents and the survival snapshots at 100, 200 and 450
+updates of the ten drift-0.45 cells) now stand in for `C2`'s, which were not kept. The spec reads
+this run under no rule. Its promoted summary, `artifacts/expB2/corrected_C2-rerun.json`, repeats
+the per-seed values of `C2` (17.4).
+
+**The drift-0 cells of the three instance runs are `C1`'s.** No surrogate is installed at drift
+0, so these agents train exactly as `C1`'s do. In each run the ten drift-0 cells share 1600
+values with `C1`'s cells and 1590 are bit-equal. The ten that differ are one per cell, the
+cross-evaluation return at drift 0.45 (`xeval`), which runs the drift-0 survival policy in the
+run's own surrogate. Each instance run therefore carries `C1`'s drift-0 survival targets and
+`C1`'s open L0 gate (0.559, TOST p = 0.939; 17.2). The three L0 readings are one reading, and
+none of them is independent of `C1`'s.
+
+**`H10GS1-corrected` differs from its historical CPU run in the trainer alone.** Its predictor and
+untrained pooled targets equal those of `L3-H10-GS1-CPU` (`artifacts/reviewer_gaps_runs/l3_h10_gseed1`)
+to the bit in 20 of 20 cells, and its survival targets differ in all 20, as `C1` does against
+`L3-H8-WM-CPU` (17.1). The historical hidden 7 and hidden 8 seed 2 runs trained on GPU, so their
+cells cannot be compared value by value.
+
+**State dumps and gate 0.** In each instance run `scripts/regenerate_state_dumps.py --report`
+rebuilt the dumps from the saved agents, and every rebuilt pool reproduced its recorded pooled
+target (60 of 60; `state_dump_rebuild.json`). Only then did `scripts/audit_behavior_mediation.py`
+score `resid_trace` (`behavior_audit.json`). Gate 0 was measured after each run on the
+fingerprint the run fit, on CPU with one thread (`gate0_cpu.json`). The dumps are not committed.
+
+### 20.2 The three instance runs beside their historical rows
+
+Drift 0.45, n = 10, t-based 90% intervals over agent seeds, explicit-v1 partition. The historical
+hidden 7 row is the explicit re-score of its dumps (methods note 8; the published legacy reading
+is 0.737). The last column gives the gate-0 oracle AUROC and the untrained floor; a floor more
+than 0.1 from 0.5 fails. The corrected rows are labeled corrected, and the historical rows keep
+their labels.
+
+| run | trainer, device | survival | seeds >= 0.65 | predictor | untrained | survival minus predictor | survival `resid_trace` | gate 0: oracle, floor |
+|---|---|---|---|---|---|---|---|---|
+| hidden 7, `L3-H7-N10` (10.5) | historical, GPU, explicit re-score | 0.740 [0.688, 0.791] | 9/10 | 0.703 | 0.600 | +0.036 [-0.006, +0.079] | 0.725 [0.680, 0.770] | 0.918, 0.615 (fails) |
+| `H7-corrected` | corrected, CPU | 0.703 [0.650, 0.756] | 6/10 | 0.703 | 0.593 | -0.000 [-0.063, +0.063] | 0.717 [0.678, 0.757] | 0.918, 0.601 (fails) |
+| hidden 10, G seed 1, `L3-H10-GS1-CPU` (10.9) | historical, CPU | 0.639 [0.610, 0.669] | 5/10 | 0.534 | 0.514 | +0.105 [+0.056, +0.155] | 0.658 [0.625, 0.691] | 0.893, 0.484 |
+| `H10GS1-corrected` | corrected, CPU | 0.626 [0.598, 0.654] | 3/10 | 0.534 | 0.514 | +0.092 [+0.045, +0.139] | 0.637 [0.610, 0.664] | 0.893, 0.485 |
+| hidden 8, G seed 2, `L3-H8-GS2-GPU` (10.9) | historical, GPU | 0.676 [0.636, 0.717] | 6/10 | 0.627 | 0.550 | +0.049 [-0.003, +0.101] | 0.660 [0.631, 0.689] | 0.939, 0.540 |
+| `H8GS2-corrected` | corrected, CPU | 0.659 [0.619, 0.699] | 6/10 | 0.629 | 0.552 | +0.031 [-0.006, +0.067] | 0.630 [0.594, 0.666] | 0.939, 0.538 |
+
+**Hidden 7: off-design.** The CPU fit of the hidden 7 fingerprint reads the oracle at 0.918, the
+same value as the recorded explicit oracle, with mechanical leakage clean, and the untrained floor
+at 0.601 (seeds 0.570, 0.622, 0.612), outside the 0.1 tolerance. Gate 0 fails, so under the spec
+the run is off-design under section 8. It is reported and not rescued, and no other capacity is
+substituted. The historical hidden 7 gate 0 fails the same way under the explicit partition
+(floor 0.615; section 16). Two further gates are open: the L0 gate inherited from `C1`, and the
+reward-leak gate, which two pools of 60 miss (drift 0.45, seed 8: predictor 0.629, survival
+0.600). Descriptively, survival reads 0.703 with a t-based lower bound of 0.6496, under the bar.
+The predictor reads the same 0.703, and the untrained arm 0.593, which survival leads by +0.110
+[+0.052, +0.168]. Survival `resid_trace` reads 0.717 with 9 of 10 seeds at the bar, against 0.698
+for the predictor and 0.585 for the untrained arm. That is the pattern of 10.5 (a
+behavior-controlled survival signal near 0.72 with no lead over the predictor), on a run whose
+gate 0 fails, so it bears on no rule.
+
+**Hidden 10 at G seed 1: replication not claimed.** Gate 0 passes on the run's own fit: the oracle
+reads 0.893, equal to the recorded 0.893056, and the floor 0.485. The rule of the 2026-09-26 spec
+claims replication only if the pooled target and `resid_trace` both clear 0.65 with t-based
+intervals that exclude the bar. Neither does. Both margin clauses pass: survival leads the
+predictor by +0.092 and the untrained arm by +0.112 [+0.075, +0.150]. In the corrected record's
+terms the margin over the predictor is a difference between training regimes. The L0 gate is
+open, because the drift-0 cells are `C1`'s, so no verdict that needs every gate is reached either
+way. Engagement passes in 20 of 20 cells, the speed control's lowest pool reads 0.753, every pool
+is clean of reward leakage, and no episode ended early. Paired by seed against the historical CPU
+run, the correction moved the survival target by -0.013 [-0.033, +0.006].
+
+**Hidden 8 at G seed 2: uninformative.** Gate 0 passes: the oracle reads 0.939, equal to the
+recorded 0.938889, and the floor 0.538. The speed positive control reads under 0.75 in one pool of
+60 (untrained arm, drift 0.45, seed 0, at 0.725), and the L0 gate is open. The spec's outcome table
+routes an engagement or gate failure to uninformative, per section 8. Recorded descriptively and
+not as a verdict: survival leads the predictor by +0.031, under the 0.05 margin, and the untrained
+arm by +0.107 [+0.048, +0.167]. Engagement passes in 20 of 20 cells, every pool is clean of reward
+leakage, and no episode ended early.
+
+**What this changes.** On the corrected trainer none of the three instances meets its rule:
+hidden 7 is off-design, hidden 8 at G seed 2 is uninformative, and hidden 10 at G seed 1 passes
+gate 0 and both margins and reads under the bar. The survival arm leads the untrained arm by
+about 0.11 in all three. Its lead over the predictor runs from zero (hidden 7) to +0.092 (hidden
+10), against +0.036 to +0.105 on the historical rows. The historical rows of 10.5 and 10.9 keep
+their labels and verdicts. Dated notes at the summary, 10.5, 10.9 and methods note 4 point here.
+
+### 20.3 Readouts on the `C1` rerun's agents: integrity and worlds
+
+Artifact `artifacts/post_review/C1-rerun.json` with its partial file; runner
+`scripts/run_post_review_readouts.py`, code `itasorl/post_review.py`, test
+`tests/test_post_review_readouts.py`. The readouts read the 60 agents of `run/C1-rerun`, whose
+cells equal `C1`'s to the bit (18.1). Commit `b77d0db`; Python 3.11.17, torch 2.14.1+cpu, numpy
+2.4.6, scikit-learn 1.9.1, scipy 1.17.1. All five readouts finished on all ten seeds and no task
+failed. Every reading below is a post-review diagnostic. The spec fixes that no verdict line,
+abstract claim or registered number changes on its strength, and each label is the one the spec
+pre-stated for the measured interval.
+
+**Integrity.** The r210 bit check passes in all 60 (drift, seed, arm) cells: the regenerated
+pooled target and its shuffled control equal the recorded values as floats, and the permutation
+check reproduces the linear shuffled control in every cell, so no seed is excluded from any
+summary. The r33 continuity entry (the drift-0.45 agents read balanced on the registered base)
+equals the `paired` entries of `artifacts/l0_audit/corrected_l3_h8_wm.json` to the bit in 30 of
+30 cells. The rerun's agents are `C1`'s agents.
+
+**Worlds.** R210 and the r33 continuity entry read the registered pair 800000 / 850000. R35, R206
+and R31 read one fresh pair (authentic 2100000 + i at drift 0, surrogate 2150000 + i at drift
+0.45), and the primary r33 entry a fresh base of balanced pairs (2200000 + i). Every fresh base is
+disjoint from every base in use. On the fresh pair the survival agent's own walk reads 0.805
+[0.773, 0.837] against 0.733 on the registered pair, a world-sample shift of the size 17.5 and
+17.5.1 describe. No contrast below compares readings from two different sets of worlds.
+
+### 20.4 R210: nonlinear probe classes (beside 17.8)
+
+Every agent at both drifts, on the registered pools regenerated bit for bit. Linear is the
+registered probe. The MLP has one hidden layer of 64 ReLU units, and none of its 300 fold fits
+stopped at the 500-iteration cap. The random forest has 200 trees. Each class is scored as the
+mean out-of-fold AUROC over the explicit-v1 folds. "Minus linear" is seed-paired, and its label
+says whether the t-based interval lies ABOVE zero, INCLUDES it, or lies BELOW it.
+
+Drift 0.45:
+
+| arm | linear | MLP | random forest | MLP minus linear | forest minus linear |
+|---|---|---|---|---|---|
+| survival | 0.733 [0.669, 0.797] | 0.747 [0.680, 0.813] | 0.730 [0.670, 0.790] | +0.014 [-0.002, +0.029] INCLUDES | -0.003 [-0.021, +0.015] INCLUDES |
+| predictor | 0.589 [0.567, 0.610] | 0.611 [0.583, 0.639] | 0.617 [0.591, 0.642] | +0.022 [+0.005, +0.040] ABOVE | +0.028 [+0.008, +0.049] ABOVE |
+| untrained | 0.523 [0.491, 0.554] | 0.532 [0.508, 0.555] | 0.559 [0.540, 0.578] | +0.009 [-0.010, +0.028] INCLUDES | +0.037 [+0.012, +0.062] ABOVE |
+
+The shuffled controls of every class and arm read 0.496 to 0.510.
+
+| margin at drift 0.45 | linear | MLP | random forest |
+|---|---|---|---|
+| survival minus predictor | +0.144 [+0.072, +0.217] | +0.136 [+0.068, +0.203] | +0.113 [+0.046, +0.180] |
+| survival minus untrained | +0.210 [+0.135, +0.286] | +0.215 [+0.143, +0.287] | +0.171 [+0.104, +0.238] |
+
+Drift 0, where both pools are authentic and differ only in the world sample:
+
+| arm | linear | MLP | random forest | MLP minus linear | forest minus linear |
+|---|---|---|---|---|---|
+| survival | 0.559 [0.549, 0.570] | 0.544 [0.531, 0.557] | 0.532 [0.514, 0.550] | -0.015 [-0.028, -0.003] BELOW | -0.027 [-0.051, -0.004] BELOW |
+| predictor | 0.508 [0.475, 0.541] | 0.540 [0.517, 0.562] | 0.540 [0.529, 0.552] | +0.032 [+0.013, +0.051] ABOVE | +0.033 [+0.007, +0.058] ABOVE |
+| untrained | 0.491 [0.466, 0.515] | 0.500 [0.475, 0.526] | 0.518 [0.499, 0.538] | +0.010 [-0.014, +0.034] INCLUDES | +0.028 [-0.003, +0.058] INCLUDES |
+
+**Reading.** On the survival state neither nonlinear class reads more than the linear probe
+(INCLUDES under both). On the predictor's state both read more, by +0.022 and +0.028, so for that
+arm the registered 0.589 is a lower bound wherever the text discusses probe choice. The forest
+also reads more from the untrained state, 0.559 against 0.523, with its shuffled control at
+0.503. The margin over the untrained arm lies above 0.05 under every class. The margin over the
+predictor lies above 0.05 under the linear probe and the MLP. Under the forest its mean is +0.113
+and its interval reaches down to +0.046, so the interval clearing 0.05 is specific to the probe
+class. At drift 0 both nonlinear classes read the survival agents' pools lower than the linear
+probe does (0.544 and 0.532 against 0.559, both BELOW), so neither reads more of the world-sample
+difference that leaves the L0 gate open. Each class's drift-0.45 reading against its own drift-0
+reading: linear 0.733 against 0.559, MLP 0.747 against 0.544, forest 0.730 against 0.532.
+
+**What this changes.** 17.8 and 10.3 carry dated notes. The near-chance nonlinear floor of 10.3
+does not hold on the corrected agents: the forest reads the untrained state at 0.559, as 19.3
+found for the historical dumps under the explicit partition (0.557). The survival margin over the
+untrained arm stays large under every class.
+
+### 20.5 R35: normalizer-matched replay (beside 17.6)
+
+The survival agent's own episodes on the fresh pair, replayed open loop through each drift-0.45
+trunk under four normalizers: the trunk's own (the recorded convention), the survival agent's,
+one refit to the replayed streams over both pools, and the same refit computed inside each
+training fold. Replay target per trunk:
+
+| trunk | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| survival | 0.805 [0.773, 0.837] | 0.805 [0.773, 0.837] | 0.770 [0.739, 0.801] | 0.769 [0.737, 0.801] |
+| predictor | 0.786 [0.755, 0.816] | 0.811 [0.785, 0.837] | 0.764 [0.735, 0.793] | 0.764 [0.734, 0.794] |
+| untrained | 0.729 [0.681, 0.778] | 0.746 [0.695, 0.797] | 0.678 [0.635, 0.720] | 0.678 [0.635, 0.722] |
+
+Seed-paired survival minus each trunk. Under the survival normalizer the survival reference is the
+survival trunk on its own normalizer. In brackets, the share of the own-normalizer margin that
+remains (ratio of seed means):
+
+| survival minus | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| untrained | +0.076 [+0.047, +0.104] | +0.059 [+0.030, +0.088] (0.78) | +0.092 [+0.066, +0.118] (1.22) | +0.091 [+0.063, +0.118] (1.20) |
+| predictor | +0.019 [-0.001, +0.040] | -0.006 [-0.025, +0.014] (-0.30) | +0.006 [-0.017, +0.028] (0.29) | +0.005 [-0.019, +0.028] (0.24) |
+
+**Reading.** The untrained arm: **TRUNK**. With every trunk reading identical normalized input
+the margin stays above zero and keeps at least half of the own-normalizer margin, 0.78 of it on
+the survival normalizer and more than all of it on the refit. The pooled and in-fold refits carry
+the same label, so the pooled refit governs. On identical normalized input the trained survival
+trunk reads more than the untrained trunk, and the replay margin comes from training of the
+trunk. On these worlds the own-normalizer margin is +0.076, against the +0.097 of 17.6 on the
+registered pair. The predictor arm: NORMALIZER, reported descriptively only, because its
+own-normalizer margin is near zero and a share of it carries no information.
+
+### 20.6 R206: law deviation along each walk (beside 17.6)
+
+Four walks of 110 episodes of 24 steps in the fresh surrogate worlds (2150000 + i), with no
+episode lost. At each step the deviation is the norm of G(v, a) minus the authentic law f(v, a)
+at the visited state, and an episode's deviation is its sum over the 24 steps. Mean over
+episodes per seed, then across seeds:
+
+| walk | summed deviation per episode | mean speed | mean acceleration | survival walk minus this walk |
+|---|---|---|---|---|
+| survival agent's own | 0.546 [0.513, 0.580] | 0.158 | 0.825 |  |
+| predictor's own | 0.482 [0.471, 0.494] | 0.150 | 0.769 | +0.064 [+0.027, +0.101] |
+| untrained agent's own | 0.467 [0.462, 0.471] | 0.149 | 0.762 | +0.080 [+0.043, +0.117] |
+| scripted | 0.468 (the same in every seed) | 0.147 | 0.749 | +0.078 [+0.045, +0.112] |
+
+**Reading.** The pre-stated label is **HIGHER**: all three seed-paired differences lie above zero.
+The survival policy visits states where the learned law departs further from the authentic one
+than the states the other three walks visit. The survival walk is also the fastest, at a mean
+speed of 0.158 against 0.147 to 0.150 and a mean acceleration of 0.825 against 0.749 to 0.769,
+and the deviation grows with both, so the HIGHER reading comes with a faster walk. Across seeds
+the survival walk's deviation correlates with the run's recorded survival target at r = 0.945
+(n = 10, descriptive, no test). A dated note in 17.6 restores the sentence withdrawn there on
+2026-10-10, with these numbers.
+
+### 20.7 R33: the draw-free balanced readout (beside 17.4 and 17.5)
+
+Readout drift 0.45, 110 pairs of 24 steps per agent. Both members of a pair start from one world
+seed and initial state and share a CV group, and no pair was dropped in any of the 120 readouts.
+The drift-0.45 agents give the forward direction (17.5), and the drift-0 agents read at 0.45 give
+the reverse direction (17.5.2).
+
+| agents | base | survival | predictor | untrained | survival minus predictor | survival minus untrained |
+|---|---|---|---|---|---|---|
+| drift 0.45 (forward) | registered, 800000 | 0.767 [0.718, 0.816] | 0.611 [0.590, 0.631] | 0.553 [0.529, 0.578] | +0.156 [+0.099, +0.213] | +0.213 [+0.148, +0.279] |
+| drift 0.45 (forward) | fresh, 2200000 | 0.784 [0.748, 0.821] | 0.646 [0.616, 0.677] | 0.591 [0.562, 0.620] | +0.138 [+0.095, +0.182] | +0.193 [+0.146, +0.240] |
+| drift 0 (reverse) | registered, 800000 | 0.787 [0.761, 0.814] | 0.616 [0.596, 0.637] | 0.540 [0.511, 0.568] | +0.171 [+0.150, +0.192] | +0.248 [+0.211, +0.284] |
+| drift 0 (reverse) | fresh, 2200000 | 0.785 [0.757, 0.813] | 0.622 [0.604, 0.640] | 0.555 [0.527, 0.584] | +0.163 [+0.132, +0.195] | +0.230 [+0.181, +0.279] |
+
+The registered-base forward row is 17.5's balanced readout, reproduced to the bit (20.3). On the
+fresh base the survival agents read 0.784, and both of their margins have intervals above 0.09,
+so the balanced survival reading of 17.5 does not rest on the registered draw. The drift-0 agents,
+raised in the authentic world, read the balanced pairs as high as the drift-0.45 agents do. The
+seed-paired C1 minus C2 contrast the spec names is in 20.12.
+
+### 20.8 R31: stream-decoder capacity at L3 (beside 17.8)
+
+The survival agent of each drift-0.45 cell, on the fresh pair. Two streams: the survival agent's
+own episodes (normalized observation and previous action, 151 channels, built as 17.8 built them)
+and the scripted walk on the same worlds. Every decoder trains as 17.8's GRU does (explicit-v1
+folds, 60 epochs, Adam at 1e-3, batch 32, no validation split): GRUs at 1, 2, 4 and 8 times the
+trunk's recurrent width (hidden 96, 192, 384 and 768) and one 1D convolutional reader. Every
+decoder's final training loss is below 0.001 in every fold. The state column is the linear probe
+on the survival trunk's states over the same episodes.
+
+| stream | state | GRU 1x | GRU 2x | GRU 4x | GRU 8x | 1D conv |
+|---|---|---|---|---|---|---|
+| survival agent's own walk | 0.805 [0.773, 0.837] | 0.752 [0.719, 0.786] | 0.751 [0.715, 0.786] | 0.754 [0.714, 0.793] | 0.760 [0.725, 0.795] | 0.738 [0.687, 0.789] |
+| scripted walk | 0.631 [0.610, 0.653] | 0.573 [0.564, 0.582] | 0.583 [0.573, 0.593] | 0.575 [0.560, 0.590] | 0.556 [0.544, 0.567] | 0.568 [0.561, 0.575] |
+
+| stream | 2x minus 1x | 4x minus 1x | 8x minus 1x | state minus best decoder | labels |
+|---|---|---|---|---|---|
+| survival agent's own walk | -0.002 [-0.011, +0.007] | +0.001 [-0.009, +0.012] | +0.007 [-0.004, +0.019] | +0.045 [+0.020, +0.070] (8x) | NOT CAPACITY-LIMITED; STATE ABOVE |
+| scripted walk | +0.010 [-0.003, +0.022] | +0.002 [-0.009, +0.012] | -0.017 [-0.029, -0.005] | +0.049 [+0.031, +0.067] (2x) | NOT CAPACITY-LIMITED; STATE ABOVE |
+
+**Reading.** On the survival agent's own stream no wider GRU reads more than the trunk-width one,
+and the state reads 0.045 above the best decoder, the 8x GRU. That interval lies above zero and
+reaches past +0.05, so the label is STATE ABOVE and not EQUIVALENT: on these worlds the state
+carries more than any of these supervised decoders extracts from about 176 training episodes.
+The spec pre-stated a reading for EQUIVALENT and for DECODER ABOVE on this stream and none for
+STATE ABOVE. The registered-pair contrast of 17.8 (+0.009 [-0.011, +0.029] at 1x) stands as
+recorded, and a dated note there gives this one beside it. On the scripted stream the decoders
+read 0.556 to 0.583, under the state's 0.631, so the signal that the law-fitting detector of
+10.1.1 reads at 0.991 from scripted streams stays out of reach of these decoders at this sample
+size.
+
+### 20.9 The L1 stream-decoder capacity curve (beside 14.7.1)
+
+Artifact `artifacts/post_review/l1_capacity_curve.json`; runner `scripts/run_l1_capacity_curve.py`;
+test `tests/test_l1_capacity_curve.py`; the spec's amendment of 2026-10-11, written before any L1
+readout ran. HISTORICAL: the sixty saved agents of the L1 held-out run (pre-correction trainer),
+read at drift 0.023 on the registered pools, each arm on its own streams. Same cloud stack,
+commit `5ba16e0`.
+
+**Integrity gate and record check.** All 30 regenerated state targets reproduce the
+explicit-partition record within 0.01 (15 bit-equal, worst deviation 0.0008). The uploaded run
+carries no `states/`, so the dump half of the gate was not checked. The survival arm's 1x decoder
+reads 0.589 against the recorded 0.590 of 14.7.1, inside the 0.01 tolerance. The record was made
+on the owner's laptop, so the residual is a stack difference and does not void the curve. Every
+decoder's final training loss is below 0.001 in every fold.
+
+| arm | state | GRU 1x | GRU 2x | GRU 4x | GRU 8x | 1D conv | label |
+|---|---|---|---|---|---|---|---|
+| survival | 0.552 [0.530, 0.574] | 0.589 [0.545, 0.633] | 0.582 [0.536, 0.627] | 0.565 [0.529, 0.602] | 0.548 [0.518, 0.579] | 0.667 [0.621, 0.713] | READER-RELATIVE |
+| predictor | 0.525 [0.505, 0.545] | 0.572 [0.554, 0.589] | 0.576 [0.563, 0.588] | 0.575 [0.561, 0.589] | 0.557 [0.538, 0.577] | 0.652 [0.615, 0.690] | READER-RELATIVE |
+| untrained | 0.513 [0.494, 0.533] | 0.604 [0.570, 0.639] | 0.616 [0.582, 0.649] | 0.597 [0.574, 0.620] | 0.590 [0.567, 0.613] | 0.655 [0.608, 0.703] | READER-RELATIVE |
+
+Seed-paired, each reader minus the 1x GRU:
+
+| arm | 2x minus 1x | 4x minus 1x | 8x minus 1x | conv minus 1x |
+|---|---|---|---|---|
+| survival | -0.007 [-0.019, +0.004] | -0.024 [-0.041, -0.007] | -0.041 [-0.062, -0.020] | +0.078 [+0.052, +0.104] |
+| predictor | +0.004 [-0.011, +0.020] | +0.003 [-0.012, +0.018] | -0.014 [-0.025, -0.004] | +0.081 [+0.047, +0.115] |
+| untrained | +0.011 [-0.002, +0.024] | -0.008 [-0.023, +0.008] | -0.014 [-0.036, +0.008] | +0.051 [+0.009, +0.093] |
+
+**Reading.** READER-RELATIVE in all three arms. No wider GRU reads the survival agents' own streams
+better than the trunk-width one, and the widest reads least. A recurrent reader with up to eight
+times the trunk's width extracts no more than one of the trunk's width, so the distance between
+the state (0.552) and the summary-feature reader (0.795) belongs to the reader's shape. The conv
+reader, which the label does not use, reads 0.667 from the survival streams and 0.652 and 0.655
+from the predictor's and the untrained agents' streams. All three means sit above the L1 spec's
+0.65, and no interval excludes it. The L1 run's adjudication (registered encoding criterion not
+met) stands as recorded.
+
+### 20.10 Readouts on the `C2-rerun` agents
+
+Artifact `artifacts/post_review/C2-rerun.json` with its partial file; the runner, spec and stack of
+20.3, commit `d3f2f75`. The readouts read the 60 base agents of `C2-rerun`, which stand in for
+`C2`'s (20.1). The survival arm trains without the next-observation decoder, and so does the
+untrained arm. All five readouts finished on all ten seeds and no task failed. The r210 bit check
+passes in all 60 cells, and the drift-0.45 survival targets it reproduces are `C2`'s committed
+ones (17.4). The spec names no continuity reference for this run. The readings are post-review
+diagnostics, as in 20.3, with the columns and labels of 20.4 to 20.8.
+
+R210, drift 0.45:
+
+| arm | linear | MLP | random forest | MLP minus linear | forest minus linear |
+|---|---|---|---|---|---|
+| survival | 0.613 [0.552, 0.675] | 0.644 [0.599, 0.690] | 0.629 [0.590, 0.668] | +0.031 [+0.000, +0.061] ABOVE | +0.016 [-0.024, +0.055] INCLUDES |
+| predictor | 0.589 [0.567, 0.610] | 0.611 [0.583, 0.639] | 0.617 [0.591, 0.642] | +0.022 [+0.005, +0.040] ABOVE | +0.028 [+0.008, +0.049] ABOVE |
+| untrained | 0.529 [0.510, 0.549] | 0.548 [0.526, 0.571] | 0.574 [0.558, 0.589] | +0.019 [+0.004, +0.034] ABOVE | +0.044 [+0.024, +0.064] ABOVE |
+
+| margin at drift 0.45 | linear | MLP | random forest |
+|---|---|---|---|
+| survival minus predictor | +0.025 [-0.053, +0.102] | +0.033 [-0.030, +0.096] | +0.012 [-0.045, +0.070] |
+| survival minus untrained | +0.084 [+0.012, +0.156] | +0.096 [+0.040, +0.152] | +0.055 [+0.014, +0.097] |
+
+R210, drift 0:
+
+| arm | linear | MLP | random forest | MLP minus linear | forest minus linear |
+|---|---|---|---|---|---|
+| survival | 0.515 [0.500, 0.530] | 0.556 [0.542, 0.571] | 0.537 [0.507, 0.567] | +0.041 [+0.026, +0.056] ABOVE | +0.022 [-0.005, +0.048] INCLUDES |
+| predictor | 0.508 [0.475, 0.541] | 0.540 [0.517, 0.562] | 0.540 [0.529, 0.552] | +0.032 [+0.013, +0.051] ABOVE | +0.033 [+0.007, +0.058] ABOVE |
+| untrained | 0.488 [0.467, 0.509] | 0.507 [0.487, 0.528] | 0.519 [0.495, 0.543] | +0.019 [-0.003, +0.041] INCLUDES | +0.031 [+0.005, +0.056] ABOVE |
+
+The MLP reads more than the linear probe from the survival state at drift 0.45 (ABOVE, with a
+lower bound of +0.000), so for this arm the registered 0.613 is a lower bound wherever the text
+discusses probe choice. The MLP also reads the drift-0 survival pools higher than the linear probe
+(0.556 against 0.515), so it reads more of the world-sample difference, and its drift-0.45 reading
+is read against that: 0.644 against 0.556, beside 0.613 against 0.515 for the linear probe and
+0.629 against 0.537 for the forest. Neither margin lies above 0.05 under any class, and the margin
+over the predictor includes zero under all three.
+
+R35, the survival agent's own episodes on the fresh pair:
+
+| trunk | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| survival | 0.686 [0.646, 0.726] | 0.686 [0.646, 0.726] | 0.637 [0.600, 0.674] | 0.637 [0.600, 0.675] |
+| predictor | 0.740 [0.702, 0.778] | 0.752 [0.717, 0.787] | 0.717 [0.679, 0.754] | 0.717 [0.679, 0.754] |
+| untrained | 0.647 [0.608, 0.687] | 0.661 [0.625, 0.698] | 0.618 [0.588, 0.647] | 0.619 [0.588, 0.650] |
+
+| survival minus | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| untrained | +0.039 [+0.006, +0.071] | +0.025 [+0.000, +0.049] (0.64) | +0.019 [-0.013, +0.052] (0.50) | +0.019 [-0.012, +0.049] (0.48) |
+| predictor | -0.053 [-0.081, -0.026] | -0.066 [-0.090, -0.042] (1.23) | -0.080 [-0.104, -0.056] (1.49) | -0.079 [-0.103, -0.056] (1.49) |
+
+The untrained arm: **SPLIT**, which the spec reports with both margins and shares. On the survival
+normalizer the margin stays above zero and keeps 0.64 of the own-normalizer margin; on the refit
+it keeps 0.50 and its interval includes zero, and the in-fold refit carries the same label. The
+predictor arm: NORMALIZER, descriptive only. Under every normalizer the predictor trunk reads this
+survival agent's streams better than the survival trunk does.
+
+R206, the fresh surrogate worlds:
+
+| walk | summed deviation per episode | mean speed | mean acceleration | survival walk minus this walk |
+|---|---|---|---|---|
+| survival agent's own | 0.514 [0.482, 0.546] | 0.153 | 0.791 |  |
+| predictor's own | 0.482 [0.471, 0.494] | 0.150 | 0.769 | +0.032 [-0.007, +0.070] |
+| untrained agent's own | 0.466 [0.462, 0.471] | 0.149 | 0.762 | +0.048 [+0.014, +0.081] |
+| scripted | 0.468 (the same in every seed) | 0.147 | 0.749 | +0.046 [+0.014, +0.078] |
+
+The pre-stated label is **MIXED**, reported per comparison. The survival walk's deviation lies
+above the untrained walk's and the scripted walk's, and its difference from the predictor's walk
+includes zero. Across seeds the deviation correlates with the recorded survival target at r =
+0.820 (n = 10, descriptive).
+
+R33, readout drift 0.45:
+
+| agents | base | survival | predictor | untrained | survival minus predictor | survival minus untrained |
+|---|---|---|---|---|---|---|
+| drift 0.45 (forward) | registered, 800000 | 0.643 [0.595, 0.691] | 0.611 [0.590, 0.631] | 0.547 [0.526, 0.567] | +0.032 [-0.028, +0.092] | +0.096 [+0.046, +0.146] |
+| drift 0.45 (forward) | fresh, 2200000 | 0.664 [0.616, 0.711] | 0.646 [0.616, 0.677] | 0.584 [0.558, 0.610] | +0.018 [-0.045, +0.080] | +0.080 [+0.035, +0.124] |
+| drift 0 (reverse) | registered, 800000 | 0.683 [0.638, 0.728] | 0.616 [0.596, 0.637] | 0.528 [0.504, 0.553] | +0.067 [+0.013, +0.120] | +0.155 [+0.106, +0.203] |
+| drift 0 (reverse) | fresh, 2200000 | 0.673 [0.630, 0.716] | 0.622 [0.604, 0.640] | 0.551 [0.529, 0.572] | +0.051 [+0.002, +0.100] | +0.122 [+0.078, +0.166] |
+
+On the registered base the survival agents without the decoder read 0.643 against the 0.613 of the
+registered draw (17.4), and their lead over the predictor includes zero on both bases, as it does
+on the registered draw. The contrast with `C1` is in 20.12.
+
+R31, the survival agent of each drift-0.45 cell on the fresh pair:
+
+| stream | state | GRU 1x | GRU 2x | GRU 4x | GRU 8x | 1D conv |
+|---|---|---|---|---|---|---|
+| survival agent's own walk | 0.686 [0.646, 0.726] | 0.730 [0.694, 0.765] | 0.734 [0.697, 0.771] | 0.726 [0.688, 0.765] | 0.731 [0.695, 0.766] | 0.701 [0.656, 0.746] |
+| scripted walk | 0.592 [0.568, 0.617] | 0.572 [0.562, 0.582] | 0.584 [0.575, 0.593] | 0.579 [0.566, 0.591] | 0.558 [0.547, 0.570] | 0.569 [0.562, 0.576] |
+
+| stream | 2x minus 1x | 4x minus 1x | 8x minus 1x | state minus best decoder | labels |
+|---|---|---|---|---|---|
+| survival agent's own walk | +0.004 [-0.005, +0.014] | -0.003 [-0.011, +0.004] | +0.001 [-0.010, +0.012] | -0.048 [-0.064, -0.031] (2x) | NOT CAPACITY-LIMITED; DECODER ABOVE |
+| scripted walk | +0.012 [+0.001, +0.022] | +0.006 [-0.006, +0.019] | -0.014 [-0.022, -0.005] | +0.008 [-0.022, +0.038] (2x) | NOT CAPACITY-LIMITED; EQUIVALENT |
+
+On this survival agent's own stream every GRU, the trunk-width one included, reads above the
+state (0.726 to 0.734 against 0.686): DECODER ABOVE, the stream carries more than this state
+reads. On the `C1` agents the order is reversed (STATE ABOVE, 20.8). 17.8 measured `C1`'s agents
+only, so no sentence of 17.8 changes on the strength of this run.
+
+### 20.11 Readouts on the `H10GS1-corrected` agents
+
+Artifact `artifacts/post_review/H10GS1-corrected.json` with its partial file; the runner, spec and
+stack of 20.3, commit `60b4e6f`. The runner refit the hidden 10, G seed 1 fingerprint from the
+run's knobs. All five readouts finished on all ten seeds, no task failed, and the r210 bit check
+passes in all 60 cells. The drift-0 agents are `C1`'s (20.1), and their R210 readings equal the
+drift-0 table of 20.4 value for value, so it is not repeated. The run's own L0 gate is open
+(20.2), and the readings below are diagnostics on a run whose replication rule is not met.
+
+R210, drift 0.45:
+
+| arm | linear | MLP | random forest | MLP minus linear | forest minus linear |
+|---|---|---|---|---|---|
+| survival | 0.626 [0.598, 0.654] | 0.628 [0.603, 0.654] | 0.628 [0.610, 0.646] | +0.002 [-0.021, +0.025] INCLUDES | +0.002 [-0.023, +0.027] INCLUDES |
+| predictor | 0.534 [0.508, 0.560] | 0.562 [0.543, 0.581] | 0.590 [0.569, 0.612] | +0.028 [+0.005, +0.051] ABOVE | +0.056 [+0.022, +0.090] ABOVE |
+| untrained | 0.514 [0.485, 0.542] | 0.527 [0.505, 0.548] | 0.518 [0.493, 0.543] | +0.013 [-0.016, +0.042] INCLUDES | +0.004 [-0.036, +0.044] INCLUDES |
+
+| margin at drift 0.45 | linear | MLP | random forest |
+|---|---|---|---|
+| survival minus predictor | +0.092 [+0.045, +0.139] | +0.066 [+0.036, +0.097] | +0.038 [+0.009, +0.067] |
+| survival minus untrained | +0.112 [+0.075, +0.150] | +0.101 [+0.081, +0.122] | +0.110 [+0.079, +0.141] |
+
+On the survival state neither nonlinear class reads more than the linear probe. On the predictor's
+state both read more, the forest by +0.056, so the predictor's registered 0.534 is a lower bound
+wherever the text discusses probe choice. The margin over the untrained arm lies above 0.05 under
+every class. The margin over the predictor lies above 0.05 under none: its linear interval reaches
+down to +0.045, and its mean falls to +0.066 under the MLP and +0.038 under the forest.
+
+R35:
+
+| trunk | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| survival | 0.629 [0.606, 0.652] | 0.629 [0.606, 0.652] | 0.615 [0.596, 0.633] | 0.615 [0.596, 0.634] |
+| predictor | 0.601 [0.577, 0.625] | 0.617 [0.594, 0.641] | 0.579 [0.563, 0.594] | 0.578 [0.564, 0.593] |
+| untrained | 0.576 [0.556, 0.596] | 0.580 [0.552, 0.609] | 0.552 [0.531, 0.572] | 0.551 [0.531, 0.571] |
+
+| survival minus | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| untrained | +0.052 [+0.022, +0.083] | +0.048 [+0.010, +0.086] (0.92) | +0.063 [+0.036, +0.089] (1.20) | +0.064 [+0.038, +0.090] (1.22) |
+| predictor | +0.028 [+0.001, +0.054] | +0.011 [-0.022, +0.045] (0.41) | +0.036 [+0.021, +0.051] (1.31) | +0.037 [+0.022, +0.052] (1.32) |
+
+The untrained arm: **TRUNK**, as for `C1`: on identical normalized input the margin stays above
+zero and keeps 0.92 of the own-normalizer margin on the survival normalizer and more than all of
+it on the refit. The predictor arm: SPLIT, descriptive only: its margin includes zero on the
+survival normalizer and lies above zero on the refit.
+
+R206:
+
+| walk | summed deviation per episode | mean speed | mean acceleration | survival walk minus this walk |
+|---|---|---|---|---|
+| survival agent's own | 0.454 [0.439, 0.469] | 0.168 | 0.813 |  |
+| predictor's own | 0.431 [0.421, 0.442] | 0.163 | 0.781 | +0.023 [+0.005, +0.040] |
+| untrained agent's own | 0.426 [0.423, 0.428] | 0.161 | 0.775 | +0.028 [+0.013, +0.044] |
+| scripted | 0.400 (the same in every seed) | 0.153 | 0.761 | +0.054 [+0.039, +0.070] |
+
+The pre-stated label is **HIGHER**, and the HIGHER reading again comes with the fastest walk.
+Across seeds the deviation correlates with the recorded survival target at r = 0.177 (n = 10,
+descriptive).
+
+R33, readout drift 0.45:
+
+| agents | base | survival | predictor | untrained | survival minus predictor | survival minus untrained |
+|---|---|---|---|---|---|---|
+| drift 0.45 (forward) | registered, 800000 | 0.624 [0.604, 0.644] | 0.541 [0.526, 0.557] | 0.514 [0.496, 0.532] | +0.083 [+0.060, +0.106] | +0.110 [+0.080, +0.139] |
+| drift 0.45 (forward) | fresh, 2200000 | 0.583 [0.564, 0.602] | 0.564 [0.546, 0.582] | 0.528 [0.515, 0.540] | +0.019 [-0.011, +0.049] | +0.055 [+0.027, +0.084] |
+| drift 0 (reverse) | registered, 800000 | 0.648 [0.626, 0.669] | 0.565 [0.546, 0.585] | 0.517 [0.503, 0.531] | +0.082 [+0.048, +0.116] | +0.131 [+0.105, +0.156] |
+| drift 0 (reverse) | fresh, 2200000 | 0.635 [0.615, 0.654] | 0.557 [0.537, 0.577] | 0.534 [0.519, 0.549] | +0.077 [+0.045, +0.110] | +0.101 [+0.076, +0.125] |
+
+For this instance the balanced survival reading of the drift-0.45 agents moves with the world
+sample: 0.624 on the registered base and 0.583 on the fresh one, where the lead over the
+predictor includes zero.
+
+R31:
+
+| stream | state | GRU 1x | GRU 2x | GRU 4x | GRU 8x | 1D conv |
+|---|---|---|---|---|---|---|
+| survival agent's own walk | 0.629 [0.606, 0.652] | 0.645 [0.617, 0.672] | 0.645 [0.617, 0.673] | 0.632 [0.604, 0.659] | 0.625 [0.596, 0.654] | 0.631 [0.598, 0.664] |
+| scripted walk | 0.585 [0.566, 0.605] | 0.580 [0.568, 0.591] | 0.578 [0.565, 0.592] | 0.564 [0.549, 0.579] | 0.546 [0.537, 0.555] | 0.591 [0.588, 0.595] |
+
+| stream | 2x minus 1x | 4x minus 1x | 8x minus 1x | state minus best decoder | labels |
+|---|---|---|---|---|---|
+| survival agent's own walk | +0.001 [-0.011, +0.013] | -0.013 [-0.025, -0.001] | -0.020 [-0.034, -0.005] | -0.017 [-0.061, +0.028] (2x) | NOT CAPACITY-LIMITED; UNRESOLVED |
+| scripted walk | -0.001 [-0.009, +0.006] | -0.016 [-0.029, -0.003] | -0.034 [-0.045, -0.022] | -0.006 [-0.024, +0.012] (conv) | NOT CAPACITY-LIMITED; EQUIVALENT |
+
+No wider GRU reads either stream better than the trunk-width one. On the survival agent's own
+stream the state and the best decoder cannot be told apart at this n (UNRESOLVED).
+
+### 20.12 The draw-free C1 minus C2 contrast (finding R33)
+
+Artifact `artifacts/post_review/c1_minus_c2_balanced.json`, written by
+`scripts/run_post_review_readouts.py --contrast artifacts/post_review/C1-rerun.json
+artifacts/post_review/C2-rerun.json` from the two committed readout outputs, which share every
+seed base and setting. Seed-paired `C1` minus `C2` difference of the survival arm's balanced
+target at readout drift 0.45, with the labels the spec fixed against the auxiliary rule's 0.05:
+HOLDS when the interval lies above 0.05, DIRECTION ONLY when it lies above zero and not above
+0.05.
+
+| agents | base | `C1` | `C2` | `C1` minus `C2` | label |
+|---|---|---|---|---|---|
+| drift 0.45 (forward) | registered, 800000 | 0.767 | 0.643 | +0.124 [+0.073, +0.175] | HOLDS |
+| drift 0.45 (forward) | fresh, 2200000 | 0.784 | 0.664 | +0.121 [+0.074, +0.168] | HOLDS |
+| drift 0 (reverse) | registered, 800000 | 0.787 | 0.683 | +0.104 [+0.044, +0.165] | DIRECTION ONLY |
+| drift 0 (reverse) | fresh, 2200000 | 0.785 | 0.673 | +0.113 [+0.056, +0.170] | HOLDS |
+
+**Reading.** The primary entry, agents raised at drift 0.45 on the fresh base, reads +0.121
+[+0.074, +0.168]: HOLDS. The decoder's lead holds on the draw-free estimator, on the registered
+base as well, beside the +0.120 [+0.065, +0.174] that 17.4 records on the registered draw. Agents
+raised at drift 0 and read at 0.45 give HOLDS on the fresh base and DIRECTION ONLY on the
+registered one, whose interval reaches down to +0.044. The registered auxiliary verdict stays NOT
+MET as registered, because `C1` does not meet its primary rule (17.2, 17.4). Dated notes at 17.4
+and 17.5 carry the reading.
+
+### 20.13 Readouts on the `H7-corrected` agents (descriptive: the run is off-design)
+
+Artifact `artifacts/post_review/H7-corrected.json` with its partial file; the runner, spec and
+stack of 20.3, commit `300602d`. The runner refit the hidden 7 fingerprint from the run's knobs.
+All five readouts finished on all ten seeds, no task failed, and the r210 bit check passes in all
+60 cells. The run's gate 0 fails on the untrained floor of its own fit (20.2), so it is off-design
+under section 8 and every reading below is descriptive. The pre-stated labels are reported as the
+spec fixes them and bear on no rule. The drift-0 agents are `C1`'s, and their R210 readings equal
+the drift-0 table of 20.4 value for value.
+
+R210, drift 0.45:
+
+| arm | linear | MLP | random forest | MLP minus linear | forest minus linear |
+|---|---|---|---|---|---|
+| survival | 0.703 [0.650, 0.756] | 0.707 [0.663, 0.751] | 0.726 [0.685, 0.766] | +0.004 [-0.011, +0.018] INCLUDES | +0.023 [-0.001, +0.046] INCLUDES |
+| predictor | 0.703 [0.677, 0.730] | 0.733 [0.713, 0.752] | 0.746 [0.732, 0.760] | +0.030 [+0.014, +0.045] ABOVE | +0.043 [+0.021, +0.065] ABOVE |
+| untrained | 0.593 [0.570, 0.617] | 0.636 [0.609, 0.662] | 0.646 [0.625, 0.667] | +0.042 [+0.022, +0.062] ABOVE | +0.053 [+0.034, +0.072] ABOVE |
+
+| margin at drift 0.45 | linear | MLP | random forest |
+|---|---|---|---|
+| survival minus predictor | -0.000 [-0.063, +0.063] | -0.026 [-0.076, +0.024] | -0.020 [-0.062, +0.022] |
+| survival minus untrained | +0.110 [+0.052, +0.168] | +0.071 [+0.022, +0.120] | +0.079 [+0.039, +0.119] |
+
+Both nonlinear classes read more than the linear probe from the predictor's and the untrained
+states, and no more from the survival state. The margin over the predictor includes zero under
+every class. The margin over the untrained arm lies above 0.05 under the linear probe only, so
+that interval clearing 0.05 is specific to the probe class.
+
+R35:
+
+| trunk | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| survival | 0.737 [0.701, 0.772] | 0.737 [0.701, 0.772] | 0.712 [0.680, 0.744] | 0.710 [0.678, 0.743] |
+| predictor | 0.717 [0.680, 0.753] | 0.711 [0.670, 0.752] | 0.677 [0.641, 0.712] | 0.675 [0.641, 0.710] |
+| untrained | 0.641 [0.615, 0.668] | 0.655 [0.619, 0.691] | 0.641 [0.613, 0.670] | 0.643 [0.614, 0.671] |
+
+| survival minus | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| untrained | +0.095 [+0.071, +0.119] | +0.082 [+0.060, +0.104] (0.86) | +0.071 [+0.054, +0.088] (0.74) | +0.068 [+0.051, +0.084] (0.71) |
+| predictor | +0.020 [-0.010, +0.050] | +0.026 [-0.007, +0.059] (1.29) | +0.035 [+0.012, +0.059] (1.77) | +0.035 [+0.010, +0.059] (1.75) |
+
+The untrained arm: **TRUNK**, with 0.86 of the own-normalizer margin kept on the survival
+normalizer and 0.74 on the refit. The predictor arm: SPLIT, descriptive only.
+
+R206:
+
+| walk | summed deviation per episode | mean speed | mean acceleration | survival walk minus this walk |
+|---|---|---|---|---|
+| survival agent's own | 0.522 [0.483, 0.560] | 0.138 | 0.764 |  |
+| predictor's own | 0.538 [0.526, 0.550] | 0.137 | 0.755 | -0.017 [-0.057, +0.024] |
+| untrained agent's own | 0.525 [0.521, 0.528] | 0.135 | 0.752 | -0.003 [-0.042, +0.035] |
+| scripted | 0.487 (the same in every seed) | 0.130 | 0.722 | +0.035 [-0.004, +0.073] |
+
+The pre-stated label is **NOT HIGHER**: no difference lies above zero. On this fingerprint the
+survival walk does not visit states where the two laws differ more than along the other walks, so
+the size of the law deviation along the visited states does not explain what the trunks read from
+it. Across seeds the deviation correlates with the recorded survival target at r = 0.727 (n = 10,
+descriptive).
+
+R33, readout drift 0.45:
+
+| agents | base | survival | predictor | untrained | survival minus predictor | survival minus untrained |
+|---|---|---|---|---|---|---|
+| drift 0.45 (forward) | registered, 800000 | 0.729 [0.682, 0.777] | 0.748 [0.731, 0.766] | 0.644 [0.627, 0.662] | -0.019 [-0.072, +0.034] | +0.085 [+0.037, +0.133] |
+| drift 0.45 (forward) | fresh, 2200000 | 0.721 [0.676, 0.766] | 0.730 [0.700, 0.760] | 0.644 [0.626, 0.663] | -0.009 [-0.073, +0.056] | +0.077 [+0.023, +0.131] |
+| drift 0 (reverse) | registered, 800000 | 0.834 [0.808, 0.861] | 0.740 [0.721, 0.759] | 0.616 [0.598, 0.634] | +0.094 [+0.068, +0.120] | +0.218 [+0.191, +0.246] |
+| drift 0 (reverse) | fresh, 2200000 | 0.843 [0.823, 0.863] | 0.716 [0.694, 0.739] | 0.607 [0.587, 0.627] | +0.127 [+0.094, +0.160] | +0.237 [+0.204, +0.269] |
+
+On balanced pairs the predictor agents raised at drift 0.45 read the hidden 7 fingerprint as well
+as the survival agents do, on both bases, as on the registered draw (20.2). The drift-0 agents,
+the same as `C1`'s, read it at 0.834 and 0.843.
+
+R31:
+
+| stream | state | GRU 1x | GRU 2x | GRU 4x | GRU 8x | 1D conv |
+|---|---|---|---|---|---|---|
+| survival agent's own walk | 0.737 [0.701, 0.772] | 0.713 [0.676, 0.750] | 0.710 [0.667, 0.754] | 0.707 [0.672, 0.742] | 0.680 [0.633, 0.728] | 0.696 [0.663, 0.729] |
+| scripted walk | 0.673 [0.658, 0.689] | 0.710 [0.704, 0.716] | 0.715 [0.708, 0.723] | 0.711 [0.702, 0.720] | 0.701 [0.689, 0.713] | 0.632 [0.630, 0.635] |
+
+| stream | 2x minus 1x | 4x minus 1x | 8x minus 1x | state minus best decoder | labels |
+|---|---|---|---|---|---|
+| survival agent's own walk | -0.003 [-0.020, +0.014] | -0.006 [-0.014, +0.002] | -0.033 [-0.049, -0.017] | +0.024 [-0.008, +0.055] (1x) | NOT CAPACITY-LIMITED; UNRESOLVED |
+| scripted walk | +0.005 [-0.006, +0.016] | +0.001 [-0.011, +0.014] | -0.009 [-0.020, +0.002] | -0.042 [-0.062, -0.021] (2x) | NOT CAPACITY-LIMITED; DECODER ABOVE |
+
+No wider GRU reads either stream better than the trunk-width one. On the scripted stream the
+decoders read above the state (DECODER ABOVE). Every GRU's final training loss is below 0.001 in
+every fold; the conv reader's reaches 0.001 or more in 1 of its 100 folds (largest 0.0011).
+
+### 20.14 Readouts on the `H8GS2-corrected` agents (descriptive: the run is uninformative)
+
+Artifact `artifacts/post_review/H8GS2-corrected.json` with its partial file; the runner, spec and
+stack of 20.3, commit `a0b57f1`. The output records itself complete, with all five readouts on all
+ten seeds, an empty error list, and every r210 cell reproduced. The run is uninformative under its
+spec (20.2), so every reading below is descriptive. The drift-0 agents are `C1`'s, and their R210
+readings equal the drift-0 table of 20.4 value for value.
+
+R210, drift 0.45:
+
+| arm | linear | MLP | random forest | MLP minus linear | forest minus linear |
+|---|---|---|---|---|---|
+| survival | 0.659 [0.619, 0.699] | 0.669 [0.623, 0.714] | 0.676 [0.639, 0.712] | +0.010 [-0.007, +0.027] INCLUDES | +0.017 [-0.006, +0.039] INCLUDES |
+| predictor | 0.629 [0.610, 0.647] | 0.639 [0.616, 0.662] | 0.649 [0.636, 0.663] | +0.011 [-0.014, +0.036] INCLUDES | +0.020 [-0.002, +0.043] INCLUDES |
+| untrained | 0.552 [0.517, 0.586] | 0.587 [0.553, 0.621] | 0.598 [0.572, 0.623] | +0.035 [+0.019, +0.051] ABOVE | +0.046 [+0.014, +0.079] ABOVE |
+
+| margin at drift 0.45 | linear | MLP | random forest |
+|---|---|---|---|
+| survival minus predictor | +0.031 [-0.006, +0.067] | +0.030 [-0.012, +0.071] | +0.027 [-0.002, +0.056] |
+| survival minus untrained | +0.107 [+0.048, +0.167] | +0.082 [+0.021, +0.142] | +0.078 [+0.039, +0.117] |
+
+Both nonlinear classes read more than the linear probe from the untrained state only. Neither
+margin lies above 0.05 under any class, and the margin over the predictor includes zero under all
+three.
+
+R35:
+
+| trunk | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| survival | 0.662 [0.630, 0.695] | 0.662 [0.630, 0.695] | 0.651 [0.619, 0.683] | 0.651 [0.619, 0.683] |
+| predictor | 0.652 [0.623, 0.681] | 0.654 [0.615, 0.692] | 0.652 [0.625, 0.680] | 0.652 [0.625, 0.680] |
+| untrained | 0.623 [0.587, 0.659] | 0.618 [0.580, 0.655] | 0.621 [0.583, 0.659] | 0.622 [0.584, 0.659] |
+
+| survival minus | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| untrained | +0.040 [+0.019, +0.060] | +0.045 [+0.024, +0.066] (1.12) | +0.030 [+0.005, +0.055] (0.75) | +0.030 [+0.005, +0.054] (0.74) |
+| predictor | +0.010 [-0.020, +0.041] | +0.009 [-0.026, +0.043] (0.83) | -0.001 [-0.035, +0.033] (-0.12) | -0.001 [-0.035, +0.033] (-0.11) |
+
+The untrained arm: **TRUNK**, with 1.12 of the own-normalizer margin kept on the survival
+normalizer and 0.75 on the refit. The predictor arm: NORMALIZER, descriptive only.
+
+R206:
+
+| walk | summed deviation per episode | mean speed | mean acceleration | survival walk minus this walk |
+|---|---|---|---|---|
+| survival agent's own | 0.441 [0.418, 0.464] | 0.154 | 0.817 |  |
+| predictor's own | 0.433 [0.425, 0.441] | 0.151 | 0.801 | +0.008 [-0.019, +0.035] |
+| untrained agent's own | 0.423 [0.421, 0.426] | 0.150 | 0.795 | +0.018 [-0.007, +0.042] |
+| scripted | 0.406 (the same in every seed) | 0.147 | 0.777 | +0.035 [+0.011, +0.058] |
+
+The pre-stated label is **MIXED**, reported per comparison: the survival walk's deviation lies
+above the scripted walk's, and its differences from the predictor's and the untrained walks
+include zero. Across seeds the deviation correlates with the recorded survival target at r = 0.804
+(n = 10, descriptive).
+
+R33, readout drift 0.45:
+
+| agents | base | survival | predictor | untrained | survival minus predictor | survival minus untrained |
+|---|---|---|---|---|---|---|
+| drift 0.45 (forward) | registered, 800000 | 0.655 [0.623, 0.687] | 0.627 [0.611, 0.644] | 0.544 [0.535, 0.554] | +0.027 [-0.013, +0.067] | +0.110 [+0.077, +0.144] |
+| drift 0.45 (forward) | fresh, 2200000 | 0.671 [0.634, 0.708] | 0.614 [0.592, 0.636] | 0.548 [0.536, 0.561] | +0.057 [+0.020, +0.094] | +0.122 [+0.089, +0.156] |
+| drift 0 (reverse) | registered, 800000 | 0.756 [0.731, 0.780] | 0.614 [0.583, 0.644] | 0.550 [0.532, 0.568] | +0.142 [+0.098, +0.185] | +0.206 [+0.173, +0.238] |
+| drift 0 (reverse) | fresh, 2200000 | 0.762 [0.738, 0.787] | 0.610 [0.590, 0.630] | 0.548 [0.530, 0.565] | +0.152 [+0.115, +0.190] | +0.215 [+0.181, +0.248] |
+
+On the registered base the lead over the predictor includes zero, as on the registered draw
+(20.2); on the fresh base it lies above zero.
+
+R31:
+
+| stream | state | GRU 1x | GRU 2x | GRU 4x | GRU 8x | 1D conv |
+|---|---|---|---|---|---|---|
+| survival agent's own walk | 0.662 [0.630, 0.695] | 0.670 [0.625, 0.716] | 0.683 [0.635, 0.730] | 0.676 [0.624, 0.728] | 0.668 [0.615, 0.721] | 0.663 [0.626, 0.701] |
+| scripted walk | 0.619 [0.599, 0.639] | 0.688 [0.679, 0.698] | 0.682 [0.674, 0.690] | 0.669 [0.661, 0.677] | 0.652 [0.642, 0.662] | 0.603 [0.597, 0.609] |
+
+| stream | 2x minus 1x | 4x minus 1x | 8x minus 1x | state minus best decoder | labels |
+|---|---|---|---|---|---|
+| survival agent's own walk | +0.012 [+0.006, +0.018] | +0.006 [-0.007, +0.019] | -0.002 [-0.017, +0.013] | -0.020 [-0.058, +0.018] (2x) | NOT CAPACITY-LIMITED; UNRESOLVED |
+| scripted walk | -0.006 [-0.018, +0.005] | -0.019 [-0.026, -0.013] | -0.037 [-0.049, -0.025] | -0.070 [-0.093, -0.046] (1x) | NOT CAPACITY-LIMITED; DECODER ABOVE |
+
+The 2x GRU reads the survival agent's own stream 0.012 above the trunk-width one, under the 0.05
+the CAPACITY-LIMITED label needs. On the scripted stream the decoders read above the state
+(DECODER ABOVE). Every GRU's final training loss is below 0.001 in every fold; the conv reader's
+reaches 0.001 or more in 2 of its 100 folds (largest 0.0012).
+
+**Across the five reruns (20.4 to 20.14).** R35 reads TRUNK for the untrained arm on the `C1`
+agents and on all three instance reruns, and SPLIT on the `C2` agents. R206 reads HIGHER on `C1`
+and the hidden 10 instance, MIXED on `C2` and the hidden 8 seed 2 instance, and NOT HIGHER on the
+off-design hidden 7 run. No wider GRU reads the survival agent's own stream at least 0.05 above
+the trunk-width one in any run.

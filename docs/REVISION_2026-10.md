@@ -42,6 +42,16 @@ match the estimator that measured it. Claim numbers are the rows of the claims i
 | 37 | Engagement-margin sweep | Historical gate audit. | No |
 | (skill-matched baseline) | Return matching at 450 updates | Stays a **failed** match. No mediation inference either way (step 11). | No |
 
+*(Note 2026-10-11, claims 21, 22 and 31: corrected-trainer reruns of the second capacity and of
+both further fingerprint instances now exist, with their agents saved (FINDINGS 20.1, 20.2;
+PREREGISTRATION_L3, 2026-10-11 results entry). Their drift-0 agents are `C1`'s, so all three
+inherit `C1`'s open L0 gate (0.559, TOST p = 0.939). Hidden 7 is off-design, because gate 0 fails
+on the untrained floor of the run's own fingerprint fit (0.601). Hidden 10 at G seed 1 passes
+gate 0 and both margins and reads 0.626 [0.598, 0.654], under the bar, so replication is not
+claimed. Hidden 8 at G seed 2 is uninformative, because one speed-control pool reads 0.725 and
+the L0 gate is open. The historical rows keep their labels, and claims 23, 25 and 26 have no
+corrected run.)*
+
 ### Decisions after the corrected readouts (2026-10-06, FINDINGS 17)
 
 | Claims | What the corrected agents showed | Wording from here on |
