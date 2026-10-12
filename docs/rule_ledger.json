@@ -2534,6 +2534,785 @@
    "outcome_class": "uninformative",
    "recorded_in": "PREREGISTRATION_C sec. 7 and 2026-10-10 amendment; FINDINGS 13.F",
    "note": "The pooled re-run of 2026-07-18 (FINDINGS 13.D) fails every clause as well. The gate-1 clause reads the runner's verdict, which applies the 0.005 margin of the unratified section-14 draft; frozen section 7 gives gate 1 no number, and against its wording the treatment gap (0.00228, 90% CI [0.00109, 0.00377], control gap 0) is a weak positive. The routing rests on gate 5 (2026-10-10)."
+  },
+  {
+   "id": "GOAL-STAKES-TOUCH",
+   "rule": "Goal and stakes: pellet-touch objective without death meets the primary rule",
+   "short": "Touch objective, death off",
+   "source": "docs/specs/2026-10-07-goal-and-stakes-design.md",
+   "source_part": "Decision rules (frozen), T-touch",
+   "frozen": "2026-10-07",
+   "run": "T-TOUCH",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/goal_stakes_T-touch.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.796",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/goal_stakes_T-touch.json",
+      "path": "decision/survival_t90/0"
+     },
+     "reading": "0.762",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/goal_stakes_T-touch.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.207",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/goal_stakes_T-touch.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.273",
+     "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/goal_stakes_T-touch.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.007",
+     "role": "gate"
+    },
+    {
+     "clause": "every registered gate, touch engagement included",
+     "basis": "verdict",
+     "op": "is_true",
+     "threshold": null,
+     "value": {
+      "artifact": "goal_stakes/decision.json",
+      "path": "T-touch/primary/gates/all"
+     },
+     "reading": null,
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": true,
+   "outcome": "MET with every gate passing: \"a pellet-directed goal without survival stakes produces walks from which the condition is decodable; survival is not required\"",
+   "outcome_class": "threshold met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11; FINDINGS 18.2; artifacts/goal_stakes/decision.json",
+   "note": "Touch engagement is the spec's ratio rule: the trained touch return at least 1.5 times the better baseline (1.30 pellets per episode against 0.52)."
+  },
+  {
+   "id": "GOAL-STAKES-IMMORTAL",
+   "rule": "Goal and stakes: survival objective without death, the primary rule",
+   "short": "Survival, death off",
+   "source": "docs/specs/2026-10-07-goal-and-stakes-design.md",
+   "source_part": "Readouts per run, item 1 (the standard primary readout and every registered gate)",
+   "frozen": "2026-10-07",
+   "run": "S-IMMORTAL",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/goal_stakes_S-immortal.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.744",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/goal_stakes_S-immortal.json",
+      "path": "decision/survival_t90/0"
+     },
+     "reading": "0.696",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/goal_stakes_S-immortal.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.156",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/goal_stakes_S-immortal.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.222",
+     "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/goal_stakes_S-immortal.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.232",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": true,
+   "gates_hold": false,
+   "outcome": "NOT MET as registered: the L0 gate is open; the decodability clauses are met",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11; FINDINGS 18.2"
+  },
+  {
+   "id": "GOAL-STAKES-STAKES",
+   "rule": "Goal and stakes: the reading grows with the stakes",
+   "short": "Stakes rule",
+   "source": "docs/specs/2026-10-07-goal-and-stakes-design.md",
+   "source_part": "Decision rules (frozen), Stakes",
+   "frozen": "2026-10-07",
+   "run": "S-IMMORTAL, C1 (S-SCARCE not run)",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "S-scarce minus S-immortal",
+     "basis": "seed-paired difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": null,
+     "reading": null,
+     "role": "rule",
+     "note": "S-scarce was not run, so this clause has no value"
+    },
+    {
+     "clause": "stakes rule testable",
+     "basis": "verdict",
+     "op": "is_true",
+     "threshold": null,
+     "value": {
+      "artifact": "goal_stakes/decision.json",
+      "path": "stakes/testable"
+     },
+     "reading": null,
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": null,
+   "gates_hold": false,
+   "outcome": "not testable: the frozen calibration chose the registered density, so no scarcer rung exists",
+   "outcome_class": "no verdict",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-10 (calibration) and 2026-10-11; FINDINGS 18.2; artifacts/goal_stakes/decision.json",
+   "note": "The calibration (scripts/calibrate_scarcity.py, artifacts/goal_stakes/calibration.json) chose 24 pellets, the density C1 already uses, so S-scarce would have repeated C1 and was not run. The record gives the survival means descriptively: S-immortal 0.744, C1 0.733."
+  },
+  {
+   "id": "WHITE-JITTER-H96",
+   "rule": "Comparator-trained run on the white-jitter family, at the registered trunk",
+   "short": "Jitter-trained comparator, trunk 96",
+   "source": "docs/specs/2026-10-10-gn-comparator-trained-h96-design.md",
+   "source_part": "What is unchanged (the decision rule and gates of the 2026-10-09 spec)",
+   "frozen": "2026-10-10",
+   "run": "T-GN-H96",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "texture/T_gn_l3_h96_wm.json",
+      "path": "primary/survival/mean"
+     },
+     "reading": "0.541",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "texture/T_gn_l3_h96_wm.json",
+        "path": "primary/survival/mean"
+       },
+       {
+        "artifact": "texture/T_gn_l3_h96_wm.json",
+        "path": "primary/predictor/mean"
+       }
+      ]
+     },
+     "reading": "0.040",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "texture/T_gn_l3_h96_wm.json",
+        "path": "primary/survival/mean"
+       },
+       {
+        "artifact": "texture/T_gn_l3_h96_wm.json",
+        "path": "primary/untrained/mean"
+       }
+      ]
+     },
+     "reading": "0.044",
+     "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "texture/T_gn_l3_h96_wm.json",
+      "path": "gates/l0_tost/p"
+     },
+     "reading": "0.939",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": false,
+   "outcome": "UNINFORMATIVE: the L0 gate fails, and either verdict needs every gate",
+   "outcome_class": "uninformative",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11; FINDINGS 18.6",
+   "note": "The readings are descriptive. Engagement passes in 20 of 20 cells and the speed positive control in 60 of 60 pools."
+  },
+  {
+   "id": "H7-CORRECTED",
+   "rule": "L3 primary rule at the second capacity, hidden 7, corrected trainer",
+   "short": "L3 primary, hidden 7, corrected",
+   "source": "docs/specs/2026-10-11-corrected-generality-reruns-design.md",
+   "source_part": "How each is read; The surrogate and gate 0",
+   "frozen": "2026-10-11",
+   "freeze_note": "The clauses are PREREGISTRATION_L3 sections 7 and 8 as the 2026-07-14 entry applied them; the rerun spec, frozen before launch, adds the gate-0 measurement on the run's own fit.",
+   "run": "H7-CORRECTED",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H7-corrected.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.703",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H7-corrected.json",
+      "path": "decision/survival_t90/0"
+     },
+     "reading": "0.6496",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_H7-corrected.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "-0.0001",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_H7-corrected.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.110",
+     "role": "rule"
+    },
+    {
+     "clause": "gate 0: oracle at or above 0.85",
+     "basis": "oracle AUROC, the run's own CPU fit",
+     "op": ">=",
+     "threshold": 0.85,
+     "value": {
+      "artifact": "corrected_runs/h7-corrected/gate0_cpu.json",
+      "path": "rows/0/oracle_auroc"
+     },
+     "reading": "0.918",
+     "role": "gate"
+    },
+    {
+     "clause": "gate 0: oracle at or below 0.95",
+     "basis": "oracle AUROC, the run's own CPU fit",
+     "op": "<=",
+     "threshold": 0.95,
+     "value": {
+      "artifact": "corrected_runs/h7-corrected/gate0_cpu.json",
+      "path": "rows/0/oracle_auroc"
+     },
+     "reading": "0.918",
+     "role": "gate"
+    },
+    {
+     "clause": "gate 0: untrained floor within 0.1 of 0.5",
+     "basis": "distance of the floor from 0.5",
+     "op": "<",
+     "threshold": 0.1,
+     "value": {
+      "max": [
+       {
+        "minus": [
+         {
+          "artifact": "corrected_runs/h7-corrected/gate0_cpu.json",
+          "path": "rows/0/floor"
+         },
+         {
+          "const": 0.5
+         }
+        ]
+       },
+       {
+        "minus": [
+         {
+          "const": 0.5
+         },
+         {
+          "artifact": "corrected_runs/h7-corrected/gate0_cpu.json",
+          "path": "rows/0/floor"
+         }
+        ]
+       }
+      ]
+     },
+     "reading": "0.1011",
+     "role": "gate"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_H7-corrected.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.939",
+     "role": "gate"
+    },
+    {
+     "clause": "reward leak clean in every pool",
+     "basis": "verdict",
+     "op": "is_true",
+     "threshold": null,
+     "value": {
+      "artifact": "expB2/corrected_H7-corrected.json",
+      "path": "gates/pool_leak_clean_all"
+     },
+     "reading": null,
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": false,
+   "outcome": "OFF-DESIGN (uninformative under section 8): gate 0 fails on the untrained floor of the run's own fit; the L0 and reward-leak gates are open as well",
+   "outcome_class": "uninformative",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11 (results); FINDINGS 20.2",
+   "note": "Reported beside L3-H7-N10, which keeps its record. The readings are descriptive; the survival arm does not lead the predictor (-0.0001)."
+  },
+  {
+   "id": "H10GS1-CORRECTED",
+   "rule": "Second surrogate instance (seed 1, hidden 10): replication, corrected trainer",
+   "short": "Second instance, corrected",
+   "source": "docs/specs/2026-10-11-corrected-generality-reruns-design.md",
+   "source_part": "How each is read (the 2026-09-26 instance spec's decision rule)",
+   "frozen": "2026-10-11",
+   "freeze_note": "The clauses are those of docs/specs/2026-09-26-l3-second-fingerprint-instance-design.md, which the rerun spec applies unchanged.",
+   "run": "H10GS1-CORRECTED",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H10GS1-corrected.json",
+      "path": "arms/0.45/survival/pool_target/t90/0"
+     },
+     "reading": "0.598",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H10GS1-corrected.json",
+      "path": "behavior_audit/survival/resid_trace/t90/0"
+     },
+     "reading": "0.610",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_H10GS1-corrected.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.092",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_H10GS1-corrected.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.112",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H10GS1-corrected.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.626",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H10GS1-corrected.json",
+      "path": "behavior_audit/survival/resid_trace/mean"
+     },
+     "reading": "0.637",
+     "role": "rule"
+    },
+    {
+     "clause": "gate 0: oracle at or above 0.85",
+     "basis": "oracle AUROC, the run's own CPU fit",
+     "op": ">=",
+     "threshold": 0.85,
+     "value": {
+      "artifact": "corrected_runs/h10gs1-corrected/gate0_cpu.json",
+      "path": "rows/0/oracle_auroc"
+     },
+     "reading": "0.893",
+     "role": "gate"
+    },
+    {
+     "clause": "gate 0: oracle at or below 0.95",
+     "basis": "oracle AUROC, the run's own CPU fit",
+     "op": "<=",
+     "threshold": 0.95,
+     "value": {
+      "artifact": "corrected_runs/h10gs1-corrected/gate0_cpu.json",
+      "path": "rows/0/oracle_auroc"
+     },
+     "reading": "0.893",
+     "role": "gate"
+    },
+    {
+     "clause": "gate 0: untrained floor within 0.1 of 0.5",
+     "basis": "distance of the floor from 0.5",
+     "op": "<",
+     "threshold": 0.1,
+     "value": {
+      "max": [
+       {
+        "minus": [
+         {
+          "artifact": "corrected_runs/h10gs1-corrected/gate0_cpu.json",
+          "path": "rows/0/floor"
+         },
+         {
+          "const": 0.5
+         }
+        ]
+       },
+       {
+        "minus": [
+         {
+          "const": 0.5
+         },
+         {
+          "artifact": "corrected_runs/h10gs1-corrected/gate0_cpu.json",
+          "path": "rows/0/floor"
+         }
+        ]
+       }
+      ]
+     },
+     "reading": "0.015",
+     "role": "gate"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_H10GS1-corrected.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.939",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": false,
+   "outcome": "NOT MET: replication not claimed; both margins pass; the L0 gate is open",
+   "outcome_class": "threshold not met",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11 (results); FINDINGS 20.2",
+   "note": "The drift-0 cells are C1's agents, so the L0 reading is C1's. Reported beside L3-H10-GS1-CPU, which keeps its record; its predictor and untrained targets are bit-equal to this run's."
+  },
+  {
+   "id": "H8GS2-CORRECTED",
+   "rule": "Hidden 8 at a new surrogate seed (seed 2): replication, corrected trainer",
+   "short": "Hidden 8, surrogate seed 2, corrected",
+   "source": "docs/specs/2026-10-11-corrected-generality-reruns-design.md",
+   "source_part": "How each is read (the 2026-09-28 hidden-8 second-seed spec's decision rule)",
+   "frozen": "2026-10-11",
+   "freeze_note": "The clauses are those of docs/specs/2026-09-28-l3-hidden8-second-seed-design.md, which the rerun spec applies unchanged.",
+   "run": "H8GS2-CORRECTED",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H8GS2-corrected.json",
+      "path": "arms/0.45/survival/pool_target/t90/0"
+     },
+     "reading": "0.619",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "t90 lower bound",
+     "op": ">",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H8GS2-corrected.json",
+      "path": "behavior_audit/survival/resid_trace/t90/0"
+     },
+     "reading": "0.594",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_H8GS2-corrected.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.031",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_H8GS2-corrected.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.107",
+     "role": "rule"
+    },
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H8GS2-corrected.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.659",
+     "role": "rule"
+    },
+    {
+     "clause": "behavior-controlled bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_H8GS2-corrected.json",
+      "path": "behavior_audit/survival/resid_trace/mean"
+     },
+     "reading": "0.630",
+     "role": "rule"
+    },
+    {
+     "clause": "gate 0: oracle at or above 0.85",
+     "basis": "oracle AUROC, the run's own CPU fit",
+     "op": ">=",
+     "threshold": 0.85,
+     "value": {
+      "artifact": "corrected_runs/h8gs2-corrected/gate0_cpu.json",
+      "path": "rows/0/oracle_auroc"
+     },
+     "reading": "0.939",
+     "role": "gate"
+    },
+    {
+     "clause": "gate 0: oracle at or below 0.95",
+     "basis": "oracle AUROC, the run's own CPU fit",
+     "op": "<=",
+     "threshold": 0.95,
+     "value": {
+      "artifact": "corrected_runs/h8gs2-corrected/gate0_cpu.json",
+      "path": "rows/0/oracle_auroc"
+     },
+     "reading": "0.939",
+     "role": "gate"
+    },
+    {
+     "clause": "gate 0: untrained floor within 0.1 of 0.5",
+     "basis": "distance of the floor from 0.5",
+     "op": "<",
+     "threshold": 0.1,
+     "value": {
+      "max": [
+       {
+        "minus": [
+         {
+          "artifact": "corrected_runs/h8gs2-corrected/gate0_cpu.json",
+          "path": "rows/0/floor"
+         },
+         {
+          "const": 0.5
+         }
+        ]
+       },
+       {
+        "minus": [
+         {
+          "const": 0.5
+         },
+         {
+          "artifact": "corrected_runs/h8gs2-corrected/gate0_cpu.json",
+          "path": "rows/0/floor"
+         }
+        ]
+       }
+      ]
+     },
+     "reading": "0.038",
+     "role": "gate"
+    },
+    {
+     "clause": "speed positive control in every pool",
+     "basis": "minimum over 60 pools",
+     "op": ">=",
+     "threshold": 0.75,
+     "value": {
+      "artifact": "expB2/corrected_H8GS2-corrected.json",
+      "path": "gates/speed_min"
+     },
+     "reading": "0.725",
+     "role": "gate"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_H8GS2-corrected.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.939",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": false,
+   "outcome": "UNINFORMATIVE under the spec's outcome table: the speed positive control fails in one pool and the L0 gate is open",
+   "outcome_class": "uninformative",
+   "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11 (results); FINDINGS 20.2",
+   "note": "The short pool is the untrained arm at drift 0.45, seed index 0. Descriptively the predictor margin fails (+0.031). Reported beside L3-H8-GS2-GPU, which keeps its record."
   }
  ]
 }
