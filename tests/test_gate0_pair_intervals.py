@@ -113,6 +113,8 @@ def test_live_recompute_h8_s0_explicit(doc):
     assert res["oracle_oof"]["pair"] == b["oof"]["pair"]
     assert res["oracle_oof"]["fold"] == b["oof"]["fold"]
     # The AUROC, pair ids and folds above match exactly on every stack. The per-pair scores
-    # are classifier probabilities whose last bits depend on the BLAS and numpy build (the
-    # artifact was written on Windows, CI runs Linux), so they are compared to 1e-6.
-    assert np.allclose(res["oracle_oof"]["score"], b["oof"]["score"], rtol=0, atol=1e-6)
+    # are logistic-regression probabilities from an lbfgs fit whose stopping tolerance lets
+    # them drift across BLAS, numpy and scikit-learn builds (the artifact was written on
+    # Windows; CI runs Linux on four Pythons, which differ at about 1e-5). Compared to 1e-3,
+    # they still catch a different model or a different episode set.
+    assert np.allclose(res["oracle_oof"]["score"], b["oof"]["score"], rtol=0, atol=1e-3)
