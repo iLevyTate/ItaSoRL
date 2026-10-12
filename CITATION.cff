@@ -8,8 +8,8 @@ authors:
     orcid: "https://orcid.org/0009-0009-1337-0709"
 repository-code: "https://github.com/iLevyTate/ItaSoRL"
 license: MIT
-version: 1.2.0
-date-released: "2026-10-11"
+version: 1.3.0
+date-released: "2026-10-12"
 abstract: >-
   ITASORL measures whether a recurrent agent trained from scratch, with no
   imported semantic knowledge and no reward for detection, comes to carry in its
@@ -29,7 +29,10 @@ abstract: >-
   and 0.685 at 450, so the auxiliary result is bounded by budget. At matched
   evaluation input a prediction-trained trunk reads the world within about
   0.01 of the survival trunk (0.721 against 0.733): the signal rides on the trajectories the foraging policy
-  produces and is kept by a trunk shaped by next-observation prediction. A
+  produces and is kept by a trunk shaped by next-observation prediction. With
+  death switched off and a pellet-directed reward in place of survival, the
+  agent's state reads 0.796 and the registered rule is met with every gate, so
+  survival is not required (FINDINGS section 18). A
   hand-authored, temporally coherent drag of matched one-step size is read
   through the same direction while white jitter is not, so nothing here is
   specific to learned dynamics. A common-garden control passes its frozen rule
