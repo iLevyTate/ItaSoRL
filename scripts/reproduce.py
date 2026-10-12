@@ -478,6 +478,30 @@ RUN_NOTES = {
     "fullruns/corrected_l3_h8_nowm": "C2",
 }
 
+# What the README says about a RUN_DIRS bundle that is included: where its files came from.
+# The C1 and C2 originals did not keep their agents; both were rerun on the same stack to keep
+# them, and each rerun reproduces its original's committed cells.
+RUN_INCLUDED_NOTES = {
+    "fullruns/corrected_l3_h8_wm": (
+        "`fullruns/corrected_l3_h8_wm` holds the cells and saved agents of a rerun of C1 on the "
+        "same stack, made to keep the agents. Its pooled targets equal the committed C1 cells in "
+        "60 of 60 arm-cells (docs/FINDINGS.md 18.1). The agents include the survival arm's "
+        "budget snapshots. State dumps are not shipped: `python scripts/regenerate_state_dumps.py "
+        "--run-dir fullruns/corrected_l3_h8_wm --out-dir <dir> --report <json>` rebuilds them "
+        "from the agents and checks every pool against its recorded target."),
+    "fullruns/corrected_l3_h8_nowm": (
+        "`fullruns/corrected_l3_h8_nowm` holds the cells and saved agents of a rerun of C2 on the "
+        "same stack, made to keep the agents. All 5000 values its cells share with the committed "
+        "C2 cells are bit-equal (docs/FINDINGS.md 20.1). State dumps rebuild from the agents as "
+        "for C1."),
+    "fullruns/l3_h8_heldout/agents": (
+        "`fullruns/l3_h8_heldout/agents` holds the saved agents of the historical hidden-8 "
+        "held-out run (pre-correction trainer)."),
+    "fullruns/l3_h8_gseed2_gpu/agents": (
+        "`fullruns/l3_h8_gseed2_gpu/agents` holds the saved agents of the historical hidden-8, "
+        "G seed 2 run on GPU (pre-correction trainer)."),
+}
+
 # Left out of the archive even though they sit under a packaged root, as (pattern, reason).
 # Reproduction needs none of them. Patterns are fnmatch patterns on the repository path.
 SUPPLEMENT_EXCLUDE = [
@@ -648,6 +672,10 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
     if not status:
         L.append("- none: this archive was built without run bundles")
     gone = [RUN_NOTES[r] for r in absent if r in RUN_NOTES]
+    shipped = [RUN_INCLUDED_NOTES[r] for r, n in status if n is not None and r in RUN_INCLUDED_NOTES]
+    if shipped:
+        L.append("")
+        L += [f"- {note}" for note in shipped]
     L.append("")
     if gone:
         both = " and ".join(gone)
