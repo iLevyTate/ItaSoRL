@@ -80,6 +80,8 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `C1-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | b77d0db (readouts/post-review-C1) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `C2-RERUN-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C2, C2-RERUN | d3f2f75 (readouts/post-review-C2-rerun) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `H10GS1-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | H10GS1-CORRECTED | 60b4e6f (readouts/post-review-H10GS1-corrected) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
+| `H7-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | H7-CORRECTED | 300602d (readouts/post-review-H7-corrected) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
+| `H8GS2-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | H8GS2-CORRECTED | a0b57f1 (readouts/post-review-H8GS2-corrected) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `C1-C2-BALANCED-CONTRAST` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2, C1-RERUN, C2-RERUN | not recorded | explicit | owner's workstation, offline from the two committed readout outputs |
 | `L1-CAPACITY-CURVE` | historical | H2 | - | inherited: pre_transition_value | L1-ORGANISM | 5ba16e0 | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `GOAL-STAKES-DECISION` | corrected | methods | - | inherited: successor_value | T-TOUCH, S-IMMORTAL, C1 | not recorded | explicit | not recorded |
@@ -992,6 +994,28 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)
 - Notes: scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.11. Diagnostics on a run whose replication rule is not met. Integrity: all 60 r210 cells reproduce their recorded targets; the drift-0 readings equal C1's (the same agents). Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor SPLIT; R206 HIGHER; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, EQUIVALENT on the scripted one.
 - Artifacts: `artifacts/post_review/H10GS1-corrected.json`, `artifacts/post_review/H10GS1-corrected.json.partial.jsonl`
+
+### `H7-POST-REVIEW`: Post-review readouts R210, R35, R206, R33 and R31 on the hidden 7 rerun's agents (descriptive: the run is off-design)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 300602d (readouts/post-review-H7-corrected)
+- Commit source: recorded
+- Folds: explicit
+- Device: Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)
+- Notes: scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.13. Descriptive only: the run's gate 0 fails on the untrained floor, so it is off-design. Integrity: all 60 r210 cells reproduce their recorded targets; the drift-0 readings equal C1's (the same agents). Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor SPLIT; R206 NOT HIGHER; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, DECODER ABOVE on the scripted one.
+- Artifacts: `artifacts/post_review/H7-corrected.json`, `artifacts/post_review/H7-corrected.json.partial.jsonl`
+
+### `H8GS2-POST-REVIEW`: Post-review readouts R210, R35, R206, R33 and R31 on the hidden 8, G seed 2 rerun's agents (descriptive: the run is uninformative)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: a0b57f1 (readouts/post-review-H8GS2-corrected)
+- Commit source: recorded
+- Folds: explicit
+- Device: Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)
+- Notes: scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.14. Descriptive only: the run is uninformative under its spec (speed control and L0). The output records itself complete with no errors (the branch's final commit message names no exit code). Integrity: all 60 r210 cells reproduce their recorded targets; the drift-0 readings equal C1's. Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor NORMALIZER; R206 MIXED; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, DECODER ABOVE on the scripted one.
+- Artifacts: `artifacts/post_review/H8GS2-corrected.json`, `artifacts/post_review/H8GS2-corrected.json.partial.jsonl`
 
 ### `C1-C2-BALANCED-CONTRAST`: Draw-free C1 minus C2 contrast of the balanced survival target (finding R33)
 

@@ -4529,15 +4529,15 @@ committed source (dated note there). Milestone 3 stays UNINFORMATIVE.
 
 ## 20. Corrected-trainer reruns of the generality runs, and post-review readouts on saved agents (2026-10-11)
 
-**Status: MEASURED; no recorded verdict changes, and no bar, margin or tolerance moved.** Two
+**Status: MEASURED; every run and readout the two specs name is complete; no recorded verdict
+changes, and no bar, margin or tolerance moved.** Two
 frozen specs govern this section. `docs/specs/2026-10-11-corrected-generality-reruns-design.md`
 (announced in PREREGISTRATION_L3 section 12 before launch; results entry of the same day) reran
 the second capacity and the two further fingerprint instances on the corrected trainer with
 their agents saved, and reran `C2` to keep its agents. `docs/specs/2026-10-11-post-review-readouts-design.md`,
 frozen before any readout ran, names five readouts on saved agents (R210, R35, R206, R33, R31)
-and, in its amendment, the L1 part of R31. They are recorded here on the agents of the `C1`,
-`C2` and hidden 10 seed 1 reruns, with the draw-free C1 minus C2 contrast; those on the hidden 7
-and hidden 8 seed 2 reruns are pending (20.13). Every run and readout executed in the Claude Code
+and, in its amendment, the L1 part of R31. They are recorded here on the agents of all five
+reruns (`C1`, `C2` and the three instances), with the draw-free C1 minus C2 contrast. Every run and readout executed in the Claude Code
 cloud container on the `C1` stack (torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1) under the
 explicit-v1 fold partition; the contrast was computed afterwards from two committed readout
 outputs (20.12). `scripts/promote_reviewer_gaps_runs.py` promoted each rerun to
@@ -5070,9 +5070,180 @@ registered one, whose interval reaches down to +0.044. The registered auxiliary 
 MET as registered, because `C1` does not meet its primary rule (17.2, 17.4). Dated notes at 17.4
 and 17.5 carry the reading.
 
-### 20.13 Readouts on `H7-corrected` and `H8GS2-corrected`: pending
+### 20.13 Readouts on the `H7-corrected` agents (descriptive: the run is off-design)
 
-The same five readouts run unchanged on the saved agents of these two runs, under
-`docs/specs/2026-10-11-post-review-readouts-design.md` as frozen. When this section was written the
-`H7-corrected` output was partial on `readouts/post-review-H7-corrected` and the `H8GS2-corrected`
-readout had not started. No number from them is recorded here.
+Artifact `artifacts/post_review/H7-corrected.json` with its partial file; the runner, spec and
+stack of 20.3, commit `300602d`. The runner refit the hidden 7 fingerprint from the run's knobs.
+All five readouts finished on all ten seeds, no task failed, and the r210 bit check passes in all
+60 cells. The run's gate 0 fails on the untrained floor of its own fit (20.2), so it is off-design
+under section 8 and every reading below is descriptive. The pre-stated labels are reported as the
+spec fixes them and bear on no rule. The drift-0 agents are `C1`'s, and their R210 readings equal
+the drift-0 table of 20.4 value for value.
+
+R210, drift 0.45:
+
+| arm | linear | MLP | random forest | MLP minus linear | forest minus linear |
+|---|---|---|---|---|---|
+| survival | 0.703 [0.650, 0.756] | 0.707 [0.663, 0.751] | 0.726 [0.685, 0.766] | +0.004 [-0.011, +0.018] INCLUDES | +0.023 [-0.001, +0.046] INCLUDES |
+| predictor | 0.703 [0.677, 0.730] | 0.733 [0.713, 0.752] | 0.746 [0.732, 0.760] | +0.030 [+0.014, +0.045] ABOVE | +0.043 [+0.021, +0.065] ABOVE |
+| untrained | 0.593 [0.570, 0.617] | 0.636 [0.609, 0.662] | 0.646 [0.625, 0.667] | +0.042 [+0.022, +0.062] ABOVE | +0.053 [+0.034, +0.072] ABOVE |
+
+| margin at drift 0.45 | linear | MLP | random forest |
+|---|---|---|---|
+| survival minus predictor | -0.000 [-0.063, +0.063] | -0.026 [-0.076, +0.024] | -0.020 [-0.062, +0.022] |
+| survival minus untrained | +0.110 [+0.052, +0.168] | +0.071 [+0.022, +0.120] | +0.079 [+0.039, +0.119] |
+
+Both nonlinear classes read more than the linear probe from the predictor's and the untrained
+states, and no more from the survival state. The margin over the predictor includes zero under
+every class. The margin over the untrained arm lies above 0.05 under the linear probe only, so
+that interval clearing 0.05 is specific to the probe class.
+
+R35:
+
+| trunk | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| survival | 0.737 [0.701, 0.772] | 0.737 [0.701, 0.772] | 0.712 [0.680, 0.744] | 0.710 [0.678, 0.743] |
+| predictor | 0.717 [0.680, 0.753] | 0.711 [0.670, 0.752] | 0.677 [0.641, 0.712] | 0.675 [0.641, 0.710] |
+| untrained | 0.641 [0.615, 0.668] | 0.655 [0.619, 0.691] | 0.641 [0.613, 0.670] | 0.643 [0.614, 0.671] |
+
+| survival minus | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| untrained | +0.095 [+0.071, +0.119] | +0.082 [+0.060, +0.104] (0.86) | +0.071 [+0.054, +0.088] (0.74) | +0.068 [+0.051, +0.084] (0.71) |
+| predictor | +0.020 [-0.010, +0.050] | +0.026 [-0.007, +0.059] (1.29) | +0.035 [+0.012, +0.059] (1.77) | +0.035 [+0.010, +0.059] (1.75) |
+
+The untrained arm: **TRUNK**, with 0.86 of the own-normalizer margin kept on the survival
+normalizer and 0.74 on the refit. The predictor arm: SPLIT, descriptive only.
+
+R206:
+
+| walk | summed deviation per episode | mean speed | mean acceleration | survival walk minus this walk |
+|---|---|---|---|---|
+| survival agent's own | 0.522 [0.483, 0.560] | 0.138 | 0.764 |  |
+| predictor's own | 0.538 [0.526, 0.550] | 0.137 | 0.755 | -0.017 [-0.057, +0.024] |
+| untrained agent's own | 0.525 [0.521, 0.528] | 0.135 | 0.752 | -0.003 [-0.042, +0.035] |
+| scripted | 0.487 (the same in every seed) | 0.130 | 0.722 | +0.035 [-0.004, +0.073] |
+
+The pre-stated label is **NOT HIGHER**: no difference lies above zero. On this fingerprint the
+survival walk does not visit states where the two laws differ more than along the other walks, so
+the size of the law deviation along the visited states does not explain what the trunks read from
+it. Across seeds the deviation correlates with the recorded survival target at r = 0.727 (n = 10,
+descriptive).
+
+R33, readout drift 0.45:
+
+| agents | base | survival | predictor | untrained | survival minus predictor | survival minus untrained |
+|---|---|---|---|---|---|---|
+| drift 0.45 (forward) | registered, 800000 | 0.729 [0.682, 0.777] | 0.748 [0.731, 0.766] | 0.644 [0.627, 0.662] | -0.019 [-0.072, +0.034] | +0.085 [+0.037, +0.133] |
+| drift 0.45 (forward) | fresh, 2200000 | 0.721 [0.676, 0.766] | 0.730 [0.700, 0.760] | 0.644 [0.626, 0.663] | -0.009 [-0.073, +0.056] | +0.077 [+0.023, +0.131] |
+| drift 0 (reverse) | registered, 800000 | 0.834 [0.808, 0.861] | 0.740 [0.721, 0.759] | 0.616 [0.598, 0.634] | +0.094 [+0.068, +0.120] | +0.218 [+0.191, +0.246] |
+| drift 0 (reverse) | fresh, 2200000 | 0.843 [0.823, 0.863] | 0.716 [0.694, 0.739] | 0.607 [0.587, 0.627] | +0.127 [+0.094, +0.160] | +0.237 [+0.204, +0.269] |
+
+On balanced pairs the predictor agents raised at drift 0.45 read the hidden 7 fingerprint as well
+as the survival agents do, on both bases, as on the registered draw (20.2). The drift-0 agents,
+the same as `C1`'s, read it at 0.834 and 0.843.
+
+R31:
+
+| stream | state | GRU 1x | GRU 2x | GRU 4x | GRU 8x | 1D conv |
+|---|---|---|---|---|---|---|
+| survival agent's own walk | 0.737 [0.701, 0.772] | 0.713 [0.676, 0.750] | 0.710 [0.667, 0.754] | 0.707 [0.672, 0.742] | 0.680 [0.633, 0.728] | 0.696 [0.663, 0.729] |
+| scripted walk | 0.673 [0.658, 0.689] | 0.710 [0.704, 0.716] | 0.715 [0.708, 0.723] | 0.711 [0.702, 0.720] | 0.701 [0.689, 0.713] | 0.632 [0.630, 0.635] |
+
+| stream | 2x minus 1x | 4x minus 1x | 8x minus 1x | state minus best decoder | labels |
+|---|---|---|---|---|---|
+| survival agent's own walk | -0.003 [-0.020, +0.014] | -0.006 [-0.014, +0.002] | -0.033 [-0.049, -0.017] | +0.024 [-0.008, +0.055] (1x) | NOT CAPACITY-LIMITED; UNRESOLVED |
+| scripted walk | +0.005 [-0.006, +0.016] | +0.001 [-0.011, +0.014] | -0.009 [-0.020, +0.002] | -0.042 [-0.062, -0.021] (2x) | NOT CAPACITY-LIMITED; DECODER ABOVE |
+
+No wider GRU reads either stream better than the trunk-width one. On the scripted stream the
+decoders read above the state (DECODER ABOVE). Every GRU's final training loss is below 0.001 in
+every fold; the conv reader's reaches 0.001 or more in 1 of its 100 folds (largest 0.0011).
+
+### 20.14 Readouts on the `H8GS2-corrected` agents (descriptive: the run is uninformative)
+
+Artifact `artifacts/post_review/H8GS2-corrected.json` with its partial file; the runner, spec and
+stack of 20.3, commit `a0b57f1`. The output records itself complete, with all five readouts on all
+ten seeds, an empty error list, and every r210 cell reproduced. The run is uninformative under its
+spec (20.2), so every reading below is descriptive. The drift-0 agents are `C1`'s, and their R210
+readings equal the drift-0 table of 20.4 value for value.
+
+R210, drift 0.45:
+
+| arm | linear | MLP | random forest | MLP minus linear | forest minus linear |
+|---|---|---|---|---|---|
+| survival | 0.659 [0.619, 0.699] | 0.669 [0.623, 0.714] | 0.676 [0.639, 0.712] | +0.010 [-0.007, +0.027] INCLUDES | +0.017 [-0.006, +0.039] INCLUDES |
+| predictor | 0.629 [0.610, 0.647] | 0.639 [0.616, 0.662] | 0.649 [0.636, 0.663] | +0.011 [-0.014, +0.036] INCLUDES | +0.020 [-0.002, +0.043] INCLUDES |
+| untrained | 0.552 [0.517, 0.586] | 0.587 [0.553, 0.621] | 0.598 [0.572, 0.623] | +0.035 [+0.019, +0.051] ABOVE | +0.046 [+0.014, +0.079] ABOVE |
+
+| margin at drift 0.45 | linear | MLP | random forest |
+|---|---|---|---|
+| survival minus predictor | +0.031 [-0.006, +0.067] | +0.030 [-0.012, +0.071] | +0.027 [-0.002, +0.056] |
+| survival minus untrained | +0.107 [+0.048, +0.167] | +0.082 [+0.021, +0.142] | +0.078 [+0.039, +0.117] |
+
+Both nonlinear classes read more than the linear probe from the untrained state only. Neither
+margin lies above 0.05 under any class, and the margin over the predictor includes zero under all
+three.
+
+R35:
+
+| trunk | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| survival | 0.662 [0.630, 0.695] | 0.662 [0.630, 0.695] | 0.651 [0.619, 0.683] | 0.651 [0.619, 0.683] |
+| predictor | 0.652 [0.623, 0.681] | 0.654 [0.615, 0.692] | 0.652 [0.625, 0.680] | 0.652 [0.625, 0.680] |
+| untrained | 0.623 [0.587, 0.659] | 0.618 [0.580, 0.655] | 0.621 [0.583, 0.659] | 0.622 [0.584, 0.659] |
+
+| survival minus | own | survival normalizer | refit | refit in fold |
+|---|---|---|---|---|
+| untrained | +0.040 [+0.019, +0.060] | +0.045 [+0.024, +0.066] (1.12) | +0.030 [+0.005, +0.055] (0.75) | +0.030 [+0.005, +0.054] (0.74) |
+| predictor | +0.010 [-0.020, +0.041] | +0.009 [-0.026, +0.043] (0.83) | -0.001 [-0.035, +0.033] (-0.12) | -0.001 [-0.035, +0.033] (-0.11) |
+
+The untrained arm: **TRUNK**, with 1.12 of the own-normalizer margin kept on the survival
+normalizer and 0.75 on the refit. The predictor arm: NORMALIZER, descriptive only.
+
+R206:
+
+| walk | summed deviation per episode | mean speed | mean acceleration | survival walk minus this walk |
+|---|---|---|---|---|
+| survival agent's own | 0.441 [0.418, 0.464] | 0.154 | 0.817 |  |
+| predictor's own | 0.433 [0.425, 0.441] | 0.151 | 0.801 | +0.008 [-0.019, +0.035] |
+| untrained agent's own | 0.423 [0.421, 0.426] | 0.150 | 0.795 | +0.018 [-0.007, +0.042] |
+| scripted | 0.406 (the same in every seed) | 0.147 | 0.777 | +0.035 [+0.011, +0.058] |
+
+The pre-stated label is **MIXED**, reported per comparison: the survival walk's deviation lies
+above the scripted walk's, and its differences from the predictor's and the untrained walks
+include zero. Across seeds the deviation correlates with the recorded survival target at r = 0.804
+(n = 10, descriptive).
+
+R33, readout drift 0.45:
+
+| agents | base | survival | predictor | untrained | survival minus predictor | survival minus untrained |
+|---|---|---|---|---|---|---|
+| drift 0.45 (forward) | registered, 800000 | 0.655 [0.623, 0.687] | 0.627 [0.611, 0.644] | 0.544 [0.535, 0.554] | +0.027 [-0.013, +0.067] | +0.110 [+0.077, +0.144] |
+| drift 0.45 (forward) | fresh, 2200000 | 0.671 [0.634, 0.708] | 0.614 [0.592, 0.636] | 0.548 [0.536, 0.561] | +0.057 [+0.020, +0.094] | +0.122 [+0.089, +0.156] |
+| drift 0 (reverse) | registered, 800000 | 0.756 [0.731, 0.780] | 0.614 [0.583, 0.644] | 0.550 [0.532, 0.568] | +0.142 [+0.098, +0.185] | +0.206 [+0.173, +0.238] |
+| drift 0 (reverse) | fresh, 2200000 | 0.762 [0.738, 0.787] | 0.610 [0.590, 0.630] | 0.548 [0.530, 0.565] | +0.152 [+0.115, +0.190] | +0.215 [+0.181, +0.248] |
+
+On the registered base the lead over the predictor includes zero, as on the registered draw
+(20.2); on the fresh base it lies above zero.
+
+R31:
+
+| stream | state | GRU 1x | GRU 2x | GRU 4x | GRU 8x | 1D conv |
+|---|---|---|---|---|---|---|
+| survival agent's own walk | 0.662 [0.630, 0.695] | 0.670 [0.625, 0.716] | 0.683 [0.635, 0.730] | 0.676 [0.624, 0.728] | 0.668 [0.615, 0.721] | 0.663 [0.626, 0.701] |
+| scripted walk | 0.619 [0.599, 0.639] | 0.688 [0.679, 0.698] | 0.682 [0.674, 0.690] | 0.669 [0.661, 0.677] | 0.652 [0.642, 0.662] | 0.603 [0.597, 0.609] |
+
+| stream | 2x minus 1x | 4x minus 1x | 8x minus 1x | state minus best decoder | labels |
+|---|---|---|---|---|---|
+| survival agent's own walk | +0.012 [+0.006, +0.018] | +0.006 [-0.007, +0.019] | -0.002 [-0.017, +0.013] | -0.020 [-0.058, +0.018] (2x) | NOT CAPACITY-LIMITED; UNRESOLVED |
+| scripted walk | -0.006 [-0.018, +0.005] | -0.019 [-0.026, -0.013] | -0.037 [-0.049, -0.025] | -0.070 [-0.093, -0.046] (1x) | NOT CAPACITY-LIMITED; DECODER ABOVE |
+
+The 2x GRU reads the survival agent's own stream 0.012 above the trunk-width one, under the 0.05
+the CAPACITY-LIMITED label needs. On the scripted stream the decoders read above the state
+(DECODER ABOVE). Every GRU's final training loss is below 0.001 in every fold; the conv reader's
+reaches 0.001 or more in 2 of its 100 folds (largest 0.0012).
+
+**Across the five reruns (20.4 to 20.14).** R35 reads TRUNK for the untrained arm on the `C1`
+agents and on all three instance reruns, and SPLIT on the `C2` agents. R206 reads HIGHER on `C1`
+and the hidden 10 instance, MIXED on `C2` and the hidden 8 seed 2 instance, and NOT HIGHER on the
+off-design hidden 7 run. No wider GRU reads the survival agent's own stream at least 0.05 above
+the trunk-width one in any run.

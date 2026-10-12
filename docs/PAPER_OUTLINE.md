@@ -82,7 +82,8 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      input, the survival trunk's replay margin over the untrained trunk stays above zero: +0.059
      on the survival agent's normalizer and +0.092 on one refit to the replayed streams, against
      +0.076 on each trunk's own. The pre-stated reading is TRUNK on the `C1` agents and SPLIT on
-     the `C2` agents. The figures above stay as recorded.)*
+     the `C2` agents; it is TRUNK on all three instance reruns as well (20.11, 20.13, 20.14). The
+     figures above stay as recorded.)*
    - 4.5b Controls, named by basis (FINDINGS 10.4, 10.4.1, 10.4.2, 17.8): what remains
      after per-timestep linear residualization on speed, energy, food, and drag
      (historical 0.726; corrected 0.723 with position and heading), after regressing

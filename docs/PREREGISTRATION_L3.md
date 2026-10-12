@@ -1360,9 +1360,10 @@ Rigor carried from the B-v3 audit (2026-07-10):
   +0.031, under the 0.05 margin. Each result is reported beside its historical row, which keeps its
   label, and a margin over the predictor is read as a difference between training regimes. No bar,
   margin or tolerance changed. The post-review readouts (`docs/specs/2026-10-11-post-review-readouts-design.md`
-  and its amendment) on the agents of the `C1`, `C2` and hidden 10 seed 1 reruns, and the L1
-  stream-decoder capacity curve, are recorded in FINDINGS 20 as diagnostics and change no
-  registered verdict; those on the hidden 7 and hidden 8 seed 2 reruns are pending. The draw-free
+  and its amendment) on the agents of all five reruns, and the L1 stream-decoder capacity curve,
+  are recorded in FINDINGS 20 as diagnostics and change no registered verdict; those on the hidden
+  7 and hidden 8 seed 2 reruns are descriptive, because those runs are off-design and
+  uninformative. The draw-free
   `C1` minus `C2` contrast on balanced pairs reads +0.121 [+0.074, +0.168] on a fresh world base
   and +0.124 [+0.073, +0.175] on the registered one, both above the auxiliary rule's 0.05; the
   auxiliary rule stays NOT MET as registered, because `C1` does not meet its primary rule.

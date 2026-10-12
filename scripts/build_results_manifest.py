@@ -873,6 +873,33 @@ RUNS = [
               "targets; the drift-0 readings equal C1's (the same agents). Labels: R210 survival INCLUDES "
               "under both classes; R35 untrained TRUNK, predictor SPLIT; R206 HIGHER; R31 NOT "
               "CAPACITY-LIMITED, UNRESOLVED on the own stream, EQUIVALENT on the scripted one."),
+    run("H7-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the hidden 7 rerun's "
+        "agents (descriptive: the run is off-design)", experiment="B-v2 L3",
+        artifacts=["post_review/H7-corrected.json", "post_review/H7-corrected.json.partial.jsonl"],
+        trains_survival=False, readout_of=["H7-CORRECTED"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="300602d (readouts/post-review-H7-corrected)",
+        folds="explicit", eval_seeds=POST_REVIEW_SEEDS, device=CLOUD_READOUT,
+        notes="scripts/run_post_review_readouts.py; frozen spec "
+              "docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.13. Descriptive only: "
+              "the run's gate 0 fails on the untrained floor, so it is off-design. Integrity: all 60 r210 "
+              "cells reproduce their recorded targets; the drift-0 readings equal C1's (the same agents). "
+              "Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor SPLIT; "
+              "R206 NOT HIGHER; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, DECODER ABOVE "
+              "on the scripted one."),
+    run("H8GS2-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the hidden 8, G "
+        "seed 2 rerun's agents (descriptive: the run is uninformative)", experiment="B-v2 L3",
+        artifacts=["post_review/H8GS2-corrected.json", "post_review/H8GS2-corrected.json.partial.jsonl"],
+        trains_survival=False, readout_of=["H8GS2-CORRECTED"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="a0b57f1 (readouts/post-review-H8GS2-corrected)",
+        folds="explicit", eval_seeds=POST_REVIEW_SEEDS, device=CLOUD_READOUT,
+        notes="scripts/run_post_review_readouts.py; frozen spec "
+              "docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.14. Descriptive only: "
+              "the run is uninformative under its spec (speed control and L0). The output records itself "
+              "complete with no errors (the branch's final commit message names no exit code). "
+              "Integrity: all 60 r210 cells reproduce their recorded targets; the drift-0 readings equal "
+              "C1's. Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor "
+              "NORMALIZER; R206 MIXED; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, DECODER "
+              "ABOVE on the scripted one."),
     run("C1-C2-BALANCED-CONTRAST", "Draw-free C1 minus C2 contrast of the balanced survival target "
         "(finding R33)", experiment="B-v2 L3", artifacts=["post_review/c1_minus_c2_balanced.json"],
         trains_survival=False, readout_of=["C1", "C2", "C1-RERUN", "C2-RERUN"],

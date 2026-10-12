@@ -4524,6 +4524,102 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "post_review/H7-corrected.json",
+        "post_review/H7-corrected.json.partial.jsonl"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "300602d (readouts/post-review-H7-corrected)",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": null,
+      "device": "Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)",
+      "eval_seeds": {
+        "r210": "800000 / 850000, the registered pair",
+        "r33": "2200000 + i for both members of a pair; continuity entry 800000 + i",
+        "r35_r206_r31": "2100000 + i (authentic, drift 0) / 2150000 + i (surrogate, drift 0.45)",
+        "scripted_policy": "action stream default_rng(600000 + i)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "H7-POST-REVIEW",
+      "local_run_dir": null,
+      "notes": "scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.13. Descriptive only: the run's gate 0 fails on the untrained floor, so it is off-design. Integrity: all 60 r210 cells reproduce their recorded targets; the drift-0 readings equal C1's (the same agents). Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor SPLIT; R206 NOT HIGHER; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, DECODER ABOVE on the scripted one.",
+      "readout_only_on": [
+        "H7-CORRECTED"
+      ],
+      "recorded_provenance": {
+        "post_review/H7-corrected.json": {
+          "generated_by": "scripts/run_post_review_readouts.py",
+          "git_commit": "300602d",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md",
+          "stack": {
+            "numpy": "2.4.6",
+            "python": "3.11.17",
+            "scipy": "1.17.1",
+            "sklearn": "1.9.1",
+            "torch": "2.14.1+cpu"
+          }
+        },
+        "post_review/H7-corrected.json.partial.jsonl": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Post-review readouts R210, R35, R206, R33 and R31 on the hidden 7 rerun's agents (descriptive: the run is off-design)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "post_review/H8GS2-corrected.json",
+        "post_review/H8GS2-corrected.json.partial.jsonl"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "a0b57f1 (readouts/post-review-H8GS2-corrected)",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": null,
+      "device": "Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)",
+      "eval_seeds": {
+        "r210": "800000 / 850000, the registered pair",
+        "r33": "2200000 + i for both members of a pair; continuity entry 800000 + i",
+        "r35_r206_r31": "2100000 + i (authentic, drift 0) / 2150000 + i (surrogate, drift 0.45)",
+        "scripted_policy": "action stream default_rng(600000 + i)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "H8GS2-POST-REVIEW",
+      "local_run_dir": null,
+      "notes": "scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.14. Descriptive only: the run is uninformative under its spec (speed control and L0). The output records itself complete with no errors (the branch's final commit message names no exit code). Integrity: all 60 r210 cells reproduce their recorded targets; the drift-0 readings equal C1's. Labels: R210 survival INCLUDES under both classes; R35 untrained TRUNK, predictor NORMALIZER; R206 MIXED; R31 NOT CAPACITY-LIMITED, UNRESOLVED on the own stream, DECODER ABOVE on the scripted one.",
+      "readout_only_on": [
+        "H8GS2-CORRECTED"
+      ],
+      "recorded_provenance": {
+        "post_review/H8GS2-corrected.json": {
+          "generated_by": "scripts/run_post_review_readouts.py",
+          "git_commit": "a0b57f1",
+          "spec": "docs/specs/2026-10-11-post-review-readouts-design.md",
+          "stack": {
+            "numpy": "2.4.6",
+            "python": "3.11.17",
+            "scipy": "1.17.1",
+            "sklearn": "1.9.1",
+            "torch": "2.14.1+cpu"
+          }
+        },
+        "post_review/H8GS2-corrected.json.partial.jsonl": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Post-review readouts R210, R35, R206, R33 and R31 on the hidden 8, G seed 2 rerun's agents (descriptive: the run is uninformative)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "post_review/c1_minus_c2_balanced.json"
       ],
       "budget": null,

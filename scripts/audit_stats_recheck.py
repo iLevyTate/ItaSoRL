@@ -3500,13 +3500,13 @@ S20_STREAMS = {"survival_own": "survival agent's own walk", "scripted": "scripte
 
 def _s20_r31(ps: dict, sm: dict, tag: str) -> dict:
     widths = ("1x", "2x", "4x", "8x")
-    rows, contrasts, losses = [], [], []
+    rows, contrasts, losses, conv_losses = [], [], [], []
     for st, name in S20_STREAMS.items():
         state = [ps[s][st]["state"] for s in S20_SEEDS]
         dec = {k: [ps[s][st]["decoders"]["gru"][k]["auroc"] for s in S20_SEEDS] for k in widths}
         dec["conv"] = [ps[s][st]["decoders"]["conv"]["auroc"] for s in S20_SEEDS]
         losses += [x for s in S20_SEEDS for k in widths for x in ps[s][st]["decoders"]["gru"][k]["final_train_loss"]]
-        losses += [x for s in S20_SEEDS for x in ps[s][st]["decoders"]["conv"]["final_train_loss"]]
+        conv_losses += [x for s in S20_SEEDS for x in ps[s][st]["decoders"]["conv"]["final_train_loss"]]
         _s20_agree(f"{tag} r31 {st} state", _s20_ms(state), sm[st]["state"])
         for k in dec:
             _s20_agree(f"{tag} r31 {st} {k}", _s20_ms(dec[k]), sm[st]["decoders"][k])
@@ -3528,8 +3528,9 @@ def _s20_r31(ps: dict, sm: dict, tag: str) -> dict:
                    and best == sm[st]["best_decoder"])
         contrasts.append((f"{tag} r31 contrast row {st}", f"| {name} | " + " | ".join(cells)
                           + f" | {m:+.3f} {_af_iv(t, True)} ({best}) | {clab}; {slab} |"))
-    check_true(f"{tag} r31: every decoder's final training loss is below 0.001 in every fold", max(losses) < 0.001)
-    return {"rows": rows, "contrasts": contrasts}
+    check_true(f"{tag} r31: every GRU's final training loss is below 0.001 in every fold", max(losses) < 0.001)
+    return {"rows": rows, "contrasts": contrasts, "conv_max": max(conv_losses),
+            "conv_n_ge": int(sum(x >= 0.001 for x in conv_losses))}
 
 
 def s20_readout(fname: str, tag: str) -> dict:
@@ -3645,7 +3646,7 @@ def s20_l1() -> dict:
 def post_review_checks(findings: str, prereg: str) -> None:
     print("\n== FINDINGS 20: corrected-trainer reruns and post-review readouts (2026-10-11) ==")
     s20 = findings[findings.index("## 20. Corrected-trainer reruns"):]
-    heads = [f"### 20.{i} " for i in range(1, 14)]
+    heads = [f"### 20.{i} " for i in range(1, 15)]
     sub = {}
     for i, h in enumerate(heads):
         end = s20.index(heads[i + 1]) if i + 1 < len(heads) else len(s20)
@@ -3698,10 +3699,11 @@ def post_review_checks(findings: str, prereg: str) -> None:
         check_true(f"FINDINGS {label} quoted", needle in sub["20.9"])
     # 20.10 and 20.11: the same readouts on the C2-rerun and H10GS1-corrected agents
     R = {}
-    for k, fname, tag in (("20.10", "C2-rerun.json", "C2-rerun"), ("20.11", "H10GS1-corrected.json", "H10GS1")):
+    for k, fname, tag in (("20.10", "C2-rerun.json", "C2-rerun"), ("20.11", "H10GS1-corrected.json", "H10GS1"),
+                          ("20.13", "H7-corrected.json", "H7"), ("20.14", "H8GS2-corrected.json", "H8GS2")):
         X = s20_readout(fname, tag)
         R[tag] = X
-        # The hidden 10 drift-0 agents are C1's, so their drift-0 table is 20.4's and is not repeated.
+        # The instance runs' drift-0 agents are C1's, so their drift-0 table is 20.4's and is not repeated.
         d0rows = X["r210"]["0.00"]["rows"] if tag == "C2-rerun" else []
         rows = (X["r210"]["0.45"]["rows"] + X["r210"]["0.45"]["margins"] + d0rows
                 + X["r35"]["rows"] + X["r35"]["margins"] + X["r206"]["rows"] + X["r33"]["rows"]
@@ -3712,8 +3714,26 @@ def post_review_checks(findings: str, prereg: str) -> None:
                    f"untrained arm: **{X['r35']['labels']['untrained']}**" in flat[k]
                    and f"predictor arm: {X['r35']['labels']['predictor']}" in flat[k]
                    and f"**{X['r206']['label']}**" in flat[k] and f"r = {X['r206']['r']:.3f}" in flat[k])
-    check_true("20.11 H10GS1 readout: the drift-0 R210 readings equal C1's value for value",
-               R["H10GS1"]["r210"]["0.00"]["v"] == T["r210"]["0.00"]["v"])
+    for tag in ("H10GS1", "H7", "H8GS2"):
+        check_true(f"{tag} readout: the drift-0 R210 readings equal C1's value for value",
+                   R[tag]["r210"]["0.00"]["v"] == T["r210"]["0.00"]["v"])
+    check_true("20.8 every decoder's final training loss is below 0.001 in every fold, conv included",
+               T["r31"]["conv_max"] < 0.001)
+    for k, tag in (("20.13", "H7"), ("20.14", "H8GS2")):
+        X = R[tag]["r31"]
+        check_true(f"{k} quotes how many conv folds reach a training loss of 0.001 and the largest",
+                   f"in {X['conv_n_ge']} of its 100 folds (largest {X['conv_max']:.4f})" in flat[k])
+    # The closing paragraph of 20.14 compares the labels across the five reruns.
+    _all = {"C1": T, **R}
+    check_true("20.14 across-run R35 labels: TRUNK on C1 and the three instances, SPLIT on C2",
+               all(_all[t]["r35"]["labels"]["untrained"] == "TRUNK" for t in ("C1", "H10GS1", "H7", "H8GS2"))
+               and _all["C2-rerun"]["r35"]["labels"]["untrained"] == "SPLIT")
+    check_true("20.14 across-run R206 labels: HIGHER on C1 and H10GS1, MIXED on C2 and H8GS2, NOT HIGHER on H7",
+               [_all[t]["r206"]["label"] for t in ("C1", "H10GS1", "C2-rerun", "H8GS2", "H7")]
+               == ["HIGHER", "HIGHER", "MIXED", "MIXED", "NOT HIGHER"])
+    check_true("20.14 across-run R31: no run is CAPACITY-LIMITED on the survival agent's own stream",
+               all("| survival agent's own walk |" in r and "NOT CAPACITY-LIMITED" in r
+                   for t in _all for lab, r in _all[t]["r31"]["contrasts"] if "survival_own" in lab))
     c2cells = _s20_cells("corrected_runs/corrected_l3_h8_nowm")
     check_true("20.10 C2-rerun readout: the recorded drift-0.45 survival targets are C2's committed targets",
                R["C2-rerun"]["recorded"] == [c2cells[f"cell_d0.45_s{s}.json"]["cell"]["agents"]["survival"]["pool"]["target"]
@@ -3744,8 +3764,9 @@ def post_review_checks(findings: str, prereg: str) -> None:
     CT = s20_contrast()
     for label, needle in CT["rows"]:
         check_true(f"FINDINGS {label} quoted", needle in sub["20.12"])
-    check_true("20.13 says the remaining readouts are pending and names their spec",
-               "pending" in flat["20.13"] and "2026-10-11-post-review-readouts-design.md" in flat["20.13"])
+    check_true("section 20 states that every run and readout is complete, with no pending placeholder",
+               "every run and readout the two specs name is complete" in " ".join(s20.split())
+               and "pending" not in s20)
     notes = [" ".join(x.split()) for x in re.findall(r"\*\(Note 2026-10-11.*?\)\*", findings, flags=re.S)]
 
     def in_note(needle: str) -> bool:
