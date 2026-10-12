@@ -16,6 +16,9 @@ Five readout-only analyses, each named by the review finding it answers:
   r31   stream-decoder capacity curve: the 17.8 supervised GRU at 1x, 2x, 4x and 8x the
         trunk's recurrent width, and one 1D-conv reader, on the survival agent's own
         drift-0.45 streams and on the scripted walk
+  r205  which half of the registered feature carries the signal: the linear probe on mean h
+        alone, on h_T alone and on the registered concatenation, on the same regenerated and
+        bit-checked pools as r210 (amendment of 2026-10-12)
 
 None of these changes a registered verdict. This module holds the pure pieces (scorers,
 normalizers, the deviation integral, summaries, the partial-file store, the seed bases);
@@ -34,7 +37,7 @@ import numpy as np
 from . import folds
 
 SPEC = "docs/specs/2026-10-11-post-review-readouts-design.md"
-READOUTS = ("r210", "r35", "r206", "r33", "r31")
+READOUTS = ("r210", "r205", "r35", "r206", "r33", "r31")
 ARMS = ("survival", "predictor", "untrained")
 
 # ---------------------------------------------------------------------------
@@ -315,6 +318,108 @@ def summarize_r210(per_seed: dict) -> dict:
             block["margins"][f"survival_minus_{other}"] = {
                 c: paired_summary({s: val(s, "survival", c) for s in ok}, {s: val(s, other, c) for s in ok})
                 for c in classes}
+        out[d] = block
+    return out
+
+
+# ---------------------------------------------------------------------------
+# r205: which half of [mean h, h_T] carries the signal
+# ---------------------------------------------------------------------------
+R205_SETS = ("mean", "final", "concat")
+R205_BAR = 0.65          # the registered bar, for the count of seeds at or above it
+R205_CLOSE = 0.02        # "within 0.02 of the concatenation"
+R205_GAP = 0.05          # "at least 0.05 below the concatenation"
+
+
+def feature_halves(H: np.ndarray) -> dict:
+    """experiment_b.episode_features split into its two halves: the mean-h block, the h_T block,
+    and the registered concatenation itself, so the halves are exactly what the probe reads."""
+    from .experiment_b import episode_features
+    X = episode_features(H)
+    hid = np.asarray(H).shape[-1]
+    return {"mean": X[:, :hid], "final": X[:, hid:], "concat": X}
+
+
+def r205_cell(Ha: np.ndarray, Hs: np.ndarray, *, pool: dict, recorded: dict, seed: int,
+              n_perm: int = N_PERM, scorer=None) -> dict:
+    """One (drift, seed, arm) cell of r205 from the regenerated pools and pooled_readout's
+    output. The bit check is r210's: the concatenated target must equal the recorded one, and
+    an unreproduced cell is not scored. The registered linear probe (scaler and logistic
+    regression in-fold, explicit-v1 folds, one group per episode) is scored on the mean-h half
+    and on the h_T half, each with its shuffled control over pooled_readout's eight label
+    permutations; the concatenation's target and shuffled control are pooled_readout's own."""
+    out = {"recorded_target": recorded.get("target"), "target": float(pool["target"]),
+           "recorded_shuffled": recorded.get("shuffled"), "shuffled": float(pool["shuffled"]),
+           "n_auth": int(len(Ha)), "n_surr": int(len(Hs))}
+    out["reproduced"] = bool(recorded.get("target") is not None
+                             and float(pool["target"]) == float(recorded["target"]))
+    out["shuffled_reproduced"] = bool(recorded.get("shuffled") is not None
+                                      and float(pool["shuffled"]) == float(recorded["shuffled"]))
+    if not out["reproduced"] or len(Ha) < 5 or len(Hs) < 5:
+        return out
+    scorer = scorer or linear_probe_auroc
+    sets = feature_halves(np.concatenate([Ha, Hs]))
+    y = np.r_[np.zeros(len(Ha)), np.ones(len(Hs))].astype(int)
+    perms = registered_permutations(y, seed, n_perm)
+    out["sets"] = {}
+    for name in ("mean", "final"):
+        t = float(scorer(sets[name], y, seed=seed)["auroc"])
+        draws = [float(scorer(sets[name], yp, seed=seed)["auroc"]) for yp in perms]
+        sh = float(np.mean(draws)) if draws else float("nan")
+        out["sets"][name] = {"target": t, "shuffled": sh, "selectivity": t - sh, "shuffled_draws": draws}
+    lin = [float(scorer(sets["concat"], yp, seed=seed)["auroc"]) for yp in perms]
+    out["perm_check"] = bool(n_perm == N_PERM and float(np.mean(lin)) == float(pool["shuffled"]))
+    out["sets"]["concat"] = {"target": float(pool["target"]), "shuffled": float(pool["shuffled"]),
+                             "selectivity": float(pool["target"]) - float(pool["shuffled"])}
+    return out
+
+
+def r205_reading(diffs: dict) -> str:
+    """MEAN CARRIES: mean h alone reads within 0.02 of the concatenation or above it, and h_T
+    alone reads at least 0.05 below it (seed-paired mean differences). FINAL CARRIES: the
+    mirror case. BOTH: anything else. NA without finite differences. The two named cases
+    cannot hold together."""
+    cm, cf = diffs["concat_minus_mean"]["mean"], diffs["concat_minus_final"]["mean"]
+    if not (np.isfinite(cm) and np.isfinite(cf)):
+        return "NA"
+    if cm <= R205_CLOSE and cf >= R205_GAP:
+        return "MEAN CARRIES"
+    if cf <= R205_CLOSE and cm >= R205_GAP:
+        return "FINAL CARRIES"
+    return "BOTH"
+
+
+def summarize_r205(per_seed: dict) -> dict:
+    """Per drift, on the seeds whose three arms all reproduced (the others listed, excluded):
+    per arm and feature set the target with its t90 and the count of seeds at or above 0.65,
+    the shuffled control and the selectivity; per arm the seed-paired mean minus final,
+    concatenation minus mean and concatenation minus final; and the pre-stated reading."""
+    drifts = sorted({d for r in per_seed.values() for d in r.get("cells", {})}, key=float)
+    out = {}
+    for d in drifts:
+        ok = [s for s, r in per_seed.items() if r.get("reproduced", {}).get(d)]
+        bad = [s for s, r in per_seed.items() if d in r.get("cells", {}) and not r["reproduced"].get(d)]
+        block = {"seeds_used": sorted(ok, key=int), "seeds_excluded": sorted(bad, key=int),
+                 "arms": {}, "differences": {}, "reading": {}}
+
+        def val(s, arm, name, key="target"):
+            return per_seed[s]["cells"][d][arm].get("sets", {}).get(name, {}).get(key, float("nan"))
+
+        for arm in ARMS:
+            block["arms"][arm] = {}
+            for name in R205_SETS:
+                t = [val(s, arm, name) for s in ok]
+                block["arms"][arm][name] = {
+                    "target": {**seed_summary(t), "n_at_or_above_bar": int(sum(
+                        x is not None and np.isfinite(x) and x >= R205_BAR for x in t))},
+                    "shuffled": seed_summary([val(s, arm, name, "shuffled") for s in ok]),
+                    "selectivity": seed_summary([val(s, arm, name, "selectivity") for s in ok])}
+            per = {name: {s: val(s, arm, name) for s in ok} for name in R205_SETS}
+            diffs = {"mean_minus_final": paired_summary(per["mean"], per["final"]),
+                     "concat_minus_mean": paired_summary(per["concat"], per["mean"]),
+                     "concat_minus_final": paired_summary(per["concat"], per["final"])}
+            block["differences"][arm] = diffs
+            block["reading"][arm] = r205_reading(diffs)
         out[d] = block
     return out
 

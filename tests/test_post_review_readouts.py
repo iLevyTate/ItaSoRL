@@ -643,3 +643,115 @@ def test_the_in_use_list_carries_every_base_the_runners_define():
     sb = rpr.seed_bases()
     assert (sb["fresh_authentic"], sb["fresh_surrogate"]) == (pr.FRESH_AUTH_BASE, pr.FRESH_SURR_BASE)
     assert sb["balanced"] == {"fresh": pr.BALANCED_FRESH_BASE, "registered": 800_000}
+
+
+# ---------------------------------------------------------------------------
+# r205: which half of [mean h, h_T] carries the signal
+# ---------------------------------------------------------------------------
+def test_feature_halves_are_the_two_blocks_of_episode_features():
+    from itasorl.experiment_b import episode_features
+    rng = np.random.default_rng(12)
+    H = rng.normal(size=(7, 5, 3))
+    f = pr.feature_halves(H)
+    assert np.array_equal(f["mean"], H.mean(1)) and np.array_equal(f["final"], H[:, -1])
+    assert np.array_equal(f["concat"], episode_features(H))
+
+
+def _mean_only_pools(rng, n=30, T=6, hid=3, shift=1.5):
+    """The surrogate pool is shifted on unit 0 at every step but the last, so the time average
+    separates the pools and the final state does not."""
+    Ha = rng.normal(size=(n, T, hid)).astype(np.float32)
+    Hs = rng.normal(size=(n, T, hid)).astype(np.float32)
+    Hs[:, :-1, 0] += shift
+    return Ha, Hs
+
+
+def test_r205_cell_scores_each_half_on_the_bit_checked_pools(monkeypatch):
+    import itasorl.experiment_b2 as b2
+    rng = np.random.default_rng(13)
+    Ha, Hs = _mean_only_pools(rng)
+
+    def fake_collect_pool(agent, norm, params, drift, n_eps, steps, device, seed_base, ray_steps, **kw):
+        H = Hs if seed_base == 850_000 else Ha
+        k = len(H)
+        r = np.random.default_rng(seed_base)
+        return (H, r.random(k), r.random(k), r.random(k), r.random(k), r.random(k),
+                r.random((k, steps, 7)).astype(np.float32))
+
+    monkeypatch.setattr(b2, "collect_pool", fake_collect_pool)
+    out, (A, S) = b2.pooled_readout(None, None, None, 0.45, n_eps=30, steps=6, device="cpu",
+                                    seed=4, return_pools=True)
+    cell = pr.r205_cell(A, S, pool=out, recorded={"target": out["target"], "shuffled": out["shuffled"]}, seed=4)
+    assert cell["reproduced"] and cell["shuffled_reproduced"] and cell["perm_check"]
+    sets = cell["sets"]
+    assert sets["concat"] == {"target": out["target"], "shuffled": out["shuffled"],
+                              "selectivity": out["target"] - out["shuffled"]}
+    assert sets["mean"]["target"] > 0.9 and sets["final"]["target"] < 0.7
+    assert len(sets["mean"]["shuffled_draws"]) == len(sets["final"]["shuffled_draws"]) == pr.N_PERM
+    assert sets["final"]["selectivity"] == pytest.approx(sets["final"]["target"] - sets["final"]["shuffled"])
+    bad = pr.r205_cell(A, S, pool=out, recorded={"target": out["target"] + 1e-9, "shuffled": out["shuffled"]},
+                       seed=4)
+    assert bad["reproduced"] is False and "sets" not in bad
+
+
+def _r205_seed(ok45: bool, e: float) -> dict:
+    vals = {"survival": (0.72, 0.60, 0.73), "predictor": (0.55, 0.60, 0.61), "untrained": (0.52, 0.51, 0.53)}
+    cells, rep = {}, {}
+    for d, ok in (("0.00", True), ("0.45", ok45)):
+        cells[d] = {}
+        for arm, v in vals.items():
+            cells[d][arm] = {"reproduced": ok}
+            if ok:
+                cells[d][arm]["sets"] = {name: {"target": x + e, "shuffled": 0.5, "selectivity": x + e - 0.5}
+                                         for name, x in zip(pr.R205_SETS, v)}
+        rep[d] = ok
+    return {"cells": cells, "reproduced": rep}
+
+
+def test_r205_summary_readings_counts_and_exclusion():
+    rng = np.random.default_rng(14)
+    per = {str(s): _r205_seed(s != 3, e) for s, e in enumerate(rng.normal(0, 0.05, 6))}
+    s = pr.summarize_r205(per)["0.45"]
+    assert s["seeds_excluded"] == ["3"] and s["seeds_used"] == ["0", "1", "2", "4", "5"]
+    assert s["reading"] == {"survival": "MEAN CARRIES", "predictor": "FINAL CARRIES", "untrained": "BOTH"}
+    used = s["seeds_used"]
+    want = sum(per[k]["cells"]["0.45"]["survival"]["sets"]["concat"]["target"] >= 0.65 for k in used)
+    assert s["arms"]["survival"]["concat"]["target"]["n_at_or_above_bar"] == want
+    assert s["differences"]["survival"]["mean_minus_final"]["mean"] == pytest.approx(0.12)
+    assert s["differences"]["survival"]["concat_minus_mean"]["n"] == 5
+    assert pr.summarize_r205(per)["0.00"]["seeds_excluded"] == []
+    nan = {"mean": float("nan")}
+    assert pr.r205_reading({"concat_minus_mean": nan, "concat_minus_final": {"mean": 0.1}}) == "NA"
+
+
+def test_r205_task_bit_checks_and_scores_the_halves(monkeypatch):
+    import itasorl.experiment_b2 as b2
+    import run_post_review_readouts as rpr
+    loads = _patch_world(monkeypatch)
+    rng = np.random.default_rng(15)
+
+    def fake_pooled(agent, norm, params, drift, **kw):
+        Ha, Hs = _mean_only_pools(rng, n=kw["n_eps"], T=kw["steps"])
+        return {"target": 0.6 if drift == 0.45 else 0.5, "shuffled": 0.49}, (Ha, Hs)
+
+    monkeypatch.setattr(b2, "pooled_readout", fake_pooled)
+    task = _task("r205")
+    rec = {"target": 0.6, "shuffled": 0.49}
+    task["recorded"] = {"0.45": {"2": {a: rec for a in pr.ARMS}},
+                        "0.00": {"2": {a: ({"target": 0.5, "shuffled": 0.49} if a == "untrained" else rec)
+                                       for a in pr.ARMS}}}       # only the untrained arm reproduces at drift 0
+    res = rpr.run_task(task)
+    assert "error" not in res, res.get("error")
+    r = res["result"]
+    assert r["reproduced"] == {"0.00": False, "0.45": True} and len(loads) == 6
+    assert set(r["cells"]["0.45"]["survival"]["sets"]) == set(pr.R205_SETS)
+    assert "sets" in r["cells"]["0.00"]["untrained"] and "sets" not in r["cells"]["0.00"]["survival"]
+    integ = rpr.integrity({"r205": {"2": r}}, ["0.00", "0.45"])
+    assert integ["checked"] and integ["checked_by"] == "r205" and integ["unreproduced"]["0.00"] == ["2"]
+    assert rpr.integrity({"r210": {"2": r}, "r205": {}}, ["0.00", "0.45"])["checked_by"] == "r210"
+
+
+def test_r205_is_selectable_and_scheduled_after_r210():
+    import run_post_review_readouts as rpr
+    assert "r205" in pr.READOUTS and "r205" in rpr.TASKS
+    assert rpr.plan_tasks(["r205", "r210", "r31"], [0], {}) == [("r31", "0"), ("r210", "0"), ("r205", "0")]

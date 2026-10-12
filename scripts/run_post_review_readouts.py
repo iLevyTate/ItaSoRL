@@ -8,6 +8,7 @@ and scripts/regenerate_state_dumps.py do, and the r31 stream decoders are fit pe
 FINDINGS 17.8's decoder was. One task per (readout, seed):
 
   r210  probe classes on the registered pools, both drifts, every arm (bit-checked)
+  r205  the linear probe on mean h, on h_T and on both, on the same bit-checked pools
   r35   normalizer-matched replay at the strongest drift
   r206  law deviation along the visited states of four walks at the strongest drift
   r33   balanced readout of every agent at both drifts, read at the strongest drift
@@ -48,7 +49,7 @@ from itasorl import post_review as pr
 
 CELL_RE = re.compile(r"cell_d(\d+\.\d+)_s(\d+)\.json$")
 # longest first, so a pool of workers packs the r31 decoders early
-TASK_ORDER = ("r31", "r210", "r33", "r35", "r206")
+TASK_ORDER = ("r31", "r210", "r205", "r33", "r35", "r206")
 
 
 # ---------------------------------------------------------------------------
@@ -172,6 +173,24 @@ def task_r210(task: dict, P) -> dict:
                                             return_pools=True)
             out["cells"][d][arm] = pr.r210_cell(Ha, Hs, pool=pool, recorded=task["recorded"][d][str(seed)][arm],
                                                 seed=seed, n_perm=st["n_perm"], rf_trees=st["rf_trees"])
+        out["reproduced"][d] = all(out["cells"][d][a]["reproduced"] for a in pr.ARMS)
+    return out
+
+
+def task_r205(task: dict, P) -> dict:
+    """r210's regeneration and bit check, then the probe on each half of the feature."""
+    from itasorl.experiment_b2 import pooled_readout
+    st, seed = task["settings"], int(task["seed"])
+    out = {"cells": {}, "reproduced": {}}
+    for d in task["drifts"]:
+        out["cells"][d] = {}
+        for arm in pr.ARMS:
+            agent, norm = _load(task, d, arm)
+            pool, (Ha, Hs) = pooled_readout(agent, norm, P, float(d), n_eps=st["n_eps"], steps=st["steps"],
+                                            ray_steps=st["ray_steps"], device="cpu", seed=seed,
+                                            return_pools=True)
+            out["cells"][d][arm] = pr.r205_cell(Ha, Hs, pool=pool, recorded=task["recorded"][d][str(seed)][arm],
+                                                seed=seed, n_perm=st["n_perm"])
         out["reproduced"][d] = all(out["cells"][d][a]["reproduced"] for a in pr.ARMS)
     return out
 
@@ -303,7 +322,8 @@ def task_r31(task: dict, P) -> dict:
     return out
 
 
-TASKS = {"r210": task_r210, "r35": task_r35, "r206": task_r206, "r33": task_r33, "r31": task_r31}
+TASKS = {"r210": task_r210, "r205": task_r205, "r35": task_r35, "r206": task_r206, "r33": task_r33,
+         "r31": task_r31}
 
 
 def run_task(task: dict) -> dict:
@@ -336,6 +356,8 @@ def summarize(per_seed: dict, cells: dict, dmax: str) -> dict:
     out = {}
     if per_seed.get("r210"):
         out["r210"] = pr.summarize_r210(per_seed["r210"])
+    if per_seed.get("r205"):
+        out["r205"] = pr.summarize_r205(per_seed["r205"])
     if per_seed.get("r35"):
         out["r35"] = pr.summarize_r35(per_seed["r35"])
     if per_seed.get("r206"):
@@ -350,13 +372,15 @@ def summarize(per_seed: dict, cells: dict, dmax: str) -> dict:
 
 
 def integrity(per_seed: dict, drifts) -> dict:
-    """The agents' identity with the recorded run rests on r210's bit check; the other
-    readouts are not filtered by it, but every seed it could not reproduce is listed here."""
-    r = per_seed.get("r210")
+    """The agents' identity with the recorded run rests on r210's bit check, or on r205's (the
+    same check) in an output without r210; the other readouts are not filtered by it, but every
+    seed it could not reproduce is listed here."""
+    by = "r210" if per_seed.get("r210") else "r205"
+    r = per_seed.get(by)
     if not r:
-        return {"checked": False, "note": "r210 not run; the agents' identity with the recorded "
-                                          "run is unchecked in this output"}
-    return {"checked": True, "seeds_checked": sorted(r, key=int),
+        return {"checked": False, "note": "neither r210 nor r205 run; the agents' identity with the "
+                                          "recorded run is unchecked in this output"}
+    return {"checked": True, "checked_by": by, "seeds_checked": sorted(r, key=int),
             "unreproduced": {d: sorted([s for s, v in r.items() if d in v.get("reproduced", {})
                                         and not v["reproduced"][d]], key=int) for d in drifts}}
 
