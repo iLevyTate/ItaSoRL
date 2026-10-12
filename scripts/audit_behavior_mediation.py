@@ -51,6 +51,8 @@ def main() -> None:
     ap.add_argument("--bar", type=float, default=0.65,
                     help="pre-registered AUROC bar for the seed count (default 0.65)")
     ap.add_argument("--json", default=None, help="also write per-cell + aggregate results here")
+    ap.add_argument("--drift-mode", default="l3", choices=("l3", "ar1", "regime", "l1"),
+                    help="rung of the dumps; l3 asserts the drag channel is constant")
     a = ap.parse_args()
     files = sorted(glob.glob(os.path.join(a.states_dir, "states_*.npz")))
     if not files:
@@ -70,7 +72,7 @@ def main() -> None:
             if "Ha" not in npz:  # heldout-eval sibling dumps (_h7transfer/_cg) lack pool keys
                 print(f"  skip (not a pooled-states dump): {os.path.basename(f)}")
                 continue
-            res = audit_cell(dict(npz), seed=seed)
+            res = audit_cell(dict(npz), seed=seed, drift_mode=a.drift_mode)
         if not res:
             print(f"  skip (too few survivors): {os.path.basename(f)}")
             continue

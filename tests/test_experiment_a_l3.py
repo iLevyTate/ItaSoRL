@@ -22,7 +22,8 @@ from itasorl.world import WorldParams  # noqa: E402
 
 
 def _pairs(hidden=4, n_pairs=16):
-    g = train_g_motion(hidden=hidden, n_eps=30, steps=25, epochs=60, ray_steps=4, seed=0)
+    g = train_g_motion(hidden=hidden, n_eps=30, steps=25, epochs=60, ray_steps=4, seed=0,
+                       params=WorldParams())
     return generate_l3_pairs(g, n_pairs=n_pairs, prefix=6, branch=20, ray_steps=4, seed0=3000)
 
 
@@ -67,7 +68,8 @@ def test_return_oof_changes_no_number_and_carries_pair_ids():
 def test_calibrate_l3_return_oof_passthrough():
     from itasorl.experiment_a_l3 import calibrate_l3
     kw = dict(hiddens=(4,), sigma_meas=0.05, n_pairs=8, branch=12,
-              train_kwargs={"n_eps": 10, "steps": 12, "epochs": 20, "ray_steps": 3})
+              train_kwargs={"n_eps": 10, "steps": 12, "epochs": 20, "ray_steps": 3,
+                            "params": WorldParams()})
     a = calibrate_l3(**kw)
     b = calibrate_l3(**kw, return_oof=True)
     assert a[0]["oracle_auroc"] == b[0]["oracle_auroc"] and "oracle_oof" not in a[0]

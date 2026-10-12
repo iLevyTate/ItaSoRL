@@ -115,6 +115,12 @@ def score_cell(npz: dict) -> dict:
         with folds.fold_scheme(scheme):
             row = {"target": float(probe_auroc(X, y))}
             if Bt is not None:
+                # Column 3 of the trace is the drag state. Under the L2 rungs it is nonzero
+                # only in the surrogate pool, so residualizing on it removes the label and
+                # the control reads chance for that reason. Refuse those dumps.
+                if float(np.ptp(Bt[:, :, 3])) > 0.0:
+                    raise ValueError("resid_trace refuses a dump whose drag channel varies: "
+                                     "it equals the world label under the L2 rungs")
                 row["resid_trace"] = float(trace_residual_probe_auroc(H, Bt, y))
         out[scheme] = row
     return out

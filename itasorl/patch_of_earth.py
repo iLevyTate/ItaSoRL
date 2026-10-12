@@ -48,8 +48,10 @@ class PatchOfEarthV0(PatchOfEarth):
         super().__init__(params or WorldParams(), obs_spec=first_config_obs_spec(), action_spec=DEFAULT_ACTION_SPEC)
         # L2 rollout drift (world_spec sec. 10): if drift_sigma>0, the drag coefficient
         # deviates from the authentic constant. Two modes:
-        #   "ar1"    - slow AR(1) random walk within each episode (the B-v2 surrogate; the
-        #              worlds differ in drag VOLATILITY at a shared central level).
+        #   "ar1"    - AR(1) walk within each episode, clipped to [-0.8, 8.0]. The clip is
+        #              asymmetric, so the walk is NOT centered: at drift_sigma 0.45 the mean
+        #              drag factor is 1.30 (11% of steps sit at the lower clip). The worlds
+        #              differ in both level and volatility (measured 2026-10-12).
         #   "regime" - a per-episode CONSTANT drag offset drawn from a band away from zero
         #              (the B-v3 surrogate; identifiable from one trajectory and policy-
         #              relevant, so survival has a reason to encode it).
@@ -61,6 +63,9 @@ class PatchOfEarthV0(PatchOfEarth):
         # applied in L1 mode so the grid is detectable but not trivially saturated.
         self.l1_delta = float(l1_delta)
         self.sensor_sigma = float(sensor_sigma)
+        # Seeding order of the observation-noise stream relative to the drift stream. False
+        # is the historical order (recorded L1 runs); True makes same-seed twins share noise.
+        self._obs_before_drift = False
         # regime band: per-episode offset ~ drift_sigma * U(regime_lo, regime_hi), so it is
         # centered on drift_sigma and bounded away from 0 (a clear, persistent regime shift).
         self.regime_lo, self.regime_hi = 0.5, 1.5
@@ -159,13 +164,20 @@ class PatchOfEarthV0(PatchOfEarth):
         self.pellet_amt = np.ones(self.n_pellets)
         self._reward = 0.0
         self._drift_w = 0.0
+        # The observation-noise stream is seeded BEFORE the drift stream, so same-seed twins
+        # share their noise (the drift draw consumes world RNG only when drift is on, which
+        # used to desynchronize the noise). This changes every L1 surrogate's noise
+        # realization, so it applies only to runs that opt in; recorded L1 numbers were
+        # produced with the old order.
+        if self.sensor_sigma > 0.0 and self._obs_before_drift:
+            self._rng["obs"] = np.random.default_rng(int(self._rng["world"].integers(0, 2**31)))
         if self.drift_sigma > 0.0:  # dedicated, deterministic drift stream (L2)
             self._rng["drift"] = np.random.default_rng(int(self._rng["world"].integers(0, 2**31)))
             if self.drift_mode == "regime":  # per-episode CONSTANT offset, fixed for the episode
                 self._drift_w = float(np.clip(
                     self.drift_sigma * self._rng["drift"].uniform(self.regime_lo, self.regime_hi),
                     -0.8, 8.0))
-        if self.sensor_sigma > 0.0:  # dedicated observation-noise stream (L1)
+        if self.sensor_sigma > 0.0 and not self._obs_before_drift:  # historical order (L1)
             self._rng["obs"] = np.random.default_rng(int(self._rng["world"].integers(0, 2**31)))
 
     # --- transition stages --------------------------------------------------

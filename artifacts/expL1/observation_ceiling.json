@@ -1,0 +1,16 @@
+{
+ "delta": 0.023,
+ "sensor_sigma": 0.01,
+ "n_eps": 110,
+ "steps": 24,
+ "seed_bases": [
+  800000,
+  850000
+ ],
+ "policy": "scripted",
+ "grid_residual_oracle": 0.7822314049586777,
+ "episode_mean_probe": 0.9768595041322314,
+ "hyd_ablated_probe": 0.6268595041322313,
+ "l0_control": 0.4776859504132232,
+ "same_seed_twins": 0.9946280991735538
+}

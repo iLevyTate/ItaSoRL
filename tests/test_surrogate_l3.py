@@ -22,13 +22,13 @@ P = WorldParams()
 
 
 def test_collect_authentic_transitions_shapes():
-    X, Y = collect_authentic_transitions(n_eps=6, steps=8, ray_steps=4, seed0=0)
+    X, Y = collect_authentic_transitions(n_eps=6, steps=8, ray_steps=4, seed0=0, params=P)
     assert X.ndim == 2 and X.shape[1] == 4          # inputs = [vel_x, vel_y, a_x, a_y]
     assert Y.shape[1] == 2 and X.shape[0] == Y.shape[0] > 0
 
 
 def test_train_g_motion_callable_and_finite():
-    g = train_g_motion(hidden=4, n_eps=10, steps=10, epochs=20, ray_steps=4, seed=0)
+    g = train_g_motion(hidden=4, n_eps=10, steps=10, epochs=20, ray_steps=4, seed=0, params=P)
     assert isinstance(g, GMotion)
     out = g(np.array([0.1, -0.2]), np.array([0.3, 0.0]), 1.5)   # (vel, a, drag) -> vel_next
     assert out.shape == (2,) and np.isfinite(out).all()
@@ -47,8 +47,28 @@ def test_make_world_l3_wiring(monkeypatch):
 
 def test_setup_l3_surrogate_installs_net(monkeypatch):
     monkeypatch.setattr(b2, "_L3_GMOTION", None)
-    b2.setup_l3_surrogate(hidden=4, n_eps=8, steps=8, epochs=10, ray_steps=4, seed=0)
+    b2.setup_l3_surrogate(hidden=4, n_eps=8, steps=8, epochs=10, ray_steps=4, seed=0, params=P)
     assert isinstance(b2._L3_GMOTION, GMotion)
+
+
+def test_missing_params_refuses_to_train():
+    """The retracted L3 run came from params defaulting to WorldParams(). Refusing beats
+    defaulting."""
+    with pytest.raises(ValueError, match="requires params"):
+        collect_authentic_transitions(n_eps=2, steps=4, seed0=0)
+    with pytest.raises(ValueError, match="requires params"):
+        train_g_motion(hidden=2, n_eps=2, steps=4, epochs=1, seed=0)
+
+
+def test_deployed_g_must_match_its_training_world(monkeypatch):
+    """make_world raises when a fingerprinted G is deployed on a different world."""
+    g = train_g_motion(hidden=2, n_eps=2, steps=4, epochs=1, seed=0, params=P)
+    monkeypatch.setattr(b2, "DRIFT_MODE", "l3")
+    monkeypatch.setattr(b2, "_L3_GMOTION", g)
+    b2.make_world(P, 0.45, 4)                 # the world G trained on: fine
+    other = WorldParams(k_land=3.0, k_water=3.0, gravity=0.4)
+    with pytest.raises(RuntimeError, match="different world"):
+        b2.make_world(other, 0.45, 4)
 
 
 def test_g_motion_wrong_world_diverges_more():

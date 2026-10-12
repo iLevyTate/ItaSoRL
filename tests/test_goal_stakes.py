@@ -124,6 +124,11 @@ def test_engagement_rule_touch_uses_ratio(monkeypatch):
     better, _ = b2.engagement_rule(trained_ret=0.0, rnd_ret=0.0, scr_ret=0.0,
                                    trained_len=80.0, rnd_len=80.0)
     assert better is False                      # zero touches never passes
+    # One pellet in 64 episodes passes the ratio when both baselines eat nothing; the
+    # absolute floor refuses it.
+    better, _ = b2.engagement_rule(trained_ret=1.0 / 64, rnd_ret=0.0, scr_ret=0.0,
+                                   trained_len=80.0, rnd_len=80.0)
+    assert better is False
 
 
 def test_consumed_fires_once_when_a_parked_eater_finishes_a_pellet(monkeypatch):

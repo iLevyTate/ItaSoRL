@@ -169,7 +169,8 @@ def run_seed(task: dict) -> dict:
                          "n_paired": n_paired,
                          "n_auth": int(len(ra["B"])), "n_surr": int(len(rsu["B"])),
                          "names": list(mr.BEHAVIOR_NAMES)},
-            "surprise": {"auroc": mr.surprise_auroc(ra["E"], rsu["E"]) if ag.world_model else float("nan"),
+            "surprise": {"auroc": (mr.surprise_auroc(*common_rows(ra, rsu, key="E"))
+                                    if ag.world_model else float("nan")),
                          "corr_auth": corr_auth, "corr_surr": corr_surr,
                          "corr_mean": _finite_mean(corr_auth, corr_surr)},
             "adaptation": {**mr.adaptation(Hpa, Hps), "n_paired": n_paired},

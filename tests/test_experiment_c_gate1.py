@@ -193,7 +193,7 @@ def test_l3_surrogate_replaces_law_while_authentic_stays_analytic():
 
     # a tiny, fast frozen map (small capacity/epochs); the numbers are not the result,
     # only proof the L3 wiring is correct.
-    g = train_g_motion(hidden=4, n_eps=30, steps=20, epochs=30, seed=0)
+    g = train_g_motion(hidden=4, n_eps=30, steps=20, epochs=30, seed=0, params=WorldParams())
     treat = Layout(reach_range=0.25, horizon=20, name="treatment")
 
     r_l3 = value_of_world_identity(treat, seed=7000, drift_sigma=1.0, drift_mode="l3",

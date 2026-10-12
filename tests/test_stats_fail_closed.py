@@ -51,6 +51,18 @@ def test_one_observation_cannot_establish_equivalence_to_chance():
     assert equivalence_test([]).equivalent is False
 
 
+def test_zero_variance_sample_cannot_establish_equivalence():
+    """A constant sample has no standard error. The old code substituted se = 1e-12, which
+    made Experiment C gate 3 pass: its L0 sub-panel reads exactly 0.5 by construction, so
+    the test accepted equivalence with a p-value of zero. Zero variance fails closed."""
+    r = equivalence_test([0.5, 0.5, 0.5, 0.5, 0.5])
+    assert not r.equivalent
+    assert np.isnan(r.p_value) and np.isnan(r.p_lower) and np.isnan(r.p_upper)
+    assert r.n == 5 and r.mean == pytest.approx(0.5)
+    # A constant outside the band fails closed too, never passes.
+    assert not equivalence_test([0.9, 0.9, 0.9]).equivalent
+
+
 def test_one_observation_cannot_accept_the_rope_either():
     r = rope_test([0.50])
     assert not r.accept

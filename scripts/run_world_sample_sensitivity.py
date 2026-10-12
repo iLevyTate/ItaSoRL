@@ -187,7 +187,9 @@ def main() -> int:
             checks.append({"seed": c["seed"], "recorded": want, "rescored": got,
                            "abs_dev": abs(got - want)})
     worst = max((c["abs_dev"] for c in checks), default=float("nan"))
-    passed = bool(checks) and worst <= a.integrity_tol
+    n_survival = sum(1 for c in out["cells"] if c["arm"] == "survival")
+    # Partial coverage used to pass: a reference holding one of ten seeds checked one seed.
+    passed = bool(checks) and len(checks) == n_survival and worst <= a.integrity_tol
     out["integrity"] = {"reference": repo_rel(a.integrity_ref), "tolerance": a.integrity_tol,
                         "n_checked": len(checks), "worst_abs_dev": worst,
                         "pass": passed, "per_seed": checks}

@@ -80,6 +80,7 @@ BASES_IN_USE: tuple = (
     ("cross-recipe rff authentic", 880_000, POOL_N),
     ("cross-recipe rff surrogate", 890_000, POOL_N),
     ("engagement metric", 900_000, 64),
+    ("2026-10-12 balanced confirmation pairs", 910_000, 110),
     ("survival return", 920_000, 64),
     ("common garden", 930_000, POOL_N),
     ("cross-recipe cd authentic", 940_000, POOL_N),
@@ -289,6 +290,14 @@ def r210_cell(Ha: np.ndarray, Hs: np.ndarray, *, pool: dict, recorded: dict, see
     return out
 
 
+def _perm_ok(per_seed: dict, d: str, s) -> bool:
+    """A seed's perm_check holds when every recorded arm agrees with pooled_readout's shuffled
+    control. Seeds recorded before the check existed have no flag and pass."""
+    arms = per_seed[s]["cells"][d]
+    flags = [a["perm_check"] for a in arms.values() if isinstance(a, dict) and "perm_check" in a]
+    return all(flags)
+
+
 def summarize_r210(per_seed: dict) -> dict:
     """Per drift: the seeds whose three arms all reproduced, and on those seeds every class's
     target, shuffled control and selectivity per arm, each class minus linear per arm, and the
@@ -296,8 +305,10 @@ def summarize_r210(per_seed: dict) -> dict:
     drifts = sorted({d for r in per_seed.values() for d in r.get("cells", {})}, key=float)
     out = {}
     for d in drifts:
-        ok = [s for s, r in per_seed.items() if r.get("reproduced", {}).get(d)]
-        bad = [s for s, r in per_seed.items() if d in r.get("cells", {}) and not r["reproduced"].get(d)]
+        ok = [s for s, r in per_seed.items()
+              if r.get("reproduced", {}).get(d) and _perm_ok(per_seed, d, s)]
+        bad = [s for s, r in per_seed.items()
+               if d in r.get("cells", {}) and not (r["reproduced"].get(d) and _perm_ok(per_seed, d, s))]
         block = {"seeds_used": sorted(ok, key=int), "seeds_excluded": sorted(bad, key=int), "arms": {},
                  "class_minus_linear": {}, "margins": {}}
 
@@ -397,8 +408,10 @@ def summarize_r205(per_seed: dict) -> dict:
     drifts = sorted({d for r in per_seed.values() for d in r.get("cells", {})}, key=float)
     out = {}
     for d in drifts:
-        ok = [s for s, r in per_seed.items() if r.get("reproduced", {}).get(d)]
-        bad = [s for s, r in per_seed.items() if d in r.get("cells", {}) and not r["reproduced"].get(d)]
+        ok = [s for s, r in per_seed.items()
+              if r.get("reproduced", {}).get(d) and _perm_ok(per_seed, d, s)]
+        bad = [s for s, r in per_seed.items()
+               if d in r.get("cells", {}) and not (r["reproduced"].get(d) and _perm_ok(per_seed, d, s))]
         block = {"seeds_used": sorted(ok, key=int), "seeds_excluded": sorted(bad, key=int),
                  "arms": {}, "differences": {}, "reading": {}}
 

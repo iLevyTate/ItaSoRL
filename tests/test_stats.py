@@ -1,4 +1,4 @@
-"""Unit tests for the inference helpers in stats.py (AUROC CIs + Bayesian ROPE leg).
+"""Unit tests for the inference helpers in stats.py (AUROC intervals and the ROPE leg).
 
 These are the load-bearing numbers behind the null claim, so they get direct coverage
 independent of the (torch-heavy) experiment pipeline. All pure numpy, fast, deterministic."""
@@ -71,7 +71,7 @@ def test_t_ci90_handles_degenerate_samples():
 def test_rope_accepts_tight_chance_rejects_clear_signal():
     near = rope_test([0.50, 0.49, 0.51, 0.50, 0.50, 0.51, 0.49], rope=(0.45, 0.55), seed=0)
     far = rope_test([0.78, 0.80, 0.82, 0.79, 0.81], rope=(0.45, 0.55), seed=0)
-    assert near.accept is True                                  # 95% HDI inside ROPE
+    assert near.accept is True                                  # the interval sits inside the ROPE
     assert far.accept is False                                  # clearly above the ROPE
     assert near.p_in_rope > far.p_in_rope
     assert 0.0 <= near.p_in_rope <= 1.0

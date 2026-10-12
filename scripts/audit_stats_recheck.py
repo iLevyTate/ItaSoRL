@@ -7,7 +7,8 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are (64 of 1453 on 2026-10-10). It also checks that the generated pages
+many there are. The count on 2026-10-12 was 67 pinned of 2721, and the L1 observation-ceiling
+rows added the same day raise the total. It also checks that the generated pages
 (index.html, the results manifest, the gate table, the contrast intervals, the manuscript
 tables) match a fresh render, and that retired wording has not returned to the pages it
 watches. Fails loudly (non-zero exit) on any mismatch beyond rounding.
@@ -886,6 +887,17 @@ def main() -> int:
                gt["leakage"]["pool_leak_clean_all"] and gt["leakage"]["mp_leak_clean_all"])
     check_true("L1 survivorship gate passes (0 early deaths)", gt["survivorship"]["deaths_total"] == 0)
     check_true("L1 speed positive control >= 0.75 in every pool", gt["speed_positive_control"]["pass"])
+    # 2026-10-12: the agent-accessible L1 ceiling. The grid-residual oracle is blind to the
+    # static Hyd/Hydmax offset; the episode-mean probe reads it.
+    _l1c = _load_art("expL1", "observation_ceiling.json")
+    check("L1 observation ceiling, grid-residual oracle (0.782)",
+          _l1c["grid_residual_oracle"], 0.782)
+    check("L1 observation ceiling, episode-mean probe (0.977)",
+          _l1c["episode_mean_probe"], 0.977)
+    check("L1 observation ceiling, Hyd channel ablated (0.627)",
+          _l1c["hyd_ablated_probe"], 0.627)
+    check("L1 observation ceiling, L0 control (0.478)", _l1c["l0_control"], 0.478)
+    check("L1 observation ceiling, same-seed twins (0.995)", _l1c["same_seed_twins"], 0.995)
     check_true("L1 ceilings readable (energy / food anchors > 0.6 in every survival pool)",
                all(v > 0.6 for v in org["arms"][hd]["survival"]["pool_anchor_energy"]
                    + org["arms"][hd]["survival"]["pool_anchor_food"]))
@@ -1588,6 +1600,8 @@ def main() -> int:
         for banned in ("persistent stored", "behavior-independent", "behaviour-independent",
                        "H2 confirmed", "H3 resolves negative"):
             check_true(f"{relpath} no longer says '{banned}'", banned not in _t)
+    check_true("FINDINGS no longer says 'H2 confirmed'",
+               "H2 confirmed" not in _read("docs/FINDINGS.md"))
     # FINDINGS 17.6 withdrew the survival-specific reading; the phrase may appear on the public
     # pages only in the sentence that withdraws it.
     for relpath in ("index.html", "CITATION.cff", "README.md"):
@@ -2222,6 +2236,15 @@ def main() -> int:
     _psp = os.path.join(ARTROOT, "persistence", "corrected_l3_h8_wm.json")
     if os.path.exists(_psp):
         _pa = _load_art("persistence", "corrected_l3_h8_wm.json")["aggregate"]
+        for _pk, _pv in _pa.items():
+            _ps = _pv.get("window_per_seed")
+            if not _ps:
+                continue
+            check(f"17.7 {_pk} window_mean recomputed from per-seed",
+                  float(np.mean(_ps)), _pv["window_mean"])
+            _lo, _hi = t_ci90(_ps)
+            check(f"17.7 {_pk} window_t90 lo recomputed", float(_lo), _pv["window_t90"][0])
+            check(f"17.7 {_pk} window_t90 hi recomputed", float(_hi), _pv["window_t90"][1])
         check_true("17.7: every drift-0 condition reads exactly 0.5",
                    all(v["window_mean"] == 0.5 for k, v in _pa.items() if k.startswith("d=0.00")))
         _w = lambda arm, c: (f"{_pa[f'd=0.45 {arm} {c}']['window_mean']:.3f} "
@@ -2307,6 +2330,8 @@ def main() -> int:
         _ta = _load_art("texture", f"corrected_l3_h8_wm_{_fam}.json")["aggregate"]
         for _q in ("transfer", "fresh", "fresh_paired"):
             _s, _u = _ta[f"survival {_q}"], _ta[f"untrained {_q}"]
+            check(f"17.9 {_fam} {_q} survival mean recomputed",
+                  float(np.mean(_s["per_seed"])), _s["mean"])
             _c = _pc2(_s["per_seed"], _u["per_seed"])
             row = (f"{_s['mean']:.3f} [{_s['t90'][0]:.3f}, {_s['t90'][1]:.3f}] | "
                    f"{_ta[f'predictor {_q}']['mean']:.3f} | {_u['mean']:.3f} | "

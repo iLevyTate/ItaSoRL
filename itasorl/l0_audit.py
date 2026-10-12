@@ -205,4 +205,14 @@ def paired_pooled_readout(agent, norm, params, drift_sigma: float, *, n_eps: int
     out.update(target=auc, cluster_ci95=list(cluster_auroc_ci(yv, pv, gv, seed=seed)),
                partition=folds.partition_record(g, y),
                identical_first_state=bool(np.array_equal(Ha[sel_a, 0], Hs[sel_s, 0])))
+    # Within-pair label swap: the negative control that respects the pairing. Swapping both
+    # members' labels leaves every pair's content unchanged and flips the sign convention,
+    # so the null is 1 minus the target; averaging a draw with its complement pins it at 0.5
+    # and the recorded value is the deviation of one draw from that.
+    rng = np.random.default_rng(seed)
+    swap = rng.random(len(common)) < 0.5
+    y_swap = y.copy()
+    y_swap[:len(common)] = np.where(swap, 1, 0)
+    y_swap[len(common):] = np.where(swap, 0, 1)
+    out["shuffled_within_pair"] = grouped_auroc(X, y_swap, g)
     return out

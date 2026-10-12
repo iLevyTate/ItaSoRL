@@ -23,20 +23,37 @@ agent's own inputs can check the velocity law directly.
 
 from __future__ import annotations
 
+import hashlib
+import json
+
 import numpy as np
+
+
+def _params_fingerprint(params) -> str:
+    """Stable short hash of the world params the transitions were collected under, so a
+    deployed G can be checked against the world it is asked to stand in for."""
+    fields = {k: getattr(params, k) for k in sorted(vars(params)) if not k.startswith("_")}
+    blob = json.dumps(fields, sort_keys=True, default=float).encode()
+    return hashlib.sha256(blob).hexdigest()[:16]
 
 
 def collect_authentic_transitions(*, n_eps: int = 250, steps: int = 40, params=None,
                                   ray_steps: int = 5, seed0: int = 0):
     """Run authentic (drift-free) rollouts under the scripted policy and return the motion
     transitions `(X, Y)` where `X = [vel_x, vel_y, a_x, a_y]` (N, 4) and `Y = vel_next`
-    (N, 2). Drag is deliberately excluded from `X` (see module docstring)."""
+    (N, 2). Drag is deliberately excluded from `X` (see module docstring).
+
+    `params` is required. It used to default to `WorldParams()`, which silently trains G on
+    a different world than the one it is deployed in (the retracted L3 run's root cause)."""
     from .patch_of_earth import PatchOfEarthV0
-    from .world import SeedBundle, WorldParams
+    from .world import SeedBundle
     from .experiment_b import scripted_policy
+    if params is None:
+        raise ValueError("collect_authentic_transitions requires params; a missing world "
+                         "used to default to WorldParams() and train G on the wrong world")
     X, Y = [], []
     for i in range(n_eps):
-        w = PatchOfEarthV0(params or WorldParams())
+        w = PatchOfEarthV0(params)
         w.ray_steps = ray_steps
         w._log_motion = []
         w.reset(SeedBundle(world=seed0 + i, weather=seed0 + 7000 + i, ecology=seed0 + 13000 + i))
@@ -54,7 +71,7 @@ class GMotion:
     `(vel, a, drag) -> vel_next`. Ignores `drag` by design. Runs on CPU (single-step world
     inference); `capacity` (the net's hidden width) is the calibration difficulty knob."""
 
-    def __init__(self, net, norm):
+    def __init__(self, net, norm, params_fingerprint: str | None = None):
         import torch
         # Extract the MLP weights to numpy so per-step world inference needs NO torch call -
         # a torch forward per world step is a severe bottleneck in a full surrogate rollout.
@@ -62,12 +79,16 @@ class GMotion:
         self._W = [m.weight.detach().numpy().astype(np.float32) for m in lin]
         self._b = [m.bias.detach().numpy().astype(np.float32) for m in lin]
         self._xm, self._xs, self._ym, self._ys = norm  # numpy normalization stats
+        # Which world the training transitions came from. None only on laws restored from
+        # an npz saved before the fingerprint existed.
+        self.params_fingerprint = params_fingerprint
 
     def to_npz(self, path: str) -> None:
         """Serialize the frozen law (weights, biases, normalization) for the reproducibility
         package (revision step 15). `from_npz` restores a callable with identical outputs."""
         arrays = {f"W{i}": W for i, W in enumerate(self._W)}
         arrays.update({f"b{i}": b for i, b in enumerate(self._b)})
+        arrays["params_fingerprint"] = np.asarray(self.params_fingerprint or "")
         np.savez(path, n_layers=np.int64(len(self._W)), xm=self._xm, xs=self._xs,
                  ym=self._ym, ys=self._ys, **arrays)
 
@@ -79,6 +100,7 @@ class GMotion:
         g._W = [z[f"W{i}"] for i in range(n)]
         g._b = [z[f"b{i}"] for i in range(n)]
         g._xm, g._xs, g._ym, g._ys = z["xm"], z["xs"], z["ym"], z["ys"]
+        g.params_fingerprint = str(z["params_fingerprint"]) if "params_fingerprint" in z else None
         return g
 
     def __call__(self, vel, a, drag=None) -> np.ndarray:
@@ -148,7 +170,7 @@ def train_g_motion(*, hidden: int = 8, n_eps: int = 250, steps: int = 40, epochs
         opt.zero_grad()
         ((net(xt) - yt) ** 2).mean().backward()
         opt.step()
-    return GMotion(net, (xm, xs, ym, ys))
+    return GMotion(net, (xm, xs, ym, ys), params_fingerprint=_params_fingerprint(params))
 
 
 HELDOUT_SEED = 100_000

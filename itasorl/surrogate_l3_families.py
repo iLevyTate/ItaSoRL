@@ -164,6 +164,9 @@ def fit_g_rff(*, D: int = 32, lam: float = 1e-3, ell: float = 1.0,
     Frozen defaults per spec: lam=1e-3, ell=1.0 on normalized inputs,
     feature_seed=0. Difficulty knob: D (feature count)."""
     from .surrogate_l3 import collect_authentic_transitions
+    if params is None:
+        raise ValueError("fit_g_rff requires params; a missing world used to default to "
+                         "WorldParams() and fit the law on the wrong world")
     X, Y = collect_authentic_transitions(n_eps=n_eps, steps=steps, params=params,
                                          ray_steps=ray_steps, seed0=seed)
     xm, xs = X.mean(0), X.std(0) + 1e-6

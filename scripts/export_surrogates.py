@@ -61,9 +61,11 @@ def main() -> int:
     for hidden, seed in INSTANCES:
         name = f"gmotion_h{hidden}_s{seed}.npz"
         path = os.path.join(a.out, name)
-        train_g_motion(hidden=hidden, seed=seed, params=P).to_npz(path)
+        g = train_g_motion(hidden=hidden, seed=seed, params=P)
+        g.to_npz(path)
         with open(path, "rb") as fh:
             index["files"][name] = {"hidden": hidden, "g_seed": seed,
+                                    "params_fingerprint": g.params_fingerprint,
                                     "sha256": hashlib.sha256(fh.read()).hexdigest()}
         print(f"wrote {path}")
     with open(os.path.join(a.out, "index.json"), "w", encoding="utf-8") as fh:

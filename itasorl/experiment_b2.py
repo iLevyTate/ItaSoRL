@@ -31,6 +31,7 @@ import os
 import numpy as np
 import torch
 
+from .surrogate_l3 import _params_fingerprint
 from .agent_ac import RecurrentActorCritic
 from .experiment_a import grouped_auroc
 from .experiment_b import (episode_features, episode_features_full, episode_features_var,
@@ -75,6 +76,9 @@ OBJECTIVE = "survival"
 OBJECTIVES = ("survival", "touch")
 MORTAL = True
 TOUCH_ENGAGE_RATIO = 1.5
+# Absolute floor beside the ratio: a single pellet in 64 episodes passes the ratio when both
+# baselines consume nothing, so the touch gate also demands a minimum pellets per episode.
+TOUCH_ENGAGE_MIN_PELLETS = 0.25
 
 
 def task_reward(r: StepResult) -> float:
@@ -93,7 +97,8 @@ def engagement_rule(*, trained_ret: float, rnd_ret: float, scr_ret: float,
     """(better_return, not_worse_life) of the engagement gate under the current OBJECTIVE."""
     best = max(rnd_ret, scr_ret)
     if OBJECTIVE == "touch":
-        better_return = trained_ret > 0.0 and trained_ret >= TOUCH_ENGAGE_RATIO * best
+        better_return = (trained_ret >= TOUCH_ENGAGE_MIN_PELLETS
+                         and trained_ret >= TOUCH_ENGAGE_RATIO * best)
     else:
         better_return = trained_ret >= best + ENGAGE_MARGIN
     not_worse_life = trained_len >= rnd_len - LIFE_TOL
@@ -165,6 +170,13 @@ def make_world(params: WorldParams | None, drift_sigma: float, ray_steps: int,
             raise RuntimeError("l3 mode with no surrogate installed; call setup_l3_surrogate "
                                "first (or assign experiment_b2._L3_GMOTION)")
         w._g_motion = _L3_GMOTION  # surrogate (drift_sigma>0) uses learned dynamics; authentic does not
+        # A law trained after 2026-10-12 carries the fingerprint of the world its transitions
+        # came from. Deploying it on a different world is the retracted run's failure mode,
+        # so it raises. Laws restored from an older npz carry no fingerprint and pass.
+        fp = getattr(_L3_GMOTION, "params_fingerprint", None)
+        if fp is not None and fp != _params_fingerprint(w.params if params is None else params):
+            raise RuntimeError("l3 surrogate was trained on a different world than the one "
+                               "it is being deployed in; retrain G on these params")
     return w
 
 
@@ -411,11 +423,12 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
                        embed: int = 64, hidden: int = 96, world_model: bool = True,
                        lr: float = 3e-4, gamma: float = 0.99, lam: float = 0.95,
                        ent_coef: float = 0.01, vf_coef: float = 0.5, wm_coef: float = 1.0,
-                       shaping_coef: float = 0.5, max_steps: int = 80, ray_steps: int = 5,
+                       shaping_coef: float = 1.0, max_steps: int = 80, ray_steps: int = 5,
                        seed: int = 0, device: str | None = None, log_every: int = 0,
                        sysid_aux: bool = False, sysid_coef: float = 1.0,
                        gae_bootstrap: str = "successor", snapshot_at=(),
-                       stats: dict | None = None, log_batches: list | None = None):
+                       stats: dict | None = None, log_batches: list | None = None,
+                       adv_norm: str = "historical"):
     """Train the survival actor-critic. sysid_aux adds a CEILING-control auxiliary loss
     that regresses h_t onto the scalar drag-drift - a positive control that deliberately
     breaks readout-not-reward to measure whether the trunk CAN linearly encode world
@@ -433,7 +446,14 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
     "env_steps": the cumulative environment steps after each update. `log_batches`, if a
     list, receives every training batch as numpy arrays (raw observations, env actions,
     mask): the exact data this agent was trained on (revision step 6). Logging changes no
-    computation."""
+    computation.
+
+    adv_norm selects the advantage standardization. "historical" divides by the std of the
+    whole B x T tensor including the zero padding (every recorded run); "masked" computes
+    mean and std over valid slots only. The two differ by about sqrt(valid fraction), so a
+    run that changes it hashes apart and cannot resume into a recorded one."""
+    if adv_norm not in ("historical", "masked"):
+        raise ValueError(f"unknown adv_norm {adv_norm!r}; expected 'historical' or 'masked'")
     if gae_bootstrap not in GAE_BOOTSTRAPS:
         raise ValueError(f"unknown gae_bootstrap {gae_bootstrap!r}; expected one of {GAE_BOOTSTRAPS}")
     snapshot_at = sorted({int(u) for u in snapshot_at})
@@ -452,6 +472,11 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
     norm = RunningNorm(obs_dim)
     history = []
     for u in range(updates):
+        # Each seed owns a 10_000-wide band of world seeds. A budget long enough to walk out
+        # of it reuses the next seed's worlds, so refuse rather than train on them.
+        if (u + 1) * n_eps > 10_000:
+            raise ValueError(f"training seed schedule overflows seed {seed}'s 10_000 band "
+                             f"at update {u} with n_eps={n_eps}")
         seed_base = 100_000 + seed * 10_000 + u * n_eps
         batch = collect_episodes_ac(agent, norm, params, drift_sigma, n_eps, max_steps,
                                     device, seed_base, ray_steps, deterministic=False,
@@ -468,7 +493,11 @@ def train_actor_critic(drift_sigma: float, params=None, *, n_eps: int = 16, upda
             adv, ret = compute_gae(batch["reward"], value, batch["mask"], batch["terminated"],
                                    gamma, lam, bootstrap=boot)
             am = batch["mask"].sum()
-            adv = (adv - (adv * batch["mask"]).sum() / am) / ((adv * batch["mask"]).std() + 1e-6)
+            if adv_norm == "masked":
+                v = adv[batch["mask"] > 0.5]
+                adv = (adv - v.mean()) / (v.std() + 1e-6)
+            else:
+                adv = (adv - (adv * batch["mask"]).sum() / am) / ((adv * batch["mask"]).std() + 1e-6)
         m = batch["mask"]
         pg = -(logp * adv * m).sum() / am
         vloss = (((value - ret) ** 2) * m).sum() / am
@@ -582,7 +611,7 @@ def _run_branch(agent, norm, world, h0, prev_act0, branch_steps, device):
     h = h0.clone()
     prev = prev_act0.clone()
     obs = world.observe().astype(np.float64)
-    Hs, spd, rew = [], [], []
+    Hs, spd, rew, pellets = [], [], [], []
     alive = True
     for _ in range(branch_steps):
         obs_t = torch.as_tensor(norm(obs)[None], dtype=torch.float32, device=device)
@@ -591,13 +620,17 @@ def _run_branch(agent, norm, world, h0, prev_act0, branch_steps, device):
         env_np = env_act[0].detach().cpu().numpy().astype(np.float32)
         r = world.step(env_np)
         spd.append(float(np.linalg.norm(world.vel)))
-        rew.append(float(r.reward))
+        # The trained reward (task_reward) feeds the leakage channels; the homeostatic
+        # r.reward is kept beside it so a survival readout is bit-identical to the
+        # historical one and a touch readout still records both.
+        rew.append(task_reward(r))
+        pellets.append(1.0 if r.info.get("consumed") else 0.0)
         obs = r.obs.astype(np.float64)
         prev = env_act
         if r.terminated:
             alive = False
             break
-    return np.asarray(Hs, np.float32), spd, rew, alive
+    return np.asarray(Hs, np.float32), spd, rew, pellets, alive
 
 
 def matched_pair_recurrent_rollout(agent, norm, params, drift_sigma, *, n_pairs: int = 60,
@@ -630,7 +663,7 @@ def matched_pair_recurrent_rollout(agent, norm, params, drift_sigma, *, n_pairs:
         aw = make_world(params, 0.0, ray_steps)
         aw.reset(seeds)
         aw.set_state(snapshot)
-        Ha, spa, rea, alivea = _run_branch(agent, norm, aw, h_branch, prev_branch, branch_steps, device)
+        Ha, spa, rea, pela, alivea = _run_branch(agent, norm, aw, h_branch, prev_branch, branch_steps, device)
 
         # surrogate branch: drift world restored to the SAME snapshot (drift activates here).
         # Keep the surrogate's own reset-drawn drift_w: the snapshot comes from the
@@ -642,7 +675,7 @@ def matched_pair_recurrent_rollout(agent, norm, params, drift_sigma, *, n_pairs:
         sw.reset(seeds)
         regime_w = float(sw.get_state()["drift_w"])
         sw.set_state({**snapshot, "drift_w": regime_w})
-        Hs, sps, res, alives = _run_branch(agent, norm, sw, h_branch, prev_branch, branch_steps, device)
+        Hs, sps, res, pels, alives = _run_branch(agent, norm, sw, h_branch, prev_branch, branch_steps, device)
 
         # Truncate BOTH branches of the pair to equal length so episode length /
         # lifetime cannot leak the label (the matched-pair confound guard, by construction).
@@ -651,9 +684,13 @@ def matched_pair_recurrent_rollout(agent, norm, params, drift_sigma, *, n_pairs:
             continue
         full = int(L == branch_steps)
         auth_eps.append({"H": Ha[:L], "label": 0, "speed": float(np.mean(spa[:L])),
-                         "reward_sum": float(np.sum(rea[:L])), "length": L, "lifetime": full})
+                         "reward_sum": float(np.sum(rea[:L])),
+                         "pellets_consumed": float(np.sum(pela[:L])),
+                         "length": L, "lifetime": full})
         surr_eps.append({"H": Hs[:L], "label": 1, "speed": float(np.mean(sps[:L])),
-                         "reward_sum": float(np.sum(res[:L])), "length": L, "lifetime": full})
+                         "reward_sum": float(np.sum(res[:L])),
+                         "pellets_consumed": float(np.sum(pels[:L])),
+                         "length": L, "lifetime": full})
     return auth_eps, surr_eps
 
 
@@ -702,7 +739,13 @@ def leakage_audit_b2(auth_eps: list, surr_eps: list, margin: float = 0.1,
         v = np.array([e[key] for e in eps], np.float64).reshape(-1, 1)
         return grouped_auroc(v, y, g)
 
-    audit = {k: channel(k) for k in ("reward_sum", "length", "lifetime")}
+    # pellets_consumed is gated only when a caller recorded it (matched-pair and pooled
+    # paths do; common-garden stats do not). Under "touch" reward_sum IS pellets_consumed,
+    # so the channel then reads the trained reward instead of the homeostatic one.
+    keys = ("reward_sum", "length", "lifetime")
+    if all("pellets_consumed" in e for e in eps):
+        keys = keys + ("pellets_consumed",)
+    audit = {k: channel(k) for k in keys}
     audit["max_abs_dev"] = max(abs(a - 0.5) for a in audit.values())
     audit["margin"] = margin
     audit["clean"] = audit["max_abs_dev"] < margin
@@ -835,7 +878,8 @@ def train_predictor_only(drift_sigma, params=None, *, n_eps=16, updates=200, emb
 # ---------------------------------------------------------------------------
 def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_base, ray_steps,
                  return_anchors: bool = False, obs_mask=None, return_obs: bool = False,
-                 return_index: bool = False, return_actions: bool = False):
+                 return_index: bool = False, return_actions: bool = False,
+                 return_pellets: bool = False):
     """Collect up to n_eps episodes of EXACTLY `steps` length (drop early deaths) with
     the frozen deterministic agent. Returns H (k,steps,Hdim), speeds (k,).
 
@@ -865,10 +909,14 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
 
     `return_index=True` appends the episode indices i (world seed seed_base + i) that
     survived to full length, so two pools drawn from the same seeds can be paired
-    (itasorl/l0_audit.py, revision step 5)."""
+    (itasorl/l0_audit.py, revision step 5).
+
+    `return_pellets=True` appends the per-episode pellet count (k,) after the anchor
+    tuple and before obs/actions/index. The leakage audit gates it, so a touch run
+    is checked on the reward it was trained on."""
     if obs_mask is not None:
         obs_mask = np.asarray(obs_mask, dtype=np.float64)
-    Hs, spd, energy, food, drag, reward, traces, obs_traces = [], [], [], [], [], [], [], []
+    Hs, spd, energy, food, drag, reward, pellets, traces, obs_traces = [], [], [], [], [], [], [], [], []
     kept, act_traces = [], []
     for i in range(n_eps):
         w = make_world(params, drift_sigma, ray_steps)
@@ -881,6 +929,7 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
         Hrow, sp, en, fd, dg, px, py, hd, died = [], [], [], [], [], [], [], [], False
         Orow, Arow = [], []
         rw = 0.0
+        pc = 0.0
         for _ in range(steps):
             x_in = norm(obs)
             obs_t = torch.as_tensor(x_in[None], dtype=torch.float32, device=device)
@@ -897,7 +946,11 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             px.append(float(w.pos[0]))               # absolute position: diverges across worlds
             py.append(float(w.pos[1]))               # under differing velocity laws, so it must be
             hd.append(float(w.heading))              # available to the mediation control
-            rw += float(r.reward)                     # summed homeostatic reward (never detection)
+            # The trained reward under the current OBJECTIVE (homeostatic under
+            # "survival", 1.0 per pellet consumed under "touch"), plus the pellet count
+            # itself so a touch run gates the reward it was trained on.
+            rw += task_reward(r)
+            pc += 1.0 if r.info.get("consumed") else 0.0
             obs = r.obs.astype(np.float64)
             if obs_mask is not None:
                 obs = obs * obs_mask
@@ -913,6 +966,7 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
             food.append(float(np.mean(fd)))
             drag.append(float(np.mean(dg)))
             reward.append(rw)
+            pellets.append(pc)
             traces.append(np.stack([sp, en, fd, dg, px, py, hd], axis=1).astype(np.float32))
             obs_traces.append(np.stack(Orow).astype(np.float32))
             act_traces.append(np.stack(Arow))
@@ -923,6 +977,8 @@ def collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device, seed_ba
                np.asarray(drag), np.asarray(reward), Bt)
     else:
         out = (H, np.asarray(spd))
+    if return_pellets:
+        out = out + (np.asarray(pellets),)
     if return_obs:
         obs_dim = int(norm.mean.shape[0]) if hasattr(norm, "mean") else 0
         Ot = np.stack(obs_traces) if obs_traces else np.zeros((0, steps, obs_dim), np.float32)
@@ -983,19 +1039,20 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
     default), and every agent seed is scored on the same two samples. Other seed bases give
     independent world samples for the L0 audit (itasorl/l0_audit.py, revision step 5)."""
     device = device or default_device()
-    Ha, spa, ena, fda, dra, rwa, bta = collect_pool(agent, norm, params, 0.0, n_eps, steps,
-                                                    device, seed_base_auth, ray_steps,
-                                                    return_anchors=True, obs_mask=obs_mask)
-    Hs, sps, ens, fds, drs, rws, bts = collect_pool(agent, norm, params, drift_sigma, n_eps,
-                                                    steps, device, seed_base_surr, ray_steps,
-                                                    return_anchors=True, obs_mask=obs_mask)
+    Ha, spa, ena, fda, dra, rwa, bta, pca = collect_pool(
+        agent, norm, params, 0.0, n_eps, steps, device, seed_base_auth, ray_steps,
+        return_anchors=True, obs_mask=obs_mask, return_pellets=True)
+    Hs, sps, ens, fds, drs, rws, bts, pcs = collect_pool(
+        agent, norm, params, drift_sigma, n_eps, steps, device, seed_base_surr, ray_steps,
+        return_anchors=True, obs_mask=obs_mask, return_pellets=True)
     if dump_path is not None:
         d = os.path.dirname(dump_path)
         if d:
             os.makedirs(d, exist_ok=True)
         np.savez_compressed(dump_path, Ha=Ha, Hs=Hs, spa=spa, sps=sps, ena=ena, ens=ens,
                             fda=fda, fds=fds, dra=dra, drs=drs, ra=rwa, rs=rws, bta=bta,
-                            bts=bts, drift_sigma=np.float64(drift_sigma), steps=np.int64(steps))
+                            bts=bts, pca=pca, pcs=pcs, drift_sigma=np.float64(drift_sigma),
+                            steps=np.int64(steps))
     nan = float("nan")
     if len(Ha) < 5 or len(Hs) < 5:
         out = {"target": nan, "target_lo": nan, "target_hi": nan,
@@ -1048,17 +1105,26 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
         ceiling_drag = float("nan")
     # POOLED leakage audit (the headline endpoint's missing confound gate). Reuse the
     # matched-pair battery verbatim on the pooled episodes: world identity must NOT be
-    # decodable from summed reward. length/lifetime are constant (=steps for every
-    # full-length survivor), so those channels sit at ~0.5 by construction and reward_sum
-    # is the one live channel. Near-chance here = the pooled target reads the dynamics
-    # artifact, not a reward confound induced by the surrogate.
-    auth_eps = [{"label": 0, "reward_sum": float(r), "length": steps, "lifetime": steps} for r in rwa]
-    surr_eps = [{"label": 1, "reward_sum": float(r), "length": steps, "lifetime": steps} for r in rws]
+    # decodable from the trained reward or from pellets consumed. length/lifetime are
+    # constant (=steps for every full-length survivor), so those channels sit at ~0.5 by
+    # construction and reward_sum plus pellets_consumed are the live channels. Near-chance
+    # here = the pooled target reads the dynamics artifact, not a reward confound induced
+    # by the surrogate.
+    auth_eps = [{"label": 0, "reward_sum": float(r), "pellets_consumed": float(p),
+                 "length": steps, "lifetime": steps} for r, p in zip(rwa, pca)]
+    surr_eps = [{"label": 1, "reward_sum": float(r), "pellets_consumed": float(p),
+                 "length": steps, "lifetime": steps} for r, p in zip(rws, pcs)]
     pool_leak = leakage_audit_b2(auth_eps, surr_eps, margin=leak_margin)
+    # The interval is a bootstrap of the POOLED out-of-fold AUROC (see _auroc_with_ci), so
+    # its keys say so. The historical target_lo/target_hi names stay for every consumer of
+    # committed cells; new runs read target_oof_ci95_*.
     out = {
         "target": tgt, "target_lo": t_lo, "target_hi": t_hi,
+        "target_oof_ci95_lo": t_lo, "target_oof_ci95_hi": t_hi,
         "target_var": tgt_v, "target_var_lo": tv_lo, "target_var_hi": tv_hi,
+        "target_var_oof_ci95_lo": tv_lo, "target_var_oof_ci95_hi": tv_hi,
         "target_full": tgt_f, "target_full_lo": tf_lo, "target_full_hi": tf_hi,
+        "target_full_oof_ci95_lo": tf_lo, "target_full_oof_ci95_hi": tf_hi,
         "shuffled": shuf, "shuffled_var": shuf_v, "shuffled_full": shuf_f,
         "selectivity": tgt - shuf, "selectivity_var": tgt_v - shuf_v,
         "selectivity_full": tgt_f - shuf_f,
@@ -1176,7 +1242,8 @@ def common_garden_rollout(agent, norm, params, drift_sigma, *, n_pairs=110,
             # can restore only the RNG slots that exist in the tail world
             snap["rng"] = {k: v for k, v in snap["rng"].items() if k in tail._rng}
             tail.set_state({**snap, "drift_w": 0.0})
-            Ht, spd_t, rew_t, alive = _run_branch(agent, norm, tail, h, prev, tail_steps, device)
+            Ht, spd_t, rew_t, _pellets_t, alive = _run_branch(
+                agent, norm, tail, h, prev, tail_steps, device)
             ok = alive and len(Ht) == tail_steps
             pair.append(Ht if ok else None)
             stats.append({"label": 0 if len(stats) == 0 else 1,

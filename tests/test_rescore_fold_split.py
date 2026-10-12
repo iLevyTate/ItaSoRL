@@ -26,6 +26,10 @@ def _dump(path: Path, shift: float, seed: int, n: int = 40, T: int = 6, hid: int
     if traces:
         kw["bta"] = rng.normal(size=(n, T, 7))
         kw["bts"] = rng.normal(size=(n, T, 7))
+        # Column 3 is drag. An L3 dump keeps it constant; a varying drag channel is the
+        # L2 label and resid_trace refuses it.
+        kw["bta"][:, :, 3] = 0.0
+        kw["bts"][:, :, 3] = 0.0
     np.savez_compressed(path, **kw)
 
 

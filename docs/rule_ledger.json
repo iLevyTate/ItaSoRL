@@ -1,5 +1,5 @@
 {
- "about": "Every frozen decision rule in this repository adjudicated at the 0.65 bar or the 0.05 margin, one row per rule and run, as recorded at the time. No rule is re-adjudicated and no threshold is changed here. Each clause names the artifact value it reads; scripts/build_paper_tables.py recomputes every value, checks it against the recorded reading and the recorded outcome, and renders docs/RULE_LEDGER.md.",
+ "about": "Every frozen decision rule in this repository adjudicated at the 0.65 bar or the 0.05 margin, one row per rule and run, as recorded at the time. No rule is re-adjudicated and no threshold is changed here. Each clause names the artifact value it reads. scripts/build_paper_tables.py reads that value, recomputes it from the per-seed list when the clause names a statistic, checks it against the recorded reading and the recorded outcome, and renders docs/RULE_LEDGER.md.",
  "rows": [
   {
    "id": "BV2-PRIMARY",
@@ -68,10 +68,23 @@
      },
      "reading": "0.047",
      "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/expB2_results.json",
+      "path": "0.0/survival/pool_target",
+      "stat": "tost_p"
+     },
+     "reading": "0.203",
+     "role": "gate"
     }
    ],
    "clauses_hold": false,
-   "gates_hold": null,
+   "gates_hold": false,
    "outcome": "NOT MET",
    "outcome_class": "threshold not met",
    "recorded_in": "FINDINGS 9; PREREGISTRATION sec. 12",
@@ -276,10 +289,28 @@
      },
      "reading": "0.265",
      "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": "0.00",
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "tost_p"
+     },
+     "reading": "0.010",
+     "role": "gate"
     }
    ],
    "clauses_hold": true,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "MET (encoding induced, conditional on this fingerprint)",
    "outcome_class": "threshold met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-12; FINDINGS 10.2",
@@ -396,10 +427,28 @@
      },
      "reading": "0.151",
      "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": "0.00",
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "tost_p"
+     },
+     "reading": "0.010",
+     "role": "gate"
     }
    ],
    "clauses_hold": false,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "NOT MET: the predictor margin fails (dissociation not replicated)",
    "outcome_class": "threshold not met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-14; FINDINGS 10.5",
@@ -451,10 +500,28 @@
      },
      "reading": null,
      "role": "reported"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h8_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": "0.00",
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "tost_p"
+     },
+     "reading": "0.010",
+     "role": "gate"
     }
    ],
    "clauses_hold": true,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "at or above 0.65: the behavior-independent claim strengthens",
    "outcome_class": "threshold met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-13; FINDINGS 10.4"
@@ -505,10 +572,28 @@
      },
      "reading": null,
      "role": "reported"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/behavior_audit_l3_h7_traces.json",
+      "path": "cells",
+      "where": {
+       "drift": "0.00",
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "tost_p"
+     },
+     "reading": "0.010",
+     "role": "gate"
     }
    ],
    "clauses_hold": true,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "at or above 0.65: the behavior-independent claim strengthens",
    "outcome_class": "threshold met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-14; FINDINGS 10.5"
@@ -1073,10 +1158,23 @@
      },
      "reading": "0.039",
      "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expL1/organism_summary.json",
+      "path": "arms/0.0/survival/pool_target",
+      "stat": "tost_p"
+     },
+     "reading": "0.029",
+     "role": "gate"
     }
    ],
    "clauses_hold": false,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "NOT MET",
    "outcome_class": "threshold not met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-25; FINDINGS 14.7"
@@ -1144,10 +1242,28 @@
      },
      "reading": "0.156",
      "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/sensory_echo_l3_h8.json",
+      "path": "cells",
+      "where": {
+       "drift": "0.00",
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "tost_p"
+     },
+     "reading": "0.010",
+     "role": "gate"
     }
    ],
    "clauses_hold": true,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "passes: sensory-independent",
    "outcome_class": "threshold met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-26; FINDINGS 10.4.2"
@@ -1226,10 +1342,28 @@
      },
      "reading": "0.627",
      "role": "reported"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/sensory_echo_l3_h7.json",
+      "path": "cells",
+      "where": {
+       "drift": "0.00",
+       "agent": "survival"
+      },
+      "key": "target",
+      "stat": "tost_p"
+     },
+     "reading": "0.010",
+     "role": "gate"
     }
    ],
    "clauses_hold": true,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "passes",
    "outcome_class": "threshold met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29; FINDINGS 10.4.2",
@@ -1358,10 +1492,22 @@
      },
      "reading": "0.072",
      "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/arch_baseline_l3_h8_nowm.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.006",
+     "role": "gate"
     }
    ],
    "clauses_hold": false,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "the positive is auxiliary-conditional (survival under the bar)",
    "outcome_class": "threshold not met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-27; FINDINGS 10.8"
@@ -1412,10 +1558,22 @@
      },
      "reading": "0.128",
      "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/device_control_l3_h8_wm_cpu.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.039",
+     "role": "gate"
     }
    ],
    "clauses_hold": true,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "device is not the cause; the auxiliary-conditional verdict stands",
    "outcome_class": "threshold met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-28; FINDINGS 10.8"
@@ -1502,10 +1660,22 @@
      },
      "reading": "0.658",
      "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.039",
+     "role": "gate"
     }
    ],
    "clauses_hold": false,
-   "gates_hold": null,
+   "gates_hold": true,
    "outcome": "NOT MET: replication not claimed; both margins pass",
    "outcome_class": "threshold not met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-27; FINDINGS 10.9"
@@ -1604,6 +1774,18 @@
      },
      "reading": "0.748",
      "role": "gate"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.207",
+     "role": "gate"
     }
    ],
    "clauses_hold": false,
@@ -1696,10 +1878,22 @@
      },
      "reading": "0.660",
      "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/second_seed_l3_h8_gseed2_gpu.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.207",
+     "role": "gate"
     }
    ],
    "clauses_hold": false,
-   "gates_hold": null,
+   "gates_hold": false,
    "outcome": "NOT MET: replication not claimed; the predictor margin misses by 0.0009",
    "outcome_class": "threshold not met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29; FINDINGS 10.9",
@@ -1774,6 +1968,18 @@
       "path": "skill_match/match_return"
      },
      "reading": "-0.1559",
+     "role": "gate"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/skill_matched_l3_h8_nowm_u450.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.285",
      "role": "gate"
     }
    ],
@@ -2406,6 +2612,18 @@
       "path": "gates/speed_positive_control/min_all_pools"
      },
      "reading": "0.686",
+     "role": "gate"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "texture/T_gn_l3_h8_wm.json",
+      "path": "gates/l0_tost/p"
+     },
+     "reading": "0.020",
      "role": "gate"
     }
    ],

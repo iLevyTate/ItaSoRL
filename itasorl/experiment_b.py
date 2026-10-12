@@ -117,9 +117,10 @@ def episode_features(H: np.ndarray) -> np.ndarray:
 def episode_features_var(H: np.ndarray) -> np.ndarray:
     """Per-episode DISPERSION features: [std over steps, mean |step-to-step delta|].
 
-    The authentic and surrogate worlds share a drag LEVEL but differ in drag
-    VOLATILITY (authentic drag is constant; the surrogate's drifts via an AR(1)
-    wander). A persistent linear direction over the level features `episode_features`
+    The authentic drag is constant; the surrogate's drifts via an AR(1) walk clipped to
+    [-0.8, 8.0], which shifts the mean drag factor as well as the volatility (1.30 at
+    drift_sigma 0.45; see patch_of_earth.PatchOfEarthV0). A persistent linear direction
+    over the level features `episode_features`
     cannot express a volatility signature, so this builder exposes it: if a reactive
     agent tracks a fluctuating drag its recurrent state swings more per episode in the
     surrogate. H is (n_eps, steps, hidden)."""

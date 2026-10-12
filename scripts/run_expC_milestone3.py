@@ -404,12 +404,15 @@ def main():
     # before the emergence contrast is interpreted; sec. 8 routes failures to
     # UNINFORMATIVE). Gate 0 (surrogate band re-validation) runs externally via
     # scripts/run_expA_l3.py and is recorded here as an external prerequisite.
-    # Gate 3 is satisfied by construction in this design: the panel's L0 branches are
-    # bit-identical (see experiment_c.common_garden_panel), every l0_auroc is exactly 0.5,
-    # and equivalence_test forces se to 1e-12 for zero spread. It certifies the estimator,
-    # not the apparatus (recorded 2026-10-10, behavior unchanged).
+    # Gate 3 is an estimator identity check, not a test of the apparatus: the panel's L0
+    # branches are bit-identical (see experiment_c.common_garden_panel), so every l0_auroc
+    # is exactly 0.5. Since 2026-10-12 equivalence_test fails closed on zero variance, so
+    # the TOST p is NaN and the gate reports "identity check, untestable" instead of a
+    # vacuous pass. Recorded 2026-10-10 as behavior unchanged; the pass was the bug.
     l0_vals = [p["l0_auroc"] for p in all_panels if np.isfinite(p.get("l0_auroc", float("nan")))]
     g3 = equivalence_test(l0_vals, h0=0.5, margin=0.05) if len(l0_vals) >= 2 else None
+    gate3_identity = (g3 is not None and np.isnan(g3.p_value)
+                      and all(abs(v - 0.5) < 1e-9 for v in l0_vals))
     gate3_pass = bool(g3.equivalent) if g3 is not None else False
     gate4_pass = bool(all_panels) and all(p.get("leak_clean", False) for p in all_panels)
     gate5_pass = bool(all_panels) and all(p.get("speed_control_pass", False) for p in all_panels)
@@ -421,7 +424,8 @@ def main():
                                   "passes_treatment", "passes_control", "passes_gate1")},
         "gate2_fitness_moves": {"treat_all_seeds": bool(gate2_treat), "ctrl_all_seeds": bool(gate2_ctrl),
                                 "treat_any_seed": bool(gate2_treat_any), "ctrl_any_seed": bool(gate2_ctrl_any)},
-        "gate3_l0_tost": ({"n": g3.n, "mean": g3.mean, "p": g3.p_value, "pass": gate3_pass}
+        "gate3_l0_tost": ({"n": g3.n, "mean": g3.mean, "p": g3.p_value, "pass": gate3_pass,
+                           "identity_check_untestable": gate3_identity}
                           if g3 is not None else {"pass": False, "note": "too few L0 panel values"}),
         "gate4_leakage": {"pass": gate4_pass,
                           "n_panels": len(all_panels),

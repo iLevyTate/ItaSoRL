@@ -133,12 +133,13 @@ def test_pooled_readout_too_few_survivors_guard(monkeypatch):
     pool nearly empties. A `collect_pool` stub returns 3 (<5) survivors deterministically."""
     import itasorl.experiment_b2 as b2
 
-    def _tiny_pool(*args, return_anchors=False, **kw):
+    def _tiny_pool(*args, return_anchors=False, return_pellets=False, **kw):
         steps, hid, k = args[5], args[0].hidden, 3           # 3 < 5 -> guard must fire
         H, s = np.zeros((k, steps, hid), np.float32), np.zeros(k)
         z = np.zeros(k)
         bt = np.zeros((k, steps, 4), np.float32)
-        return (H, s, z, z, z, z, bt) if return_anchors else (H, s)
+        out = (H, s, z, z, z, z, bt) if return_anchors else (H, s)
+        return out + (z,) if return_pellets else out
 
     monkeypatch.setattr(b2, "collect_pool", _tiny_pool)
     agent, norm = _agent_norm()
@@ -202,14 +203,15 @@ def _stub_pool(reward_auth, reward_surr, seed=0):
     H is random noise (target ~ chance); only the reward channel is controlled."""
     rng = np.random.default_rng(seed)
 
-    def _pool(*args, return_anchors=False, **kw):
+    def _pool(*args, return_anchors=False, return_pellets=False, **kw):
         drift, steps, hid = args[3], args[5], args[0].hidden
         reward = np.asarray(reward_auth if drift == 0.0 else reward_surr, float)
         k = len(reward)
         H = rng.standard_normal((k, steps, hid)).astype(np.float32)
         z = np.zeros(k)
         bt = np.zeros((k, steps, 4), np.float32)
-        return (H, z, z, z, z, reward, bt) if return_anchors else (H, z)
+        out = (H, z, z, z, z, reward, bt) if return_anchors else (H, z)
+        return out + (z,) if return_pellets else out
     return _pool
 
 
@@ -242,6 +244,31 @@ def test_pooled_readout_reward_audit_clean_when_balanced(monkeypatch):
     out = pooled_readout(agent, norm, P, 0.45, n_eps=k, steps=6, ray_steps=RS, device="cpu")
     assert out["pool_leak_clean"] is True
     assert abs(out["pool_reward_leak"] - 0.5) < 0.1
+
+
+def test_collect_pool_touch_reward_counts_pellets(monkeypatch):
+    """Under --objective touch the pooled reward channel must sum the trained reward
+    (1.0 per pellet consumed), not the homeostatic r.reward. The T-touch leakage gate
+    read the homeostatic reward, so it never gated the reward the arm was trained on."""
+    import itasorl.experiment_b2 as b2
+    from itasorl.world import StepResult
+    monkeypatch.setattr(b2, "OBJECTIVE", "touch")
+    eaten = {"n": 0}
+
+    def _step(self, action):
+        eaten["n"] += 1
+        obs = self.observe()
+        return StepResult(obs=obs, reward=-0.7, terminated=False, truncated=False,
+                          info={"consumed": eaten["n"] % 2 == 0})
+
+    monkeypatch.setattr(b2.PatchOfEarthV0, "step", _step)
+    agent, norm = _agent_norm()
+    H, spd, energy, food, drag, reward, traces, pellets = collect_pool(
+        agent, norm, P, 0.0, 4, 6, "cpu", 333, RS, return_anchors=True, return_pellets=True)
+    k = H.shape[0]
+    assert k == 4
+    np.testing.assert_allclose(reward, np.full(k, 3.0))
+    np.testing.assert_allclose(pellets, np.full(k, 3.0))
 
 
 def test_running_norm_matches_numpy_batch_stats():

@@ -342,7 +342,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: cpu, 4 workers (run log header)
 - Local run directory (not in git): fullruns/l1_heldout
 - Config (beyond the standard protocol): {"drifts": [0.0, 0.023], "drift_mode": "l1", "l1_delta": 0.023, "sensor_sigma": 0.01, "save_agents": true}
-- Artifacts: `artifacts/expL1/organism_summary.json`, `artifacts/fold_rescore/l1_heldout.json`
+- Artifacts: `artifacts/expL1/organism_summary.json`, `artifacts/fold_rescore/l1_heldout.json`, `artifacts/expL1/observation_ceiling.json`
 
 ### `L3-H8-NOWM-CPU`: Architecture baseline: no next-observation decoder, n = 10
 

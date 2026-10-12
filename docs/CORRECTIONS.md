@@ -111,8 +111,9 @@ are scored on one fixed pair of world samples.
 `scripts/build_gate_table.py` writes `docs/GATE_TABLE.md`: L0 TOST and ROPE and the untrained
 floor recomputed from committed per-seed values for every run and partition, other gates
 carried from the summaries. Eleven of its twenty-two rows do not show L0 equivalence; they
-read "inconclusive" (the count the generated page itself reports; ten of the twenty historical
-rows, plus the corrected `C1` row). `itasorl/l0_audit.py` adds the pre-intervention probe, the world-sample
+read "inconclusive" (the count the generated page reported when this entry was written; ten of the twenty historical
+rows, plus the corrected `C1` row). As of 2026-10-12 the generated page reports 14 of 26 rows.
+`itasorl/l0_audit.py` adds the pre-intervention probe, the world-sample
 rescoring, and a balanced paired-seed readout with a pair-level bootstrap
 (`itasorl.stats.cluster_auroc_ci`). The primary analysis is frozen in
 `docs/specs/2026-10-06-primary-analysis-and-l0.md`.
@@ -729,3 +730,70 @@ note.
 
 **What this does not change.** No number moves. The like-for-like comparison of step 4 stood on
 the two quoted values before; it now stands on every recorded value of two cells.
+
+## 2026-10-12: equivalence_test passed on zero variance
+
+**What was wrong.** `itasorl/stats.py` `equivalence_test` computed `se = sd / sqrt(n) if sd > 0
+else 1e-12`. A constant sample therefore got a standard error of 1e-12 and passed the TOST
+whenever the constant sat inside the band. Experiment C gate 3 is exactly this case: the L0
+sub-panel reads 0.5 by construction, so the gate passed with a p-value of zero and certified
+nothing. No committed artifact stores that p-value, so no recorded number changes.
+
+**Change.** Zero variance now fails closed, like n < 2: NaN p-values and `equivalent=False`.
+`scripts/run_expC_milestone3.py` records the gate as `identity_check_untestable` when every
+panel value is exactly 0.5, and the gate no longer counts as passed.
+
+**What this does not change.** Every equivalence result in the record has nonzero spread, so
+every committed TOST p-value and every `equivalent` flag stands. The Experiment C routing
+already ends UNINFORMATIVE on other gates; this removes the one gate that could not fail.
+
+## 2026-10-12: the L2 AR(1) rung is a level shift, not volatility at a shared level
+
+**What was wrong.** `PatchOfEarthV0` clips the AR(1) drag walk to [-0.8, 8.0]. The clip is
+asymmetric, so the walk's mean is not zero. At drift_sigma 0.45, 20000 steps give mean drag
+factor 1.30 (median 1.165, sd 0.885) with 11.2% of steps pinned at the lower clip. The
+docstrings in `patch_of_earth.py` and `experiment_b.py` and the paper described the rung as
+drag volatility at a shared central level.
+
+**Change.** Both docstrings now state the level shift and the measured 1.30. No code in the
+walk changed, so every recorded L2 number stands.
+
+**What this does not change.** The L2 negative. A level shift is a stronger, more persistent
+tell than pure volatility, so a failure to encode it is a stronger negative, not a weaker one.
+
+## 2026-10-12: advantage normalization divides by an unmasked standard deviation
+
+**What.** `train_actor_critic` standardizes advantages by the standard deviation of the whole
+B x T tensor, including the zero-padded slots, and centres on the all-slot mean. The masked
+standard deviation over valid slots only is larger by about sqrt(valid fraction), roughly 7
+to 10 percent at the usual episode lengths and up to 50 percent early in training. The
+policy-gradient term is therefore scaled relative to the value, entropy and world-model
+terms by a batch-dependent factor. It is not a sign error.
+
+**Change.** `adv_norm` selects the formula: "historical" (the default, every recorded run)
+or "masked" (valid slots only). `--adv-norm` on `scripts/run_expB2.py` passes it through, and
+"masked" changes the config fingerprint so such a run cannot resume into a recorded one.
+
+**What this does not change.** Any recorded number. The historical path is the formula those
+runs trained under, and the 2026-10-12 confirmation runs use it so they stay a replication of
+the corrected trainer.
+
+## 2026-10-12: the L1 tell is a static offset the registered oracle does not measure
+
+**What.** `Hyd/Hydmax` sits near 0.800 and moves about 0.0005 per step, so quantization at
+delta 0.023 snaps it to one grid cell for a whole episode and every surrogate observation
+carries a constant offset on that channel. The registered grid-residual oracle
+(`oracle_features_L1`) is blind to a constant. Measured on the registered scripted pools
+(110 x 24, seed bases 800000 and 850000, delta 0.023, sensor sigma 0.01): the oracle reads
+0.782, a linear probe on the per-episode mean of the continuous channels reads 0.977, and
+the same probe with the hydration channel removed reads 0.627. The L0 control reads 0.478
+and same-seed twins read 0.995 (`artifacts/expL1/observation_ceiling.json`).
+
+**Change.** The ceiling readout is committed and checked by `audit_stats_recheck.py`. The
+observation-noise stream can now be seeded before the drift stream (`_obs_before_drift`),
+so same-seed twins share their noise; the historical order stays the default, and every
+recorded L1 number stands.
+
+**What this does not change.** The L1 negative (state 0.533, stream 0.590). The ceiling the
+paper quotes (0.873) is the grid-residual oracle, which understates what the agent's own
+stream carries. The negative is read against the higher ceiling from here on.

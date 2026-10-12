@@ -218,11 +218,15 @@ def task_r35(task: dict, P) -> dict:
             return np.concatenate([replay_states(ag, norm, obs_a, act_a), replay_states(ag, norm, obs_s, act_s)])
 
         res = {}
-        for v, norm in (("own", nm), ("survival_norm", sn), ("refit", refit)):
+        for v, norm in (("own", nm), ("survival_norm", sn)):
             H = states(norm)
             res[v] = readout_from_states(H[:na], H[na:], seed=seed)["target"]
+        # The in-fold refit is the headline: `refit` fits one normalizer on every episode,
+        # including each test fold, so it is transductive and kept only as a comparison.
         res["refit_infold"] = pr.infold_normalizer_auroc(obs, y, states) if min(na, len(obs_s)) >= 5 \
             else float("nan")
+        H_refit = states(refit)
+        res["refit"] = readout_from_states(H_refit[:na], H_refit[na:], seed=seed)["target"]
         out["arms"][g] = res
     out["reference"] = out["arms"]["survival"]["own"]
     return out

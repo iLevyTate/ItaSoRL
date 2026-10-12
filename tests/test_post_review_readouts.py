@@ -43,8 +43,9 @@ def test_registered_permutations_are_the_pooled_readout_draws(monkeypatch):
         H = Hs if seed_base == 850_000 else Ha
         k = len(H)
         r = np.random.default_rng(seed_base)
-        return (H, r.random(k), r.random(k), r.random(k), r.random(k), r.random(k),
-                r.random((k, steps, 7)).astype(np.float32))
+        out = (H, r.random(k), r.random(k), r.random(k), r.random(k), r.random(k),
+               r.random((k, steps, 7)).astype(np.float32))
+        return out + (r.random(k),) if kw.get("return_pellets") else out
 
     monkeypatch.setattr(b2, "collect_pool", fake_collect_pool)
     out, (A, S) = b2.pooled_readout(None, None, None, 0.45, n_eps=30, steps=4, device="cpu",
@@ -675,8 +676,9 @@ def test_r205_cell_scores_each_half_on_the_bit_checked_pools(monkeypatch):
         H = Hs if seed_base == 850_000 else Ha
         k = len(H)
         r = np.random.default_rng(seed_base)
-        return (H, r.random(k), r.random(k), r.random(k), r.random(k), r.random(k),
-                r.random((k, steps, 7)).astype(np.float32))
+        out = (H, r.random(k), r.random(k), r.random(k), r.random(k), r.random(k),
+               r.random((k, steps, 7)).astype(np.float32))
+        return out + (r.random(k),) if kw.get("return_pellets") else out
 
     monkeypatch.setattr(b2, "collect_pool", fake_collect_pool)
     out, (A, S) = b2.pooled_readout(None, None, None, 0.45, n_eps=30, steps=6, device="cpu",

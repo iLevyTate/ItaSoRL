@@ -90,6 +90,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--mp_branch", type=int, default=24)
     ap.add_argument("--out-dir", type=str, default=".",
                     help="Directory for expB2_results.json and expB2_survival.png")
+    ap.add_argument("--balanced-seed-base", type=int, default=None,
+                    help="fresh world-seed base for the draw-free balanced readout on every "
+                         "drift>0 cell (same seeds for both worlds; 910000 for the "
+                         "2026-10-12 confirmation, clear of the engagement worlds at 900000). "
+                         "Omit to skip it.")
     ap.add_argument("--dump-states", type=str, default=None,
                     help="Directory to persist raw recurrent states (.npz per agent/cell) so "
                          "probes can be recomputed offline with scripts/reanalyze_expB2_states.py")
@@ -160,6 +165,9 @@ def build_parser() -> argparse.ArgumentParser:
                     help="truncation bootstrap of the survival trainer: successor (corrected, "
                          "default) or pre_transition (the historical trainer behind every "
                          "survival result up to 4b6e1f3; reproduction only). docs/CORRECTIONS.md")
+    ap.add_argument("--adv-norm", choices=("historical", "masked"), default="historical",
+                    help="advantage standardization: historical (std over padded slots, every "
+                         "recorded run) or masked (valid slots only). docs/CORRECTIONS.md")
     ap.add_argument("--l1-delta", type=float, default=1.0 / 64,
                     help="L1 grid spacing for --drift-mode l1 (default 1/64)")
     ap.add_argument("--sensor-sigma", type=float, default=0.01,
@@ -220,6 +228,19 @@ def survival_update_budget(k: dict) -> int:
     return int(k["updates"]) if v is None else int(v)
 
 
+def stack_record(device: str) -> dict:
+    """The library stack and device a cell trained on. Recorded runs before 2026-10-12
+    have no such block; a fresh run writes one so a bit-for-bit claim names its stack."""
+    import platform
+
+    import scipy
+    import sklearn
+    import torch
+    return {"python": platform.python_version(), "numpy": np.__version__,
+            "scipy": scipy.__version__, "sklearn": sklearn.__version__,
+            "torch": torch.__version__, "device": device}
+
+
 def config_fingerprint(base: dict) -> str:
     """Hash of the science-relevant config. Cells from different configs never mix;
     dump_states is a path, not science, so it is excluded. survival_updates=None is
@@ -243,6 +264,10 @@ def config_fingerprint(base: dict) -> str:
         fp.pop("mortal", None)
     if not fp.get("budget_snapshots"):
         fp.pop("budget_snapshots", None)
+    if fp.get("balanced_seed_base") is None:
+        fp.pop("balanced_seed_base", None)
+    if fp.get("adv_norm", "historical") == "historical":
+        fp.pop("adv_norm", None)
     payload = json.dumps(fp, sort_keys=True, default=float)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
@@ -384,6 +409,14 @@ def evaluate_agent(agent, norm, drift, a, dev, seed, agent_name=""):
         pool, pools = pr, None
     mp = readout(agent, norm, P, drift, n_pairs=a.mp_pairs, prefix_steps=a.mp_prefix,
                  branch_steps=a.mp_branch, ray_steps=a.ray_steps, device=dev, seed=seed)
+    balanced = None
+    if drift > 0.0 and getattr(a, "balanced_seed_base", None) is not None:
+        # Draw-free estimand: same world seeds for both worlds, on a fresh base that no
+        # other readout uses. Recorded beside the pooled 800000/850000 estimand.
+        from itasorl.l0_audit import paired_pooled_readout
+        balanced = paired_pooled_readout(
+            agent, norm, P, drift, n_eps=a.pool_n, steps=a.pool_steps, ray_steps=a.ray_steps,
+            device=dev, seed_base=int(a.balanced_seed_base), seed=seed)
     ho = None
     if heldout:
         from itasorl.experiment_b2 import cg_probe, common_garden_rollout, transfer_readout
@@ -398,7 +431,7 @@ def evaluate_agent(agent, norm, drift, a, dev, seed, agent_name=""):
         if cdump:
             np.savez_compressed(cdump, auth=np.stack(at) if at else np.zeros((0, a.cg_steps, a.hidden), np.float32),
                                 surr=np.stack(st) if st else np.zeros((0, a.cg_steps, a.hidden), np.float32))
-    return pool, mp, ho
+    return pool, mp, ho, balanced
 
 
 def install_l3_family(b2mod, family: str, param, drift: float, seed: int) -> None:
@@ -464,6 +497,7 @@ def run_cell(task: dict) -> dict:
                                  sysid_aux=k.get("sysid_aux", False),
                                  sysid_coef=k.get("sysid_coef", 1.0),
                                  gae_bootstrap=k.get("gae_bootstrap", "successor"),
+                                 adv_norm=k.get("adv_norm", "historical"),
                                  snapshot_at=snap_at, stats=tstats)
     snaps = {train_to: (trained[0], trained[1])}
     if snap_at:
@@ -479,15 +513,18 @@ def run_cell(task: dict) -> dict:
     xev = {f"{ed:.2f}": survival_return(sa, sn, P, ed, max_steps=k["max_steps"],
                                         ray_steps=k["ray_steps"], device=dev) for ed in k["drifts"]}
     a_ns = argparse.Namespace(**k)               # evaluate_agent reads attrs off a namespace
-    out = {"drift": d, "seed": s, "eng": eng, "xeval": xev, "agents": {},
+    out = {"drift": d, "seed": s, "stack": stack_record(dev), "eng": eng, "xeval": xev, "agents": {},
            "gae_bootstrap": k.get("gae_bootstrap", "successor"),
+           "adv_norm": k.get("adv_norm", "historical"),
            "objective": k.get("objective", "survival"), "mortal": bool(k.get("mortal", True)),
            "knobs": {key: k.get(key) for key in ("n_pellets", "basal_e", "reach", "drift_mode",
                                                  "l3_hidden", "l3_seed", "l3_family")},
            "survival_train": {"updates": head, "env_steps": tstats["env_steps"][head - 1]}}
     for g in AG:
-        pool, mp, ho = evaluate_agent(agents[g][0], agents[g][1], d, a_ns, dev, s, g)
+        pool, mp, ho, balanced = evaluate_agent(agents[g][0], agents[g][1], d, a_ns, dev, s, g)
         out["agents"][g] = {"pool": pool, "mp": mp}
+        if balanced is not None:
+            out["agents"][g]["balanced"] = balanced
         if ho is not None:
             out["agents"][g]["heldout"] = ho
     if extra and d > 0.0:
@@ -656,9 +693,10 @@ def main():
                                        "sysid_aux", "sysid_coef", "drift_mode", "l3_hidden",
                                        "l1_delta", "sensor_sigma", "l3_seed", "world_model",
                                        "survival_updates", "gae_bootstrap", "budget_extend",
-                                       "budget_snapshots", "l3_family", "l3_family_param")}
+                                       "budget_snapshots", "l3_family", "l3_family_param", "adv_norm")}
     base.update(drifts=a.drifts, device=dev, out_dir=a.out_dir, save_agents=a.save_agents)
-    base.update(objective=a.objective, mortal=(a.mortal == "on"))
+    base.update(objective=a.objective, mortal=(a.mortal == "on"),
+                balanced_seed_base=a.balanced_seed_base)
     if a.heldout_evals:
         base.update(heldout_evals=True, heldout_hidden=a.heldout_hidden,
                     cg_prefix=a.cg_prefix, cg_steps=a.cg_steps)

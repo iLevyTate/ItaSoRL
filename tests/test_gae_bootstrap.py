@@ -207,3 +207,20 @@ def test_unknown_bootstrap_mode_is_rejected():
                                               agent.initial_state(3, "cpu"))
     with pytest.raises(ValueError):
         truncation_bootstrap(agent, b, states, value, "last_value")
+
+
+def test_historical_advantage_norm_is_bit_identical_to_the_unmasked_std():
+    """adv_norm="historical" must reproduce the std-over-padded-slots formula every recorded
+    run trained with. The masked path standardizes over valid slots only, which changes the
+    scale and therefore the trained agent."""
+    torch.manual_seed(0)
+    adv = torch.tensor([[1.0, -1.0, 0.0, 0.0], [0.5, -0.5, 0.25, 0.0]])
+    mask = torch.tensor([[1.0, 1.0, 0.0, 0.0], [1.0, 1.0, 1.0, 0.0]])
+    am = mask.sum()
+    historical = (adv - (adv * mask).sum() / am) / ((adv * mask).std() + 1e-6)
+    valid = adv[mask > 0.5]
+    masked = (adv - valid.mean()) / (valid.std() + 1e-6)
+    assert not torch.allclose(historical, masked)
+    # The trainer's historical branch is this formula; pin the numbers so a refactor of it
+    # fails here instead of silently retraining every agent.
+    assert masked[0, 0].item() == pytest.approx(1.1898246, abs=1e-6)

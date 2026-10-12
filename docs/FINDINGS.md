@@ -2991,12 +2991,15 @@ to 0.500. Masking vision elevates survival to 0.696 **and untrained to 0.703**
 world-identity signal, channel localization does not identify a carrier.
 
 **Reading.** At the matched in-band L1 configuration, the organism does not
-incidentally encode the discretization artifact. H2 substrate-grounding is
-confirmed at L3 (learned dynamics texture) and does not extend to L1
-(observation quantization) because L1 never clears the encoding bar. The L1
-result strengthens the rung-specificity of the L3 positive: detectability of a
-substrate seam is not sufficient for incidental encoding; the seam's
+incidentally encode the discretization artifact. The graded-seam collapse holds
+at L3, and L1 does not reproduce it, because L1 never clears the encoding bar.
+The L1 result strengthens the rung-specificity of the L3 positive: detectability
+of a substrate seam is not sufficient for incidental encoding; the seam's
 computational character matters.
+
+**2026-10-12.** The paragraph above previously said H2 substrate-grounding was
+confirmed at L3 on a learned dynamics texture. That attribution was withdrawn in
+17.9. This note records the correction in the section that still carried it.
 
 ---
 

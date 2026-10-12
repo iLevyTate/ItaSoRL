@@ -202,9 +202,22 @@ def test_audit_cell_old_format_has_epmean_metrics_only():
 
 
 def test_audit_cell_new_format_adds_trace_metrics():
-    out = audit_cell(_fake_npz(traces=True), seed=0)
+    # The drag channel of an L3 dump is constant; the default fake dump is not, so this
+    # cell is audited as an L2 rung.
+    out = audit_cell(_fake_npz(traces=True), seed=0, drift_mode="ar1")
     for key in ("resid_trace", "resid_trace_quad", "behavior_trace_only"):
         assert key in out and np.isfinite(out[key])
+
+
+def test_l3_dump_with_varying_drag_is_refused():
+    """Under L3 the drag channel equals the world label, so a non-constant drag channel
+    in an L3 dump must not reach the behavior control."""
+    with pytest.raises(ValueError, match="drag channel"):
+        audit_cell(_fake_npz(traces=True), seed=0, drift_mode="l3")
+    flat = _fake_npz(traces=True)
+    flat["bta"][:, :, 3] = 0.0
+    flat["bts"][:, :, 3] = 0.0
+    assert "resid_trace" in audit_cell(flat, seed=0, drift_mode="l3")
 
 
 def test_aggregate_cells_reports_mean_ci_and_bar_count():

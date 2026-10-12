@@ -1368,6 +1368,13 @@ Rigor carried from the B-v3 audit (2026-07-10):
   and +0.124 [+0.073, +0.175] on the registered one, both above the auxiliary rule's 0.05; the
   auxiliary rule stays NOT MET as registered, because `C1` does not meet its primary rule.
 
+- **2026-10-12 - the capacity grid.** Section 9 registers the surrogate capacity grid
+  {8, 16, 24, 32, 48, 64}. `itasorl/experiment_a_l3.py` sweeps (4, 8, 16, 32, 64), and the
+  organism runs used hidden 7 and hidden 10 as well. The entries of 2026-07-10, 2026-07-14,
+  2026-07-16 and 2026-09-27 record the sweeps that ran. None of them named the grid change
+  itself. No recorded verdict moves. The grid in section 9 is what was registered; the
+  sweeps above are what was run.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

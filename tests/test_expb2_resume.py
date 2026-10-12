@@ -44,6 +44,14 @@ def test_fingerprint_stable_and_ignores_dump_states():
     assert fp1 == fp2
 
 
+def test_balanced_seed_base_absent_keeps_the_historical_fingerprint():
+    """A run without the balanced readout must hash like the published runs, and one with
+    it must hash apart so its cells can never resume into a historical run."""
+    fp = run_expB2.config_fingerprint(dict(BASE))
+    assert run_expB2.config_fingerprint(dict(BASE, balanced_seed_base=None)) == fp
+    assert run_expB2.config_fingerprint(dict(BASE, balanced_seed_base=900000)) != fp
+
+
 def test_fingerprint_changes_on_science_knob():
     fp1 = run_expB2.config_fingerprint(dict(BASE))
     for knob, value in [("hidden", 64), ("drift_mode", "ar1"),

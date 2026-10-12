@@ -33,11 +33,12 @@ def death_stats(kind: str, drift: float, n_eps: int, max_steps: int, ray_steps: 
                 seed_base: int, window: int) -> dict:
     import itasorl.experiment_b2 as b2
     from itasorl.experiment_b import scripted_policy
-    # The policy stream is seeded apart from the world seeds so the two never alias.
-    rng = np.random.default_rng(seed_base + 500_000)
+    # One policy stream per episode, seeded apart from the world seeds. A shared stream
+    # would make episode i's actions depend on how early the earlier episodes died.
     died = early = 0
     lens = []
     for i in range(n_eps):
+        rng = np.random.default_rng(seed_base + 500_000 + i)
         w = b2.make_world(P, drift, ray_steps)
         w.reset(b2._seeds(seed_base + i))
         t = 0

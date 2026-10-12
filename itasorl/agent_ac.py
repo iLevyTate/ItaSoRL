@@ -47,7 +47,10 @@ class RecurrentActorCritic(nn.Module):
             nn.Linear(obs_dim, embed), nn.ReLU(), nn.Linear(embed, embed), nn.ReLU()
         )
         self.cell = nn.GRUCell(embed + act_dim, hidden)
-        # Actor head: continuous means (n_cont) ++ Bernoulli logits (n_bin).
+        # Actor head: continuous means (n_cont) ++ Bernoulli logits (n_bin). The third
+        # Bernoulli logit is the "emit" head: nothing in the world reads it, so its entropy
+        # bonus and policy gradient train a dead output. Dropping it would change the RNG
+        # consumption and every trained agent, so it stays and is recorded here.
         self.actor = nn.Linear(hidden, self.n_cont + self.n_bin)
         self.log_std = nn.Parameter(torch.zeros(self.n_cont))
         self.critic = nn.Linear(hidden, 1)

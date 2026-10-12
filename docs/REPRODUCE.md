@@ -34,7 +34,8 @@ This rebuilds, from the committed per-seed artifacts under `artifacts/`:
   They stay local like the manuscript: `docs/paper_tables/` and `docs/paper/` are both
   gitignored, nothing in them is committed, and the audit renders the tables in memory.
 
-It then runs `scripts/audit_stats_recheck.py`, over 1200 checks in all. **What the audit
+It then runs `scripts/audit_stats_recheck.py`. The script prints the count (2721 on
+2026-10-12, before the L1 observation-ceiling rows added that day). **What the audit
 checks:** it recomputes each summary statistic it guards from the committed per-seed
 artifacts and compares it with a copy of the quoted value kept as a constant in the script.
 Those constants mirror numbers quoted in `README.md`, `docs/FINDINGS.md`,
@@ -59,6 +60,12 @@ python scripts/reproduce.py tables --dumps fullruns/corrected_l3_h8_wm/states
 ```
 
 ## 2. Retrain (hours of CPU per run)
+
+The two stacks a bit-for-bit claim depends on are pinned in
+`constraints-cpu-corrected.txt` (Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6,
+scikit-learn 1.9.1, scipy 1.17.1) and `constraints-workstation.txt` (Python 3.13.2,
+torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3). A cell written
+from 2026-10-12 on records the stack it actually ran on.
 
 ```bash
 python scripts/reproduce.py retrain C1            # print the commands

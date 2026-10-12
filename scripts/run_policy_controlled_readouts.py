@@ -72,6 +72,14 @@ def run_seed(task: dict) -> dict:
     # bit-identical to the saved agent (goal-and-stakes runs; absent keys are the defaults).
     b2.OBJECTIVE = k.get("objective", "survival")
     b2.MORTAL = bool(k.get("mortal", True))
+    # Goal-and-stakes cells carry their own ecology knobs; without them the retrain
+    # differs and the seed vanishes from the aggregate with no record of why.
+    knobs = k.get("knobs") or {}
+    for key, field in (("n_pellets", "n_pellets"), ("reach", "reach")):
+        if knobs.get(key) is not None:
+            b2.SURVIVAL_FOOD[field] = knobs[key]
+    if knobs.get("basal_e") is not None:
+        b2.SURVIVAL_METAB["basal_E"] = knobs["basal_e"]
     if b2._L3_GMOTION is None:
         b2.setup_l3_surrogate(hidden=k["l3_hidden"], device="cpu", seed=k["l3_seed"], params=P)
     agents_dir = os.path.join(k["run_dir"], "agents")
@@ -146,6 +154,7 @@ def main() -> int:
             "max_steps": a.max_steps, "ray_steps": a.ray_steps, "shaping_coef": 1.0,
             "world_model": a.world_model,
             "gae_bootstrap": payload.get("gae_bootstrap", "pre_transition"),
+            "knobs": payload.get("knobs") or {},
             **run_knobs(payload),
             "pool_n": a.pool_n, "pool_steps": a.pool_steps}
     tasks = [{**base, "seed": s} for s in seeds]
@@ -172,9 +181,12 @@ def main() -> int:
             if v:
                 agg[f"{g} {pr}"] = {"per_seed": v, "mean": float(np.mean(v)),
                                    "t90": [float(x) for x in t_ci90(v)] if len(v) > 1 else None}
+    excluded = [{"seed": r["seed"], "error": r.get("error", "no targets")}
+                for r in results if "targets" not in r]
     out = {"generated_by": "scripts/run_policy_controlled_readouts.py", "git_commit": git_head(), "run_dir": a.run_dir,
            "config": base, "fold_scheme": folds.current_scheme(),
-           "fold_version": folds.scheme_version(), "cells": results, "aggregate": agg}
+           "fold_version": folds.scheme_version(), "cells": results, "aggregate": agg,
+           "seeds_excluded": excluded}
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1, default=float)

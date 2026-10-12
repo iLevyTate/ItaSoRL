@@ -77,7 +77,13 @@ def equivalence_test(values, h0: float = 0.5, margin: float = 0.05,
         return EquivalenceResult(mean, margin, lower, upper, float("nan"),
                                  float("nan"), float("nan"), False, n)
     sd = float(x.std(ddof=1))
-    se = sd / np.sqrt(n) if sd > 0 else 1e-12
+    if sd == 0.0:
+        # Zero variance gives no standard error. Substituting a tiny se makes a constant
+        # inside the band pass as equivalent (Experiment C gate 3 read exactly 0.5 and
+        # passed this way), so zero variance fails closed like n < 2.
+        return EquivalenceResult(mean, margin, lower, upper, float("nan"),
+                                 float("nan"), float("nan"), False, n)
+    se = sd / np.sqrt(n)
     df = n - 1
     # H0a: mean <= lower  -> reject if mean is significantly ABOVE lower
     t_lower = (mean - lower) / se

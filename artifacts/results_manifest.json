@@ -1191,7 +1191,8 @@
       ],
       "artifacts": [
         "expL1/organism_summary.json",
-        "fold_rescore/l1_heldout.json"
+        "fold_rescore/l1_heldout.json",
+        "expL1/observation_ceiling.json"
       ],
       "budget": null,
       "claims": [
@@ -1244,6 +1245,7 @@
       "notes": "",
       "readout_only_on": null,
       "recorded_provenance": {
+        "expL1/observation_ceiling.json": {},
         "expL1/organism_summary.json": {
           "fingerprint": "250cd3eba1d482cf",
           "generated_by": "scripts/promote_h2_batteries.py",

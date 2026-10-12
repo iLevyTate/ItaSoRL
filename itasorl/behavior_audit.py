@@ -22,6 +22,8 @@ Spec: docs/specs/2026-07-12-l3-behavior-audit-design.md.
 
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 
 from itasorl.experiment_b import (episode_features, episode_features_full,
@@ -197,16 +199,19 @@ def sensory_residual_probe_auroc(H: np.ndarray, Ot: np.ndarray, y: np.ndarray,
         tr_rows = np.isin(row_ep, tr)
         if nonlinear:
             # 300 Adam iterations is a frozen budget, not a convergence target; the
-            # optimizer's "not converged" warning is expected and silenced here.
-            import warnings
+            # optimizer's "not converged" warning is expected and silenced for this fit only.
             from sklearn.exceptions import ConvergenceWarning
-            warnings.simplefilter("ignore", ConvergenceWarning)
             reg = make_pipeline(StandardScaler(),
                                 MLPRegressor(hidden_layer_sizes=(64,), alpha=1e-3, max_iter=300,
                                              random_state=seed))
         else:
             reg = make_pipeline(StandardScaler(), Ridge(alpha=alpha))
-        reg.fit(Phi[tr_rows], Hflat[tr_rows])
+        if nonlinear:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", ConvergenceWarning)
+                reg.fit(Phi[tr_rows], Hflat[tr_rows])
+        else:
+            reg.fit(Phi[tr_rows], Hflat[tr_rows])
         R = (Hflat - reg.predict(Phi)).reshape(n, T, hid)
         F = episode_features(R)
         clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))
@@ -215,7 +220,7 @@ def sensory_residual_probe_auroc(H: np.ndarray, Ot: np.ndarray, y: np.ndarray,
     return float(np.mean(aucs)) if aucs else float("nan")
 
 
-def audit_cell(npz: dict, seed: int = 0) -> dict:
+def audit_cell(npz: dict, seed: int = 0, drift_mode: str = "l3") -> dict:
     """Behavior-mediation audit of one dumped cell. Returns {} when either
     pool is too small to probe (mirrors the headline's 5-survivor guard)."""
     Ha, Hs = np.asarray(npz["Ha"]), np.asarray(npz["Hs"])
@@ -242,6 +247,14 @@ def audit_cell(npz: dict, seed: int = 0) -> dict:
     }
     if "bta" in npz and "bts" in npz:
         Bt = np.concatenate([np.asarray(npz["bta"]), np.asarray(npz["bts"])])
+        # Under L3 the drag channel is the world label: it is identically 0 in the
+        # authentic pool and the learned law's drift state in the surrogate pool, so
+        # residualizing on it removes the label itself and the control reads chance
+        # for a reason that has nothing to do with behavior. L3 dumps must show a
+        # constant drag channel; an L2 dump must not be audited as L3.
+        if drift_mode == "l3" and float(np.ptp(Bt[:, :, 3])) > 0.0:
+            raise ValueError("L3 dump carries a non-constant drag channel; it equals the "
+                             "world label and must not enter the behavior control")
         out["behavior_trace_only"] = probe_auroc(episode_features_full(Bt), y)
         out["resid_trace"] = trace_residual_probe_auroc(H, Bt, y)
         out["resid_trace_quad"] = trace_residual_probe_auroc(H, Bt, y, quad=True)
