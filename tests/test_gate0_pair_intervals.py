@@ -112,4 +112,7 @@ def test_live_recompute_h8_s0_explicit(doc):
     assert res["oracle_auroc"] == b["oracle_auroc"]
     assert res["oracle_oof"]["pair"] == b["oof"]["pair"]
     assert res["oracle_oof"]["fold"] == b["oof"]["fold"]
-    assert np.allclose(res["oracle_oof"]["score"], b["oof"]["score"], rtol=0, atol=1e-12)
+    # The AUROC, pair ids and folds above match exactly on every stack. The per-pair scores
+    # are classifier probabilities whose last bits depend on the BLAS and numpy build (the
+    # artifact was written on Windows, CI runs Linux), so they are compared to 1e-6.
+    assert np.allclose(res["oracle_oof"]["score"], b["oof"]["score"], rtol=0, atol=1e-6)

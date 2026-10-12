@@ -25,6 +25,27 @@ def _load(which):
         return json.load(fh)
 
 
+def _same(a, b, path="") -> list:
+    """Paths where a and b differ: exact for keys, strings, booleans and integers, and within
+    1e-9 for floats, whose last bits (t quantiles, bootstrap means) depend on the scipy and
+    numpy build that wrote the artifact."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        if a.keys() != b.keys():
+            return [f"{path}: keys {sorted(a)} != {sorted(b)}"]
+        return [d for k in a for d in _same(a[k], b[k], f"{path}/{k}")]
+    if isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            return [f"{path}: length {len(a)} != {len(b)}"]
+        return [d for i, (x, y) in enumerate(zip(a, b)) for d in _same(x, y, f"{path}[{i}]")]
+    if isinstance(a, float) or isinstance(b, float):
+        if a is None or b is None or isinstance(a, bool) or isinstance(b, bool):
+            return [] if a == b else [f"{path}: {a!r} != {b!r}"]
+        if np.isnan(a) and np.isnan(b):
+            return []
+        return [] if abs(a - b) <= 1e-9 else [f"{path}: {a!r} != {b!r}"]
+    return [] if a == b else [f"{path}: {a!r} != {b!r}"]
+
+
 @pytest.mark.parametrize("which", sorted(ARTS))
 def test_summaries_recompute_from_per_seed(which):
     import promote_off_design_runs as po
@@ -32,7 +53,7 @@ def test_summaries_recompute_from_per_seed(which):
     assert doc["rule_met"] is False and doc["gates_failed"]
     for drift, arms in doc["pooled_target"].items():
         for arm, e in arms.items():
-            assert po._agg(e["per_seed"]) == e, (drift, arm)
+            assert not _same(po._agg(e["per_seed"]), e), (drift, arm, _same(po._agg(e["per_seed"]), e))
     pools = doc["speed_pools"]
     sp = doc["gates"]["speed_positive_control"]
     assert len(pools) == sp["n_pools"] == 60
