@@ -37,9 +37,28 @@ def test_complete_and_labeled_historical(doc):
                     for a in ("survival", "predictor", "untrained")}
 
 
+def _diff(a, b, path="") -> list:
+    """Paths where a and b differ: exact for keys, strings, booleans and integers, within 1e-9
+    for floats, whose last bits (t quantiles) depend on the scipy and numpy build."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        if a.keys() != b.keys():
+            return [f"{path}: keys differ"]
+        return [d for k in a for d in _diff(a[k], b[k], f"{path}/{k}")]
+    if isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            return [f"{path}: length differs"]
+        return [d for i, (x, y) in enumerate(zip(a, b)) for d in _diff(x, y, f"{path}[{i}]")]
+    if isinstance(a, float) and isinstance(b, float) and not isinstance(a, bool):
+        if np.isnan(a) and np.isnan(b):
+            return []
+        return [] if abs(a - b) <= 1e-9 else [f"{path}: {a!r} != {b!r}"]
+    return [] if a == b else [f"{path}: {a!r} != {b!r}"]
+
+
 def test_aggregate_recomputes(doc):
     import rf_probe_historical_h8 as rf
-    assert rf.aggregate(doc["cells"]) == doc["aggregate"]
+    diff = _diff(rf.aggregate(doc["cells"]), doc["aggregate"])
+    assert not diff, diff[:5]
     assert rf.attempts_summary(doc["cells"]) == doc["reproduction_attempts"]["summary"]
 
 

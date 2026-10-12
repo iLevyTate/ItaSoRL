@@ -87,8 +87,10 @@ def test_live_episode_sums_from_exports(doc):
         Q = np.asarray(doc["episode_stats"][c]["Q"])[:3]
         for i, n in enumerate(names):
             if n in R:
-                assert np.allclose(R[n][..., comp].sum(1), S[:, i], rtol=1e-10, atol=1e-12), (c, n)
+                # Live evaluation of each exported G differs from the Windows-written sums in the
+                # last bits on other BLAS and numpy builds (about 3e-8 on Linux CI).
+                assert np.allclose(R[n][..., comp].sum(1), S[:, i], rtol=0, atol=1e-6), (c, n)
         for k, (i, j) in enumerate(pairs):
             if names[i] in R and names[j] in R:
                 want = (R[names[i]][..., comp] * R[names[j]][..., comp]).sum(1)
-                assert np.allclose(want, Q[:, k], rtol=1e-10, atol=1e-14), (c, names[i], names[j])
+                assert np.allclose(want, Q[:, k], rtol=0, atol=1e-7), (c, names[i], names[j])
