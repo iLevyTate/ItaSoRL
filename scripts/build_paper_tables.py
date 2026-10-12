@@ -438,7 +438,10 @@ def _same(a, b) -> bool:
 
 
 def ledger_value(spec: dict, cache: dict):
-    """The number (or flag) a ledger clause reads, recomputed from the committed artifact."""
+    """The number (or flag) a ledger clause reads, recomputed from the committed artifact. A
+    `const` is a number the rule itself names (the 0.5 a gate-0 floor is measured from)."""
+    if "const" in spec:
+        return float(spec["const"])
     if "minus" in spec:
         a, b = (ledger_value(x, cache) for x in spec["minus"])
         return a - b
@@ -474,7 +477,9 @@ def _reading_ok(value: float, reading: str) -> bool:
 def evaluate_ledger(ledger: dict) -> tuple[list[dict], list[str]]:
     """Every ledger row with each clause recomputed, and a list of problems: a frozen file that
     does not exist or does not state the recorded freeze date, a value that does not match its
-    recorded reading, or a recorded outcome that the recomputed clauses contradict."""
+    recorded reading, or a recorded outcome that the recomputed clauses contradict. A clause whose
+    value is null was never measured (the stakes rule's scarce rung was not run): it is listed as
+    not measured, counts as not passing, and its row records clauses_hold as null."""
     cache: dict = {}
     rows, problems = [], []
     for row in ledger["rows"]:
@@ -488,6 +493,11 @@ def evaluate_ledger(ledger: dict) -> tuple[list[dict], list[str]]:
             problems.append(f"{rid}: outcome_class {row.get('outcome_class')!r} is not one of {OUTCOME_CLASSES}")
         out = []
         for c in row["clauses"]:
+            if c["value"] is None:
+                if c.get("reading") is not None:
+                    problems.append(f"{rid}: clause {c['clause']!r} has no value but records a reading")
+                out.append({**c, "computed": None, "passes": False, "distance": None})
+                continue
             try:
                 val = ledger_value(c["value"], cache)
             except (OSError, KeyError, IndexError, ValueError, TypeError) as e:
@@ -556,6 +566,8 @@ def _dist(d: float) -> str:
 
 def _val(c: dict) -> str:
     v = c["computed"]
+    if v is None:
+        return "not measured"
     if c["op"] == "is_true":
         return "yes" if v else "no"
     if c["basis"].startswith("rank"):
@@ -566,8 +578,10 @@ def _val(c: dict) -> str:
 
 
 def _clause_text(c: dict, tex: bool = False) -> str:
-    if c["op"] == "is_true":
+    if c["op"] == "is_true" or c["computed"] is None:
         body = f"{c['clause']}: {_val(c)}"
+        if c["computed"] is None:
+            body += f" (frozen at {c['op']} {c['threshold']:g})"
     else:
         op = {">=": r"$\geq$", ">": "$>$", "<=": r"$\leq$", "<": "$<$"}[c["op"]] if tex else c["op"]
         body = f"{c['clause']} ({c['basis']}) {_val(c)} {op} {c['threshold']:g}, {_dist(c['distance'])}"
@@ -603,7 +617,14 @@ _SHORT_CLAUSE = {"margin over predictor": "vs predictor", "margin over untrained
                  "final treatment AUROC at the bar": "final AUROC",
                  "t90 lower bound minus the untrained mean": "LB vs untrained",
                  "C1 meets the primary rule": "C1 primary rule", "gate 1, exploitability": "gate 1",
-                 "gate 5, speed control": "gate 5"}
+                 "gate 5, speed control": "gate 5",
+                 "every registered gate, touch engagement included": "all gates",
+                 "reward leak clean in every pool": "reward leak",
+                 "gate 0: untrained floor within 0.1 of 0.5": "gate-0 floor",
+                 "gate 0: oracle at or above 0.85": "gate-0 oracle",
+                 "gate 0: oracle at or below 0.95": "gate-0 oracle",
+                 "S-scarce minus S-immortal": "stakes contrast",
+                 "stakes rule testable": "testable"}
 
 
 def _bar_basis(r: dict) -> str:
@@ -626,6 +647,9 @@ def _deciding(r: dict) -> str:
         failing = [c for c in r["clauses"] if c["role"] == role and not c["passes"]]
         if not failing:
             continue
+        unmeasured = [c for c in failing if c["computed"] is None]
+        if unmeasured:
+            return f"{' and '.join(short(c) for c in unmeasured)} not measured"
         flags = [c for c in failing if c["distance"] is None or c["basis"].startswith("TOST")]
         if flags:
             names = [short(c) for c in flags]
