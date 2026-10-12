@@ -78,6 +78,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `H10GS1-CORRECTED` | corrected | B-v2 L3 | - | successor_value | - | 93c45cc, 74a7312 (run/H10GS1-corrected; code as main 3036eb3) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `H8GS2-CORRECTED` | corrected | B-v2 L3 | - | successor_value | - | 6f58a1f, 24ea329 (run/H8GS2-corrected; code as main 3036eb3) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `C1-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | b77d0db (readouts/post-review-C1) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
+| `C1-R205` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | ab0388c (research/r205-decomposition) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `C2-RERUN-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C2, C2-RERUN | d3f2f75 (readouts/post-review-C2-rerun) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `H10GS1-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | H10GS1-CORRECTED | 60b4e6f (readouts/post-review-H10GS1-corrected) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `H7-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | H7-CORRECTED | 300602d (readouts/post-review-H7-corrected) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
@@ -972,6 +973,17 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)
 - Notes: scripts/run_post_review_readouts.py; frozen spec docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.3 to 20.8, with dated notes at 10.3, 17.4, 17.5, 17.6 and 17.8. Diagnostics: no registered verdict changes. Integrity: all 60 r210 cells reproduce their recorded targets and shuffled controls as floats, and the r33 continuity entry equals artifacts/l0_audit/corrected_l3_h8_wm.json to the bit in 30 of 30 cells. Labels: R210 survival INCLUDES under the MLP and the forest; R35 untrained TRUNK; R206 HIGHER; R31 NOT CAPACITY-LIMITED and STATE ABOVE on both streams. The artifact's run_dir is the cloud session's temporary path.
 - Artifacts: `artifacts/post_review/C1-rerun.json`, `artifacts/post_review/C1-rerun.json.partial.jsonl`
+
+### `C1-R205`: Post-review readout R205: the mean-h / h_T decomposition of the registered probe, C1 rerun's agents
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: ab0388c (research/r205-decomposition)
+- Commit source: recorded
+- Folds: explicit
+- Device: Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact)
+- Notes: scripts/run_post_review_readouts.py --readouts r205; the 2026-10-12 amendment of docs/specs/2026-10-11-post-review-readouts-design.md; FINDINGS 20.15, with dated notes at 17.7 and 20.4 and in PAPER_OUTLINE 4.3. Diagnostic: the registered estimand stays the concatenation and no verdict changes. Integrity: in all 60 arm-cells the concatenation equals the recorded pooled target as a float. Drift 0.45 survival: mean h 0.692, h_T 0.716, concatenation 0.733; label BOTH for every arm at both drifts.
+- Artifacts: `artifacts/post_review/C1-rerun_r205.json`, `artifacts/post_review/C1-rerun_r205.json.partial.jsonl`
 
 ### `C2-RERUN-POST-REVIEW`: Post-review readouts R210, R35, R206, R33 and R31 on the C2 rerun's agents
 
