@@ -1368,6 +1368,13 @@ Rigor carried from the B-v3 audit (2026-07-10):
   and +0.124 [+0.073, +0.175] on the registered one, both above the auxiliary rule's 0.05; the
   auxiliary rule stays NOT MET as registered, because `C1` does not meet its primary rule.
 
+- **2026-10-13 - balanced confirmation, result.** Seeds 10 to 19 were run under
+  `docs/specs/2026-10-12-balanced-confirmation-design.md`, which was committed before the
+  runs. The deciding readout pairs the worlds on base 910000. Both runs are UNINFORMATIVE:
+  the untrained matched-world mean is 0.614, 0.114 from 0.5, outside the frozen 0.1 floor.
+  The trained-arm intervals clear the bar and the margins descriptively (`B1` 0.800
+  [0.772, 0.829], `B2` 0.843 [0.825, 0.860]). FINDINGS 21. No registered threshold moved.
+
 - **2026-10-12 - the capacity grid.** Section 9 registers the surrogate capacity grid
   {8, 16, 24, 32, 48, 64}. `itasorl/experiment_a_l3.py` sweeps (4, 8, 16, 32, 64), and the
   organism runs used hidden 7 and hidden 10 as well. The entries of 2026-07-10, 2026-07-14,

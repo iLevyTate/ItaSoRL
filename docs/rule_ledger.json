@@ -3531,6 +3531,140 @@
    "outcome_class": "uninformative",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11 (results); FINDINGS 20.2",
    "note": "The short pool is the untrained arm at drift 0.45, seed index 0. Descriptively the predictor margin fails (+0.031). Reported beside L3-H8-GS2-GPU, which keeps its record."
+  },
+  {
+   "id": "B1-BALANCED",
+   "rule": "Balanced confirmation (2026-10-12 spec): survival t90 lower bound and both margin lower bounds",
+   "short": "Balanced confirmation, survival",
+   "source": "docs/specs/2026-10-12-balanced-confirmation-design.md",
+   "source_part": "Decision",
+   "frozen": "2026-10-12",
+   "run": "B1-BALANCED",
+   "trainer": "successor",
+   "n": 10,
+   "clauses_hold": true,
+   "gates_hold": false,
+   "outcome": "UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5, outside the 0.1 floor",
+   "outcome_class": "uninformative",
+   "recorded_in": "FINDINGS 21",
+   "note": "The interval clauses hold descriptively. The runner MET line is the pooled readout and is not this decision. Speed and leakage were stored for the pooled worlds only.",
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "balanced_confirmation/b1.json",
+      "path": "balanced/survival/t90/0"
+     },
+     "reading": "0.772",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "t90 lower bound of the paired difference",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "balanced_confirmation/b1.json",
+      "path": "balanced/margin_predictor/t90/0"
+     },
+     "reading": "0.095",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "t90 lower bound of the paired difference",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "balanced_confirmation/b1.json",
+      "path": "balanced/margin_untrained/t90/0"
+     },
+     "reading": "0.161",
+     "role": "rule"
+    },
+    {
+     "clause": "untrained floor",
+     "basis": "absolute deviation of the untrained balanced mean from 0.5",
+     "op": "<",
+     "threshold": 0.1,
+     "value": {
+      "artifact": "balanced_confirmation/b1.json",
+      "path": "gates/untrained_dev"
+     },
+     "reading": "0.114",
+     "role": "gate"
+    }
+   ]
+  },
+  {
+   "id": "B2-BALANCED",
+   "rule": "Balanced confirmation (2026-10-12 spec): survival t90 lower bound and both margin lower bounds",
+   "short": "Balanced confirmation, pellets",
+   "source": "docs/specs/2026-10-12-balanced-confirmation-design.md",
+   "source_part": "Decision",
+   "frozen": "2026-10-12",
+   "run": "B2-BALANCED",
+   "trainer": "successor",
+   "n": 10,
+   "clauses_hold": true,
+   "gates_hold": false,
+   "outcome": "UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5, outside the 0.1 floor",
+   "outcome_class": "uninformative",
+   "recorded_in": "FINDINGS 21",
+   "note": "The interval clauses hold descriptively. The runner MET line is the pooled readout and is not this decision. Speed and leakage were stored for the pooled worlds only.",
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "t90 lower bound",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "balanced_confirmation/b2.json",
+      "path": "balanced/survival/t90/0"
+     },
+     "reading": "0.825",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "t90 lower bound of the paired difference",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "balanced_confirmation/b2.json",
+      "path": "balanced/margin_predictor/t90/0"
+     },
+     "reading": "0.143",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "t90 lower bound of the paired difference",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "balanced_confirmation/b2.json",
+      "path": "balanced/margin_untrained/t90/0"
+     },
+     "reading": "0.212",
+     "role": "rule"
+    },
+    {
+     "clause": "untrained floor",
+     "basis": "absolute deviation of the untrained balanced mean from 0.5",
+     "op": "<",
+     "threshold": 0.1,
+     "value": {
+      "artifact": "balanced_confirmation/b2.json",
+      "path": "gates/untrained_dev"
+     },
+     "reading": "0.114",
+     "role": "gate"
+    }
+   ]
   }
  ]
 }

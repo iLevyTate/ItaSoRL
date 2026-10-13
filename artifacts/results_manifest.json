@@ -4935,6 +4935,128 @@
       },
       "survival_trainer": "none",
       "title": "Experiment C emergence under selection, fixed-code re-run"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "artifacts": [
+        "balanced_confirmation/b1.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "2c170f0",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": "Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3",
+      "device": "owner's laptop GPU, 1 worker, RTX 4050",
+      "eval_seeds": {
+        "balanced_pairs": "910000, same base for both worlds, 110 episodes",
+        "pooled_secondary": "800000 / 850000"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "B1-BALANCED",
+      "local_run_dir": "fullruns/balanced_confirmation_wm",
+      "notes": "docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. FINDINGS 21.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "balanced_confirmation/b1.json": {
+          "generated_by": "scripts/promote_balanced_confirmation.py",
+          "git_commit_at_run": "2c170f0",
+          "spec": "docs/specs/2026-10-12-balanced-confirmation-design.md",
+          "stack": {
+            "device": "cuda",
+            "numpy": "1.26.4",
+            "python": "3.13.2",
+            "scipy": "1.15.3",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126"
+          }
+        }
+      },
+      "status": "corrected",
+      "surrogate": {
+        "family": "GMotion (itasorl/surrogate_l3.py)",
+        "g_seed": 0,
+        "hidden": 8,
+        "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"
+      },
+      "survival_trainer": "successor_value",
+      "title": "Balanced confirmation, survival objective, seeds 10-19"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "artifacts": [
+        "balanced_confirmation/b2.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "2c170f0",
+      "commit_at_run_source": "recorded",
+      "config": {
+        "adv_norm": "historical",
+        "mortal": false,
+        "objective": "touch"
+      },
+      "deps": "Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3",
+      "device": "owner's laptop GPU, 1 worker, RTX 4050",
+      "eval_seeds": {
+        "balanced_pairs": "910000, same base for both worlds, 110 episodes",
+        "pooled_secondary": "800000 / 850000"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "B2-BALANCED",
+      "local_run_dir": "fullruns/balanced_confirmation_touch",
+      "notes": "docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. FINDINGS 21.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "balanced_confirmation/b2.json": {
+          "generated_by": "scripts/promote_balanced_confirmation.py",
+          "git_commit_at_run": "2c170f0",
+          "spec": "docs/specs/2026-10-12-balanced-confirmation-design.md",
+          "stack": {
+            "device": "cuda",
+            "numpy": "1.26.4",
+            "python": "3.13.2",
+            "scipy": "1.15.3",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126"
+          }
+        }
+      },
+      "status": "corrected",
+      "surrogate": {
+        "family": "GMotion (itasorl/surrogate_l3.py)",
+        "g_seed": 0,
+        "hidden": 8,
+        "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"
+      },
+      "survival_trainer": "successor_value",
+      "title": "Balanced confirmation, pellet objective, death off, seeds 10-19"
     }
   ],
   "train_seed_schedule": {

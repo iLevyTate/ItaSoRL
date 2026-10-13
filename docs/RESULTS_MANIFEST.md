@@ -90,6 +90,8 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 7870bba (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
+| `B1-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
+| `B2-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
 
 Commits that artifacts record, or that the record cites, and that are not ancestors of main (most reached main through squash merges); each lives only on the branch named, so keep that branch or tag its head:
 
@@ -1096,3 +1098,34 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: legacy
 - Notes: Pooled population probe; individual detectors encoded in unaligned directions are not measured (revision step 12).
 - Artifacts: `artifacts/expC/emergence_pilot_summary.json`, `artifacts/expC/control_layout_derisk.json`, `artifacts/expC/gate1_steepness_sweep.json`
+
+### `B1-BALANCED`: Balanced confirmation, survival objective, seeds 10-19
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: 2c170f0
+- Commit source: recorded
+- Agent seeds: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050
+- Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3
+- Local run directory (not in git): fullruns/balanced_confirmation_wm
+- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. FINDINGS 21.
+- Artifacts: `artifacts/balanced_confirmation/b1.json`
+
+### `B2-BALANCED`: Balanced confirmation, pellet objective, death off, seeds 10-19
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: 2c170f0
+- Commit source: recorded
+- Agent seeds: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050
+- Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3
+- Local run directory (not in git): fullruns/balanced_confirmation_touch
+- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. FINDINGS 21.
+- Config (beyond the standard protocol): {"objective": "touch", "mortal": false, "adv_norm": "historical"}
+- Artifacts: `artifacts/balanced_confirmation/b2.json`

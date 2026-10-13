@@ -104,3 +104,12 @@ pooled L0 at 800000 versus 850000 is reported beside the result and does not dec
 The historical pooled numbers stay as recorded, including `C1` at 0.733 with its open
 L0. `T-touch` at 0.796 stays as recorded, with the leakage-gate correction named. This
 spec does not edit a committed number.
+
+## Result (2026-10-13)
+
+Both runs finished. The decision is UNINFORMATIVE. The untrained matched-world mean is
+0.614 [0.599, 0.628], 0.114 from 0.5, outside the 0.1 floor in gate 4. The same untrained
+scores appear in `B1` and `B2`. Descriptively the trained arms clear the interval clauses:
+`B1` survival 0.800 [0.772, 0.829], `B2` 0.843 [0.825, 0.860], with both margins' lower
+bounds above 0.05. FINDINGS 21 records the gates and the numbers. The runner's MET line is
+the pooled readout and is not this decision.

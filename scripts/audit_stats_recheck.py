@@ -2792,6 +2792,24 @@ def main() -> int:
     repro_check_checks(_read("docs/FINDINGS.md"), _read("docs/CORRECTIONS.md"),
                        _read("docs/REPRODUCE.md"))
     post_review_checks(_read("docs/FINDINGS.md"), _read("docs/PREREGISTRATION_L3.md"))
+    _f21 = " ".join(_read("docs/FINDINGS.md").split())
+    for _rid, _lo, _hi, _mp, _mu in (
+            ("b1", 0.772, 0.829, 0.095, 0.161),
+            ("b2", 0.825, 0.860, 0.143, 0.212)):
+        _doc = _load_art("balanced_confirmation", f"{_rid}.json")
+        _s = np.asarray(_doc["balanced"]["survival"]["per_seed"], float)
+        _slo, _shi = t_ci90(_s)
+        check(f"21 {_rid} survival t90 lo recomputed", float(_slo), _doc["balanced"]["survival"]["t90"][0])
+        check(f"21 {_rid} survival t90 hi recomputed", float(_shi), _doc["balanced"]["survival"]["t90"][1])
+        check(f"21 {_rid} survival mean recomputed", float(_s.mean()), _doc["balanced"]["survival"]["mean"])
+        check_true(f"21 {_rid} decision is UNINFORMATIVE", _doc["decision"] == "UNINFORMATIVE")
+        check_true(f"21 {_rid} untrained floor fails", _doc["gates"]["untrained_floor_ok"] is False)
+        check(f"21 {_rid} untrained deviation", _doc["gates"]["untrained_dev"], 0.114)
+        check_true(f"FINDINGS 21 quotes {_rid} survival interval",
+                   f"[{_lo:.3f}, {_hi:.3f}]" in _f21)
+        check_true(f"FINDINGS 21 quotes {_rid} margin lower bounds",
+                   f"{_mp:.3f}" in _f21 and f"{_mu:.3f}" in _f21)
+    check_true("FINDINGS 21 names the decision", "Both runs are UNINFORMATIVE" in _f21)
 
     print()
     print(f"pins: {n_pins} of {n_checks} checks compare a value as stored in an artifact with a "

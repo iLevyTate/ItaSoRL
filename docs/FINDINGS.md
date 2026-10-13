@@ -5305,3 +5305,27 @@ the survival arm: mean h separates the two authentic world samples at 0.552 agai
 (+0.033 [+0.010, +0.057]), so the world-sample difference behind the open L0 gate (17.5) sits more
 in the time average than in the final state. These are post-review diagnostics: the registered
 estimand stays the concatenation, and no verdict changes.
+
+## 21. Balanced confirmation (2026-10-13)
+
+The spec is `docs/specs/2026-10-12-balanced-confirmation-design.md`, committed before either
+run at `2c170f0`. Seeds 10 to 19. The deciding readout pairs authentic and surrogate
+episodes on world base 910000. The pooled readout at 800000 and 850000 still runs and does
+not decide. Artifacts: `artifacts/balanced_confirmation/b1.json` and `b2.json`.
+
+**Decision.** Both runs are UNINFORMATIVE. The untrained arm's matched-world mean is 0.614
+[0.599, 0.628], which is 0.114 from 0.5. The frozen floor is 0.1. A random network's own
+rollouts already separate the two worlds by more than the tolerance, so the run does not
+get to say what training added. The same ten untrained scores appear in both runs.
+
+**What the trained arms read, descriptively.** Survival, `B1`: 0.800 [0.772, 0.829],
+margin over the predictor 0.134 [0.095, 0.172], margin over the untrained arm 0.186
+[0.161, 0.212]. Pellets, `B2`: 0.843 [0.825, 0.860], margin over the predictor 0.176
+[0.143, 0.209], margin over the untrained arm 0.229 [0.212, 0.246]. Predictor 0.667
+[0.641, 0.692] in both runs. Every drift-0.45 pair was kept, `identical_first_state` is
+true on every pair, and the within-pair shuffle stays within 0.068 of 0.5. All 20 cells
+of each run engaged. The lowest pooled speed is 0.778. Those last two checks, speed and
+reward leakage, were stored for the pooled worlds, not for the balanced pairs.
+
+The runner prints MET next to the pooled survival means 0.758 (`B1`) and 0.835 (`B2`).
+That line is the 800000/850000 readout. The spec does not use it.
