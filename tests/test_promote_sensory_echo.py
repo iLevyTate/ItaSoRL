@@ -36,6 +36,33 @@ def test_promote_round_trip(tmp_path):
     assert back["integrity"]["all_match"] is True
 
 
+def test_balanced_run_promotes_pair_bookkeeping_and_balanced_decision(tmp_path):
+    """A balanced aggregate (spec 2026-10-13) carries its own spec, the run's agents
+    directory, the stack, the per-cell integrity gap and decision_balanced."""
+    run = tmp_path / "fullruns" / "balanced_confirmation_touch" / "sensory_echo"
+    run.mkdir(parents=True)
+    cells = [{"drift": "0.45", "seed": 10, "agent": "untrained", "n_auth": 110, "n_surr": 110,
+              "n_pairs": 110, "dropped_pairs": 0, "identical_first_state": True,
+              "recorded_target": 0.5938, "target_abs_diff": 0.0, "integrity_match": True,
+              **{m: 0.55 for m in pse.METRICS}, "extra": "dropped"}]
+    agg = {"hidden": 8, "g_seed": 0, "n_eps": 110, "steps": 24, "quick": False, "device": "cuda",
+           "bar": 0.65, "margin": 0.05, "mode": "balanced", "balanced_seed_base": 910000,
+           "objective": "touch", "mortal": False, "stack": {"torch": "2.7.0+cu126"},
+           "integrity": {"checked": True, "mismatches": [], "all_match": True},
+           "d=0.45 untrained": {"resid_obs": {"mean": 0.55, "per_seed": [0.55]}},
+           "decision_balanced": {"floor_explained": True, "zone": "SENSORY-INDEPENDENT under matched worlds"}}
+    (run / "cells.json").write_text(json.dumps(cells), encoding="utf-8")
+    (run / "aggregate.json").write_text(json.dumps(agg), encoding="utf-8")
+    out = pse.promote(str(run), str(tmp_path / "o.json"), head="abc")
+    assert out["spec"].endswith("2026-10-13-balanced-sensory-echo-design.md")
+    assert "balanced_confirmation_touch/agents" in out["agents"]
+    assert out["mode"] == "balanced" and out["objective"] == "touch" and out["mortal"] is False
+    assert out["balanced_seed_base"] == 910000 and out["stack"]["torch"] == "2.7.0+cu126"
+    assert out["decision"] is None and out["decision_balanced"]["floor_explained"] is True
+    cell = out["cells"][0]
+    assert cell["recorded_target"] == 0.5938 and cell["n_pairs"] == 110 and "extra" not in cell
+
+
 def test_agents_line_follows_the_run_capacity(tmp_path):
     """A hidden 7 run reads the hidden 7 held-out bundles; the artifact must not say hidden 8."""
     run = tmp_path / "run"

@@ -20,11 +20,21 @@ Frozen decision rule (drift 0.45, survival arm, n = 10): resid_obs mean >= 0.65 
 > untrained resid_obs + 0.05 -> sensory-independent world representation;
 [0.60, 0.65) -> attenuated; < 0.60 -> largely sensory-mediated.
 
+Balanced mode (spec docs/specs/2026-10-13-balanced-sensory-echo-design.md): with
+`--balanced-seed-base` both pools come from the SAME seed base, surviving pairs are kept,
+and each pair shares one fold group, exactly as `l0_audit.paired_pooled_readout`. The
+integrity gate then reads each cell's recorded `balanced.target` from `--cells-dir`
+instead of bit-comparing state dumps. The same controls run; the aggregate adds the
+floor clause (untrained resid_obs within 0.1 of 0.5) ahead of the trained-arm rule.
+
 Usage:
     python scripts/audit_sensory_echo.py --agents-dir fullruns/l3_h8_heldout/agents \\
         --states-dir fullruns/l3_h8_heldout/states --out-dir fullruns/l3_h8_sensory_echo \\
         --device cuda
     ... --quick   (seed 0 only, tiny pools, no bit compare)
+    python scripts/audit_sensory_echo.py --agents-dir fullruns/balanced_confirmation_wm/agents \\
+        --cells-dir fullruns/balanced_confirmation_wm/cells --balanced-seed-base 910000 \\
+        --out-dir fullruns/balanced_confirmation_wm/sensory_echo --drifts 0.45 --device cuda
 """
 
 from __future__ import annotations
@@ -34,16 +44,21 @@ import _bootstrap  # noqa: F401
 import argparse
 import json
 import os
+import platform
 import re
 import time
 
 import numpy as np
+import scipy
+import sklearn
+import torch
 
 import itasorl.experiment_b2 as b2
 from itasorl import folds
 from itasorl.behavior_audit import (sensory_residual_probe_auroc,
                                     trace_residual_probe_auroc)
-from itasorl.experiment_b import episode_features, episode_features_full, probe_auroc
+from itasorl.experiment_a import grouped_auroc
+from itasorl.experiment_b import episode_features, episode_features_full
 from itasorl.experiment_b2 import collect_pool, default_device, load_agent_bundle
 from itasorl.stats import mean_ci, t_ci90
 from itasorl.world import WorldParams
@@ -52,16 +67,35 @@ P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)   # frozen organism world
 # drift-0.45 survival reference per capacity: itasorl.folds, keyed by fold scheme
 BAR = 0.65
 MARGIN = 0.05
+FLOOR_DEV = 0.1          # balanced floor clause: untrained resid_obs within 0.1 of 0.5
+TARGET_TOL = 5e-4        # balanced integrity: regenerated target reproduces the recorded one
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh",
            "resid_obs_mlp", "resid_obs_beh_mlp")
 
 
+def stack_record(device: str) -> dict:
+    """The stack a balanced readout ran on; recorded beside the cells (same block as
+    run_expB2.py writes into every training cell)."""
+    return {"python": platform.python_version(), "numpy": np.__version__,
+            "scipy": scipy.__version__, "sklearn": sklearn.__version__,
+            "torch": torch.__version__, "device": device}
+
+
 def cfg():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--agents-dir", required=True)
-    ap.add_argument("--states-dir", required=True)
+    ap.add_argument("--states-dir", help="saved state dumps for the pooled integrity gate")
     ap.add_argument("--out-dir", required=True)
+    ap.add_argument("--balanced-seed-base", type=int, default=None,
+                    help="balanced mode: one seed base for both pools, pairs grouped in CV")
+    ap.add_argument("--cells-dir",
+                    help="balanced mode: run_expB2 cells carrying the recorded balanced.target")
+    ap.add_argument("--objective", choices=("survival", "touch"), default="survival",
+                    help="the objective the agents were trained under (sets the reward the "
+                         "pools accumulate and the engagement world)")
+    ap.add_argument("--mortal", choices=("on", "off"), default="on",
+                    help="death in the evaluation worlds, as in the run being read")
     ap.add_argument("--hidden", type=int, default=8)
     ap.add_argument("--g-seed", type=int, default=0)
     ap.add_argument("--arms", nargs="+", default=["survival", "untrained", "predictor"])
@@ -89,12 +123,92 @@ def fmt_drift(d: float) -> str:
     return f"{d:.2f}"
 
 
+def collect_cell(agent, norm, drift: float, *, n_eps: int, steps: int, device: str,
+                 balanced_seed_base: int | None):
+    """Regenerate one cell's pools. Pooled mode draws authentic and surrogate pools from
+    the historical bases (800_000 / 850_000, independent episodes, one group each).
+    Balanced mode draws both from `balanced_seed_base`, keeps the pairs that survive in
+    both worlds and gives each pair one group id, exactly as
+    `l0_audit.paired_pooled_readout`. Returns (H, Ot, Bt, y, groups, meta)."""
+    kw = dict(return_anchors=True, return_obs=True, return_index=True)
+    base_a, base_s = (800_000, 850_000) if balanced_seed_base is None else (balanced_seed_base,) * 2
+    Ha, _, _, _, _, _, bta, Oa, ia = collect_pool(agent, norm, P, 0.0, n_eps, steps, device, base_a, 5, **kw)
+    Hs, _, _, _, _, _, bts, Os, is_ = collect_pool(agent, norm, P, drift, n_eps, steps, device, base_s, 5, **kw)
+    meta = {"n_auth": int(len(Ha)), "n_surr": int(len(Hs))}
+    if balanced_seed_base is None:
+        groups = np.arange(len(Ha) + len(Hs))
+    else:
+        common = np.intersect1d(ia, is_)
+        sa, ss = np.searchsorted(ia, common), np.searchsorted(is_, common)
+        Ha, bta, Oa = Ha[sa], bta[sa], Oa[sa]
+        Hs, bts, Os = Hs[ss], bts[ss], Os[ss]
+        groups = np.r_[common, common]
+        meta.update(n_pairs=int(len(common)), dropped_pairs=int(n_eps - len(common)),
+                    identical_first_state=bool(len(common) and np.array_equal(Ha[:, 0], Hs[:, 0])))
+    y = np.concatenate([np.zeros(len(Ha)), np.ones(len(Hs))]).astype(int)
+    return (np.concatenate([Ha, Hs]), np.concatenate([Oa, Os]), np.concatenate([bta, bts]),
+            y, groups, meta, (Ha, Hs))
+
+
+def balanced_integrity(cells_dir: str, drift: float, seed: int, arm: str, cell: dict) -> tuple[bool, str]:
+    """Balanced-mode gate: the regenerated target must reproduce the run's recorded
+    `balanced.target` to TARGET_TOL, the first states must be identical and no pair
+    dropped. Returns (ok, message); the caller records the recorded value and the gap."""
+    path = os.path.join(cells_dir, f"cell_d{fmt_drift(drift)}_s{seed}.json")
+    with open(path, encoding="utf-8") as fh:
+        recorded = json.load(fh)["cell"]["agents"][arm]["balanced"]
+    cell["recorded_target"] = float(recorded["target"])
+    cell["target_abs_diff"] = abs(cell["target"] - cell["recorded_target"])
+    problems = []
+    if cell["target_abs_diff"] > TARGET_TOL:
+        problems.append(f"target {cell['target']:.6f} vs recorded {cell['recorded_target']:.6f}")
+    if not cell.get("identical_first_state"):
+        problems.append("first states differ")
+    if cell.get("dropped_pairs"):
+        problems.append(f"{cell['dropped_pairs']} dropped pairs")
+    if int(recorded["n_pairs"]) != cell.get("n_pairs"):
+        problems.append(f"n_pairs {cell.get('n_pairs')} vs recorded {recorded['n_pairs']}")
+    return (not problems), "; ".join(problems)
+
+
+def balanced_decision(agg: dict, trained_arm: str = "survival") -> dict:
+    """Floor clause then trained clause, as frozen in the 2026-10-13 spec. The trained
+    zone is read only when the floor is explained."""
+    untr = agg.get("d=0.45 untrained", {}).get("resid_obs")
+    trained = agg.get(f"d=0.45 {trained_arm}", {}).get("resid_obs")
+    out: dict = {"floor_dev": FLOOR_DEV}
+    if untr is None:
+        return out
+    dev = abs(untr["mean"] - 0.5)
+    out.update(untrained_resid_obs=untr["mean"], untrained_dev=dev,
+               floor_explained=bool(dev <= FLOOR_DEV))
+    if trained is None:
+        return out
+    s, u = trained["mean"], untr["mean"]
+    out.update(trained_resid_obs=s, trained_t90=trained["t90"], pass_bar=bool(s >= BAR),
+               pass_margin=bool(s > u + MARGIN), t90_lo_above_untrained=bool(trained["t90"][0] > u))
+    if not out["floor_explained"]:
+        out["zone"] = "FLOOR NOT EXPLAINED: trained clause not read"
+    elif out["pass_bar"] and out["pass_margin"] and out["t90_lo_above_untrained"]:
+        out["zone"] = "SENSORY-INDEPENDENT under matched worlds (rule passes)"
+    elif s >= 0.60:
+        out["zone"] = "ATTENUATED: below-bar trace survives the sensory control"
+    else:
+        out["zone"] = "LARGELY SENSORY-MEDIATED"
+    return out
+
+
 def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_eps: int,
-              steps: int, quick: bool, device: str, mismatches: list[str]) -> dict:
+              steps: int, quick: bool, device: str, mismatches: list[str],
+              balanced_seed_base: int | None = None, objective: str = "survival",
+              mortal: bool = True) -> dict:
     """Across-seed aggregation plus the frozen decision rule. Every value is a plain
     Python float/bool/list so the result is JSON-serializable."""
     agg: dict = {"hidden": hidden, "g_seed": g_seed, "n_eps": n_eps, "steps": steps,
                  "quick": quick, "device": device, "bar": BAR, "margin": MARGIN,
+                 "mode": "pooled" if balanced_seed_base is None else "balanced",
+                 "balanced_seed_base": balanced_seed_base, "objective": objective,
+                 "mortal": bool(mortal), "stack": stack_record(device),
                  "integrity": {"checked": not quick, "mismatches": list(mismatches),
                                "all_match": (not mismatches) if not quick else None}}
     for d in drifts:
@@ -116,6 +230,13 @@ def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_ep
                                  "n_ge_065": int(sum(v >= BAR for v in vals))}
     surv = agg.get("d=0.45 survival", {})
     untr = agg.get("d=0.45 untrained", {})
+    if balanced_seed_base is not None:
+        # The balanced integrity gate is per cell (recorded target); the pooled published
+        # reference and the pooled rule do not apply. One decision block, the frozen
+        # floor-then-trained rule.
+        agg["integrity"]["fold_scheme"] = folds.current_scheme()
+        agg["decision_balanced"] = balanced_decision(agg)
+        return agg
     ref = folds.reference_survival_target(hidden, strict=False)
     if "target" in surv and not quick:
         agg["integrity"]["survival_target_mean"] = round(surv["target"]["mean"], 3)
@@ -155,6 +276,11 @@ def main() -> int:
     a = cfg()
     dev = default_device() if a.device == "auto" else a.device
     n_eps, steps = (12, 8) if a.quick else (a.n_eps, a.steps)
+    balanced = a.balanced_seed_base is not None
+    if balanced and not a.quick and not a.cells_dir:
+        raise SystemExit("balanced mode needs --cells-dir for the recorded-target integrity gate")
+    if not balanced and not a.quick and not a.states_dir:
+        raise SystemExit("pooled mode needs --states-dir for the bit-match integrity gate")
     os.makedirs(a.out_dir, exist_ok=True)
     cells, mismatches = [], []
     t0 = time.time()
@@ -173,9 +299,12 @@ def main() -> int:
         print(f"re-aggregating {len(cells)} saved cells from {a.out_dir}/cells.json")
     else:
         b2.DRIFT_MODE = "l3"
+        b2.OBJECTIVE = a.objective
+        b2.MORTAL = a.mortal == "on"
         b2.setup_l3_surrogate(hidden=a.hidden, device=dev, seed=a.g_seed, params=P)
         print(f"sensory-echo control  device={dev} hidden={a.hidden} g_seed={a.g_seed} "
-              f"n_eps={n_eps} steps={steps} quick={a.quick}")
+              f"n_eps={n_eps} steps={steps} quick={a.quick} objective={a.objective} "
+              f"mortal={a.mortal} mode={'balanced@' + str(a.balanced_seed_base) if balanced else 'pooled'}")
         names = sorted(n for n in os.listdir(a.agents_dir) if AGENT_RE.search(n))
     for name in names:
         m = AGENT_RE.search(name)
@@ -185,12 +314,11 @@ def main() -> int:
         if (fmt_drift(drift), seed, arm) in done:
             continue
         agent, norm = load_agent_bundle(os.path.join(a.agents_dir, name), dev)
-        Ha, _, _, _, _, _, bta, Oa = collect_pool(agent, norm, P, 0.0, n_eps, steps, dev, 800_000, 5,
-                                                  return_anchors=True, return_obs=True)
-        Hs, _, _, _, _, _, bts, Os = collect_pool(agent, norm, P, drift, n_eps, steps, dev, 850_000, 5,
-                                                  return_anchors=True, return_obs=True)
+        H, Ot, Bt, y, groups, meta, (Ha, Hs) = collect_cell(
+            agent, norm, drift, n_eps=n_eps, steps=steps, device=dev,
+            balanced_seed_base=a.balanced_seed_base)
         integrity = None
-        if not a.quick:
+        if not a.quick and not balanced:
             saved = os.path.join(a.states_dir, f"states_d{fmt_drift(drift)}_s{seed}_{arm}.npz")
             if os.path.exists(saved):
                 z = np.load(saved)
@@ -204,24 +332,31 @@ def main() -> int:
         if len(Ha) < 5 or len(Hs) < 5:
             print(f"  {name}: too few survivors ({len(Ha)}/{len(Hs)}), skipped")
             continue
-        H = np.concatenate([Ha, Hs])
-        Ot = np.concatenate([Oa, Os])
-        Bt = np.concatenate([bta, bts])
-        y = np.concatenate([np.zeros(len(Ha)), np.ones(len(Hs))]).astype(int)
-        cell = {"drift": fmt_drift(drift), "seed": seed, "agent": arm,
-                "n_auth": int(len(Ha)), "n_surr": int(len(Hs)), "integrity_match": integrity,
-                "target": probe_auroc(episode_features(H), y),
-                "obs_trace_only": probe_auroc(episode_features_full(Ot), y),
-                "resid_trace": trace_residual_probe_auroc(H, Bt, y),
-                "resid_obs": sensory_residual_probe_auroc(H, Ot, y),
-                "resid_obs_int": sensory_residual_probe_auroc(H, Ot, y, integrated=True),
-                "resid_obs_beh": sensory_residual_probe_auroc(H, Ot, y, Bt=Bt)}
+        cell = {"drift": fmt_drift(drift), "seed": seed, "agent": arm, **meta,
+                "integrity_match": integrity,
+                "target": grouped_auroc(episode_features(H), y, groups),
+                "obs_trace_only": grouped_auroc(episode_features_full(Ot), y, groups),
+                "resid_trace": trace_residual_probe_auroc(H, Bt, y, groups=groups),
+                "resid_obs": sensory_residual_probe_auroc(H, Ot, y, groups=groups),
+                "resid_obs_int": sensory_residual_probe_auroc(H, Ot, y, groups=groups, integrated=True),
+                "resid_obs_beh": sensory_residual_probe_auroc(H, Ot, y, Bt=Bt, groups=groups)}
+        if balanced and not a.quick:
+            ok, why = balanced_integrity(a.cells_dir, drift, seed, arm, cell)
+            cell["integrity_match"] = integrity = ok
+            if not ok:
+                mismatches.append(name)
+                msg = f"INTEGRITY MISMATCH ({name}): {why}"
+                if not a.no_abort:
+                    raise SystemExit(msg)
+                print("  " + msg)
         if a.nonlinear:
-            cell["resid_obs_mlp"] = sensory_residual_probe_auroc(H, Ot, y, nonlinear=True)
-            cell["resid_obs_beh_mlp"] = sensory_residual_probe_auroc(H, Ot, y, Bt=Bt, nonlinear=True)
+            cell["resid_obs_mlp"] = sensory_residual_probe_auroc(H, Ot, y, groups=groups, nonlinear=True)
+            cell["resid_obs_beh_mlp"] = sensory_residual_probe_auroc(H, Ot, y, Bt=Bt, groups=groups,
+                                                                     nonlinear=True)
         if a.save_traces:
+            k = len(Ha)
             np.savez_compressed(os.path.join(a.out_dir, f"traces_d{fmt_drift(drift)}_s{seed}_{arm}.npz"),
-                                Ha=Ha, Hs=Hs, Oa=Oa, Os=Os, bta=bta, bts=bts)
+                                Ha=Ha, Hs=Hs, Oa=Ot[:k], Os=Ot[k:], bta=Bt[:k], bts=Bt[k:])
         cells.append(cell)
         print(f"  d={cell['drift']} s={seed} {arm:9s} target={cell['target']:.3f} "
               f"obs_only={cell['obs_trace_only']:.3f} resid_trace={cell['resid_trace']:.3f} "
@@ -232,8 +367,13 @@ def main() -> int:
             json.dump(cells, fh, indent=1)
 
     agg = aggregate(cells, a.drifts, a.arms, hidden=a.hidden, g_seed=a.g_seed, n_eps=n_eps,
-                    steps=steps, quick=a.quick, device=dev, mismatches=mismatches)
-    if "decision" in agg:
+                    steps=steps, quick=a.quick, device=dev, mismatches=mismatches,
+                    balanced_seed_base=a.balanced_seed_base, objective=a.objective,
+                    mortal=a.mortal == "on")
+    if "decision_balanced" in agg:
+        print("\nDECISION (balanced, frozen 2026-10-13 rule, drift 0.45):",
+              json.dumps(agg["decision_balanced"], indent=1))
+    elif "decision" in agg:
         print("\nDECISION (frozen rule, drift 0.45):", json.dumps(agg["decision"], indent=1))
     with open(os.path.join(a.out_dir, "aggregate.json"), "w", encoding="utf-8") as fh:
         json.dump(agg, fh, indent=1)
