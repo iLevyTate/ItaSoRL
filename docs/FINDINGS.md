@@ -4130,6 +4130,10 @@ required." The seed-paired difference from `C1` is +0.063 [-0.015, +0.141] for `
 +0.011 [-0.024, +0.047] for `S-immortal`; neither interval excludes zero. The stakes rule is not
 testable without a scarce rung, and no wording about survival specificity is earned.
 
+*(Note 2026-10-12: the leakage gate on `T-touch` summed the homeostatic reward, not pellets
+consumed. The channel now uses the trained reward, and a pellet count is gated beside it.
+The 0.796 figure stays as recorded. The matched-world rerun is section 21.)*
+
 ### 18.3 Does the agent use the decoded direction?
 
 Mechanism readouts (`mechanism.json` in each run directory), frozen rules:
@@ -5329,3 +5333,22 @@ reward leakage, were stored for the pooled worlds, not for the balanced pairs.
 
 The runner prints MET next to the pooled survival means 0.758 (`B1`) and 0.835 (`B2`).
 That line is the 800000/850000 readout. The spec does not use it.
+
+**Sensory-echo control, frozen before any trained arm was scored under it.** Spec
+`docs/specs/2026-10-13-balanced-sensory-echo-design.md`, committed at `3d85f11`. The control
+is the 2026-09-26 instantaneous basis `[x_t, x_{t-1}]`, fit in-fold, on the same base-910000
+pairs. Artifacts: `artifacts/balanced_confirmation/sensory_echo_b1.json` and
+`sensory_echo_b2.json`. Every regenerated target matches the recorded balanced target, every
+pair was kept, and the first states match.
+
+The floor clause holds. Untrained `resid_obs` is 0.596 [0.577, 0.615], 0.096 from 0.5, inside
+the 0.1 band. The same ten scores appear in both runs. The trained clause then holds on both
+runs. Survival, `B1`: 0.761 [0.727, 0.795], 10 of 10 seeds at or above 0.65, 0.164 above the
+untrained mean, with the interval's lower bound 0.131 above that mean. Pellets, `B2`: 0.780
+[0.757, 0.804], 10 of 10 seeds, 0.184 above the untrained mean, lower bound 0.161 above it.
+Both rows are sensory-independent under matched worlds. The predictor sits at 0.645 [0.618,
+0.673] in both runs. The joint sensory-plus-behavior control, which no rule reads, leaves
+0.675 [0.650, 0.699] on `B1` and 0.648 [0.630, 0.665] on `B2`.
+
+On the `B2` pooled worlds the corrected leakage gate, trained reward and pellets consumed, is
+clean in 60 of 60 pools. The largest deviation from 0.5 is 0.076.

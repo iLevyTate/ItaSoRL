@@ -972,7 +972,8 @@ RUNS = [
         notes="Pooled population probe; individual detectors encoded in unaligned "
               "directions are not measured (revision step 12)."),
     run("B1-BALANCED", "Balanced confirmation, survival objective, seeds 10-19",
-        experiment="B-v2 L3", artifacts=["balanced_confirmation/b1.json"],
+        experiment="B-v2 L3", artifacts=["balanced_confirmation/b1.json",
+                                         "balanced_confirmation/sensory_echo_b1.json"],
         trains_survival=True, survival_trainer="successor_value", status="corrected",
         commit_at_run="2c170f0", agent_seeds=list(range(10, 20)), surrogate=L3_H8,
         folds="explicit", device="owner's laptop GPU, 1 worker, RTX 4050",
@@ -981,9 +982,11 @@ RUNS = [
         eval_seeds={"balanced_pairs": "910000, same base for both worlds, 110 episodes",
                     "pooled_secondary": "800000 / 850000"},
         notes="docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: "
-              "the untrained balanced mean is 0.114 from 0.5. FINDINGS 21."),
+              "the untrained balanced mean is 0.114 from 0.5. The 2026-10-13 sensory-echo "
+              "control on the same pairs meets its frozen rule (resid_obs 0.761). FINDINGS 21."),
     run("B2-BALANCED", "Balanced confirmation, pellet objective, death off, seeds 10-19",
-        experiment="B-v2 L3", artifacts=["balanced_confirmation/b2.json"],
+        experiment="B-v2 L3", artifacts=["balanced_confirmation/b2.json",
+                                         "balanced_confirmation/sensory_echo_b2.json"],
         trains_survival=True, survival_trainer="successor_value", status="corrected",
         commit_at_run="2c170f0", agent_seeds=list(range(10, 20)), surrogate=L3_H8,
         folds="explicit", device="owner's laptop GPU, 1 worker, RTX 4050",
@@ -993,7 +996,9 @@ RUNS = [
                     "pooled_secondary": "800000 / 850000"},
         config={"objective": "touch", "mortal": False, "adv_norm": "historical"},
         notes="docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: "
-              "the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. FINDINGS 21."),
+              "the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. "
+              "The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule "
+              "(resid_obs 0.780). FINDINGS 21."),
 ]
 
 

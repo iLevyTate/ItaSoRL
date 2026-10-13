@@ -121,3 +121,13 @@ sentence after them.
 
 Nonlinear residualization, a new untrained control, any change to the
 2026-10-12 rule or to the recorded B1/B2 numbers, and retraining.
+
+## Result (2026-10-13)
+
+Both runs finished on CUDA. Integrity held on all 60 cells: every regenerated balanced
+target matched the recorded value, no pair was dropped, and the first states matched.
+The floor clause holds. Untrained `resid_obs` is 0.596 [0.577, 0.615], 0.096 from 0.5,
+the same ten scores in both runs. The trained clause holds on both runs. `B1` survival
+`resid_obs` is 0.761 [0.727, 0.795], 10 of 10 seeds at or above 0.65. `B2` is 0.780
+[0.757, 0.804], 10 of 10. Both are sensory-independent under matched worlds. The
+2026-10-12 routes stay UNINFORMATIVE as recorded. FINDINGS 21.

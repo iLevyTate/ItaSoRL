@@ -3556,7 +3556,8 @@
      "threshold": 0.65,
      "value": {
       "artifact": "balanced_confirmation/b1.json",
-      "path": "balanced/survival/t90/0"
+      "path": "balanced/survival/per_seed",
+      "stat": "t90_lower"
      },
      "reading": "0.772",
      "role": "rule"
@@ -3568,7 +3569,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "balanced_confirmation/b1.json",
-      "path": "balanced/margin_predictor/t90/0"
+      "path": "balanced/margin_predictor/per_seed",
+      "stat": "t90_lower"
      },
      "reading": "0.095",
      "role": "rule"
@@ -3580,7 +3582,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "balanced_confirmation/b1.json",
-      "path": "balanced/margin_untrained/t90/0"
+      "path": "balanced/margin_untrained/per_seed",
+      "stat": "t90_lower"
      },
      "reading": "0.161",
      "role": "rule"
@@ -3591,8 +3594,14 @@
      "op": "<",
      "threshold": 0.1,
      "value": {
-      "artifact": "balanced_confirmation/b1.json",
-      "path": "gates/untrained_dev"
+      "minus": [
+       {
+        "artifact": "balanced_confirmation/b1.json",
+        "path": "balanced/untrained/per_seed",
+        "stat": "mean"
+       },
+       {"const": 0.5}
+      ]
      },
      "reading": "0.114",
      "role": "gate"
@@ -3623,7 +3632,8 @@
      "threshold": 0.65,
      "value": {
       "artifact": "balanced_confirmation/b2.json",
-      "path": "balanced/survival/t90/0"
+      "path": "balanced/survival/per_seed",
+      "stat": "t90_lower"
      },
      "reading": "0.825",
      "role": "rule"
@@ -3635,7 +3645,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "balanced_confirmation/b2.json",
-      "path": "balanced/margin_predictor/t90/0"
+      "path": "balanced/margin_predictor/per_seed",
+      "stat": "t90_lower"
      },
      "reading": "0.143",
      "role": "rule"
@@ -3647,7 +3658,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "balanced_confirmation/b2.json",
-      "path": "balanced/margin_untrained/t90/0"
+      "path": "balanced/margin_untrained/per_seed",
+      "stat": "t90_lower"
      },
      "reading": "0.212",
      "role": "rule"
@@ -3658,10 +3670,204 @@
      "op": "<",
      "threshold": 0.1,
      "value": {
-      "artifact": "balanced_confirmation/b2.json",
-      "path": "gates/untrained_dev"
+      "minus": [
+       {
+        "artifact": "balanced_confirmation/b2.json",
+        "path": "balanced/untrained/per_seed",
+        "stat": "mean"
+       },
+       {"const": 0.5}
+      ]
      },
      "reading": "0.114",
+     "role": "gate"
+    }
+   ]
+  },
+  {
+   "id": "B1-BALANCED-ECHO",
+   "rule": "Balanced sensory-echo control (2026-10-13 spec): floor, then bar, margin, and t90 lower bound",
+   "short": "Balanced sensory echo, survival",
+   "source": "docs/specs/2026-10-13-balanced-sensory-echo-design.md",
+   "source_part": "Decision rules",
+   "frozen": "2026-10-13",
+   "run": "B1-BALANCED",
+   "trainer": "successor",
+   "n": 10,
+   "clauses_hold": true,
+   "gates_hold": true,
+   "outcome": "passes: sensory-independent under matched worlds",
+   "outcome_class": "threshold met",
+   "recorded_in": "FINDINGS 21",
+   "note": "The 2026-10-12 balanced confirmation stays UNINFORMATIVE. This row is the sensory control on the same pairs.",
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "balanced_confirmation/sensory_echo_b1.json",
+      "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+      "stat": "mean"
+     },
+     "reading": "0.761",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b1.json",
+        "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+        "stat": "mean"
+       },
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b1.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.164",
+     "role": "rule"
+    },
+    {
+     "clause": "t90 lower bound minus the untrained mean",
+     "basis": "difference",
+     "op": ">",
+     "threshold": 0.0,
+     "value": {
+      "minus": [
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b1.json",
+        "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+        "stat": "t90_lower"
+       },
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b1.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.131",
+     "role": "rule"
+    },
+    {
+     "clause": "untrained floor",
+     "basis": "absolute deviation of the untrained resid_obs mean from 0.5",
+     "op": "<=",
+     "threshold": 0.1,
+     "value": {
+      "minus": [
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b1.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       },
+       {"const": 0.5}
+      ]
+     },
+     "reading": "0.096",
+     "role": "gate"
+    }
+   ]
+  },
+  {
+   "id": "B2-BALANCED-ECHO",
+   "rule": "Balanced sensory-echo control (2026-10-13 spec): floor, then bar, margin, and t90 lower bound",
+   "short": "Balanced sensory echo, pellets",
+   "source": "docs/specs/2026-10-13-balanced-sensory-echo-design.md",
+   "source_part": "Decision rules",
+   "frozen": "2026-10-13",
+   "run": "B2-BALANCED",
+   "trainer": "successor",
+   "n": 10,
+   "clauses_hold": true,
+   "gates_hold": true,
+   "outcome": "passes: sensory-independent under matched worlds",
+   "outcome_class": "threshold met",
+   "recorded_in": "FINDINGS 21",
+   "note": "The untrained resid_obs scores match B1-BALANCED-ECHO. The joint sensory-plus-behavior control is reported and is not this rule.",
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "balanced_confirmation/sensory_echo_b2.json",
+      "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+      "stat": "mean"
+     },
+     "reading": "0.780",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b2.json",
+        "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+        "stat": "mean"
+       },
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b2.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.184",
+     "role": "rule"
+    },
+    {
+     "clause": "t90 lower bound minus the untrained mean",
+     "basis": "difference",
+     "op": ">",
+     "threshold": 0.0,
+     "value": {
+      "minus": [
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b2.json",
+        "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+        "stat": "t90_lower"
+       },
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b2.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.161",
+     "role": "rule"
+    },
+    {
+     "clause": "untrained floor",
+     "basis": "absolute deviation of the untrained resid_obs mean from 0.5",
+     "op": "<=",
+     "threshold": 0.1,
+     "value": {
+      "minus": [
+       {
+        "artifact": "balanced_confirmation/sensory_echo_b2.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       },
+       {"const": 0.5}
+      ]
+     },
+     "reading": "0.096",
      "role": "gate"
     }
    ]

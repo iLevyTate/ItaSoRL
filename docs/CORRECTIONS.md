@@ -797,3 +797,17 @@ recorded L1 number stands.
 **What this does not change.** The L1 negative (state 0.533, stream 0.590). The ceiling the
 paper quotes (0.873) is the grid-residual oracle, which understates what the agent's own
 stream carries. The negative is read against the higher ceiling from here on.
+
+## 2026-10-12: the pellet run's leakage gate summed the homeostatic reward
+
+**What was wrong.** `collect_pool` and the matched-pair branch added `r.reward` regardless of
+the training objective. Under the pellet objective the trained reward is 1.0 per pellet
+consumed. `T-touch`, reported at 0.796 with every gate passing, never had that reward gated.
+The stored leakage block on those cells has `reward_sum` and no `pellets_consumed` key.
+
+**Change.** Both accumulators now add `task_reward(r)`, and the leakage audit gates
+`pellets_consumed` when the pool records it. The 0.796 figure stays as recorded. The
+matched-world rerun is FINDINGS 21.
+
+**What this does not change.** No committed `T-touch` number. The historical leakage readings
+on survival and predictor runs used the reward those runs trained on, so they stand.

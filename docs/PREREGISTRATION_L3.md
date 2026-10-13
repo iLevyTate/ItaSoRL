@@ -1375,6 +1375,14 @@ Rigor carried from the B-v3 audit (2026-07-10):
   The trained-arm intervals clear the bar and the margins descriptively (`B1` 0.800
   [0.772, 0.829], `B2` 0.843 [0.825, 0.860]). FINDINGS 21. No registered threshold moved.
 
+- **2026-10-13 - balanced sensory-echo control, result.**
+  `docs/specs/2026-10-13-balanced-sensory-echo-design.md` was committed at `3d85f11` before
+  any trained arm was scored under the control. On the same base-910000 pairs, regressing
+  out `[x_t, x_{t-1}]` puts the untrained arm at 0.596, 0.096 from 0.5, inside the 0.1 floor.
+  `B1` survival `resid_obs` is 0.761 [0.727, 0.795] and `B2` is 0.780 [0.757, 0.804]. Both
+  meet the frozen rule (sensory-independent under matched worlds). The 2026-10-12 routes stay
+  UNINFORMATIVE. FINDINGS 21. No registered threshold moved.
+
 - **2026-10-12 - the capacity grid.** Section 9 registers the surrogate capacity grid
   {8, 16, 24, 32, 48, 64}. `itasorl/experiment_a_l3.py` sweeps (4, 8, 16, 32, 64), and the
   organism runs used hidden 7 and hidden 10 as well. The entries of 2026-07-10, 2026-07-14,

@@ -1111,8 +1111,8 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: owner's laptop GPU, 1 worker, RTX 4050
 - Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3
 - Local run directory (not in git): fullruns/balanced_confirmation_wm
-- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. FINDINGS 21.
-- Artifacts: `artifacts/balanced_confirmation/b1.json`
+- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.761). FINDINGS 21.
+- Artifacts: `artifacts/balanced_confirmation/b1.json`, `artifacts/balanced_confirmation/sensory_echo_b1.json`
 
 ### `B2-BALANCED`: Balanced confirmation, pellet objective, death off, seeds 10-19
 
@@ -1126,6 +1126,6 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: owner's laptop GPU, 1 worker, RTX 4050
 - Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3
 - Local run directory (not in git): fullruns/balanced_confirmation_touch
-- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. FINDINGS 21.
+- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.780). FINDINGS 21.
 - Config (beyond the standard protocol): {"objective": "touch", "mortal": false, "adv_norm": "historical"}
-- Artifacts: `artifacts/balanced_confirmation/b2.json`
+- Artifacts: `artifacts/balanced_confirmation/b2.json`, `artifacts/balanced_confirmation/sensory_echo_b2.json`

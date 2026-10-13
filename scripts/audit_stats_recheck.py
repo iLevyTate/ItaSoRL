@@ -7,8 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are. The count on 2026-10-12 was 67 pinned of 2721, and the L1 observation-ceiling
-rows added the same day raise the total. It also checks that the generated pages
+many there are. The count on 2026-10-13 is 67 pinned of 2933. It also checks that the generated pages
 (index.html, the results manifest, the gate table, the contrast intervals, the manuscript
 tables) match a fresh render, and that retired wording has not returned to the pages it
 watches. Fails loudly (non-zero exit) on any mismatch beyond rounding.
@@ -2810,6 +2809,41 @@ def main() -> int:
         check_true(f"FINDINGS 21 quotes {_rid} margin lower bounds",
                    f"{_mp:.3f}" in _f21 and f"{_mu:.3f}" in _f21)
     check_true("FINDINGS 21 names the decision", "Both runs are UNINFORMATIVE" in _f21)
+    for _ename, _mean, _lo, _hi in (
+            ("sensory_echo_b1.json", 0.761, 0.727, 0.795),
+            ("sensory_echo_b2.json", 0.780, 0.757, 0.804)):
+        _ed = _load_art("balanced_confirmation", _ename)
+        check_true(f"21 {_ename} integrity", _ed["integrity"]["all_match"] is True
+                   and _ed["integrity"]["mismatches"] == [])
+        check_int(f"21 {_ename} cells", len(_ed["cells"]), 30)
+        check_true(f"21 {_ename} recorded targets reproduce",
+                   max(c["target_abs_diff"] for c in _ed["cells"]) <= 5e-4
+                   and all(c["dropped_pairs"] == 0 and c["identical_first_state"] for c in _ed["cells"]))
+        check(f"21 {_ename} untrained resid_obs matches B1",
+              float(np.mean(_ed["aggregate"]["d=0.45 untrained"]["resid_obs"]["per_seed"])),
+              0.5963223140495867)
+        for _arm in ("survival", "predictor", "untrained"):
+            for _met in ("target", "obs_trace_only", "resid_trace", "resid_obs",
+                         "resid_obs_int", "resid_obs_beh"):
+                _blk = _ed["aggregate"][f"d=0.45 {_arm}"][_met]
+                _ps = np.asarray(_blk["per_seed"], float)
+                check(f"21 {_ename} {_arm} {_met} mean", float(_ps.mean()), float(_blk["mean"]))
+                _tlo, _thi = t_ci90(_ps)
+                check(f"21 {_ename} {_arm} {_met} t90 lo", float(_tlo), float(_blk["t90"][0]))
+                check(f"21 {_ename} {_arm} {_met} t90 hi", float(_thi), float(_blk["t90"][1]))
+        _sv = _ed["aggregate"]["d=0.45 survival"]["resid_obs"]
+        _un = float(np.mean(_ed["aggregate"]["d=0.45 untrained"]["resid_obs"]["per_seed"]))
+        _decb = _ed["decision_balanced"]
+        check_true(f"21 {_ename} floor explained",
+                   abs(_un - 0.5) <= 0.1 and _decb["floor_explained"] is True)
+        check_true(f"21 {_ename} trained clause",
+                   float(_sv["mean"]) >= 0.65 and float(_sv["mean"]) > _un + 0.05
+                   and float(_sv["t90"][0]) > _un and _decb["pass_bar"] and _decb["pass_margin"]
+                   and _decb["t90_lo_above_untrained"])
+        check_true(f"FINDINGS 21 quotes {_ename} resid_obs",
+                   f"{_mean:.3f} [{_lo:.3f}, {_hi:.3f}]" in _f21)
+    check_true("FINDINGS 21 names the sensory-echo decision",
+               "sensory-independent under matched worlds" in _f21)
 
     print()
     print(f"pins: {n_pins} of {n_checks} checks compare a value as stored in an artifact with a "

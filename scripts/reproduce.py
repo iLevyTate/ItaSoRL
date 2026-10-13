@@ -450,6 +450,7 @@ def image_reviewed(data: bytes, reviewed=None) -> bool:
 INCLUDE_DIRS = ["itasorl", "scripts", "tests", "artifacts"]
 INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "pytest.ini",
                  "ruff.toml", "LICENSE",
+                 "constraints-cpu-corrected.txt", "constraints-workstation.txt",
                  "docs/FINDINGS.md", "docs/CORRECTIONS.md", "docs/REVISION_2026-10.md",
                  "docs/RESULTS_MANIFEST.md", "docs/GATE_TABLE.md", "docs/CONTRAST_INTERVALS.md",
                  "docs/METHODS_ARMS.md", "docs/REPRODUCE.md", "docs/PAPER_OUTLINE.md",
