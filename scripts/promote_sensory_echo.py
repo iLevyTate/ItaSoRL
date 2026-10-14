@@ -24,6 +24,8 @@ import json
 import os
 import subprocess
 
+import audit_sensory_echo as ase
+
 from promote_bv3_gates import repo_rel
 
 METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh",
@@ -78,7 +80,32 @@ def promote(run_dir: str, out_path: str, head: str | None = None) -> dict:
         out["objective"] = agg["objective"]
         out["mortal"] = agg["mortal"]
         out["stack"] = agg.get("stack")
-        out["decision_balanced"] = agg.get("decision_balanced")
+        recomputed = ase.aggregate(
+            cells, [0.45], ["survival", "predictor", "untrained"],
+            hidden=int(agg["hidden"]), g_seed=int(agg["g_seed"]),
+            n_eps=int(agg["n_eps"]), steps=int(agg["steps"]),
+            quick=bool(agg.get("quick")), device=str(agg.get("device") or "cpu"),
+            mismatches=list((agg.get("integrity") or {}).get("mismatches") or []),
+            balanced_seed_base=int(agg.get("balanced_seed_base") or 0),
+            objective=str(agg.get("objective") or "survival"),
+            mortal=bool(agg.get("mortal", True)),
+            expected_keys=set(ase.BALANCED_SPEC_KEYS))
+        out["decision_balanced"] = recomputed.get("decision_balanced")
+        out["aggregate"] = {key: value for key, value in recomputed.items() if key.startswith("d=")}
+        out["integrity"]["adjudication_blockers"] = recomputed["integrity"]["adjudication_blockers"]
+    else:
+        raw_keys = agg.get("declared_keys")
+        expected = ({(str(drift), int(seed), str(arm)) for drift, seed, arm in raw_keys}
+                    if raw_keys else None)
+        blockers = ase.adjudication_blockers(
+            cells, quick=bool(agg.get("quick")),
+            mismatches=list((agg.get("integrity") or {}).get("mismatches") or []),
+            balanced=False, expected_keys=expected)
+        if blockers:
+            out["decision"] = ase._withhold(out.get("decision"), blockers)
+            if out.get("decision_nonlinear"):
+                out["decision_nonlinear"] = ase._withhold(out["decision_nonlinear"], blockers)
+            out["integrity"]["adjudication_blockers"] = blockers
     d = os.path.dirname(out_path)
     if d:
         os.makedirs(d, exist_ok=True)

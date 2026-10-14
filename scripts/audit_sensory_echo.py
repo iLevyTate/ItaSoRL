@@ -72,6 +72,14 @@ TARGET_TOL = 5e-4        # balanced integrity: regenerated target reproduces the
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh",
            "resid_obs_mlp", "resid_obs_beh_mlp")
+# Decision metrics. A partial or non-finite value here is not a smaller sample.
+REQUIRED_METRICS = ("target", "resid_obs")
+# Frozen balanced-control population: drift 0.45, seeds 10-19, three arms.
+BALANCED_SPEC_KEYS = {
+    ("0.45", seed, arm)
+    for seed in range(10, 20)
+    for arm in ("survival", "predictor", "untrained")
+}
 
 
 def stack_record(device: str) -> dict:
@@ -123,6 +131,98 @@ def fmt_drift(d: float) -> str:
     return f"{d:.2f}"
 
 
+def _is_finite(value) -> bool:
+    """True only for a real number. NaN fails this; abs(NaN - x) > tol does not."""
+    try:
+        return bool(np.isfinite(float(value)))
+    except (TypeError, ValueError):
+        return False
+
+
+def cell_key(cell: dict) -> tuple[str, int, str] | None:
+    try:
+        return (str(cell["drift"]), int(cell["seed"]), str(cell["agent"]))
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def declared_cell_keys(agents_dir: str, drifts, arms, quick: bool) -> set[tuple[str, int, str]]:
+    """The seed, arm and drift set the agent files say this run was supposed to score."""
+    keys: set[tuple[str, int, str]] = set()
+    if not agents_dir or not os.path.isdir(agents_dir):
+        return keys
+    drift_ok = {fmt_drift(d) for d in drifts}
+    for name in os.listdir(agents_dir):
+        m = AGENT_RE.search(name)
+        if not m:
+            continue
+        drift, seed, arm = fmt_drift(float(m.group(1))), int(m.group(2)), m.group(3)
+        if arm not in arms or drift not in drift_ok or (quick and seed != 0):
+            continue
+        keys.add((drift, seed, arm))
+    return keys
+
+
+def adjudication_blockers(cells: list[dict], *, quick: bool, mismatches: list[str],
+                          balanced: bool, expected_keys: set | None) -> list[str]:
+    """Reasons a positive verdict is not available. Diagnostic scores may still be kept.
+
+    A pass needs a declared cell set, unique keys, finite required metrics, checked
+    integrity, and, in balanced mode, the pair bookkeeping. Quick and no-abort
+    mismatch paths are diagnostic only.
+    """
+    problems: list[str] = []
+    if quick:
+        problems.append("quick or diagnostic run")
+    if mismatches:
+        problems.append("integrity mismatch")
+    keys: list[tuple[str, int, str]] = []
+    for cell in cells:
+        key = cell_key(cell)
+        if key is None:
+            problems.append("cell missing drift, seed, or arm")
+            continue
+        keys.append(key)
+        where = f"{key[0]} s{key[1]} {key[2]}"
+        if any(not _is_finite(cell.get(met)) for met in REQUIRED_METRICS):
+            problems.append(f"non-finite target or resid_obs at {where}")
+        match = cell.get("integrity_match")
+        if match is not None and not bool(match):
+            problems.append(f"integrity_match false at {where}")
+        if balanced:
+            dropped = cell.get("dropped_pairs")
+            if cell.get("identical_first_state") is not True or dropped != 0:
+                problems.append(f"pair bookkeeping failed at {where}")
+            if not _is_finite(cell.get("recorded_target")) or not _is_finite(cell.get("target_abs_diff")):
+                problems.append(f"non-finite recorded target at {where}")
+            elif float(cell["target_abs_diff"]) > TARGET_TOL:
+                problems.append(f"target gap above tolerance at {where}")
+    if len(keys) != len(set(keys)):
+        problems.append("duplicate cell key")
+    if expected_keys is None:
+        if balanced:
+            problems.append("declared cell set missing")
+    elif set(keys) != set(expected_keys):
+        problems.append("cell set does not match the declared seed, arm, and drift set")
+    seen: list[str] = []
+    for problem in problems:
+        if problem not in seen:
+            seen.append(problem)
+    return seen
+
+
+def _withhold(decision: dict | None, blockers: list[str]) -> dict | None:
+    """Keep diagnostic fields, and refuse every pass flag when a blocker fired."""
+    if not blockers:
+        return decision
+    kept = dict(decision or {})
+    kept["pass_bar"] = False
+    kept["pass_margin"] = False
+    kept["t90_lo_above_untrained"] = False
+    kept["zone"] = "WITHHELD: " + "; ".join(blockers)
+    return kept
+
+
 def collect_cell(agent, norm, drift: float, *, n_eps: int, steps: int, device: str,
                  balanced_seed_base: int | None):
     """Regenerate one cell's pools. Pooled mode draws authentic and surrogate pools from
@@ -157,11 +257,19 @@ def balanced_integrity(cells_dir: str, drift: float, seed: int, arm: str, cell: 
     path = os.path.join(cells_dir, f"cell_d{fmt_drift(drift)}_s{seed}.json")
     with open(path, encoding="utf-8") as fh:
         recorded = json.load(fh)["cell"]["agents"][arm]["balanced"]
-    cell["recorded_target"] = float(recorded["target"])
-    cell["target_abs_diff"] = abs(cell["target"] - cell["recorded_target"])
     problems = []
-    if cell["target_abs_diff"] > TARGET_TOL:
-        problems.append(f"target {cell['target']:.6f} vs recorded {cell['recorded_target']:.6f}")
+    recorded_target = recorded.get("target")
+    regenerated = cell.get("target")
+    if not _is_finite(recorded_target) or not _is_finite(regenerated):
+        problems.append("non-finite target")
+        cell["recorded_target"] = recorded_target
+        cell["target_abs_diff"] = None
+    else:
+        cell["recorded_target"] = float(recorded_target)
+        cell["target_abs_diff"] = abs(float(regenerated) - float(recorded_target))
+        if cell["target_abs_diff"] > TARGET_TOL:
+            problems.append(
+                f"target {cell['target']:.6f} vs recorded {cell['recorded_target']:.6f}")
     if not cell.get("identical_first_state"):
         problems.append("first states differ")
     if cell.get("dropped_pairs"):
@@ -177,12 +285,12 @@ def balanced_decision(agg: dict, trained_arm: str = "survival") -> dict:
     untr = agg.get("d=0.45 untrained", {}).get("resid_obs")
     trained = agg.get(f"d=0.45 {trained_arm}", {}).get("resid_obs")
     out: dict = {"floor_dev": FLOOR_DEV}
-    if untr is None:
+    if not untr or "mean" not in untr:
         return out
     dev = abs(untr["mean"] - 0.5)
     out.update(untrained_resid_obs=untr["mean"], untrained_dev=dev,
                floor_explained=bool(dev <= FLOOR_DEV))
-    if trained is None:
+    if not trained or "mean" not in trained:
         return out
     s, u = trained["mean"], untr["mean"]
     out.update(trained_resid_obs=s, trained_t90=trained["t90"], pass_bar=bool(s >= BAR),
@@ -198,36 +306,82 @@ def balanced_decision(agg: dict, trained_arm: str = "survival") -> dict:
     return out
 
 
+def _arm_complete(rows: list[dict], expected_keys: set | None, drift: str, arm: str) -> bool:
+    if expected_keys is None:
+        return False
+    wanted = {key for key in expected_keys if key[0] == drift and key[2] == arm}
+    found = [cell_key(row) for row in rows]
+    return bool(wanted) and set(found) == wanted and len(found) == len(set(found))
+
+
+def _metric_block(rows: list[dict], met: str, *, complete: bool) -> dict | None:
+    """A decision-ready mean exists only when every row has a finite value.
+
+    A missing or non-finite row is not dropped from the sample. The block then
+    keeps the diagnostic values and carries no mean.
+    """
+    if any(met not in row for row in rows):
+        return None
+    present = [row[met] for row in rows]
+    finite = [float(value) for value in present if _is_finite(value)]
+    if len(finite) != len(rows) or not complete:
+        return {"per_seed": [float(value) if _is_finite(value) else None for value in present],
+                "n_seeds": len(finite), "n_rows": len(rows), "complete": False}
+    mean, lo, hi = mean_ci(finite)
+    tlo, thi = t_ci90(finite) if len(finite) > 1 else (float("nan"), float("nan"))
+    return {"per_seed": finite, "mean": float(mean),
+            "boot90": [float(lo), float(hi)],
+            "t90": [float(tlo), float(thi)], "n_seeds": len(finite),
+            "n_ge_065": int(sum(value >= BAR for value in finite))}
+
+
+def _seal(agg: dict, cells: list[dict], *, quick: bool, mismatches: list[str],
+          balanced: bool, expected_keys: set | None) -> dict:
+    blockers = adjudication_blockers(cells, quick=quick, mismatches=mismatches,
+                                     balanced=balanced, expected_keys=expected_keys)
+    agg["integrity"]["adjudication_blockers"] = blockers
+    if expected_keys is not None:
+        agg["declared_keys"] = [list(key) for key in sorted(expected_keys)]
+    key = "decision_balanced" if balanced else "decision"
+    sealed = _withhold(agg.get(key), blockers)
+    if sealed is not None:
+        agg[key] = sealed
+    if not balanced and "decision_nonlinear" in agg:
+        agg["decision_nonlinear"] = _withhold(agg["decision_nonlinear"], blockers)
+    return agg
+
+
 def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_eps: int,
               steps: int, quick: bool, device: str, mismatches: list[str],
               balanced_seed_base: int | None = None, objective: str = "survival",
-              mortal: bool = True) -> dict:
+              mortal: bool = True, expected_keys: set | None = None) -> dict:
     """Across-seed aggregation plus the frozen decision rule. Every value is a plain
-    Python float/bool/list so the result is JSON-serializable."""
+    Python float/bool/list so the result is JSON-serializable.
+
+    A positive zone requires `expected_keys` and a cell list that matches it, with
+    finite required metrics and clean integrity. Otherwise the zone is WITHHELD.
+    """
+    balanced = balanced_seed_base is not None
     agg: dict = {"hidden": hidden, "g_seed": g_seed, "n_eps": n_eps, "steps": steps,
                  "quick": quick, "device": device, "bar": BAR, "margin": MARGIN,
-                 "mode": "pooled" if balanced_seed_base is None else "balanced",
+                 "mode": "pooled" if not balanced else "balanced",
                  "balanced_seed_base": balanced_seed_base, "objective": objective,
                  "mortal": bool(mortal), "stack": stack_record(device),
                  "integrity": {"checked": not quick, "mismatches": list(mismatches),
                                "all_match": (not mismatches) if not quick else None}}
     for d in drifts:
+        drift = fmt_drift(d)
         for arm in arms:
-            rows = [c for c in cells if c["drift"] == fmt_drift(d) and c["agent"] == arm]
+            rows = [c for c in cells if c["drift"] == drift and c["agent"] == arm]
             if not rows:
                 continue
-            key = f"d={fmt_drift(d)} {arm}"
+            key = f"d={drift} {arm}"
             agg[key] = {}
+            arm_ok = _arm_complete(rows, expected_keys, drift, arm)
             for met in METRICS:
-                vals = [float(r[met]) for r in rows if met in r and np.isfinite(r[met])]
-                if not vals:
-                    continue
-                mean, lo, hi = mean_ci(vals)
-                tlo, thi = t_ci90(vals) if len(vals) > 1 else (float("nan"), float("nan"))
-                agg[key][met] = {"per_seed": vals, "mean": float(mean),
-                                 "boot90": [float(lo), float(hi)],
-                                 "t90": [float(tlo), float(thi)], "n_seeds": len(vals),
-                                 "n_ge_065": int(sum(v >= BAR for v in vals))}
+                block = _metric_block(rows, met, complete=arm_ok)
+                if block is not None:
+                    agg[key][met] = block
     surv = agg.get("d=0.45 survival", {})
     untr = agg.get("d=0.45 untrained", {})
     if balanced_seed_base is not None:
@@ -236,15 +390,17 @@ def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_ep
         # floor-then-trained rule.
         agg["integrity"]["fold_scheme"] = folds.current_scheme()
         agg["decision_balanced"] = balanced_decision(agg)
-        return agg
+        return _seal(agg, cells, quick=quick, mismatches=mismatches, balanced=True,
+                     expected_keys=expected_keys)
     ref = folds.reference_survival_target(hidden, strict=False)
-    if "target" in surv and not quick:
+    if "target" in surv and "mean" in surv["target"] and not quick:
         agg["integrity"]["survival_target_mean"] = round(surv["target"]["mean"], 3)
         agg["integrity"]["fold_scheme"] = folds.current_scheme()
         agg["integrity"]["published_target"] = ref
         agg["integrity"]["target_reproduced"] = (None if ref is None else bool(
             abs(surv["target"]["mean"] - ref) < 5e-4))
-    if "resid_obs" in surv and "resid_obs" in untr:
+    if ("resid_obs" in surv and "resid_obs" in untr
+            and "mean" in surv["resid_obs"] and "mean" in untr["resid_obs"]):
         s, u = surv["resid_obs"]["mean"], untr["resid_obs"]["mean"]
         rule = {"survival_resid_obs": s, "untrained_resid_obs": u,
                 "survival_t90": surv["resid_obs"]["t90"],
@@ -257,7 +413,8 @@ def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_ep
         else:
             rule["zone"] = "LARGELY SENSORY-MEDIATED"
         agg["decision"] = rule
-    if "resid_obs_beh_mlp" in surv and "resid_obs_beh_mlp" in untr:
+    if ("resid_obs_beh_mlp" in surv and "resid_obs_beh_mlp" in untr
+            and "mean" in surv["resid_obs_beh_mlp"] and "mean" in untr["resid_obs_beh_mlp"]):
         s, u = surv["resid_obs_beh_mlp"]["mean"], untr["resid_obs_beh_mlp"]["mean"]
         nl = {"survival_resid_obs_beh_mlp": s, "untrained_resid_obs_beh_mlp": u,
               "survival_t90": surv["resid_obs_beh_mlp"]["t90"],
@@ -269,7 +426,8 @@ def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_ep
         else:
             nl["zone"] = "LARGELY EXPLAINED by nonlinear mirroring of inputs and behavior"
         agg["decision_nonlinear"] = nl
-    return agg
+    return _seal(agg, cells, quick=quick, mismatches=mismatches, balanced=False,
+                 expected_keys=expected_keys)
 
 
 def main() -> int:
@@ -366,10 +524,14 @@ def main() -> int:
         with open(os.path.join(a.out_dir, "cells.json"), "w", encoding="utf-8") as fh:
             json.dump(cells, fh, indent=1)
 
+    if balanced and not a.quick:
+        expected = set(BALANCED_SPEC_KEYS)
+    else:
+        expected = declared_cell_keys(a.agents_dir, a.drifts, a.arms, a.quick)
     agg = aggregate(cells, a.drifts, a.arms, hidden=a.hidden, g_seed=a.g_seed, n_eps=n_eps,
                     steps=steps, quick=a.quick, device=dev, mismatches=mismatches,
                     balanced_seed_base=a.balanced_seed_base, objective=a.objective,
-                    mortal=a.mortal == "on")
+                    mortal=a.mortal == "on", expected_keys=expected)
     if "decision_balanced" in agg:
         print("\nDECISION (balanced, frozen 2026-10-13 rule, drift 0.45):",
               json.dumps(agg["decision_balanced"], indent=1))

@@ -58,9 +58,60 @@ def test_balanced_run_promotes_pair_bookkeeping_and_balanced_decision(tmp_path):
     assert "balanced_confirmation_touch/agents" in out["agents"]
     assert out["mode"] == "balanced" and out["objective"] == "touch" and out["mortal"] is False
     assert out["balanced_seed_base"] == 910000 and out["stack"]["torch"] == "2.7.0+cu126"
-    assert out["decision"] is None and out["decision_balanced"]["floor_explained"] is True
+    assert out["decision"] is None
+    assert out["decision_balanced"]["zone"].startswith("WITHHELD")
+    assert out["decision_balanced"]["pass_bar"] is False
     cell = out["cells"][0]
     assert cell["recorded_target"] == 0.5938 and cell["n_pairs"] == 110 and "extra" not in cell
+
+
+def _balanced_cells(resid_obs=0.76, untrained=0.52):
+    cells = []
+    for seed in range(10, 20):
+        for arm, level in (("survival", resid_obs), ("predictor", 0.60), ("untrained", untrained)):
+            cells.append({
+                "drift": "0.45", "seed": seed, "agent": arm, "n_auth": 110, "n_surr": 110,
+                "n_pairs": 110, "dropped_pairs": 0, "identical_first_state": True,
+                "recorded_target": 0.70, "target_abs_diff": 0.0, "integrity_match": True,
+                **{metric: level for metric in pse.METRICS},
+            })
+    return cells
+
+
+def test_complete_balanced_bundle_keeps_the_recorded_pass(tmp_path):
+    run = tmp_path / "fullruns" / "balanced_confirmation_wm" / "sensory_echo"
+    run.mkdir(parents=True)
+    cells = _balanced_cells()
+    agg = {"hidden": 8, "g_seed": 0, "n_eps": 110, "steps": 24, "quick": False, "device": "cuda",
+           "bar": 0.65, "margin": 0.05, "mode": "balanced", "balanced_seed_base": 910000,
+           "objective": "survival", "mortal": True, "stack": {"torch": "2.7.0+cu126"},
+           "integrity": {"checked": True, "mismatches": [], "all_match": True},
+           "decision_balanced": {"zone": "SENSORY-INDEPENDENT under matched worlds (rule passes)"}}
+    (run / "cells.json").write_text(json.dumps(cells), encoding="utf-8")
+    (run / "aggregate.json").write_text(json.dumps(agg), encoding="utf-8")
+    out = pse.promote(str(run), str(tmp_path / "o.json"), head="abc")
+    assert out["decision_balanced"]["zone"].startswith("SENSORY-INDEPENDENT")
+    assert out["decision_balanced"]["pass_bar"] is True
+    assert abs(out["decision_balanced"]["trained_resid_obs"] - 0.76) < 1e-9
+    assert out["integrity"]["adjudication_blockers"] == []
+
+
+def test_balanced_promotion_rejects_a_passing_zone_on_a_nan_cell(tmp_path):
+    run = tmp_path / "fullruns" / "balanced_confirmation_touch" / "sensory_echo"
+    run.mkdir(parents=True)
+    cells = _balanced_cells()
+    cells[0]["resid_obs"] = float("nan")
+    agg = {"hidden": 8, "g_seed": 0, "n_eps": 110, "steps": 24, "quick": False, "device": "cuda",
+           "bar": 0.65, "margin": 0.05, "mode": "balanced", "balanced_seed_base": 910000,
+           "objective": "touch", "mortal": False, "stack": {"torch": "2.7.0+cu126"},
+           "integrity": {"checked": True, "mismatches": [], "all_match": True},
+           "decision_balanced": {"pass_bar": True, "pass_margin": True,
+                                 "zone": "SENSORY-INDEPENDENT under matched worlds (rule passes)"}}
+    (run / "cells.json").write_text(json.dumps(cells), encoding="utf-8")
+    (run / "aggregate.json").write_text(json.dumps(agg), encoding="utf-8")
+    out = pse.promote(str(run), str(tmp_path / "o.json"), head="abc")
+    assert out["decision_balanced"]["zone"].startswith("WITHHELD")
+    assert out["decision_balanced"]["pass_bar"] is False
 
 
 def test_agents_line_follows_the_run_capacity(tmp_path):
