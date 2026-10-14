@@ -67,10 +67,31 @@ scikit-learn 1.9.1, scipy 1.17.1) and `constraints-workstation.txt` (Python 3.13
 torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3). A cell written
 from 2026-10-12 on records the stack it actually ran on.
 
+Erratum, 2026-10-14. NumPy 1.26.4 supports Python 3.9 through 3.12. The PyPI
+release has wheels for cp39 through cp312 and a source tarball, and no cp313
+wheel, so `pip install numpy==1.26.4 --only-binary=:all:` on Python 3.13 has
+nothing to fetch. The workstation copy is a local meson build, wheel tag
+`cp313-cp313-win_amd64`, compiled with MSVC 19.29.30159 and Cython 3.0.12,
+installed by pip for `C:\Python313\python.exe` into the user site-packages.
+The installed tree (1209 files) hashes to
+`675bd7f1f96e6fe6fba53bf7db13ddd50aba480cd34d44dce2ada19af9472c2a`.
+The GPU numbers stay tied to that build. Swapping in a newer NumPy and
+keeping a bit-exact claim against the recorded cells is not supported.
+The original stack lines in the run artifacts are left as written.
+
 ```bash
 python scripts/reproduce.py retrain C1            # print the commands
 python scripts/reproduce.py retrain C1 --execute  # run them
 ```
+
+The matched-world confirmations are readout replays on saved agents, not retrains:
+
+```bash
+python scripts/audit_balanced_matched_gates.py --run fullruns/balanced_confirmation_wm --objective survival --mortal on
+python scripts/audit_balanced_matched_gates.py --run fullruns/balanced_confirmation_touch --objective touch --mortal off
+```
+
+If either bundle is missing from the supplement, README_SUPPLEMENT.md says so. Absence is not inclusion.
 
 Recipes are recorded for the corrected runs `C1` and `C2`, for the historical CPU runs (with
 `--gae-bootstrap pre_transition`, the historical trainer, kept for exact reproduction), and

@@ -811,3 +811,41 @@ matched-world rerun is FINDINGS 21.
 
 **What this does not change.** No committed `T-touch` number. The historical leakage readings
 on survival and predictor runs used the reward those runs trained on, so they stand.
+
+## 2026-10-14: the workstation NumPy pin is not an official Python 3.13 wheel
+
+**What was wrong.** `constraints-workstation.txt` and the balanced-confirmation stack blocks
+name Python 3.13.2 with NumPy 1.26.4. NumPy 1.26.4 supports Python 3.9 through 3.12.
+PyPI has wheels for cp39 through cp312 and a source tarball, and no cp313 wheel.
+
+**What ran.** `C:\Python313\python.exe`, Python 3.13.2, on Windows 11. NumPy 1.26.4
+is a local meson build installed by pip, wheel tag `cp313-cp313-win_amd64`, compiled
+with MSVC 19.29.30159 and Cython 3.0.12, at
+`%APPDATA%\Python\Python313\site-packages\numpy`. The installed tree, 1209 files,
+hashes to `675bd7f1f96e6fe6fba53bf7db13ddd50aba480cd34d44dce2ada19af9472c2a`.
+A binary-only install of the official 1.26.4 package on this interpreter finds no wheel.
+
+**What this does not change.** No recorded cell, target, or verdict. The original stack
+lines in the artifacts stay as written. A newer NumPy is not a substitute for this build
+if the claim is bit-exact.
+
+## 2026-10-14: balanced speed and leakage were scored on the pooled worlds
+
+**What was wrong.** The 2026-10-12 specification asks for the speed probe and the
+leakage channels on the retained pairs at base 910000. `promote_balanced_confirmation.py`
+read `pool.speed` and `pool.pool_leakage`, which are the independent pools at 800000
+and 850000. Engagement stays on its own protocol (the cell's `eng` block, 64 episodes).
+
+**Change.** The promoter keeps those pooled checks and labels their population. A MET
+decision now requires finite matched-pair speed and leakage gates. Missing or non-finite
+channels cannot pass. `paired_pooled_readout` records those channels on the retained
+pairs. The readout script is `scripts/audit_balanced_matched_gates.py`. It does not
+retrain and does not rewrite the historical cells.
+
+**What this does not change.** B1 and B2 stay UNINFORMATIVE. The untrained floor already
+fails, at 0.114 from 0.5. The recorded targets stay.
+
+A later readout on the saved agents, `scripts/audit_balanced_matched_gates.py`,
+scored the retained pairs. Leakage stays within 0.1 of 0.5 in every pool. The
+speed probe is under 0.75 on the untrained arm at seed 19 (0.749) in both runs.
+That readout is not folded back into the historical cell files.

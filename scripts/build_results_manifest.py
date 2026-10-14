@@ -1261,6 +1261,45 @@ def render_md(m: dict) -> str:
             L.append(f"- Config (beyond the standard protocol): {json.dumps(diff)}")
         L.append("- Artifacts: " + ", ".join(f"`artifacts/{a}`" for a in r["artifacts"]))
         L.append("")
+    L += [
+        "## Headline register",
+        "",
+        "Each headline number below is one run, one estimand, and one rule. A recorded "
+        "MET is the historical label. It is not a currently validated full-rule pass "
+        "unless the current-validity line says so. The October 12 raw balanced rule and "
+        "the October 13 sensory rule are different rules.",
+        "",
+        "- C1, `corrected_l3_h8_wm`. Corrected trainer, CPU container (Python 3.11.17, "
+        "NumPy 2.4.6). Pooled estimand, bases 800000 and 850000, seeds 0-9. Bar on the "
+        "t90 lower bound, margins 0.05 on the paired t90 lower bound. Recorded: "
+        "decodability clauses met, L0 open, full rule not met. "
+        "`artifacts/expB2/corrected_l3_h8_wm.json`.",
+        "- C2, `corrected_l3_h8_nowm`. Same stack and pooled estimand, no auxiliary. "
+        "Recorded: decodability clauses not met (0.613, lower bound 0.552). "
+        "`artifacts/expB2/corrected_l3_h8_nowm.json`.",
+        "- Original T-touch. Historical pellet run. Recorded MET at 0.796. Current "
+        "validity: the leakage gate summed the homeostatic reward, so full-rule validity "
+        "was not established. Agents are not on this machine. "
+        "`artifacts/expB2/goal_stakes_T-touch.json`.",
+        "- B1, `balanced_confirmation_wm`. Corrected trainer, GPU workstation, seeds "
+        "10-19, matched pairs at base 910000, survival, mortal. October 12 rule: trained "
+        "t90 lower bound at least 0.65, both margin lower bounds at least 0.05, "
+        "untrained mean within 0.1 of 0.5. Recorded UNINFORMATIVE (untrained 0.614). "
+        "The speed and leakage numbers on the cells are the pooled worlds, not these "
+        "pairs. `artifacts/balanced_confirmation/b1.json`.",
+        "- B2, `balanced_confirmation_touch`. Same seeds and base, pellet objective, "
+        "death off. Same October 12 rule. Recorded UNINFORMATIVE. "
+        "`artifacts/balanced_confirmation/b2.json`.",
+        "- B1 sensory and B2 sensory. Readouts on those saved agents. October 13 rule: "
+        "trained residual mean at least 0.65, mean more than 0.05 above the untrained "
+        "residual, trained t90 lower bound above the untrained mean, untrained mean "
+        "within 0.1 of 0.5. Recorded passes at 0.761 and 0.780. The untrained residual "
+        "0.596 meets the point tolerance; its interval crosses 0.60. "
+        "`artifacts/balanced_confirmation/sensory_echo_b1.json` and `sensory_echo_b2.json`.",
+        "- Selection pilot. Uninformative. No emergence conclusion in either direction. "
+        "`artifacts/expC/`.",
+        "",
+    ]
     return "\n".join(L).rstrip() + "\n"
 
 

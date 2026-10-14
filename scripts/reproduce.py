@@ -472,11 +472,22 @@ INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "
 # drift-0.45 world-sample check and the committed artifacts read from them. A bundle that is
 # absent is reported on the console and in README_SUPPLEMENT.md, never skipped silently.
 RUN_DIRS = ["fullruns/corrected_l3_h8_wm", "fullruns/corrected_l3_h8_nowm",
-            "fullruns/l3_h8_heldout/agents", "fullruns/l3_h8_gseed2_gpu/agents"]
+            "fullruns/l3_h8_heldout/agents", "fullruns/l3_h8_gseed2_gpu/agents",
+            "fullruns/balanced_confirmation_wm", "fullruns/balanced_confirmation_touch"]
 # What the README says about a RUN_DIRS bundle that is absent, beyond "not included".
 RUN_NOTES = {
     "fullruns/corrected_l3_h8_wm": "C1",
     "fullruns/corrected_l3_h8_nowm": "C2",
+    "fullruns/balanced_confirmation_wm": (
+        "B1 is absent. The matched-world survival confirmation and its sensory "
+        "control cannot be replayed from this archive. The committed summaries are "
+        "in artifacts/balanced_confirmation/."
+    ),
+    "fullruns/balanced_confirmation_touch": (
+        "B2 is absent. The matched-world pellet confirmation and its sensory "
+        "control cannot be replayed from this archive. The committed summaries are "
+        "in artifacts/balanced_confirmation/."
+    ),
 }
 
 # What the README says about a RUN_DIRS bundle that is included: where its files came from.
@@ -501,6 +512,18 @@ RUN_INCLUDED_NOTES = {
     "fullruns/l3_h8_gseed2_gpu/agents": (
         "`fullruns/l3_h8_gseed2_gpu/agents` holds the saved agents of the historical hidden-8, "
         "G seed 2 run on GPU (pre-correction trainer)."),
+    "fullruns/balanced_confirmation_wm": (
+        "`fullruns/balanced_confirmation_wm` holds the B1 cells, saved agents, frozen "
+        "normalizers and matched-world sensory-control output. Seed base 910000. "
+        "Replay the matched gates with `python scripts/audit_balanced_matched_gates.py "
+        "--run fullruns/balanced_confirmation_wm --objective survival --mortal on`. "
+        "State dumps rebuild from the agents."),
+    "fullruns/balanced_confirmation_touch": (
+        "`fullruns/balanced_confirmation_touch` holds the B2 cells, saved agents, frozen "
+        "normalizers and matched-world sensory-control output. Seed base 910000, pellet "
+        "objective, death off. Replay the matched gates with "
+        "`python scripts/audit_balanced_matched_gates.py --run "
+        "fullruns/balanced_confirmation_touch --objective touch --mortal off`."),
 }
 
 # Left out of the archive even though they sit under a packaged root, as (pattern, reason).
