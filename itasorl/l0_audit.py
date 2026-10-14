@@ -168,6 +168,34 @@ def _first_state_target(agent, norm, params, base_a, base_b, n, ray_steps, devic
     return grouped_auroc(X, y, np.arange(len(y)))
 
 
+def matched_population_gates(Ha, Hs, spa, sps, rewards_a, rewards_s, pellets_a, pellets_s,
+                             pair_ids, steps: int) -> dict:
+    """Speed positive control and leakage channels on one matched-pair population.
+
+    The speed probe asks whether the state reads high versus low speed, with the
+    median taken on these episodes and both members of a pair kept in one group.
+    Leakage asks whether world identity is readable from the trained reward, pellets,
+    length, or lifetime on those same pairs. A non-finite channel is not a pass.
+    """
+    pair_ids = np.asarray(pair_ids)
+    n = int(len(pair_ids))
+    groups = np.r_[pair_ids, pair_ids]
+    spd = np.concatenate([np.asarray(spa, float), np.asarray(sps, float)])
+    if n >= 5 and spd.size == 2 * n and np.isfinite(spd).all() and float(np.ptp(spd)) > 0:
+        features = episode_features(np.concatenate([Ha, Hs]))
+        speed = float(grouped_auroc(features, (spd > np.median(spd)).astype(int), groups))
+    else:
+        speed = float("nan")
+    auth = [{"label": 0, "reward_sum": float(reward), "pellets_consumed": float(pellets),
+             "length": int(steps), "lifetime": int(steps)}
+            for reward, pellets in zip(rewards_a, pellets_a)]
+    surr = [{"label": 1, "reward_sum": float(reward), "pellets_consumed": float(pellets),
+             "length": int(steps), "lifetime": int(steps)}
+            for reward, pellets in zip(rewards_s, pellets_s)]
+    leak = _b2.leakage_audit_b2(auth, surr, groups=groups)
+    return {"population": "matched pairs", "n_pairs": n, "speed": speed, "leakage": leak}
+
+
 def paired_pooled_readout(agent, norm, params, drift_sigma: float, *, n_eps: int = 110,
                           steps: int = 24, ray_steps: int = 5, device: str = "cpu",
                           seed_base: int = 800_000, seed: int = 0) -> dict:
@@ -184,10 +212,12 @@ def paired_pooled_readout(agent, norm, params, drift_sigma: float, *, n_eps: int
             "paired_pooled_readout: with sensor noise on (SENSOR_SIGMA > 0, the L1 rung) a "
             "world with drift_sigma > 0 seeds its observation noise after its drift stream, "
             "so same-seed twins do not share noise and the pairing is not surrogate-only")
-    Ha, _, ia = collect_pool(agent, norm, params, 0.0, n_eps, steps, device, seed_base,
-                             ray_steps, return_index=True)
-    Hs, _, is_ = collect_pool(agent, norm, params, drift_sigma, n_eps, steps, device,
-                              seed_base, ray_steps, return_index=True)
+    Ha, spa, _, _, _, rwa, _, pca, ia = collect_pool(
+        agent, norm, params, 0.0, n_eps, steps, device, seed_base, ray_steps,
+        return_anchors=True, return_pellets=True, return_index=True)
+    Hs, sps, _, _, _, rws, _, pcs, is_ = collect_pool(
+        agent, norm, params, drift_sigma, n_eps, steps, device, seed_base, ray_steps,
+        return_anchors=True, return_pellets=True, return_index=True)
     common = np.intersect1d(ia, is_)
     sel_a = np.searchsorted(ia, common)
     sel_s = np.searchsorted(is_, common)
@@ -215,4 +245,7 @@ def paired_pooled_readout(agent, norm, params, drift_sigma: float, *, n_eps: int
     y_swap[:len(common)] = np.where(swap, 1, 0)
     y_swap[len(common):] = np.where(swap, 0, 1)
     out["shuffled_within_pair"] = grouped_auroc(X, y_swap, g)
+    out["matched_gates"] = matched_population_gates(
+        Ha[sel_a], Hs[sel_s], spa[sel_a], sps[sel_s], rwa[sel_a], rws[sel_s],
+        pca[sel_a], pcs[sel_s], common, steps)
     return out

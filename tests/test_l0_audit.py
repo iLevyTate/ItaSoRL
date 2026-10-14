@@ -74,6 +74,9 @@ def test_paired_readout_is_exactly_chance_at_L0():
     assert r["n_pairs"] == 12 and r["identical_first_state"] is True
     assert r["target"] == pytest.approx(0.5, abs=1e-12)
     assert r["partition"]["groups_intact"]
+    assert r["matched_gates"]["population"] == "matched pairs"
+    assert r["matched_gates"]["n_pairs"] == 12
+    assert np.isfinite(r["matched_gates"]["leakage"]["reward_sum"])
 
 
 def test_paired_readout_twins_share_the_initial_state_under_drift(monkeypatch):
