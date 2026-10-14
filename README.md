@@ -4,7 +4,9 @@
 
 I raised a small agent from nothing and asked whether it would notice it was
 living in a fake world. Nobody paid it to look. A detector that knows the true
-rules catches a hand-made fake **87%** of the time. The agent's own state reads
+rules ranks a hand-made fake above the real world **87%** of the time (AUROC
+0.873). That is a ranking score, the chance a fake episode is placed above a
+real one, not the share of episodes labeled correctly. The agent's own state reads
 **53%**, barely above a coin flip and well under the 65% bar I set in advance.
 A learned fake reads **73%**, in agents trained both to survive and to predict
 what they will sense next. Drop the prediction task and it reads **61%**. The
