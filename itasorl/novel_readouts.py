@@ -155,25 +155,29 @@ def residualize_incidental(F: dict) -> dict:
     return out
 
 
-def ridge_r2_cv(X: np.ndarray, t: np.ndarray, alpha: float = 1.0) -> float:
-    """Held-out R^2 pooled over the five folds: ridge on columns standardized in fold."""
-    from sklearn.linear_model import Ridge
+ALPHAS = np.logspace(-2, 5, 15)
+
+
+def ridge_r2_cv(X: np.ndarray, t: np.ndarray) -> float:
+    """Held-out R^2 pooled over the five folds: ridge on columns standardized in fold, its
+    strength chosen inside each training fold by leave-one-out over ALPHAS (spec amendment
+    2026-10-15: a fixed alpha of 1.0 failed the spec's permuted-target sanity check)."""
+    from sklearn.linear_model import RidgeCV
     from sklearn.preprocessing import StandardScaler
     pred = np.full(len(t), np.nan)
     for tr, te in _folds(len(t)):
         sc = StandardScaler().fit(X[tr])
-        m = Ridge(alpha=alpha).fit(sc.transform(X[tr]), t[tr])
+        m = RidgeCV(alphas=ALPHAS).fit(sc.transform(X[tr]), t[tr])
         pred[te] = m.predict(sc.transform(X[te]))
     sst = float(((t - t.mean()) ** 2).sum())
     return float(1.0 - ((t - pred) ** 2).sum() / sst) if sst > 0 else float("nan")
 
 
-def residual_r2_cv(Xh: np.ndarray, Xo: np.ndarray, t: np.ndarray, alpha: float = 1.0,
-                   alpha_resid: float = 1e-3) -> float:
+def residual_r2_cv(Xh: np.ndarray, Xo: np.ndarray, t: np.ndarray) -> float:
     """Held-out R^2 of the state features after the observation summary is regressed out
-    in fold (ridge alpha_resid on standardized columns), then ridge alpha from the residual,
-    in the standardized state's units, to the target."""
-    from sklearn.linear_model import Ridge
+    in fold, then ridge from the residual, in the standardized state's units, to the target.
+    Both ridge strengths are chosen inside the training fold by leave-one-out over ALPHAS."""
+    from sklearn.linear_model import RidgeCV
     from sklearn.preprocessing import StandardScaler
     pred = np.full(len(t), np.nan)
     for tr, te in _folds(len(t)):
@@ -181,11 +185,11 @@ def residual_r2_cv(Xh: np.ndarray, Xo: np.ndarray, t: np.ndarray, alpha: float =
         sh = StandardScaler().fit(Xh[tr])
         Otr, Ote = so.transform(Xo[tr]), so.transform(Xo[te])
         Htr, Hte = sh.transform(Xh[tr]), sh.transform(Xh[te])
-        rm = Ridge(alpha=alpha_resid).fit(Otr, Htr)
+        rm = RidgeCV(alphas=ALPHAS).fit(Otr, Htr)
         # The residual stays in the standardized state's units. Re-standardizing it would
         # inflate the small leftover of the sensory regression back to full scale.
         Rtr, Rte = Htr - rm.predict(Otr), Hte - rm.predict(Ote)
-        m = Ridge(alpha=alpha).fit(Rtr, t[tr])
+        m = RidgeCV(alphas=ALPHAS).fit(Rtr, t[tr])
         pred[te] = m.predict(Rte)
     sst = float(((t - t.mean()) ** 2).sum())
     return float(1.0 - ((t - pred) ** 2).sum() / sst) if sst > 0 else float("nan")

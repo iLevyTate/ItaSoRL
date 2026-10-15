@@ -106,3 +106,12 @@ is a rank-two subspace orthogonal to S, drawn per seed from the RNG of
 `mechanism_readouts.sham_direction` (seed 1000003 plus the agent seed), with its own
 projector and the same m. The manipulation check scores the first 24 steps of the erased
 rollouts, the window the registered features read. Nothing else changes.
+
+## Second amendment 2026-10-15, after a two-seed setup check and before the full run
+
+After erasure every frozen-probe score is equal up to float32 noise, and an AUROC computed on
+those scores ranks the noise (0.39 to 0.61 on the check). The frozen probe's scores are
+quantized to one thousandth of the unerased rollouts' score spread before the AUROC is taken,
+so a pinned score reads 0.5, and the ratio of the erased to the unerased score spread is
+recorded beside it. Reading 4 is otherwise unchanged. The two-seed check is not part of the
+result.

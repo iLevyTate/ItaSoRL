@@ -131,3 +131,15 @@ def test_cosine_and_paired_interval():
     assert cosine(np.array([1.0, 0.0]), np.array([2.0, 0.0])) == pytest.approx(1.0)
     c = paired_t90([0.6, 0.7, 0.65, 0.62], [0.5, 0.5, 0.5, 0.5])
     assert c["n"] == 4 and c["t90"][0] < c["mean"] < c["t90"][1]
+
+
+def test_ridge_r2_does_not_overfit_noise_in_the_readout_shape():
+    """1100 episodes and 192 state features, the world-feature readout's shape: a target
+    unrelated to the features must read R^2 near 0, the spec's sanity bound."""
+    from itasorl.novel_readouts import residual_r2_cv, ridge_r2_cv
+    rng = np.random.default_rng(6)
+    X = rng.normal(size=(1100, 192))
+    O = rng.normal(size=(1100, 120))
+    t = rng.normal(size=1100)
+    assert ridge_r2_cv(X, t) <= 0.02
+    assert residual_r2_cv(X, O, t) <= 0.02

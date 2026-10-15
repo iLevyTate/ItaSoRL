@@ -107,3 +107,13 @@ The reach radius is the 95th percentile of the largest toroidal distance from th
 reached at any step of the 24-step window, not of the distance at step 24. A feature beyond
 that radius was out of reach at every step, which is what "incidental" requires. Both
 percentiles are recorded. Distances are toroidal on the unit arena. Nothing else changes.
+
+## Second amendment 2026-10-15, after a two-seed setup check and before the full run
+
+A setup check on two seeds at 1100 episodes failed the spec's own sanity clause: with ridge
+alpha fixed at 1.0 the permuted target read a held-out R squared near -0.2, so the decoder
+was fitting noise. Every ridge regression in this readout (the decode, the echo, the
+state-on-observation step and the residual decode) now chooses its strength inside each
+training fold by leave-one-out over 15 values from 0.01 to 100000, log spaced. The sanity
+clause then reads within 0.015 of 0 on both seeds. No threshold, feature, seed base or
+reading changes, and the two-seed check is not part of the result.

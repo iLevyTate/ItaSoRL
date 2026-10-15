@@ -79,9 +79,20 @@ def run_cell(t: dict) -> dict:
     ytr = np.r_[np.zeros(len(Ha)), np.ones(len(Hs))].astype(int)
     yte = np.r_[np.zeros(len(common)), np.ones(len(common))].astype(int)
 
+    from sklearn.metrics import roc_auc_score
+    _, _, p_ref = transfer_probe(Xtr, ytr, episode_features(np.concatenate(
+        [Hx["a"][:, :WIN], Hx["s"][:, :WIN]])), yte, return_scores=True)
+    sd_ref = float(np.std(p_ref))
+
     def frozen(ka, ks):
-        return float(transfer_probe(Xtr, ytr, episode_features(np.concatenate(
-            [Hx[ka][:, :WIN], Hx[ks][:, :WIN]])), yte))
+        """Frozen-probe AUROC with scores quantized to 1/1000 of the unerased rollouts' score
+        spread, so a pinned score (equal up to float32 noise) reads as the tie it is, 0.5,
+        rather than a ranking of rounding noise; and the score spread relative to the
+        unerased rollouts."""
+        _, _, p = transfer_probe(Xtr, ytr, episode_features(np.concatenate(
+            [Hx[ka][:, :WIN], Hx[ks][:, :WIN]])), yte, return_scores=True)
+        q = np.round(p / (1e-3 * sd_ref)) if sd_ref > 0 else p
+        return float(roc_auc_score(yte, q)), float(np.std(p) / sd_ref) if sd_ref > 0 else float("nan")
 
     out.update({
         "gap": gap, "informative": bool(np.isfinite(gap) and gap >= GAP_MIN),
@@ -90,8 +101,10 @@ def run_cell(t: dict) -> dict:
         "primary": 0.5 * ((real_s - sham_s) + (real_a - sham_a)),
         "return": {k: float(R[k].mean()) for k in R},
         "intake": {k: float(B[k][:, ii].mean()) for k in B},
-        "frozen_probe_unerased": frozen("a", "s"), "frozen_probe_erased": frozen("ea", "es"),
-        "frozen_probe_sham": frozen("sa", "ss"),
+        "frozen_probe_unerased": frozen("a", "s")[0], "frozen_probe_erased": frozen("ea", "es")[0],
+        "frozen_probe_sham": frozen("sa", "ss")[0],
+        "score_spread_erased_over_unerased": frozen("ea", "es")[1],
+        "score_spread_sham_over_unerased": frozen("sa", "ss")[1],
         "refit_probe_erased": readout_from_states(Hx["ea"][:, :WIN], Hx["es"][:, :WIN], seed=s)["target"],
         "seconds": round(time.time() - t0, 1)})
     return out
