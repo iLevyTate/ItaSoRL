@@ -104,6 +104,8 @@ BASES_IN_USE: tuple = (
     # correlated-jitter sweep, spec 2026-10-15 (registered after the post-review bases, above them)
     ("ar comparator authentic", 2_400_000, POOL_N),
     ("ar comparator surrogate", 2_450_000, POOL_N),
+    ("2026-10-15 world-feature readout (both worlds share it)", 2_600_000, 1_100),
+    ("2026-10-15 world-feature reach calibration", 2_650_000, POOL_N),
 )
 
 NEW_BASES: tuple = (
