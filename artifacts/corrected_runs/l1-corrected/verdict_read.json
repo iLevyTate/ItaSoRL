@@ -1,0 +1,122 @@
+{
+ "spec": "docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md",
+ "rule": "H_B2, PREREGISTRATION.md sec. 6-8",
+ "gates": {
+  "engagement_all_20_cells": true,
+  "speed_min_over_60_pools": 0.7865,
+  "leakage_max_abs_dev": 0.0897,
+  "leakage_clean_all": true,
+  "deaths": 0
+ },
+ "explicit": {
+  "survival": {
+   "mean": 0.5506198347107438,
+   "t90": [
+    0.531207180569514,
+    0.5700324888519737
+   ],
+   "seeds_at_bar": 0,
+   "per_seed": [
+    0.5462809917355372,
+    0.5371900826446281,
+    0.487603305785124,
+    0.5615702479338843,
+    0.5863636363636363,
+    0.5450413223140496,
+    0.603305785123967,
+    0.5537190082644627,
+    0.5706611570247934,
+    0.5144628099173554
+   ]
+  },
+  "predictor_mean": 0.5249586776859505,
+  "untrained_mean": 0.5132231404958678,
+  "margin_pred": {
+   "mean": 0.025661157024793397,
+   "t90": [
+    -0.000810726080477036,
+    0.052133040130063826
+   ]
+  },
+  "margin_untr": {
+   "mean": 0.03739669421487603,
+   "t90": [
+    0.00930494924650746,
+    0.0654884391832446
+   ]
+  },
+  "l0": {
+   "mean": 0.5482231404958677,
+   "tost_p": "mean=0.548  band=[0.450,0.550]  TOST p=0.4244  -> NOT shown equivalent (n=10)",
+   "summary": "mean=0.548  band=[0.450,0.550]  TOST p=0.4244  -> NOT shown equivalent (n=10)"
+  },
+  "corrected_minus_historical_survival": {
+   "mean": -0.0015289256198347146,
+   "t90": [
+    -0.023207652599807505,
+    0.020149801360138074
+   ]
+  },
+  "rule": {
+   "bar": false,
+   "margin_pred": false,
+   "margin_untr": false
+  }
+ },
+ "legacy": {
+  "survival": {
+   "mean": 0.5265417586366203,
+   "t90": [
+    0.5085003107211818,
+    0.5445832065520588
+   ],
+   "seeds_at_bar": 0,
+   "per_seed": [
+    0.502028472186575,
+    0.5264822134387351,
+    0.4706483240080078,
+    0.5380336396146672,
+    0.5533451397087761,
+    0.511126225553103,
+    0.5740661841452356,
+    0.5227341170028919,
+    0.5611844018958644,
+    0.5057688688123471
+   ]
+  },
+  "predictor_mean": 0.48880772718717386,
+  "untrained_mean": 0.49432523997741384,
+  "margin_pred": {
+   "mean": 0.0377340314494465,
+   "t90": [
+    0.008149850767421803,
+    0.0673182121314712
+   ]
+  },
+  "margin_untr": {
+   "mean": 0.03221651865920643,
+   "t90": [
+    0.01264597197300769,
+    0.05178706534540517
+   ]
+  },
+  "l0": {
+   "mean": 0.5197127970843386,
+   "tost_p": "mean=0.520  band=[0.450,0.550]  TOST p=0.0070  -> EQUIVALENT to chance (n=10)",
+   "summary": "mean=0.520  band=[0.450,0.550]  TOST p=0.0070  -> EQUIVALENT to chance (n=10)"
+  },
+  "corrected_minus_historical_survival": {
+   "mean": -0.006830672621186423,
+   "t90": [
+    -0.029331941323333714,
+    0.015670596080960865
+   ]
+  },
+  "rule": {
+   "bar": false,
+   "margin_pred": false,
+   "margin_untr": false
+  }
+ },
+ "verdict": "NOT MET: the bar and both margins fail on both partitions; L0 open on the explicit partition (accepts on legacy). The historical L1 negative reproduces under the corrected trainer."
+}

@@ -2660,7 +2660,7 @@ def main() -> int:
     _gt = _load_art("gate_table.json")["rows"]
     _key = lambda r: tuple(round(r["l0"][k], 6) for k in ("n", "mean", "sd", "tost_p"))
     _xh = [r for r in _gt if r["status"] == "historical" and r["partition"].startswith("explicit")]
-    _words = {5: "five", 10: "10", 12: "twelve", 22: "22", 26: "26"}
+    _words = {5: "five", 10: "10", 11: "11", 12: "twelve", 22: "22", 26: "26", 27: "27"}
     _nset, _nxh, _nxs = len({_key(r) for r in _gt}), len(_xh), len({_key(r) for r in _xh})
     check_true(f"16 note counts {_nset} drift-zero sets over {len(_gt)} gate-table rows, "
                f"{_nxs} over the {_nxh} explicit-partition historical rows",

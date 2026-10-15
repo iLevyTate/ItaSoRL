@@ -1,0 +1,40 @@
+{
+ "historical_recipe_fingerprint": "41b0bdabce1f9dc8",
+ "historical_recorded": [
+  "250cd3eba1d482cf"
+ ],
+ "corrected_fingerprint": "d8bb95f746f95e4b",
+ "differing_keys": {
+  "gae_bootstrap": [
+   "pre_transition",
+   "successor"
+  ]
+ },
+ "scheme_commit": "01e88e4",
+ "scheme_keys": [
+  "updates",
+  "n_eps",
+  "max_steps",
+  "hidden",
+  "ray_steps",
+  "shaping_coef",
+  "pool_n",
+  "pool_steps",
+  "mp_pairs",
+  "mp_prefix",
+  "mp_branch",
+  "basal_e",
+  "n_pellets",
+  "reach",
+  "dump_states",
+  "sysid_aux",
+  "sysid_coef",
+  "drift_mode",
+  "l3_hidden",
+  "l1_delta",
+  "sensor_sigma"
+ ],
+ "scheme_hash_of_corrected_recipe": "250cd3eba1d482cf",
+ "scheme_match": true,
+ "note": "Historical L1 cells record 8a71593, which has no L1 drift mode; the run used the then-uncommitted L1 code that landed in 01e88e4. Hashing today's corrected recipe with 01e88e4's key set and function tests that every shared science setting equals the historical one. The trainer flag did not exist then; under today's scheme the two recipes differ in gae_bootstrap alone."
+}
