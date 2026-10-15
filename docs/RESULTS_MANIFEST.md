@@ -96,6 +96,10 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 | `B1-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
 | `B2-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
+| `SALIENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `WORLD-FEATURES` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `ERASURE-ONLINE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `DEVELOPMENT` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 
 Commits that artifacts record, or that the record cites, and that are not ancestors of main (most reached main through squash merges); each lives only on the branch named, so keep that branch or tag its head:
 
@@ -1182,6 +1186,54 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.780). FINDINGS 21.
 - Config (beyond the standard protocol): {"objective": "touch", "mortal": false, "adv_norm": "historical"}
 - Artifacts: `artifacts/balanced_confirmation/b2.json`, `artifacts/balanced_confirmation/sensory_echo_b2.json`
+
+### `SALIENCE`: Whisper or shout: how prominent world identity is in the state without a label (C1 and C2 agents)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 2cfc08d
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: Frozen spec docs/specs/2026-10-15-salience-design.md (58efbed, before any code or number). Diagnostic. Label WHISPER on both runs: the probe direction carries 0.001 of the state's variance, k-means agreement with the world label is 0.518 [0.512, 0.523] on C1 and 0.523 [0.514, 0.533] on C2, and the out-of-fold Cohen's d is 0.90 (C1) and 0.42 (C2). The untrained arm on identical input does not meet the shout reading, so the whisper is not carried by the input. The C1 readout stopped once after 5 of 10 seeds on an external console-close event and resumed from the saved seeds. FINDINGS 23.1.
+- Artifacts: `artifacts/salience/corrected_l3_h8_wm.json`, `artifacts/salience/corrected_l3_h8_nowm.json`
+
+### `WORLD-FEATURES`: Which features of its own world the state keeps beyond the senses: near and far draw features decoded by ridge R squared (C1 and C2 agents)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 2cfc08d
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: Frozen spec docs/specs/2026-10-15-world-draw-features-design.md (58efbed), amended before any code (87247e4: 1100 episodes, full-window reach radius) and after a two-seed setup check (93765bc: ridge strength chosen in fold, since a fixed alpha failed the permuted-target sanity clause). Diagnostic. Label KEEPS NOTHING BEYOND THE SENSES on both runs: with the observation echo regressed out in fold, every feature's residual R squared is within 0.005 of zero for every arm, and the echo alone reads each near feature at least as well as the state (C1: 0.47, 0.35, 0.73 against 0.19, 0.28, 0.72). Reach radius 0.318 (C1), 0.307 (C2). The permuted-target clause passes. FINDINGS 23.2.
+- Artifacts: `artifacts/world_features/corrected_l3_h8_wm.json`, `artifacts/world_features/corrected_l3_h8_nowm.json`
+
+### `ERASURE-ONLINE`: Rank-two removal of the decoded world direction at every GRU step while the C1 survival agent acts, against a sham removal
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 2cfc08d
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, 0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 [0.562, 0.729], under the 0.65 partial-erasure label. The primary real-minus-sham score is -0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, +0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has 6 informative seeds and decides nothing. FINDINGS 23.3.
+- Artifacts: `artifacts/mechanism/erasure/corrected_l3_h8_wm.json`
+
+### `DEVELOPMENT`: The control battery across the 100, 200, 300 and 450-update survival snapshots of C1 and C2, with probe-direction cosines and frozen-300 transfer
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 2cfc08d
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: Frozen spec docs/specs/2026-10-15-what-develops-design.md (58efbed), amended before any code (87247e4: without its two sequence decoders) and after a one-seed setup check (2cfc08d: integrity tolerance 0.005 for the workstation-versus-cloud stack). Diagnostic. Integrity: every snapshot's target reproduces artifacts/budget_curve.json within 0.0025. Own-episode target by budget, C1: 0.523, 0.548, 0.680, 0.733, 0.822; C2: 0.529, 0.529, 0.565, 0.613, 0.686. Readings: memory grows beyond the senses MET on C1 (resid_obs 450 minus 100, +0.224 [+0.173, +0.275]) and NOT MET on C2 (+0.104 [+0.046, +0.162], only the trace sharpens); a stored component beyond the trace MET on both (+0.159, +0.148); direction REORGANIZES on both (cosine of u_300 to u_450 0.40 and 0.42); C1 minus C2 in resid_obs +0.133 [+0.061, +0.206] at 450, the auxiliary builds the stored component. First budget above the untrained floor by 0.05: 200 (C1), 450 (C2). FINDINGS 23.4.
+- Artifacts: `artifacts/development/corrected_l3_h8_wm.json`, `artifacts/development/corrected_l3_h8_nowm.json`
 
 ## Headline register
 
