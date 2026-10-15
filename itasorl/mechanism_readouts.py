@@ -44,7 +44,7 @@ def aggregate_behavior(R: np.ndarray) -> np.ndarray:
 
 def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, steps: int,
                      seed_base: int, ray_steps: int, nudge: np.ndarray | None = None,
-                     device: str = "cpu") -> dict:
+                     erase: tuple | None = None, device: str = "cpu") -> dict:
     """Deterministic own-policy episodes of exactly `steps` steps (an episode that dies
     earlier is dropped, as collect_pool does). `nudge` (hidden,) is added to the hidden
     state after every GRU update and before the policy head, so the action at step t, the
@@ -54,15 +54,26 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
     prediction error of the decoder (nan if the agent has none), kept episode indices.
     Callers comparing variants (nudged vs unnudged, authentic vs surrogate) should intersect
     `kept` across them before taking means, so survivor selection cannot masquerade as a
-    behavior shift."""
+    behavior shift.
+
+    `erase` = (Pr, m), Pr a (hidden, hidden) orthogonal projector and m a (hidden,) vector:
+    after every GRU update (and after any nudge) the state becomes h - Pr (h - m), so its
+    component in the projector's subspace is pinned to m's (spec
+    2026-10-15-online-erasure-design.md). The returned `ret` is the summed task reward."""
     import torch
+
+    from itasorl.experiment_b2 import task_reward
 
     from itasorl.experiment_b2 import _seeds, make_world
 
     A = agent.act_dim
     nudge_t = None if nudge is None else torch.as_tensor(np.asarray(nudge, np.float32),
                                                         device=device)[None, :]
-    B, halves, Hs, Es, kept = [], [], [], [], []
+    erase_t = None
+    if erase is not None:
+        erase_t = (torch.as_tensor(np.asarray(erase[0], np.float32), device=device),
+                   torch.as_tensor(np.asarray(erase[1], np.float32), device=device)[None, :])
+    B, halves, Hs, Es, kept, rets = [], [], [], [], [], []
     half = steps // 2
     for i in range(n_eps):
         w = make_world(params, drift_sigma, ray_steps)
@@ -70,6 +81,7 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
         h = agent.initial_state(1, device)
         prev = torch.zeros(1, A, device=device)
         rows, hs, es, intake = [], [], [], []
+        ret = 0.0
         alive = True
         for t in range(steps):
             obs_t = torch.as_tensor(norm(obs[None]), dtype=torch.float32, device=device)
@@ -77,9 +89,12 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
                 h = agent.step_state(obs_t, prev, h)
                 if nudge_t is not None:
                     h = h + nudge_t
+                if erase_t is not None:
+                    h = h - (h - erase_t[1]) @ erase_t[0]
                 _, env_act, _, _ = agent.act_from_state(h, deterministic=True)
             a = env_act[0].detach().cpu().numpy().astype(np.float32)
             r = w.step(a)
+            ret += task_reward(r)
             if agent.world_model and t < steps - 1 and not r.terminated:
                 with torch.no_grad():
                     pred = agent.predict_next(h[:, None, :], env_act[:, None, :])[0, 0]
@@ -103,12 +118,13 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
         Hs.append(np.stack(hs))
         Es.append(np.asarray(es, np.float32) if es else np.full(steps - 1, np.nan, np.float32))
         kept.append(i)
+        rets.append(ret)
     hid = agent.hidden
     return {"B": np.asarray(B).reshape(-1, len(BEHAVIOR_NAMES)),
             "halves": np.asarray(halves).reshape(-1, 2),
             "H": np.stack(Hs) if Hs else np.zeros((0, steps, hid), np.float32),
             "E": np.stack(Es) if Es else np.zeros((0, steps - 1), np.float32),
-            "kept": np.asarray(kept, int)}
+            "kept": np.asarray(kept, int), "ret": np.asarray(rets, float)}
 
 
 def probe_direction(Ha: np.ndarray, Hs: np.ndarray) -> tuple[np.ndarray, float]:
