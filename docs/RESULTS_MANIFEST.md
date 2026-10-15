@@ -77,6 +77,10 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `H7-CORRECTED` | corrected | B-v2 L3 | - | successor_value | - | 0a15071, d2bf9da (run/H7-corrected; code as main 3036eb3) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `H10GS1-CORRECTED` | corrected | B-v2 L3 | - | successor_value | - | 93c45cc, 74a7312 (run/H10GS1-corrected; code as main 3036eb3) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `H8GS2-CORRECTED` | corrected | B-v2 L3 | - | successor_value | - | 6f58a1f, 24ea329 (run/H8GS2-corrected; code as main 3036eb3) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
+| `L1-CORRECTED` | corrected | B-v2 L1 | - | successor_value | - | 73da908 | explicit | owner's workstation CPU, 3 workers; torch 2.7.0+cu126 on CPU |
+| `SURPRISE-MATCHED` | corrected | B-v2 L3 and L1 | - | inherited: successor_value | C1, L1-CORRECTED | 67fb556 (spec); readout code uncommitted at run time, committed with this entry (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `L1-STREAM-CORRECTED` | corrected | B-v2 L1 | - | inherited: successor_value | L1-CORRECTED | 73da908 (curated) | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `AR-SWEEP` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 67fb556 (spec); sweep code uncommitted at run time, committed with this entry (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `C1-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | b77d0db (readouts/post-review-C1) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `C1-R205` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | ab0388c (research/r205-decomposition) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `C2-RERUN-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C2, C2-RERUN | d3f2f75 (readouts/post-review-C2-rerun) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
@@ -964,6 +968,55 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; read under docs/specs/2026-09-28-l3-hidden8-second-seed-design.md; FINDINGS 20.2. Config hash 2823452491c11037. UNINFORMATIVE under its spec's outcome table: the speed positive control is under 0.75 in 1 of 60 pools (untrained, drift 0.45, seed 0, 0.725) and the L0 gate is open (C1's drift-0 cells). Descriptive: survival 0.659 [0.619, 0.699], +0.031 over the predictor. Rebuilt dumps reproduced 60 of 60 pools. Reported beside L3-H8-GS2-GPU, which keeps its label.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor"}
 - Artifacts: `artifacts/expB2/corrected_H8GS2-corrected.json`, `artifacts/corrected_runs/h8gs2-corrected`
+
+### `L1-CORRECTED`: L1 organism at the in-band grid (delta 0.023) on the corrected trainer, n = 10 (rule not met; the historical L1 negative reproduces)
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: 73da908
+- Commit source: recorded
+- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Budget: {"survival_updates": 300, "predictor_updates": 300}
+- Folds: explicit
+- Device: owner's workstation CPU, 3 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2
+- Local run directory (not in git): fullruns/corrected_l1_heldout
+- Notes: Spec docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md, committed after launch (run started 09:44:36Z, spec a75d534 at 09:54:29Z) and before any cell existed. Read under H_B2 (PREREGISTRATION sections 6 to 8) as the historical L1 run was. NOT MET: survival 0.551 [0.531, 0.570], 0 of 10 seeds at the bar, margins +0.026 and +0.037; L0 open on the explicit partition (0.548, TOST p = 0.42). Every other gate passes. Paired by seed, corrected minus historical survival is -0.0015 [-0.023, +0.020]. Config hash d8bb95f746f95e4b; under the 01e88e4 fingerprint scheme the recipe hashes to the historical 250cd3eba1d482cf, so it differs from L1-ORGANISM in the trainer only. Predictor and untrained cells equal the historical explicit rescore to the bit (20 of 20 each); the 60 state dumps reproduce every target. Reported beside L1-ORGANISM, which keeps its label.
+- Config (beyond the standard protocol): {"drifts": [0.0, 0.023], "drift_mode": "l1", "l1_delta": 0.023, "sensor_sigma": 0.01, "save_agents": true, "gae_bootstrap": "successor"}
+- Artifacts: `artifacts/expB2/corrected_L1-corrected.json`, `artifacts/corrected_runs/l1-corrected`
+
+### `SURPRISE-MATCHED`: Matched-input surprise against retention: every arm's decoder and state on the trained survival agent's own episodes and on a scripted walk (C1 and L1-CORRECTED agents)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 67fb556 (spec); readout code uncommitted at run time, committed with this entry
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Notes: Frozen spec docs/specs/2026-10-15-surprise-dissociation-design.md (67fb556, before any code or number). Diagnostic. C1: on identical input the untrained arm's random decoder separates the worlds at 0.764 against the trained survival decoder's 0.626 (paired -0.139 [-0.160, -0.118]); the survival state reads 0.733 on the same streams; agents raised in the authentic world are also more surprised by authentic episodes (10 of 10). All four readings reversed or not met: the earlier 0.846 own-episode surprise tracks stream predictability, not the law the agent was raised under. L1: survival decoder 0.568, untrained 0.507, survival state 0.551; readings not met. Replayed error equals the agent's own-rollout error (tests/test_surprise_and_ar_family.py).
+- Artifacts: `artifacts/surprise/corrected_l3_h8_wm.json`, `artifacts/surprise/corrected_l1_heldout.json`
+
+### `L1-STREAM-CORRECTED`: L1 stream and control readout repeated on the corrected L1 rerun's agents
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 73da908
+- Commit source: curated: the artifacts record 67fb556 instead
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Notes: scripts/run_control_diagnostics.py --drift-mode l1, the settings of docs/specs/2026-10-09-l1-stream-readout-design.md unchanged, named in docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md. All 30 dumps bit-match. Predictor and untrained readings equal the historical readout's exactly. Survival: state 0.551, summary-feature stream 0.788 (historical 0.795), flattened sequence 0.787, trunk-width GRU 0.607 (0.590). The L1 stream result reproduces. Diagnostic.
+- Artifacts: `artifacts/control_diagnostics/l1_stream_readout_corrected.json`
+
+### `AR-SWEEP`: Correlated-jitter sweep on the C1 agents: coherence against accumulated drift
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 67fb556 (spec); sweep code uncommitted at run time, committed with this entry
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Notes: Frozen spec docs/specs/2026-10-15-coherence-integration-sweep-design.md (67fb556, before any code or number). Eleven settings: sweep A at one-step sigma 0.01, sweep B at the accumulated offset of A's rho = 0.9 point. Readings: coherence beyond integration NOT MET (B contrast -0.006 [-0.036, +0.023]); integration suffices NOT MET (A contrast +0.029 [-0.009, +0.068]); neither MET. No point is kept (survival fresh 0.565 to 0.627). The run stopped once on an external console-close event after 8 points and resumed from them. Diagnostic.
+- Artifacts: `artifacts/texture/ar_sweep`
 
 ### `C1-POST-REVIEW`: Post-review readouts R210, R35, R206, R33 and R31 on the C1 rerun's agents
 

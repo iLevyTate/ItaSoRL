@@ -127,6 +127,61 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
             "kept": np.asarray(kept, int), "ret": np.asarray(rets, float)}
 
 
+def replay_prediction_error(agent, norm, obs_raw: np.ndarray, acts: np.ndarray,
+                            device: str = "cpu") -> np.ndarray:
+    """Squared next-observation error of `agent`'s decoder on recorded trajectories, open
+    loop, as rollout_behavior computes it on the agent's own episodes: the state at step t
+    (after reading the recorded observation t and the recorded action t-1) and the recorded
+    action t predict observation t+1, both normalized with the agent's own frozen normalizer.
+    (k, steps-1); all NaN when the agent has no decoder. Spec 2026-10-15 surprise readout."""
+    import torch
+
+    from .eval_protocols import replay_states
+
+    k, T, _ = obs_raw.shape
+    if not getattr(agent, "world_model", False) or k == 0:
+        return np.full((k, max(T - 1, 0)), np.nan, np.float32)
+    H = torch.as_tensor(replay_states(agent, norm, obs_raw, acts, device=device), device=device)
+    a = torch.as_tensor(np.asarray(acts, np.float32), device=device)
+    with torch.no_grad():
+        pred = agent.predict_next(H[:, :-1, :], a[:, :-1, :])
+    nxt = torch.as_tensor(norm(obs_raw[:, 1:].astype(np.float64)), dtype=torch.float32, device=device)
+    return ((pred - nxt) ** 2).mean(-1).cpu().numpy().astype(np.float32)
+
+
+def record_scripted_trajectories(params, drift_sigma: float, *, n_eps: int, steps: int,
+                                 seed_base: int, ray_steps: int,
+                                 policy_seed_base: int = 600_000):
+    """Scripted-policy episodes recorded for replay: the RAW observation at each step and the
+    scripted action taken there (rng seed policy_seed_base + i), full-length survivors only.
+    Same layout as eval_protocols.record_trajectories, so every arm can be replayed on one
+    action sequence per episode index. Returns (obs (k, steps, O), act (k, steps, A), kept)."""
+    from itasorl.experiment_b2 import _seeds, make_world
+
+    O, A, K = [], [], []
+    for i in range(n_eps):
+        w = make_world(params, drift_sigma, ray_steps)
+        obs = w.reset(_seeds(seed_base + i)).obs.astype(np.float64)
+        rng = np.random.default_rng(policy_seed_base + i)
+        orow, arow, alive = [], [], True
+        for _ in range(steps):
+            a = np.asarray(scripted_policy(rng), np.float32)
+            orow.append(obs.astype(np.float32))
+            arow.append(a)
+            r = w.step(a)
+            obs = r.obs.astype(np.float64)
+            if r.terminated:
+                alive = False
+                break
+        if alive and len(orow) == steps:
+            O.append(np.stack(orow))
+            A.append(np.stack(arow))
+            K.append(i)
+    if not O:
+        return np.zeros((0, steps, 0), np.float32), np.zeros((0, steps, ACT_DIM), np.float32), np.zeros(0, int)
+    return np.stack(O), np.stack(A), np.asarray(K, dtype=int)
+
+
 def probe_direction(Ha: np.ndarray, Hs: np.ndarray) -> tuple[np.ndarray, float]:
     """Fit the registered pooled probe (StandardScaler + LogisticRegression on
     [mean h, final h]) on every episode and return (u, s): u the unit direction in RAW state

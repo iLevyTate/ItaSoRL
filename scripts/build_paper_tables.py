@@ -260,6 +260,7 @@ RUN_LABELS = {
     "CORRECTED-L3_H8_WM": "C1: corrected trainer, with the auxiliary (the primary run)",
     "CORRECTED-C2-RERUN": "C2 rerun with its agents saved (reproduces C2 to the bit)",
     "CORRECTED-H7-CORRECTED": "Hidden 7 second capacity, corrected trainer (CPU; gate 0 fails, off-design)",
+    "CORRECTED-L1-CORRECTED": "L1 organism at the in-band grid, corrected trainer (CPU)",
     "CORRECTED-H10GS1-CORRECTED": "Second surrogate instance (seed 1, hidden 10), corrected trainer (CPU)",
     "CORRECTED-H8GS2-CORRECTED": "Hidden 8 at surrogate seed 2, corrected trainer (CPU; uninformative)",
 }

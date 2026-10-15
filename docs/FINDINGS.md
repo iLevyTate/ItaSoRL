@@ -2931,6 +2931,9 @@ the masked body-temperature channel enters at -22.9 sd, beside hydration at -31.
 
 ## 14.7 A3 L1: H2 substrate-grounding on the discretization rung
 
+*(Note 2026-10-15: this run was repeated on the corrected trainer. The negative reproduces:
+survival 0.551 [0.531, 0.570] against the historical 0.552 on the same partition. Section 22.1.)*
+
 **Status: COMPLETE - organism encoding NEGATIVE at the matched in-band L1 grid.**
 Design and runners: `scripts/run_expA_l1.py`, `scripts/run_expA_l1_noise.py`,
 `scripts/run_expB2.py --drift-mode l1`, `scripts/run_l1_h2_ablations.py`,
@@ -3288,15 +3291,16 @@ cause and not a measured one. The argument and the costings behind both decision
 *Note (2026-10-10): rows that share drift-zero agents.* At drift 0 the surrogate is off, so
 runs that differ only in their surrogate share one set of drift-zero agents and pools, and
 `docs/GATE_TABLE.md` lists that set under each run's name. Grouping its rows by their
-drift-zero statistics (agreement to six decimals in `artifacts/gate_table.json`), the 26 rows
-hold 10 distinct sets. The twelve explicit-partition historical rows hold five: three
+drift-zero statistics (agreement to six decimals in `artifacts/gate_table.json`), the 27 rows
+hold 11 distinct sets. The twelve explicit-partition historical rows hold five: three
 inconclusive (the GPU set at 0.539 that seven rows share, the L1 organism at 0.546, and the
 no-auxiliary 450-update run at 0.539 with p = 0.285) and two passing (the cloud no-auxiliary
 run at 0.514, and 0.529, which the cloud world-model and second-instance CPU runs share). The
 eight legacy rows hold three, and the B-v3 row shares the L3 legacy set. Rows of one set are
 not independent tests of L0. (Updated 2026-10-11: the table held 22 rows before the four reruns of
 section 20 joined it. Their drift-zero sets are `C1`'s and `C2`'s, so the number of sets is
-unchanged.)
+unchanged.) (Updated 2026-10-15: `L1-CORRECTED` (section 22.1) adds a 27th row with its own drift-zero
+agents, the eleventh set; it reads 0.548, inconclusive, on the explicit partition.)
 
 ---
 
@@ -4154,6 +4158,12 @@ more than a sham nudge in either run, with ten informative seeds each, and the s
 (readout on the `C1` rerun's agents, whose cells equal `C1`'s to the bit;
 `artifacts/goal_stakes/C1/mechanism.json`). The direction is decodable and, under this test, not
 used.
+
+*(Note 2026-10-15: the surprise row scores each arm on episodes its own policy drives. On identical
+input, the trained survival agent's episodes replayed through every arm, a randomly initialized
+decoder separates the worlds better than the trained one (0.764 against 0.626 on `C1`), and agents
+raised in the authentic world are also more surprised by authentic episodes. The surprise AUROC
+tracks how predictable each stream is, not the law the agent was raised under. Section 22.2.)*
 
 ### 18.4 Where the signal lives
 
@@ -5363,3 +5373,121 @@ Both rows are sensory-independent under matched worlds. The predictor sits at 0.
 
 On the `B2` pooled worlds the corrected leakage gate, trained reward and pellets consumed, is
 clean in 60 of 60 pools. The largest deviation from 0.5 is 0.076.
+
+## 22. The L1 rerun on the corrected trainer, and the agent's prediction error on matched input (2026-10-15)
+
+**Status: MEASURED; no recorded verdict changes.** Two readouts asked whether the paper's
+claims hold up on the points the 2026-10-14 audit left open. Both specs were committed before
+any number they read existed.
+
+### 22.1 The L1 organism run on the corrected trainer
+
+The historical L1 run (14.7) was the one verdict-bearing organism run with no corrected-trainer
+counterpart. `L1-CORRECTED` repeats it with the trainer changed and nothing else
+(`docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md`;
+`artifacts/expB2/corrected_L1-corrected.json`; `artifacts/corrected_runs/l1-corrected`).
+
+The run started at 09:44:36Z on 2026-10-15, before its spec existed. The spec was committed at
+09:54:29Z (`a75d534`), before any cell was written, and the rule it names is the one the
+historical run was already read under: H_B2 of `docs/PREREGISTRATION.md` sections 6 to 8.
+
+Recipe identity. The historical cells record commit `8a71593`, which has no L1 drift mode; the
+run used L1 code then uncommitted, which landed as `01e88e4`. Hashed with that commit's
+fingerprint function, the corrected recipe gives the historical fingerprint `250cd3eba1d482cf`,
+so every shared setting is equal. Under the current function the two recipes differ in
+`gae_bootstrap` alone. Checks before reading: 20 of 20 cells on the corrected trainer; the
+predictor and untrained cells equal the historical run's explicit-partition rescore to the bit
+(20 of 20 each, and their saved weights are identical); the 60 state dumps reproduce every
+recorded target.
+
+| partition | survival | seeds at 0.65 | predictor | untrained | L0 (TOST p) |
+|---|---|---|---|---|---|
+| explicit, corrected | 0.551 [0.531, 0.570] | 0/10 | 0.525 | 0.513 | 0.548 (0.42) |
+| explicit, historical | 0.552 [0.530, 0.574] | 0/10 | 0.525 | 0.513 | 0.546 (0.37) |
+| legacy, corrected | 0.527 [0.509, 0.545] | 0/10 | 0.489 | 0.494 | 0.520 (0.007) |
+| legacy, historical | 0.533 [0.506, 0.561] | 0/10 | 0.489 | 0.494 | 0.522 (0.029) |
+
+**NOT MET** under H_B2: the bar and both margins (+0.026 and +0.037) fail on both partitions.
+Engagement passes in 20 of 20 cells, the speed control is at least 0.787 in all 60 pools,
+pooled leakage is clean (largest deviation 0.090), and no agent died. The L0 gate is open on
+the explicit partition, as it is for the historical run there. Paired by seed, corrected minus
+historical survival is -0.0015 [-0.023, +0.020]. The L1 negative does not depend on the trainer
+defect.
+
+The stream readout of 14.7.1, repeated on these agents with its settings unchanged
+(`artifacts/control_diagnostics/l1_stream_readout_corrected.json`; all 30 dumps bit-match),
+reproduces too. The predictor and untrained readings equal the historical ones exactly. For the
+survival arm the summary-feature stream reads 0.788 (historical 0.795) and the flattened sequence
+0.787 (0.795), against a state of 0.551; the trunk-width GRU decoder reads 0.607 (0.590). The seam
+reaches the corrected agents' own stream and their state does not keep it.
+
+### 22.2 The agent's prediction error, read on identical input
+
+18.3 reports that the survival agent's own next-observation error separates the worlds (0.846
+on `C1`). Each arm there was scored on episodes its own policy drove, so that number cannot say
+whether the agent's model detects the surrogate or whether its policy walks into easily
+separated streams. The readout of `docs/specs/2026-10-15-surprise-dissociation-design.md`
+replays the trained survival agent's own registered-pool episodes through every arm, so each
+decoder and each state read the same input (`artifacts/surprise/`).
+
+| `C1` agents, identical input | prediction-error AUROC | state probe AUROC |
+|---|---|---|
+| survival, raised in the surrogate | 0.626 [0.582, 0.670] | 0.733 |
+| predictor | 0.595 [0.545, 0.645] | 0.721 |
+| untrained, random decoder | 0.764 [0.732, 0.797] | 0.636 |
+| survival, raised in the authentic world | 0.539 [0.514, 0.564] | 0.730 |
+
+Every pre-stated reading fails. The random decoder beats the trained one by 0.139 [0.118,
+0.160]; the trained decoder detects less than its own state retains (-0.107 [-0.136, -0.078]);
+prediction training does not add detection; and agents raised in the authentic world are more
+surprised by authentic episodes in 10 of 10 seeds, the same direction as agents raised in the
+surrogate. A scripted walk gives the same pattern. The draw check passes (0.461). The error
+tracks how predictable each stream is, not the law the agent was raised under, so the 18.3
+surprise row does not show that the agent's model detects the surrogate.
+
+At L1 (`L1-CORRECTED` agents) the trained decoder reads 0.568, the random one 0.507, and the
+state 0.551. The trained decoder's lead, +0.061 [0.042, 0.080], misses the pre-stated 0.05 lower
+bound, detection does not exceed retention, and every trained agent is more surprised by the
+quantized world whichever world it was raised in.
+
+### 22.3 Coherence or accumulated drift: a correlated-jitter sweep
+
+On the `C1` agents a hand-authored quadratic drag is read (fresh probe 0.754, margin over
+untrained +0.142) and white velocity jitter of the same one-step size is not. Two explanations
+fitted the record: the state keeps deviations that are coherent in time, or it integrates
+deviation and coherent deviations accumulate more. `docs/specs/2026-10-15-coherence-integration-sweep-design.md`
+separates them with `G_ar`, the authentic law plus a stationary AR(1) velocity jitter whose
+autocorrelation rho moves while its one-step size stays fixed (sweep A, sigma 0.01) or while its
+accumulated velocity offset stays fixed (sweep B, at A's rho = 0.9 level). Readout-only on the
+`C1` agents, seed bases 2400000 and 2450000 (`artifacts/texture/ar_sweep/`).
+
+| sweep | rho | lag-1 | 24-step gap | survival fresh | M, survival minus untrained |
+|---|---|---|---|---|---|
+| A | 0 | 0.00 | 0.036 | 0.565 | +0.034 [+0.001, +0.066] |
+| A | 0.5 | 0.49 | 0.060 | 0.576 | +0.034 [+0.003, +0.065] |
+| A | 0.8 | 0.78 | 0.093 | 0.584 | +0.021 [-0.009, +0.050] |
+| A, B | 0.9 | 0.87 | 0.115 | 0.570 | +0.010 [-0.025, +0.045] |
+| A | 0.95 | 0.92 | 0.130 | 0.586 | +0.023 [-0.009, +0.054] |
+| A | 0.99 | 0.96 | 0.140 | 0.627 | +0.063 [+0.031, +0.095] |
+| B | 0 | 0.00 | 0.121 | 0.609 | +0.038 [+0.009, +0.067] |
+| B | 0.5 | 0.49 | 0.120 | 0.612 | +0.037 [+0.006, +0.067] |
+| B | 0.8 | 0.78 | 0.119 | 0.593 | +0.017 [-0.019, +0.054] |
+| B | 0.95 | 0.92 | 0.109 | 0.582 | +0.031 [+0.008, +0.054] |
+| B | 0.99 | 0.96 | 0.097 | 0.588 | +0.031 [+0.004, +0.058] |
+
+The pre-stated readings: coherence beyond integration is not met (sweep B, M at 0.99 minus M at
+0, -0.006 [-0.036, +0.023]); integration suffices is not met (sweep A, +0.029 [-0.009, +0.068]);
+the third reading, neither, is met. No point is kept: survival stays at 0.565 to 0.627, and the
+direction fit on the learned law transfers below 0.5 at every point (0.397 to 0.455). The rho = 0
+point of sweep A repeats the white-jitter comparator on new seed bases and reads 0.565 against the
+recorded 0.488.
+
+Descriptive, not pre-stated: the quadratic drag sits inside this range on every measured property.
+Its one-step size is 0.0141 and its lag-1 autocorrelation 0.94; its open-loop velocity gap is 0.085
+at ten steps and 0.045 at 24, against 0.088 and 0.115 for `G_ar` at rho = 0.9. It is read at 0.754
+and the learned direction transfers to it at 0.721; `G_ar` at matched size and coherence reads
+0.570 and transfers at 0.413. What the drag and the learned law share and the jitter lacks is that
+their deviation is a deterministic function of the agent's own velocity. The comparison crosses two
+readout runs on different seed bases, and the drag's untrained floor (0.612) sits outside the 0.1
+tolerance, so it is a lead, not a measured contrast. The run stopped once after 8 of 11 points on
+an external console-close event and resumed from the saved points.

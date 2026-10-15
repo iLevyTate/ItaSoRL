@@ -3871,6 +3871,73 @@
      "role": "gate"
     }
    ]
+  },
+  {
+   "id": "L1-CORRECTED",
+   "rule": "Primary rule (H_B2) at L1, observation quantization, corrected trainer",
+   "short": "L1 primary (H_B2), corrected",
+   "source": "docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md",
+   "source_part": "How it is read (H_B2 of docs/PREREGISTRATION.md sec. 6 to 8, as applied to L1-ORGANISM)",
+   "frozen": "2026-10-15",
+   "freeze_note": "The run started at 09:44:36Z before the spec existed; the spec was committed at 09:54:29Z (a75d534), before any cell was written, and names the rule the historical L1 run was already read under.",
+   "run": "L1-CORRECTED",
+   "trainer": "corrected",
+   "n": 10,
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "expB2/corrected_L1-corrected.json",
+      "path": "decision/survival"
+     },
+     "reading": "0.551",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over predictor",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_L1-corrected.json",
+      "path": "decision/lead_over_predictor"
+     },
+     "reading": "0.026",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">=",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_L1-corrected.json",
+      "path": "decision/lead_over_untrained"
+     },
+     "reading": "0.037",
+     "role": "rule"
+    },
+    {
+     "clause": "L0 gate",
+     "basis": "TOST p, margin 0.05",
+     "op": "<",
+     "threshold": 0.05,
+     "value": {
+      "artifact": "expB2/corrected_L1-corrected.json",
+      "path": "gates/l0_tost/p_value"
+     },
+     "reading": "0.424",
+     "role": "gate"
+    }
+   ],
+   "clauses_hold": false,
+   "gates_hold": false,
+   "outcome": "NOT MET",
+   "outcome_class": "threshold not met",
+   "recorded_in": "FINDINGS 22.1"
   }
  ]
 }

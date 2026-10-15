@@ -4378,6 +4378,209 @@
     },
     {
       "affected_by_gae_correction": true,
+      "agent_seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "artifacts": [
+        "expB2/corrected_L1-corrected.json",
+        "corrected_runs/l1-corrected"
+      ],
+      "budget": {
+        "predictor_updates": 300,
+        "survival_updates": 300
+      },
+      "claims": [],
+      "commit_at_run": "73da908",
+      "commit_at_run_source": "recorded",
+      "config": {
+        "drift_mode": "l1",
+        "drifts": [
+          0.0,
+          0.023
+        ],
+        "embed": 64,
+        "gae_bootstrap": "successor",
+        "hidden": 96,
+        "l1_delta": 0.023,
+        "max_steps": 80,
+        "mp_branch": 24,
+        "mp_pairs": 60,
+        "mp_prefix": 20,
+        "n_eps": 16,
+        "normalizer": "RunningNorm fitted online on the arm's own training observations, frozen after training; the untrained arm fits it on 8 x 40 warmup steps",
+        "pool_n": 110,
+        "pool_steps": 24,
+        "predictor_optimizer": "Adam lr 1e-3 (train_predictor_only default), scripted policy",
+        "ray_steps": 5,
+        "runner": "scripts/run_expB2.py",
+        "save_agents": true,
+        "sensor_sigma": 0.01,
+        "shaping_coef": 1.0,
+        "survival_optimizer": "Adam lr 3e-4, gamma 0.99, lambda 0.95, entropy 0.01, value 0.5, decoder 1.0, grad clip 1.0",
+        "train_condition": "each (drift, seed) cell trains its agents in ONE condition: authentic at drift 0, surrogate at drift 0.45; it is evaluated on an authentic pool and a drift pool",
+        "updates": 300,
+        "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) with SURVIVAL_METAB and SURVIVAL_FOOD (itasorl/experiment_b2.py)"
+      },
+      "deps": "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2",
+      "device": "owner's workstation CPU, 3 workers; torch 2.7.0+cu126 on CPU",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L1",
+      "folds": "explicit",
+      "id": "L1-CORRECTED",
+      "local_run_dir": "fullruns/corrected_l1_heldout",
+      "notes": "Spec docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md, committed after launch (run started 09:44:36Z, spec a75d534 at 09:54:29Z) and before any cell existed. Read under H_B2 (PREREGISTRATION sections 6 to 8) as the historical L1 run was. NOT MET: survival 0.551 [0.531, 0.570], 0 of 10 seeds at the bar, margins +0.026 and +0.037; L0 open on the explicit partition (0.548, TOST p = 0.42). Every other gate passes. Paired by seed, corrected minus historical survival is -0.0015 [-0.023, +0.020]. Config hash d8bb95f746f95e4b; under the 01e88e4 fingerprint scheme the recipe hashes to the historical 250cd3eba1d482cf, so it differs from L1-ORGANISM in the trainer only. Predictor and untrained cells equal the historical explicit rescore to the bit (20 of 20 each); the 60 state dumps reproduce every target. Reported beside L1-ORGANISM, which keeps its label.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "corrected_runs/l1-corrected": {
+          "cell_commits": {
+            "73da908": 20
+          },
+          "cell_fingerprints": {
+            "d8bb95f746f95e4b": 20
+          },
+          "n_cells": 20
+        },
+        "expB2/corrected_L1-corrected.json": {
+          "execution": "owner's workstation CPU, 3 workers; Python 3.13.2, numpy 1.26.4 (local build), torch 2.7.0+cu126 on CPU, scikit-learn 1.5.2, explicit folds",
+          "generated_by": "scripts/promote_reviewer_gaps_runs.py",
+          "git_commit_at_promotion": "67fb5565cd26169f00ccb927bb8ec468369f5248",
+          "source_run": "artifacts/corrected_runs/l1-corrected",
+          "spec": "docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "successor_value",
+      "title": "L1 organism at the in-band grid (delta 0.023) on the corrected trainer, n = 10 (rule not met; the historical L1 negative reproduces)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "surprise/corrected_l3_h8_wm.json",
+        "surprise/corrected_l1_heldout.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "67fb556 (spec); readout code uncommitted at run time, committed with this entry",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "config": {},
+      "deps": null,
+      "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
+      "eval_seeds": {
+        "authentic": 800000,
+        "scripted_policy": 600000,
+        "surrogate": 850000
+      },
+      "experiment": "B-v2 L3 and L1",
+      "folds": "explicit",
+      "id": "SURPRISE-MATCHED",
+      "local_run_dir": null,
+      "notes": "Frozen spec docs/specs/2026-10-15-surprise-dissociation-design.md (67fb556, before any code or number). Diagnostic. C1: on identical input the untrained arm's random decoder separates the worlds at 0.764 against the trained survival decoder's 0.626 (paired -0.139 [-0.160, -0.118]); the survival state reads 0.733 on the same streams; agents raised in the authentic world are also more surprised by authentic episodes (10 of 10). All four readings reversed or not met: the earlier 0.846 own-episode surprise tracks stream predictability, not the law the agent was raised under. L1: survival decoder 0.568, untrained 0.507, survival state 0.551; readings not met. Replayed error equals the agent's own-rollout error (tests/test_surprise_and_ar_family.py).",
+      "readout_only_on": [
+        "C1",
+        "L1-CORRECTED"
+      ],
+      "recorded_provenance": {
+        "surprise/corrected_l1_heldout.json": {},
+        "surprise/corrected_l3_h8_wm.json": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Matched-input surprise against retention: every arm's decoder and state on the trained survival agent's own episodes and on a scripted walk (C1 and L1-CORRECTED agents)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "control_diagnostics/l1_stream_readout_corrected.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "73da908",
+      "commit_at_run_source": "curated: the artifacts record 67fb556 instead",
+      "config": {},
+      "deps": null,
+      "device": "owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
+      "eval_seeds": {
+        "cross_eval_return": "920000, 64 episodes",
+        "engagement": "900000 (+1 random baseline, +2 scripted baseline), 64 episodes",
+        "matched_pair": "700000 + p, p < mp_pairs (both branches share the seed)",
+        "pooled_authentic": "800000 + i, i < pool_n",
+        "pooled_surrogate": "850000 + i, i < pool_n (a DIFFERENT world sample from the authentic pool)",
+        "untrained_norm_warmup": "555000, 8 episodes x 40 steps"
+      },
+      "experiment": "B-v2 L1",
+      "folds": "explicit",
+      "id": "L1-STREAM-CORRECTED",
+      "local_run_dir": null,
+      "notes": "scripts/run_control_diagnostics.py --drift-mode l1, the settings of docs/specs/2026-10-09-l1-stream-readout-design.md unchanged, named in docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md. All 30 dumps bit-match. Predictor and untrained readings equal the historical readout's exactly. Survival: state 0.551, summary-feature stream 0.788 (historical 0.795), flattened sequence 0.787, trunk-width GRU 0.607 (0.590). The L1 stream result reproduces. Diagnostic.",
+      "readout_only_on": [
+        "L1-CORRECTED"
+      ],
+      "recorded_provenance": {
+        "control_diagnostics/l1_stream_readout_corrected.json": {
+          "generated_by": "scripts/run_control_diagnostics.py",
+          "git_commit": "67fb556"
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "L1 stream and control readout repeated on the corrected L1 rerun's agents"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "texture/ar_sweep"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "67fb556 (spec); sweep code uncommitted at run time, committed with this entry",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "config": {},
+      "deps": null,
+      "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
+      "eval_seeds": {
+        "G_ar": 2450000,
+        "authentic": 2400000
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "AR-SWEEP",
+      "local_run_dir": null,
+      "notes": "Frozen spec docs/specs/2026-10-15-coherence-integration-sweep-design.md (67fb556, before any code or number). Eleven settings: sweep A at one-step sigma 0.01, sweep B at the accumulated offset of A's rho = 0.9 point. Readings: coherence beyond integration NOT MET (B contrast -0.006 [-0.036, +0.023]); integration suffices NOT MET (A contrast +0.029 [-0.009, +0.068]); neither MET. No point is kept (survival fresh 0.565 to 0.627). The run stopped once on an external console-close event after 8 points and resumed from them. Diagnostic.",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "texture/ar_sweep": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Correlated-jitter sweep on the C1 agents: coherence against accumulated drift"
+    },
+    {
+      "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
         "post_review/C1-rerun.json",

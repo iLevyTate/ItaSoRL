@@ -836,6 +836,65 @@ RUNS = [
               "L0 gate is open (C1's drift-0 cells). Descriptive: survival 0.659 [0.619, 0.699], +0.031 "
               "over the predictor. Rebuilt dumps reproduced 60 of 60 pools. Reported beside "
               "L3-H8-GS2-GPU, which keeps its label."),
+    run("L1-CORRECTED", "L1 organism at the in-band grid (delta 0.023) on the corrected trainer, n = 10 "
+        "(rule not met; the historical L1 negative reproduces)", experiment="B-v2 L1",
+        artifacts=["expB2/corrected_L1-corrected.json", "corrected_runs/l1-corrected"], claims=[],
+        survival_trainer="successor_value", status="corrected", commit_at_run="73da908",
+        config={**BV2_PROTOCOL, "drift_mode": "l1", "drifts": [0.0, 0.023], "l1_delta": 0.023,
+                "sensor_sigma": 0.01, "save_agents": True, "gae_bootstrap": "successor"},
+        agent_seeds=S10, budget={"survival_updates": 300, "predictor_updates": 300},
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit",
+        device="owner's workstation CPU, 3 workers; torch 2.7.0+cu126 on CPU",
+        deps="Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2",
+        local_run_dir="fullruns/corrected_l1_heldout",
+        notes="Spec docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md, committed after launch "
+              "(run started 09:44:36Z, spec a75d534 at 09:54:29Z) and before any cell existed. Read under "
+              "H_B2 (PREREGISTRATION sections 6 to 8) as the historical L1 run was. NOT MET: survival 0.551 "
+              "[0.531, 0.570], 0 of 10 seeds at the bar, margins +0.026 and +0.037; L0 open on the explicit "
+              "partition (0.548, TOST p = 0.42). Every other gate passes. Paired by seed, corrected minus "
+              "historical survival is -0.0015 [-0.023, +0.020]. Config hash d8bb95f746f95e4b; under the "
+              "01e88e4 fingerprint scheme the recipe hashes to the historical 250cd3eba1d482cf, so it "
+              "differs from L1-ORGANISM in the trainer only. Predictor and untrained cells equal the "
+              "historical explicit rescore to the bit (20 of 20 each); the 60 state dumps reproduce every "
+              "target. Reported beside L1-ORGANISM, which keeps its label."),
+    run("SURPRISE-MATCHED", "Matched-input surprise against retention: every arm's decoder and state on the "
+        "trained survival agent's own episodes and on a scripted walk (C1 and L1-CORRECTED agents)",
+        experiment="B-v2 L3 and L1", artifacts=["surprise/corrected_l3_h8_wm.json",
+                                                "surprise/corrected_l1_heldout.json"],
+        trains_survival=False, readout_of=["C1", "L1-CORRECTED"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="67fb556 (spec); readout code uncommitted at run time, committed with this entry",
+        folds="explicit", eval_seeds={"authentic": 800000, "surrogate": 850000, "scripted_policy": 600000},
+        device="owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
+        notes="Frozen spec docs/specs/2026-10-15-surprise-dissociation-design.md (67fb556, before any code or "
+              "number). Diagnostic. C1: on identical input the untrained arm's random decoder separates the "
+              "worlds at 0.764 against the trained survival decoder's 0.626 (paired -0.139 [-0.160, -0.118]); "
+              "the survival state reads 0.733 on the same streams; agents raised in the authentic world are "
+              "also more surprised by authentic episodes (10 of 10). All four readings reversed or not met: "
+              "the earlier 0.846 own-episode surprise tracks stream predictability, not the law the agent "
+              "was raised under. L1: survival decoder 0.568, untrained 0.507, survival state 0.551; readings "
+              "not met. Replayed error equals the agent's own-rollout error (tests/test_surprise_and_ar_family.py)."),
+    run("L1-STREAM-CORRECTED", "L1 stream and control readout repeated on the corrected L1 rerun's agents",
+        experiment="B-v2 L1", artifacts=["control_diagnostics/l1_stream_readout_corrected.json"],
+        trains_survival=False, readout_of=["L1-CORRECTED"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="73da908", folds="explicit", eval_seeds=BV2_EVAL_SEEDS,
+        device="owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
+        notes="scripts/run_control_diagnostics.py --drift-mode l1, the settings of docs/specs/2026-10-09-l1-stream-"
+              "readout-design.md unchanged, named in docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md. "
+              "All 30 dumps bit-match. Predictor and untrained readings equal the historical readout's exactly. "
+              "Survival: state 0.551, summary-feature stream 0.788 (historical 0.795), flattened sequence 0.787, "
+              "trunk-width GRU 0.607 (0.590). The L1 stream result reproduces. Diagnostic."),
+    run("AR-SWEEP", "Correlated-jitter sweep on the C1 agents: coherence against accumulated drift",
+        experiment="B-v2 L3", artifacts=["texture/ar_sweep"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run="67fb556 (spec); sweep code uncommitted at run time, committed with this entry",
+        folds="explicit", eval_seeds={"authentic": 2400000, "G_ar": 2450000},
+        device="owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
+        notes="Frozen spec docs/specs/2026-10-15-coherence-integration-sweep-design.md (67fb556, before any code or "
+              "number). Eleven settings: sweep A at one-step sigma 0.01, sweep B at the accumulated offset of A's "
+              "rho = 0.9 point. Readings: coherence beyond integration NOT MET (B contrast -0.006 [-0.036, +0.023]); "
+              "integration suffices NOT MET (A contrast +0.029 [-0.009, +0.068]); neither MET. No point is kept "
+              "(survival fresh 0.565 to 0.627). The run stopped once on an external console-close event after 8 "
+              "points and resumed from them. Diagnostic."),
     run("C1-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the C1 rerun's agents",
         experiment="B-v2 L3", artifacts=["post_review/C1-rerun.json",
                                          "post_review/C1-rerun.json.partial.jsonl"],

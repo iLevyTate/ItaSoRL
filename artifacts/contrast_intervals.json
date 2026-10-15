@@ -2405,6 +2405,66 @@
    }
   },
   {
+   "run": "CORRECTED-L1-CORRECTED",
+   "partition": "explicit",
+   "metric": "target",
+   "source": "artifacts/expB2/corrected_L1-corrected.json",
+   "status": "corrected",
+   "survival_mean": 0.55062,
+   "survival_t90": [
+    0.531207,
+    0.570032
+   ],
+   "bar_mean": false,
+   "bar_t90": false,
+   "vs_predictor": {
+    "diff_per_seed": [
+     0.070248,
+     -0.02686,
+     -0.038843,
+     0.02438,
+     0.04876,
+     -0.021901,
+     0.049174,
+     0.047107,
+     0.100413,
+     0.004132
+    ],
+    "mean": 0.025661,
+    "t90": [
+     -0.000811,
+     0.052133
+    ],
+    "mean_ge_margin": false,
+    "t90_lower_ge_margin": false,
+    "margin": 0.05,
+    "n": 10
+   },
+   "vs_untrained": {
+    "diff_per_seed": [
+     0.094215,
+     -0.029752,
+     -0.024793,
+     0.026033,
+     0.054545,
+     0.047107,
+     0.098347,
+     0.081405,
+     0.046694,
+     -0.019835
+    ],
+    "mean": 0.037397,
+    "t90": [
+     0.009305,
+     0.065488
+    ],
+    "mean_ge_margin": false,
+    "t90_lower_ge_margin": false,
+    "margin": 0.05,
+    "n": 10
+   }
+  },
+  {
    "run": "CORRECTED-L3_H8_NOWM",
    "partition": "explicit",
    "metric": "target",
