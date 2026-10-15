@@ -70,7 +70,7 @@ re-renders it to MP4 when a silent social cut is needed.
 On 2026-10-11 the live cut was rewritten on the corrected record: `beats.json`
 carries 99% (the outside watcher, 0.991), 52% (an untrained mind, 0.523), 73% (the
 forager's mind, 0.733), 72% (a mind trained only to predict, fed the same senses,
-0.721) and the open gate (two identical real worlds read 56%, 0.559). The living
+0.721) and the open gate (two different samples of real worlds read 56%, 0.559). The living
 beat shows the recorded creature of the C1 rerun's seed 0 (`viz/data/scene.json`).
 `viz/collect.py` checks every number on screen against the committed artifacts,
 and `tests/test_viz_collect.py` runs that check in CI. The silent 4:5 and 9:16
@@ -150,7 +150,7 @@ drawn on screen is one of the ten trained ones:
 | predict-only brains fed the same senses, 72% | 0.721 | `artifacts/policy_controls/corrected_l3_h8_wm.json` `aggregate["predictor replay"]` |
 | without the prediction job at 300 updates, 61% | 0.613, under the bar | `runs.C2.primary.survival` |
 | without it at 450 updates, 69% | 0.685 | `artifacts/budget_curve.json` `series["decoder off"]` |
-| two identical real worlds, 56% | 0.559, so the registered rule is not met | `runs.C1.gates.l0` |
+| two different samples of real worlds, 56% | 0.559, so the registered rule is not met | `runs.C1.gates.l0` |
 
 `python scripts/dump_brain_film_data.py --check-only` compares each display with
 those artifacts and stops on any mismatch. It also checks the sentences built on

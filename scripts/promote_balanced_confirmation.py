@@ -24,6 +24,39 @@ ARMS = ("survival", "predictor", "untrained")
 BAR = 0.65
 MARGIN = 0.05
 FLOOR = 0.1
+LEAK_KEYS = ("reward_sum", "pellets_consumed", "length", "lifetime")
+
+
+def _finite(value) -> bool:
+    try:
+        return bool(np.isfinite(float(value)))
+    except (TypeError, ValueError):
+        return False
+
+
+def decision_from_gates(gates: dict, score_ok: bool) -> tuple[str, str]:
+    """MET needs every required gate on its own population, and every channel finite.
+
+    Pooled speed and pooled leakage are recorded beside the decision. They do not
+    satisfy the matched-world gates. A missing or non-finite matched gate cannot be MET.
+    """
+    required = (
+        "engagement_ok", "matched_speed_ok", "matched_leak_ok", "identical_first_state_all",
+        "shuffled_ok", "untrained_floor_ok", "targets_finite",
+    )
+    held = all(gates.get(name) is True for name in required) and gates.get("dropped_pairs_total") == 0
+    if not held:
+        if gates.get("untrained_floor_ok") is False:
+            return ("UNINFORMATIVE",
+                    f"the untrained balanced mean is {gates['untrained_dev']:.3f} from 0.5, "
+                    "outside the 0.1 floor")
+        if not gates.get("matched_speed_collected") or not gates.get("matched_leak_collected"):
+            return ("UNINFORMATIVE",
+                    "the balanced speed and leakage gates were not collected on the matched pairs")
+        return "UNINFORMATIVE", "a required gate does not hold or is not finite"
+    if score_ok:
+        return "MET", "every required gate holds and both interval clauses clear"
+    return "NOT MET", "the required gates hold and an interval clause does not"
 
 
 def _cells(run_dir: str) -> list[dict]:
@@ -44,8 +77,30 @@ def _summ(vals: list[float]) -> dict:
             "t90": [float(lo), float(hi)], "n": int(a.size)}
 
 
+def _attach_sidecar(run_dir: str, cells: list[dict]) -> list[dict]:
+    """Copy a readout-only matched-gates file onto the in-memory cells.
+
+    The historical cell files stay as recorded. The sidecar is optional; without
+    it the matched gates are not collected and the decision cannot be MET.
+    """
+    path = os.path.join(ROOT, run_dir, "matched_gates.json")
+    if not os.path.exists(path):
+        return cells
+    with open(path, encoding="utf-8") as fh:
+        doc = json.load(fh)
+    by_key = {(int(row["seed"]), str(row["arm"])): row.get("matched_gates") for row in doc["rows"]}
+    for cell in cells:
+        if abs(float(cell["drift"]) - 0.45) > 1e-9:
+            continue
+        for arm in ARMS:
+            block = by_key.get((int(cell["seed"]), arm))
+            if isinstance(block, dict):
+                cell["agents"][arm]["balanced"]["matched_gates"] = block
+    return cells
+
+
 def promote(run_id: str) -> dict:
-    cells = _cells(RUNS[run_id])
+    cells = _attach_sidecar(RUNS[run_id], _cells(RUNS[run_id]))
     d45 = [c for c in cells if abs(float(c["drift"]) - 0.45) < 1e-9]
     d45.sort(key=lambda c: int(c["seed"]))
     if len(d45) != 10 or len(cells) != 20:
@@ -65,15 +120,32 @@ def promote(run_id: str) -> dict:
                 if abs(float(lk[key]) - 0.5) >= FLOOR:
                     leak_bad.append(f"{c['seed']} {arm} {key}")
     floor_dev = abs(arms["untrained"]["mean"] - 0.5)
+    matched = [c["agents"][arm]["balanced"].get("matched_gates") for c in d45 for arm in ARMS]
+    present = bool(matched) and all(isinstance(block, dict) for block in matched)
+    speed_vals = [block.get("speed") for block in matched] if present else []
+    leak_vals = [(block.get("leakage") or {}) for block in matched] if present else []
+    speed_finite = present and all(_finite(value) for value in speed_vals)
+    leak_finite = present and all(all(_finite(leak.get(key)) for key in LEAK_KEYS) for leak in leak_vals)
     gates = {
         "engagement_pass": int(sum(bool(c["eng"]["engaged"]) for c in cells)),
         "engagement_n": len(cells),
         "engagement_ok": all(c["eng"]["engaged"] for c in cells),
+        "engagement_population": (
+            "objective-specific engagement protocol stored on the cell, "
+            "64 episodes, not the balanced pairs at 910000"),
         "speed_min": float(min(speeds)),
         "speed_ok": bool(min(speeds) >= 0.75),
         "speed_scope": "pooled episodes at bases 800000 and 850000, not the balanced pairs",
         "pooled_leak_ok": not leak_bad,
         "pooled_leak_scope": "pooled episodes, not the balanced pairs",
+        "matched_speed_collected": speed_finite,
+        "matched_leak_collected": leak_finite,
+        "matched_speed_min": float(min(float(value) for value in speed_vals)) if speed_finite else None,
+        "matched_speed_ok": bool(speed_finite and min(float(value) for value in speed_vals) >= 0.75),
+        "matched_leak_ok": bool(leak_finite and all(
+            abs(float(leak[key]) - 0.5) < FLOOR for leak in leak_vals for key in LEAK_KEYS)),
+        "matched_population": ("retained pairs at seed base 910000" if present else
+                               "not collected; recorded speed and leakage checks used the pooled worlds"),
         "identical_first_state_all": all(c["agents"][arm]["balanced"]["identical_first_state"]
                                          for c in d45 for arm in ARMS),
         "dropped_pairs_total": int(sum(c["agents"][arm]["balanced"]["dropped_pairs"]
@@ -88,19 +160,7 @@ def promote(run_id: str) -> dict:
     score_ok = (arms["survival"]["t90"][0] >= BAR
                 and margins["predictor"]["t90"][0] >= MARGIN
                 and margins["untrained"]["t90"][0] >= MARGIN)
-    gate_ok = all(gates[k] for k in (
-        "engagement_ok", "speed_ok", "pooled_leak_ok", "identical_first_state_all",
-        "shuffled_ok", "untrained_floor_ok", "targets_finite")) and gates["dropped_pairs_total"] == 0
-    if not gate_ok:
-        decision = "UNINFORMATIVE"
-        reason = (f"the untrained balanced mean is {floor_dev:.3f} from 0.5, "
-                  "outside the 0.1 floor")
-    elif score_ok:
-        decision = "MET"
-        reason = "every recorded gate holds and both interval clauses clear"
-    else:
-        decision = "NOT MET"
-        reason = "the gates that were recorded hold and an interval clause does not"
+    decision, reason = decision_from_gates(gates, score_ok)
     return {
         "generated_by": "scripts/promote_balanced_confirmation.py",
         "spec": "docs/specs/2026-10-12-balanced-confirmation-design.md",

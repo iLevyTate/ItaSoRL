@@ -1,8 +1,20 @@
 # Workstation stack for the GPU runs and the 2026-10-12 confirmation.
-# Python 3.13.2. torch is 2.7.0+cu126 from the CUDA 12.6 index, which a
-# constraints file cannot select by itself:
+# Python 3.13.2 at C:\Python313\python.exe. torch is 2.7.0+cu126 from the
+# CUDA 12.6 index, which a constraints file cannot select by itself:
 #   pip install torch==2.7.0 --index-url https://download.pytorch.org/whl/cu126
 #   pip install -r requirements.txt -c constraints-workstation.txt
+#
+# Erratum 2026-10-14. NumPy 1.26.4's release notes support Python 3.9-3.12.
+# PyPI publishes wheels for cp39-cp312 and a source tarball, and no cp313
+# wheel. The copy that produced the GPU runs is a local meson build installed
+# by pip, wheel tag cp313-cp313-win_amd64, MSVC 19.29.30159, Cython 3.0.12,
+# under %APPDATA%\Python\Python313\site-packages\numpy. The installed tree
+# hashes to sha256
+# 675bd7f1f96e6fe6fba53bf7db13ddd50aba480cd34d44dce2ada19af9472c2a
+# (1209 files). A binary-only install of the official 1.26.4 package on
+# Python 3.13 finds no wheel. Do not replace this NumPy and keep a bit-exact
+# claim against the recorded GPU cells. The pin below is the version that
+# ran, not a supported official wheel.
 numpy==1.26.4
 scipy==1.15.3
 scikit-learn==1.5.2

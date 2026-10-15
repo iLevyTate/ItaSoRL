@@ -69,8 +69,9 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      *(Note 2026-10-12: which half of the registered feature [mean h, h_T] carries the 0.733 is
      measured (FINDINGS 20.15, R205). Mean h alone reads 0.692 and h_T alone 0.716, so the
      time-averaged state alone does not carry the reading and the final state alone reads at
-     least as high on the seed means; the pre-stated label is BOTH. For the Discussion: neither
-     half alone accounts for the registered reading, and the final state comes closer.)*
+     least as high on the seed means; the pre-stated label is BOTH, which means no uniquely dominant block.
+     Both halves are individually decodable. The final state's increment from the
+     concatenation includes zero.)*
    - 4.4 The auxiliary contrast, bounded by budget (FINDINGS 10.8, 10.8.1, 17): the
      corrected decoder-on minus decoder-off difference, +0.120 [+0.065, +0.174] (0.733
      against 0.613), and the budget curve: without the decoder 0.685 at 450 updates;

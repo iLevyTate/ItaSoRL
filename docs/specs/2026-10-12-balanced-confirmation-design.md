@@ -107,7 +107,10 @@ spec does not edit a committed number.
 
 ## Result (2026-10-13)
 
-Both runs finished. The decision is UNINFORMATIVE. The untrained matched-world mean is
+Both runs finished. The decision is UNINFORMATIVE. The speed and leakage gates
+recorded on the cells are the independent pooled worlds at 800000 and 850000, not
+the retained pairs at 910000. Engagement stays on its own objective-specific
+protocol. The untrained matched-world mean is
 0.614 [0.599, 0.628], 0.114 from 0.5, outside the 0.1 floor in gate 4. The same untrained
 scores appear in `B1` and `B2`. Descriptively the trained arms clear the interval clauses:
 `B1` survival 0.800 [0.772, 0.829], `B2` 0.843 [0.825, 0.860], with both margins' lower

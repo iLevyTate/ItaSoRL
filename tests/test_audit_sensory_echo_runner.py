@@ -33,9 +33,15 @@ def _cells(surv=0.72, untr=0.50, n=10):
     return out
 
 
-def _agg(cells):
+def _keys(cells):
+    return {(c["drift"], int(c["seed"]), c["agent"]) for c in cells}
+
+
+def _agg(cells, *, expected_keys=None, mismatches=None, quick=False):
     return ase.aggregate(cells, [0.45, 0.0], ["survival", "untrained", "predictor"], hidden=8,
-                         g_seed=0, n_eps=110, steps=24, quick=False, device="cpu", mismatches=[])
+                         g_seed=0, n_eps=110, steps=24, quick=quick, device="cpu",
+                         mismatches=[] if mismatches is None else mismatches,
+                         expected_keys=_keys(cells) if expected_keys is None else expected_keys)
 
 
 def test_aggregate_is_json_serializable_and_passes_rule():
@@ -54,10 +60,30 @@ def test_rule_zones():
     assert agg["decision"]["pass_bar"] and not agg["decision"]["pass_margin"]
 
 
-def _agg_balanced(cells):
-    return ase.aggregate(cells, [0.45], ["survival", "untrained", "predictor"], hidden=8,
-                         g_seed=0, n_eps=110, steps=24, quick=False, device="cpu", mismatches=[],
-                         balanced_seed_base=910_000, objective="touch", mortal=False)
+def _prepare_balanced(cells):
+    prepared = []
+    for cell in cells:
+        if cell["drift"] != "0.45":
+            continue
+        row = dict(cell)
+        row.setdefault("n_pairs", 110)
+        row.setdefault("dropped_pairs", 0)
+        row.setdefault("identical_first_state", True)
+        row.setdefault("recorded_target", row["target"])
+        row.setdefault("target_abs_diff", 0.0)
+        if row.get("integrity_match") is None:
+            row["integrity_match"] = True
+        prepared.append(row)
+    return prepared
+
+
+def _agg_balanced(cells, *, expected_keys=None, mismatches=None, quick=False):
+    prepared = _prepare_balanced(cells)
+    return ase.aggregate(prepared, [0.45], ["survival", "untrained", "predictor"], hidden=8,
+                         g_seed=0, n_eps=110, steps=24, quick=quick, device="cpu",
+                         mismatches=[] if mismatches is None else mismatches,
+                         balanced_seed_base=910_000, objective="touch", mortal=False,
+                         expected_keys=_keys(prepared) if expected_keys is None else expected_keys)
 
 
 def test_balanced_aggregate_reads_floor_then_trained_clause():
@@ -93,6 +119,13 @@ def test_balanced_integrity_gate(tmp_path):
     bad = {"target": 0.614, "identical_first_state": False, "dropped_pairs": 1, "n_pairs": 109}
     ok, why = ase.balanced_integrity(str(cells_dir), 0.45, 10, "untrained", bad)
     assert not ok and "first states" in why and "dropped" in why and "n_pairs" in why
+    nan_cell = {"target": float("nan"), "identical_first_state": True, "dropped_pairs": 0, "n_pairs": 110}
+    ok, why = ase.balanced_integrity(str(cells_dir), 0.45, 10, "untrained", nan_cell)
+    assert not ok and "finite" in why
+    rec["cell"]["agents"]["untrained"]["balanced"]["target"] = float("nan")
+    (cells_dir / "cell_d0.45_s10.json").write_text(json.dumps(rec), encoding="utf-8")
+    ok, why = ase.balanced_integrity(str(cells_dir), 0.45, 10, "untrained", good)
+    assert not ok and "finite" in why
 
 
 def test_collect_cell_balanced_pairs_share_a_group(monkeypatch):
@@ -124,3 +157,53 @@ def test_collect_cell_balanced_pairs_share_a_group(monkeypatch):
         None, None, 0.45, n_eps=5, steps=steps, device="cpu", balanced_seed_base=None)
     assert seen == [800_000, 850_000] and groups.tolist() == list(range(8))
     assert meta == {"n_auth": 4, "n_surr": 4}
+
+
+def test_incomplete_or_unchecked_cells_cannot_pass():
+    """A NaN residual, a missing or duplicate seed, a mismatch list, or a quick run
+    keeps its scores and does not receive a passing zone."""
+    full = _prepare_balanced(_cells(surv=0.80, untr=0.52))
+    expected = _keys(full)
+
+    broken = [dict(cell) for cell in full]
+    broken[0]["resid_obs"] = float("nan")
+    withheld = _agg_balanced(broken, expected_keys=expected)
+    assert withheld["decision_balanced"]["zone"].startswith("WITHHELD")
+    assert withheld["decision_balanced"]["pass_bar"] is False
+    assert "mean" not in withheld["d=0.45 survival"]["resid_obs"]
+
+    short = [cell for cell in full if not (cell["seed"] == 0 and cell["agent"] == "survival")]
+    assert _agg_balanced(short, expected_keys=expected)["decision_balanced"]["zone"].startswith("WITHHELD")
+
+    duplicated = full + [dict(full[0])]
+    assert _agg_balanced(duplicated, expected_keys=expected)["decision_balanced"]["zone"].startswith("WITHHELD")
+
+    mismatched = _agg_balanced(full, mismatches=["agent_d0.45_s0_survival.pt"])
+    assert mismatched["integrity"]["all_match"] is False
+    assert mismatched["decision_balanced"]["zone"].startswith("WITHHELD")
+
+    quick = _agg_balanced(full, quick=True)
+    assert quick["decision_balanced"]["zone"].startswith("WITHHELD")
+
+    pooled = _cells(surv=0.80, untr=0.52)
+    nan_pooled = [dict(cell) for cell in pooled]
+    nan_pooled[0]["resid_obs"] = float("nan")
+    assert _agg(nan_pooled, expected_keys=_keys(pooled))["decision"]["zone"].startswith("WITHHELD")
+
+
+def test_committed_balanced_controls_still_pass():
+    """Re-adjudicating the committed B1 and B2 cell lists keeps their recorded passes."""
+    root = ROOT / "artifacts" / "balanced_confirmation"
+    for name in ("sensory_echo_b1.json", "sensory_echo_b2.json"):
+        doc = json.loads((root / name).read_text(encoding="utf-8"))
+        agg = ase.aggregate(
+            doc["cells"], [0.45], ["survival", "predictor", "untrained"],
+            hidden=8, g_seed=0, n_eps=110, steps=24, quick=False, device="cpu",
+            mismatches=[], balanced_seed_base=910000,
+            objective=doc["objective"], mortal=bool(doc["mortal"]),
+            expected_keys=set(ase.BALANCED_SPEC_KEYS))
+        assert agg["integrity"]["adjudication_blockers"] == []
+        assert agg["decision_balanced"]["zone"] == doc["decision_balanced"]["zone"]
+        assert agg["decision_balanced"]["pass_bar"] is True
+        assert abs(agg["decision_balanced"]["trained_resid_obs"]
+                   - doc["decision_balanced"]["trained_resid_obs"]) < 1e-9
