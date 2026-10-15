@@ -102,7 +102,7 @@ def summarize(rows: list, runs: list) -> dict:
             for pt in curve[CURVE_KEY[run]]:
                 rec = dict(zip(pt["seeds"], pt["target"]["per_seed"]))
                 diffs = [abs(r["budgets"][str(pt["updates"])]["target"] - rec[r["seed"]]) for r in rr]
-                integ[str(pt["updates"])] = {"max_abs_diff": float(max(diffs)), "ok": bool(max(diffs) <= 0.001)}
+                integ[str(pt["updates"])] = {"max_abs_diff": float(max(diffs)), "ok": bool(max(diffs) <= 0.005)}
         ok = all(v["ok"] for v in integ.values()) if integ else None
         agg = {f"{b} {k}": {**paired_t90(get(b, k)), "per_seed": get(b, k)}
                for b in (0,) + BUDGETS

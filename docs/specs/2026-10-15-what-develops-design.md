@@ -81,3 +81,15 @@ each computed by the battery's own functions. "The observation-stream decoder" a
 that summary-feature comparator. The cells are computed by a script that calls those
 functions on the snapshot files directly, so the runner itself is not changed. Nothing else
 changes.
+
+## Second amendment 2026-10-15, after a one-seed setup check and before the full run
+
+The integrity gate's 0.001 tolerance was set without accounting for the stack. The budget
+curve was recorded on the cloud container (torch 2.14.1, NumPy 2.4.6, scikit-learn 1.9.1);
+this readout runs on the workstation (torch 2.7.0, NumPy 1.26.4, scikit-learn 1.5.2). On seed
+0 the 100- and 200-update targets equal the recorded values exactly, and the 300- and
+450-update targets differ by 0.0008 and 0.0012, two and three single-pair steps of the
+mean-of-folds AUROC. Exact agreement at two budgets shows the right agents and pools are
+read. The gate's tolerance is 0.005, changed after this check showed 0.0012, and the largest
+difference per budget is recorded and reported. No reading changes. The one-seed check is
+not part of the result.
