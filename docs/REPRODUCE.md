@@ -79,6 +79,12 @@ The GPU numbers stay tied to that build. Swapping in a newer NumPy and
 keeping a bit-exact claim against the recorded cells is not supported.
 The original stack lines in the run artifacts are left as written.
 
+Checked on 2026-10-14 from clean environments. A fresh Python 3.11 virtual environment
+resolves `requirements.txt` under `constraints-cpu-corrected.txt` to the pinned torch
+2.14.1+cpu, NumPy 2.4.6, SciPy 1.17.1 and scikit-learn 1.9.1, and `scripts/audit_stats_recheck.py`
+passes from it. On a fresh Python 3.13 environment `pip install numpy==1.26.4 --only-binary=:all:`
+finds no wheel; on Python 3.12 the same command installs the official wheel.
+
 ```bash
 python scripts/reproduce.py retrain C1            # print the commands
 python scripts/reproduce.py retrain C1 --execute  # run them

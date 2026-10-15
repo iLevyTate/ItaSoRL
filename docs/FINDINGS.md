@@ -3005,6 +3005,10 @@ confirmed at L3 on a learned dynamics texture. That attribution was withdrawn in
 
 ### 14.7.1 The L1 stream: the seam reaches the senses and the state does not keep it (2026-10-09)
 
+*(Note 2026-10-14: the second clause of this heading is the tested L1 state readout staying under
+the registered bar, 0.552 against 0.65, while the stream decoders read above it. It is not a
+proof that the trunk keeps nothing of the seam.)*
+
 The L1 negative of 14.7 is a negative **on the state**. Every stream-only decoder and
 behavior-trace readout in this project had been scored on the corrected L3 agents, so two very
 different explanations of that negative were indistinguishable: the seam might not change where
@@ -4215,9 +4219,16 @@ limitation that no comparator-trained run supports it stays.
 
 1. **Survival is not required** (18.2). A pellet-seeking goal with death off meets the registered
    rule with every gate passing, the cleanest run of the corrected record.
+   *(Note 2026-10-14: that MET was recorded before the 2026-10-12 note in 18.2. The leakage gate
+   on `T-touch` summed the homeostatic reward, not pellets, so full-rule validity was not
+   established. The 0.796 figure stays as recorded. The matched-world pellet run and its sensory
+   control are section 21.)*
 2. **Removing death changes nothing measurable** in the survival run (18.2). The stakes question
    itself stays open, with no scarce rung.
 3. **The decoded direction is not used under the tested nudge** (18.3), in both runs and in `C1`.
+   *(Note 2026-10-14: read this as the registered nudge not showing an above-sham behavioral
+   effect in these runs. A nudge that fails to move behavior is not proof that the direction is
+   unused.)*
 4. **The walk carries the signal** (18.4, 18.5), as in `C1`: a common scripted sequence removes it,
    replaying the trained arm's episodes gives it to untrained trunks, and behavior traces alone
    decode the world better than the state.
