@@ -638,6 +638,8 @@ def test_the_in_use_list_carries_every_base_the_runners_define():
                          ("run_l3_crossrecipe.py", "SEED_BASES")):
         wanted |= {b for pair in _script_constant(script, name).values() for b in pair}
     wanted.add(_script_constant("run_mechanism_readouts.py", "WORLD_BASE"))
+    for name in ("READ_BASE", "CALIB_BASE"):      # the 2026-10-15 world-feature readout
+        wanted.add(_script_constant("run_world_features_readout.py", name))
     assert wanted <= listed, sorted(wanted - listed)
     assert pr.SCRIPTED_POLICY_BASE == POLICY_SEED_BASE
     import run_post_review_readouts as rpr

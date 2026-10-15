@@ -2,10 +2,37 @@
 
 from __future__ import annotations
 
+import json
+import os
+import sys
+
 import numpy as np
 import pytest
 
 from itasorl.world import WorldParams
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+def test_write_output_records_no_machine_local_path(tmp_path):
+    """The provenance block names the agents directory and the command line. Both must be
+    repo-relative, as every promoter's record is (scripts/promote_bv3_gates.repo_rel), or
+    tests/test_artifact_paths.py rejects the artifact once it is tracked. The development
+    script passes its directories as `name=path` pairs, which must be rewritten too."""
+    import _readout_common as rc
+    agents = os.path.join(ROOT, "fullruns", "some_run", "agents")
+    out = str(tmp_path / "o.json")
+    rc.write_output(out, "scripts/run_x.py",
+                    ["--agents-dir", agents, "--run", f"wm={agents}", "--out", out],
+                    {"agents_dir": agents, "seeds": [0]}, "docs/specs/x.md", {"rows": []})
+    with open(out, encoding="utf-8") as fh:
+        prov = json.load(fh)["provenance"]
+    assert prov["inputs"]["agents_dir"] == "fullruns/some_run/agents"
+    assert prov["inputs"]["seeds"] == [0]
+    assert ROOT.replace("\\", "/") not in prov["command"].replace("\\", "/")
+    assert "--agents-dir fullruns/some_run/agents --run wm=fullruns/some_run/agents" in prov["command"]
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
 

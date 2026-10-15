@@ -71,9 +71,22 @@ def run_tasks(fn, tasks: list, ckpt_dir: str, key, workers: int = 1) -> list:
     return done
 
 
+def _rel_argv(argv: list) -> list:
+    """The recorded argv with every absolute path made repo-relative, including the value of
+    a `name=path` pair (the development script's --run arguments)."""
+    from promote_bv3_gates import _ABS_PATH, rel_flags, repo_rel
+    out = []
+    for f in rel_flags(argv):
+        name, eq, value = f.partition("=") if isinstance(f, str) else ("", "", "")
+        out.append(f"{name}={repo_rel(value)}" if eq and _ABS_PATH.match(value) else f)
+    return out
+
+
 def write_output(path: str, script: str, argv: list, inputs: dict, spec: str, body: dict) -> None:
     from itasorl.optional_readouts import provenance
-    prov = provenance(script, "python " + " ".join([script, *argv]), inputs, device="cpu")
+    from promote_bv3_gates import repo_rel
+    inputs = {k: repo_rel(v) if k.endswith("_dir") else v for k, v in inputs.items()}
+    prov = provenance(script, "python " + " ".join([script, *_rel_argv(argv)]), inputs, device="cpu")
     prov["status"] = (f"readout under {spec}; diagnostic, not an adjudication; "
                       "changes no registered rule or verdict")
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)

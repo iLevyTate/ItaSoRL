@@ -22,7 +22,8 @@ import numpy as np
 from _readout_common import DRIFT, load, run_tasks, setup_l3, world_params, write_output
 
 SPEC = "docs/specs/2026-10-15-world-draw-features-design.md"
-READ_BASE, CALIB_BASE = 2_600_000, 2_650_000
+READ_BASE = 2_600_000       # listed in itasorl.post_review.BASES_IN_USE
+CALIB_BASE = 2_650_000
 ARMS = (("survival", DRIFT), ("predictor", DRIFT), ("untrained", DRIFT), ("survival", 0.0))
 
 
