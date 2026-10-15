@@ -33,7 +33,9 @@ import numpy as np
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 # World seed bases for the comparator pools: gn reuses the published 14.5 bases; qd is new and
 # disjoint from every other base in the pipeline.
-BASES = {"gn": (960_000, 970_000), "qd": (1_900_000, 1_950_000)}
+BASES = {"gn": (960_000, 970_000), "qd": (1_900_000, 1_950_000),
+         # correlated jitter, spec 2026-10-15-coherence-integration-sweep-design.md
+         "ar": (2_400_000, 2_450_000)}
 
 
 def run_one(task: dict) -> dict:
@@ -44,7 +46,7 @@ def run_one(task: dict) -> dict:
     from itasorl.experiment_b2 import collect_pool, load_agent_bundle, transfer_probe
     from itasorl.l0_audit import paired_pooled_readout
     from itasorl.eval_protocols import readout_from_states
-    from itasorl.surrogate_l3_families import make_g_gn, make_g_qd
+    from itasorl.surrogate_l3_families import make_g_ar, make_g_gn, make_g_qd
     from itasorl.world import WorldParams
 
     torch.set_num_threads(1)
@@ -56,8 +58,12 @@ def run_one(task: dict) -> dict:
     t0 = time.time()
     agent, norm = load_agent_bundle(task["path"], "cpu")
     d, s, n, steps, rs = task["drift"], task["seed"], task["n_eps"], task["steps"], task["ray_steps"]
-    fam = (make_g_gn(sigma_v=task["param"], params=P, seed=0) if task["family"] == "gn"
-           else make_g_qd(eps=task["param"], params=P))
+    if task["family"] == "gn":
+        fam = make_g_gn(sigma_v=task["param"], params=P, seed=0)
+    elif task["family"] == "ar":
+        fam = make_g_ar(sigma=task["param"], rho=task["rho"], params=P, seed=0)
+    else:
+        fam = make_g_qd(eps=task["param"], params=P)
     ba, bs = BASES[task["family"]]
     try:
         # the agent's own learned-law pools (standard seed bases): the transfer fit set
@@ -79,7 +85,7 @@ def run_one(task: dict) -> dict:
     Xte = episode_features(np.concatenate([Ha_c, Hs_c]))
     yte = np.r_[np.zeros(len(Ha_c)), np.ones(len(Hs_c))].astype(int)
     return {"drift": d, "seed": s, "arm": task["arm"], "family": task["family"],
-            "param": task["param"], "transfer": float(transfer_probe(Xtr, ytr, Xte, yte)),
+            "param": task["param"], "rho": task.get("rho"), "transfer": float(transfer_probe(Xtr, ytr, Xte, yte)),
             "fresh": readout_from_states(Ha_c, Hs_c, seed=s)["target"],
             "fresh_paired": paired["target"], "n_comparator": [int(len(Ha_c)), int(len(Hs_c))],
             "seconds": round(time.time() - t0, 1)}
@@ -91,7 +97,9 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--agents-dir", required=True)
     ap.add_argument("--family", choices=tuple(BASES), required=True)
-    ap.add_argument("--param", type=float, required=True, help="sigma_v (gn) or eps (qd), from gate 0")
+    ap.add_argument("--param", type=float, required=True,
+                    help="sigma_v (gn), eps (qd), from gate 0; or sigma per component (ar)")
+    ap.add_argument("--rho", type=float, default=None, help="AR(1) coefficient, family ar only")
     ap.add_argument("--out", required=True)
     ap.add_argument("--workers", type=int, default=1)
     ap.add_argument("--n-eps", type=int, default=110)
@@ -101,6 +109,8 @@ def main() -> int:
     ap.add_argument("--l3-seed", type=int, default=0)
     ap.add_argument("--quick", action="store_true")
     a = ap.parse_args()
+    if (a.family == "ar") != (a.rho is not None):
+        raise SystemExit("--rho is required for family ar and only for it")
     if a.quick:
         a.n_eps, a.steps, a.ray_steps = 30, 12, 4
     cells = []
@@ -112,7 +122,7 @@ def main() -> int:
         cells = [c for c in cells if c[1] < 2]
     dmax = max(c[0] for c in cells)
     tasks = [{"path": os.path.join(a.agents_dir, nm), "drift": d, "seed": s, "arm": g,
-              "family": a.family, "param": a.param, "n_eps": a.n_eps, "steps": a.steps,
+              "family": a.family, "param": a.param, "rho": a.rho, "n_eps": a.n_eps, "steps": a.steps,
               "ray_steps": a.ray_steps, "l3_hidden": a.l3_hidden, "l3_seed": a.l3_seed}
              for d, s, g, nm in cells if d == dmax]
     if a.workers > 1:
@@ -130,7 +140,7 @@ def main() -> int:
                 agg[f"{g} {m}"] = {"per_seed": v, "mean": float(np.mean(v)),
                                    "t90": [float(x) for x in t_ci90(v)] if len(v) > 1 else None}
     out = {"generated_by": "scripts/run_texture_fresh_probe.py", "git_commit": git_head(), "agents_dir": a.agents_dir,
-           "family": a.family, "param": a.param, "seed_bases": BASES[a.family],
+           "family": a.family, "param": a.param, "rho": a.rho, "seed_bases": BASES[a.family],
            "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
            "cells": results, "aggregate": agg}
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)

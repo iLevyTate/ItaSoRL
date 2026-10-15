@@ -108,6 +108,59 @@ def make_g_qd(*, eps: float, params) -> GQuadDrag:
     return GQuadDrag(eps=float(eps), drag0=float(params.k_land), dt=float(params.dt))
 
 
+class GAR:
+    """Authentic law plus a stationary AR(1) velocity perturbation per component
+    (spec 2026-10-15-coherence-integration-sweep-design.md):
+
+        eta_t = rho * eta_{t-1} + sqrt(1 - rho^2) * sigma * e_t,   e_t ~ N(0, I2)
+
+    The marginal sd of each component is sigma at every rho, so rho moves temporal coherence
+    while the one-step size stays fixed. rho = 0 is G_gn's white jitter. `reseed` restarts
+    the Philox stream and draws eta from its stationary law, so a pool's first episode starts
+    stationary; the process then runs on across episodes."""
+
+    def __init__(self, sigma: float, rho: float, drag0: float, dt: float, seed: int = 0) -> None:
+        if not 0.0 <= rho < 1.0:
+            raise ValueError("rho must lie in [0, 1)")
+        self._sigma, self._rho = float(sigma), float(rho)
+        self._drag0, self._dt = float(drag0), float(dt)
+        self.reseed(seed)
+
+    def reseed(self, seed: int) -> None:
+        self._seed = int(seed)
+        self._rng = np.random.Generator(np.random.Philox(self._seed))
+        self._eta = self._rng.normal(0.0, self._sigma, size=2) if self._sigma > 0 else np.zeros(2)
+
+    def __call__(self, vel, a, drag=None) -> np.ndarray:
+        base = ((1.0 - self._drag0 * self._dt) * np.asarray(vel, float)
+                + np.asarray(a, float) * self._dt)
+        if self._sigma == 0.0:
+            return base
+        out = base + self._eta
+        innov = np.sqrt(1.0 - self._rho ** 2) * self._sigma
+        self._eta = self._rho * self._eta + self._rng.normal(0.0, innov, size=2)
+        return out
+
+
+def make_g_ar(*, sigma: float, rho: float, params, seed: int = 0) -> GAR:
+    """Authentic law plus stationary AR(1) velocity jitter (uniform-drag world only, as G_gn)."""
+    if params.k_land != params.k_water:
+        raise ValueError("make_g_ar requires a uniform-drag world (k_land == k_water)")
+    return GAR(sigma=float(sigma), rho=float(rho), drag0=float(params.k_land),
+               dt=float(params.dt), seed=int(seed))
+
+
+def ar_accumulated_sd(sigma: float, rho: float, lam: float) -> float:
+    """Stationary sd of x_t = lam * x_{t-1} + eta_t per component, for eta the AR(1) of G_ar:
+    sigma * sqrt((1 + lam*rho) / ((1 - lam^2) * (1 - lam*rho)))."""
+    return float(sigma * np.sqrt((1.0 + lam * rho) / ((1.0 - lam ** 2) * (1.0 - lam * rho))))
+
+
+def sigma_for_accumulated_sd(target: float, rho: float, lam: float) -> float:
+    """The sigma at which ar_accumulated_sd equals `target` (sweep B's matching)."""
+    return float(target / ar_accumulated_sd(1.0, rho, lam))
+
+
 def perturbation_profile(g, *, params, n_eps: int = 60, steps: int = 40, seed: int = 77,
                          ray_steps: int = 5) -> dict:
     """Magnitude and temporal structure of a family's deviation from the authentic law,
