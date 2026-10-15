@@ -1,0 +1,361 @@
+{
+ "source_run": "artifacts/corrected_runs/l1-corrected",
+ "label": "L1 organism at the in-band grid, corrected trainer (L1-corrected)",
+ "spec": "docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md",
+ "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
+ "execution": "owner's workstation CPU, 3 workers; Python 3.13.2, numpy 1.26.4 (local build), torch 2.7.0+cu126 on CPU, scikit-learn 1.5.2, explicit folds",
+ "git_commit_at_promotion": "67fb5565cd26169f00ccb927bb8ec468369f5248",
+ "generated_by": "scripts/promote_reviewer_gaps_runs.py",
+ "bars": {
+  "auroc_floor": 0.65,
+  "margin": 0.05
+ },
+ "drifts": [
+  "0.0",
+  "0.023"
+ ],
+ "dmax": "0.023",
+ "arms": {
+  "0.0": {
+   "untrained": {
+    "pool_target": {
+     "per_seed": [
+      0.3785123966942149,
+      0.5578512396694214,
+      0.4380165289256198,
+      0.5177685950413223,
+      0.5582644628099174,
+      0.45785123966942154,
+      0.4615702479338843,
+      0.4665289256198347,
+      0.5008264462809917,
+      0.49338842975206615
+     ],
+     "mean": 0.4830578512396694,
+     "boot90": [
+      0.45516322314049584,
+      0.5095454545454545
+     ],
+     "t90": [
+      0.4511864337876608,
+      0.5149292686916779
+     ],
+     "t95": [
+      0.44372685640837756,
+      0.5223888460709613
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.8234858700692426,
+    "pool_reward_leak_mean": 0.5285950413223139,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.5,
+    "pool_shuffled_mean": 0.5091067467118454,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   },
+   "predictor": {
+    "pool_target": {
+     "per_seed": [
+      0.4946280991735537,
+      0.5454545454545454,
+      0.547107438016529,
+      0.5512396694214876,
+      0.5152892561983471,
+      0.5983471074380166,
+      0.5095041322314049,
+      0.5070247933884298,
+      0.5086776859504132,
+      0.4797520661157025
+     ],
+     "mean": 0.525702479338843,
+     "boot90": [
+      0.5090495867768594,
+      0.5435971074380165
+     ],
+     "t90": [
+      0.5055620582634602,
+      0.5458429004142257
+     ],
+     "t95": [
+      0.5008481471332322,
+      0.5505568115444537
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.9238681714122695,
+    "pool_reward_leak_mean": 0.507603305785124,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.5,
+    "pool_shuffled_mean": 0.5028643694716367,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   },
+   "survival": {
+    "pool_target": {
+     "per_seed": [
+      0.5541322314049587,
+      0.5305785123966942,
+      0.5355371900826447,
+      0.5582644628099175,
+      0.5880165289256198,
+      0.5417355371900826,
+      0.5995867768595041,
+      0.5070247933884298,
+      0.5475206611570248,
+      0.5198347107438017
+     ],
+     "mean": 0.5482231404958677,
+     "boot90": [
+      0.5345867768595042,
+      0.5627272727272727
+     ],
+     "t90": [
+      0.5316286158909889,
+      0.5648176651007466
+     ],
+     "t95": [
+      0.5277446298540042,
+      0.5687016511377313
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.9343615393130319,
+    "pool_reward_leak_mean": 0.4973140495867769,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.5,
+    "pool_shuffled_mean": 0.5040490334981931,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   }
+  },
+  "0.023": {
+   "untrained": {
+    "pool_target": {
+     "per_seed": [
+      0.45206611570247934,
+      0.5669421487603306,
+      0.512396694214876,
+      0.5355371900826447,
+      0.5318181818181819,
+      0.4979338842975206,
+      0.5049586776859505,
+      0.4723140495867769,
+      0.5239669421487603,
+      0.5342975206611571
+     ],
+     "mean": 0.5132231404958678,
+     "boot90": [
+      0.49648553719008265,
+      0.5295041322314049
+     ],
+     "t90": [
+      0.4938951552309569,
+      0.5325511257607788
+     ],
+     "t95": [
+      0.48937139654070244,
+      0.5370748844510331
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.8307479871572717,
+    "pool_reward_leak_mean": 0.5383057851239669,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.6027777777777777,
+    "pool_shuffled_mean": 0.5093792999362579,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   },
+   "predictor": {
+    "pool_target": {
+     "per_seed": [
+      0.47603305785123967,
+      0.5640495867768595,
+      0.5264462809917356,
+      0.5371900826446281,
+      0.5376033057851239,
+      0.5669421487603306,
+      0.5541322314049587,
+      0.5066115702479339,
+      0.47024793388429753,
+      0.5103305785123966
+     ],
+     "mean": 0.5249586776859505,
+     "boot90": [
+      0.5079731404958677,
+      0.5414462809917355
+     ],
+     "t90": [
+      0.5052617453459626,
+      0.5446556100259384
+     ],
+     "t95": [
+      0.5006516337578636,
+      0.5492657216140374
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.9228431821128457,
+    "pool_reward_leak_mean": 0.5094628099173554,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.6587499999999998,
+    "pool_shuffled_mean": 0.4983664020007084,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   },
+   "survival": {
+    "pool_target": {
+     "per_seed": [
+      0.5462809917355372,
+      0.5371900826446281,
+      0.487603305785124,
+      0.5615702479338843,
+      0.5863636363636363,
+      0.5450413223140496,
+      0.603305785123967,
+      0.5537190082644627,
+      0.5706611570247934,
+      0.5144628099173554
+     ],
+     "mean": 0.5506198347107438,
+     "boot90": [
+      0.5340082644628098,
+      0.5669008264462809
+     ],
+     "t90": [
+      0.531207180569514,
+      0.5700324888519737
+     ],
+     "t95": [
+      0.5266636049371525,
+      0.5745760644843352
+     ],
+     "n_seeds": 10,
+     "n_ge_065": 0
+    },
+    "pool_speed_mean": 0.9437354667427712,
+    "pool_reward_leak_mean": 0.4957024793388429,
+    "pool_deaths_auth_mean": 0.0,
+    "pool_deaths_surr_mean": 0.0,
+    "mp_target_mean": 0.6113888888888891,
+    "pool_shuffled_mean": 0.49805230892194585,
+    "pool_leak_clean_count": 10,
+    "mp_leak_clean_count": 10
+   }
+  }
+ },
+ "gates": {
+  "engagement": {
+   "0.00": {
+    "pass": 10,
+    "n": 10
+   },
+   "0.02": {
+    "pass": 10,
+    "n": 10
+   }
+  },
+  "l0_survival_mean": 0.5482231404958677,
+  "l0_tost": {
+   "mean": 0.5482231404958677,
+   "margin": 0.05,
+   "lower": 0.45,
+   "upper": 0.55,
+   "p_lower": 9.03541542100125e-07,
+   "p_upper": 0.4243754845523018,
+   "p_value": 0.4243754845523018,
+   "equivalent": false,
+   "n": 10
+  },
+  "l0_rope": {
+   "mean": 0.5482231404958677,
+   "rope": [
+    0.45,
+    0.55
+   ],
+   "hdi": [
+    0.5321900826446281,
+    0.5654545454545454
+   ],
+   "p_in_rope": 0.58595,
+   "accept": false,
+   "n": 10
+  },
+  "speed_min": 0.7865199518403853,
+  "speed_min_at": {
+   "drift": "0.023",
+   "arm": "untrained",
+   "seed_index": 4
+  },
+  "speed_n_pools": 60,
+  "speed_n_below": 0,
+  "speed_n_nonfinite": 0,
+  "speed_min_of_arm_means": 0.8234858700692426,
+  "pool_leak_clean_all": true,
+  "untrained_floor_at_dmax": 0.5132231404958678,
+  "untrained_floor_ok": true,
+  "deaths_total": 0
+ },
+ "decision": {
+  "survival": 0.5506198347107438,
+  "predictor": 0.5249586776859505,
+  "untrained": 0.5132231404958678,
+  "survival_t90": [
+   0.531207180569514,
+   0.5700324888519737
+  ],
+  "pass_bar": false,
+  "t90_excludes_bar": false,
+  "lead_over_predictor": 0.025661157024793324,
+  "lead_over_untrained": 0.037396694214876014,
+  "pass_margin_predictor": false,
+  "pass_margin_untrained": false,
+  "zone": "INTERMEDIATE (above chance, rule not met)",
+  "registered_rule_met": false,
+  "gates_open": [
+   "l0"
+  ]
+ },
+ "behavior_audit": null,
+ "gate0_calibration": null,
+ "registered_reading": {
+  "rule": "H_B2, docs/PREREGISTRATION.md sections 6 to 8, as applied to the historical L1 run (rule ledger: Primary rule (H_B2) at L1)",
+  "spec": "docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md",
+  "partition": "explicit (decides); legacy reported beside it",
+  "verdict": "NOT MET",
+  "deciding": "bar (survival mean 0.551 < 0.65) and both margins (+0.026, +0.037 < 0.05) fail on both partitions; L0 open on the explicit partition (TOST p 0.42), accepts on legacy (p 0.007)",
+  "corrected_minus_historical_survival_explicit": {
+   "mean": -0.0015289256198347146,
+   "t90": [
+    -0.023207652599807505,
+    0.020149801360138074
+   ]
+  },
+  "corrected_minus_historical_survival_legacy": {
+   "mean": -0.006830672621186423,
+   "t90": [
+    -0.029331941323333714,
+    0.015670596080960865
+   ]
+  },
+  "checks": {
+   "cells": "20 of 20, gae_bootstrap successor, fingerprint d8bb95f746f95e4b",
+   "baselines_bit_equal_to_historical_explicit_rescore": "predictor 20/20, untrained 20/20",
+   "state_dumps_reproduce_targets": "60/60",
+   "recipe_identity": "fingerprint_check.json: the 01e88e4 scheme gives the historical hash 250cd3eba1d482cf"
+  },
+  "zone_label_note": "decision.zone is the L3 matrix label the promoter writes for every run; this run is read under H_B2 and the label is descriptive",
+  "chronology": "launched 2026-10-15T09:44:36Z before the spec existed; the spec was committed (a75d534, 09:54:29Z) before any cell was written"
+ }
+}

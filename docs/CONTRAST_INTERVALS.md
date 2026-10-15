@@ -46,6 +46,7 @@ Each registered margin (survival at least 0.05 above the predictor and above the
 | `CORRECTED-H7-CORRECTED` | corrected | explicit | resid_trace | 0.717 [0.678, 0.757] | yes / yes | +0.019 [-0.024, +0.062] | no / no | +0.132 [+0.095, +0.169] | yes / yes |
 | `CORRECTED-H8GS2-CORRECTED` | corrected | explicit | target | 0.659 [0.619, 0.699] | yes / no | +0.031 [-0.006, +0.067] | no / no | +0.107 [+0.048, +0.167] | yes / no |
 | `CORRECTED-H8GS2-CORRECTED` | corrected | explicit | resid_trace | 0.630 [0.594, 0.666] | no / no | +0.027 [-0.009, +0.062] | no / no | +0.071 [+0.031, +0.111] | yes / no |
+| `CORRECTED-L1-CORRECTED` | corrected | explicit | target | 0.551 [0.531, 0.570] | no / no | +0.026 [-0.001, +0.052] | no / no | +0.037 [+0.009, +0.065] | no / no |
 | `CORRECTED-L3_H8_NOWM` | corrected | explicit | target | 0.613 [0.552, 0.675] | no / no | +0.025 [-0.053, +0.102] | no / no | +0.084 [+0.012, +0.156] | yes / no |
 | `CORRECTED-L3_H8_NOWM` | corrected | explicit | resid_trace | 0.642 [0.585, 0.698] | no / no | +0.050 [-0.017, +0.117] | yes / no | +0.093 [+0.031, +0.156] | yes / no |
 | `CORRECTED-L3_H8_WM` | corrected | explicit | target | 0.733 [0.669, 0.797] | yes / yes | +0.144 [+0.072, +0.217] | yes / yes | +0.210 [+0.135, +0.286] | yes / yes |

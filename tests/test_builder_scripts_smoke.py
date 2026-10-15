@@ -99,11 +99,12 @@ def test_agent_filename_pattern_parses_a_real_saved_agent_name(name, mod):
 
 
 def test_texture_comparator_seed_bases_are_disjoint_ranges():
-    gn, qd = rtfp.BASES["gn"], rtfp.BASES["qd"]
-    assert set(rtfp.BASES) == {"gn", "qd"}
-    for lo, hi in (gn, qd):
+    gn, qd, ar = rtfp.BASES["gn"], rtfp.BASES["qd"], rtfp.BASES["ar"]
+    assert set(rtfp.BASES) == {"gn", "qd", "ar"}
+    for lo, hi in (gn, qd, ar):
         assert lo < hi
     assert max(gn) < min(qd), "the qd pools must not reuse a gn world seed"
+    assert max(qd) < min(ar), "the ar pools must not reuse a qd world seed"
 
 
 def test_l0_audit_world_sample_pairs_are_distinct_from_the_standard_pair():

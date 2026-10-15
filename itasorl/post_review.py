@@ -101,6 +101,9 @@ BASES_IN_USE: tuple = (
     ("mechanism surrogate base named in the results manifest", 1_450_000, 64),
     ("qd comparator authentic", 1_900_000, POOL_N),
     ("qd comparator surrogate", 1_950_000, POOL_N),
+    # correlated-jitter sweep, spec 2026-10-15 (registered after the post-review bases, above them)
+    ("ar comparator authentic", 2_400_000, POOL_N),
+    ("ar comparator surrogate", 2_450_000, POOL_N),
 )
 
 NEW_BASES: tuple = (
