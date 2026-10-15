@@ -147,11 +147,12 @@ def main() -> int:
     ap.add_argument("--steps", type=int, default=24)
     ap.add_argument("--ray-steps", type=int, default=5)
     ap.add_argument("--workers", type=int, default=1)
+    ap.add_argument("--ckpt", default=None, help="checkpoint directory (default OUT_DIR/ckpt)")
     a = ap.parse_args()
     runs = dict(x.split("=", 1) for x in a.run)
     tasks = [{"run": nm, "agents_dir": d, "seed": s, "n_eps": a.n_eps, "steps": a.steps,
               "ray_steps": a.ray_steps} for nm, d in runs.items() for s in a.seeds]
-    rows = run_tasks(run_task, tasks, os.path.join(a.out_dir, "ckpt"),
+    rows = run_tasks(run_task, tasks, a.ckpt or os.path.join(a.out_dir, "ckpt"),
                      lambda t: f"{t['run']}_s{t['seed']}", a.workers)
     summ = summarize(rows, list(runs))
     for nm, d in runs.items():
