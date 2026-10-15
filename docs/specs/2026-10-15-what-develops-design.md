@@ -69,3 +69,15 @@ Each reading is reported as met or not met. None is a registered verdict.
 `artifacts/development/corrected_l3_h8_wm.json` and
 `artifacts/development/corrected_l3_h8_nowm.json`, each with provenance, the integrity check,
 per-seed values per budget, the cosines and transfer readings, and the readings.
+
+## Amendment 2026-10-15, before any code or number
+
+Found while writing the code. The two sequence decoders of the control battery (the
+supervised GRU and the flattened-sequence probe) cost about 20 minutes per cell on this
+workstation, and this readout has 80 cells. No reading above uses them. The battery is run
+without them: target, `resid_trace`, `resid_obs`, the joint MLP control (`resid_joint_mlp`,
+the best-fitting control) and the summary-feature stream comparator (`obs_summary_only`),
+each computed by the battery's own functions. "The observation-stream decoder" above means
+that summary-feature comparator. The cells are computed by a script that calls those
+functions on the snapshot files directly, so the runner itself is not changed. Nothing else
+changes.

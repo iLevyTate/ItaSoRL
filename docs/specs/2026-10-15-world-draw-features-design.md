@@ -93,3 +93,17 @@ reported beside the headline arm.
 `artifacts/world_features/corrected_l3_h8_wm.json` and
 `artifacts/world_features/corrected_l3_h8_nowm.json`, each with provenance, the reach
 radius, per-episode features, per-seed values for every arm and feature, and the readings.
+
+## Amendment 2026-10-15, before any code or number
+
+Found while writing the code. The observation summary has 292 columns and the residual step
+regresses 192 state columns on it in fold. At 220 episodes a training fold has 176 rows, so
+the regression interpolates and the residual means nothing. The readout uses 1100 episodes
+per seed at seed base 2600000 (880 training rows per fold). Constant observation columns are
+dropped before the regression, and the state-on-observation regression is ridge with alpha
+1e-3 on columns standardized in fold, the control battery's setting.
+
+The reach radius is the 95th percentile of the largest toroidal distance from the start
+reached at any step of the 24-step window, not of the distance at step 24. A feature beyond
+that radius was out of reach at every step, which is what "incidental" requires. Both
+percentiles are recorded. Distances are toroidal on the unit arena. Nothing else changes.

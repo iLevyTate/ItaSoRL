@@ -87,3 +87,22 @@ decide nothing.
 
 `artifacts/mechanism/erasure/corrected_l3_h8_wm.json` with provenance, per-seed values, the
 frozen and refit probe readings on erased states, and the four readings.
+
+## Amendment 2026-10-15, before any code or number
+
+Found while writing the code. The registered probe scores the mean-state block and the
+final-state block with two coefficient vectors, and `u` is their sum. Removing `u` alone
+leaves each block's own projection free to differ between worlds, so the frozen probe could
+still separate the erased rollouts and reading 4 would fail for a reason that has nothing to
+do with use. The erasure is therefore rank two: `a` and `b`, the mean-block and final-block
+coefficient vectors divided by the scaler's scale (the raw-space directions
+`probe_direction` sums), span the subspace S, P is the orthogonal projector onto S, and m is
+the midpoint of the two pools' per-step mean states. After every GRU update,
+
+    h <- h - P (h - m)
+
+so every linear score the frozen probe can form lies at its midpoint in both worlds. The sham
+is a rank-two subspace orthogonal to S, drawn per seed from the RNG of
+`mechanism_readouts.sham_direction` (seed 1000003 plus the agent seed), with its own
+projector and the same m. The manipulation check scores the first 24 steps of the erased
+rollouts, the window the registered features read. Nothing else changes.
