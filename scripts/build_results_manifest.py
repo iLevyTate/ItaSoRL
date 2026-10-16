@@ -892,7 +892,11 @@ RUNS = [
         notes="Frozen spec docs/specs/2026-10-15-coherence-integration-sweep-design.md (67fb556, before any code or "
               "number). Eleven settings: sweep A at one-step sigma 0.01, sweep B at the accumulated offset of A's "
               "rho = 0.9 point. Readings: coherence beyond integration NOT MET (B contrast -0.006 [-0.036, +0.023]); "
-              "integration suffices NOT MET (A contrast +0.029 [-0.009, +0.068]); neither MET. No point is kept "
+              "integration suffices NOT MET (A contrast +0.029 [-0.009, +0.068]); neither MET. Both are nondetections "
+              "of the pre-stated positive contrasts, not evidence of no effect. Sweep B matches the stationary "
+              "accumulated velocity SD (0.0870), not the 24-step open-loop gap (0.1205 at rho 0, 0.0970 at rho "
+              "0.99), and the AR process runs across episode boundaries (about 0.79 of its dependence shared after "
+              "24 steps at rho 0.99), which episode-grouped folds do not remove. No point reaches the bar "
               "(survival fresh 0.565 to 0.627). The run stopped once on an external console-close event after 8 "
               "points and resumed from them. Diagnostic."),
     run("C1-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the C1 rerun's agents",
@@ -1069,9 +1073,11 @@ RUNS = [
         notes="Frozen spec docs/specs/2026-10-15-salience-design.md (58efbed, before any code or number). "
               "Diagnostic. Label WHISPER on both runs: the probe direction carries 0.001 of the state's "
               "variance, k-means agreement with the world label is 0.518 [0.512, 0.523] on C1 and 0.523 "
-              "[0.514, 0.533] on C2, and the out-of-fold Cohen's d is 0.90 (C1) and 0.42 (C2). The "
-              "untrained arm on identical input does not meet the shout reading, so the whisper is not "
-              "carried by the input. The C1 readout stopped once after 5 of 10 seeds on an external "
+              "[0.514, 0.533] on C2, and the out-of-fold Cohen's d is 0.90 (C1) and 0.42 (C2). On identical "
+              "input the untrained trunk also whispers (k-means 0.518, variance share 0.0016 on C1; 0.517 "
+              "and 0.0015 on C2), with a larger share along its own probe direction than the survival trunk "
+              "(paired -0.00048 [-0.00068, -0.00029] on C1, -0.00069 [-0.00094, -0.00044] on C2); the readout "
+              "does not say what the input supplies (re-summarized from the recorded rows 2026-10-15). The C1 readout stopped once after 5 of 10 seeds on an external "
               "console-close event and resumed from the saved seeds. FINDINGS 23.1."),
     run("WORLD-FEATURES-TOROIDAL", "First run of the world-feature readout, measured with toroidal "
         "distances in a walled world (superseded; kept as the record)", experiment="B-v2 L3",
@@ -1101,8 +1107,8 @@ RUNS = [
         eval_seeds={"rollouts": "1400000, the mechanism readouts' base, both worlds"},
         device="owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
         deps="Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
-        notes="SUPERSEDED by the rerun that adds population outcomes; its common-survivor numbers are "
-              "expected to reproduce there. "
+        notes="SUPERSEDED by ERASURE-ONLINE, the rerun that adds population outcomes; its common-survivor "
+              "numbers reproduce there. "
               "Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any "
               "code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and "
               "after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). "
@@ -1113,6 +1119,44 @@ RUNS = [
               "+0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used "
               "under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has "
               "6 informative seeds and decides nothing. FINDINGS 23.3."),
+    run("WORLD-FEATURES", "Which features of its own world the state keeps beyond the senses: near and "
+        "far draw features decoded by ridge R squared, Euclidean distances and in-fold residual targets "
+        "(C1 and C2 agents)", experiment="B-v2 L3",
+        artifacts=["world_features/corrected_l3_h8_wm.json", "world_features/corrected_l3_h8_nowm.json"],
+        trains_survival=False, readout_of=["C1", "C2"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="9e03469", folds="explicit",
+        eval_seeds={"readout": "2600000, 1100 episodes, both worlds", "reach_calibration": "2650000, 110 per seed"},
+        device="owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
+        deps="Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
+        notes="Rerun under the spec's third amendment (2026-10-15, after the deep revision review): the "
+              "arena's Euclidean distance, far targets residualized inside each training fold, and the reach "
+              "radius reported as a calibration percentile. Supersedes WORLD-FEATURES-TOROIDAL on the same "
+              "saved agents. Diagnostic. Label KEEPS NOTHING BEYOND THE SENSES on both runs: no near feature "
+              "meets both clauses of reading 1 (C1 survival minus untrained state R squared -0.099, +0.090, "
+              "+0.069; survival residual lower bounds -0.001, -0.005, -0.002). Residual R squared across every "
+              "arm and both runs runs from -0.006 to +0.009, largest upper bound +0.013 (C2 predictor arm, far "
+              "water). Reach radius 0.318 (C1), 0.307 (C2), passed by 2.6 and 2.7 percent of readout episodes. "
+              "The permuted-target clause passes. FINDINGS 23.2."),
+    run("ERASURE-ONLINE", "Rank-two removal of the decoded world direction at every GRU step while the C1 "
+        "survival agent acts, against a sham removal, with attrition and population outcomes", experiment="B-v2 L3",
+        artifacts=["mechanism/erasure/corrected_l3_h8_wm.json"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="9e03469", folds="explicit",
+        eval_seeds={"rollouts": "1400000, the mechanism readouts' base, both worlds"},
+        device="owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
+        deps="Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
+        notes="Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code "
+              "(87247e4: rank-two removal) and after a two-seed setup check (93765bc: frozen-probe scores "
+              "quantized to 0.001 of the unerased spread, after the check read 0.39 to 0.61 from float32 "
+              "differences). Rerun after the deep revision review, adding attrition and every attempted episode's return "
+              "and termination; supersedes ERASURE-ONLINE-FIRST on the same saved agents. Every "
+              "common-survivor value reproduces the first run to the float apart from the projection "
+              "residual's rounding, and every reading is unchanged: not used under removal MET, used and "
+              "costly NOT MET, erasure held in 10 of 10 seeds, refit probe 0.646 [0.562, 0.729]. Attempted 64 "
+              "per seed, retained 44 to 51, excluded 26.6 percent [24.7, 28.5]. Every attempted episode: "
+              "return erased minus sham +0.010 [-0.009, +0.030] surrogate, +0.005 [-0.009, +0.019] authentic; "
+              "terminations per seed +0.2 [-0.3, +0.7] and -0.2 [-0.7, +0.3]; descriptive, no pre-stated "
+              "reading. The untrained floor decides nothing. FINDINGS 23.3."),
     run("DEVELOPMENT", "The control battery across the 100, 200, 300 and 450-update survival snapshots of "
         "C1 and C2, with probe-direction cosines and frozen-300 transfer", experiment="B-v2 L3",
         artifacts=["development/corrected_l3_h8_wm.json", "development/corrected_l3_h8_nowm.json"],
@@ -1126,9 +1170,11 @@ RUNS = [
               "(2cfc08d: integrity tolerance 0.005 for the workstation-versus-cloud stack). Diagnostic. "
               "Integrity: every snapshot's target reproduces artifacts/budget_curve.json within 0.0025. "
               "Own-episode target by budget, C1: 0.523, 0.548, 0.680, 0.733, 0.822; C2: 0.529, 0.529, "
-              "0.565, 0.613, 0.686. Readings: memory grows beyond the senses MET on C1 (resid_obs 450 "
-              "minus 100, +0.224 [+0.173, +0.275]) and NOT MET on C2 (+0.104 [+0.046, +0.162], only the "
-              "trace sharpens); a stored component beyond the trace MET on both (+0.159, +0.148); "
+              "0.565, 0.613, 0.686. Reading 1 (named memory grows beyond the senses) reads the increase in "
+              "resid_obs, the probe after the linear observation control history_basis(lags=1): MET on C1 "
+              "(+0.224 [+0.173, +0.275]) and NOT MET on C2 (+0.104 [+0.046, +0.162]); reading 2 reads "
+              "resid_trace, after the physical-trace basis: MET on both (+0.159, +0.148). The two are "
+              "separate readings after two linear controls, not a memory and trace decomposition; "
               "direction REORGANIZES on both (cosine of u_300 to u_450 0.40 and 0.42); C1 minus C2 in "
               "resid_obs +0.133 [+0.061, +0.206] at 450, the auxiliary builds the stored component. First "
               "budget above the untrained floor by 0.05: 200 (C1), 450 (C2). FINDINGS 23.4."),

@@ -849,3 +849,45 @@ A later readout on the saved agents, `scripts/audit_balanced_matched_gates.py`,
 scored the retained pairs. Leakage stays within 0.1 of 0.5 in every pool. The
 speed probe is under 0.75 on the untrained arm at seed 19 (0.749) in both runs.
 That readout is not folded back into the historical cell files.
+
+## 2026-10-15: world-feature distances were toroidal in a walled world
+
+**What was wrong.** The world-feature readout (FINDINGS 23.2) measured every distance with
+a wrapping torus metric, while the simulator clips the agent at the walls and never wraps
+(`patch_of_earth.py`). The far targets were also residualized on the near set over all
+episodes before cross-validation, so held-out episodes shaped the training targets. The
+manifest note said every arm's residual sat within 0.005 of zero; the `C2` predictor arm's
+far water and roughness read +0.0094 and +0.0088 on the same run. The deep revision review
+found all three on 2026-10-15.
+
+**Change.** The third amendment to the spec, written before the rerun, uses the arena's
+Euclidean distance, residualizes the far targets inside each training fold, and reports the
+reach radius as a calibration percentile with the readout episodes' exceedance rate. The
+readout was rerun on the same saved `C1` and `C2` agents, with no retraining. The first
+run's artifacts are kept under `artifacts/world_features/superseded_toroidal_2026-10-15/`
+with a superseded manifest row.
+
+**What this does not change.** The label is the same on both runs: keeps nothing beyond the
+senses. The correction does not establish that the state keeps nothing of its world. The
+label says only that no near feature met both clauses of reading 1; the residual R squared
+values run from -0.006 to +0.009 across arms, with the largest upper bound +0.013.
+
+## 2026-10-15: online erasure was scored on common survivors only
+
+**What was wrong.** The online erasure readout (FINDINGS 23.3) scored behavior, return and
+probes on episodes alive to the horizon in all six conditions, and recorded neither how
+many episodes that excluded nor any outcome over the episodes removal ended early. Its
+sentence that the decodable direction can be changed without changing what the agent does
+outran that subset.
+
+**Change.** `rollout_behavior` keeps every attempted episode's return through termination,
+its termination flag and its steps alive. The runner reports attrition per condition and
+the population return and termination contrasts beside the common-survivor readings. The
+readout was rerun on the same saved `C1` agents; the first artifact is kept under
+`artifacts/mechanism/erasure/superseded_common_survivor_2026-10-15/`.
+
+**What this does not change.** Every common-survivor value reproduces the first run to the
+float, apart from the projection residual's rounding, and every reading is unchanged.
+Removal excluded 26.6 percent of attempted episodes. On every attempted episode the return
+and termination contrasts against the sham include zero in both worlds.
+

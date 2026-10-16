@@ -93,3 +93,13 @@ mean-of-folds AUROC. Exact agreement at two budgets shows the right agents and p
 read. The gate's tolerance is 0.005, changed after this check showed 0.0012, and the largest
 difference per budget is recorded and reported. No reading changes. The one-seed check is
 not part of the result.
+
+## Note 2026-10-15, after the deep revision review
+
+Reading 1's name, "memory grows beyond the senses", is a label for the increase in
+decodability after the linear observation control `history_basis(lags=1)`. It does not
+identify memory: a memoryless nonlinear function of the current observation can read high
+after that control. Reading 2 is likewise a label for the increase after the physical-trace
+basis. The two readings are separate controls, not shares of one signal, and are read as
+labels with that meaning. The frozen names and thresholds stay.
+
