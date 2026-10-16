@@ -35,7 +35,7 @@ def record_with_worlds(agent, norm, P, n_eps: int, steps: int, seed_base: int, r
     import torch
 
     from itasorl.experiment_b2 import _seeds, make_world
-    from itasorl.novel_readouts import _torus_dist, draw_features
+    from itasorl.novel_readouts import arena_dist, draw_features
 
     O, A, K, F, dmax, dfin = [], [], [], [], [], []
     for i in range(n_eps):
@@ -54,7 +54,7 @@ def record_with_worlds(agent, norm, P, n_eps: int, steps: int, seed_base: int, r
             orow.append(obs.astype(np.float32))
             arow.append(a)
             res = w.step(a)
-            dist.append(float(_torus_dist(np.asarray(w.pos, float), start)))
+            dist.append(float(arena_dist(np.asarray(w.pos, float), start)))
             prev = env_act
             obs = res.obs.astype(np.float64)
             if res.terminated:

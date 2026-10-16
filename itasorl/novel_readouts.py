@@ -93,9 +93,11 @@ def salience_measures(Ha: np.ndarray, Hs: np.ndarray, seed: int = 0) -> dict:
 GRID = 128
 
 
-def _torus_dist(p: np.ndarray, q: np.ndarray) -> np.ndarray:
-    d = np.abs(np.asarray(p, float) - np.asarray(q, float))
-    d = np.minimum(d, 1.0 - d)
+def arena_dist(p: np.ndarray, q: np.ndarray) -> np.ndarray:
+    """Euclidean distance in the unit arena. The world has walls (patch_of_earth clips a
+    position that crosses an edge and stops its normal velocity), so no distance wraps.
+    The 2026-10-15 run used a toroidal distance here; see the spec's third amendment."""
+    d = np.asarray(p, float) - np.asarray(q, float)
     return np.sqrt((d ** 2).sum(-1))
 
 
@@ -120,15 +122,15 @@ def draw_features(world, r: float) -> dict:
     x, y, H = terrain_grid(world)
     water = water_mask(world, H)
     start = np.asarray(world.pos, float)
-    dg = _torus_dist(np.stack([x, y], -1), start)
+    dg = arena_dist(np.stack([x, y], -1), start)
     near = dg <= r
     far = ~near
     pel = np.asarray(world.pellets, float)
-    dp = _torus_dist(pel, start)
+    dp = arena_dist(pel, start)
     pf = pel[dp > r]
     if len(pf) >= 2:
         i, j = np.triu_indices(len(pf), 1)
-        disp = float(_torus_dist(pf[i], pf[j]).mean())
+        disp = float(arena_dist(pf[i], pf[j]).mean())
     else:
         disp = float("nan")
     return {"I1_nearest_pellet": float(dp.min()),

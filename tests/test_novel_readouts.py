@@ -170,3 +170,17 @@ def test_ridge_r2_does_not_overfit_noise_in_the_readout_shape():
     t = rng.normal(size=1100)
     assert ridge_r2_cv(X, t) <= 0.02
     assert residual_r2_cv(X, O, t) <= 0.02
+
+
+def test_arena_distance_does_not_wrap_through_the_walls():
+    """patch_of_earth clips positions to [0, 1] and stops the normal velocity (line 207);
+    the arena has walls, not a torus. Two points near opposite walls are 0.96 apart."""
+    from itasorl.novel_readouts import arena_dist
+    assert arena_dist(np.array([0.02, 0.5]), np.array([0.98, 0.5])) == pytest.approx(0.96)
+    assert arena_dist(np.array([[0.0, 0.0], [1.0, 1.0]]), np.array([0.0, 0.0])).tolist() == \
+        pytest.approx([0.0, 2 ** 0.5])
+
+
+def test_torus_distance_is_gone():
+    import itasorl.novel_readouts as nr
+    assert not hasattr(nr, "_torus_dist")
