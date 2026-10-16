@@ -26,7 +26,7 @@ def test_write_output_records_no_machine_local_path(tmp_path):
     out = str(tmp_path / "o.json")
     rc.write_output(out, "scripts/run_x.py",
                     ["--agents-dir", agents, "--run", f"wm={agents}", "--out", out],
-                    {"agents_dir": agents, "seeds": [0]}, "docs/specs/x.md", {"rows": []})
+                    {"agents_dir": agents, "seeds": [0]}, "docs/specs/x.md", {"rows": [{"seed": 0}]})
     with open(out, encoding="utf-8") as fh:
         prov = json.load(fh)["provenance"]
     assert prov["inputs"]["agents_dir"] == "fullruns/some_run/agents"
@@ -285,3 +285,54 @@ def test_erasure_summary_carries_attrition_and_population_return_contrasts():
     assert out["population"]["surr_return_erased_minus_sham"]["mean"] == pytest.approx(-0.1)
     assert out["population"]["surr_terminated_erased_minus_sham"]["mean"] == pytest.approx(1.0)
     assert out["scope"].startswith("common survivors")
+
+
+def _fake_task_fn(t):
+    return {"seed": t["seed"], "value": t["n_eps"] * 1.0, "seconds": 0.0}
+
+
+def test_run_tasks_refuses_a_checkpoint_written_for_different_inputs(tmp_path):
+    """A checkpoint is keyed by seed alone; the first run of the readouts would have reused
+    a 110-episode checkpoint for an 1100-episode invocation (review N08)."""
+    import _readout_common as rc
+    key = lambda t: f"s{t['seed']}"  # noqa: E731
+    rc.run_tasks(_fake_task_fn, [{"seed": 0, "n_eps": 110, "agents_dir": "x"}], str(tmp_path), key,
+                 fingerprint_extra={"code": "abc"})
+    with pytest.raises(RuntimeError, match="n_eps"):
+        rc.run_tasks(_fake_task_fn, [{"seed": 0, "n_eps": 1100, "agents_dir": "x"}], str(tmp_path), key,
+                     fingerprint_extra={"code": "abc"})
+
+
+def test_run_tasks_resumes_an_identical_invocation_and_reproduces_the_saved_result(tmp_path):
+    import _readout_common as rc
+    key = lambda t: f"s{t['seed']}"  # noqa: E731
+    tasks = [{"seed": 0, "n_eps": 110, "agents_dir": "x"}]
+    first = rc.run_tasks(_fake_task_fn, tasks, str(tmp_path), key, fingerprint_extra={"code": "abc"})
+
+    def must_not_run(t):
+        raise AssertionError("must not recompute")
+    again = rc.run_tasks(must_not_run, tasks, str(tmp_path), key, fingerprint_extra={"code": "abc"})
+    assert [r["value"] for r in again] == [r["value"] for r in first]
+
+
+def test_write_output_refuses_an_incomplete_or_duplicated_seed_set(tmp_path):
+    import _readout_common as rc
+    with pytest.raises(RuntimeError, match="seeds"):
+        rc.write_output(str(tmp_path / "o.json"), "scripts/run_x.py", [], {"seeds": [0, 1]}, "spec",
+                        {"rows": [{"seed": 0}, {"seed": 0}]})
+
+
+def test_ar_sweep_refuses_a_point_file_written_for_another_rho(tmp_path):
+    """The sweep reused any existing point file by name (review N08); it now compares the
+    recorded family, rho, sigma, agents directory and seed bases with the invocation."""
+    import shutil
+
+    import run_ar_sweep as sw
+    pts, _, _ = sw.points()
+    agents = "fullruns/corrected_l3_h8_wm/agents"
+    src = os.path.join(ROOT, "artifacts", "texture", "ar_sweep", pts[1]["file"])
+    sw.check_point(src, pts[1], agents)
+    dst = tmp_path / pts[1]["file"]
+    shutil.copy(src, dst)
+    with pytest.raises(RuntimeError, match="rho"):
+        sw.check_point(str(dst), {**pts[1], "rho": pts[1]["rho"] + 0.1}, agents)

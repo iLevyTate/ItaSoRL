@@ -156,27 +156,18 @@ def main() -> int:
     tasks = [{"agents_dir": a.agents_dir, "seed": s, "drift": a.drift, "drift_mode": a.drift_mode,
               "l1_delta": a.l1_delta, "l1_sigma": a.l1_sigma, "n_eps": a.n_eps, "steps": a.steps,
               "ray_steps": a.ray_steps} for s in a.seeds]
-    rows, todo = [], []
-    for t in tasks:
-        p = a.ckpt and os.path.join(a.ckpt, f"s{t['seed']}.json")
-        if p and os.path.exists(p):
-            rows.append(json.load(open(p, encoding="utf-8")))
-        else:
-            todo.append(t)
-    def _save(r):
-        rows.append(r)
-        if a.ckpt:
-            os.makedirs(a.ckpt, exist_ok=True)
-            with open(os.path.join(a.ckpt, f"s{r['seed']}.json"), "w", encoding="utf-8") as fh:
-                json.dump(r, fh, default=float)
-    if a.workers > 1 and todo:
+    from _readout_common import fingerprint_extra, run_tasks
+    if a.ckpt:
+        arms = [("survival", 0.0) if g == "survival_d0" else (g, a.drift) for g in ARMS]
+        fpx = fingerprint_extra(__file__, a.agents_dir, a.seeds, arms)
+        rows = run_tasks(run_seed, tasks, a.ckpt, lambda t: f"s{t['seed']}", a.workers, fpx)
+    elif a.workers > 1:
         import multiprocessing as mp
         with mp.get_context("spawn").Pool(a.workers) as pool:
-            for r in pool.imap_unordered(run_seed, todo):
-                _save(r)
+            rows = list(pool.imap_unordered(run_seed, tasks))
     else:
-        for t in todo:
-            _save(run_seed(t))
+        rows = [run_seed(t) for t in tasks]
+    rows = [{k: v for k, v in r.items() if not k.startswith("_")} for r in rows]
     rows.sort(key=lambda r: r["seed"])
     command = "python " + " ".join(["scripts/run_surprise_readout.py", *sys.argv[1:]])
     inputs = {"agents_dir": a.agents_dir, "drift": a.drift, "drift_mode": a.drift_mode, "seeds": a.seeds,

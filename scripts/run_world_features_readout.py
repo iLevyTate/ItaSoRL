@@ -19,7 +19,7 @@ import time
 
 import numpy as np
 
-from _readout_common import DRIFT, load, run_tasks, setup_l3, world_params, write_output
+from _readout_common import DRIFT, fingerprint_extra, load, run_tasks, setup_l3, world_params, write_output
 
 SPEC = "docs/specs/2026-10-15-world-draw-features-design.md"
 READ_BASE = 2_600_000       # listed in itasorl.post_review.BASES_IN_USE
@@ -185,8 +185,9 @@ def main() -> int:
     a = ap.parse_args()
     ckpt = a.ckpt or a.out + ".ckpt"
     base = {"agents_dir": a.agents_dir, "steps": a.steps, "ray_steps": a.ray_steps}
+    fpx = fingerprint_extra(__file__, a.agents_dir, a.seeds, ARMS[: a.arms])
     cal = run_tasks(calibrate, [{**base, "seed": s, "n_calib": a.n_calib} for s in a.seeds],
-                    os.path.join(ckpt, "calib"), lambda t: f"s{t['seed']}", a.workers)
+                    os.path.join(ckpt, "calib"), lambda t: f"s{t['seed']}", a.workers, fpx)
     dmax = np.concatenate([c["max_disp"] for c in cal])
     dfin = np.concatenate([c["final_disp"] for c in cal])
     r = float(np.percentile(dmax, 95))
@@ -194,7 +195,7 @@ def main() -> int:
           f"{np.percentile(dfin, 95):.4f})", flush=True)
     tasks = [{**base, "seed": s, "n_eps": a.n_eps, "r": r, "n_arms": a.arms} for s in a.seeds]
     rows = sorted(run_tasks(run_seed, tasks, os.path.join(ckpt, "read"), lambda t: f"s{t['seed']}",
-                            a.workers), key=lambda x: x["seed"])
+                            a.workers, fpx), key=lambda x: x["seed"])
     body = {"spec": SPEC, "reach": {"r": r, "pct95_max_disp": r,
                                     "pct95_final_disp": float(np.percentile(dfin, 95)),
                                     "readout_exceedance_rate": float(np.nanmean([r_["exceedance_rate"] for r_ in rows])),

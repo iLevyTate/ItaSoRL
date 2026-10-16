@@ -71,6 +71,21 @@ def contrast(hi: dict, lo: dict) -> dict:
     return {"mean": float(x.mean()) if len(x) else float("nan"), "t90": [float(lo_), float(hi_)], "n": int(len(x))}
 
 
+def check_point(path: str, p: dict, agents_dir: str) -> None:
+    """An existing point file is reused only when it was written for this point: same family,
+    rho, sigma, agents directory and seed bases. A mismatch raises instead of being skipped."""
+    from promote_bv3_gates import repo_rel
+    from run_texture_fresh_probe import BASES
+    with open(path, encoding="utf-8") as fh:
+        doc = json.load(fh)
+    want = {"family": "ar", "rho": p["rho"], "param": p["sigma"], "agents_dir": repo_rel(agents_dir),
+            "seed_bases": list(BASES["ar"])}
+    bad = [k for k, v in want.items()
+           if (abs(doc.get(k, float("nan")) - v) > 1e-12 if isinstance(v, float) else doc.get(k) != v)]
+    if bad:
+        raise RuntimeError(f"{path} was written for different inputs; differing fields: {bad}")
+
+
 def main() -> int:
     from itasorl.optional_readouts import provenance
     from itasorl.stats import t_ci90
@@ -83,7 +98,9 @@ def main() -> int:
     pts, lam, target = points()
     for p in pts:
         path = os.path.join(a.out_dir, p["file"])
-        if not os.path.exists(path):
+        if os.path.exists(path):
+            check_point(path, p, a.agents_dir)
+        else:
             print(f"== sweep {p['sweep']} rho {p['rho']} sigma {p['sigma']:.5f}", flush=True)
             subprocess.run([sys.executable, "scripts/run_texture_fresh_probe.py", "--agents-dir", a.agents_dir,
                             "--family", "ar", "--param", repr(p["sigma"]), "--rho", repr(p["rho"]),

@@ -17,7 +17,7 @@ import time
 
 import numpy as np
 
-from _readout_common import AUTH_BASE, DRIFT, SURR_BASE, load, run_tasks, setup_l3, world_params, write_output
+from _readout_common import AUTH_BASE, DRIFT, SURR_BASE, fingerprint_extra, load, run_tasks, setup_l3, world_params, write_output
 
 SPEC = "docs/specs/2026-10-15-online-erasure-design.md"
 WORLD_BASE = 1_400_000      # the nudge readout's rollout base
@@ -187,7 +187,8 @@ def main() -> int:
     ckpt = a.ckpt or a.out + ".ckpt"
     tasks = [{"agents_dir": a.agents_dir, "seed": s, "arm": g, "n_eps": a.n_eps, "steps": a.steps,
               "pool_n": a.pool_n, "ray_steps": a.ray_steps} for g in a.arms for s in a.seeds]
-    rows = sorted(run_tasks(run_cell, tasks, ckpt, lambda t: f"{t['arm']}_s{t['seed']}", a.workers),
+    rows = sorted(run_tasks(run_cell, tasks, ckpt, lambda t: f"{t['arm']}_s{t['seed']}", a.workers,
+                            fingerprint_extra(__file__, a.agents_dir, a.seeds, a.arms)),
                   key=lambda r: (r["arm"], r["seed"]))
     body = {"spec": SPEC, "summary": summarize(rows), "rows": rows}
     write_output(a.out, "scripts/run_erasure_readout.py", sys.argv[1:],

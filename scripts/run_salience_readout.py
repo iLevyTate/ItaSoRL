@@ -16,7 +16,7 @@ import sys
 import time
 
 
-from _readout_common import AUTH_BASE, DRIFT, SURR_BASE, load, run_tasks, setup_l3, world_params, write_output
+from _readout_common import AUTH_BASE, DRIFT, SURR_BASE, fingerprint_extra, load, run_tasks, setup_l3, world_params, write_output
 
 SPEC = "docs/specs/2026-10-15-salience-design.md"
 ARMS = ("survival", "predictor", "untrained")
@@ -110,7 +110,8 @@ def main() -> int:
     ckpt = a.ckpt or a.out + ".ckpt"
     tasks = [{"agents_dir": a.agents_dir, "seed": s, "n_eps": a.n_eps, "steps": a.steps,
               "ray_steps": a.ray_steps} for s in a.seeds]
-    rows = sorted(run_tasks(run_seed, tasks, ckpt, lambda t: f"s{t['seed']}", a.workers),
+    rows = sorted(run_tasks(run_seed, tasks, ckpt, lambda t: f"s{t['seed']}", a.workers,
+                            fingerprint_extra(__file__, a.agents_dir, a.seeds, [*ARMS, ("survival", 0.0)])),
                   key=lambda r: r["seed"])
     body = {"spec": SPEC, **summarize(rows), "rows": rows}
     write_output(a.out, "scripts/run_salience_readout.py", sys.argv[1:],

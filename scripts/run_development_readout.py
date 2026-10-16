@@ -20,7 +20,7 @@ import time
 
 import numpy as np
 
-from _readout_common import AUTH_BASE, DRIFT, SURR_BASE, load, run_tasks, setup_l3, world_params, write_output
+from _readout_common import AUTH_BASE, DRIFT, SURR_BASE, fingerprint_extra, load, run_tasks, setup_l3, world_params, write_output
 
 SPEC = "docs/specs/2026-10-15-what-develops-design.md"
 BUDGETS = (100, 200, 300, 450)
@@ -152,8 +152,10 @@ def main() -> int:
     runs = dict(x.split("=", 1) for x in a.run)
     tasks = [{"run": nm, "agents_dir": d, "seed": s, "n_eps": a.n_eps, "steps": a.steps,
               "ray_steps": a.ray_steps} for nm, d in runs.items() for s in a.seeds]
+    fpx = {nm: fingerprint_extra(__file__, d, a.seeds, ["survival", "untrained"], (None, *BUDGETS))
+           for nm, d in runs.items()}
     rows = run_tasks(run_task, tasks, a.ckpt or os.path.join(a.out_dir, "ckpt"),
-                     lambda t: f"{t['run']}_s{t['seed']}", a.workers)
+                     lambda t: f"{t['run']}_s{t['seed']}", a.workers, fpx)
     summ = summarize(rows, list(runs))
     for nm, d in runs.items():
         name = {"wm": "corrected_l3_h8_wm", "nowm": "corrected_l3_h8_nowm"}.get(nm, nm)
