@@ -34,7 +34,8 @@
    "device": "cpu"
   },
   "written": "2026-10-15",
-  "paths_rewritten": "2026-10-15: agents_dir and the command line were made repo-relative after the run, which recorded absolute paths; no other field changed"
+  "paths_rewritten": "2026-10-15: agents_dir and the command line were made repo-relative after the run, which recorded absolute paths; no other field changed",
+  "resummarized": "2026-10-15: summary recomputed from the recorded rows after the deep revision review (N03); rows unchanged"
  },
  "spec": "docs/specs/2026-10-15-salience-design.md",
  "aggregate": {
@@ -884,6 +885,43 @@
   "2 whisper": true,
   "3 between (audible)": false,
   "4 floor: untrained meets reading 1 on identical input": false,
+  "4 floor on identical input": {
+   "untrained meets reading 1 (shout)": false,
+   "untrained whispers": true,
+   "untrained kmeans_agreement": {
+    "mean": 0.5168181818181818,
+    "t90": [
+     0.5089574759910985,
+     0.5246788876452652
+    ],
+    "n": 10
+   },
+   "untrained share_probe_dir": {
+    "mean": 0.0014857112157755357,
+    "t90": [
+     0.0010857621816381053,
+     0.0018856602499129661
+    ],
+    "n": 10
+   },
+   "survival minus untrained, share_probe_dir": {
+    "mean": -0.0006922112648235232,
+    "t90": [
+     -0.0009405077485363732,
+     -0.0004439147811106732
+    ],
+    "n": 10
+   },
+   "survival minus untrained, kmeans_agreement": {
+    "mean": 0.006363636363636393,
+    "t90": [
+     -0.0026105593203904027,
+     0.015337832047663189
+    ],
+    "n": 10
+   },
+   "note": "a floor that only tests whether the untrained trunk is loud cannot tell two whispers apart; the paired differences are descriptive and are not a causal decomposition of what the input supplies"
+  },
   "label": "whisper",
   "l0 kmeans agreement": 0.5231818181818182,
   "l0 within 0.1 of 0.5": true
