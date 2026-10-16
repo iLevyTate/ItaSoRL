@@ -85,7 +85,7 @@ def run_seed(t: dict) -> dict:
     from itasorl.experiment_a import grouped_auroc
     from itasorl.experiment_b import episode_features
     from itasorl.novel_readouts import (INCIDENTAL, INSTRUMENTAL, obs_summary, residual_r2_cv,
-                                        residualize_incidental, ridge_r2_cv)
+                                        residual_targets, residualize_incidental, ridge_r2_cv)
 
     setup_l3()
     P = world_params()
@@ -96,23 +96,29 @@ def run_seed(t: dict) -> dict:
                                           t["ray_steps"], t["r"])
     raw = {k: np.array([f[k] for f in F], float) for k in INSTRUMENTAL + INCIDENTAL}
     ok = np.all(np.isfinite(np.column_stack(list(raw.values()))), axis=1)
-    feats = residualize_incidental({k: v[ok] for k, v in raw.items()})
+    feats = {k: v[ok] for k, v in raw.items()}
+    full = residualize_incidental(feats)      # full-sample residual: the descriptive median split only
+    tgt = {k: residual_targets(feats, k) for k in feats}   # far targets residualized in fold
     Xo = obs_summary(O[ok])
     out = {"seed": s, "n": int(ok.sum()), "n_recorded": int(len(K)),
-           "feature_means": {k: float(v[ok].mean()) for k, v in raw.items()},
-           "feature_sds": {k: float(v[ok].std()) for k, v in raw.items()},
-           "echo_r2": {k: ridge_r2_cv(Xo, feats[k]) for k in feats}, "arms": {}}
+           "feature_means": {k: float(v.mean()) for k, v in feats.items()},
+           "feature_sds": {k: float(v.std()) for k, v in feats.items()},
+           "echo_r2": {k: ridge_r2_cv(Xo, feats[k], target=tgt[k]) for k in feats}, "arms": {},
+           "targets": "far features residualized on the near ones inside each training fold "
+                      "(third amendment); auroc_median_split uses the full-sample residual"}
     rng = np.random.default_rng(10_000 + s)
     for g, d in ARMS[: t["n_arms"]]:
         a2, n2 = (ag, nm) if (g, d) == ("survival", DRIFT) else load(t["agents_dir"], d, s, g)
         Xh = episode_features(replay_states(a2, n2, O[ok], A[ok])).astype(np.float64)
         blk = {}
         for k, v in feats.items():
-            yb = (v > np.median(v)).astype(int)
-            blk[k] = {"r2_state": ridge_r2_cv(Xh, v), "r2_resid": residual_r2_cv(Xh, Xo, v),
+            yb = (full[k] > np.median(full[k])).astype(int)
+            blk[k] = {"r2_state": ridge_r2_cv(Xh, v, target=tgt[k]),
+                      "r2_resid": residual_r2_cv(Xh, Xo, v, target=tgt[k]),
                       "auroc_median_split": float(grouped_auroc(Xh, yb, np.arange(len(yb))))}
             if (g, d) == ("survival", DRIFT):
-                blk[k]["r2_permuted"] = ridge_r2_cv(Xh, rng.permutation(v))
+                perm = {**feats, k: rng.permutation(v)}
+                blk[k]["r2_permuted"] = ridge_r2_cv(Xh, perm[k], target=residual_targets(perm, k))
         out["arms"][f"{g}_d{d:.2f}"] = blk
     out["seconds"] = round(time.time() - t0, 1)
     return out

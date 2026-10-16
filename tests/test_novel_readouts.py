@@ -184,3 +184,35 @@ def test_arena_distance_does_not_wrap_through_the_walls():
 def test_torus_distance_is_gone():
     import itasorl.novel_readouts as nr
     assert not hasattr(nr, "_torus_dist")
+
+
+def test_incidental_residual_is_fit_on_the_training_fold_only():
+    """The 2026-10-15 run fit each far feature's regression on the near features over every
+    episode before the decoder's cross-validation, so held-out targets shaped the training
+    targets (review N02). The fold-target callable fits on the training rows alone."""
+    from itasorl.novel_readouts import INCIDENTAL, INSTRUMENTAL, residual_targets
+    rng = np.random.default_rng(0)
+    n = 40
+    F = {k: rng.normal(size=n) for k in INSTRUMENTAL + INCIDENTAL}
+    tr, te = np.arange(30), np.arange(30, 40)
+    t_tr, t_te = residual_targets(F, "N1_water_far")(tr, te)
+    F2 = dict(F)
+    F2["N1_water_far"] = F["N1_water_far"].copy()
+    F2["N1_water_far"][te] += 5.0
+    t_tr2, _ = residual_targets(F2, "N1_water_far")(tr, te)
+    assert np.allclose(t_tr, t_tr2)
+    assert len(t_te) == 10
+    raw_tr, raw_te = residual_targets(F, "I1_nearest_pellet")(tr, te)
+    assert np.allclose(raw_tr, F["I1_nearest_pellet"][tr]) and np.allclose(raw_te, F["I1_nearest_pellet"][te])
+
+
+def test_ridge_r2_cv_accepts_a_fold_target_callable():
+    from itasorl.novel_readouts import residual_r2_cv, ridge_r2_cv
+    rng = np.random.default_rng(1)
+    X = rng.normal(size=(60, 3))
+    t = X[:, 0] + 0.1 * rng.normal(size=60)
+    plain = ridge_r2_cv(X, t)
+    same = ridge_r2_cv(X, t, target=lambda tr, te: (t[tr], t[te]))
+    assert plain == pytest.approx(same)
+    Xo = rng.normal(size=(60, 2))
+    assert residual_r2_cv(X, Xo, t) == pytest.approx(residual_r2_cv(X, Xo, t, target=lambda tr, te: (t[tr], t[te])))
