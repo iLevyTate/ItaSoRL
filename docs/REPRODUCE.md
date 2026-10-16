@@ -155,6 +155,8 @@ default `fullruns/`):
   agents or state dumps of `C1` and `C2`, which then exist only after a retrain (section 2).
 - `fullruns/l3_h8_heldout/agents`, the saved agents of the historical hidden-8 held-out run.
 - `fullruns/l3_h8_gseed2_gpu/agents`, the saved agents of the hidden-8 seed-2 run.
+- `fullruns/corrected_l1_heldout`, the run folder of `L1-CORRECTED` (20 cells, 60 saved agents
+  and 60 state dumps), from which the stream and surprise readouts replay.
 
 The console and `README_SUPPLEMENT.md` name every folder that was absent. The saved agents
 are not committed to git; for review they ship only in this supplement, and a DOI archive
