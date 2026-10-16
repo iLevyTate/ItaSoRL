@@ -2842,6 +2842,7 @@
    "outcome": "MET with every gate passing: \"a pellet-directed goal without survival stakes produces walks from which the condition is decodable; survival is not required\"",
    "outcome_class": "threshold met",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11; FINDINGS 18.2; artifacts/goal_stakes/decision.json",
+   "outcome_footnote": "the leakage gate summed the homeostatic reward, not pellets consumed, so the wrong-reward leakage audit did not establish full-rule validity (Appendix~\\ref{app:corrections}, item~\\ref{corr:touchleak}).",
    "note": "Touch engagement is the spec's ratio rule: the trained touch return at least 1.5 times the better baseline (1.30 pellets per episode against 0.52)."
   },
   {

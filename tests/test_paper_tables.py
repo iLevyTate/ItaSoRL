@@ -408,3 +408,18 @@ def test_gate_rows_that_read_one_set_of_agents_share_a_letter(tmp_path, monkeypa
     letters = [ln.split("&")[-1].strip(" \\") for ln in tex.splitlines() if ln[:2] in ("A ", "B ", "C ")]
     assert letters == ["a", "a", "b"]
     assert "The 3 rows read 2 distinct sets" in tex
+
+
+def test_an_interval_bound_that_rounds_to_zero_prints_without_a_sign():
+    assert bpt._iv([-0.0004, 0.031], signed=True) == "[+0.000, +0.031]"
+    assert bpt._iv([-0.026, -0.0002]) == "[-0.026, 0.000]"
+
+
+def test_a_qualified_outcome_reads_recorded_as_with_its_note():
+    """The T-touch row was recorded as met before its leakage audit was found to read the wrong
+    reward; the ledger table says "recorded as" and carries the note under the table."""
+    tex = bpt.rule_ledger_table()
+    row = next(line for line in tex.splitlines() if line.startswith("Touch objective, death off"))
+    assert "recorded as met$^{a}$" in row
+    assert r"$a$: the leakage gate summed the homeostatic reward" in tex
+    assert r"\ref{corr:touchleak}" in tex
