@@ -50,20 +50,27 @@ twenty-six rows and ten sets against the gate table's 27 and 11.
 - The archive is 138 MB larger than the 2026-10-15 build, about the size of the corrected L1
   bundle it now carries.
 
-## 2a. Review build, 2026-10-16 (a test build, not the submission archive)
+## 2a. Review build, 2026-10-16 (after the critical review)
 
-`python scripts/reproduce.py supplement --profile review --require-runs`, built from the
-working tree of the review fixes (uncommitted, while the erasure readout was being rerun) to a
-directory outside the repository. 1011 files, 1010 listed in `SHA256SUMS`; 39,698,202 bytes,
-under the 100 MB limit. The build enforced 100 MiB (104,857,600 bytes) when this archive was
-made and now enforces 100,000,000 bytes, the reading the paper states; this archive is under
-both. Run bundles:
-`l3_h8_heldout/agents` (60 files) and `l3_h8_gseed2_gpu/agents` (60). 207 commits were replaced
-by pseudonyms; the identity scan and the commit scan found nothing. Extracted into an empty
-directory: every checksum verifies, and both `python scripts/reproduce.py tables --check` and
-`python scripts/audit_stats_recheck.py` fail 1 of 3085 checks, the results-manifest check, on
-the erasure artifact under rerun. The working tree fails the same check for the same reason.
-The submission archive is still to be built and hashed after the rerun lands.
+`python scripts/reproduce.py supplement --profile review --require-runs`, built from commit
+`fdc3581` of `fix/critical-review-2026-10-16`, after the erasure rerun landed.
+
+- 1014 files, 1013 listed in `SHA256SUMS`; 39,717,557 bytes, under TMLR's 100 MB limit (the
+  build enforces 100,000,000 bytes).
+- SHA-256 `96d1324fb8e31cc10ceca0a7a835b0ecbb2697c7bba8255a717fddc8ec50d6c7`.
+- Run bundles: `l3_h8_heldout/agents` and `l3_h8_gseed2_gpu/agents` only. The corrected-run
+  agents and state dumps are not in it.
+- 208 commit IDs (224 spellings) replaced by keyed pseudonyms; the map stays local in
+  `dist/supplement-review.commit-map.json` for the camera-ready. The identity scan found nothing.
+
+Extracted into an empty directory outside the repository: every checksum verifies,
+`python scripts/audit_stats_recheck.py` passes all 3126 checks (the one check on the left-out
+film spec is skipped and counted, by design), `python scripts/reproduce.py tables` passes, and
+`tests/test_audit_selftest.py` passes (18 passed, 1 skipped: the checkout-only floor case).
+A grep for the owner's name, handle and ORCID finds nothing.
+
+This archive was built before this section was written, so the copy of this file inside it
+still carries the earlier test-build text.
 
 ## 3. Clean extraction
 
@@ -90,6 +97,12 @@ does not show by itself that the shipped pages were current.
 directory, so they must not be run with `python -I`; `reproduce.py` does not need it.
 
 ## 4. Source package
+
+*Rebuilt 2026-10-16 after the critical review:* paper commit `eb79ca2`, 74 pages,
+`docs/paper/dist/source.zip` SHA-256
+`26a834918832cb6907a347807713af44bb9a70ece9c05e42a7245707fabb56b6`. The builder compiles it
+standalone and refuses on any overfull box; it passed. The checks below were made on the earlier
+package.
 
 `python docs/paper/make_source_package.py` writes `docs/paper/dist/source.zip` (20 files),
 SHA-256 `2e2999e8764533f9a9e056d81dfbd4cab9609077c13ccd7baea3f5bbb27952da`. Extracted into an
