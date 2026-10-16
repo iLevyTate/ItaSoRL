@@ -68,11 +68,30 @@ def summarize(rows: list) -> dict:
     whisper = km["t90"][1] < 0.60 and sh["t90"][1] < 0.10
     ukm, ush = agg["replay untrained kmeans_agreement"], agg["replay untrained share_probe_dir"]
     floor = (ukm["mean"] >= 0.65 and ukm["t90"][0] > 0.60) or ush["mean"] >= 0.25
+    # The floor above only asks whether the untrained trunk is loud on identical input; it
+    # cannot tell two whispers apart (review N03, 2026-10-15). The untrained trunk's own
+    # whisper and the paired survival-minus-untrained differences are reported beside it.
+    # They are descriptive, not a decomposition of what the input supplies.
+    s_rep = [r["replay"]["survival"] for r in rows]
+    u_rep = [r["replay"]["untrained"] for r in rows]
+    floor_block = {
+        "untrained meets reading 1 (shout)": floor,
+        "untrained whispers": bool(ukm["t90"][1] < 0.60 and ush["t90"][1] < 0.10),
+        "untrained kmeans_agreement": {k: ukm[k] for k in ("mean", "t90", "n")},
+        "untrained share_probe_dir": {k: ush[k] for k in ("mean", "t90", "n")},
+        "survival minus untrained, share_probe_dir": paired_t90(
+            [a["share_probe_dir"] for a in s_rep], [a["share_probe_dir"] for a in u_rep]),
+        "survival minus untrained, kmeans_agreement": paired_t90(
+            [a["kmeans_agreement"] for a in s_rep], [a["kmeans_agreement"] for a in u_rep]),
+        "note": "a floor that only tests whether the untrained trunk is loud cannot tell two "
+                "whispers apart; the paired differences are descriptive and are not a causal "
+                "decomposition of what the input supplies"}
     l0 = agg["l0 survival_d0 kmeans_agreement"]["mean"]
     label = "shout" if shout else "whisper" if whisper else "audible"
     return {"aggregate": agg, "readings": {
         "1 shout": shout, "2 whisper": whisper, "3 between (audible)": not shout and not whisper,
         "4 floor: untrained meets reading 1 on identical input": floor,
+        "4 floor on identical input": floor_block,
         "label": label + (" (carried by the input)" if shout and floor else ""),
         "l0 kmeans agreement": l0, "l0 within 0.1 of 0.5": bool(abs(l0 - 0.5) < 0.1)}}
 
