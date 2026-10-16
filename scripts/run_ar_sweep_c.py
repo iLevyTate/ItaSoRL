@@ -141,7 +141,8 @@ def main() -> int:
     summ["shared_point_check"] = {"rho_0.9_M": next(p["M"]["mean"] for p in summ["points"] if p["rho"] == 0.9),
                                   "rho_0.9_survival_fresh": next(p["survival_fresh"].get("mean") for p in summ["points"] if p["rho"] == 0.9),
                                   "companion_sweep_shared_point": {"M": 0.010, "survival_fresh": 0.570}}
-    summ["provenance"] = provenance("scripts/run_ar_sweep_c.py", "python " + " ".join(["scripts/run_ar_sweep_c.py", *sys.argv[1:]]),
+    summ["provenance"] = provenance("scripts/run_ar_sweep_c.py", "python " + " ".join(["scripts/run_ar_sweep_c.py", *(repo_rel(x) if os.path.isabs(x) else x
+                                                                  for x in sys.argv[1:])]),
                                     {"agents_dir": repo_rel(a.agents_dir), "rhos": list(RHOS), "gap_target": GAP_TARGET,
                                      "seed_bases": list(BASES)}, device="cpu")
     summ["provenance"]["status"] = (f"readout under {SPEC}; diagnostic, not an adjudication; "

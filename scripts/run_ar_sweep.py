@@ -132,7 +132,8 @@ def main() -> int:
     r3 = cA["t90"][0] <= 0 <= cA["t90"][1]
     summ["contrasts"] = {"A: M(0.99) - M(0)": cA, "B: M(0.99) - M(0)": cB}
     summ["readings"] = {"1 coherence beyond integration": r1, "2 integration suffices": r2, "3 neither": r3}
-    summ["provenance"] = provenance("scripts/run_ar_sweep.py", "python " + " ".join(["scripts/run_ar_sweep.py", *sys.argv[1:]]),
+    summ["provenance"] = provenance("scripts/run_ar_sweep.py", "python " + " ".join(["scripts/run_ar_sweep.py", *(repo_rel(x) if os.path.isabs(x) else x
+                                                                  for x in sys.argv[1:])]),
                                     {"agents_dir": repo_rel(a.agents_dir), "rhos": list(RHOS), "sigma_A": SIGMA_A,
                                      "rho_match": RHO_MATCH}, device="cpu")
     summ["provenance"]["status"] = ("readout under docs/specs/2026-10-15-coherence-integration-sweep-design.md; "
