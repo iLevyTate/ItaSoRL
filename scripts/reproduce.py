@@ -1248,6 +1248,10 @@ class CommitPseudonyms:
         self.full = dict(zip(self.commits, sorted(draws)))     # commit ID -> pseudonym
         self.forced = {t.lower(): self._draw(key, "commit", t.lower(), len(t), seen)
                        for t in sorted(forced) if not self.resolves(t)}
+        # A forced ID is matched by prefix, as a resolvable one is: a field may spell the full ID
+        # while code or prose quotes its first seven characters, and both must get one pseudonym
+        # (a shallow clone resolves neither, 2026-10-16).
+        self.forced_ids = sorted(self.forced)
         self.digests = sorted({d.lower() for d in digests})
         self.dfull = {d: self._draw(key, "sha256", d, 64, seen) for d in self.digests}
 
@@ -1278,8 +1282,8 @@ class CommitPseudonyms:
                 # An ambiguous prefix takes its first commit's pseudonym, which keeps the order.
                 p = _same_case(self.full[hits[0]][:len(tok)], tok)
                 self.mapping[p] = tok
-            elif low in self.forced:
-                p = _same_case(self.forced[low], tok)
+            elif self._forced_hit(low):
+                p = _same_case(self.forced[self._forced_hit(low)][:len(tok)], tok)
                 self.forced_mapping[p] = tok
             elif len(tok) >= DIGEST_MIN_PREFIX and _resolves(self.digests, low):
                 p = _same_case(self.dfull[_resolves(self.digests, low)[0]][:len(tok)], tok)
@@ -1290,9 +1294,16 @@ class CommitPseudonyms:
 
         return _HEX_TOKEN.sub(rep, text)
 
+    def _forced_hit(self, low: str) -> str | None:
+        """The forced ID that `low` spells or is a prefix of (at least 7 characters), if any."""
+        if low in self.forced:
+            return low
+        hits = _resolves(self.forced_ids, low) if len(low) >= 7 else []
+        return hits[0] if hits else None
+
     def search(self, text: str):
         for m in _HEX_TOKEN.finditer(text):
-            if self.resolves(m.group(0)) or m.group(0).lower() in self.forced:
+            if self.resolves(m.group(0)) or self._forced_hit(m.group(0).lower()):
                 return m
         return None
 

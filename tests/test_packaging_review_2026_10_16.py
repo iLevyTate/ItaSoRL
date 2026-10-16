@@ -781,3 +781,19 @@ def test_check_manuscript_reads_the_counts(tmp_path, capsys):
         tally = (f"The record adjudicates {len(lrows)} rule-and-run pairs: the threshold condition "
                  f"holds on {t['threshold met']} and fails on {t['threshold not met']}.")
         assert items(tally.replace(f"{len(lrows)} rule", f"{len(lrows) + 1} rule")) == items(tally) + 1
+
+
+def test_a_forced_commit_and_its_short_prefix_get_one_pseudonym():
+    """In a shallow clone a commit-field ID resolves to nothing and is pseudonymized by force.
+    Code or prose that quotes its first seven characters must get the same pseudonym's prefix,
+    and the leak scan must see the bare prefix (CI, 2026-10-16: the audit compared a forced
+    artifact field with an unforced constant inside the archive)."""
+    full = "06ecc10" + "a" * 33
+    h = reproduce.CommitPseudonyms([], b"k" * 32, forced=[full])
+    field = h.sub('{"git_commit_at_run": "%s"}' % full)
+    code = h.sub('x.startswith("06ecc10")')
+    p = h.forced[full]
+    assert p in field and full not in field
+    assert code == 'x.startswith("%s")' % p[:7]
+    assert h.search('startswith("06ecc10")') is not None
+    assert h.search('startswith("%s")' % p[:7]) is None
