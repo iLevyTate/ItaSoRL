@@ -233,10 +233,16 @@ def _gates(failed) -> str:
     return ", ".join(GATE_LABELS.get(g, g) for g in sorted(failed))
 
 
+def _sg(x: float) -> str:
+    """A signed three-decimal number; a value that rounds to zero prints +0.000, never -0.000."""
+    return f"{0.0 if round(x, 3) == 0 else x:+.3f}"
+
+
 def _iv(t90, signed: bool = False) -> str:
-    f = "{:+.3f}" if signed else "{:.3f}"
-    lo, hi = (0.0 if round(x, 3) == 0 else x for x in t90)   # no "-0.000" for a value that rounds to zero
-    return f"[{f.format(lo)}, {f.format(hi)}]"
+    if signed:
+        return f"[{_sg(t90[0])}, {_sg(t90[1])}]"
+    lo, hi = (0.0 if round(x, 3) == 0 else x for x in t90)
+    return f"[{lo:.3f}, {hi:.3f}]"
 
 
 # Plain names for the run identifiers the gate and contrast tables use (the manifest IDs).
@@ -334,7 +340,7 @@ def contrast_table() -> str:
         vp, vu = r["vs_predictor"], r["vs_untrained"]
         L.append(f"{name} & {_tex_escape(r['partition'].split(' ')[0])} & "
                  f"{r['survival_mean']:.3f} {_iv(r['survival_t90'])} & "
-                 f"{vp['mean']:+.3f} {_iv(vp['t90'], True)} & {vu['mean']:+.3f} {_iv(vu['t90'], True)} \\\\")
+                 f"{_sg(vp['mean'])} {_iv(vp['t90'], True)} & {_sg(vu['mean'])} {_iv(vu['t90'], True)} \\\\")
     if dup:
         L += [r"\midrule",
               r"\multicolumn{5}{p{0.9\textwidth}}{(= X): per-seed values identical to run X under the "
@@ -406,7 +412,7 @@ def corrected_table() -> str | None:
                    "the lead holds on the decodability clauses"
                    if ac.get("holds_on_decodability_clauses") else r"\textsc{not met}")
         L.append(r"\midrule")
-        L.append(f"C1 $-$ C2 & 0.45 & \\multicolumn{{5}}{{l}}{{{c['mean']:+.3f} {_iv(c['t90'], True)}; "
+        L.append(f"C1 $-$ C2 & 0.45 & \\multicolumn{{5}}{{l}}{{{_sg(c['mean'])} {_iv(c['t90'], True)}; "
                  f"auxiliary rule: {reading}}} \\\\")
     L += [r"\bottomrule", r"\end{tabular}", ""]
     return "\n".join(L)
