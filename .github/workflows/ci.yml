@@ -85,7 +85,7 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Recompute every published number from committed artifacts
+      - name: Check guarded numbers and wording against committed artifacts
         run: python scripts/audit_stats_recheck.py
 
   deploy-pages:

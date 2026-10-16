@@ -119,11 +119,12 @@ def episode_features_var(H: np.ndarray) -> np.ndarray:
 
     The authentic drag is constant; the surrogate's drifts via an AR(1) walk clipped to
     [-0.8, 8.0], which shifts the mean drag factor as well as the volatility (1.30 at
-    drift_sigma 0.45; see patch_of_earth.PatchOfEarthV0). A persistent linear direction
-    over the level features `episode_features`
-    cannot express a volatility signature, so this builder exposes it: if a reactive
-    agent tracks a fluctuating drag its recurrent state swings more per episode in the
-    surrogate. H is (n_eps, steps, hidden)."""
+    drift_sigma 0.45 over 24-step windows from reset; the walk restarts at zero at each
+    reset and its level rises with episode time; see patch_of_earth.PatchOfEarthV0). A
+    persistent linear direction over the level features `episode_features` cannot express
+    a volatility signature, so this builder exposes it: if a reactive agent tracks a
+    fluctuating drag its recurrent state swings more per episode in the surrogate.
+    H is (n_eps, steps, hidden)."""
     std_h = H.std(axis=1)
     if H.shape[1] >= 2:
         jerk = np.abs(np.diff(H, axis=1)).mean(axis=1)

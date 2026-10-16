@@ -3642,7 +3642,7 @@
       "folds": "explicit",
       "id": "T-TOUCH",
       "local_run_dir": "artifacts/goal_stakes/T-touch",
-      "notes": "Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Primary rule met with all six gates passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Readouts in the directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) stay on branch run/T-touch.",
+      "notes": "Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Recorded: primary rule met with all six gates passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Current validity: the leakage gate summed the homeostatic reward, not pellets consumed, so full-rule validity was not established; 0.796 stays as recorded (docs/CORRECTIONS.md 2026-10-12; the matched-world pellet run is B2, FINDINGS 21). Readouts in the directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) stay on branch run/T-touch. Mechanism surprise AUROC 0.912. The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16; not rescored).",
       "readout_only_on": null,
       "recorded_provenance": {
         "expB2/goal_stakes_T-touch.json": {
@@ -3739,7 +3739,7 @@
       "folds": "explicit",
       "id": "S-IMMORTAL",
       "local_run_dir": "artifacts/goal_stakes/S-immortal",
-      "notes": "Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 [0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable (S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined attempts stay on branch run/S-immortal.",
+      "notes": "Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 [0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable (S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined attempts stay on branch run/S-immortal. Mechanism surprise AUROC 0.848. The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16; not rescored).",
       "readout_only_on": null,
       "recorded_provenance": {
         "expB2/goal_stakes_S-immortal.json": {
@@ -3864,13 +3864,13 @@
       "deps": null,
       "device": "Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)",
       "eval_seeds": {
-        "mechanism": "1400000 + i (authentic) / 1450000 + i (surrogate), i < 64"
+        "mechanism": "1400000 + i, i < 64, shared by the authentic and the surrogate rollouts (the artifact's seed_bases)"
       },
       "experiment": "B-v2 L3",
       "folds": "explicit",
       "id": "C1-MECHANISM",
       "local_run_dir": null,
-      "notes": "scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and S-immortal mechanism readouts; decide_goal_stakes.py does not read it.",
+      "notes": "scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and S-immortal mechanism readouts; decide_goal_stakes.py does not read it. Surprise AUROC 0.846. The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16; not rescored).",
       "readout_only_on": [
         "C1",
         "C1-RERUN"
@@ -4479,7 +4479,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "67fb556 (spec); readout code uncommitted at run time, committed with this entry",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "curated: the code was uncommitted at run time; the artifacts record HEAD 67fb556, not the working tree that ran",
       "config": {},
       "deps": null,
       "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
@@ -4498,8 +4498,12 @@
         "L1-CORRECTED"
       ],
       "recorded_provenance": {
-        "surprise/corrected_l1_heldout.json": {},
-        "surprise/corrected_l3_h8_wm.json": {}
+        "surprise/corrected_l1_heldout.json": {
+          "git_head": "67fb556"
+        },
+        "surprise/corrected_l3_h8_wm.json": {
+          "git_head": "67fb556"
+        }
       },
       "status": "corrected",
       "surrogate": null,
@@ -5334,7 +5338,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "2cfc08d",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
       "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
@@ -5353,9 +5357,11 @@
       ],
       "recorded_provenance": {
         "salience/corrected_l3_h8_nowm.json": {
+          "git_head": "2cfc08d",
           "spec": "docs/specs/2026-10-15-salience-design.md"
         },
         "salience/corrected_l3_h8_wm.json": {
+          "git_head": "2cfc08d",
           "spec": "docs/specs/2026-10-15-salience-design.md"
         }
       },
@@ -5374,7 +5380,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "2cfc08d",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
       "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
@@ -5393,9 +5399,11 @@
       ],
       "recorded_provenance": {
         "world_features/superseded_toroidal_2026-10-15/corrected_l3_h8_nowm.json": {
+          "git_head": "2cfc08d",
           "spec": "docs/specs/2026-10-15-world-draw-features-design.md"
         },
         "world_features/superseded_toroidal_2026-10-15/corrected_l3_h8_wm.json": {
+          "git_head": "2cfc08d",
           "spec": "docs/specs/2026-10-15-world-draw-features-design.md"
         }
       },
@@ -5413,7 +5421,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "2cfc08d",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
       "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
@@ -5424,12 +5432,13 @@
       "folds": "explicit",
       "id": "ERASURE-ONLINE-FIRST",
       "local_run_dir": null,
-      "notes": "SUPERSEDED by ERASURE-ONLINE, the rerun that adds population outcomes; its common-survivor numbers reproduce there. Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, 0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 [0.562, 0.729], under the 0.65 partial-erasure label. The primary real-minus-sham score is -0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, +0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has 6 informative seeds and decides nothing. FINDINGS 23.3.",
+      "notes": "SUPERSEDED by ERASURE-ONLINE-SPLIT-TWINS, the rerun that adds population outcomes (itself superseded by ERASURE-ONLINE); its common-survivor numbers reproduce there. Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, 0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 [0.562, 0.729] (biased low by split twins; 0.747 in ERASURE-ONLINE), under the 0.65 partial-erasure label. The primary real-minus-sham score is -0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, +0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has 6 informative seeds and decides nothing. FINDINGS 23.3.",
       "readout_only_on": [
         "C1"
       ],
       "recorded_provenance": {
         "mechanism/erasure/superseded_common_survivor_2026-10-15/corrected_l3_h8_wm.json": {
+          "git_head": "2cfc08d",
           "spec": "docs/specs/2026-10-15-online-erasure-design.md"
         }
       },
@@ -5448,7 +5457,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "9e03469",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
       "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
@@ -5467,9 +5476,11 @@
       ],
       "recorded_provenance": {
         "world_features/corrected_l3_h8_nowm.json": {
+          "git_head": "9e03469",
           "spec": "docs/specs/2026-10-15-world-draw-features-design.md"
         },
         "world_features/corrected_l3_h8_wm.json": {
+          "git_head": "9e03469",
           "spec": "docs/specs/2026-10-15-world-draw-features-design.md"
         }
       },
@@ -5482,12 +5493,12 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
-        "mechanism/erasure/corrected_l3_h8_wm.json"
+        "mechanism/erasure/superseded_split_twins_2026-10-16/corrected_l3_h8_wm.json"
       ],
       "budget": null,
       "claims": [],
       "commit_at_run": "9e03469",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
       "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
@@ -5496,14 +5507,50 @@
       },
       "experiment": "B-v2 L3",
       "folds": "explicit",
+      "id": "ERASURE-ONLINE-SPLIT-TWINS",
+      "local_run_dir": null,
+      "notes": "SUPERSEDED by ERASURE-ONLINE (2026-10-16): the refit probe on erased states put each authentic episode and its same-world surrogate twin in separate folds, which biases the AUROC low; every other value reproduces there to the float. Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal) and after a two-seed setup check (93765bc: frozen-probe scores quantized to 0.001 of the unerased spread, after the check read 0.39 to 0.61 from float32 differences). Rerun after the deep revision review, adding attrition and every attempted episode's return and termination; supersedes ERASURE-ONLINE-FIRST on the same saved agents. Every common-survivor value reproduces the first run to the float apart from the projection residual's rounding, and every reading is unchanged: not used under removal MET, used and costly NOT MET, erasure held in 10 of 10 seeds, refit probe 0.646 [0.562, 0.729]. Attempted 64 per seed, retained 44 to 51, excluded 26.6 percent [24.7, 28.5]. Every attempted episode: return erased minus sham +0.010 [-0.009, +0.030] surrogate, +0.005 [-0.009, +0.019] authentic; terminations per seed +0.2 [-0.3, +0.7] and -0.2 [-0.7, +0.3]; descriptive, no pre-stated reading. The untrained floor decides nothing. FINDINGS 23.3.",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "mechanism/erasure/superseded_split_twins_2026-10-16/corrected_l3_h8_wm.json": {
+          "git_head": "9e03469",
+          "spec": "docs/specs/2026-10-15-online-erasure-design.md"
+        }
+      },
+      "status": "superseded",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Second run of the online erasure readout, whose refit probe split same-world twin episodes across folds (superseded; kept as the record)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "mechanism/erasure/corrected_l3_h8_wm.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "1dc44e4",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
+      "device": "owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
+      "eval_seeds": {
+        "rollouts": "1400000, the mechanism readouts' base, both worlds"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
       "id": "ERASURE-ONLINE",
       "local_run_dir": null,
-      "notes": "Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal) and after a two-seed setup check (93765bc: frozen-probe scores quantized to 0.001 of the unerased spread, after the check read 0.39 to 0.61 from float32 differences). Rerun after the deep revision review, adding attrition and every attempted episode's return and termination; supersedes ERASURE-ONLINE-FIRST on the same saved agents. Every common-survivor value reproduces the first run to the float apart from the projection residual's rounding, and every reading is unchanged: not used under removal MET, used and costly NOT MET, erasure held in 10 of 10 seeds, refit probe 0.646 [0.562, 0.729]. Attempted 64 per seed, retained 44 to 51, excluded 26.6 percent [24.7, 28.5]. Every attempted episode: return erased minus sham +0.010 [-0.009, +0.030] surrogate, +0.005 [-0.009, +0.019] authentic; terminations per seed +0.2 [-0.3, +0.7] and -0.2 [-0.7, +0.3]; descriptive, no pre-stated reading. The untrained floor decides nothing. FINDINGS 23.3.",
+      "notes": "Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal) and after a two-seed setup check (93765bc: frozen-probe scores quantized to 0.001 of the unerased spread, after the check read 0.39 to 0.61 from float32 differences). Rerun on 2026-10-16 after the critical review: the refit probe on erased states now keeps each same-world twin pair (authentic and surrogate rollout of one world seed) in one CV fold, as the project's pairing rule requires; supersedes ERASURE-ONLINE-SPLIT-TWINS and, before it, ERASURE-ONLINE-FIRST, on the same saved agents. Every other recorded reading of every row reproduces ERASURE-ONLINE-SPLIT-TWINS bit for bit (only the wall-clock seconds differ). Refit probe 0.747 [0.702, 0.791] (was 0.646 [0.562, 0.729]), so the spec's partial-erasure label is attached to every reading. Readings: not used under removal MET, used and costly NOT MET, erasure held in 10 of 10 seeds. Attempted 64 per seed, retained 44 to 51, excluded 26.6 percent [24.7, 28.5]. Every attempted episode: return erased minus sham +0.010 [-0.009, +0.030] surrogate, +0.005 [-0.009, +0.019] authentic; terminations per seed +0.2 [-0.3, +0.7] and -0.2 [-0.7, +0.3]; descriptive, no pre-stated reading. The untrained floor decides nothing. FINDINGS 23.3.",
       "readout_only_on": [
         "C1"
       ],
       "recorded_provenance": {
         "mechanism/erasure/corrected_l3_h8_wm.json": {
+          "git_head": "1dc44e4",
           "spec": "docs/specs/2026-10-15-online-erasure-design.md"
         }
       },
@@ -5522,7 +5569,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "2cfc08d",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
       "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
@@ -5541,9 +5588,11 @@
       ],
       "recorded_provenance": {
         "development/corrected_l3_h8_nowm.json": {
+          "git_head": "2cfc08d",
           "spec": "docs/specs/2026-10-15-what-develops-design.md"
         },
         "development/corrected_l3_h8_wm.json": {
+          "git_head": "2cfc08d",
           "spec": "docs/specs/2026-10-15-what-develops-design.md"
         }
       },

@@ -746,9 +746,15 @@ def leakage_audit_b2(auth_eps: list, surr_eps: list, margin: float = 0.1,
     if all("pellets_consumed" in e for e in eps):
         keys = keys + ("pellets_consumed",)
     audit = {k: channel(k) for k in keys}
-    audit["max_abs_dev"] = max(abs(a - 0.5) for a in audit.values())
+    # A non-finite channel is not a pass. The builtin max drops a NaN that is not the
+    # first item, so count them explicitly: any NaN sets max_abs_dev to NaN and clean False.
+    devs = [abs(float(a) - 0.5) for a in audit.values()]
+    n_nonfinite = sum(not np.isfinite(d) for d in devs)
+    audit["max_abs_dev"] = max(devs) if devs and not n_nonfinite else float("nan")
     audit["margin"] = margin
-    audit["clean"] = audit["max_abs_dev"] < margin
+    audit["clean"] = bool(devs) and not n_nonfinite and bool(audit["max_abs_dev"] < margin)
+    if n_nonfinite:
+        audit["n_nonfinite"] = int(n_nonfinite)
     return audit
 
 
@@ -756,9 +762,11 @@ def transfer_probe(Xtr: np.ndarray, ytr: np.ndarray, Xte: np.ndarray, yte: np.nd
                    return_scores: bool = False):
     """Held-out fingerprint transfer: fit the STANDARD linear probe family (same
     scaler+logistic pipeline grouped_auroc uses) once on the training pools, then
-    score a FROZEN AUROC on disjoint test pools. No CV: train and test worlds are
-    disjoint by construction, and the frozen score is the estimand (does the
-    direction learned on the trained fingerprint generalize to an unseen one).
+    score a FROZEN AUROC on the test pools. No CV, so the caller must supply test
+    pools whose worlds are disjoint from the training pools' for the score to be
+    held out; the frozen score is then the estimand (does the direction learned on
+    the trained fingerprint generalize to an unseen one). A caller that scores the
+    same worlds (run_development_readout.py) gets an in-sample upper bound.
     return_scores=True also returns (yte, p_te) so callers can bootstrap a CI
     with itasorl.stats.auroc_ci (no refit), mirroring _auroc_with_ci."""
     from sklearn.linear_model import LogisticRegression

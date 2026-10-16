@@ -41,6 +41,11 @@ rerun with the corrected trainer (section 20). The hidden 7 rerun is off-design,
 gate 0 fails on the untrained floor; the hidden 8 seed 2 rerun is uninformative, on one
 speed-control pool and the L0 gate; the hidden 10 seed 1 rerun reads 0.626 [0.598, 0.654],
 under the bar, with both margins passing. The historical rows keep their labels.)*
+*(Note 2026-10-16: the L1 organism run has also been rerun on the corrected trainer (22.1). It
+reads 0.551 [0.531, 0.570], 0 of 10 seeds at 0.65, against 0.552 for the historical run on the
+same partition, so the L1 negative below does not depend on the trainer defect. The matched-world
+confirmation, `B1` and `B2`, ran on the corrected trainer and is UNINFORMATIVE, because the
+untrained arm reads 0.614 (section 21).)*
 
 **Hand-authored flaws (L1, L2) did not meet the registered encoding criterion.** A
 detector that knows the true rules finds the L2 drifting coefficient almost perfectly from
@@ -50,7 +55,8 @@ and the survival-coupled variant reaches 0.610 against the 0.65 bar (section 9).
 L3 gate's input noise, the same detector reads the L2 flaws at 0.62 to 0.65 (section 15),
 so L2 was the weaker flaw. The detectability-matched contrast is L1: at an in-band
 observation-quantization grid (Δ = 0.023, detector 0.873) the survival agent's pooled
-target is **0.533**, with 0 of 10 seeds at 0.65 (section 14.7).
+target is **0.533**, with 0 of 10 seeds at 0.65 (section 14.7); rerun on the corrected trainer
+it reads 0.551, 0 of 10 (22.1).
 
 **A learned-law flaw (L3) met its decodability clauses at 0.733 under one training protocol
 (corrected, section 17); the registered rule as a whole is not met, because the L0 gate is
@@ -90,7 +96,11 @@ What the corrected agents show about that result:
   recurrent state zeroed, the physical footprint of the prefix still reads 0.662 (17.7).
 - **Learnedness.** A hand-authored, temporally coherent drag of the same one-step size as
   the Gaussian comparator is read through the original direction (0.721) and by a fresh
-  probe (0.754); white jitter is read by no arm (17.9).
+  probe (0.754); white jitter is read by no arm (17.9). *(Note 2026-10-16: autocorrelated
+  jitter does not reach the bar either, at matched one-step size, at matched stationary offset, or at a
+  matched 24-step deviation, where coherence moved the margin by less than 0.05 (22.3). What the
+  drag shares with the learned law is that its deviation depends on the agent's own velocity; no
+  mechanism is claimed.)*
 
 The historical record of the same arc (pre-correction trainer, kept as recorded): survival
 **0.752** [0.698, 0.807] on GPU and 0.730 on CPU; 0.726 after the behavior control (10.4),
@@ -112,6 +122,12 @@ The follow-ups, read narrowly:
 - **Common garden.** Tail-only states still separate the prefix condition (0.666 forward,
   0.684 reverse; 10.6.1). Prefix condition remains decodable after restoring authentic
   dynamics, and on the corrected agents mostly through the physical footprint (17.7).
+- **Matched worlds.** A confirmation frozen before it ran (`B1` survival, `B2` pellets with
+  death off; seeds 10 to 19, corrected trainer) reads 0.800 and 0.843 on matched world pairs,
+  and both runs are UNINFORMATIVE: the untrained arm reads 0.614, outside the 0.1 floor. A
+  sensory-echo control frozen after those raw outcomes leaves 0.761 and 0.780, with the untrained
+  arm at 0.596 [0.577, 0.615] (section 21). The original pellet run's 0.796 was recorded with a
+  leakage gate on the homeostatic reward, so its full-rule validity was not established (18.7).
 - **Experiment C.** The contrast is flat and the registered verdict is uninformative
   (13.F). Selection over 30 generations did not raise world decodability under the pooled
   population readout (contrast -0.002 [-0.013, +0.009]; 13.D) or under the per-individual
@@ -492,7 +508,10 @@ inducing it (if possible) requires something more deliberate.
   two missing questions on the corrected agents: a hand-authored, temporally coherent drag
   at matched one-step size IS read through the same direction (transfer 0.721, fresh
   0.754) while white jitter is not, so what the tested classes separate on is temporal
-  coherence, not learnedness. The survival-specificity reading is withdrawn
+  coherence, not learnedness. *(Note 2026-10-16: 22.3 does not support coherence as the property
+  read. At a matched 24-step deviation coherence moved the margin by less than 0.05; the drag and
+  the learned law share a deviation that depends on the agent's own velocity, and no mechanism is
+  claimed.)* The survival-specificity reading is withdrawn
   (17.6). The same
   H2 battery on the L1 discretization rung (section 14.7) finds that survival does
   **not meet the registered encoding criterion** at the matched in-band grid (0.533), so L1 does not
@@ -3808,8 +3827,14 @@ Readouts of the same episodes without the agent's state:
 | linear probe on the flattened sequence after PCA | 0.661 [0.614, 0.707] | 0.566 [0.533, 0.598] | 0.557 [0.539, 0.575] |
 
 **Reading.** The published behavior and sensory controls leave the survival signal near its
-uncontrolled level (0.723, 0.699). Adding the actions the GRU received lowers it to 0.681,
-with the lower bound under the bar. The long-history linear bases do not generalize (held-out
+uncontrolled level (0.723, 0.699). Adding the action the policy emitted at t and the one the
+GRU received from t-1 (a_t, a_{t-1}) lowers it to 0.681, with the lower bound under the bar.
+*(Wording corrected 2026-10-16: this sentence first said "the actions the GRU received". The GRU
+receives only a_{t-1}. The action a_t is computed from h_t itself, and the behavior trace at t is
+measured after that step, so the controls that contain a_t, this row and the 608-column MLP,
+also remove part of what the state drives. They are conservative, and their drop and part of
+their held-out R² are not input dependence alone. The recorded values stand;
+`docs/CORRECTIONS.md`, 2026-10-16.)* The long-history linear bases do not generalize (held-out
 R² below zero): the regression fit on training folds explains held-out states worse than
 their mean, so their residual readings say more about an overfit control than about the
 state, and they are reported without interpretation. The control that fits best, a nonlinear
@@ -4081,7 +4106,10 @@ populations.
    a few steps; with memory zeroed the prefix condition still reads 0.662 (17.7).
 6. **Nothing here is specific to learned dynamics.** A hand-authored, temporally coherent
    drag of the same one-step size is read through the same direction; white jitter is not
-   (17.9).
+   (17.9). *(Note 2026-10-16: the correlated-jitter sweeps of 22.3 keep no AR(1) jitter setting at
+   the bar, and at a matched 24-step deviation coherence moved the margin by less than
+   0.05, so coherence is not shown to be the property read. The drag and the learned law share a
+   deviation that depends on the agent's own velocity; no mechanism is claimed.)*
 7. **The evolutionary result is uninformative, not a null** (revised 2026-10-10). Both
    readouts are flat, the speed positive control fails, and the preregistration interprets
    no contrast unless every gate passes (13.F; gate 1 fails only against an unratified draft
@@ -4164,6 +4192,13 @@ input, the trained survival agent's episodes replayed through every arm, a rando
 decoder separates the worlds better than the trained one (0.764 against 0.626 on `C1`), and agents
 raised in the authentic world are also more surprised by authentic episodes. The surprise AUROC
 tracks how predictable each stream is, not the law the agent was raised under. Section 22.2.)*
+
+*(Note 2026-10-16: the surprise AUROCs above put each authentic episode and its surrogate twin,
+which share a world seed and a first state, in separate cross-validation folds, which biases the
+AUROC low. They are kept as recorded and read as lower bounds; the `T-touch` and `S-immortal`
+agents are not on this machine, so nothing is rescored. Every mean is above the 0.65 minimum, so
+no surprise wording in this table changes. The code now keeps each twin pair in one fold
+(`docs/CORRECTIONS.md`, 2026-10-16).)*
 
 ### 18.4 Where the signal lives
 
@@ -5689,7 +5724,7 @@ score every attempted episode, return summed through termination.
 | frozen probe, unerased rollouts | 0.754 [0.700, 0.808] |
 | frozen probe, erased rollouts | 0.500 in 10 of 10 seeds, the quantized frozen-probe AUROC (scores rounded to 0.001 of the unerased spread; the erased spread is 0.5 to 4.7 parts per million of it) |
 | frozen probe, sham | 0.745 |
-| refit probe on erased states | 0.646 [0.562, 0.729] |
+| refit probe on erased states | 0.747 [0.702, 0.791] (each same-world twin pair in one fold; 2026-10-16) |
 | primary real-minus-sham score | -0.010 [-0.020, -0.001] |
 | real minus sham, surrogate world | -0.006 [-0.027, +0.015] |
 | real minus sham, authentic world | -0.015 [-0.050, +0.020] |
@@ -5700,11 +5735,11 @@ score every attempted episode, return summed through termination.
 | every attempted episode: terminations per seed, erased minus sham, surrogate | +0.2 [-0.3, +0.7] |
 | every attempted episode: terminations per seed, erased minus sham, authentic | -0.2 [-0.7, +0.3] |
 
-Erasure held (reading 4, 10 of 10 seeds), and the refit probe stays under the 0.65
-partial-erasure label, by 0.004. **Not used under removal** is met: both worlds' real-minus-sham
+Erasure held (reading 4, 10 of 10 seeds), and the refit probe reads the erased states at 0.747,
+so the spec's **partial erasure** label is attached to every reading. **Not used under removal** is met: both worlds' real-minus-sham
 scores sit inside [-0.10, +0.10]. Used under removal (+0.10 with the interval excluding zero) and
 costly (return upper bound below zero) are not met. The untrained arm has 6 informative seeds,
-below the 7 the spec requires, and decides nothing (frozen probe 0.552 unerased, refit 0.258).
+below the 7 the spec requires, and decides nothing (frozen probe 0.552 unerased, refit 0.576).
 On the common survivors, within the tested behavior band, horizon and worlds, removal changed
 the behavior gap no more than a sham, and on every attempted episode the return contrasts read
 +0.010 [-0.009, +0.030] (surrogate) and +0.005 [-0.009, +0.019] (authentic), with terminations
@@ -5713,13 +5748,24 @@ used in episodes that removal ends early is not tested by the common-survivor re
 population contrasts bound it: removal neither ended measurably more episodes than the sham nor
 lowered return measurably across all of them. The population lines are descriptive, with no
 pre-stated reading (third amendment). The refit reading
-says a rank-two removal leaves world identity recoverable at 0.646 elsewhere in the state, so the
-test bounds what the decoded direction carries, not what the state carries.
+says a rank-two removal leaves world identity recoverable at 0.747 elsewhere in the state, above
+the bar, so the test bounds what the decoded direction carries, not what the state carries.
 
 *2026-10-15 note (after the deep revision review):* the first run scored common survivors only
 and recorded no attrition or population outcome. The rerun on the same agents adds both; every
 common-survivor value reproduced, and the first artifact is kept under
 `superseded_common_survivor_2026-10-15`.
+
+*2026-10-16 correction (after the critical review):* the refit probe of both runs above put each
+authentic rollout and its surrogate twin, which share a world seed and a first state, in separate
+cross-validation folds whenever the pair count was not a multiple of five. The probe then read
+each test twin's label off its training twin, which pulls the AUROC toward zero. Seeds 1 and 5,
+whose twins already shared a fold, are unchanged; the other eight rise. With each twin pair in one
+fold the refit reads 0.747 [0.702, 0.791] (was 0.646 [0.562, 0.729]) and the untrained arm 0.576
+(was 0.258). Every other recorded reading of every row reproduces bit for bit (only the
+wall-clock seconds differ), and the second artifact is
+kept under `superseded_split_twins_2026-10-16`. The partial-erasure label, which the earlier
+value missed by 0.004, now applies.
 
 ### 23.4 What develops across the training snapshots
 
@@ -5761,3 +5807,15 @@ memoryless nonlinear function of the current observation can read high after thi
 beyond the named linear basis. In both runs the probe
 direction keeps turning while the reading grows, and transfer from the 300-update direction holds
 above 0.65 at 450.
+
+*(Note 2026-10-16, after the critical review: the frozen-300 transfer column is in-sample by
+world seed. Every budget is read on the same registered pools (world bases 800000 and 850000), so
+the 300-update probe is scored on the same 220 world seeds it was fit on (each snapshot drives
+its own trajectory there; at 300 updates the episodes are identical).
+That breaks the disjoint-worlds precondition of `transfer_probe`. At 300 updates the column is
+the probe scored on its own training rows, 0.971 on `C1` and 0.949 on `C2` against
+cross-validated targets of 0.733 and 0.613, which shows the size of the in-sample advantage. The
+0.785 and 0.689 at 450, and the statement that transfer holds above 0.65, are therefore upper
+bounds and not held-out transfer. The spec froze this estimator, so the values stay as recorded.
+The "reorganizes" label is decided by the cosine alone and does not change. `docs/CORRECTIONS.md`,
+2026-10-16.)*

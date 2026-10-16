@@ -1500,7 +1500,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/arch_baseline_l3_h8_nowm.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.006",
      "role": "gate"
@@ -1566,7 +1567,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/device_control_l3_h8_wm_cpu.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.039",
      "role": "gate"
@@ -1668,7 +1670,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/second_instance_l3_h10_gseed1.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.039",
      "role": "gate"
@@ -1782,7 +1785,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/second_instance_l3_h10_gseed1_gpu.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.207",
      "role": "gate"
@@ -1886,7 +1890,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/second_seed_l3_h8_gseed2_gpu.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.207",
      "role": "gate"
@@ -1977,7 +1982,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/skill_matched_l3_h8_nowm_u450.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.285",
      "role": "gate"
@@ -2621,7 +2627,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "texture/T_gn_l3_h8_wm.json",
-      "path": "gates/l0_tost/p"
+      "path": "l0_control/survival/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.020",
      "role": "gate"
@@ -2819,7 +2826,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/goal_stakes_T-touch.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.007",
      "role": "gate"
@@ -2911,7 +2919,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/goal_stakes_S-immortal.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.232",
      "role": "gate"
@@ -3034,7 +3043,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "texture/T_gn_l3_h96_wm.json",
-      "path": "gates/l0_tost/p"
+      "path": "l0_control/survival/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.939",
      "role": "gate"
@@ -3172,7 +3182,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/corrected_H7-corrected.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.939",
      "role": "gate"
@@ -3346,7 +3357,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/corrected_H10GS1-corrected.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.939",
      "role": "gate"
@@ -3520,7 +3532,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/corrected_H8GS2-corrected.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.939",
      "role": "gate"
@@ -3928,7 +3941,8 @@
      "threshold": 0.05,
      "value": {
       "artifact": "expB2/corrected_L1-corrected.json",
-      "path": "gates/l0_tost/p_value"
+      "path": "arms/0.0/survival/pool_target/per_seed",
+      "stat": "tost_p"
      },
      "reading": "0.424",
      "role": "gate"

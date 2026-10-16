@@ -159,6 +159,13 @@ def run_seed(task: dict) -> dict:
             _, gap = mr.gap_closed(Pa, Ps, Pa, pair_scale)
             intervention = _nan_intervention(gap, len(ra["B"]), len(rsu["B"]), n_paired, u, s,
                                              "degenerate probe")
+        # readout 8(a): row j of Ea and of Es is the same world seed (common_rows), so the
+        # twin pair shares one CV group. Runs recorded before 2026-10-16 used one group per
+        # episode, which splits twins and biases the AUROC low (docs/CORRECTIONS.md).
+        Ea, Es = common_rows(ra, rsu, key="E")
+        k_e = len(Ea)
+        surprise = (mr.surprise_auroc(Ea, Es, groups=np.r_[np.arange(k_e), np.arange(k_e)])
+                    if ag.world_model else float("nan"))
         corr_auth = mr.direction_error_correlation(ra["H"], ra["E"], u)
         corr_surr = mr.direction_error_correlation(rsu["H"], rsu["E"], u)
         block = {
@@ -169,8 +176,7 @@ def run_seed(task: dict) -> dict:
                          "n_paired": n_paired,
                          "n_auth": int(len(ra["B"])), "n_surr": int(len(rsu["B"])),
                          "names": list(mr.BEHAVIOR_NAMES)},
-            "surprise": {"auroc": (mr.surprise_auroc(*common_rows(ra, rsu, key="E"))
-                                    if ag.world_model else float("nan")),
+            "surprise": {"auroc": surprise,
                          "corr_auth": corr_auth, "corr_surr": corr_surr,
                          "corr_mean": _finite_mean(corr_auth, corr_surr)},
             "adaptation": {**mr.adaptation(Hpa, Hps), "n_paired": n_paired},

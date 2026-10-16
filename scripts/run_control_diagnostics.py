@@ -8,8 +8,8 @@ and report, each labeled by the alternative it addresses:
   target                 the headline probe on h_t
   resid_trace            published behavior control (seven behavior channels: b_t, b_{t-1},
                          running mean), with held-out nuisance R^2 and nuisance-from-residual R^2
-  resid_trace_act        the same basis plus the env action a_t and the previous action a_{t-1}
-                         the GRU received
+  resid_trace_act        the same basis plus a_t, the env action the policy emitted from h_t, and
+                         a_{t-1}, the previous action the GRU received
   resid_obs              published sensory control [x_t, x_{t-1}] with diagnostics
   resid_obs_hist         x_t ... x_{t-7}, causal EMA traces (tau 4, 16), a_t, a_{t-1}
   resid_obs_hist_beh     resid_obs_hist plus the behavior trace

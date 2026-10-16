@@ -50,8 +50,10 @@ class PatchOfEarthV0(PatchOfEarth):
         # deviates from the authentic constant. Two modes:
         #   "ar1"    - AR(1) walk within each episode, clipped to [-0.8, 8.0]. The clip is
         #              asymmetric, so the walk is NOT centered: at drift_sigma 0.45 the mean
-        #              drag factor is 1.30 (11% of steps sit at the lower clip). The worlds
-        #              differ in both level and volatility (measured 2026-10-12).
+        #              drag factor is 1.30 (11% of steps sit at the lower clip), measured over
+        #              24-step windows from reset. The walk restarts at zero at every reset and
+        #              its level rises with episode time, so longer windows read a larger mean.
+        #              The worlds differ in both level and volatility (measured 2026-10-12).
         #   "regime" - a per-episode CONSTANT drag offset drawn from a band away from zero
         #              (the B-v3 surrogate; identifiable from one trajectory and policy-
         #              relevant, so survival has a reason to encode it).

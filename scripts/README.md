@@ -129,7 +129,12 @@ python scripts/audit_behavior_mediation.py fullruns/l3_h7_traces/states \
 # run, all gates pass, published h8 table reproduced exactly. Transfer to the
 # unseen hidden=7 fingerprint: survival 0.773 [0.728, 0.815] -> GENERALIZES
 # (frozen rule met). Common garden: survival 0.557 [0.500, 0.611] < 0.65 ->
-# REACTIVE tracking (informative negative). See the second 2026-07-14 entry in
+# REACTIVE tracking (informative negative). HISTORICAL: that common-garden
+# verdict is overturned. The 0.557 used a biased estimator; re-scored under the
+# fixed one it reads 0.666 forward and 0.684 reverse and passes the frozen rule
+# (2026-07-18 correction in docs/PREREGISTRATION_L3.md sec.12; FINDINGS 10.6.1).
+# On the corrected agents the tail is mostly the prefix's physical footprint
+# (FINDINGS 17.7). See the second 2026-07-14 entry in
 # docs/PREREGISTRATION_L3.md sec.12; spec in
 # docs/specs/2026-07-14-l3-heldout-common-garden-probe-design.md.
 python scripts/run_expB2.py --drift-mode l3 --l3-hidden 8 \

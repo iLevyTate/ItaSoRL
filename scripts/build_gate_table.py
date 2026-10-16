@@ -35,6 +35,9 @@ ART = os.path.join(ROOT, "artifacts")
 OUT_JSON = os.path.join(ART, "gate_table.json")
 OUT_MD = os.path.join(ROOT, "docs", "GATE_TABLE.md")
 FLOOR_TOL = 0.1
+# Registered agent seeds per arm. Every row has ten except BV2-L2-AR1, which registered three.
+REGISTERED_SEEDS = 10
+BV2_AR1_SEEDS = 3
 
 
 def _load(rel):
@@ -42,8 +45,29 @@ def _load(rel):
         return json.load(fh)
 
 
-def l0_block(vals) -> dict:
-    v = [float(x) for x in vals if np.isfinite(x)]
+def _nonfinite_note(n_bad: int, n_all: int) -> str:
+    return f"not testable ({n_bad} of {n_all} seeds non-finite)"
+
+
+def _short_note(n: int, expected: int) -> str:
+    return f"not testable ({n} of {expected} seeds)"
+
+
+def l0_block(vals, expected: int = REGISTERED_SEEDS) -> dict:
+    allv = [float(x) for x in vals]
+    v = [x for x in allv if np.isfinite(x)]
+    n_bad = len(allv) - len(v)
+    if n_bad:
+        # A non-finite seed is a pool that could not be scored. Testing the seeds that remain
+        # would read a short sample as the registered one, so the row is not testable.
+        return {"n": len(v), "n_nonfinite": n_bad,
+                "mean": float(np.mean(v)) if v else float("nan"),
+                "tost_p": float("nan"), "status": _nonfinite_note(n_bad, len(allv))}
+    if len(v) != expected:
+        # A per-seed list shorter (or longer) than the registered seed count is the same
+        # problem with no NaN to flag it.
+        return {"n": len(v), "mean": float(np.mean(v)) if v else float("nan"),
+                "tost_p": float("nan"), "status": _short_note(len(v), expected)}
     if len(v) < 2:
         return {"n": len(v), "mean": float(np.mean(v)) if v else float("nan"),
                 "tost_p": float("nan"), "status": "not testable (n < 2)"}
@@ -55,11 +79,26 @@ def l0_block(vals) -> dict:
             "rope_share_inside": rp.p_in_rope, "rope_accept": bool(rp.accept), "status": status}
 
 
-def floor_block(vals) -> dict:
-    v = [float(x) for x in vals if np.isfinite(x)]
+def floor_block(vals, expected: int = REGISTERED_SEEDS) -> dict:
+    allv = [float(x) for x in vals]
+    v = [x for x in allv if np.isfinite(x)]
+    n_bad = len(allv) - len(v)
+    if n_bad or len(v) != expected or not v:
+        return {"mean": float(np.mean(v)) if v else float("nan"), "n": len(v),
+                "n_nonfinite": n_bad, "ok": False,
+                "status": (_nonfinite_note(n_bad, len(allv)) if n_bad
+                           else _short_note(len(v), expected) if len(v) != expected
+                           else "not testable (no seeds)")}
     m = float(np.mean(v))
     return {"mean": m, "ok": bool(abs(m - 0.5) < FLOOR_TOL),
             "status": "pass" if abs(m - 0.5) < FLOOR_TOL else "fail"}
+
+
+def _min_or_nan(vals) -> float:
+    """Lowest value, or NaN when any value is non-finite (the builtin min drops a NaN that is
+    not the first item). NaN renders as n/a, never as a speed that clears the gate."""
+    v = np.asarray(list(vals), float)
+    return float(v.min()) if v.size and np.isfinite(v).all() else float("nan")
 
 
 def _rescore_rows(run_id, rel, partitions=("legacy", "explicit"), other=None):
@@ -100,8 +139,9 @@ def build() -> dict:
     rows = []
     b2 = _load("expB2/expB2_results.json")
     rows.append({"run": "BV2-L2-AR1", "partition": "legacy", "source": "artifacts/expB2/expB2_results.json",
-                 "l0": l0_block(b2["0.0"]["survival"]["pool_target"]),
-                 "untrained_floor": floor_block(b2["0.45"]["untrained"]["pool_target"])})
+                 "l0": l0_block(b2["0.0"]["survival"]["pool_target"], BV2_AR1_SEEDS),
+                 "untrained_floor": floor_block(b2["0.45"]["untrained"]["pool_target"],
+                                                BV2_AR1_SEEDS)})
     bv3 = _load("expB2/bv3_n10_gates.json")["gates"]
     bv3_unt = [p["target"] for p in _load("expB2/bv3_n10_gates.json")["pools"]
                if p["drift"] == "0.45" and p["agent"] == "untrained"]
@@ -110,7 +150,7 @@ def build() -> dict:
                  "l0": l0_block(bv3["l0_control"]["survival_pool_target_per_seed"]),
                  "untrained_floor": floor_block(bv3_unt),
                  "engagement": f"{bv3['engagement']['n_engaged']}/{bv3['engagement']['n_cells']}",
-                 "speed_min": min(bv3["speed_positive_control"]["min_speed"].values())})
+                 "speed_min": _min_or_nan(bv3["speed_positive_control"]["min_speed"].values())})
     rows += _rescore_rows("L3-H8-N10", "fold_rescore/l3_h8_traces.json")
     rows += _rescore_rows("L3-H7-N10", "fold_rescore/l3_h7_traces.json")
     rows += _rescore_rows("L3-H4", "fold_rescore/l3_h4_traces.json")
@@ -119,7 +159,7 @@ def build() -> dict:
     l1g = _load("expL1/organism_summary.json")["gates"]
     rows += _rescore_rows("L1-ORGANISM", "fold_rescore/l1_heldout.json", other={
         "engagement": f"{l1g['engagement']['n_engaged']}/{l1g['engagement']['n_cells']}",
-        "speed_min": min(l1g["speed_positive_control"]["min_speed"].values()),
+        "speed_min": _min_or_nan(l1g["speed_positive_control"]["min_speed"].values()),
         "pool_leak_clean_all": l1g["leakage"]["pool_leak_clean_all"],
         "deaths_total": l1g["survivorship"]["deaths_total"]})
     for run_id, rel, part in [

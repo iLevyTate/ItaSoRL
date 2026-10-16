@@ -8,7 +8,7 @@ Reviewed at commit `4b6e1f3`. Rows with status **historical** record what the pr
 
 `pre_transition_value` is `compute_gae` as it stood from `679fee6` (2026-06-28) to `4b6e1f3`: an episode still alive at the 80-step cutoff bootstrapped from the critic value at its last stored step, before its final transition. `none` means the run trains no actor-critic. A readout-only analysis inherits the trainer of the run whose saved agents it reads.
 
-A commit marked (curated) is the registry's value with no matching run commit in the run's artifacts; the run's section says what the artifacts record instead.
+A commit marked (curated) is the registry's value with no matching run commit in the run's artifacts, or a value whose code was uncommitted at run time; the run's section says what the artifacts record instead.
 
 | Run | Status | Experiment | Claims | Trainer | Readout of | Commit at run | Folds | Device |
 |---|---|---|---|---|---|---|---|---|
@@ -97,12 +97,13 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 | `B1-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
 | `B2-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
-| `SALIENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `WORLD-FEATURES-TOROIDAL` | superseded | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `ERASURE-ONLINE-FIRST` | superseded | B-v2 L3 | - | inherited: successor_value | C1 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `WORLD-FEATURES` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 9e03469 (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `ERASURE-ONLINE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 9e03469 (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `DEVELOPMENT` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `SALIENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `WORLD-FEATURES-TOROIDAL` | superseded | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `ERASURE-ONLINE-FIRST` | superseded | B-v2 L3 | - | inherited: successor_value | C1 | 2cfc08d | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `WORLD-FEATURES` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 9e03469 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `ERASURE-ONLINE-SPLIT-TWINS` | superseded | B-v2 L3 | - | inherited: successor_value | C1 | 9e03469 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `ERASURE-ONLINE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 1dc44e4 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `DEVELOPMENT` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 
 Commits that artifacts record, or that the record cites, and that are not ancestors of main (most reached main through squash merges); each lives only on the branch named, so keep that branch or tag its head:
 
@@ -590,7 +591,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Budget: {"survival_updates": 300}
 - Folds: explicit
 - Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
-- Local run directory (not in git): artifacts/goal_stakes/T-gn-h96
+- Run directory (in git): artifacts/goal_stakes/T-gn-h96
 - Notes: Frozen: docs/specs/2026-10-10-gn-comparator-trained-h96-design.md. Trunk 96 read from all 60 saved agents. UNINFORMATIVE under the registered matrix: the L0 gate fails (drift-0 survival 0.559, not equivalent to chance), so neither verdict is reached. Descriptively the rule is not met (survival 0.541 [0.523, 0.559], 0 of 10 seeds at the bar). Not promoted as a negative; strengthens no claim. Saved agents stay on branch run/T-gn-h96.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "l3_family": "gn", "l3_family_param": 0.01, "gae_bootstrap": "successor"}
 - Artifacts: `artifacts/texture/T_gn_l3_h96_wm.json`, `artifacts/goal_stakes/T-gn-h96`
@@ -846,8 +847,8 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
 - Folds: explicit
 - Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
-- Local run directory (not in git): artifacts/goal_stakes/T-touch
-- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Primary rule met with all six gates passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Readouts in the directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) stay on branch run/T-touch.
+- Run directory (in git): artifacts/goal_stakes/T-touch
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Recorded: primary rule met with all six gates passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Current validity: the leakage gate summed the homeostatic reward, not pellets consumed, so full-rule validity was not established; 0.796 stays as recorded (docs/CORRECTIONS.md 2026-10-12; the matched-world pellet run is B2, FINDINGS 21). Readouts in the directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) stay on branch run/T-touch. Mechanism surprise AUROC 0.912. The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16; not rescored).
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "objective": "touch", "mortal": false}
 - Artifacts: `artifacts/goal_stakes/T-touch`, `artifacts/expB2/goal_stakes_T-touch.json`
 
@@ -862,8 +863,8 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
 - Folds: explicit
 - Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
-- Local run directory (not in git): artifacts/goal_stakes/S-immortal
-- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 [0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable (S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined attempts stay on branch run/S-immortal.
+- Run directory (in git): artifacts/goal_stakes/S-immortal
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 [0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable (S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined attempts stay on branch run/S-immortal. Mechanism surprise AUROC 0.848. The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16; not rescored).
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "mortal": false}
 - Artifacts: `artifacts/goal_stakes/S-immortal`, `artifacts/expB2/goal_stakes_S-immortal.json`
 
@@ -877,7 +878,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
 - Folds: explicit
 - Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
-- Local run directory (not in git): artifacts/goal_stakes/S-scarce
+- Run directory (in git): artifacts/goal_stakes/S-scarce
 - Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. NOT RUN: the frozen calibration (scripts/calibrate_scarcity.py, artifacts/goal_stakes/calibration.json) chose 24 pellets, the registered density C1 already uses (scripted 80-step death rate 0.535 at drift 0, 0.515 at drift 0.45), so the run would repeat C1's configuration and the stakes rule is not testable (PREREGISTRATION_L3, 2026-10-10). The directory keeps its .gitkeep placeholder; no cell exists.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "n_pellets": "calibrated: 24, the registered density (artifacts/goal_stakes/calibration.json)"}
 - Artifacts: `artifacts/goal_stakes/S-scarce`, `artifacts/goal_stakes/calibration.json`
@@ -889,7 +890,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Commit at run: run/C1-rerun
 - Folds: explicit
 - Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
-- Notes: scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and S-immortal mechanism readouts; decide_goal_stakes.py does not read it.
+- Notes: scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and S-immortal mechanism readouts; decide_goal_stakes.py does not read it. Surprise AUROC 0.846. The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16; not rescored).
 - Artifacts: `artifacts/goal_stakes/C1`
 
 ### `C1-RERUN`: Rerun of C1 that keeps its saved agents (reproduction)
@@ -903,7 +904,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
 - Folds: explicit
 - Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
-- Local run directory (not in git): artifacts/goal_stakes/C1-rerun
+- Run directory (in git): artifacts/goal_stakes/C1-rerun
 - Notes: The C1 command without --dump-states, on the pinned cloud stack, so the agents exist for the C1 mechanism readout. Pool targets equal C1 to the bit in 60 of 60 arm-cells; C1 reproduces exactly. Saved agents (60 base plus 30 budget snapshots) stay on branch run/C1-rerun.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "budget_extend": 450, "budget_snapshots": [100, 200]}
 - Artifacts: `artifacts/goal_stakes/C1-rerun`
@@ -997,7 +998,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 67fb556 (spec); readout code uncommitted at run time, committed with this entry
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit source: curated: the code was uncommitted at run time; the artifacts record HEAD 67fb556, not the working tree that ran
 - Folds: explicit
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Notes: Frozen spec docs/specs/2026-10-15-surprise-dissociation-design.md (67fb556, before any code or number). Diagnostic. C1: on identical input the untrained arm's random decoder separates the worlds at 0.764 against the trained survival decoder's 0.626 (paired -0.139 [-0.160, -0.118]); the survival state reads 0.733 on the same streams; agents raised in the authentic world are also more surprised by authentic episodes (10 of 10). All four readings reversed or not met: the earlier 0.846 own-episode surprise tracks stream predictability, not the law the agent was raised under. L1: survival decoder 0.568, untrained 0.507, survival state 0.551; readings not met. Replayed error equals the agent's own-rollout error (tests/test_surprise_and_ar_family.py).
@@ -1206,7 +1207,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 2cfc08d
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
@@ -1218,7 +1219,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: superseded
 - Trainer: inherited: successor_value
 - Commit at run: 2cfc08d
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
@@ -1230,11 +1231,11 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: superseded
 - Trainer: inherited: successor_value
 - Commit at run: 2cfc08d
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
-- Notes: SUPERSEDED by ERASURE-ONLINE, the rerun that adds population outcomes; its common-survivor numbers reproduce there. Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, 0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 [0.562, 0.729], under the 0.65 partial-erasure label. The primary real-minus-sham score is -0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, +0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has 6 informative seeds and decides nothing. FINDINGS 23.3.
+- Notes: SUPERSEDED by ERASURE-ONLINE-SPLIT-TWINS, the rerun that adds population outcomes (itself superseded by ERASURE-ONLINE); its common-survivor numbers reproduce there. Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, 0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 [0.562, 0.729] (biased low by split twins; 0.747 in ERASURE-ONLINE), under the 0.65 partial-erasure label. The primary real-minus-sham score is -0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, +0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has 6 informative seeds and decides nothing. FINDINGS 23.3.
 - Artifacts: `artifacts/mechanism/erasure/superseded_common_survivor_2026-10-15/corrected_l3_h8_wm.json`
 
 ### `WORLD-FEATURES`: Which features of its own world the state keeps beyond the senses: near and far draw features decoded by ridge R squared, Euclidean distances and in-fold residual targets (C1 and C2 agents)
@@ -1242,23 +1243,35 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 9e03469
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
 - Notes: Rerun under the spec's third amendment (2026-10-15, after the deep revision review): the arena's Euclidean distance, far targets residualized inside each training fold, and the reach radius reported as a calibration percentile. Supersedes WORLD-FEATURES-TOROIDAL on the same saved agents. Diagnostic. Label KEEPS NOTHING BEYOND THE SENSES on both runs: no near feature meets both clauses of reading 1 (C1 survival minus untrained state R squared -0.099, +0.090, +0.069; survival residual lower bounds -0.001, -0.005, -0.002). Residual R squared across every arm and both runs runs from -0.006 to +0.009, largest upper bound +0.013 (C2 predictor arm, far water). Reach radius 0.318 (C1), 0.307 (C2), passed by 2.6 and 2.7 percent of readout episodes. The permuted-target clause passes. FINDINGS 23.2.
 - Artifacts: `artifacts/world_features/corrected_l3_h8_wm.json`, `artifacts/world_features/corrected_l3_h8_nowm.json`
 
+### `ERASURE-ONLINE-SPLIT-TWINS`: Second run of the online erasure readout, whose refit probe split same-world twin episodes across folds (superseded; kept as the record)
+
+- Status: superseded
+- Trainer: inherited: successor_value
+- Commit at run: 9e03469
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: SUPERSEDED by ERASURE-ONLINE (2026-10-16): the refit probe on erased states put each authentic episode and its same-world surrogate twin in separate folds, which biases the AUROC low; every other value reproduces there to the float. Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal) and after a two-seed setup check (93765bc: frozen-probe scores quantized to 0.001 of the unerased spread, after the check read 0.39 to 0.61 from float32 differences). Rerun after the deep revision review, adding attrition and every attempted episode's return and termination; supersedes ERASURE-ONLINE-FIRST on the same saved agents. Every common-survivor value reproduces the first run to the float apart from the projection residual's rounding, and every reading is unchanged: not used under removal MET, used and costly NOT MET, erasure held in 10 of 10 seeds, refit probe 0.646 [0.562, 0.729]. Attempted 64 per seed, retained 44 to 51, excluded 26.6 percent [24.7, 28.5]. Every attempted episode: return erased minus sham +0.010 [-0.009, +0.030] surrogate, +0.005 [-0.009, +0.019] authentic; terminations per seed +0.2 [-0.3, +0.7] and -0.2 [-0.7, +0.3]; descriptive, no pre-stated reading. The untrained floor decides nothing. FINDINGS 23.3.
+- Artifacts: `artifacts/mechanism/erasure/superseded_split_twins_2026-10-16/corrected_l3_h8_wm.json`
+
 ### `ERASURE-ONLINE`: Rank-two removal of the decoded world direction at every GRU step while the C1 survival agent acts, against a sham removal, with attrition and population outcomes
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: 9e03469
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit at run: 1dc44e4
+- Commit source: recorded
 - Folds: explicit
-- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
-- Notes: Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal) and after a two-seed setup check (93765bc: frozen-probe scores quantized to 0.001 of the unerased spread, after the check read 0.39 to 0.61 from float32 differences). Rerun after the deep revision review, adding attrition and every attempted episode's return and termination; supersedes ERASURE-ONLINE-FIRST on the same saved agents. Every common-survivor value reproduces the first run to the float apart from the projection residual's rounding, and every reading is unchanged: not used under removal MET, used and costly NOT MET, erasure held in 10 of 10 seeds, refit probe 0.646 [0.562, 0.729]. Attempted 64 per seed, retained 44 to 51, excluded 26.6 percent [24.7, 28.5]. Every attempted episode: return erased minus sham +0.010 [-0.009, +0.030] surrogate, +0.005 [-0.009, +0.019] authentic; terminations per seed +0.2 [-0.3, +0.7] and -0.2 [-0.7, +0.3]; descriptive, no pre-stated reading. The untrained floor decides nothing. FINDINGS 23.3.
+- Notes: Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal) and after a two-seed setup check (93765bc: frozen-probe scores quantized to 0.001 of the unerased spread, after the check read 0.39 to 0.61 from float32 differences). Rerun on 2026-10-16 after the critical review: the refit probe on erased states now keeps each same-world twin pair (authentic and surrogate rollout of one world seed) in one CV fold, as the project's pairing rule requires; supersedes ERASURE-ONLINE-SPLIT-TWINS and, before it, ERASURE-ONLINE-FIRST, on the same saved agents. Every other recorded reading of every row reproduces ERASURE-ONLINE-SPLIT-TWINS bit for bit (only the wall-clock seconds differ). Refit probe 0.747 [0.702, 0.791] (was 0.646 [0.562, 0.729]), so the spec's partial-erasure label is attached to every reading. Readings: not used under removal MET, used and costly NOT MET, erasure held in 10 of 10 seeds. Attempted 64 per seed, retained 44 to 51, excluded 26.6 percent [24.7, 28.5]. Every attempted episode: return erased minus sham +0.010 [-0.009, +0.030] surrogate, +0.005 [-0.009, +0.019] authentic; terminations per seed +0.2 [-0.3, +0.7] and -0.2 [-0.7, +0.3]; descriptive, no pre-stated reading. The untrained floor decides nothing. FINDINGS 23.3.
 - Artifacts: `artifacts/mechanism/erasure/corrected_l3_h8_wm.json`
 
 ### `DEVELOPMENT`: The control battery across the 100, 200, 300 and 450-update survival snapshots of C1 and C2, with probe-direction cosines and frozen-300 transfer
@@ -1266,7 +1279,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 2cfc08d
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3

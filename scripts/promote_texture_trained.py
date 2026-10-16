@@ -61,6 +61,10 @@ def speed_gate(run: dict, threshold: float = SPEED_GATE) -> dict:
     arm alone understates a failure that sits in a baseline arm, and the baseline arms are what
     the registered margins are measured against, so an unprobeable baseline is exactly the case
     the positive control exists to catch.
+
+    A pool whose probe could not be scored (NaN) is never below the threshold, so it is counted
+    in n_nonfinite and fails the gate (written only when nonzero). The minima are taken over
+    the scored pools, as scripts/promote_reviewer_gaps_runs.py does.
     """
     pools, below = [], {}
     surv = []
@@ -77,13 +81,33 @@ def speed_gate(run: dict, threshold: float = SPEED_GATE) -> dict:
                     below.setdefault(arm, {}).setdefault(str(float(drift)), 0)
                     below[arm][str(float(drift))] += 1
     n_below = sum(c for a in below.values() for c in a.values())
-    return {"threshold": threshold, "n_pools": len(pools), "n_below": n_below,
-            "min_all_pools": min(pools) if pools else float("nan"),
-            "mean_all_pools": sum(pools) / len(pools) if pools else float("nan"),
-            "min_survival": min(surv) if surv else float("nan"),
-            "mean_survival": sum(surv) / len(surv) if surv else float("nan"),
-            "below_by_arm_drift": below,
-            "pass": bool(pools) and n_below == 0}
+    n_bad = sum(not np.isfinite(x) for x in pools)
+    scored = [x for x in pools if np.isfinite(x)]
+    scored_surv = [x for x in surv if np.isfinite(x)]
+    out = {"threshold": threshold, "n_pools": len(pools), "n_below": n_below,
+           "min_all_pools": min(scored) if scored else float("nan"),
+           "mean_all_pools": sum(pools) / len(pools) if pools else float("nan"),
+           "min_survival": min(scored_surv) if scored_surv else float("nan"),
+           "mean_survival": sum(surv) / len(surv) if surv else float("nan"),
+           "below_by_arm_drift": below,
+           "pass": bool(pools) and n_below == 0 and n_bad == 0}
+    if n_bad:
+        out["n_nonfinite"] = int(n_bad)
+    return out
+
+
+def leak_gate(values, tolerance: float = LEAK_TOL) -> dict:
+    """Gate 4 over every pool: the largest |leak AUROC - 0.5|. The builtin max drops a NaN
+    that is not the first item, so a non-finite pool is counted in n_nonfinite (written only
+    when nonzero), max_abs_dev reads NaN, and the gate fails."""
+    devs = [abs(float(x) - 0.5) for x in values]
+    n_bad = sum(not np.isfinite(d) for d in devs)
+    dev = max(devs) if devs and not n_bad else float("nan")
+    out = {"tolerance": tolerance, "max_abs_dev": dev,
+           "pass": bool(devs) and not n_bad and dev <= tolerance}
+    if n_bad:
+        out["n_nonfinite"] = int(n_bad)
+    return out
 
 
 def engagement_gate(cells_dir: str | None) -> dict:
@@ -185,7 +209,6 @@ def main() -> int:
     l0 = {arm: _agg(v0[arm]["pool_target"]) for arm in ARMS if arm in v0}
 
     eq = equivalence_test(v0["survival"]["pool_target"])
-    leak = max(abs(float(x) - 0.5) for arm in ARMS for x in v[arm]["pool_reward_leak"])
     deaths = sum(int(x) for arm in ARMS
                  for k2 in ("pool_deaths_auth", "pool_deaths_surr") for x in v[arm][k2])
 
@@ -194,7 +217,7 @@ def main() -> int:
                     "pass": bool(eq.equivalent)},
         "speed_positive_control": speed_gate(run),
         "engagement": engagement_gate(a.cells),
-        "reward_leakage": {"tolerance": LEAK_TOL, "max_abs_dev": leak, "pass": leak <= LEAK_TOL},
+        "reward_leakage": leak_gate(x for arm in ARMS for x in v[arm]["pool_reward_leak"]),
         "survivorship": {"total_deaths": deaths, "pass": deaths == 0},
         "untrained_floor": {"mean": primary["untrained"]["mean"],
                             "pass": abs(primary["untrained"]["mean"] - 0.5) <= LEAK_TOL},

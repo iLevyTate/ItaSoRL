@@ -139,7 +139,9 @@ class SeedBundle:
     policy: int = 0
 
     def streams(self) -> dict[str, np.random.Generator]:
-        # Offsets keep streams independent and reproducible.
+        # Offsets keep the four streams of one bundle apart. A caller that seeds another
+        # generator with the raw world integer (the scripted policies do) shares the
+        # world stream's draws (docs/CORRECTIONS.md, 2026-10-16).
         return {
             "world": np.random.default_rng(self.world),
             "weather": np.random.default_rng(self.weather + 10_001),

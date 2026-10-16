@@ -1390,6 +1390,20 @@ Rigor carried from the B-v3 audit (2026-07-10):
   itself. No recorded verdict moves. The grid in section 9 is what was registered; the
   sweeps above are what was run.
 
+- **2026-10-16 - THE `T-touch` OUTCOME OF 2026-10-11, QUALIFIED (a later record of the
+  2026-10-12 correction; the 2026-10-11 entry stays as written).** That entry reads `T-touch`
+  as meeting the primary rule with every gate passing. Its leakage gate summed the homeostatic
+  reward, and the pellet objective trains on pellets consumed, so the reward that run trained on
+  was never gated (`docs/CORRECTIONS.md`, "2026-10-12: the pellet run's leakage gate summed the
+  homeostatic reward"). Full-rule validity of `T-touch` is therefore not established. The 0.796
+  [0.762, 0.830] stays as recorded, and so do the other gate values. The matched-world pellet run,
+  `B2`, is UNINFORMATIVE on the untrained floor; under the sensory-echo control it reads 0.780
+  [0.757, 0.804] with that rule met, under a control frozen after the raw outcomes and untrained
+  readings were known; the untrained interval [0.577, 0.615] crosses 0.60 (FINDINGS 21). The
+  frozen wording "survival is not required"
+  is supported only in that narrower form, for the controlled decodability reading of the
+  pellet-seeking, death-off agents. No registered threshold moved and no verdict is re-read.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

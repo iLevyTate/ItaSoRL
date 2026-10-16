@@ -40,7 +40,7 @@ from agent_free_common import provenance, write_json  # noqa: E402
 from itasorl.stats import equivalence_test, mean_ci, t_ci90  # noqa: E402
 from promote_bv3_gates import repo_rel  # noqa: E402
 from promote_texture_trained import (ARMS, BAR, LEAK_TOL, MARGIN, REGISTERED_TRUNK,  # noqa: E402
-                                     engagement_gate, speed_gate, trunk_check)
+                                     engagement_gate, leak_gate, speed_gate, trunk_check)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIMARY_FULLRUNS = os.environ.get("ITASORL_FULLRUNS",
@@ -188,7 +188,6 @@ def promote(which: str) -> dict:
     v, v0 = run[d45], run[d0]
     eq = equivalence_test(v0["survival"]["pool_target"])
     leak = {arm: [float(x) for x in v[arm]["pool_reward_leak"]] for arm in ARMS}
-    leak_dev = max(abs(x - 0.5) for xs in leak.values() for x in xs)
     leak_clean = {arm: [bool(x) for x in v[arm]["pool_leak_clean"]] for arm in ARMS}
     mp_clean = {arm: [bool(x) for x in v[arm]["mp_leak_clean"]] for arm in ARMS}
     deaths = sum(int(x) for arm in ARMS for k in ("pool_deaths_auth", "pool_deaths_surr")
@@ -200,8 +199,7 @@ def promote(which: str) -> dict:
         "engagement": engagement_gate(cells_dir),
         "l0_tost": {"mean": eq.mean, "p": eq.p_value, "margin": 0.05, "pass": bool(eq.equivalent)},
         "speed_positive_control": speed_gate(run),
-        "reward_leakage": {"tolerance": LEAK_TOL, "max_abs_dev": leak_dev,
-                           "pass": leak_dev <= LEAK_TOL, "per_seed": leak,
+        "reward_leakage": {**leak_gate(x for xs in leak.values() for x in xs), "per_seed": leak,
                            "pool_leak_clean": leak_clean,
                            "seeds_clean_survival": int(sum(leak_clean["survival"])),
                            "matched_pair_leak_clean": mp_clean},

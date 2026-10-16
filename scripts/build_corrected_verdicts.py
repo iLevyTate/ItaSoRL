@@ -108,14 +108,28 @@ def integrity(cells: dict, hist: dict) -> dict:
     return {"gae_bootstrap": boot, "bit_identical_to_historical": same, "pass": ok}
 
 
+def _pool_gate(vals: list[float], reduce, key: str, ok) -> dict:
+    """One gate over every pool, failing closed. The builtin min and max drop a NaN that is
+    not the first item, so a non-finite pool is counted instead: the value reads NaN, the
+    gate fails, and n_nonfinite says why. The key is written only when it is nonzero."""
+    v = np.asarray(vals, float)
+    n_bad = int(np.count_nonzero(~np.isfinite(v)))
+    x = float(reduce(v)) if v.size and not n_bad else float("nan")
+    out = {key: x, "pass": bool(v.size) and not n_bad and bool(ok(x))}
+    if n_bad:
+        out["n_nonfinite"] = n_bad
+    return out
+
+
 def gates(cells: dict) -> dict:
     eng = {f"{d:.2f}": sum(bool(cells[(d, s)]["eng"]["engaged"]) for s in SEEDS) for d in DRIFTS}
     l0 = _vals(cells, 0.0, "survival")
     tost = equivalence_test(l0, 0.5, margin=MARGIN)
     rope = rope_test(l0)
-    speed = min(float(cells[(d, s)]["agents"][a]["pool"]["speed"]) for d in DRIFTS for s in SEEDS for a in ARMS)
-    leak = max(abs(float(cells[(d, s)]["agents"][a]["pool"]["pool_reward_leak"]) - 0.5)
-               for d in DRIFTS for s in SEEDS for a in ARMS)
+    pools = [cells[(d, s)]["agents"][a]["pool"] for d in DRIFTS for s in SEEDS for a in ARMS]
+    speed = _pool_gate([float(p["speed"]) for p in pools], np.min, "min", lambda x: x >= 0.75)
+    leak = _pool_gate([abs(float(p["pool_reward_leak"]) - 0.5) for p in pools], np.max,
+                      "max_abs_dev", lambda x: x < 0.1)
     floor = float(np.mean(_vals(cells, 0.45, "untrained")))
     deaths = sum(int(cells[(d, s)]["agents"][a]["pool"][k]) for d in DRIFTS for s in SEEDS for a in ARMS
                  for k in ("deaths_auth", "deaths_surr"))
@@ -125,8 +139,8 @@ def gates(cells: dict) -> dict:
                "pass": bool(tost.equivalent),
                "rope": {"boot_interval": [float(x) for x in rope.boot_interval],
                         "boot_share_in_rope": float(rope.p_in_rope), "accept": bool(rope.accept)}},
-        "speed": {"min": speed, "pass": speed >= 0.75},
-        "reward_leak": {"max_abs_dev": leak, "pass": leak < 0.1},
+        "speed": speed,
+        "reward_leak": leak,
         "untrained_floor": {"mean": floor, "pass": abs(floor - 0.5) < 0.1},
         "deaths": {"total": deaths, "pass": deaths == 0},
     }

@@ -7,7 +7,7 @@ living in a fake world. Nobody paid it to look. A detector that knows the true
 rules ranks a hand-made fake above the real world **87%** of the time (AUROC
 0.873). That is a ranking score, the chance a fake episode is placed above a
 real one, not the share of episodes labeled correctly. The agent's own state reads
-**53%**, barely above a coin flip and well under the 65% bar I set in advance.
+**55%**, barely above a coin flip and well under the 65% bar I set in advance.
 A learned fake reads **73%**, in agents trained both to survive and to predict
 what they will sense next. Drop the prediction task and it reads **61%**. The
 73% does not meet the rule I registered, because one honesty check fails: with
@@ -19,10 +19,11 @@ fed the exact senses the surviving agent lived through, reads the fake within
 about a point of the survival brain (72% against 73%). What finds the fake is
 where the agent goes. A brain shaped to predict keeps what it saw there.
 
-The agent numbers above come from a corrected trainer, except the 53%, which
-comes from the original one, since that run was not repeated. A review in
-October 2026 found a bug in how the trainer valued the last step of an episode.
-Fixing it moved the headline by less than a point, and the record of what
+The agent numbers above come from a corrected trainer. A review in October 2026
+found a bug in how the trainer valued the last step of an episode. Fixing it
+moved the headline by less than a point. The run behind the 55% was repeated on
+the fixed trainer as well and reads the same as before the fix (55% on the
+scoring split used now, 53% as first scored; FINDINGS §22.1). The record of what
 changed, and what did not get rerun, is in
 [`docs/CORRECTIONS.md`](docs/CORRECTIONS.md).
 
@@ -83,8 +84,11 @@ observation then carry a world signal of about **0.73**. Survival training
 without the prediction task reads 0.61, under the bar. The signal rides on the
 paths the foraging creature takes, and a brain trained to predict holds on to
 it; why those paths carry more of the difference than scripted ones has not
-been measured. A hand-written fake that drifts the same coherent way gets read
-too; white noise of the same size does not.
+been measured. A hand-written fake gets read too: a drag that depends on how
+fast the body is moving, as the learned law does. Random jitter in the velocity
+reaches the bar at no setting tried, even jitter that stays correlated over time,
+held to the same 24-step drift at every correlation level (a larger drift than
+the drag's), so these tests do not say why (FINDINGS §22.3).
 
 ### Hasn't this been done before?
 
@@ -148,7 +152,7 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 ### Hypotheses
 
 - **H1 (detectability)**: a privileged detector distinguishes the surrogate from the authentic world. **Supported** at L1, L2, and L3; at one shared detector noise the L2 flaws read weaker than L3 (FINDINGS §15).
-- **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference (FINDINGS §14). A hand-authored, temporally coherent drag of matched one-step size is read as well, white jitter is not, so nothing here is specific to learned dynamics (§17.9). At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
+- **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference (FINDINGS §14). A hand-authored drag that, like the learned law, depends on the agent's own velocity is read as well (§17.9), so nothing here is specific to learned dynamics. Random velocity jitter reaches the bar at no setting tried, including strongly autocorrelated jitter matched on its 24-step deviation, so the comparison names no mechanism (§22.3). At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
 - **H3 (emergence under selection)**: selection raises world decodability. **Flat contrast, registered verdict uninformative.** Over 3 lineages and 30 generations the contrast is flat under both the pooled and the per-individual readout, but the speed control (gate 5) fails, and the preregistration interprets no contrast unless every gate passes, so neither readout yields a verdict. The payoff for knowing the world (gate 1) is weak and falls short only of a draft margin that was never ratified (FINDINGS §13.F; the earlier record is §13.D, §13.E).
 - **H4 (incidental encoding)**: the condition is decodable from a from-scratch agent's state without reward. At L3 the registered rule is **not met**, because the L0 (authentic-versus-authentic) gate does not pass on the registered world pair, 0.559; its three **decodability clauses are met** for survival with the next-observation auxiliary at 300 updates, corrected trainer: 0.733 (FINDINGS §17). Not met at L1 or L2.
 
@@ -162,8 +166,9 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 | Experiment A (detectability ceiling, agent-free), L1 | **done** |
 | Experiment A, L2 | **done** |
 | Experiment B (incidental detection), L2 arc | **done: did not meet the registered encoding criterion** |
-| Experiment B, L1 organism + H2 battery | **done: did not meet it at in-band Δ=0.023 (survival 0.533; FINDINGS §14.7)** |
+| Experiment B, L1 organism + H2 battery | **done: did not meet it at in-band Δ=0.023 (survival 0.551 on the corrected trainer, 0 of 10 seeds at the bar, FINDINGS §22.1; 0.533 as first recorded on the original trainer, §14.7)** |
 | Experiment B, L3 (learned-dynamics) | **registered rule not met (L0 gate open on the registered world pair); decodability clauses met at n=10** with survival plus the next-observation auxiliary at 300 updates, corrected trainer: 0.733 against predictor 0.589 and untrained 0.523. Without the auxiliary 0.613, not met (FINDINGS §17). Historical: 0.752 on GPU, 0.730 and 0.601 on CPU (§10.8); an independently trained fingerprint 0.639 (§10.9); prefix condition remains decodable after restoring authentic dynamics, carried mostly by the physical footprint the prefix leaves rather than by memory, and retention under identical input is not shown (FINDINGS §17.7, §10.6.1). Details in [Key result](#key-result) |
+| Experiment B, L3 matched-world confirmation (B1, B2) | **uninformative.** A confirmation frozen before it ran, on new seeds 10-19 with authentic and surrogate episodes paired on the same world seeds: survival reads 0.800 and the pellet objective 0.843, but the untrained arm reads 0.614, outside the 0.1 floor. A linear sensory control frozen after those raw outcomes were known leaves 0.761 and 0.780, with the untrained arm at 0.596 and its interval [0.577, 0.615] crossing 0.60 (FINDINGS §21) |
 | Trainer correction (2026-10) | **done**: GAE truncation bootstrap fixed; both primary runs rerun; effect +0.003 and +0.012 ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), FINDINGS §17) |
 | Experiment C (emergence under selection) | **done: flat contrast, registered verdict uninformative.** The speed control (gate 5) fails and the preregistration interprets no contrast unless every gate passes, so neither the pooled nor the per-individual readout yields a verdict; gate 1 falls short only of a draft margin that was never ratified (FINDINGS §13.F) |
 | Ladder L4 (adversarially-hardened surrogate) | not started |
@@ -171,7 +176,9 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 ### Key result
 
 *The L3 primary comparisons below were rerun with the corrected trainer
-(FINDINGS §17). Every other agent number is historical and labeled so in
+(FINDINGS §17), and so was the L1 organism run (§22.1). The matched-world
+confirmation (§21) ran on the corrected trainer from the start. Every other agent
+number is historical and labeled so in
 [`docs/RESULTS_MANIFEST.md`](docs/RESULTS_MANIFEST.md).*
 
 Hand-authored seams (L1 discretization, L2 rollout drift): catchable from the
@@ -180,7 +187,9 @@ nearly noiseless external detector finds at AUROC ≈ 0.99 leaves the
 prediction-only agent's state near chance (≈ 0.5). Give that detector the input
 noise the L3 gate uses and the L2 artifacts read 0.62 to 0.65 (FINDINGS §15), so
 the matched case is L1: an in-band quantization grid (detector AUROC 0.873)
-leaves the survival state at **0.533** (n = 10; FINDINGS §14.7).
+leaves the survival state at **0.551** [0.531, 0.570] on the corrected trainer
+(n = 10, 0 of 10 seeds at the bar; FINDINGS §22.1). The original trainer
+scored the same way reads 0.552, and 0.533 as first recorded (§14.7).
 
 **Corrected L3 result (FINDINGS §17).** Survival training with the
 next-observation auxiliary, 300 updates, ten seeds, on CPU: the survival state
@@ -199,6 +208,23 @@ auxiliary the same protocol reads **0.613** [0.552, 0.675], not met; the
 decoder adds **+0.120** [+0.065, +0.174]. The bootstrap fix moved these two
 readings by +0.003 and +0.012.
 
+**Matched worlds (FINDINGS §21).** A confirmation frozen before it ran trains the
+same corrected recipe on new seeds 10-19 and pairs authentic and surrogate
+episodes on the same world seeds. Survival reads 0.800 [0.772, 0.829] and a
+pellet-seeking objective with death off 0.843 [0.825, 0.860], but both runs are
+**uninformative**: the untrained arm reads 0.614, outside the 0.1 floor, so the
+run cannot say what training added. A later control, frozen after those raw
+outcomes and the untrained readings were known and before any trained arm was
+scored under it, removes an in-fold linear prediction from the current and
+previous observations. The untrained arm falls to 0.596, with an interval
+[0.577, 0.615] that crosses 0.60, and the trained arms keep 0.761 and 0.780.
+That control does not rule out nonlinear sensory transformations, longer
+history, or the previous action. B1 and B2 are new agents, so these numbers sit
+beside the C1 readings above and do not replace them. The earlier pellet run read
+0.796 and was recorded as meeting every gate, but its leakage gate summed the homeostatic
+reward rather than pellets, so full-rule validity was not established
+([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), 2026-10-12).
+
 **What does the noticing.** Fed the survival agent's own observation streams,
 a trunk trained only to predict reads the world at 0.721, and one trained on
 exactly the survival agent's experience at 0.738, against 0.733 for the
@@ -216,15 +242,19 @@ reaches 0.685 and the arm with it 0.821, at about equal return. The best-fitting
 nonlinear control over observations, actions, and behavior leaves 0.620, under
 the bar. Under identical input the prefix condition fades within a few steps,
 and with the recurrent state zeroed the body's footprint still reads 0.662. A
-hand-authored, smoothly drifting drag of the same one-step size as the Gaussian
-jitter is read through the original direction (0.721); the jitter is not.
+hand-authored drag of the same one-step size as the Gaussian jitter, which like
+the learned law depends on the agent's own velocity, is read through the original
+direction (0.721); the jitter is not. Correlated jitter does not reach the bar either, even
+with the 24-step deviation matched across correlation levels, so the contrast
+names no mechanism (FINDINGS §22.3).
 
 **The historical record (pre-correction trainer).** The surrogate is a
 **learned-dynamics fingerprint**: a small net replacing the velocity law, not a
 hand-tuned knob. On the published GPU run the **survival** agent's state,
 trained with the next-observation auxiliary, separates the worlds. Untrained
-sits at chance (about 0.49, still
-0.52 under a nonlinear probe). Prediction-only sits near chance (about 0.57).
+sits at chance on these pools (about 0.49, still
+0.52 under a nonlinear probe; on the matched world pairs of FINDINGS §21 the
+untrained arm reads 0.614). Prediction-only sits near chance (about 0.57).
 Survival reads **0.752** (n = 10, t-based 90% CI **[0.698, 0.807]**, excludes
 the pre-registered 0.65 bar; 8 of 10 seeds clear it). World is not decodable
 from summed reward (AUROC 0.541, 10 of 10 seeds). Zero early deaths, every pool

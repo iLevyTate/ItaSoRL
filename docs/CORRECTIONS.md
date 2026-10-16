@@ -198,7 +198,10 @@ no-auxiliary run is NOT MET before and after. The auxiliary contrast is +0.120 [
 second capacity, the transfer probes, the second and third instances, the skill-matched
 baseline, the H2 batteries) were not rerun and keep their historical label. That the
 correction barely moved the two runs that were rerun does not show it would barely move
-those.
+those. *(Updated 2026-10-16: the second capacity and the two further instances were rerun on
+the corrected trainer (FINDINGS 20), and so was the L1 organism run, `L1-CORRECTED` (FINDINGS
+22.1): 0.551 [0.531, 0.570], 0 of 10 seeds at 0.65, against 0.552 for the historical run on the
+same partition. The L1 negative reproduces. The other rows of this list keep their label.)*
 
 **Found alongside, not caused by the correction.** The readouts on the corrected agents
 narrowed four claims independently of the trainer: the survival-over-predictor margin is not a
@@ -754,6 +757,10 @@ asymmetric, so the walk's mean is not zero. At drift_sigma 0.45, 20000 steps giv
 factor 1.30 (median 1.165, sd 0.885) with 11.2% of steps pinned at the lower clip. The
 docstrings in `patch_of_earth.py` and `experiment_b.py` and the paper described the rung as
 drag volatility at a shared central level.
+(2026-10-16 addendum: the 20000 steps are 24-step episodes from reset, pooled. The walk
+restarts at zero at every reset and its level rises with episode time, so 1.30 is the mean over
+the readout's 24-step window and not a stationary level; the docstrings and the paper now say
+so.)
 
 **Change.** Both docstrings now state the level shift and the measured 1.30. No code in the
 walk changed, so every recorded L2 number stands.
@@ -910,3 +917,211 @@ the 30 B1 cells miss the 0.0005 integrity gate on CPU, so the replay withholds t
 **What this does not change.** No recorded cell, target, or verdict. Bit-exact claims are
 bounded to the stack and machine that wrote each result, and no replayed value crosses a
 threshold a committed reading relies on.
+
+## 2026-10-16: the L2 prediction-only world model predicted each step without its action
+
+**What was wrong.** `experiment_b.collect_episodes` discards the reset observation and records
+each observation after the step that produced it, so `O[t]` is the observation that action
+`A[t]` produced. `RecurrentWorldModel.forward` (`itasorl/agent.py`) feeds the pair `(O[t], A[t])`
+and `prediction_loss` scores the prediction against `O[t+1]`, which `A[t+1]` produces. The model
+therefore predicts every next observation without the action that causes it, and the scripted
+policy draws each action independently, so it cannot infer that action. `forward_rollout` uses
+the same pairing in open loop. Measured with the repo code on 60 scripted episodes of 30 steps
+(`seed0` 10000), the heading change from `O[t]` to `O[t+1]` correlates 1.000 with the turn in
+`A[t+1]` and 0.015 with the turn in `A[t]`. The B-v2 and L3 predictor arm is aligned correctly:
+`agent_ac.world_model_loss` feeds the previous action into the trunk and decodes `O[t+1]` from
+the state and the current action.
+
+**Which results it touches.** The L2 prediction-only numbers of `scripts/run_expB_full.py`,
+`run_expB_kstep.py`, `run_expB_surprise.py`, `run_expB_nonlinear.py` and `run_expB_gap.py`
+(`artifacts/expB/summary.json`; FINDINGS 3 and 4). The prediction objective, the prediction-error
+channel (0.596 at drift 0.45) and the open-loop horizon check are the most exposed. The state
+probe still saw the full observation and action history, so the recurrent-state target (0.51 at
+drift 0.45) may move little under a corrected alignment. That has not been measured.
+
+**Change.** None to code or to stored numbers; this entry is the disclosure. The manuscript's L2
+appendix now says that the L2 world model receives each action with the observation it already
+produced, a design difference that cuts against decodability, unlike the two it lists that
+favor it. A corrected run would be a new, separately labeled run under an opt-in alignment that
+keeps the reset observation and pairs each observation with the action taken from it. The
+default path stays as it is so the stored numbers reproduce.
+
+**What this does not change.** No recorded number or verdict. The L2 negative stays as recorded,
+read with the caveat that its prediction-only arm was a weaker predictor than designed. The L3
+results, the B-v2 predictor arm and the survival-trained L2 run (B-v3, FINDINGS 9) do not use
+this path.
+
+## 2026-10-16: the development readout's transfer column is in-sample by world seed
+
+**What was wrong.** The development readout (FINDINGS 23.4) reports that the frozen 300-update
+probe reads the 450-update states at 0.785 on `C1` and 0.689 on `C2`.
+`scripts/run_development_readout.py` reads every snapshot on the same registered pools (world
+bases 800000 and 850000) and calls `transfer_probe(*feats[300], *feats[b])`, which fits on all
+of the 300-update episodes and scores the other snapshot's states of the same world seeds, which each snapshot walks with
+its own policy. The
+docstring of `transfer_probe` says train and test worlds are disjoint by construction, and this
+call breaks that. At 300 updates the episodes are identical, so the column is the probe scored
+on its own training rows, 0.971
+on `C1` and 0.949 on `C2`, against cross-validated targets of 0.733 and 0.613.
+
+**Change.** FINDINGS 23.4 and the manuscript's development paragraph say that the 0.785 and
+0.689 readings score the 450-update states of the same world seeds the 300-update probe was fit
+on, so they are upper bounds and not held-out transfer, and the self-transfer at 300 updates
+shows the size of the in-sample advantage. The runner carries a comment at the call site. The
+spec froze this estimator, so the stored values and labels stay as recorded. A held-out transfer
+reading, if one is run, is a separate post hoc readout beside this one.
+
+**What this does not change.** The "reorganizes" label, which the frozen spec decides by the
+cosine between the 300 and 450-update directions alone (0.40 on `C1`, 0.42 on `C2`). The transfer
+reading enters only as an extra condition of the "one axis sharpens" label, which the cosines
+already rule out. The residual growth readings and the auxiliary reading do not use the column.
+
+## 2026-10-16: the control diagnostics called a_t an action the trunk received
+
+**What was wrong.** FINDINGS 17.8 and the manuscript said that adding "the actions the GRU
+received" (the manuscript: "the actions the trunk received") lowers the behavior control to
+0.681. `collect_pool` records `a_t` after `agent.act` has updated the state, so at readout, where
+the policy is deterministic, `a_t` is a function of `h_t`. The trunk receives only `a_{t-1}`. The
+behavior trace at t is recorded after `w.step(a_t)`. `scripts/run_control_diagnostics.py` builds
+the 31-column control from the trace, `a_t` and `a_{t-1}`, and `history_basis` appends the same
+two actions to the basis of the 608-column MLP control. The table row already named `a_t,
+a_{t-1}`; the prose did not match it.
+
+**Change.** FINDINGS 17.8, the manuscript and the `itasorl/control_diagnostics.py` docstrings
+now name `a_t` as the action the policy emitted at t and `a_{t-1}` as the one the trunk received.
+The text says these controls are conservative: a basis that holds `a_t` or the post-step trace
+also removes part of what the state itself drives, so their drop, and part of their held-out R²,
+is not input dependence alone.
+
+**What this does not change.** The recorded 0.681 and 0.620 and every verdict. The reading that
+the state is not independent of the agent's inputs rests on the stream decoder of FINDINGS 17.8
+(0.724), which uses only the observations and the previous action.
+
+## 2026-10-16: the world section said every comparison branches from byte-identical state
+
+**What was wrong.** The manuscript's world section said that dissipation does not by itself rule
+out sensitive dependence on initial conditions, "which is why every comparison branches two
+worlds from byte-identical state". Experiment A's matched pairs
+(`experiment_a_l3.generate_l3_pairs`, a snapshotted shared prefix) and the matched-pair readout
+branch that way. The primary pooled readout (`experiment_b2.pooled_readout`) does not. It
+collects the authentic and surrogate pools from fresh resets at different world-seed bases,
+800000 and 850000. The methods section and the Figure 1 caption already said so.
+
+**Change.** The manuscript sentence names Experiment A and the matched-pair readout as the
+channels that branch, and says that the primary pooled readout compares independent world
+samples and that the L0 gate measures what that draw contributes.
+
+**What this does not change.** No number or verdict. The L0 gate and the world-sample audit of
+FINDINGS 17.5 were already the record's account of the world draw.
+
+## 2026-10-16: scripted action streams share a PCG64 stream with the terrain
+
+**What was wrong.** `SeedBundle.streams()` (`itasorl/world.py`) seeds the world stream with the
+raw world integer and offsets only the weather, ecology and policy streams. Its comment says the
+offsets keep the streams independent. Several collectors seed the scripted action generator
+with that same integer, so the actions and the terrain come from identical streams:
+`experiment_b2._collect_scripted` (the predictor arm's training episodes),
+`surrogate_l3.collect_authentic_transitions` (the transitions `G` was trained on),
+`experiment_b.collect_episodes` (the Experiment B pools of the L2 arc), and the shared prefixes
+of `experiment_a_l3` (Experiment A's L3 pairs). `reset` first draws 16 uniforms from the world stream
+for the terrain fields, starting with the terrain frequencies (`_init_static_fields` in
+`itasorl/patch_of_earth.py`), and then the start heading (`_init_creatures`, two more draws
+before it for each retry when the default start is wet). The scripted policy draws three per
+step, so the first five scripted actions of each such episode are exact functions of that
+episode's terrain parameters and the sixth draws partly on the heading (for the two-draw policy of
+the Experiment A prefixes, the first eight, with the ninth drawing partly on the heading). Checked with the repo code over 55 world seeds: the first thrust divided by 0.6
+equals the uniform behind the first terrain frequency to within 4.1e-8 (float32 rounding). The
+engagement baseline (`_baseline_return`) uses one generator, seeded with the base world integer,
+for all of its episodes, so only its first episode is coupled this way.
+
+Separately, the ecology stream adds 13000 and then 20002 to the episode integer, so in the
+survival training schedule (`100000 + 10000*seed + 16*update + i`, 16 episodes per update) the
+pellet stream of seed s at update u is the terrain stream of seed s+3 about 187 updates later.
+This happens only at budgets of 188 updates or more (the registered 300 and the 450-update
+runs). The same random numbers then become pellet positions in one episode and terrain
+frequencies in another, two different transforms. The training schedules meet in other places of
+the same kind (for example the survival schedule's pellet stream and the predictor schedule's
+terrain stream); this entry does not list them all.
+
+**Which results it touches, and which it does not.** Within each collector the coupling is the
+same rule for the authentic and the surrogate class, and the label never enters a seed, so it
+adds no label signal by itself. It does mean that the early scripted actions are not independent
+of the world they run in, for the predictor arm's training data, `G`'s training transitions, the
+L2 pools and the Experiment A L3 prefixes. The pooled readouts of trained arms take their actions
+from the network and are not coupled. The scripted walk of the matched-input readouts (FINDINGS
+17.6) uses a disjoint policy base, 600000, and is not coupled either. The size of any effect has
+not been measured.
+
+**Change.** None to seeding. Changing it would change the stored bits of every run listed above.
+Any future opt-in flag that decouples the streams must default off, so stored fingerprints and
+bit-exact reproduction claims hold. The 2026-10-10 entry on the surrogate's held-out diagnostics
+already names the shared base integer for world, weather, ecology and the scripted action
+stream; this entry states what that sharing does.
+
+**What this does not change.** No recorded number or verdict.
+
+## 2026-10-16: the erasure refit probe split same-world twins across folds
+
+**What was wrong.** The online erasure readout (FINDINGS 23.3) refits a probe on the erased
+states and attaches the spec's "partial erasure" label when it reads 0.65 or above. Row i of the
+erased authentic and surrogate rollouts runs on the same world seed from the same first state,
+but `scripts/run_erasure_readout.py` gave every episode its own cross-validation group. Whenever
+the number of common survivors was not a multiple of five, twins landed in different folds and
+the probe read each test twin's label off its training twin, which pulls the AUROC toward zero.
+This breaks the pairing rule stated in `itasorl/experiment_b2.py`; the surprise readout of FINDINGS
+18.3 had the same defect (next entry). The recorded refit was 0.646
+[0.562, 0.729], under the label by 0.004, and the untrained arm read 0.258, far below chance.
+
+**Change.** The refit passes one group per twin pair (`1dc44e4`), and
+`tests/test_readout_twin_groups.py` shows the leak and its fix on synthetic twins. The readout
+was rerun on the same saved `C1` agents. Every other recorded reading of every row reproduces
+the superseded artifact bit for bit; only the refit and the wall-clock `seconds` field differ.
+The refit reads 0.747 [0.702, 0.791] (seeds 1
+and 5, whose twins already shared a fold, unchanged at 0.810 and 0.644; the other eight rise),
+and the untrained arm reads 0.576 [0.530, 0.623] over its 6 informative seeds. The label
+"partial erasure" is now attached to every reading, as the spec requires. The superseded
+artifact is kept under `artifacts/mechanism/erasure/superseded_split_twins_2026-10-16/`.
+
+**What this does not change.** The frozen-probe readings, which fit on the registered pools and
+only score the rollouts; erasure held in 10 of 10 seeds; and readings 1 to 3 (not used under
+removal MET, used and costly NOT MET). The conclusion drawn from the refit, that removal bounds
+what the decoded direction carries and not what the state carries, is stronger with the
+corrected value.
+
+## 2026-10-16: the surprise readout's AUROC split same-world twins
+
+**What was wrong.** Readout 8(a) of the mechanism readouts (FINDINGS 18.3) scores the agent's own
+next-observation error with a cross-validated probe. `scripts/run_mechanism_readouts.py` rolls the
+authentic and surrogate episodes from one seed base, 1400000, so row j of each runs on the same
+world seed from the same first state, and `common_rows` keeps the rows aligned. `surprise_auroc`
+in `itasorl/mechanism_readouts.py` gave every episode its own group, so twins could land in
+different folds, the defect of the previous entry. A probe that reads a test twin's label off its
+training twin pulls the AUROC down, so the stored surprise AUROCs are biased low: 0.846 for `C1`,
+0.848 for `S-immortal` and 0.912 for `T-touch` (`artifacts/goal_stakes/*/mechanism.json`), and the
+untrained floors recorded beside them.
+
+**Change.** `surprise_auroc` takes a `groups` argument and drops it with the non-finite rows, and
+the runner passes one group per twin pair. `tests/test_mechanism_surprise_groups.py` shows the
+leak and its fix on synthetic twins and checks that the runner passes the pair groups. The stored
+values are not rescored and are read as lower bounds. The `T-touch` and `S-immortal` agents were
+trained in a cloud container and are not on this machine, and `C1` is kept as recorded with them
+so the three columns stay comparable.
+
+**What this does not change.** The surprise reading needs a mean AUROC of at least 0.65
+(`scripts/decide_goal_stakes.py`), and every stored mean is above it, so removing a downward bias
+changes no 18.3 surprise wording. The correlation with the direction, the nudge and the
+adaptation readouts fit no cross-validated probe, and the direction itself is fit on the
+registered pools, whose authentic and surrogate episodes come from separate seed bases. The
+replay readout of FINDINGS 22.2 draws its two pools from separate seed bases (800000 and 850000),
+so its episodes have no twins and it is not affected.
+
+## 2026-10-16: two seeds of the seeds 10 to 19 runs trained on the same worlds
+
+**What.** Survival training worlds start at `100000 + 10000 * seed` and predictor training
+worlds at `200000 + 9000 * seed` (`itasorl/experiment_b2.py`), each advancing by the batch size
+per update. In the seeds 10 to 19 runs (B1 and B2), survival seed 19 and predictor seed 10
+therefore train on the same world integers. Seeds 0 to 9 have no such overlap.
+
+**What this does not change.** Every readout is computed within one seed, and the seed-paired
+contrasts pair arms of the same seed index, so no probe is fit and scored across the shared
+worlds. The two agents share training worlds, not weights or episodes of the other arm's policy.

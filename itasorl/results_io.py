@@ -285,6 +285,9 @@ def _load_expb2_json(path: Path) -> dict[str, Any] | None:
             # A seed with too few survivors writes NaN into pool_target; average the
             # FINITE seeds (mirroring run_expB2's np.isfinite filtering) instead of
             # letting one NaN poison the mean and force the verdict to "weak".
+            # organism_encodes_world is a descriptive grade of this agent's mean, not the
+            # H_B2 verdict: decide_h_b2 in run_expB2 routes any NaN seed to UNINFORMATIVE,
+            # and n_finite / n_seeds below record when seeds were dropped.
             pt = [x for x in metrics.get("pool_target", []) if math.isfinite(x)]
             n_raw = len(metrics.get("pool_target", []))
             if pt:

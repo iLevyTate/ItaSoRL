@@ -12,8 +12,11 @@ widens the basis, so each control states exactly which alternative it addresses.
         final loss, and whether the optimizer converged. Scalers and regressions are fit on
         training folds only.
   history_basis  [x_t, x_{t-1}, ..., x_{t-L}] plus causal exponential traces of x at several
-        timescales, optionally with the env action a_t and the previous action a_{t-1} that
-        the GRU received.
+        timescales, optionally with actions and the behavior trace. Of the two actions only
+        a_{t-1} is an input the GRU received. a_t is the env action the policy emitted from
+        h_t (deterministic at readout), and the behavior trace b_t is measured after that
+        step, so a basis holding a_t or b_t is a conservative post-state control: it can
+        remove part of what h_t itself drives.
   sequence_gru_auroc  an actual SEQUENCE readout: a supervised GRU classifier on the
         (observation, previous action) sequence with the agent trunk's capacity (64-unit
         encoder, 96-unit GRU), trained per fold for a fixed number of epochs. A comparator
@@ -40,8 +43,10 @@ from .experiment_b import episode_features
 def history_basis(Ot: np.ndarray, lags: int = 1, ema_taus=(), At: np.ndarray | None = None,
                   Bt: np.ndarray | None = None) -> np.ndarray:
     """Per-timestep regressors, rows = (episode, t). Lags are edge padded. EMA traces are
-    causal: e_t = e_{t-1} + (x_t - e_{t-1}) / tau with e_0 = x_0. At adds [a_t, a_{t-1}]
-    (a_{-1} = 0, as the GRU receives it); Bt adds the behavior trace [b_t, b_{t-1}]."""
+    causal: e_t = e_{t-1} + (x_t - e_{t-1}) / tau with e_0 = x_0. At adds [a_t, a_{t-1}]:
+    a_t is the action emitted from h_t, and a_{t-1} is the action the GRU received at t
+    (a_{-1} = 0, as the GRU receives it). Bt adds the behavior trace [b_t, b_{t-1}], with
+    b_t measured after the step that a_t drives."""
     O = np.asarray(Ot, float)
     n, T, C = O.shape
     cols = [O]
