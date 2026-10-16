@@ -1093,15 +1093,17 @@ RUNS = [
               "of zero for every arm, and the echo alone reads each near feature at least as well as the "
               "state (C1: 0.47, 0.35, 0.73 against 0.19, 0.28, 0.72). Reach radius 0.318 (C1), 0.307 (C2). "
               "The permuted-target clause passes. FINDINGS 23.2."),
-    run("ERASURE-ONLINE", "Rank-two removal of the decoded world direction at every GRU step while the C1 "
-        "survival agent acts, against a sham removal", experiment="B-v2 L3",
-        artifacts=["mechanism/erasure/corrected_l3_h8_wm.json"],
+    run("ERASURE-ONLINE-FIRST", "First run of the online erasure readout, scored on common survivors "
+        "only (superseded; kept as the record)", experiment="B-v2 L3",
+        artifacts=["mechanism/erasure/superseded_common_survivor_2026-10-15/corrected_l3_h8_wm.json"],
         trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
-        status="corrected", commit_at_run="2cfc08d", folds="explicit",
+        status="superseded", commit_at_run="2cfc08d", folds="explicit",
         eval_seeds={"rollouts": "1400000, the mechanism readouts' base, both worlds"},
         device="owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
         deps="Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
-        notes="Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any "
+        notes="SUPERSEDED by the rerun that adds population outcomes; its common-survivor numbers are "
+              "expected to reproduce there. "
+              "Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any "
               "code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and "
               "after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). "
               "Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, "

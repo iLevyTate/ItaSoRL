@@ -5375,7 +5375,7 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
-        "mechanism/erasure/corrected_l3_h8_wm.json"
+        "mechanism/erasure/superseded_common_survivor_2026-10-15/corrected_l3_h8_wm.json"
       ],
       "budget": null,
       "claims": [],
@@ -5389,21 +5389,21 @@
       },
       "experiment": "B-v2 L3",
       "folds": "explicit",
-      "id": "ERASURE-ONLINE",
+      "id": "ERASURE-ONLINE-FIRST",
       "local_run_dir": null,
-      "notes": "Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, 0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 [0.562, 0.729], under the 0.65 partial-erasure label. The primary real-minus-sham score is -0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, +0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has 6 informative seeds and decides nothing. FINDINGS 23.3.",
+      "notes": "SUPERSEDED by the rerun that adds population outcomes; its common-survivor numbers are expected to reproduce there. Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, 0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 [0.562, 0.729], under the 0.65 partial-erasure label. The primary real-minus-sham score is -0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, +0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has 6 informative seeds and decides nothing. FINDINGS 23.3.",
       "readout_only_on": [
         "C1"
       ],
       "recorded_provenance": {
-        "mechanism/erasure/corrected_l3_h8_wm.json": {
+        "mechanism/erasure/superseded_common_survivor_2026-10-15/corrected_l3_h8_wm.json": {
           "spec": "docs/specs/2026-10-15-online-erasure-design.md"
         }
       },
-      "status": "corrected",
+      "status": "superseded",
       "surrogate": null,
       "survival_trainer": "inherited: successor_value",
-      "title": "Rank-two removal of the decoded world direction at every GRU step while the C1 survival agent acts, against a sham removal"
+      "title": "First run of the online erasure readout, scored on common survivors only (superseded; kept as the record)"
     },
     {
       "affected_by_gae_correction": true,

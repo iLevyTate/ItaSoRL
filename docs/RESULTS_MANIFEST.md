@@ -98,7 +98,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `B2-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
 | `SALIENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `WORLD-FEATURES-TOROIDAL` | superseded | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `ERASURE-ONLINE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `ERASURE-ONLINE-FIRST` | superseded | B-v2 L3 | - | inherited: successor_value | C1 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `DEVELOPMENT` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 
 Commits that artifacts record, or that the record cites, and that are not ancestors of main (most reached main through squash merges); each lives only on the branch named, so keep that branch or tag its head:
@@ -1211,17 +1211,17 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: SUPERSEDED by WORLD-FEATURES (third amendment 2026-10-15): every distance was measured on a torus while the world has walls, and the far targets were residualized over all episodes before cross-validation. Kept as the record of the first run; its numbers are not read. Frozen spec docs/specs/2026-10-15-world-draw-features-design.md (58efbed), amended before any code (87247e4: 1100 episodes, full-window reach radius) and after a two-seed setup check (93765bc: ridge strength chosen in fold, after a fixed alpha read far below the constant baseline on the permuted target). Diagnostic. Label KEEPS NOTHING BEYOND THE SENSES on both runs: with the observation echo regressed out in fold, every feature's residual R squared is within 0.005 of zero for every arm, and the echo alone reads each near feature at least as well as the state (C1: 0.47, 0.35, 0.73 against 0.19, 0.28, 0.72). Reach radius 0.318 (C1), 0.307 (C2). The permuted-target clause passes. FINDINGS 23.2.
 - Artifacts: `artifacts/world_features/superseded_toroidal_2026-10-15/corrected_l3_h8_wm.json`, `artifacts/world_features/superseded_toroidal_2026-10-15/corrected_l3_h8_nowm.json`
 
-### `ERASURE-ONLINE`: Rank-two removal of the decoded world direction at every GRU step while the C1 survival agent acts, against a sham removal
+### `ERASURE-ONLINE-FIRST`: First run of the online erasure readout, scored on common survivors only (superseded; kept as the record)
 
-- Status: corrected
+- Status: superseded
 - Trainer: inherited: successor_value
 - Commit at run: 2cfc08d
 - Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
-- Notes: Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, 0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 [0.562, 0.729], under the 0.65 partial-erasure label. The primary real-minus-sham score is -0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, +0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has 6 informative seeds and decides nothing. FINDINGS 23.3.
-- Artifacts: `artifacts/mechanism/erasure/corrected_l3_h8_wm.json`
+- Notes: SUPERSEDED by the rerun that adds population outcomes; its common-survivor numbers are expected to reproduce there. Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, 0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 [0.562, 0.729], under the 0.65 partial-erasure label. The primary real-minus-sham score is -0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, +0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has 6 informative seeds and decides nothing. FINDINGS 23.3.
+- Artifacts: `artifacts/mechanism/erasure/superseded_common_survivor_2026-10-15/corrected_l3_h8_wm.json`
 
 ### `DEVELOPMENT`: The control battery across the 100, 200, 300 and 450-update survival snapshots of C1 and C2, with probe-direction cosines and frozen-300 transfer
 
