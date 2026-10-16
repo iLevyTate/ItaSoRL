@@ -40,7 +40,7 @@ def run_cell(t: dict) -> dict:
     Ha, _ = collect_pool(ag, nm, P, 0.0, t["pool_n"], WIN, "cpu", AUTH_BASE, t["ray_steps"])
     Hs, _ = collect_pool(ag, nm, P, DRIFT, t["pool_n"], WIN, "cpu", SURR_BASE, t["ray_steps"])
     hid = Ha.shape[-1]
-    Pr = projector(probe_block_directions(Ha, Hs))
+    Pr = projector(probe_block_directions(Ha, Hs), rank=2)
     Pv = sham_projector(Pr, 2, s)
     m = 0.5 * (Ha.reshape(-1, hid).mean(0) + Hs.reshape(-1, hid).mean(0))
     # sanity: erasing the pools themselves pins every linear score in the subspace
@@ -56,6 +56,12 @@ def run_cell(t: dict) -> dict:
     for x in v.values():
         common &= set(x["kept"].tolist())
     common = sorted(common)
+    # Every attempted episode, before the common-survivor intersection (third amendment,
+    # review N04): termination count, mean return summed through termination, mean steps.
+    attempted = {"n_attempted": int(t["n_eps"]),
+                 "terminated": {k: int(x["terminated"].sum()) for k, x in v.items()},
+                 "pop_return": {k: float(x["ret_all"].mean()) for k, x in v.items()},
+                 "pop_steps_alive": {k: float(x["steps_alive"].mean()) for k, x in v.items()}}
 
     def sub(x, key):
         idx = [list(x["kept"]).index(i) for i in common]
@@ -64,7 +70,7 @@ def run_cell(t: dict) -> dict:
     B = {k: sub(x, "B") for k, x in v.items()}
     R = {k: sub(x, "ret") for k, x in v.items()}
     Hx = {k: sub(x, "H") for k, x in v.items()}
-    out = {"seed": s, "arm": g, "n_common": len(common), "pool_resid_max": resid_pool}
+    out = {"seed": s, "arm": g, "n_common": len(common), "pool_resid_max": resid_pool, **attempted}
     if len(common) < 5:
         out.update(informative=False, reason="fewer than 5 common survivors",
                    seconds=round(time.time() - t0, 1))
@@ -117,7 +123,28 @@ def summarize(rows: list) -> dict:
         rr = [r for r in rows if r["arm"] == g]
         inf = [r for r in rr if r.get("informative")]
         f = lambda key: paired_t90([r[key] for r in inf])  # noqa: E731
-        blk = {"n_informative": len(inf), "primary": f("primary"),
+        conds = ("a", "s", "ea", "es", "sa", "ss")
+        blk = {"n_informative": len(inf), "scope": "common survivors across all six conditions "
+                                                   "(behavior, return and probe readings below)",
+               "attrition": {
+                   "excluded_fraction": paired_t90([(r["n_attempted"] - r["n_common"]) / r["n_attempted"]
+                                                    for r in rr if "n_attempted" in r]),
+                   "terminated_per_condition": {k: paired_t90([r["terminated"][k] for r in rr if "terminated" in r])
+                                                for k in conds},
+                   "note": "attempted episodes per condition and how many ended before the horizon; "
+                           "the common-survivor readings drop every episode that ended in any condition"},
+               "population": {
+                   "surr_return_erased_minus_sham": paired_t90([r["pop_return"]["es"] for r in rr if "pop_return" in r],
+                                                               [r["pop_return"]["ss"] for r in rr if "pop_return" in r]),
+                   "auth_return_erased_minus_sham": paired_t90([r["pop_return"]["ea"] for r in rr if "pop_return" in r],
+                                                               [r["pop_return"]["sa"] for r in rr if "pop_return" in r]),
+                   "surr_terminated_erased_minus_sham": paired_t90([r["terminated"]["es"] for r in rr if "terminated" in r],
+                                                                   [r["terminated"]["ss"] for r in rr if "terminated" in r]),
+                   "auth_terminated_erased_minus_sham": paired_t90([r["terminated"]["ea"] for r in rr if "terminated" in r],
+                                                                   [r["terminated"]["sa"] for r in rr if "terminated" in r]),
+                   "note": "every attempted episode, return summed through termination; descriptive, "
+                           "no pre-stated reading (third amendment)"},
+               "primary": f("primary"),
                "surr_real_minus_sham": f("surr_real_minus_sham"),
                "auth_real_minus_sham": f("auth_real_minus_sham"),
                "surr_return_erased_minus_sham": paired_t90([r["return"]["es"] for r in inf],
