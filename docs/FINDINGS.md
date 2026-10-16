@@ -5374,6 +5374,14 @@ Both rows are sensory-independent under matched worlds. The predictor sits at 0.
 On the `B2` pooled worlds the corrected leakage gate, trained reward and pellets consumed, is
 clean in 60 of 60 pools. The largest deviation from 0.5 is 0.076.
 
+*2026-10-16 note (after the deep revision review):* the matched-gate sidecars of `B1` and `B2` did
+not record whether the matched collection reproduced each cell's balanced target, so promotion now
+requires that check before a `MET`. Both sidecars were recollected with the reconstruction block on
+the same agents and seeds: 30 of 30 rows reproduce the balanced target with a largest difference of
+0.0, and every gate value equals the first collection's. The originals are kept beside each run as
+`matched_gates_pre_reconstruction_2026-10-15.json`. Both decisions stay UNINFORMATIVE, on the matched
+speed and untrained-floor gates as before.
+
 ## 22. The L1 rerun on the corrected trainer, and the agent's prediction error on matched input (2026-10-15)
 
 **Status: MEASURED; no recorded verdict changes.** Two readouts asked whether the paper's
@@ -5500,6 +5508,42 @@ their deviation is a deterministic function of the agent's own velocity. The com
 readout runs on different seed bases, and the drag's untrained floor (0.612) sits outside the 0.1
 tolerance, so it is a lead, not a measured contrast. The run stopped once after 8 of 11 points on
 an external console-close event and resumed from the saved points.
+
+#### Sweep C: coherence at a matched 24-step gap, with independent episodes
+
+`docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md` (frozen at `c1ff308` before any
+code or number); `artifacts/texture/ar_sweep_c/`. Sweep B matched a stationary quantity that a
+24-step readout does not reach, and its AR process ran across episode boundaries. Sweep C fixes
+both: each episode draws its AR state afresh from the stationary distribution (family `arc`, seed
+bases 2500000 and 2550000), and sigma is set at each rho so the measured 24-step open-loop velocity
+gap equals sweep A's rho = 0.9 value, 0.1150. Every point was measured within 0.0001 of it, so no
+point needed the one recalibration step the spec allows. Same agents, probe and fresh-probe readout
+as sweeps A and B.
+
+| rho | sigma | lag-1 | one-step RMS | 24-step gap | survival fresh | M, survival minus untrained |
+|---|---|---|---|---|---|---|
+| 0 | 0.03159 | 0.001 | 0.0448 | 0.1151 | 0.594 [0.566, 0.622] | +0.066 [+0.029, +0.103] |
+| 0.5 | 0.01923 | 0.486 | 0.0273 | 0.1150 | 0.598 [0.571, 0.624] | +0.081 [+0.042, +0.120] |
+| 0.8 | 0.01238 | 0.776 | 0.0175 | 0.1150 | 0.570 [0.542, 0.597] | +0.062 [+0.011, +0.113] |
+| 0.9 | 0.01000 | 0.874 | 0.0141 | 0.1150 | 0.568 [0.538, 0.597] | +0.050 [+0.004, +0.096] |
+| 0.95 | 0.00883 | 0.923 | 0.0122 | 0.1150 | 0.573 [0.544, 0.602] | +0.066 [+0.019, +0.113] |
+| 0.99 | 0.00823 | 0.964 | 0.0110 | 0.1150 | 0.579 [0.552, 0.606] | +0.075 [+0.041, +0.110] |
+
+The contrast, M at rho 0.99 minus M at rho 0, is +0.009 [-0.027, +0.045]. Reading 2 is met: the
+interval lies inside [-0.05, +0.05], so at a matched 24-step deviation coherence moved the margin by
+less than 0.05 in either direction. Reading 1 (lower bound above zero) is not met, so reading 3 is
+not met either. No point is kept: survival fresh stays at 0.568 to 0.598, under 0.65 at every rho.
+The direction fit on the learned law transfers at 0.427 to 0.444.
+
+Descriptive: at rho = 0.9, where sigma equals the companion sweep's shared point, survival fresh
+reads 0.568 against that point's 0.570, and M reads +0.050 against +0.010. The difference is in the
+untrained arm, whose fresh probe reads 0.517 under the per-episode draw against about 0.560 in
+sweep A, so the per-episode draw changed the untrained reading at that setting. The run record:
+a first launch stopped at 23:59 on 2026-10-15 during the fourth point, with no exit line, and its
+three finished points recorded an absolute agents path; the sweep was relaunched from scratch at
+`5f2ca71` with a repo-relative label and a resume check that reads the point files' own fields, and
+its six points record that commit. The summary was rewritten at `5f7ed93` to record its command
+line with relative paths; its values are identical.
 
 ## 23. Four readouts on the saved C1 and C2 agents: how loud the world is, what of its own world the state keeps, whether the decoded direction is used, and what develops (2026-10-15)
 

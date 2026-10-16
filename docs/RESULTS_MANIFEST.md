@@ -81,6 +81,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `SURPRISE-MATCHED` | corrected | B-v2 L3 and L1 | - | inherited: successor_value | C1, L1-CORRECTED | 67fb556 (spec); readout code uncommitted at run time, committed with this entry (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `L1-STREAM-CORRECTED` | corrected | B-v2 L1 | - | inherited: successor_value | L1-CORRECTED | 73da908 (curated) | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `AR-SWEEP` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 67fb556 (spec); sweep code uncommitted at run time, committed with this entry (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `AR-SWEEP-C` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 5f2ca71 (points); 5f7ed93 (summary) (curated) | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `C1-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | b77d0db (readouts/post-review-C1) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `C1-R205` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | ab0388c (research/r205-decomposition) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `C2-RERUN-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C2, C2-RERUN | d3f2f75 (readouts/post-review-C2-rerun) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
@@ -1023,6 +1024,17 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Notes: Frozen spec docs/specs/2026-10-15-coherence-integration-sweep-design.md (67fb556, before any code or number). Eleven settings: sweep A at one-step sigma 0.01, sweep B at the accumulated offset of A's rho = 0.9 point. Readings: coherence beyond integration NOT MET (B contrast -0.006 [-0.036, +0.023]); integration suffices NOT MET (A contrast +0.029 [-0.009, +0.068]); neither MET. Both are nondetections of the pre-stated positive contrasts, not evidence of no effect. Sweep B matches the stationary accumulated velocity SD (0.0870), not the 24-step open-loop gap (0.1205 at rho 0, 0.0970 at rho 0.99), and the AR process runs across episode boundaries (about 0.79 of its dependence shared after 24 steps at rho 0.99), which episode-grouped folds do not remove. No point reaches the bar (survival fresh 0.565 to 0.627). The run stopped once on an external console-close event after 8 points and resumed from them. Diagnostic.
 - Artifacts: `artifacts/texture/ar_sweep`
+
+### `AR-SWEEP-C`: Sweep C: correlated jitter at a matched 24-step gap with independent episodes, on the C1 agents
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 5f2ca71 (points); 5f7ed93 (summary)
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Notes: Frozen spec docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md (c1ff308, before any code or number). Six settings, rho 0 to 0.99, each episode drawn from the AR stationary distribution, sigma set so the 24-step open-loop gap equals 0.1150 (all six within 0.0001). Contrast M(0.99) - M(0) +0.009 [-0.027, +0.045]: reading 2 MET (inside [-0.05, +0.05]), readings 1 and 3 not met. No point kept (survival fresh 0.568 to 0.598). At rho 0.9, M +0.050 against sweep A's +0.010, from a lower untrained fresh reading. A first launch stopped during its fourth point and recorded an absolute agents path; its points are not used. Diagnostic.
+- Artifacts: `artifacts/texture/ar_sweep_c`
 
 ### `C1-POST-REVIEW`: Post-review readouts R210, R35, R206, R33 and R31 on the C1 rerun's agents
 

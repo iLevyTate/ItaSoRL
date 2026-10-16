@@ -899,6 +899,19 @@ RUNS = [
               "24 steps at rho 0.99), which episode-grouped folds do not remove. No point reaches the bar "
               "(survival fresh 0.565 to 0.627). The run stopped once on an external console-close event after 8 "
               "points and resumed from them. Diagnostic."),
+    run("AR-SWEEP-C", "Sweep C: correlated jitter at a matched 24-step gap with independent episodes, on the C1 agents",
+        experiment="B-v2 L3", artifacts=["texture/ar_sweep_c"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run="5f2ca71 (points); 5f7ed93 (summary)",
+        folds="explicit", eval_seeds={"authentic": 2500000, "G_arc": 2550000},
+        device="owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
+        notes="Frozen spec docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md (c1ff308, before any "
+              "code or number). Six settings, rho 0 to 0.99, each episode drawn from the AR stationary distribution, "
+              "sigma set so the 24-step open-loop gap equals 0.1150 (all six within 0.0001). Contrast M(0.99) - M(0) "
+              "+0.009 [-0.027, +0.045]: reading 2 MET (inside [-0.05, +0.05]), readings 1 and 3 not met. No point "
+              "kept (survival fresh 0.568 to 0.598). At rho 0.9, M +0.050 against sweep A's +0.010, from a lower "
+              "untrained fresh reading. A first launch stopped during its fourth point and recorded an absolute "
+              "agents path; its points are not used. Diagnostic."),
     run("C1-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the C1 rerun's agents",
         experiment="B-v2 L3", artifacts=["post_review/C1-rerun.json",
                                          "post_review/C1-rerun.json.partial.jsonl"],

@@ -4583,6 +4583,39 @@
       "affected_by_gae_correction": true,
       "agent_seeds": null,
       "artifacts": [
+        "texture/ar_sweep_c"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "5f2ca71 (points); 5f7ed93 (summary)",
+      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "config": {},
+      "deps": null,
+      "device": "owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
+      "eval_seeds": {
+        "G_arc": 2550000,
+        "authentic": 2500000
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "AR-SWEEP-C",
+      "local_run_dir": null,
+      "notes": "Frozen spec docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md (c1ff308, before any code or number). Six settings, rho 0 to 0.99, each episode drawn from the AR stationary distribution, sigma set so the 24-step open-loop gap equals 0.1150 (all six within 0.0001). Contrast M(0.99) - M(0) +0.009 [-0.027, +0.045]: reading 2 MET (inside [-0.05, +0.05]), readings 1 and 3 not met. No point kept (survival fresh 0.568 to 0.598). At rho 0.9, M +0.050 against sweep A's +0.010, from a lower untrained fresh reading. A first launch stopped during its fourth point and recorded an absolute agents path; its points are not used. Diagnostic.",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "texture/ar_sweep_c": {}
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Sweep C: correlated jitter at a matched 24-step gap with independent episodes, on the C1 agents"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
         "post_review/C1-rerun.json",
         "post_review/C1-rerun.json.partial.jsonl"
       ],
