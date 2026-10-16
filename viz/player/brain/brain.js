@@ -1825,7 +1825,7 @@ function drawEndCard() {
   ctx.font = `500 ${L.noteSize}px 'Segoe UI', sans-serif`;
   ctx.fillStyle = "rgba(214,209,232,0.94)";
   fillBlock(
-    balancedLines(`At 300 training updates, drop the second job and the trace falls below the bar (${FILM.noAux300.display}). Train to 450 without it: ${FILM.noAux450.display}.`, L.noteMax),
+    balancedLines(`At 300 training updates, drop the second job and the reading falls below the bar (${FILM.noAux300.display}). Train to 450 without it: ${FILM.noAux450.display}.`, L.noteMax),
     L.note1, L.noteLH,
   );
   fillBlock(

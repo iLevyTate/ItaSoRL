@@ -72,6 +72,14 @@ carries 99% (the outside watcher, 0.991), 52% (an untrained mind, 0.523), 73% (t
 forager's mind, 0.733), 72% (a mind trained only to predict, fed the same senses,
 0.721) and the open gate (two different samples of real worlds read 56%, 0.559). The living
 beat shows the recorded creature of the C1 rerun's seed 0 (`viz/data/scene.json`).
+
+On 2026-10-16 the captions lost their awareness verbs ("can't tell", "can tell", "IT DOESN'T
+REACT", "NOW IT NOTICES"). Removing the decoded direction while the creature acts changes its
+behavior no more than a sham removal (FINDINGS 23.3), so the cut now says the fake shows in
+its memory and that the creature never acts on it. The 52% beat used to walk the trained
+creature; it now walks the untrained agent the 52% was read from, on the same seed
+(`trajs.untr`, added by `viz/collect.py --untrained-only`). That agent starves at step 47, so
+the beat plays its world clock at 0.7x (`"clock"` in `beats.json`) rather than show a death.
 `viz/collect.py` checks every number on screen against the committed artifacts,
 and `tests/test_viz_collect.py` runs that check in CI. The silent 4:5 and 9:16
 masters of this cut are local build outputs. A voiced corrected cut needs a new

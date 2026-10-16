@@ -146,7 +146,7 @@ def _round_traj(pts):
     return [[round(x, 4), round(y, 4), round(a, 3), round(e, 3)] for x, y, a, e in pts]
 
 
-def build_scene(meta, grid_n, height, wet, ra, rs, step_ms=STEP_MS):
+def build_scene(meta, grid_n, height, wet, ra, rs, step_ms=STEP_MS, ru=None):
     scene = {
         "meta": meta,
         "grid_n": grid_n,
@@ -157,10 +157,24 @@ def build_scene(meta, grid_n, height, wet, ra, rs, step_ms=STEP_MS):
         "pellets_t": {"auth": ra["pellets_t"], "surr": rs["pellets_t"]},
         "step_ms": step_ms,
     }
+    if ru is not None:
+        add_untrained(scene, ru)
     assert len(scene["trajs"]["auth"]) * step_ms >= LAST_WORLD_MS, \
         "authentic trajectory too short: it is on screen through beat 5 (75 s)"
     assert len(scene["trajs"]["surr"]) * step_ms >= TRICK_T1, \
         "surrogate trajectory too short: it must outlast the split beat (25 s)"
+    return scene
+
+
+def add_untrained(scene, ru):
+    """The untrained agent's walk on the same seed, for the beat that quotes the
+    untrained reading (52%). Drawing the trained walk under that number paired a
+    reading with an agent it was not taken from. The untrained agent starves early
+    (47 steps on the committed seed), so the beat slows its world clock instead of
+    letting it die on screen; nothing here is synthesized."""
+    scene["trajs"]["untr"] = _round_traj(ru["pts"])
+    scene["pellets_t"]["untr"] = ru["pellets_t"]
+    scene["meta"]["n_untr"] = ru["n"]
     return scene
 
 
@@ -171,6 +185,10 @@ def main(argv=None):
                                  / "agents").resolve()),
                     help="READ-ONLY dir of saved bundles (main checkout)")
     ap.add_argument("--bundle", default="agent_d0.45_s0_survival.pt")
+    ap.add_argument("--untrained-bundle", default="agent_d0.45_s0_untrained.pt")
+    ap.add_argument("--untrained-only", action="store_true",
+                    help="add the untrained walk to the existing --out scene on its "
+                         "recorded seed_base, leaving every other field untouched")
     ap.add_argument("--drift", type=float, default=0.45)
     ap.add_argument("--l3-hidden", type=int, default=8)
     ap.add_argument("--steps", type=int, default=900,
@@ -188,6 +206,20 @@ def main(argv=None):
     torch.set_num_threads(2)  # a GPU training run may be live on this machine
     import itasorl.experiment_b2 as b2
     from itasorl.experiment_b2 import _seeds, load_agent_bundle, make_world
+
+    def untrained_walk(base):
+        ua, un = load_agent_bundle(str(Path(a.agents) / a.untrained_bundle), device="cpu")
+        wu = make_world(P, 0.0, RAY_STEPS)
+        wu.reset(_seeds(base))
+        return rollout(ua, un, wu, a.steps)
+
+    if a.untrained_only:
+        out = Path(a.out)
+        scene = json.loads(out.read_text(encoding="utf-8"))
+        add_untrained(scene, untrained_walk(scene["meta"]["seed_base"]))
+        out.write_text(json.dumps(scene, separators=(",", ":")), encoding="utf-8")
+        print("added untrained walk to " + str(out) + f": n_untr={scene['meta']['n_untr']}")
+        return
 
     beats = json.loads((WT_ROOT / "viz" / "player" / "beats.json").read_text(encoding="utf-8"))
     numbers = verify_numbers(beats, load_record())
@@ -257,7 +289,8 @@ def main(argv=None):
             "split_frame_idx": [i0, i1],
             "energy_range_beat5": [round(min(e5), 3), round(max(e5), 3)],
             "numbers_verified": numbers}
-    scene = build_scene(meta, a.grid, height, wet, ra, rs, step_ms=step_ms)
+    scene = build_scene(meta, a.grid, height, wet, ra, rs, step_ms=step_ms,
+                        ru=untrained_walk(base))
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(scene, separators=(",", ":")), encoding="utf-8")

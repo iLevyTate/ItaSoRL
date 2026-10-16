@@ -122,3 +122,23 @@ def test_build_scene_rejects_short_traj():
     r = {"pts": [[0.5, 0.5, 0.0, 0.8]] * 100, "pellets_t": [[[0.1, 0.2]]] * 100}
     with pytest.raises(AssertionError):
         vc.build_scene({"source": "collect.py"}, 8, np.zeros(64), np.zeros(64), r, r)
+
+
+def test_build_scene_adds_the_untrained_walk():
+    r = {"pts": [[0.5, 0.5, 0.0, 0.8]] * 900, "pellets_t": [[[0.1, 0.2]]] * 900}
+    ru = {"pts": [[0.5, 0.5, 0.0, 0.8]] * 47, "pellets_t": [[[0.1, 0.2]]] * 47, "n": 47}
+    scene = vc.build_scene({"source": "collect.py"}, 8, np.zeros(64), np.zeros(64), r, r, ru=ru)
+    assert len(scene["trajs"]["untr"]) == 47 and scene["meta"]["n_untr"] == 47
+    assert len(scene["pellets_t"]["untr"]) == 47
+
+
+def test_committed_scene_carries_the_untrained_walk_the_52_beat_draws():
+    root = Path(__file__).resolve().parents[1]
+    scene = json.loads((root / "viz" / "data" / "scene.json").read_text(encoding="utf-8"))
+    beats = json.loads((root / "viz" / "player" / "beats.json").read_text(encoding="utf-8"))
+    nocare = next(b for b in beats["beats"] if b["id"] == "nocare")
+    w = nocare["world"]
+    assert w["traj"] == "untr" and "untr" in scene["trajs"]
+    # the slowed window must end before the untrained walk does (no death on screen)
+    span = w["worldT0"] + (nocare["t1"] - nocare["t0"]) * w["clock"]
+    assert span < len(scene["trajs"]["untr"]) * scene["step_ms"]

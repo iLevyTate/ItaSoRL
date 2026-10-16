@@ -760,7 +760,11 @@ class Player {
     // worldT0 lets a beat replay a chosen window of the recorded run (film
     // time keeps flowing; world time starts at worldT0). The survival beat
     // uses this to show the hunt-and-decline stretch without the death.
-    const wt = beat.world.worldT0 != null ? beat.world.worldT0 + tl : t;
+    // clock < 1 slows that window: the untrained walk is 47 steps, shorter than
+    // its beat, so it plays slower rather than ending in a death on screen.
+    const wt = beat.world.worldT0 != null
+      ? beat.world.worldT0 + tl * (beat.world.clock != null ? beat.world.clock : 1)
+      : t;
     const zoom = beat.world.zoom
       ? lerp(beat.world.zoom[0], beat.world.zoom[1], easeInOut(ramp(t, beat.t0, beat.t1)))
       : 1;
@@ -850,7 +854,7 @@ class Player {
     };
     const posOf = (traj) => posAt(traj, wt);
     // Resolve a trajectory key: the teaching sims for the new keys, recorded data
-    // for auth/surr (so creature/scan/nocare stay byte-identical).
+    // for auth/surr/untr (so creature and scan stay byte-identical).
     const trajFor = (key) => {
       if (key === "simReal") return this.sim.simReal;
       if (key === "simCopy") return this.sim.simCopy;
@@ -906,8 +910,8 @@ class Player {
       drawCreature(ctx, this.creature, beat.world.stage || 0, cp[0], cp[1], t, sc);
       // Mind-probe: show the mind CATCHING the fake's glitches, not an idle halo.
       // Catch chance = how far the gauge sits above coin-flip, so the flags the
-      // viewer sees ARE the number: nocare (50%) barely catches - it doesn't
-      // react; survival climbs 50% -> 73%, so it misses early then starts catching.
+      // viewer sees ARE the number: nocare (50%) barely catches - nothing to
+      // read; survival climbs 50% -> 73%, so it misses early then starts catching.
       if (beat.world.probe && glitch) {
         const gg = beat.gauge;
         const evTl = GLITCH_START + glitch.seed * GLITCH_EVERY;
@@ -976,7 +980,7 @@ class Player {
           label(s[0], s[1] - 12, "THE FAKE, GLITCHING",
             Math.min(1, gl.phase / 300, (1900 - gl.phase) / 400));
         }
-        label(cp[0], cp[1] - 66 * worldScale, "IT DOESN'T REACT",
+        label(cp[0], cp[1] - 66 * worldScale, "NOTHING TO READ",
           calloutAlpha(tl, 8600, 12000), 1);
       } else if (beat.id === "survival") {
         // The energy labels belong to the energy bar; a beat without one gets neither.
@@ -987,7 +991,7 @@ class Player {
         }
         const gl = glitchAt(1, 1, 1900);
         if (gl) {
-          label(cp[0] + 44 * worldScale, cp[1] - 64 * worldScale, "NOW IT NOTICES",
+          label(cp[0] + 44 * worldScale, cp[1] - 64 * worldScale, "THE READOUT CATCHES IT",
             Math.min(1, gl.phase / 300, (1900 - gl.phase) / 400), 1);
         }
         if (hasEnergy && pos.energy < 0.24) {
@@ -999,16 +1003,19 @@ class Player {
     };
 
     if (mode === "single") {
-      const pos = posOf(this.scene.trajs.auth);
+      // A beat may name its walk; nocare draws the untrained agent's, the agent
+      // its 52% was read from. A scene without that walk falls back to auth.
+      const key = beat.world.traj && this.scene.trajs[beat.world.traj] ? beat.world.traj : "auth";
+      const pos = posOf(this.scene.trajs[key]);
       // Loose follow lets the recorded creature visibly cross the frame (its real
       // path covers real ground; a tight camera hid that motion). Anchor = its
       // position at the window start, held fixed for the beat.
       const camOpts = beat.world.follow != null
         ? { follow: beat.world.follow,
-            anchor: posAt(this.scene.trajs.auth,
+            anchor: posAt(this.scene.trajs[key],
               beat.world.worldT0 != null ? beat.world.worldT0 : beat.t0).scr }
         : null;
-      drawPatch(0, VIEW_W, "auth", camFor([pos.scr], camOpts), pos, null);
+      drawPatch(0, VIEW_W, key, camFor([pos.scr], camOpts), pos, null);
       if (beat.world.energy) this.paintEnergy(t, wt, beat);
     } else if (mode === "split") {
       // With world.sim, both panels are driven by the momentum sim: same start,

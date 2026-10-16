@@ -29,6 +29,23 @@ the marked pauses are load-bearing, not optional.
 | 1:00-1:20 | survival | "So we gave it one. In the fake world, the broken physics makes food hard to catch. Now, telling real from fake is the difference between eating and starving. (let gauge climb) Seventy-three percent. Nobody taught it. Nobody rewarded it. It learned because its life depended on it." |
 | 1:20-1:30 | close | "(pause 1s) The fake was detectable all along. The creature only noticed... when survival made it matter. (silence to end)" |
 
+### Corrected lines for a re-voice (2026-10-16)
+
+The table above is what the released master says, and four of its lines no
+longer match the record. "It has no idea" and "the creature only noticed" claim
+awareness and use; removing the decoded direction while the creature acts
+changes its behavior no more than a sham removal (FINDINGS 23.3). "It learned
+because its life depended on it" is withdrawn: at matched input a mind trained
+only to predict reads 72% against the forager's 73% (FINDINGS 17.6). "Fifty
+percent" is now 52% on the corrected trainer. The live captions-only cut carries
+the corrected wording; a re-voiced master would use these lines over that picture.
+
+| Time | Beat | Line |
+|---|---|---|
+| 0:45-1:00 | nocare | "But here's the strange part. Read the creature's own memory, that violet ring, and ask which world it is in. (pause 1.5s while needle wobbles) Fifty-two percent. A coin flip. Nothing there to read." |
+| 1:00-1:20 | survival | "Now let it grow up in the copy. It forages there day after day, and nobody rewards it for the fake. (let gauge climb) Seventy-three percent. The fake shows up in its memory anyway. A mind trained only to predict what it senses, fed the same senses, reads seventy-two." |
+| 1:20-1:30 | close | "(pause 1s) The fake was detectable all along. It showed in a mind only after a life there... and it never changed what the creature did. (silence to end)" |
+
 Delivery notes:
 - "ninety-nine percent" lands AS the gauge hits 99% (~0:40), not before.
 - "Fifty percent" lands after the wobble settles (~0:52). The 1.5s pause while

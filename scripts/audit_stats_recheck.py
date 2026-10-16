@@ -1762,7 +1762,7 @@ def main() -> int:
     for relpath, needle, label in [
         ("viz/player/brain/brain.js", "Trained to survive and to expect what comes next",
          "film end card names both objectives"),
-        ("viz/player/brain/brain.js", "drop the second job and the trace falls below the bar",
+        ("viz/player/brain/brain.js", "drop the second job and the reading falls below the bar",
          "film end card states the decoder requirement"),
         ("viz/player/brain/brain.js", "Five actions. Three predictions.",
          "film actions chapter still names the prediction heads"),
