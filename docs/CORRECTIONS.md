@@ -944,7 +944,9 @@ appendix now says that the L2 world model receives each action with the observat
 produced, a design difference that cuts against decodability, unlike the two it lists that
 favor it. A corrected run would be a new, separately labeled run under an opt-in alignment that
 keeps the reset observation and pairs each observation with the action taken from it. The
-default path stays as it is so the stored numbers reproduce.
+default path stays as it is so the stored numbers reproduce. FINDINGS carries the caveat in the
+TL;DR's L2 sentence, in a dated note at the head of section 3 (covering 3.1 to 3.4), and at
+section 4 item 2, whose "the objective is local" explanation the same timing confounds.
 
 **What this does not change.** No recorded number or verdict. The L2 negative stays as recorded,
 read with the caveat that its prediction-only arm was a weaker predictor than designed. The L3
@@ -1125,3 +1127,219 @@ therefore train on the same world integers. Seeds 0 to 9 have no such overlap.
 **What this does not change.** Every readout is computed within one seed, and the seed-paired
 contrasts pair arms of the same seed index, so no probe is fit and scored across the shared
 worlds. The two agents share training worlds, not weights or episodes of the other arm's policy.
+
+## 2026-10-16: the historical L1 organism run had no rule registered before it ran
+
+**What was wrong.** The L1 organism run (FINDINGS 14.7) is read under H_B2, and the record calls
+its outcome "the registered encoding criterion" not met. No L1 rule was registered before the
+run. `docs/PREREGISTRATION.md`, where H_B2 was frozen on 2026-06-28, covers the L2 run only (its
+section 11: "this world family, and L2 only"). The 2026-07-21 H2 spec names the run only as
+"A3 - Alternate-substrate-primitive positive control (DEFERRED, needs a train)", with no
+estimand, gate-0 rule or decision rule. The rule ledger row `L1-PRIMARY` already says so in its
+freeze note. The L1 code, the gate-0 selection of Δ = 0.023 by a fine sweep, the σ_o noise
+comparator and the result were first committed together in `01e88e4` (2026-07-25 00:14), and
+the historical cells record `8a71593`, a commit with no L1 drift mode (corrected-L1 spec,
+`docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md`). The noise-knockout rule
+`NOISE-KNOCKOUT-L1` is likewise borrowed from the 2026-07-22 spec, whose only mention of L1 is
+that it does not collide with it.
+
+**Which results it touches.** The historical L1 primary reading, its A1 and A2 ablations, and
+the corrected L1 rerun of FINDINGS 22.1, whose spec names the rule the historical run "was
+already read under" and so inherits a rule that was applied after the fact.
+
+**Change.** A dated entry in the deviation log of `docs/PREREGISTRATION.md` records that
+`L1-PRIMARY`, `L1-CORRECTED` and `NOISE-KNOCKOUT-L1` apply rules frozen for other runs. FINDINGS
+carries a dated note in the TL;DR and in 14.7 saying that H_B2 was registered for L2 and
+applied unchanged to L1 after the run. The manuscript's list of runs without a pre-run freeze
+names the historical L1 organism run.
+
+**What this does not change.** No number or verdict. H_B2 was applied with its thresholds
+unchanged, and the 2026-07-21 spec had framed the run as a positive control expected to show
+encoding. The not-met reading stands, at 0.533 and, on the corrected trainer, 0.551.
+
+## 2026-10-16: the development readout left out its walk-held-fixed column
+
+**What was wrong.** The frozen spec of the development readout
+(`docs/specs/2026-10-15-what-develops-design.md`) puts a matched-input column beside the
+own-episode target: the 300-update agent's recorded episodes replayed through every snapshot of
+the same seed, so the development is also read with the walk held fixed.
+`scripts/run_development_readout.py` computes it (`replay_target`) and both artifacts store it,
+but FINDINGS 23.4 and the manuscript reported only the own-episode target.
+
+**What the column shows.** From `summary.aggregate['<budget> replay_target']` of
+`artifacts/development/corrected_l3_h8_wm.json` and `corrected_l3_h8_nowm.json`, at 0, 100,
+200, 300 and 450 updates: `C1` 0.636, 0.659, 0.719, 0.733, 0.742; `C2` 0.610, 0.624, 0.608,
+0.613, 0.642. Seed-paired from 100 to 450 updates (t-based 90% interval over the `per_seed`
+arrays, n = 10), the target rises +0.083 [+0.059, +0.107] on `C1` with the walk fixed against
++0.273 [+0.222, +0.325] on own episodes, and +0.018 [-0.008, +0.044] on `C2` against +0.157
+[+0.100, +0.214]. On identical input most of the `C1` rise and nearly all of the `C2` rise is
+gone.
+
+**Change.** FINDINGS 23.4 reports the column with these contrasts, labeled descriptive as the
+spec frames it, and says that the fixed walk is the 300-update agent's and that `resid_obs` and
+`resid_trace` have no walk-fixed counterpart, so readings 1 and 2 are read on changing walks.
+
+**What this does not change.** No reading or label. Readings 1 to 4 are defined on own episodes
+and stay as recorded.
+
+## 2026-10-16: the erasure population contrasts cite an amendment the erasure spec lacks
+
+**What was wrong.** The online erasure readout's every-attempted-episode return and termination
+contrasts (FINDINGS 23.3) are labeled "descriptive, no pre-stated reading (third amendment)" in
+`scripts/run_erasure_readout.py` (lines 59 and 151), in the artifact the runner writes and in
+FINDINGS 23.3. `docs/specs/2026-10-15-online-erasure-design.md` has two amendments, one before
+any code or number and one after a two-seed setup check. It has no third. The only 2026-10-15
+third amendment is the world-features spec's. The superseded first full-run artifact
+(`artifacts/mechanism/erasure/superseded_common_survivor_2026-10-15/`) has no `population` or
+`attrition` keys, so these contrasts were defined after the first full run had been read, as
+the 2026-10-15 entry above records.
+
+**Change.** FINDINGS 23.3 calls the population lines post hoc and descriptive, says they were
+defined after the first full run, and drops the citation of a third amendment, with a dated
+marker. The runner comment and the artifact label are left for the code owner to correct, or
+for a dated amendment to the erasure spec that says it was written after the first full run.
+
+**What this does not change.** No number. The contrasts were never read against a threshold,
+and the common-survivor readings, which the spec froze, are unchanged.
+
+## 2026-10-16: a better-fitting long-history control is on record
+
+**What was wrong.** FINDINGS 17.8 and the manuscript call the 64-unit MLP joint control "the
+control that fits best" (held-out R² 0.887, residual 0.620), and the manuscript's control-ladder
+caption counts the two long-history ridge bases among the bases that put the residual below
+the bar. Those two bases fit at a fixed penalty of 0.001 with negative held-out R², which the
+same text calls failed fits. The optional sensitivity readout O2
+(`docs/optional/o2_long_history_ridge.json`, `itasorl/optional_readouts.py` `long_history_ridge`)
+chose the penalty inside each outer training fold by an episode-grouped inner split. The two
+bases then fit held-out states at R² 0.906 and 0.909, better than the MLP, and leave 0.737
+[0.690, 0.785] and 0.691 [0.650, 0.732] on the `C1` survival arm. Its fixed-penalty rows
+reproduce the recorded battery (0.640 and 0.606).
+
+**Change.** FINDINGS 17.8 carries a dated note that scopes "fits best" to the battery at its
+recorded penalty and gives the O2 values. The manuscript cites O2 as a sensitivity readout,
+scopes its "fits best" wording the same way, and no longer counts the failed fits as readings
+under the bar. `docs/optional/README.md` says O2 is now cited.
+
+**What this does not change.** No recorded row, threshold or verdict. O2 ran on CUDA on the
+survival arm only, with no untrained or predictor floor, so it is reported beside the battery
+and does not enter its table. The better-fitting linear controls remove less of the signal, not
+more.
+
+## 2026-10-16: the L1 noise knockout gave every surrogate episode of a seed one noise draw
+
+**What was wrong.** The A2 noise knockout at L1 (FINDINGS 14.7) transfers the frozen L1 probe
+onto worlds with iid observation noise at σ_o = 0.01. In `scripts/run_l1_h2_ablations.py`,
+`make_noise_world` builds a new `LObsNoise` wrapper for each surrogate world and reseeds it to
+Philox(970000 + agent seed). `collect_pool` creates one world per episode, and
+`SurrogateWrapper.reset` never reseeds the wrapper (`itasorl/surrogate_l1_families.py`,
+`itasorl/world.py`), so every surrogate episode of a seed starts the same stream and draws the
+same noise at each step: iid in time within an episode, identical across episodes. The gate-0
+calibration that matched σ_o to the band (`scripts/run_expA_l1_noise.py`, oracle 0.873) drew
+fresh noise for each pair from one continuing generator, so the tested comparator is not the
+calibrated one. The 2026-07-22 spec states its reseed rule for the L3 `GNoise` family, where the
+runner resets the stream once per pool, which gives one continuing stream across a pool's
+episodes; it names no rule for `LObsNoise`. The L1 code resets the stream at every surrogate
+world, which is every episode, and that reset is the defect.
+
+**Which results it touches.** The `a2_noise_knockout` block of `artifacts/expL1/h2_ablations.json`
+(survival 0.525, untrained 0.509, predictor 0.516) and the `NOISE-KNOCKOUT-L1` reading. A
+repeated draw lowers the variety of noise the probe meets, and its effect on the transfer reading
+has not been measured.
+
+**Change.** FINDINGS 14.7 carries a dated note. Any rerun would be a separately labeled post hoc
+readout behind an opt-in flag that keys each wrapper on its episode's world seed, defaulting
+off so the stored bits reproduce.
+
+**What this does not change.** No recorded number or verdict. The knockout was already read as
+vacuous, because the L1 primary probe does not meet the bar and has no structured direction to
+transfer.
+
+## 2026-10-16: sweep C draws one jitter realization for every agent seed and arm
+
+**What was wrong.** Sweep C of FINDINGS 22.3 draws the correlated jitter afresh for every
+surrogate episode. `per_episode_draw` in `scripts/run_texture_fresh_probe.py` reseeds the
+`G_ar` family from Philox(2550000 + 1000 + k) for the k-th world created with positive drift,
+with no agent-seed term, and `collect_pool` creates every world before it drops deaths. Each
+task (agent seed, arm and ρ) therefore meets the same Philox seeds, 2551000 onward, in the same
+order, and the jitter's innovations depend on no action, so every agent seed and arm sees the
+same per-episode jitter paths. Across ρ the standard normals behind them are also shared. The
+earlier per-pool calls `fam.reseed(bs + s)` are overwritten at the next world creation. Sweeps A
+and B (family `ar`) reseed once per pool at a base plus the agent seed, so their jitter differs
+across seeds. The frozen spec says the draw is seeded by the pool's seed base plus the episode
+index, so the code follows the spec; neither said what that implies for the interval.
+
+**Which results it touches.** Sweep C's seed-level intervals are conditional on that one jitter
+realization, as well as on the shared evaluation-world draw. Seed-to-seed variation in them is
+variation over agents, not over jitter draws.
+
+**Change.** Disclosure only. Sweep C's intervals, and those of the readout-only follow-up at the
+matched gap, which reuses the same seeding, are read with this condition wherever FINDINGS 22.3
+or the manuscript quotes them.
+
+**What this does not change.** No recorded number or reading of sweep C.
+
+## 2026-10-16: the `T-qd` artifact names the wrong reference for its sizing
+
+**What was wrong.** The gate-0 note of `artifacts/texture/T_qd_l3_h8_wm.json`
+(`gates.gate0_oracle_band.note`), written by `scripts/promote_off_design_runs.py`, says that
+eps 6.0 "was matched to the learned map's one-step magnitude". It was matched to the white
+jitter `G_gn`. In `artifacts/surrogate_diagnostics.json` the one-step RMS deviation of `qd` at
+eps 6.0 is 0.0143 (train) and 0.0141 (held out), that of `gn` at σ 0.01 is 0.0141 and 0.0143,
+and that of the learned map `gmotion_h8_s0` is 0.0361 and 0.0349, so `qd` sits at about 0.4 of
+the learned map's size. The texture-comparator spec, FINDINGS 17.9 and the manuscript all name
+`G_gn` as the match.
+
+**Change.** The promoter's note names `G_gn`'s one-step RMS magnitude as the match, and the
+artifact is re-promoted so that only this note changes.
+
+**What this does not change.** No number or reading. The run is off-design, excluded, and bears
+on no rule.
+
+## 2026-10-16: the pooled population probe groups folds by pooled row
+
+**What was wrong.** `cg_probe` (`itasorl/experiment_b2.py`) groups its cross-validation folds by
+pooled row. The pooled population panels pool every individual's common-garden pairs, which
+run on the same world seeds for each individual: Experiment C's panels and the C1 population
+readout of FINDINGS 17.11 (`scripts/validate_population_readout.py`, base 930000). One world
+seed's pairs from two individuals can then land in different folds. FINDINGS 13.F discloses
+this for Experiment C, where related individuals can lift the pooled AUROC, and
+`itasorl/experiment_c.py` carries it as a comment. The C1 population readout did not say so, and
+the manuscript's list of places where the twin grouping rule was broken did not include it.
+
+**Change.** FINDINGS 17.11 carries a dated note, and the manuscript's list names the pooled
+population probe, which was not changed in code. A rerun should group pooled rows by world-seed
+index.
+
+**What this does not change.** No number. The 0.609 and 0.536 of 17.11 are not regrouped. Those
+agents were trained independently, so they cannot test the relatedness leak, and the Experiment
+C tails were not saved, so its panels cannot be rescored.
+
+## 2026-10-16: sweep C's matched gap was measured with the per-episode draw off
+
+**What was wrong.** Sweep C (FINDINGS 22.3) sets sigma at each rho so the 24-step open-loop
+velocity gap matches the shared point, and its runner measures each setting's gap before the
+readouts. `profile` in `scripts/run_ar_sweep_c.py` wraps that measurement in `per_episode_draw`,
+which patches only the world constructor the readouts use; the measurement builds its worlds
+and calls the family directly, so the AR process ran on across the calibration episodes. The
+measured gap was sweep A's recorded gap scaled by sigma, and the record's "all six settings
+within 0.0001" held by construction.
+
+**Which results it touches.** For `G_ar` the gap from a stationary start is exact in closed
+form, sigma * sqrt(2 w'Cw) with w_t = 0.925^(23 - t) and C_ij = rho^|i - j|. The shared point
+(rho 0.9 at sweep A's sigma) reads 0.1175; the six recorded settings read 0.1162 to 0.1267, and
+rho 0.95 and 0.99 sit 1.6 and 7.8 percent above the shared point, the second outside the spec's
+3 percent band. The contrast M(0.99) - M(0) therefore compared a rho 0.99 point with more 24-step
+deviation than the rho 0 point.
+
+**Change.** `scripts/run_ar_sweep_c_followup.py` (`6846435`) reruns rho 0.95 and 0.99, readout
+only on the same saved C1 agents, at the sigma that matches 0.1175 exactly (0.00869 and 0.00763).
+Margins +0.060 [+0.015, +0.105] and +0.049 [+0.016, +0.081]; with the stored rho 0 point the
+contrast is -0.017 [-0.051, +0.016], reading 3 (neither), its lower bound 0.001 outside the
+margin unit. The follow-up is in `artifacts/texture/ar_sweep_c_followup/` and the manifest as
+AR-SWEEP-C-FOLLOWUP, beside the frozen result. The runner's `profile` carries a comment; its
+behavior is unchanged so the recorded run stays reproducible. FINDINGS 22.3 and the manuscript
+withdraw "coherence moved the margin by less than 0.05" and keep "coherence did not raise the
+margin", which both readings support.
+
+**What this does not change.** The frozen sweep C contrast and its reading 2, which stay as
+recorded, and the finding that no jitter setting reaches the bar.

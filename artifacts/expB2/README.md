@@ -14,7 +14,7 @@ Canonical committed outputs from pre-registered confirmatory runs (not ephemeral
 | `behavior_audit_l3_h7_traces.json` | Behavior-mediation audit of the second-capacity hidden=7 n=10 run (`fullruns/l3_h7_traces/states`). Survival resid_trace **0.722** [0.678, 0.763] replicates hidden=8's 0.726; the survival-vs-predictor dissociation is NOT met (+0.023 < +0.05), so that dissociation is artifact-conditional. FINDINGS 10.5; the reading that credited the survival objective is withdrawn in 17.6. |
 | `heldout_l3_h8_summary.json` | Per-seed summary of the held-out fingerprint probe (`fullruns/l3_h8_heldout`, frozen spec 2026-07-14), extracted by `scripts/promote_heldout_artifact.py` with the run's config fingerprint and git commit embedded. Transfer **0.773** (9/10, rule PASSES); common-garden tail **0.557** (rule FAILS -> reactive; overturned 2026-07-18, a biased estimator: the re-score reads 0.666 forward and 0.684 reverse and passes, FINDINGS 10.6.1; on the corrected agents the common garden reads mostly the physical footprint, FINDINGS 17.7); late tail 0.492 (chance); standard pools reproduce the 0.752 headline exactly. FINDINGS 10.6. |
 | `behavior_audit_l3_h8_heldout.json` | Behavior-mediation audit re-run on the held-out bundle's fresh `--save-agents` dumps (`fullruns/l3_h8_heldout/states`). Reproduces survival resid_trace **0.726** [0.685, 0.765], 9/10 seeds, identically to `behavior_audit_l3_h8_traces.json` (a determinism check on an independent dump). FINDINGS 10.6 / PREREGISTRATION_L3 (2026-07-14 provenance addendum). |
-| `heldout_l3_h7_reverse_summary.json` | Per-seed summary of the reverse-transfer probe (`fullruns/l3_h7_heldout`, train hidden=7, hold out the subtler hidden=8), via `scripts/promote_heldout_artifact.py`. Transfer **0.638** (t 90% CI [0.600, 0.676], 4/10, rule FAILS on the bar); common-garden tail **0.598** (reactive). Establishes held-out transfer is direction-dependent. FINDINGS 10.6 / PREREGISTRATION_L3 (2026-07-16 reverse-transfer entry). |
+| `heldout_l3_h7_reverse_summary.json` | Per-seed summary of the reverse-transfer probe (`fullruns/l3_h7_heldout`, train hidden=7, hold out the subtler hidden=8), via `scripts/promote_heldout_artifact.py`. Transfer **0.638** (t 90% CI [0.600, 0.676], 4/10, rule FAILS on the bar); common-garden tail **0.598** (rule FAILS -> reactive; overturned 2026-07-18, a biased estimator: the re-score, `heldout_l3_h7_reverse_cg_rescore.json`, reads 0.684 reverse and passes, FINDINGS 10.6.1; on the corrected agents the common garden reads mostly the physical footprint, FINDINGS 17.7). Establishes held-out transfer is direction-dependent. FINDINGS 10.6 / PREREGISTRATION_L3 (2026-07-16 reverse-transfer entry). |
 | `bv3_n10_summary.json` | Per-seed pooled targets for the B-v3 regime n=10 run (`fullruns/07062026`, `scripts/promote_ab_summaries.py`): survival **0.610** [0.585, 0.634], below the 0.65 bar. FINDINGS 7.1. |
 | `sysid_ceiling_n10_summary.json` | Per-seed pooled targets for the sysid-aux capacity-ceiling n=10 run (`fullruns/07092026`, `scripts/promote_ab_summaries.py`): **0.596** [0.577, 0.616], below the bar. FINDINGS 7.1. |
 | `bv3_n10_gates.json` | Gate values for the same B-v3 n=10 run (`fullruns/07062026`, commit `820849f`, `scripts/promote_bv3_gates.py`): per-cell engagement (20/20), L0 TOST (mean 0.517, p = 0.010, equivalent), speed positive control (min 0.784 >= 0.75), and the matched-pair leakage audit (clean 59/60; the one exception, drift 0.45 seed 6 survival reward-sum 0.393, is recorded, not rounded away). PREREGISTRATION_Bv3 section 12 (2026-09-26 entry). |
@@ -27,9 +27,11 @@ New runs write to `fullruns/<MMDDYYYY>/artifacts/` or here when promoted manuall
 Promote a run by copying `expB2_results.json` from the run folder, redrawing
 `expB2_survival.png` with `python scripts/plot_record_figures.py`, and updating this README
 if provenance changes.
-`scripts/audit_stats_recheck.py` re-verifies every number quoted in
-`README.md` / `docs/FINDINGS.md` / `docs/PAPER_OUTLINE.md` against these
-committed artifacts; run it before publishing any doc change.
+`scripts/audit_stats_recheck.py` recomputes the summary statistics it guards from these
+committed artifacts and checks guarded numbers and wording; run it before publishing any doc
+change. It reads quoted numbers only in the passages it guards, so a number edited by hand in
+`README.md`, `docs/PAPER_OUTLINE.md`, `CITATION.cff`, or a FINDINGS passage the script does not
+read passes it (`docs/REPRODUCE.md`, section 1, "What it does not check").
 
 ## Promotion history
 

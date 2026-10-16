@@ -87,6 +87,17 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _archive_digest(real: str) -> str:
+    """The digest a shipped artifact records for `real` (reproduce.archive_digest): its keyed
+    pseudonym inside the anonymized review archive, `real` everywhere else."""
+    import sys
+    here = os.path.dirname(os.path.abspath(__file__))
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    from reproduce import archive_digest
+    return archive_digest(real)
+
+
 def verify_agents(agents_dir: Path, ref: Path, *, drift: float, arm: str) -> dict:
     """Check every agent the artifact scored is present and byte-identical."""
     agents_dir = Path(agents_dir)
@@ -99,7 +110,7 @@ def verify_agents(agents_dir: Path, ref: Path, *, drift: float, arm: str) -> dic
         p = agents_dir / name
         if not p.is_file():
             missing.append(name)
-        elif _sha256(p) != sha:
+        elif _archive_digest(_sha256(p)) != sha:
             mismatched.append(name)
     return {"ok": not missing and not mismatched, "n_checked": len(want),
             "missing": missing, "mismatched": mismatched}

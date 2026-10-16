@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from itasorl import folds
 from itasorl.optional_readouts import long_history_ridge, speed_threshold_probes
@@ -74,6 +75,8 @@ def test_provenance_block_names_the_script_and_disclaims_adjudication():
 def test_every_optional_readout_file_carries_its_provenance():
     root = Path(__file__).resolve().parents[1]
     paths = sorted((root / "docs" / "optional").glob("*.json"))
+    if not paths and (root / "README_SUPPLEMENT.md").exists():
+        pytest.skip("the optional readouts are not shipped in the anonymized supplement")
     assert paths
     for path in paths:
         doc = json.loads(path.read_text(encoding="utf-8"))

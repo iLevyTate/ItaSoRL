@@ -1,0 +1,213 @@
+{
+ "spec": "docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md",
+ "status": "follow-up readout beside the frozen sweep C result; does not replace it",
+ "gap_target_exact": 0.11753375854755048,
+ "gap_tolerance": 0.03,
+ "seed_bases": [
+  2500000,
+  2550000
+ ],
+ "stored_points_exact_gaps": [
+  {
+   "rho": 0.0,
+   "sigma": 0.03159340659340659,
+   "exact_gap": 0.11618670488861293,
+   "recorded_gap": 0.11510042624054255,
+   "off_target": -0.011460993637777417,
+   "within_tolerance": true
+  },
+  {
+   "rho": 0.5,
+   "sigma": 0.019230769230769232,
+   "exact_gap": 0.11632881521262749,
+   "recorded_gap": 0.1150373028052146,
+   "off_target": -0.010251891454960194,
+   "within_tolerance": true
+  },
+  {
+   "rho": 0.8,
+   "sigma": 0.012378902045209904,
+   "exact_gap": 0.11628764918793086,
+   "recorded_gap": 0.11501729873743652,
+   "off_target": -0.010602139972538005,
+   "within_tolerance": true
+  },
+  {
+   "rho": 0.9,
+   "sigma": 0.01,
+   "exact_gap": 0.11753375854755048,
+   "recorded_gap": 0.11496707981379949,
+   "off_target": 0.0,
+   "within_tolerance": true
+  },
+  {
+   "rho": 0.95,
+   "sigma": 0.008832565284178187,
+   "exact_gap": 0.11945828816409491,
+   "recorded_gap": 0.11503620648209566,
+   "off_target": 0.01637427102074529,
+   "within_tolerance": true
+  },
+  {
+   "rho": 0.99,
+   "sigma": 0.008226037195994277,
+   "exact_gap": 0.12669201517396259,
+   "recorded_gap": 0.11502788372296616,
+   "off_target": 0.0779202225776432,
+   "within_tolerance": false
+  }
+ ],
+ "points": [
+  {
+   "rho": 0.95,
+   "sigma": 0.00869026847295892,
+   "exact_gap": 0.1175337585475505,
+   "file": "C_rho0.95.json",
+   "survival_fresh": {
+    "per_seed": [
+     0.5533057851239669,
+     0.5334710743801654,
+     0.6173553719008265,
+     0.5595041322314049,
+     0.6235537190082644,
+     0.6735537190082646,
+     0.5417355371900827,
+     0.5177685950413223,
+     0.5376033057851239,
+     0.5632231404958677
+    ],
+    "mean": 0.572107438016529,
+    "t90": [
+     0.5433593113990002,
+     0.6008555646340578
+    ]
+   },
+   "untrained_fresh_mean": 0.5121487603305785,
+   "M": {
+    "per_seed": [
+     0.00619834710743794,
+     0.08925619834710752,
+     0.10495867768595046,
+     0.017768595041322444,
+     0.08016528925619837,
+     0.20330578512396702,
+     0.13140495867768598,
+     -0.05371900826446274,
+     0.03884297520661162,
+     -0.018595041322314043
+    ],
+    "mean": 0.05995867768595046,
+    "t90": [
+     0.01540989787522215,
+     0.10450745749667877
+    ]
+   },
+   "kept": false
+  },
+  {
+   "rho": 0.99,
+   "sigma": 0.007631397040054837,
+   "exact_gap": 0.11753375854755048,
+   "file": "C_rho0.99.json",
+   "survival_fresh": {
+    "per_seed": [
+     0.5669421487603306,
+     0.5276859504132231,
+     0.5892561983471074,
+     0.5380165289256198,
+     0.587603305785124,
+     0.6516528925619834,
+     0.5384297520661157,
+     0.5462809917355372,
+     0.5425619834710744,
+     0.5392561983471074
+    ],
+    "mean": 0.5627685950413224,
+    "t90": [
+     0.5408179575404924,
+     0.5847192325421523
+    ]
+   },
+   "untrained_fresh_mean": 0.5139669421487603,
+   "M": {
+    "per_seed": [
+     0.051652892561983466,
+     0.09752066115702474,
+     0.10123966942148754,
+     -0.030165289256198324,
+     0.07066115702479348,
+     0.1359504132231405,
+     0.06900826446280994,
+     -0.017355371900826477,
+     0.02066115702479343,
+     -0.011157024793388537
+    ],
+    "mean": 0.04880165289256198,
+    "t90": [
+     0.016117176290771917,
+     0.08148612949435204
+    ]
+   },
+   "kept": false
+  }
+ ],
+ "contrast": {
+  "follow-up: M(0.99, matched) - M(0, stored)": {
+   "mean": -0.01747933884297523,
+   "t90": [
+    -0.051352834653499387,
+    0.01639415696754893
+   ],
+   "n": 10
+  }
+ },
+ "readings": {
+  "1 coherence raises at matched gap": false,
+  "2 within the margin unit": false,
+  "3 neither": true
+ },
+ "frozen_result": {
+  "contrast": {
+   "C: M(0.99) - M(0)": {
+    "mean": 0.009173553719008243,
+    "t90": [
+     -0.026764338273624143,
+     0.04511144571164063
+    ],
+    "n": 10
+   }
+  },
+  "readings": {
+   "1 coherence raises at matched gap": false,
+   "2 within the margin unit": true,
+   "3 neither": false
+  }
+ },
+ "provenance": {
+  "generated_by": "scripts/run_ar_sweep_c_followup.py",
+  "command": "python scripts/run_ar_sweep_c_followup.py --workers 2",
+  "inputs": {
+   "agents_dir": "fullruns/corrected_l3_h8_wm/agents",
+   "rhos": [
+    0.95,
+    0.99
+   ],
+   "gap_target_exact": 0.11753375854755048,
+   "seed_bases": [
+    2500000,
+    2550000
+   ]
+  },
+  "status": "follow-up readout after the 2026-10-16 critical review; diagnostic, not an adjudication; changes no registered rule or verdict",
+  "git_head": "6846435",
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "device": "cpu"
+  },
+  "written": "2026-10-16"
+ }
+}

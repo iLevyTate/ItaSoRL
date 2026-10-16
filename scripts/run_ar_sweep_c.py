@@ -42,8 +42,20 @@ def points() -> list:
 
 
 def profile(sigma: float, rho: float) -> dict:
-    """The family's measured profile under the per-episode draw: one-step RMS, lag-1
-    autocorrelation, and the open-loop velocity gap at 1, 10 and 24 steps."""
+    """The family's profile: one-step RMS, lag-1 autocorrelation, and the open-loop velocity
+    gap at 1, 10 and 24 steps.
+
+    Note (2026-10-16): the per_episode_draw context below has no effect here. It patches only
+    experiment_b2.make_world and l0_audit.make_world, and perturbation_profile and
+    surrogate_diagnostics build their worlds through collect_authentic_transitions
+    (PatchOfEarthV0 directly) and call g directly. The AR stream therefore runs on across the
+    held-out episodes from seed 0, on the same normals sweep A used, and since the gap is
+    linear in sigma the recorded calibration (summary.json points[*].calibration, whose
+    gap_closed_form key is this measured gap at the closed-form sigma) reproduces
+    GAP_A[rho] x sigma / SIGMA_A by construction, so within_tolerance was not an independent
+    check. run_ar_sweep.profile and this function return identical values. The behavior is kept as
+    run, since the stored sweep C result depends on it. The follow-up at the exactly matched
+    gap, scripts/run_ar_sweep_c_followup.py, uses the exact closed-form 24-step gap instead."""
     from run_texture_fresh_probe import per_episode_draw
 
     from itasorl.surrogate_l3 import surrogate_diagnostics

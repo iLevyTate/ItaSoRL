@@ -118,6 +118,22 @@ def _rescore_rows(run_id, rel, partitions=("legacy", "explicit"), other=None):
     return rows
 
 
+def _summary_speed(g: dict) -> dict:
+    """Speed fields of a promoted summary row. promote_reviewer_gaps_runs.py takes speed_min
+    over the scored pools only and counts the unscored ones in speed_n_nonfinite. With an
+    unscored pool and every scored pool at or above 0.75 the gate is not recorded, so the row
+    carries NaN (n/a), as gate_status there reads it. A scored pool under 0.75 fails the gate
+    whatever the unscored pools held, so that minimum is kept."""
+    out = {"speed_min": g.get("speed_min")}
+    n_bad = g.get("speed_n_nonfinite") or 0
+    if n_bad > 0:
+        lo = out["speed_min"]
+        if not (isinstance(lo, (int, float)) and np.isfinite(lo) and lo < 0.75):
+            out["speed_min"] = float("nan")
+        out["speed_n_nonfinite"] = n_bad
+    return out
+
+
 def _summary_row(run_id, rel, partition):
     d = _load(rel)
     g = d["gates"]
@@ -127,7 +143,7 @@ def _summary_row(run_id, rel, partition):
     return {"run": run_id, "partition": partition, "source": f"artifacts/{rel}",
             "l0": l0_block(l0), "untrained_floor": floor_block(unt),
             "engagement": f"{sum(v['pass'] for v in eng.values())}/{sum(v['n'] for v in eng.values())}",
-            "speed_min": g.get("speed_min"),
+            **_summary_speed(g),
             # promote_reviewer_gaps_runs.py wrote the lowest arm MEAN until 2026-10-10; an
             # artifact refreshed since (or promoted after) records the lowest pool.
             "speed_basis": "pool" if "speed_n_pools" in g else "arm mean",
@@ -220,7 +236,8 @@ def render_md(t: dict) -> str:
                  f"{_fmt(l0.get('tost_p'))} | {l0['status']} | {_fmt(l0.get('rope_share_inside'))} | "
                  f"{_fmt(fl['mean'])} ({fl['status']}) | {_fmt(r.get('engagement'))} | "
                  f"{_fmt(r.get('speed_min'))}"
-                 f"{' (lowest arm mean)' if r.get('speed_basis') == 'arm mean' else ''} | "
+                 f"{' (lowest arm mean)' if r.get('speed_basis') == 'arm mean' else ''}"
+                 f"{_unscored(r)} | "
                  f"{_fmt(r.get('pool_leak_clean_all'))} | "
                  f"{_fmt(r.get('deaths_total'))} |")
     open_rows = [r for r in t["rows"] if r["l0"]["status"] != "pass"]
@@ -233,7 +250,19 @@ def render_md(t: dict) -> str:
           f"{len(t['rows'])} rows"
           + (" (" + ", ".join(f"`{r['run']}` {r['partition']} {_fmt(r['speed_min'])}" for r in slow)
              + ")." if slow else "."), ""]
+    unscored = [r for r in t["rows"] if r.get("speed_n_nonfinite")]
+    if unscored:
+        # A row with an unscored speed pool is not recorded unless a scored pool already sits
+        # under 0.75, in which case it is also in the list above.
+        L += ["Speed positive control with unscored pools: "
+              + ", ".join(f"`{r['run']}` {r['partition']} ({r['speed_n_nonfinite']} unscored, "
+                          f"speed min {_fmt(r['speed_min'])})" for r in unscored) + ".", ""]
     return "\n".join(L)
+
+
+def _unscored(r: dict) -> str:
+    n = r.get("speed_n_nonfinite")
+    return f" ({n} unscored pool{'' if n == 1 else 's'})" if n else ""
 
 
 def _rounded(x):

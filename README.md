@@ -165,7 +165,7 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 | Ladder L3 (learned-dynamics surrogate) | implemented, gate-calibrated |
 | Experiment A (detectability ceiling, agent-free), L1 | **done** |
 | Experiment A, L2 | **done** |
-| Experiment B (incidental detection), L2 arc | **done: did not meet the registered encoding criterion** |
+| Experiment B (incidental detection), L2 arc | **done: did not meet the registered encoding criterion** (its prediction-only world model received each action one step late, so that arm was a weaker predictor than designed; [`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), 2026-10-16) |
 | Experiment B, L1 organism + H2 battery | **done: did not meet it at in-band Δ=0.023 (survival 0.551 on the corrected trainer, 0 of 10 seeds at the bar, FINDINGS §22.1; 0.533 as first recorded on the original trainer, §14.7)** |
 | Experiment B, L3 (learned-dynamics) | **registered rule not met (L0 gate open on the registered world pair); decodability clauses met at n=10** with survival plus the next-observation auxiliary at 300 updates, corrected trainer: 0.733 against predictor 0.589 and untrained 0.523. Without the auxiliary 0.613, not met (FINDINGS §17). Historical: 0.752 on GPU, 0.730 and 0.601 on CPU (§10.8); an independently trained fingerprint 0.639 (§10.9); prefix condition remains decodable after restoring authentic dynamics, carried mostly by the physical footprint the prefix leaves rather than by memory, and retention under identical input is not shown (FINDINGS §17.7, §10.6.1). Details in [Key result](#key-result) |
 | Experiment B, L3 matched-world confirmation (B1, B2) | **uninformative.** A confirmation frozen before it ran, on new seeds 10-19 with authentic and surrogate episodes paired on the same world seeds: survival reads 0.800 and the pellet objective 0.843, but the untrained arm reads 0.614, outside the 0.1 floor. A linear sensory control frozen after those raw outcomes were known leaves 0.761 and 0.780, with the untrained arm at 0.596 and its interval [0.577, 0.615] crossing 0.60 (FINDINGS §21) |
@@ -184,7 +184,11 @@ number is historical and labeled so in
 Hand-authored seams (L1 discretization, L2 rollout drift): catchable from the
 outside, not decodable inside at the registered criterion. An L2 artifact a
 nearly noiseless external detector finds at AUROC ≈ 0.99 leaves the
-prediction-only agent's state near chance (≈ 0.5). Give that detector the input
+prediction-only agent's state near chance (≈ 0.5). That agent's world model
+received each action one step late, so it was a weaker predictor than designed;
+the prediction-error and open-loop channels are the most exposed, and the effect
+on the state reading has not been measured
+([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), 2026-10-16). Give that detector the input
 noise the L3 gate uses and the L2 artifacts read 0.62 to 0.65 (FINDINGS §15), so
 the matched case is L1: an in-band quantization grid (detector AUROC 0.873)
 leaves the survival state at **0.551** [0.531, 0.570] on the corrected trainer
@@ -244,7 +248,9 @@ the bar. Under identical input the prefix condition fades within a few steps,
 and with the recurrent state zeroed the body's footprint still reads 0.662. A
 hand-authored drag of the same one-step size as the Gaussian jitter, which like
 the learned law depends on the agent's own velocity, is read through the original
-direction (0.721); the jitter is not. Correlated jitter does not reach the bar either, even
+direction (0.721) and by a fresh probe (0.754); the jitter is not. An untrained network
+already reads the drag at 0.612, outside the 0.1 tolerance, so the margins over it (+0.109
+and +0.142) are the comparison that carries meaning (FINDINGS §17.9). Correlated jitter does not reach the bar either, even
 with the 24-step deviation matched across correlation levels, so the contrast
 names no mechanism (FINDINGS §22.3).
 
@@ -474,7 +480,10 @@ pip install -r requirements.txt      # runtime deps
 pip install -e .                     # or: install itasorl as an editable package
 ```
 
-Reproduce the experiments (each is deterministic given its seeds). Run from the repo root;
+Reproduce the experiments. Each is deterministic given its seeds on the stack and machine
+that wrote the result; elsewhere a replay on the pinned CPU stack agrees to a measured
+tolerance, not to the bit ([`docs/REPRODUCE.md`](docs/REPRODUCE.md), "Supported-stack replay
+route"; [`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), 2026-10-16). Run from the repo root;
 the runners write run-specific figures over `docs/figures/`, so restore the committed copies
 afterwards with `git checkout -- docs/figures`:
 

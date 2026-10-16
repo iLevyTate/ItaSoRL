@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are. The count on 2026-10-16 is 64 pinned of 3127. A stored L0 gate (mean, TOST
+many there are. The count on 2026-10-16 is 64 pinned of 3137. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
 from them, and every tracked artifact a guarded block reads must be present: a missing one
 fails by name instead of dropping the block's checks. It also checks that the generated pages
@@ -72,8 +72,8 @@ TOL = 5e-4  # docs quote 3 decimals; allow rounding slack
 BAR = 0.65
 # The fewest checks a full run in a checkout may record (tests/test_audit_selftest.py). A run
 # that records fewer has lost checks without failing one. Raise it deliberately when checks are
-# added; the count on 2026-10-16 is 3127.
-CHECK_FLOOR = 3127
+# added; the count on 2026-10-16 is 3137.
+CHECK_FLOOR = 3137
 
 failures: list[str] = []
 n_checks = 0
@@ -3154,6 +3154,53 @@ def main() -> int:
         check_true(f"FINDINGS 22.3 quotes the {_sub} transfer range", _trq in _f22)
         check_true(f"22.3 {_sub}: no point reaches the bar and none is kept",
                    max(_svs) < BAR and not any(v[0]["kept"] for v in _pts.values()))
+
+    # ---- FINDINGS 22.3: sweep C follow-up at the exactly matched gap (2026-10-16) ----
+    # Each point's margins rebuild from its cells; its sigma gives the target gap exactly in the
+    # closed form; the contrast with the stored rho = 0 point rebuilds, and FINDINGS quotes it with
+    # reading 3.
+    _fu_dir = os.path.join(ARTROOT, "texture", "ar_sweep_c_followup")
+    if _artifact_present(os.path.join(_fu_dir, "summary.json")):
+        _fu = _load_art("texture", "ar_sweep_c_followup", "summary.json")
+
+        def _gap24(sig, rho, lam=0.925, h=24):
+            _t = np.arange(h)
+            _w = lam ** (h - 1 - _t)
+            return float(sig * np.sqrt(2.0 * _w @ (rho ** np.abs(_t[:, None] - _t[None, :])) @ _w))
+
+        check_true("22.3 follow-up: the target is the shared point's exact gap",
+                   _same(_gap24(0.01, 0.9), _fu["gap_target_exact"]))
+        _fum = {}
+        for _pt in _fu["points"]:
+            _cells = sorted(_load_art("texture", "ar_sweep_c_followup", _pt["file"])["cells"],
+                            key=lambda c: c["seed"])
+            _sv = np.asarray([c["fresh"] for c in _cells if c["arm"] == "survival"], float)
+            _un = np.asarray([c["fresh"] for c in _cells if c["arm"] == "untrained"], float)
+            _m = _sv - _un
+            _fum[_pt["rho"]] = _m
+            check_true(f"22.3 follow-up rho {_pt['rho']}: margins rebuild from the cells and the gap is matched",
+                       len(_m) == 10 and list(_m) == list(_pt["M"]["per_seed"])
+                       and all(_same(a, b) for a, b in zip(t_ci90(_m), _pt["M"]["t90"]))
+                       and abs(_gap24(_pt["sigma"], _pt["rho"]) - _fu["gap_target_exact"]) < 1e-12
+                       and not _pt["kept"])
+            _row = (f"| {_pt['rho']:g} | {_pt['sigma']:.5f} | {_gap24(_pt['sigma'], _pt['rho']):.4f} | "
+                    f"{_sv.mean():.3f} | {_un.mean():.3f} | {_m.mean():+.3f} {_iv3(t_ci90(_m))} |")
+            check_true(f"FINDINGS 22.3 follow-up table row, rho {_pt['rho']}", _row in _f22)
+        _m0 = _ar_point("ar_sweep_c", next(q for q in _load_art("texture", "ar_sweep_c", "summary.json")["points"]
+                                          if q["rho"] == 0.0))[1]
+        _d = _fum[0.99] - _m0
+        _dt = t_ci90(_d)
+        _st = _fu["contrast"]["follow-up: M(0.99, matched) - M(0, stored)"]
+        check_true("22.3 follow-up contrast: stored mean and t90 equal the paired recomputation",
+                   _st["n"] == len(_d) and _same(float(_d.mean()), _st["mean"])
+                   and all(_same(a, b) for a, b in zip(_dt, _st["t90"])))
+        _r1, _r2 = bool(_dt[0] > 0), bool(-0.05 <= _dt[0] and _dt[1] <= 0.05)
+        check_true("22.3 follow-up readings follow the recomputation",
+                   _fu["readings"] == {"1 coherence raises at matched gap": _r1, "2 within the margin unit": _r2,
+                                       "3 neither": not _r1 and not _r2})
+        check_true("FINDINGS 22.3 quotes the follow-up contrast and its reading",
+                   f"M(0.99) - M(0) is {_d.mean():+.3f} {_iv3(_dt)}: reading 3 (neither)" in _f22
+                   and not _r1 and not _r2)
 
     # ---- FINDINGS 23.3: the online erasure readout's refit probe (2026-10-16) ----
     # The refit probe's mean and t-interval per arm are rebuilt from rows[].refit_probe_erased

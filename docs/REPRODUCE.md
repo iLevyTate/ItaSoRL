@@ -47,7 +47,7 @@ The rebuild writes, from the committed per-seed artifacts under `artifacts/`:
   They stay local like the manuscript: `docs/paper_tables/` and `docs/paper/` are both
   gitignored, nothing in them is committed, and the audit renders the tables in memory.
 
-It then runs `scripts/audit_stats_recheck.py`. The script prints the count (3127 on
+It then runs `scripts/audit_stats_recheck.py`. The script prints the count (3137 on
 2026-10-16, after the critical-review checks). **What the audit
 checks:** it recomputes each summary statistic it guards from the committed per-seed
 artifacts and compares it with a copy of the quoted value kept as a constant in the script.
@@ -77,11 +77,19 @@ included; those are traced by hand through the claims appendix, which names the 
 behind every number that enters a decision, a gate or a headline comparison. "0 items to
 review" means only that the checks above found nothing.
 
-The raw state dumps of `C1` and `C2` are not in git or in the supplement; they exist only after
-a run.
-Retrain with `reproduce.py retrain C1` (section 2), and the dumps land in
-`fullruns/<run>/states`. With them, the per-seed readouts themselves are recomputed from the
-recurrent states, under both fold partitions and with the behavior control:
+The raw state dumps of `C1` and `C2` are not in git or in the supplement. Where the saved agents
+are at hand (a local run folder, or the full build made on the machine that trained the runs),
+the dumps rebuild from them without retraining, and every pool is checked against its recorded
+target:
+
+```bash
+python scripts/regenerate_state_dumps.py --run-dir fullruns/corrected_l3_h8_wm --out-dir fullruns/corrected_l3_h8_wm/states
+```
+
+The review build carries no `C1` or `C2` agents, so from it the dumps need a retrain:
+`reproduce.py retrain C1 --execute` (section 2), after which they land in
+`fullruns/<run>/states`. With the dumps, the per-seed readouts themselves are recomputed from
+the recurrent states, under both fold partitions and with the behavior control:
 
 ```bash
 python scripts/reproduce.py tables --dumps fullruns/corrected_l3_h8_wm/states
@@ -226,6 +234,9 @@ The full build (the default profile) also holds the run folders listed in `RUN_D
   agents or state dumps of `C1` and `C2`, which then exist only after a retrain (section 2).
 - `fullruns/l3_h8_heldout/agents`, the saved agents of the historical hidden-8 held-out run.
 - `fullruns/l3_h8_gseed2_gpu/agents`, the saved agents of the hidden-8 seed-2 run.
+- `fullruns/balanced_confirmation_wm` and `fullruns/balanced_confirmation_touch`, the run folders
+  of the matched-world confirmations `B1` and `B2` (cells, saved agents, frozen normalizers and
+  the matched-world sensory-control output), from which the matched gates replay (section 2).
 - `fullruns/corrected_l1_heldout`, the run folder of `L1-CORRECTED` (20 cells, 60 saved agents
   and 60 state dumps), from which the stream and surprise readouts replay.
 
@@ -260,26 +271,61 @@ in `README_SUPPLEMENT.md`, when the build runs outside a git checkout or from a 
 `--require-runs` stops the build with nothing written when a run bundle of the chosen profile
 is absent.
 
-Commit IDs are replaced too. A commit hash is a search key: on 2026-10-16 one full hash in the
-built archive found the public repository in a single code search. Every hex token of 7 to 40
-characters that is the prefix of a commit in the repository's object store becomes a keyed
-pseudonym of the same length, in text, in `PROVENANCE.md` and in file names. One commit reads
-the same everywhere in the archive, a short hash stays the prefix of its full form, and the
-pseudonyms sort as the commits do, so the results manifest's own check and the audit pass
-inside the archive as they do in the repository. Checksums, fingerprints and agent hashes are
-not commits and are left alone. The key is written to `dist/supplement-commit-key.txt` and
-stays local. The key alone does not give back a build's pseudonyms, because they are handed out
-in the sorted order of every commit in the object store, and a later commit shifts many of
-them. Each build therefore writes a map beside its archive (`dist/supplement-review.zip` gets
-`dist/supplement-review.commit-map.json`) with the archive's SHA-256, the commit list it drew
-from and the pseudonym of every spelling it replaced. Keep that map with the submitted archive
-for the camera-ready version. The build fails if any shipped name, text or binary member still
-holds a token that resolves to a commit. The scan only knows the commits in the local object
-store, so the command refuses to build an anonymized archive outside a git checkout or from a
-shallow clone, writing nothing; build from a full checkout (`git fetch --unshallow`).
+Commit IDs and recorded digests are replaced too. A commit hash is a search key: on 2026-10-16
+one full hash in the built archive found the public repository in a single code search. A
+64-character SHA-256 digest recorded in an artifact (an agent, surrogate or fold hash) is an
+even more specific one, since the same string sits in the public repository. Every hex token of
+7 to 40 characters, in upper or lower case, that is the prefix of a commit in the repository's
+object store becomes a keyed pseudonym of the same length and case, in text, in `PROVENANCE.md`
+and in file names. So does a token in a commit field (a JSON key naming a commit, a head or a
+fix, or the word "commit" before it), even one that resolves to no local commit. One commit
+reads the same everywhere in the archive, a short hash stays the prefix of its full form, and
+the pseudonyms sort as the commits do, so the results manifest's own check and the audit pass
+inside the archive as they do in the repository.
 
-Inside the extracted archive the test suite and the full scalar audit pass. The audit skips its
-one check on the film VO and music spec, which the archive leaves out.
+Every 64-character hex digest in a text member becomes a keyed pseudonym too, the same one
+wherever that digest appears, and a hex token of 12 or more characters that is the prefix of
+such a digest becomes the same prefix of its pseudonym. A run of one or two repeated characters
+is padding and stays. The rule covers digests of things the archive does not carry: the
+workstation NumPy tree hash in section 2 and in `constraints-workstation.txt` reads as a
+pseudonym inside the archive, and its real value is in the build's map. `SHA256SUMS` is the
+exception: it keeps the real digest of every shipped file, so it still verifies the bytes, and
+anyone who hashes a shipped binary such as a saved agent can still search for the result. A
+check that compares a digest it computes from a shipped file with the one an artifact records
+looks the computed digest up in `DIGEST_PSEUDONYMS.json`, which the archive carries
+(`archive_digest()` in `scripts/reproduce.py`). That table is keyed by the SHA-256 of each real
+digest, so it gives back none of them. Hex runs inside a number, such as the decimals of
+`-9.765625e-05`, are not IDs and stay. Any other hex string stays too, such as a 16-character
+configuration fingerprint, unless it is a commit prefix, a commit-field token or the prefix of
+a replaced digest.
+
+The key is written to `dist/supplement-commit-key.txt` and stays local. The key alone does not
+give back a build's commit pseudonyms, because they are handed out in the sorted order of every
+commit in the object store, and a later commit shifts many of them. Each build therefore writes
+a map beside its archive (`dist/supplement-review.zip` gets
+`dist/supplement-review.commit-map.json`) with the archive's SHA-256, the commit list it drew
+from, and the pseudonym of every commit spelling, commit-field token and digest it replaced.
+Keep that map with the submitted archive for the camera-ready version.
+
+The build fails closed. It deletes the archive it wrote and exits non-zero when any shipped
+name, text or binary member still holds an identity term or an unreviewed image, a token that
+resolves to a commit, or a real digest that should have been replaced, and when a pseudonym
+changes a decimal number or leaves a JSON member that no longer parses or holds a different
+number. The commit scan only knows the commits in the local object store, so the command writes
+nothing and refuses to build an anonymized archive outside a git checkout, from a shallow,
+partial or single-branch clone, when a branch tip on the remote is missing from the object
+store, or when a commit field in a shipped file names a commit the store lacks. Build from a
+full checkout with every branch fetched (`git fetch --unshallow`, then `git fetch`). When the
+remote cannot be reached, the build prints that the branch-tip check did not run and goes on.
+
+Inside an extraction of the 2026-10-16 review archive, built before digests were replaced, the
+full scalar audit passes, with its one check on the film VO and music spec skipped and counted,
+and `python scripts/reproduce.py tables` passes (`docs/SUBMISSION_CHECK_2026-10-16.md`, section
+2a). The full test suite has not yet passed there. The tests of the social-preview card and of
+the web player's beat and brain data skip inside an archive, because it leaves those files out,
+and still fail in a git checkout when a file is missing. One test does not skip yet:
+`tests/test_optional_readouts.py` reads the optional-readout files under `docs/optional/`,
+which the archive does not carry, and fails inside it.
 
 ## Corrections and provenance
 

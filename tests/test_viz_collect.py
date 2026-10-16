@@ -1,6 +1,11 @@
-"""Tests for viz/collect.py pure helpers (no agent bundle, no surrogate training)."""
+"""Tests for viz/collect.py pure helpers (no agent bundle, no surrogate training).
+
+The anonymized supplement ships viz/collect.py but not viz/player/beats.json, so outside a git
+checkout the check on the committed beats skips; in a checkout a missing file still fails.
+"""
 import importlib.util
 import json
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -10,6 +15,17 @@ ROOT = Path(__file__).resolve().parents[1]
 _spec = importlib.util.spec_from_file_location("viz_collect", ROOT / "viz" / "collect.py")
 vc = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(vc)
+
+
+def _in_git_checkout() -> bool:
+    """True when ROOT is the top of a git checkout (an extracted archive placed inside some
+    other repository is still an extracted archive)."""
+    try:
+        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=ROOT,
+                             capture_output=True, text=True).stdout.strip()
+    except OSError:
+        return False
+    return bool(top) and Path(top).resolve() == ROOT
 
 
 def _beats(surv="73%", untr="52%", orac="99%", replay="72%", l0="56%"):
@@ -68,7 +84,10 @@ def test_verify_numbers_fails_when_the_foot_drops_the_l0_reading():
 def test_committed_beats_match_the_corrected_record():
     """The film's numbers, read from the committed beats.json, agree with the committed
     corrected-trainer artifacts. Runs in CI: no agents, no surrogate training."""
-    beats = json.loads((ROOT / "viz" / "player" / "beats.json").read_text(encoding="utf-8"))
+    path = ROOT / "viz" / "player" / "beats.json"
+    if not path.exists() and not _in_git_checkout():
+        pytest.skip("viz/player/beats.json is not shipped in the anonymized supplement")
+    beats = json.loads(path.read_text(encoding="utf-8"))
     vc.verify_numbers(beats, vc.load_record(ROOT))
 
 

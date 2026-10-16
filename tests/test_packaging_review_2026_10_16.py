@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import zipfile
@@ -126,13 +127,29 @@ def _in_checkout() -> bool:
         os.path.normcase(os.path.realpath(ROOT))
 
 
-def _review_build(tmp_path, monkeypatch, limit: int):
+AGENT = b"weights \x00\x01"
+
+
+def _paper(tmp_path) -> str:
+    """A stand-in manuscript source, so the review build's title check has a title to read."""
+    d = tmp_path / "paper"
+    d.mkdir(exist_ok=True)
+    (d / "main.tex").write_text("\\title{Quiet Words In A Row: Another Line Of Words}\n",
+                                encoding="utf-8")
+    return str(d)
+
+
+def _review_build(tmp_path, monkeypatch, limit: int, agent: bytes = AGENT, paper: str | None = "make",
+                  files=("pyproject.toml", "pytest.ini")):
     runs = tmp_path / "runs"
     for b in ("review_a/agents", "review_b/agents", "full_only"):
         (runs / b).mkdir(parents=True)
-        (runs / b / "agent_s0.pt").write_bytes(b"weights \x00\x01")
+        (runs / b / "agent_s0.pt").write_bytes(agent)
     commits = reproduce.commit_ids()
-    note = f'{{"git_commit": "{commits[-1]}", "short": "{commits[-1][:7]}"}}\n' if commits else "{}\n"
+    sha = hashlib.sha256(agent).hexdigest()
+    note = (f'{{"git_commit": "{commits[-1]}", "short": "{commits[-1][:7]}", '
+            f'"upper": "{commits[-1][:7].upper()}", "agent_sha256": "{sha}", '
+            f'"mean": -9.765625e-05}}\n' if commits else "{}\n")
     (runs / "review_a" / "agents" / "note.json").write_text(note, encoding="utf-8")
     old = reproduce.project_name()
     monkeypatch.setattr(reproduce, "RUN_DIRS", ["fullruns/review_a/agents", "fullruns/review_b/agents",
@@ -140,11 +157,12 @@ def _review_build(tmp_path, monkeypatch, limit: int):
     monkeypatch.setattr(reproduce, "REVIEW_RUN_DIRS", ["fullruns/review_a/agents",
                                                        "fullruns/review_b/agents"])
     monkeypatch.setattr(reproduce, "INCLUDE_DIRS", [old])
-    monkeypatch.setattr(reproduce, "INCLUDE_FILES", ["pyproject.toml", "pytest.ini"])
+    monkeypatch.setattr(reproduce, "INCLUDE_FILES", list(files))
     monkeypatch.setattr(reproduce, "REVIEW_LIMIT", limit)
     out = tmp_path / "review.zip"
     rc = reproduce.supplement(str(out), runs_root=str(runs), anon_name="blind" + "pkg",
-                              profile="review", key_path=str(tmp_path / "key" / "k.txt"))
+                              profile="review", key_path=str(tmp_path / "key" / "k.txt"),
+                              paper=_paper(tmp_path) if paper == "make" else paper)
     return rc, out, commits
 
 
@@ -170,10 +188,31 @@ def test_the_review_profile_ships_only_its_bundles_and_says_what_it_leaves_out(t
         assert "leaves out these run bundles" in readme and "`fullruns/full_only`" in readme
         assert "not included" not in readme
         note = z.read("fullruns/review_a/agents/note.json").decode("utf-8")
+        sums = z.read("SHA256SUMS").decode("utf-8")
+        table = json.loads(z.read(reproduce.DIGEST_TABLE_NAME).decode("utf-8")) \
+            if reproduce.DIGEST_TABLE_NAME in names else None
     if commits and _in_checkout():
         h = reproduce.CommitPseudonyms(commits, b"")
         assert commits[-1] not in note and commits[-1][:7] not in note
+        assert commits[-1][:7].upper() not in note           # c2: the uppercase spelling too
         assert h.search(note) is None and "Commit IDs (" in readme
+        rec = json.loads(note)
+        assert rec["upper"] == rec["short"].upper() and rec["mean"] == -9.765625e-05
+        # c42: the recorded digest is a pseudonym; SHA256SUMS keeps the real one; inside the
+        # extracted archive archive_digest() maps the real digest to the recorded pseudonym.
+        sha = hashlib.sha256(AGENT).hexdigest()
+        assert sha not in note and len(rec["agent_sha256"]) == 64
+        assert f"{sha}  fullruns/review_a/agents/agent_s0.pt" in sums
+        assert "SHA-256 digests (" in readme and table is not None
+        ex = tmp_path / "extracted"
+        with zipfile.ZipFile(out) as z:
+            z.extractall(ex)
+        assert reproduce.archive_digest(sha) == sha                        # in the checkout
+        with monkeypatch.context() as mp:
+            mp.setattr(reproduce, "ROOT", str(ex))
+            assert reproduce.archive_digest(sha) == rec["agent_sha256"]
+            assert reproduce.archive_digest_text(f"x {sha} y") == f"x {rec['agent_sha256']} y"
+            assert reproduce.archive_digest("c" * 64) == "c" * 64         # not in the table
         # The map sits beside the archive, not beside the key, and can rebuild the pseudonyms.
         cmap = tmp_path / "review.commit-map.json"
         assert cmap.exists() and not os.path.exists(tmp_path / "key" / "review.commit-map.json")
@@ -182,12 +221,21 @@ def test_the_review_profile_ships_only_its_bundles_and_says_what_it_leaves_out(t
         assert m["archive_sha256"] == hashlib.sha256(out.read_bytes()).hexdigest()
         key = reproduce.commit_key(str(tmp_path / "key" / "k.txt"))
         again = reproduce.CommitPseudonyms(m["commits"], key)
-        assert all(again.full[again.resolves(c)[0]].startswith(p) for p, c in m["pseudonyms"].items())
+        assert all(again.full[again.resolves(c)[0]].startswith(p.lower())
+                   for p, c in m["pseudonyms"].items())
 
 
 def test_the_review_profile_fails_and_removes_an_archive_over_the_limit(tmp_path, monkeypatch):
+    # An earlier archive and its map at the same path: the failed rebuild removes both, so no
+    # map is left naming an archive that is gone.
+    (tmp_path / "review.zip").write_bytes(b"an earlier archive")
+    (tmp_path / "review.commit-map.json").write_text('{"archive": "review.zip"}\n', encoding="utf-8")
     rc, out, commits = _review_build(tmp_path, monkeypatch, 1000)
-    _review_needs_history(rc, out, commits)
+    if reproduce.history_gap(commits):
+        # Refused before writing anything: the earlier pair stays as it was.
+        assert rc == 1 and out.read_bytes() == b"an earlier archive"
+        assert (tmp_path / "review.commit-map.json").exists()
+        pytest.skip("the review build needs a full checkout")
     assert rc == 1 and not out.exists()
     assert not (tmp_path / "review.commit-map.json").exists()
 
@@ -203,10 +251,12 @@ def test_an_anonymized_build_refuses_a_partial_history(tmp_path, monkeypatch):
     build writes nothing: no archive, no key, no map."""
     monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))      # no README_SUPPLEMENT.md here
     assert "not the top of a git checkout" in reproduce.history_gap([])
-    monkeypatch.setattr(reproduce, "_git", lambda args: "true\n" if "--is-shallow-repository" in args else "")
-    assert "shallow clone" in reproduce.history_gap(_ids(3))
-    monkeypatch.setattr(reproduce, "_git", lambda args: "false\n")
-    assert reproduce.history_gap(_ids(3)) is None
+    commits = _ids(3)
+    monkeypatch.setattr(reproduce, "_git", _fake_git(shallow=True))
+    assert "shallow clone" in reproduce.history_gap(commits)
+    monkeypatch.setattr(reproduce, "_git", _fake_git())
+    monkeypatch.setattr(reproduce, "_ls_remote", lambda r: f"{commits[0]}\trefs/heads/main\n")
+    assert reproduce.history_gap(commits) is None
     # An extracted archive carries pseudonyms only, so it may rebuild itself without history.
     (tmp_path / reproduce.README_NAME).write_text("# Anonymized supplement\n", encoding="utf-8")
     assert reproduce.history_gap([]) is None
@@ -219,7 +269,8 @@ def test_an_anonymized_build_refuses_a_partial_history(tmp_path, monkeypatch):
     for profile, flag in (("review", None), ("full", True)):
         out = tmp_path / f"{profile}.zip"
         assert reproduce.supplement(str(out), runs_root=str(tmp_path / "runs"), anon_name="blind" + "pkg",
-                                    profile=profile, key_path=str(key), require_history=flag) == 1
+                                    profile=profile, key_path=str(key), require_history=flag,
+                                    paper=_paper(tmp_path)) == 1
         assert not out.exists() and not key.exists()
         assert not os.path.exists(reproduce.commit_map_path(str(out)))
     # The command line always asks for the history.
@@ -227,6 +278,301 @@ def test_an_anonymized_build_refuses_a_partial_history(tmp_path, monkeypatch):
     monkeypatch.setattr(reproduce, "supplement", lambda out, **kw: seen.update(kw) or 0)
     reproduce.main(["supplement"])
     assert seen["require_history"] is True
+
+
+def _fake_git(shallow=False, partial=False, refspec="+refs/heads/*:refs/remotes/origin/*"):
+    """A stand-in for reproduce._git: a non-shallow checkout with one remote, origin."""
+    def git(args):
+        if "--is-shallow-repository" in args:
+            return "true\n" if shallow else "false\n"
+        if args[:2] == ["config", "--get"] and args[2] == "extensions.partialClone":
+            return "origin\n" if partial else None
+        if args == ["remote"]:
+            return "origin\n"
+        if args[:2] == ["config", "--get-all"]:
+            return refspec + "\n"
+        return None
+    return git
+
+
+# ------------------------------------------------------------------ second review, 2026-10-16
+def test_c3_a_partial_single_branch_or_stale_store_is_refused(tmp_path, monkeypatch):
+    """A non-shallow clone can still lack commits the archive names: a single-branch clone, a
+    partial clone, a store missing a branch tip of the remote, or one in which a commit field
+    names a commit it does not hold. Each is refused, and so is a remote whose branches cannot
+    be listed, since a branch tip the store lacks would then go unseen."""
+    monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))
+    commits = _ids(5)
+    monkeypatch.setattr(reproduce, "_ls_remote", lambda r: f"{commits[1]}\trefs/heads/main\n")
+    monkeypatch.setattr(reproduce, "_git", _fake_git(partial=True))
+    assert "partial clone" in reproduce.history_gap(commits)
+    monkeypatch.setattr(reproduce, "_git", _fake_git(refspec="+refs/heads/main:refs/remotes/origin/main"))
+    assert "single-branch" in reproduce.history_gap(commits)
+    monkeypatch.setattr(reproduce, "_git", _fake_git())
+    assert reproduce.history_gap(commits, {commits[2][:7]}) is None
+    other = hashlib.sha1(b"elsewhere").hexdigest()     # a commit this store does not hold
+    assert other not in commits
+    monkeypatch.setattr(reproduce, "_ls_remote", lambda r: f"{commits[1]}\trefs/heads/main\n"
+                                                           f"{other}\trefs/heads/run/x\n")
+    assert "branch tip" in reproduce.history_gap(commits)
+    monkeypatch.setattr(reproduce, "_ls_remote", lambda r: None)
+    assert "could not be listed" in reproduce.history_gap(commits)
+    monkeypatch.setattr(reproduce, "_ls_remote", lambda r: f"{commits[1]}\trefs/heads/main\n")
+    assert "commit fields" in reproduce.history_gap(commits, {other[:7]})
+
+
+def test_c3_real_clones_single_branch_and_stale_are_refused(tmp_path, monkeypatch):
+    """The same checks on real repositories: a single-branch clone of a two-branch origin, and a
+    full clone that has not fetched a branch pushed after it was made."""
+    def git(cwd, *args):
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+                        "-c", "init.defaultBranch=main", *args], cwd=cwd, check=True,
+                       capture_output=True)
+    try:
+        origin = tmp_path / "origin"
+        origin.mkdir()
+        git(origin, "init")
+        (origin / "a.txt").write_text("a\n", encoding="utf-8")
+        git(origin, "add", "a.txt")
+        git(origin, "commit", "-m", "a")
+        git(origin, "checkout", "-b", "run/x")
+        (origin / "b.txt").write_text("b\n", encoding="utf-8")
+        git(origin, "add", "b.txt")
+        git(origin, "commit", "-m", "b")
+        git(origin, "checkout", "main")
+        url = origin.as_uri()
+        git(tmp_path, "clone", "--single-branch", "--branch", "main", url, "single")
+        git(tmp_path, "clone", url, "full")
+    except (OSError, subprocess.CalledProcessError) as e:
+        pytest.skip(f"git is not usable here: {e}")
+    for name, want in (("single", "single-branch"), ("full", None)):
+        monkeypatch.setattr(reproduce, "ROOT", str(tmp_path / name))
+        commits = reproduce.commit_ids()
+        assert commits, name
+        gap = reproduce.history_gap(commits)
+        assert (gap is None) if want is None else (want in gap), (name, gap)
+    # A branch pushed to the origin after the clone: its tip is not in the clone's store.
+    git(origin, "checkout", "-b", "run/y")
+    (origin / "c.txt").write_text("c\n", encoding="utf-8")
+    git(origin, "add", "c.txt")
+    git(origin, "commit", "-m", "c")
+    assert "branch tip" in reproduce.history_gap(reproduce.commit_ids())
+    git(tmp_path / "full", "fetch", "origin")
+    assert reproduce.history_gap(reproduce.commit_ids()) is None
+
+
+def test_c3_commit_fields_are_pseudonymized_even_when_they_do_not_resolve():
+    commits = _ids(20)
+    stray = "0f" * 20                          # a commit ID this store does not hold
+    assert not reproduce._resolves(commits, stray)
+    text = (f'{{"git_commit": "{stray}", "commits": ["{stray[:7]}"], "padding_fix": "{commits[4][:7]}"}}'
+            f' and commit `{stray[:9]}`; fingerprint "{stray[:16]}"'
+            f', "fingerprint_committed": "{stray[:16]}", "git_sha": "{commits[5][:7]}"')
+    named = reproduce.commit_field_tokens(text)
+    assert {stray, stray[:7], stray[:9], commits[4][:7]} <= named and stray[:16] not in named
+    assert commits[5][:7] not in named          # no "commit" or "head" in the key
+    forced = sorted(t for t in named if not reproduce._resolves(commits, t))
+    h = reproduce.CommitPseudonyms(commits, b"k" * 32, forced=forced)
+    out = h.sub(text)
+    tokens = set(re.findall(r"[0-9a-f]+", out))
+    assert not {stray, stray[:7], stray[:9]} & tokens
+    assert stray[:16] in tokens                # a 16-character fingerprint is no commit field
+    assert h.search(text) is not None and h.search(out) is None
+    assert set(h.forced_mapping.values()) == {stray, stray[:7], stray[:9]}
+
+
+def test_c3_a_build_that_finds_a_resolvable_commit_leaves_no_archive_and_no_map(tmp_path, monkeypatch):
+    commits = reproduce.commit_ids()
+    if not commits:
+        pytest.skip("needs a git checkout")
+    rc, out, commits = _review_build(tmp_path, monkeypatch, reproduce.REVIEW_LIMIT,
+                                     agent=b"weights " + commits[-1][:9].upper().encode() + b"\x00")
+    _review_needs_history(rc, out, commits)
+    assert rc == 1 and not out.exists()
+    assert not (tmp_path / "review.commit-map.json").exists()
+
+
+def test_c2_uppercase_commit_ids_are_replaced_in_their_case_and_found_in_bytes():
+    commits = _ids(30)
+    c = commits[7]
+    text = f"REPRO-{c[:7].upper()} at {c[:7]}, full {c.upper()}"
+    h = reproduce.CommitPseudonyms(commits, b"k" * 32)
+    out = h.sub(text)
+    p7 = h.full[c][:7]
+    assert out == f"REPRO-{p7.upper()} at {p7}, full {h.full[c].upper()}"
+    assert h.search(out) is None and h.search(text).group(0) == c[:7].upper()
+    assert h.mapping[p7.upper()] == c[:7].upper() and h.count() == 1
+    assert reproduce._binary_hits(b"\x00\x01" + c[:8].upper().encode() + b"\xff", [h])
+    assert not reproduce._binary_hits(b"\x00\x01" + p7.upper().encode() + b"\xff", [h])
+
+
+def test_c6_hex_runs_inside_numbers_are_left_alone():
+    """A commit whose prefix reads like the decimals of a number: the number is not rewritten,
+    while the same token standing alone, and an all-digit commit prefix, still are."""
+    frac = "765625e"
+    commits = sorted(_ids(10) + [frac + "0" * 33, "2718281" + "1" * 33, "1765625e" + "2" * 32])
+    h = reproduce.CommitPseudonyms(commits, b"k" * 32)
+    # The commit field is assembled at runtime: this file ships, and a literal commit field
+    # naming no real commit would stop the archive build (history_gap).
+    field = '"git_' + 'commit": "' + "2718281" + '"'
+    text = ('{"mean": -9.765625e-05, "x": 1.2718281, "y": 2718281.5, "z": 1765625e-05, '
+            + field + ', "note": "765625e"}')
+    out = h.sub(text)
+    for num in ("-9.765625e-05", "1.2718281", "2718281.5", "1765625e-05"):
+        assert num in out, num
+    assert field not in out and '"note": "765625e"' not in out
+    assert reproduce.number_guard("a.json", text, out) is None
+    assert json.loads(out)["mean"] == -9.765625e-05
+
+
+def test_c6_the_number_rules_cover_digit_runs_only():
+    """The number contexts excuse a run of digits (with at most an exponent "e"), never a token
+    with another hex letter: a hash-date name or a version suffix is still replaced, and the
+    leak scan, which uses the same pattern, still finds it."""
+    tokens = lambda s: [m.group(0) for m in reproduce._HEX_TOKEN.finditer(s)]   # noqa: E731
+    assert tokens("deadbee-2026") == ["deadbee"]
+    assert tokens("v1.4dead1f3c") == ["4dead1f3c"]
+    assert tokens("abcdef1.5") == ["abcdef1"]
+    for num in ("-9.765625e-05", "1765625e-05", "2718281.5", "0.2718281", "1.234567e10"):
+        assert tokens(num) == [], num
+    commits = sorted(_ids(10) + ["deadbee" + "0" * 33, "4dead1f3c" + "1" * 31])
+    h = reproduce.CommitPseudonyms(commits, b"k" * 32)
+    for text in ("run deadbee-2026", "v1.4dead1f3c"):
+        assert h.search(text) is not None, text
+        out = h.sub(text)
+        assert out != text and h.search(out) is None, text
+
+
+def test_c6_the_number_guard_catches_a_changed_number_or_broken_json():
+    g = reproduce.number_guard
+    assert g("a.json", '{"a": 1}', '{"a": 1}') is None
+    assert "decimal" in g("a.md", "x 9.765625e-05", "x 9.abcdef0e-05")
+    assert "parses" in g("a.json", '{"a": 1234567}', '{"a": 12345f7}')
+    assert "number" in g("a.json", '{"a": 1234567}', '{"a": 7654321}')
+    assert "number" in g("a.jsonl", '{"a": 1}\n{"b": 2}\n', '{"a": 1}\n{"b": 3}\n')
+    assert g("a.json", "not json abcdef1", "not json 1234567") is None    # not JSON before
+    assert g("a.json", '{"k": "abcdef1"}', '{"k": "1234567"}') is None     # strings may change
+    # An all-digit token is rewritten only where something marks it as a commit.
+    for before in ("not json 1234567", '{"k": "1234567"}', "x 1234567 y"):
+        after = before.replace("1234567", "abcdef1")
+        assert "integer" in g("a.md", before, after), before
+        assert g("a.md", before, after, known={"1234567"}) is None, before
+    # The commit contexts are assembled at runtime: this file ships, and a literal one naming no
+    # real commit would stop the archive build (history_gap).
+    word = "com" + "mit"
+    for before in ("at `1234567`.", f"{word} 1234567", f"git_{word} 1234567", f"{word} (`1234567`,",
+                   '{"git_' + word + '": "1234567"}'):
+        assert g("a.md", before, before.replace("1234567", "abcdef1")) is None, before
+    assert "length" in g("a.md", "x 1234567", "x 1234567 y")
+
+
+def test_c6_a_build_whose_pseudonyms_change_a_number_leaves_no_archive(tmp_path, monkeypatch):
+    if not reproduce.commit_ids():
+        pytest.skip("needs a git checkout")
+    monkeypatch.setattr(reproduce, "number_guard",
+                        lambda name, b, a, **kw: "a JSON number changed" if name.endswith("note.json")
+                        else None)
+    rc, out, commits = _review_build(tmp_path, monkeypatch, reproduce.REVIEW_LIMIT)
+    _review_needs_history(rc, out, commits)
+    assert rc == 1 and not out.exists()
+    assert not (tmp_path / "review.commit-map.json").exists()
+
+
+def test_c5_a_review_build_refuses_without_the_manuscript_title(tmp_path, monkeypatch, capsys):
+    """The title pattern used to drop out silently when docs/paper was absent. A review build now
+    refuses to start, writing nothing; an extracted archive, which has no manuscript to check
+    against, only warns."""
+    rc, out, commits = _review_build(tmp_path, monkeypatch, reproduce.REVIEW_LIMIT,
+                                     paper=str(tmp_path / "no-such-paper"))
+    said = capsys.readouterr().out
+    if os.path.exists(os.path.join(ROOT, reproduce.README_NAME)):
+        assert "WARNING: the manuscript title could not be read" in said
+        return
+    assert rc == 1 and not out.exists() and not (tmp_path / "key" / "k.txt").exists()
+    assert "no archive written: the manuscript title could not be read" in said
+
+
+def test_c5_a_full_build_without_the_title_says_so_in_its_readme():
+    readme = reproduce._readme([], "blind" + "pkg", title_checked=False)
+    assert "could not be read where this archive was built" in readme
+    assert "could not be read" not in reproduce._readme([], "blind" + "pkg")
+
+
+def test_c5_the_title_and_subtitle_are_read_from_the_main_checkout_of_a_worktree(tmp_path, monkeypatch):
+    main = tmp_path / "main"
+    (main / "docs" / "paper").mkdir(parents=True)
+    (main / "docs" / "paper" / "main.tex").write_text(
+        "% \\title{Not This}\n\\title{Quiet Words In A Row: Seven \\\\ Long Words"
+        "\\thanks{A note {with} braces.}}\\hypersetup{pdftitle={Quiet Words In A Row: Seven Long "
+        "Words}}\n", encoding="utf-8")
+    wt = tmp_path / "main" / ".worktrees" / "wt"
+    wt.mkdir(parents=True)
+    monkeypatch.setattr(reproduce, "ROOT", str(wt))
+    monkeypatch.setattr(reproduce, "_git", lambda args: str(main / ".git") + "\n"
+                        if "--git-common-dir" in args else None)
+    assert reproduce.paper_source() == str(main / "docs" / "paper" / "main.tex")
+    assert reproduce.paper_titles() == ["Quiet Words In A Row", "Seven Long Words"]
+    pats = reproduce._leak_patterns(None)
+    assert any(p.search("seven long\nwords") for p in pats)
+    # Without pdftitle, the \title line itself, its \thanks and line break dropped.
+    (main / "docs" / "paper" / "main.tex").write_text(
+        "\\title{Quiet Words In A Row: Seven \\\\ Long Words\\thanks{A note {with} braces.}}\n",
+        encoding="utf-8")
+    assert reproduce.paper_titles() == ["Quiet Words In A Row", "Seven Long Words"]
+    # An explicit path wins, and a missing one gives no title rather than another file's.
+    assert reproduce.paper_titles(str(tmp_path / "nowhere")) == []
+
+
+def test_c42_digests_get_same_length_pseudonyms_and_a_lookup_table(tmp_path, monkeypatch):
+    commits = _ids(10)
+    d1 = hashlib.sha256(b"one").hexdigest()
+    d2 = hashlib.sha256(b"two").hexdigest()
+    pad = "0" * 64
+    text = f"a {d1} b {d1[:16]} c {d2.upper()} d {pad} e {d1[:8]}"
+    digests = reproduce.digest_tokens(text)
+    assert digests == {d1, d2}                 # padding is no digest
+    h = reproduce.CommitPseudonyms(commits, b"k" * 32, digests=digests)
+    out = h.sub(text)
+    p1, p2 = h.dfull[d1], h.dfull[d2]
+    assert out == f"a {p1} b {p1[:16]} c {p2.upper()} d {pad} e {d1[:8]}"
+    assert h.digest_count() == 2 and len(p1) == 64 and p1 != d1
+    assert reproduce.CommitPseudonyms(commits, b"k" * 32, digests=digests).sub(text) == out
+    table = h.digest_table()
+    assert table == {reproduce.digest_lookup_key(d1): p1, reproduce.digest_lookup_key(d2): p2}
+    assert d1 not in json.dumps(table) and d2 not in json.dumps(table)
+    # The scan for real digests: any case, names and bytes, nested zips, never SHA256SUMS.
+    path = tmp_path / "a.zip"
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("ok.json", out)
+        z.writestr("bad.bin", b"\x00" + d2.upper().encode() + b"\x00")
+        z.writestr("SHA256SUMS", f"{d1}  ok.json\n")
+    assert reproduce.digest_scan(str(path), {d1, d2}) == ["bad.bin"]
+    # Inside an extracted archive a computed digest maps to the recorded pseudonym, and the
+    # reviewed-image check still accepts the image whose listed digest is a pseudonym.
+    (tmp_path / reproduce.README_NAME).write_text("x\n", encoding="utf-8")
+    (tmp_path / reproduce.DIGEST_TABLE_NAME).write_text(json.dumps({"pseudonyms": table}),
+                                                        encoding="utf-8")
+    monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))
+    assert reproduce.archive_digest(d1) == p1 and reproduce.archive_digest(d2.upper()) == p2.upper()
+    assert reproduce.image_reviewed(b"one", {"fig.png": p1})
+    assert not reproduce.image_reviewed(b"one", {"fig.png": d1})
+
+
+def test_c42_the_review_archive_carries_no_tracked_digest(tmp_path, monkeypatch):
+    """Every 64-character digest a tracked file holds is a search key for the public repository;
+    in the review archive only SHA256SUMS may hold one."""
+    if not reproduce.tracked_digests():
+        pytest.skip("needs a git checkout with digests in tracked files")
+    files = ["pyproject.toml", "docs/REPRODUCE.md", "artifacts/surrogates/index.json"]
+    rc, out, commits = _review_build(tmp_path, monkeypatch, reproduce.REVIEW_LIMIT, files=files)
+    _review_needs_history(rc, out, commits)
+    assert rc == 0
+    tracked = reproduce.tracked_digests()
+    assert reproduce.digest_scan(str(out), tracked) == []
+    with zipfile.ZipFile(out) as z:
+        index = json.loads(z.read("artifacts/surrogates/index.json").decode("utf-8"))
+        assert index["files"] and all(len(m["sha256"]) == 64 and m["sha256"] not in tracked
+                                      for m in index["files"].values())
 
 
 def test_the_review_limit_is_100_mb_and_the_profiles_differ():

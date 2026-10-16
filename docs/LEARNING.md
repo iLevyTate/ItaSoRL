@@ -660,11 +660,16 @@ Then the fixed creatures went through four new tests, and each one narrowed the 
   within about four steps. Zero the brain and keep the body, and 0.662 remains. The
   common garden of Act 7's era was reading where the body ended up, how fast it moved,
   and how much energy it had.
-- *Coherent fakes get caught, learned or not.* A hand-written drag law, smooth and
+- *A hand-written drag gets caught too.* A hand-written drag law, smooth and
   consistent, of the same per-step size as the white jitter of Act 8, is read at 0.754
-  by a fresh probe and at 0.721 by the direction learned on the forger. White jitter is
-  read by nobody. The creature reads physics that are consistently off, whoever wrote
-  them.
+  by a fresh probe and at 0.721 by the direction learned on the forger. An untrained
+  brain already reads that drag at 0.612, outside the 0.1 tolerance, so the margins over
+  it, +0.142 and +0.109, are the fair comparison. White jitter is read by nobody. So
+  learnedness is not what the creature reads. What it does read is still open: the
+  correlated-jitter sweeps of FINDINGS 22.3 do not show that "consistently off" is the
+  answer. The drag and the forger share one thing the jitter lacks:
+  how far each pushes the body depends on how fast the body is already moving. That is a
+  lead, not a measured mechanism (note 2026-10-16).
 
 With more practice the gap narrows but holds. At 450 updates the creature without the
 imagination job reads 0.685, and the one with it 0.821, while both collect about the

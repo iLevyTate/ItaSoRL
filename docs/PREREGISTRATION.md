@@ -168,3 +168,17 @@ raw metrics in `expB2_results.json`. Published confirmatory copies live in
   "asks whether incidental encoding now emerges" clause and states the conjecture directly.
   None of these changed a number, a rule, a gate or a verdict. The same commits are listed
   for `docs/PREREGISTRATION_L3.md` in its 2026-10-10 entry.
+- **2026-10-16 - H_B2 IS APPLIED TO L1 RUNS IT WAS NOT REGISTERED FOR (a record; no rule,
+  number or verdict changes).** This document registers H_B2 for the L2 run only (section 11),
+  yet three rule-ledger rows read L1 runs under rules frozen for other runs. `L1-PRIMARY`
+  applies H_B2 (sections 6 and 8) to the historical L1 organism run. No L1 rule existed before
+  that run: the 2026-07-21 H2 spec lists it only as the deferred A3 positive control, with no
+  estimand, gate-0 rule or decision rule, and the L1 code, the Δ = 0.023 gate-0 selection, the
+  σ_o noise comparator and the result were first committed together in `01e88e4`
+  (2026-07-25), while the historical cells record `8a71593`, which has no L1 drift mode.
+  `L1-CORRECTED` names H_B2 as the rule the historical run was read under, so the corrected
+  rerun inherits a rule applied after the fact. `NOISE-KNOCKOUT-L1` applies the channel-1
+  positive rule of the 2026-07-22 spec, whose only mention of L1 is that it does not collide
+  with it. Each borrowed rule was applied with its thresholds unchanged: H_B2 for `L1-PRIMARY`
+  and `L1-CORRECTED`, the channel-1 rule (0.65 bar, untrained floor plus 0.05) for
+  `NOISE-KNOCKOUT-L1`. `docs/CORRECTIONS.md`, 2026-10-16, and FINDINGS 14.7.

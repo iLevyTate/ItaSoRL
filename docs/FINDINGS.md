@@ -47,16 +47,23 @@ same partition, so the L1 negative below does not depend on the trainer defect. 
 confirmation, `B1` and `B2`, ran on the corrected trainer and is UNINFORMATIVE, because the
 untrained arm reads 0.614 (section 21).)*
 
-**Hand-authored flaws (L1, L2) did not meet the registered encoding criterion.** A
+**Hand-authored flaws (L1, L2) did not meet the encoding criterion** (H_B2, registered for L2
+and applied to L1 after its run; `docs/CORRECTIONS.md`, 2026-10-16). A
 detector that knows the true rules finds the L2 drifting coefficient almost perfectly from
 nearly noiseless inputs (AUROC ≈ 0.99 in Experiment A's diagnostic configuration), yet the
-prediction-only agent's state stays near chance across readout channels (sections 3, 4),
+prediction-only agent's state stays near chance across readout channels (sections 3, 4;
+its world model received each action one step late, so that arm was a weaker predictor than
+designed, `docs/CORRECTIONS.md` 2026-10-16),
 and the survival-coupled variant reaches 0.610 against the 0.65 bar (section 9). Given the
 L3 gate's input noise, the same detector reads the L2 flaws at 0.62 to 0.65 (section 15),
 so L2 was the weaker flaw. The detectability-matched contrast is L1: at an in-band
 observation-quantization grid (Δ = 0.023, detector 0.873) the survival agent's pooled
 target is **0.533**, with 0 of 10 seeds at 0.65 (section 14.7); rerun on the corrected trainer
 it reads 0.551, 0 of 10 (22.1).
+*(Note 2026-10-16: for L1 the criterion is H_B2, frozen on 2026-06-28 for the L2 run and
+applied unchanged to the historical L1 run after it ran. No L1 rule was registered before that
+run, and its code was first committed together with its result. `docs/CORRECTIONS.md`,
+2026-10-16.)*
 
 **A learned-law flaw (L3) met its decodability clauses at 0.733 under one training protocol
 (corrected, section 17); the registered rule as a whole is not met, because the L0 gate is
@@ -88,17 +95,20 @@ What the corrected agents show about that result:
   objective at matched input; "survival-specific" is withdrawn.
 - **Budget.** Decodability rises with training. Without the decoder the arm reaches 0.685
   at 450 updates; at that budget the decoder arm reads 0.821 at about equal return (17.10).
-- **Controls.** After the per-timestep behavior control 0.723 remains; the best-fitting
-  nonlinear control over observations, actions, and behavior leaves 0.620, under the bar.
+- **Controls.** After the per-timestep behavior control 0.723 remains; the nonlinear control
+  over observations, actions, and behavior, which fits best in the fixed-penalty battery,
+  leaves 0.620, under the bar.
   A decoder of the observation and action stream reads 0.724, and summary features of the
   observation trace alone read 0.715 (17.8).
 - **Memory.** Under identical input the prefix condition fades within a few steps; with the
   recurrent state zeroed, the physical footprint of the prefix still reads 0.662 (17.7).
 - **Learnedness.** A hand-authored, temporally coherent drag of the same one-step size as
   the Gaussian comparator is read through the original direction (0.721) and by a fresh
-  probe (0.754); white jitter is read by no arm (17.9). *(Note 2026-10-16: autocorrelated
+  probe (0.754, against an untrained floor of 0.612 that sits outside the gate-0 tolerance,
+  margins +0.109 and +0.142); white jitter is read by no arm (17.9). *(Note 2026-10-16: autocorrelated
   jitter does not reach the bar either, at matched one-step size, at matched stationary offset, or at a
-  matched 24-step deviation, where coherence moved the margin by less than 0.05 (22.3). What the
+  matched 24-step deviation, where coherence did not raise the margin (22.3; with the gaps matched
+  exactly the contrast misses the 0.05 equivalence band by 0.001). What the
   drag shares with the learned law is that its deviation depends on the agent's own velocity; no
   mechanism is claimed.)*
 
@@ -151,9 +161,9 @@ substrate). Detection is measured against a **surrogate ladder**:
 | Rung | Nature of the artifact | Status |
 |------|------------------------|--------|
 | L0 | Identical re-implementation (control, must be at chance) | tested |
-| L1 | Observation discretization (a lattice / quantization tell) | tested (survival did not meet the registered encoding criterion at in-band Δ=0.023: 0.533; section 14.7) |
+| L1 | Observation discretization (a lattice / quantization tell) | tested (survival did not meet the encoding criterion registered for L2 (H_B2), applied unchanged, at in-band Δ=0.023: 0.533; section 14.7) |
 | L2 | Rollout drift (a slowly drifting dynamics coefficient) | tested |
-| L3 | Learned world-model surrogate (a generative fingerprint) | tested. Corrected trainer (section 17): `C1` **0.733** [0.669, 0.797] met the decodability clauses, and the L0 authentic-versus-authentic gate is **open** on the registered world pair (0.559, TOST p 0.939) while equivalent to chance on the pooled test across eight independent pairs (TOST over pairs p 0.022), with the gate accepting on two of the eight draws individually (17.5); the best-fitting behavior and sensory control leaves **0.620**, under the bar (17.8); at matched input a prediction-trained trunk reads the same streams within about 0.01 of the survival trunk (17.6); the common-garden tail is carried mostly by the prefix's physical footprint, and retention under identical input is not shown (17.7). Historical trainer, as recorded: (positive at the registered 300-update budget with the next-observation auxiliary, n=10; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
+| L3 | Learned world-model surrogate (a generative fingerprint) | tested. Corrected trainer (section 17): `C1` **0.733** [0.669, 0.797] met the decodability clauses, and the L0 authentic-versus-authentic gate is **open** on the registered world pair (0.559, TOST p 0.939) while equivalent to chance on the pooled test across eight independent pairs (TOST over pairs p 0.022), with the gate accepting on two of the eight draws individually (17.5); the behavior and sensory control that fits best in the fixed-penalty battery leaves **0.620**, under the bar (17.8 and its 2026-10-16 note); at matched input a prediction-trained trunk reads the same streams within about 0.01 of the survival trunk (17.6); the common-garden tail is carried mostly by the prefix's physical footprint, and retention under identical input is not shown (17.7). Historical trainer, as recorded: (positive at the registered 300-update budget with the next-observation auxiliary, n=10; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
 | L4 | Adversarially-hardened surrogate | not started |
 
 Three experiments were planned. This cycle completed Experiment A for L1 and L2
@@ -260,6 +270,17 @@ k-step rerun log by `scripts/promote_ab_summaries.py` - with one exception: the
 3.4 engagement figures, see the 2026-07-18 correction note there. The two figures of this
 section were drawn from a different run until 2026-10-10; see the figure provenance note at
 the head of section 2.)*
+
+*(Note 2026-10-16, after the critical review: the world model of 3.1 to 3.4 received each
+action one step late. `experiment_b.collect_episodes` records each observation after the step
+that produced it, and `RecurrentWorldModel` scores its prediction from the pair (O[t], A[t])
+against O[t+1], which A[t+1] produces, so every next observation is predicted without the
+action that causes it. `forward_rollout`, the open-loop path of 3.3 and 3.4, pairs them the same
+way. The prediction-only arm was therefore a weaker predictor than designed. The
+prediction-error channel of 3.2 and the open-loop horizons of 3.3 are the most exposed; the
+state probe of 3.1 still saw the full observation and action history. The effect on any number
+here has not been measured, and every number and verdict stays as recorded.
+`docs/CORRECTIONS.md`, 2026-10-16.)*
 
 **The apparatus.** A compact recurrent world model (RSSM-lite: encoder → GRU →
 next-observation decoder) trained **only** to predict its own sensory stream. It
@@ -419,6 +440,10 @@ Three things explain the gap:
    which self-supervised prediction does not force into the representation. And,
    empirically, even a *verified-engaged* open-loop objective did not change this
    (§3.4).
+   *(Note 2026-10-16: this explanation is confounded. Both the one-step and the open-loop
+   objective paired each observation with an action one step late (note at the head of
+   section 3), so neither objective was the one designed, and the open-loop check does not
+   isolate locality. `docs/CORRECTIONS.md`, 2026-10-16.)*
 3. **Readout-not-reward, as a hypothesis.** The tested objectives did not require
    the distinction, and the state did not meet the registered encoding criterion.
    That is consistent with the principle that what no objective requires the agent
@@ -463,13 +488,17 @@ inducing it (if possible) requires something more deliberate.
   the next-observation auxiliary, at the registered 300-update budget, above the
   predictor and untrained arms, and the signal that remains after controlling for the
   named behavior channels   clears the registered bar. Corrected-trainer results: section 17, where `C1` reads 0.733
-  on the decodability clauses with the L0 gate open (17.4), the best-fitting control leaves
-  0.620 under the bar (17.8), and at matched evaluation input a prediction-trained trunk reads
-  the survival agent's own streams within about 0.01 of the survival trunk, so the margin is a
-  difference between training regimes and not of objective (17.6). The condition that flips
+  on the decodability clauses with the L0 gate open (17.4), the best-fitting control of the
+  fixed-penalty battery leaves 0.620 under the bar (17.8), and at matched evaluation input a
+  prediction-trained trunk reads the survival agent's own streams within about 0.01 of the
+  survival trunk, so the margin is a difference between training regimes and not of objective
+  (17.6). The condition that flips
   the result is a coherent, state-dependent dynamics difference (17.9), not probe power,
   capacity, or objective horizon; why trunks keep more of it from the survival policy's
   streams than from scripted ones is not measured (17.6; sentence revised 2026-10-10).
+  *(Note 2026-10-16: 22.3 does not show coherence to be the property read. What the
+  hand-authored drag and the learned law share is a deviation that depends on the agent's own
+  velocity, a lead and not a measured contrast, and no mechanism is claimed.)*
   A held-out probe (section 10.6)
   qualifies the *nature* of the encoding: it transfers to a capacity variant of
   the training fingerprint (same recipe, seed, and training data - robustness
@@ -509,16 +538,16 @@ inducing it (if possible) requires something more deliberate.
   at matched one-step size IS read through the same direction (transfer 0.721, fresh
   0.754) while white jitter is not, so what the tested classes separate on is temporal
   coherence, not learnedness. *(Note 2026-10-16: 22.3 does not support coherence as the property
-  read. At a matched 24-step deviation coherence moved the margin by less than 0.05; the drag and
+  read. At a matched 24-step deviation coherence did not raise the margin; the drag and
   the learned law share a deviation that depends on the agent's own velocity, and no mechanism is
   claimed.)* The survival-specificity reading is withdrawn
   (17.6). The same
   H2 battery on the L1 discretization rung (section 14.7) finds that survival does
-  **not meet the registered encoding criterion** at the matched in-band grid (0.533), so L1 does not
-  reproduce the L3 positive. H2 at L1 is therefore negative at the registered bar: the
-  survival mean sits above chance and below 0.65 (14.7), which is not the at-chance reading
-  a strengthened negative needs (revised 2026-10-10; it had called the result a strengthened
-  negative).
+  **not meet the encoding criterion registered for L2 (H_B2)**, applied unchanged at the
+  matched in-band grid (0.533), so L1 does not reproduce the L3 positive. H2 at L1 is
+  therefore negative at the registered bar: the survival mean sits above chance and below
+  0.65 (14.7), which is not the at-chance reading a strengthened negative needs (revised
+  2026-10-10; it had called the result a strengthened negative).
 - **H3 (emergence under selection).** Not answered: the contrast is flat and the
   registered verdict is **uninformative** (section 13.F). The first pilot's
   recorded null was **invalidated** (section 13.C): the run executed on pre-fix
@@ -1921,10 +1950,10 @@ Stated once, plainly, with pointers into the code.
    sensory-plus-behavior control leaves 0.670. **A nonlinear (MLP) joint control leaves 0.654 [0.621, 0.687],
    rule passing at the mean (2026-09-28, 10.4.2 addendum).** All of those are historical-trainer
    readings. On the corrected agents the battery is wider and each control reports how well its
-   basis fits the state (**17.8**): the best-fitting control, a 64-unit MLP on observations,
-   sensory traces, actions and the behavior trace, explains 89% of held-out state variance and
-   leaves **0.620**, under the bar, and a decoder of the observation and action stream
-   reads 0.724.
+   basis fits the state (**17.8**): the control that fits best in that fixed-penalty battery,
+   a 64-unit MLP on observations, sensory traces, actions and the behavior trace, explains 89%
+   of held-out state variance and leaves **0.620**, under the bar, and a decoder of the
+   observation and action stream reads 0.724.
    The phrase "behavior-independent" is retired for that reason.
 8. **Cross-validation folds depended on the software stack (found 2026-09-28;
    re-scored 2026-09-29).** Every grouped probe splits episodes with a 5-fold
@@ -2280,7 +2309,9 @@ readings remain open, and the sweep discriminates against only one of them:
    through a richer task and controller rather than through food geometry.
 2. A persistent, heritable detector is simply not needed. Because the world is
    continuously re-observable, the reactive detection the gen-0 population already
-   has (the reactive reading established in sections 6 and 10) captures the
+   has (the reactive reading as recorded at the time in sections 6 and 10; note
+   2026-10-16: the common-garden part of that reading was re-scored in 10.6.1, where the
+   frozen rule passes, and re-read on the corrected agents in 17.7) captures the
    available fitness, and selection has no gradient toward storing world identity.
    On this reading the pilot null is the scientific result, not a design artifact to
    engineer away.
@@ -2993,6 +3024,14 @@ below the 0.65 bar, with 0 of 10 seeds at the bar (relabeled 2026-10-10; it had 
 oracle-detectable L1 artifact leaves no decodable world-identity trace in the survival
 state"). This parallels the L2 "detectability ≠ encoding" negative and contrasts with
 the L3 positive.
+*(Note 2026-10-16, after the critical review: no rule was registered for this run before it
+ran. The 2026-07-21 H2 spec lists it only as the deferred A3 positive control, with no estimand,
+gate-0 rule or decision rule. H_B2 was frozen on 2026-06-28 for the L2 run
+(`docs/PREREGISTRATION.md`, which names L2 only) and was applied unchanged to this run after it
+ran; the Δ = 0.023 gate-0 selection, the σ_o comparator and the L1 code were first committed
+together with the result (`01e88e4`, 2026-07-25). The criterion is therefore borrowed and
+applied post hoc, not registered for L1. The numbers and the not-met reading stand.
+`docs/PREREGISTRATION.md` deviation log and `docs/CORRECTIONS.md`, 2026-10-16.)*
 
 **A1 graded-seam (Δ ladder).** Integrity gate bit-matches saved pools and
 reproduces the headline survival mean **0.533**. Survival means across
@@ -3005,6 +3044,13 @@ noise: survival **0.525**, untrained **0.509**, predictor **0.516**. The frozen
 positive rule fails both clauses (`H2_SUPPORTED` by the L3 decision table), but
 this is vacuous given the null primary encoding - there is no structured
 world-identity direction to mis-read onto noise.
+*(Note 2026-10-16, after the critical review: the knockout pool did not use the calibrated
+comparator's noise draw. `scripts/run_l1_h2_ablations.py` builds a new `LObsNoise` wrapper for
+every surrogate episode and reseeds it to Philox(970000 + agent seed), and nothing reseeds it
+per episode, so all surrogate episodes of a seed carry one identical noise sequence: iid in
+time within an episode, identical across episodes. The gate-0 calibration of σ_o drew fresh
+noise for each pair. The 0.525, 0.509 and 0.516 stand as recorded, and the effect of the shared
+draw has not been measured. `docs/CORRECTIONS.md`, 2026-10-16.)*
 
 **A2 observation-channel localization.** Baseline (no mask) reproduces 0.533.
 Masking interoception stays at chance (~0.51). Masking all observations collapses
@@ -3089,7 +3135,8 @@ what a reader of its capacity extracts, and that a differently shaped reader can
 same stream than any of these agents hold. The L1 case therefore becomes a materially
 stronger leg of the sufficiency argument than it was, and the limitation recording that the stream
 had been measured on the corrected L3 agents only is discharged. The L1 run's own adjudication
-(the registered encoding criterion not met) stands exactly as recorded.
+(the encoding criterion registered for L2 (H_B2), applied unchanged, not met) stands exactly
+as recorded.
 
 *(Note 2026-10-11: the open question is measured, on the same thirty cells (20.9; spec amendment
 of 2026-10-11). GRU readers at 2, 4 and 8 times the trunk's width read the survival agents' own
@@ -3149,8 +3196,9 @@ change.
 3. The claim that detectability is not sufficient for incidental encoding
    survives on the matched comparisons the project does have: the L1 seam at
    the in-band grid (oracle 0.873 at the organism's own sensor noise, section
-   14.7) did not meet the registered encoding criterion (survival 0.533), and the
-   unstructured comparator G_gn at 0.865 in the L3 band (section 14.5) is not read by
+   14.7) did not meet the encoding criterion registered for L2 (H_B2), applied unchanged
+   (survival 0.533), and the unstructured comparator G_gn at 0.865 in the L3 band
+   (section 14.5) is not read by
    the original world-identity direction (0.539; no fresh probe was fit on it). The L2 negative remains a negative against a noiseless
    oracle (1.000) and against the agent's own interoception, which carries exact
    velocity; but the graded curve above and the dose-response ladder of section
@@ -3841,6 +3889,16 @@ state, and they are reported without interpretation. The control that fits best,
 map from the current and previous observation, slow sensory traces, the actions, and the
 behavior trace, explains 89% of held-out state variance and leaves **0.620** [0.584, 0.656]:
 above the untrained arm by about 0.13 and under the registered bar.
+*(Note 2026-10-16, after the critical review: "fits best" holds within this battery at its
+recorded ridge penalty of 0.001. The optional sensitivity readout O2
+(`docs/optional/README.md`, `docs/optional/o2_long_history_ridge.json`) refits the two
+long-history bases with the penalty chosen inside each outer training fold. They then fit
+held-out states better than the MLP (R² 0.906 and 0.909 against 0.887) and leave 0.737
+[0.690, 0.785] and 0.691 [0.650, 0.732] on the survival arm, so the better-fitting linear
+controls remove less, not more. O2 ran on the survival arm of `C1` only, on CUDA, with no
+untrained or predictor floor, so it is a sensitivity reading beside the table and replaces no
+row of it. The two failed fits above are not readings under the bar. The recorded values and
+every verdict stand. `docs/CORRECTIONS.md`, 2026-10-16.)*
 
 The sequence readouts put a number on what 17.6 implied. A decoder given only the survival
 agent's observation and action stream, with no access to its state, reads the world at 0.724,
@@ -3874,7 +3932,8 @@ committed artifact.
 | the residual the best-fitting control leaves (64-unit MLP) | +0.113 [+0.065, +0.161] | 0.980 |
 
 By this test the state reads the same as either stream decoder to within 0.05. It reads 0.113
-above what the best-fitting control leaves, and that difference is not within 0.05.
+above what the best-fitting control of the fixed-penalty battery leaves, and that difference
+is not within 0.05.
 
 *(Note 2026-10-11: two post-review readouts on the `C1` rerun's agents bear on this section.
 R31 (20.8) widened the stream decoder to 2, 4 and 8 times the trunk's width on fresh worlds. No
@@ -3976,6 +4035,12 @@ amendment alone did. Two cautions: `qd` and `gn` are matched on one-step RMS, no
 detectability, and `qd` was not calibrated through gate 0 (no eps passed), so its larger
 untrained floor (0.612) means part of its signal is felt by any recurrent state.
 
+*(Note 2026-10-16: 22.3 does not show temporal coherence to be the property read, so the
+sentence above that the tested classes separate on temporal coherence is not supported as a
+mechanism. What `qd` and the learned law share, and white jitter lacks, is a deviation that
+depends on the agent's own velocity; that is a lead and not a measured contrast, and no
+mechanism is claimed. The readings of this section stay as recorded.)*
+
 ### 17.10 The auxiliary result against the training budget (revision step 11)
 
 Each corrected survival agent was trained to 450 updates, and frozen copies after 100, 200,
@@ -4058,6 +4123,13 @@ the final treatment populations (corrected 2026-10-10 from 0.535 to 0.539;
 UNINFORMATIVE, so the result stays restricted to the pooled readout (13.E).
 Per 17.7, this common-garden tail is carried mostly by the physical footprint, so the
 validation concerns the estimator, not memory.
+*(Note 2026-10-16, after the critical review: the pooled probe here is `cg_probe`, which groups
+its cross-validation folds by pooled row, the grouping 13.F's third note describes for
+Experiment C. Every agent runs its pairs on the same world seeds (base 930000), so one world
+seed's pairs from two agents can land in different folds. `C1`'s agents were trained
+independently, so this readout cannot test the leak that 13.F expects to grow with
+relatedness. The recorded 0.609 and 0.536 are not regrouped. A rerun should group pooled
+rows by world-seed index. `docs/CORRECTIONS.md`, 2026-10-16.)*
 
 **Value of world information on the corrected policies.** With the authentic-trained and the
 surrogate-trained policy of each `C1` seed, the matched assignment minus the better single
@@ -4099,9 +4171,9 @@ populations.
    only to predict reads the world within about 0.01 of the survival trunk (0.721 and, at
    matched training data, 0.738, against 0.733). The survival policy's trajectories carry the
    difference; a trunk shaped by next-observation prediction keeps it (17.6, 17.10).
-4. **The controls name what they remove.** The best-fitting nonlinear control leaves 0.620,
-   under the bar, and a decoder of the observation and action stream reads 0.724; the state
-   carries about what its own input stream carries (17.8).
+4. **The controls name what they remove.** The nonlinear control that fits best in the
+   fixed-penalty battery leaves 0.620, under the bar, and a decoder of the observation and
+   action stream reads 0.724; the state carries about what its own input stream carries (17.8).
 5. **The common garden reads the body, not memory.** Retention under identical input lasts
    a few steps; with memory zeroed the prefix condition still reads 0.662 (17.7).
 6. **Nothing here is specific to learned dynamics.** A hand-authored, temporally coherent
@@ -4927,8 +4999,8 @@ times the trunk's width extracts no more than one of the trunk's width, so the d
 the state (0.552) and the summary-feature reader (0.795) belongs to the reader's shape. The conv
 reader, which the label does not use, reads 0.667 from the survival streams and 0.652 and 0.655
 from the predictor's and the untrained agents' streams. All three means sit above the L1 spec's
-0.65, and no interval excludes it. The L1 run's adjudication (registered encoding criterion not
-met) stands as recorded.
+0.65, and no interval excludes it. The L1 run's adjudication (the encoding criterion registered
+for L2 (H_B2), applied unchanged, not met) stands as recorded.
 
 ### 20.10 Readouts on the `C2-rerun` agents
 
@@ -5551,8 +5623,9 @@ code or number); `artifacts/texture/ar_sweep_c/`. Sweep B matched a stationary q
 24-step readout does not reach, and its AR process ran across episode boundaries. Sweep C fixes
 both: each episode draws its AR state afresh from the stationary distribution (family `arc`, seed
 bases 2500000 and 2550000), and sigma is set at each rho so the measured 24-step open-loop velocity
-gap equals sweep A's rho = 0.9 value, 0.1150. Every point was measured within 0.0001 of it, so no
-point needed the one recalibration step the spec allows. Same agents, probe and fresh-probe readout
+gap equals sweep A's rho = 0.9 value, 0.1150. The run recorded every point within 0.0001 of it, so
+no point took the one recalibration step the spec allows; that measurement ran with the per-episode
+draw inactive (2026-10-16 note below). Same agents, probe and fresh-probe readout
 as sweeps A and B.
 
 | rho | sigma | lag-1 | one-step RMS | 24-step gap | survival fresh | M, survival minus untrained |
@@ -5565,8 +5638,7 @@ as sweeps A and B.
 | 0.99 | 0.00823 | 0.964 | 0.0110 | 0.1150 | 0.579 [0.552, 0.606] | +0.075 [+0.041, +0.110] |
 
 The contrast, M at rho 0.99 minus M at rho 0, is +0.009 [-0.027, +0.045]. Reading 2 is met: the
-interval lies inside [-0.05, +0.05], so at a matched 24-step deviation coherence moved the margin by
-less than 0.05 in either direction. Reading 1 (lower bound above zero) is not met, so reading 3 is
+interval lies inside [-0.05, +0.05]. Reading 1 (lower bound above zero) is not met, so reading 3 is
 not met either. No point is kept: survival fresh stays at 0.568 to 0.598, under 0.65 at every rho.
 The direction fit on the learned law transfers at 0.427 to 0.444.
 
@@ -5579,6 +5651,31 @@ three finished points recorded an absolute agents path; the sweep was relaunched
 `5f2ca71` with a repo-relative label and a resume check that reads the point files' own fields, and
 its six points record that commit. The summary was rewritten at `5f7ed93` to record its command
 line with relative paths; its values are identical.
+
+*2026-10-16 correction (after the critical review):* the calibration (`profile` in
+`scripts/run_ar_sweep_c.py`) wrapped its gap measurement in the per-episode draw, but that draw
+patches only the world constructor the readouts use, and the measurement builds its worlds and
+calls the family directly. The process therefore ran on across the calibration episodes, the
+measured gap equaled sweep A's value scaled by sigma, and "within 0.0001" held by construction.
+For `G_ar` the gap from a stationary start is exact in closed form, sigma * sqrt(2 w'Cw) with
+w_t = 0.925^(23 - t) and C_ij = rho^|i - j|. The shared point (rho 0.9 at sweep A's sigma) reads
+0.1175, and the six recorded settings read 0.1162, 0.1163, 0.1163, 0.1175, 0.1195 and 0.1267: rho
+0.95 and 0.99 sit 1.6 and 7.8 percent above the shared point. A follow-up
+(`scripts/run_ar_sweep_c_followup.py`, `artifacts/texture/ar_sweep_c_followup/`) reruns those two
+points at the sigma that matches 0.1175 exactly:
+
+| rho | sigma | 24-step gap (exact) | survival fresh | untrained fresh | M |
+|---|---|---|---|---|---|
+| 0.95 | 0.00869 | 0.1175 | 0.572 | 0.512 | +0.060 [+0.015, +0.105] |
+| 0.99 | 0.00763 | 0.1175 | 0.563 | 0.514 | +0.049 [+0.016, +0.081] |
+
+With the stored rho = 0 point, M(0.99) - M(0) is -0.017 [-0.051, +0.016]: reading 3 (neither),
+the lower bound 0.001 outside the margin unit. The frozen result above stays as recorded; the
+follow-up stands beside it. Read together, coherence did not raise the margin at a matched 24-step
+deviation, and equivalence within 0.05 is not shown once the gaps are matched exactly. Every agent
+seed and arm meets the same per-episode jitter paths (seeded from the pool base and the episode
+index, with no agent-seed term), so the seed-level intervals of both are conditional on one jitter
+realization as well as on the evaluation-world draw (`docs/CORRECTIONS.md`, 2026-10-16).
 
 ## 23. Four readouts on the saved C1 and C2 agents: how loud the world is, what of its own world the state keeps, whether the decoded direction is used, and what develops (2026-10-15)
 
@@ -5674,7 +5771,17 @@ Reading 1 is not met on any of I1 to I3: survival minus untrained state R square
 survival residual upper bounds +0.002, +0.004, +0.001 (`C2`: +0.003, +0.004, +0.001). The ladder
 reads -0.002 [-0.004, +0.001] on `C1` and -0.002 [-0.004, -0.001] on `C2`, not met. The echo reads
 I1 to I3 at least as well as the state on both runs; on `C1` it also does so for N3, and on `C2`
-for all six. The permuted-target clause passes on both runs.
+for all six. On `C1` the state reads far water and far roughness slightly above the echo (mean
+R squared 0.0996 against 0.0969, and 0.1181 against 0.1043), so reading 4 ("carried by the
+senses") is false for those two features and true for the other four; the residual beyond the
+senses stays at -0.001 and +0.000 for them. These are comparisons of means, as the runner
+computes reading 4, with no test attached. The permuted-target clause passes on both runs.
+
+*(Note 2026-10-16, after the critical review: the spec names a secondary protocol, each arm's
+own episodes on the same seeds. It was not run. The runner replays the survival agent's recorded
+episodes through every arm, and no amendment dropped the secondary. Every reading above is on
+that replayed input. An own-episode pass run now would be a new readout chosen after these
+numbers were seen, so it could change no reading or label.)*
 
 **Label: keeps nothing beyond the senses**, on both runs. The label's literal content is that no
 near feature met both clauses of reading 1. It does not say the state keeps nothing of its world:
@@ -5746,8 +5853,13 @@ the behavior gap no more than a sham, and on every attempted episode the return 
 per seed within one episode of the sham in either direction. Whether the decoded direction is
 used in episodes that removal ends early is not tested by the common-survivor readings; the
 population contrasts bound it: removal neither ended measurably more episodes than the sham nor
-lowered return measurably across all of them. The population lines are descriptive, with no
-pre-stated reading (third amendment). The refit reading
+lowered return measurably across all of them. The population lines are post hoc and
+descriptive, with no pre-stated reading: they were defined after the first full run, which
+scored common survivors only, had been read (2026-10-15 note below). *(Wording corrected
+2026-10-16: this sentence cited a "third amendment", which the erasure spec did not contain
+when the population lines were added; the third amendment of 2026-10-15 belongs to the
+world-features spec of 23.2.
+`docs/CORRECTIONS.md`, 2026-10-16.)* The refit reading
 says a rank-two removal leaves world identity recoverable at 0.747 elsewhere in the state, above
 the bar, so the test bounds what the decoded direction carries, not what the state carries.
 
@@ -5807,6 +5919,33 @@ memoryless nonlinear function of the current observation can read high after thi
 beyond the named linear basis. In both runs the probe
 direction keeps turning while the reading grows, and transfer from the 300-update direction holds
 above 0.65 at 450.
+
+**The walk held fixed (added 2026-10-16, after the critical review).** The spec puts a matched-input
+column beside the own-episode target: the 300-update agent's recorded episodes replayed through
+every snapshot of the same seed, with the target read on the replayed states. The runner
+computed it (`replay_target` in `summary.aggregate` of both artifacts) and this section had left
+it out. It is descriptive; the spec states no reading for it.
+
+| updates | `C1` target, own episodes | `C1` target, walk held fixed | `C2` target, own episodes | `C2` target, walk held fixed |
+|---|---|---|---|---|
+| 0 | 0.523 | 0.636 | 0.529 | 0.610 |
+| 100 | 0.548 | 0.659 | 0.529 | 0.624 |
+| 200 | 0.680 | 0.719 | 0.565 | 0.608 |
+| 300 | 0.733 | 0.733 | 0.613 | 0.613 |
+| 450 | 0.822 | 0.742 | 0.686 | 0.642 |
+
+Seed-paired, 450 minus 100 updates (t-based 90% interval, n = 10, computed from the `per_seed`
+arrays): with the walk held fixed `C1` rises +0.083 [+0.059, +0.107] against +0.273 [+0.222,
++0.325] on its own episodes, and `C2` rises +0.018 [-0.008, +0.044] against +0.157 [+0.100,
++0.214]. On identical input, then, the `C1` target rises about a third as much as on each
+snapshot's own walk, and the `C2` rise is not distinguished from zero; most of the own-episode
+growth goes with the change in where each snapshot's policy walks, as 17.6 would lead one to
+expect. Three limits. The fixed walk is the 300-update agent's, so the 450-update value scores
+the later trunk on an earlier policy's episodes. At 300 updates the two columns are the same
+episodes and agree to within 0.0001. The residual readings `resid_obs` and `resid_trace`, which
+readings 1 and 2 use, were not computed on replayed input, so their growth is read on changing
+walks only. The budget-0 value on `C1`, 0.636, is the untrained trunk on the survival agent's
+replayed episodes of 17.6. No reading or label changes. `docs/CORRECTIONS.md`, 2026-10-16.
 
 *(Note 2026-10-16, after the critical review: the frozen-300 transfer column is in-sample by
 world seed. Every budget is read on the same registered pools (world bases 800000 and 850000), so

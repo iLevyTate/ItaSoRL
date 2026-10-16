@@ -88,6 +88,9 @@ def fold_record() -> dict:
     from itasorl import folds
     groups, y = folds.STANDARD_DESIGNS["pooled_110x110"][0](), folds.STANDARD_DESIGNS["pooled_110x110"][1]()
     rec = folds.partition_record(groups, y, scheme="explicit")
+    # In the anonymized archive the committed digests are keyed pseudonyms (reproduce.py).
+    from reproduce import archive_digest
+    rec["sha256"] = archive_digest(rec["sha256"])
     with open(os.path.join(ROOT, "artifacts", "folds", "explicit_v1.json"), encoding="utf-8") as fh:
         ref = json.load(fh)
     ref_sha = ref["designs"]["pooled_110x110"]["sha256"] if "designs" in ref else None

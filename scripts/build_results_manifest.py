@@ -182,7 +182,11 @@ RUNS = [
         survival_trainer="none", commit_at_run="4c16be6",
         config={"agent": "itasorl/agent.py RecurrentWorldModel, next-step prediction"},
         agent_seeds=[0, 1, 2], folds="legacy", device="Colab Tesla T4",
-        deps="python 3.12.13, torch 2.11.0+cu128 (recorded)", local_run_dir="fullruns/06302026"),
+        deps="python 3.12.13, torch 2.11.0+cu128 (recorded)", local_run_dir="fullruns/06302026",
+        notes="The world model was fed each action one step late: it saw (O_t, A_t), with O_t already "
+              "produced by A_t, and was scored against O_{t+1}, so it predicted each step without the action "
+              "that caused it. The prediction-error and open-loop channels are the most exposed; the effect "
+              "was not measured, and the stored numbers stand (docs/CORRECTIONS.md, 2026-10-16)."),
     # ---------------- B-v2 / B-v3 (L2 surrogates), survival trained ----------------
     run("BV2-L2-AR1", "B-v2 survival coupling, L2 AR(1) drift, canonical replication",
         experiment="B-v2", artifacts=["expB2/expB2_results.json", "expB2/expB2_survival.png"],
@@ -921,11 +925,26 @@ RUNS = [
         device="owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
         notes="Frozen spec docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md (c1ff308, before any "
               "code or number). Six settings, rho 0 to 0.99, each episode drawn from the AR stationary distribution, "
-              "sigma set so the 24-step open-loop gap equals 0.1150 (all six within 0.0001). Contrast M(0.99) - M(0) "
+              "sigma set so the 24-step open-loop gap equals 0.1150 (recorded as all six within 0.0001; that "
+              "calibration ran with the per-episode draw inactive and reproduced sweep A by construction, and the "
+              "exact gaps are 0.1162 to 0.1267, rho 0.99 at +7.8 percent of the shared point's 0.1175; "
+              "AR-SWEEP-C-FOLLOWUP). Contrast M(0.99) - M(0) "
               "+0.009 [-0.027, +0.045]: reading 2 MET (inside [-0.05, +0.05]), readings 1 and 3 not met. No point "
               "kept (survival fresh 0.568 to 0.598). At rho 0.9, M +0.050 against sweep A's +0.010, from a lower "
               "untrained fresh reading. A first launch stopped during its fourth point and recorded an absolute "
               "agents path; its points are not used. Diagnostic."),
+    run("AR-SWEEP-C-FOLLOWUP", "Sweep C follow-up: rho 0.95 and 0.99 rerun at the exactly matched 24-step gap, "
+        "on the C1 agents", experiment="B-v2 L3", artifacts=["texture/ar_sweep_c_followup"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run="6846435", folds="explicit", eval_seeds={"authentic": 2500000, "G_arc": 2550000},
+        device="owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
+        notes="After the 2026-10-16 critical review: sweep C's calibration measured the gap with the per-episode "
+              "draw inactive. For G_ar the gap is exact in closed form, sigma * sqrt(2 w'Cw); the target is the "
+              "shared point's exact gap, 0.1175 (rho 0.9 at sweep A's sigma). The four lower-rho stored points sit "
+              "within 1.1 percent of it; rho 0.95 (+1.6 percent) and 0.99 (+7.8 percent) were rerun at sigma "
+              "0.008690 and 0.007631. M +0.060 [+0.015, +0.105] and +0.049 [+0.016, +0.081]; no point kept. "
+              "Contrast M(0.99, matched) - M(0, stored) -0.017 [-0.051, +0.016]: reading 3 (neither), the lower "
+              "bound 0.001 outside the margin unit. Beside the frozen result, not in place of it. Diagnostic."),
     run("C1-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the C1 rerun's agents",
         experiment="B-v2 L3", artifacts=["post_review/C1-rerun.json",
                                          "post_review/C1-rerun.json.partial.jsonl"],

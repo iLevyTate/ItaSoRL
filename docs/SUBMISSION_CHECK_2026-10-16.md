@@ -62,6 +62,13 @@ twenty-six rows and ten sets against the gate table's 27 and 11.
   agents and state dumps are not in it.
 - 208 commit IDs (224 spellings) replaced by keyed pseudonyms; the map stays local in
   `dist/supplement-review.commit-map.json` for the camera-ready. The identity scan found nothing.
+- Correction, 2026-10-16, after the second review pass: that scan covered names, local paths,
+  images and commit IDs, not recorded digests. Outside `SHA256SUMS` the archive's text members
+  hold 83 distinct 64-character SHA-256 digests, most of them agent hashes recorded in the
+  L0-audit and persistence artifacts. The same strings sit in the public repository, so each is
+  a search key in the way a commit hash is. The builder now replaces them with keyed pseudonyms
+  as well and keeps the real byte digests in `SHA256SUMS` (`docs/REPRODUCE.md`, "Anonymized
+  supplement"). This archive predates that change, and a rebuild replaces it.
 
 Extracted into an empty directory outside the repository: every checksum verifies,
 `python scripts/audit_stats_recheck.py` passes all 3126 checks (the one check on the left-out
@@ -69,8 +76,18 @@ film spec is skipped and counted, by design), `python scripts/reproduce.py table
 `tests/test_audit_selftest.py` passes (18 passed, 1 skipped: the checkout-only floor case).
 A grep for the owner's name, handle and ORCID finds nothing.
 
-This archive was built before this section was written, so the copy of this file inside it
-still carries the earlier test-build text.
+Note, 2026-10-16, second review pass: the full test suite does not yet pass inside this archive.
+In a fresh extraction of it, with the three test files patched after the build
+(`tests/test_social_card.py`, `tests/test_viz_collect.py`, `tests/test_brain_film.py`) copied
+in under the archive's package name, `python -E -m pytest -q` gave 1190 passed, 24 skipped and
+1 failed in 16.6 minutes on Python 3.13.2. The failure is
+`tests/test_optional_readouts.py::test_every_optional_readout_file_carries_its_provenance`: it
+reads `docs/optional/*.json`, which `INCLUDE_FILES` does not list, so the archive carries none
+and the test's `assert paths` fails. A rebuilt archive needs that test guarded or those files
+shipped, and a full test run in a fresh extraction, before the suite can be said to pass there.
+
+This file is not in the archive: `INCLUDE_FILES` in `scripts/reproduce.py` does not list it, so
+no copy of it, current or earlier, ships to reviewers.
 
 ## 3. Clean extraction
 

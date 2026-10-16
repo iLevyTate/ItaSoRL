@@ -20,10 +20,13 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
    - Contributions: (a) the detectability-versus-decodability gap as a measurable
      object, with detectors scored at one shared handicap; (b) hand-authored flaws
      (L1, L2) that a detector finds and that did not meet the registered encoding
-     criterion; (c) a learned-dynamics flaw (L3) that met it for survival plus
-     next-observation prediction at the registered budget, bounded by that budget,
+     criterion; (c) a learned-dynamics flaw (L3) whose decodability clauses are met for
+     survival plus next-observation prediction at the registered budget on the corrected
+     primary run, while the registered rule is NOT MET as registered (L0 open on the
+     registered world pair, 0.559), bounded by that budget,
      where the signal rides on the foraging trajectories and is kept by a trunk shaped
-     by prediction, and where a hand-written coherent flaw is read the same way; (d) a measurement
+     by prediction, and where a hand-written drag that depends on the agent's own velocity
+     is read the same way, with no mechanism claimed (FINDINGS 22.3); (d) a measurement
      apparatus with its failure modes documented: fold-partition dependence,
      world-sample conditioning of the L0 gate, and a trainer defect found and
      corrected (`docs/CORRECTIONS.md`).
@@ -54,10 +57,17 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
    - 4.1 Detectability ceilings (FINDINGS 2, 10.1, 15): L1 1.000, L2 0.993 with
      nearly noiseless inputs; at the L3 gate's σ = 0.02, L2 0.646 and 0.618 against
      L3 0.928. Privileged detector scores, not agent capabilities.
-   - 4.2 Hand-authored flaws (FINDINGS 3, 4, 9, 14.7): the prediction-only state stays
+   - 4.2 Hand-authored flaws (FINDINGS 3, 4, 9, 14.7, 22.1): the prediction-only state stays
      near chance across channels, horizons, and probes at L2; survival coupling 0.610
      [0.585, 0.634]; supervised reference 0.596 (a lower-bound reference, not an
-     architectural ceiling); L1 organism 0.533 at the in-band grid.
+     architectural ceiling); L1 organism 0.551 [0.531, 0.570], 0/10, at the in-band grid on
+     the corrected trainer and the stack-independent partition (FINDINGS 22.1, row 35a),
+     0.533 as first recorded on the original trainer and the legacy partition (row 35).
+     *(Note 2026-10-16: the L2 prediction-only world model received each action one step
+     late, pairing each observation with the action that had already produced it, so that arm
+     was a weaker predictor than designed. Its prediction-error and open-loop channels are the
+     most exposed, the effect on the state reading has not been measured, and no stored number
+     changes (`docs/CORRECTIONS.md`, 2026-10-16).)*
      The registered ones "did not meet the registered encoding criterion"; Experiment B
      predates the first preregistration, so its 0.65 bar is applied after the fact.
    - 4.3 The L3 primary result (FINDINGS 17.2, 17.5): corrected survival with the
@@ -104,8 +114,9 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      FINDINGS 10.6.1), carried mostly by the physical footprint on the corrected agents
      (17.7: reset hidden 0.662, replay 0.561); the graded seam (14); the texture
      comparators (17.9): a hand-authored coherent drag is read through the original
-     direction (0.721) and by a fresh probe (0.754), white jitter is not, so nothing
-     is specific to learned dynamics; observation localization (14.6).
+     direction (0.721) and by a fresh probe (0.754) against an untrained floor of 0.612
+     that sits outside the 0.1 tolerance (margins +0.109 and +0.142), white jitter is not,
+     so nothing is specific to learned dynamics; observation localization (14.6).
    - 4.7 Experiment C (FINDINGS 13.D, 13.E, 13.F): the contrast is flat under the
      pooled population readout (-0.002 [-0.013, +0.009]) and under the per-individual
      readout (no individual at 0.65), and the registered verdict is uninformative
@@ -141,10 +152,10 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 1 | L0 control at chance (oracle) | agent-free | AUROC 0.523 | FINDINGS 2.1 | artifacts/expA/summary.json | expA_ceiling.png |
 | 2 | L1 detectable (oracle) | agent-free | AUROC 1.000 | FINDINGS 2.1 | artifacts/expA/summary.json | expA_ceiling.png |
 | 3 | L2 detectable (oracle) | agent-free | AUROC 0.993 | FINDINGS 2.2 | artifacts/expA/summary.json | expA_L2_ceiling.png |
-| 4 | L2 prediction-only state below the 0.65 bar (recurrent state; Experiment B predates the first preregistration, so the bar is applied after the fact) | no actor-critic | 0.510 ± 0.039 @ drift 0.45 | FINDINGS 3.1 | artifacts/expB/summary.json | expB_incidental.png |
-| 5 | L2 surprise channel weak | no actor-critic | 0.596 ± 0.007 @ drift 0.45 | FINDINGS 3.2 | artifacts/expB/summary.json | expB_channels.png |
-| 6 | No liftoff with horizon | no actor-critic | 0.48-0.51 across 0/8/16 | FINDINGS 3.3 | artifacts/expB/summary.json (recorded rerun; see 3.3 correction) | expB_kstep.png |
-| 7 | L2 null holds under a nonlinear probe | no actor-critic | 0.482 ± 0.031 | FINDINGS 3.4 | artifacts/expB/summary.json | - |
+| 4 | L2 prediction-only state below the 0.65 bar (recurrent state; Experiment B predates the first preregistration, so the bar is applied after the fact; the world model received each action one step late, `docs/CORRECTIONS.md` 2026-10-16) | no actor-critic | 0.510 ± 0.039 @ drift 0.45 | FINDINGS 3.1 | artifacts/expB/summary.json | expB_incidental.png |
+| 5 | L2 surprise channel weak (most exposed to the one-step-late action timing, `docs/CORRECTIONS.md` 2026-10-16) | no actor-critic | 0.596 ± 0.007 @ drift 0.45 | FINDINGS 3.2 | artifacts/expB/summary.json | expB_channels.png |
+| 6 | No liftoff with horizon (the open-loop rollout shares the one-step-late action timing, `docs/CORRECTIONS.md` 2026-10-16) | no actor-critic | 0.48-0.51 across 0/8/16 | FINDINGS 3.3 | artifacts/expB/summary.json (recorded rerun; see 3.3 correction) | expB_kstep.png |
+| 7 | L2 null holds under a nonlinear probe (same world model and action timing as row 4) | no actor-critic | 0.482 ± 0.031 | FINDINGS 3.4 | artifacts/expB/summary.json | - |
 | 8 | Survival coupling does not rescue L2 | historical | 0.523 ± 0.045 (replication) | FINDINGS 9 | artifacts/expB2/expB2_results.json | expB2_survival.png |
 | 9 | B-v3 regime negative at scale | historical | 0.610, 90% CI [0.585, 0.634], n=10 | FINDINGS 7.1 | artifacts/expB2/bv3_n10_summary.json | - |
 | 10 | L2 supervised reference below bar (a lower-bound reference, not an architectural ceiling) | historical | 0.596, 90% CI [0.577, 0.616], n=10 | FINDINGS 7.1 | artifacts/expB2/sysid_ceiling_n10_summary.json | - |
@@ -172,7 +183,8 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 32 | H2 graded seam: the signal collapses to chance with the seam | historical; exploratory | 0.752 at alpha 1 to 0.506 at alpha 0 (TOST p 0.005; ROPE accept), Spearman rho 1.0; the specificity reading (flat untrained floor) holds at hidden 8 only | FINDINGS 14 | artifacts/expH2/summary.json | - |
 | 33 | H2 texture knockout: the original direction does not transfer to matched-band jitter (no fresh probe, no comparator-trained agents) | historical; exploratory | survival 0.539 vs untrained 0.542 (hidden 8); 0.510 vs 0.520 (hidden 7) | FINDINGS 14.5 | artifacts/expH2/texture_knockout_h8.json, texture_knockout_h7.json | - |
 | 34 | Observation-channel localization (hidden 8) | historical; exploratory | vision masked 0.686, interoception masked 0.756, all masked 0.500 (by construction: constant input, positive controls also 0.500); a masked channel enters as -mean/sd | FINDINGS 14.6 | artifacts/expH2/obs_localization_h8.json, obs_localization_h7.json | - |
-| 35 | L1 organism negative at the in-band grid | historical | survival 0.533 [0.509, 0.556], 0/10; oracle 0.873 | FINDINGS 14.7 | artifacts/expL1/organism_summary.json | - |
+| 35 | L1 organism negative at the in-band grid | historical; replaced by L1-CORRECTED (row 35a, FINDINGS 22.1) | survival 0.533 [0.509, 0.556], 0/10; oracle 0.873 | FINDINGS 14.7 | artifacts/expL1/organism_summary.json | - |
+| 35a | L1 organism rerun on the corrected trainer: the negative reproduces | corrected; primary | survival 0.551 [0.531, 0.570], 0/10 (stack-independent partition); the historical run scored the same way 0.552 | FINDINGS 22.1 | artifacts/expB2/corrected_L1-corrected.json | - |
 | 36 | Matched-handicap oracle: L2 weaker than L3 at the L3 gate noise | agent-free | L2 ar1 0.646, regime 0.618 vs L3 0.928 at sigma 0.02; L2 1.000 at sigma 2e-4 | FINDINGS 15 | artifacts/expA/l2_inconfig_oracle.json | - |
 | 37 | Engagement margin sweep on committed cells | historical gate audit | 80/80 cells pass at margins 0.05 to 0.15; 79/80 from 0.20 to 0.30 | FINDINGS 11, note 2 | artifacts/expB2/bv3_n10_gates.json; artifacts/expB2/engagement_margin_cloud_runs.json | - |
 | 38 | No-auxiliary survival arm at 450 updates: above the bar, skill match failed, so no mediation inference | historical; secondary | 0.717 [0.679, 0.755], 8/10; return -0.156 against the window [-0.269, -0.169] | FINDINGS 10.8.1 | artifacts/expB2/skill_matched_l3_h8_nowm_u450.json | - |
@@ -184,7 +196,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 44 | At matched evaluation input a prediction-trained trunk reads the world within about 0.01 of the survival trunk, and trained agents read about 0.10 above the untrained one | corrected; secondary | replay: survival 0.733, predictor 0.721, exposure-matched predictor 0.738; survival minus predictor +0.012 [-0.002, +0.026], minus predictor_logged -0.005 [-0.038, +0.027], minus untrained +0.097 [+0.066, +0.128]; predictor_logged minus untrained +0.102 [+0.067, +0.137]; each trunk reads the replay through its own normalizer; scripted policy 0.55 to 0.58 for every arm. *(Note 2026-10-11: the trunk and normalizer split is measured since, FINDINGS 20.5 and 20.10: TRUNK on the `C1` agents, SPLIT on the `C2` agents; the figures in this row stay as recorded.)* | FINDINGS 17.6 | artifacts/policy_controls/corrected_l3_h8_wm.json | - |
 | 45 | Retention under identical input not shown; the common garden reads the physical footprint | corrected; exploratory | replay 0.561 [0.545, 0.577]; reset hidden 0.662 [0.638, 0.687]; factorial physical 0.658, hidden 0.569 | FINDINGS 17.7 | artifacts/persistence/corrected_l3_h8_wm.json | - |
 | 46 | The best-fitting control leaves a signal under the bar; the observation stream alone carries the world | corrected; secondary | MLP joint control 0.620 [0.584, 0.656] (held-out R^2 0.89); sequence GRU on observations and previous actions 0.724; summary features of the observation trace alone 0.715; post hoc paired state minus readout, t 90% CI and TOST p against a borrowed 0.05: sequence GRU +0.009 [-0.011, +0.029] (p 0.002), summary features +0.018 [-0.004, +0.040] (p 0.013), MLP control residual +0.113 [+0.065, +0.161] (p 0.980) | FINDINGS 17.8 | artifacts/control_diagnostics/corrected_l3_h8_wm.json | - |
-| 47 | A hand-authored coherent drag is read; white jitter is not | corrected; exploratory | qd transfer 0.721, fresh 0.754 (+0.142 over untrained); gn transfer 0.527, fresh 0.488 | FINDINGS 17.9 | artifacts/texture/corrected_l3_h8_wm_{gn,qd}.json | - |
+| 47 | A hand-authored coherent drag is read; white jitter is not | corrected; exploratory | qd transfer 0.721, fresh 0.754 (+0.109 and +0.142 over untrained, whose floor of 0.612 sits outside the 0.1 tolerance); gn transfer 0.527, fresh 0.488 | FINDINGS 17.9 | artifacts/texture/corrected_l3_h8_wm_{gn,qd}.json | - |
 | 48 | Decoder effect split between trunk and trajectories (post hoc) | corrected; exploratory | trunk effect +0.056 and +0.080; stream effect +0.039 and +0.064 | FINDINGS 17.10 | artifacts/cross_replay/corrected_c1_c2.json | - |
 | 49 | The pooled evolutionary readout is attenuated, not blind | corrected; exploratory | pooled 0.609 against per-individual 0.649 [0.612, 0.686] on known-decodable agents (96-unit trunks; the evolved agents have 8 units); own-world assignment minus the better single policy -0.056 [-0.092, -0.020], best of the two policies per world +0.003 (zero in 9 of 10 seeds) | FINDINGS 17.11 | artifacts/population_readout/corrected_l3_h8_wm.json | - |
 | 50 | Drift-0.45 world-sample sensitivity: the level is not a product of the registered draw | historical agents; diagnostic | registered 0.774 (rank 5 of 9); eight independent draws 0.728 to 0.860, sd 0.042, t 90% CI over draws [0.752, 0.808]; 8 of 8 at or above the bar; verdict SECURE under the frozen rule; integrity gate passed | FINDINGS 17.5.1 | artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json | - |
@@ -200,6 +212,15 @@ note 9.
 
 ## Known gaps
 
+- 2026-10-16: this inventory was last revised row by row on 2026-10-14. Where a row here and
+  the manuscript's claims appendix differ, the appendix is current. This pass rewords
+  contribution (c) so it leads with the registered outcome (NOT MET as registered, L0 open),
+  as section 4.3 and row 41 already did; adds row 35a for the corrected L1 rerun
+  (`L1-CORRECTED`, FINDINGS 22.1), which replaces row 35's run, as the appendix numbers it;
+  adds the L2 action-timing note to section 4.2 and rows 4 to 7 (`docs/CORRECTIONS.md`,
+  2026-10-16); gives the drag's untrained floor beside its readings in section 4.6 and row 47;
+  and names the drag by its dependence on the agent's velocity in contribution (c), since
+  FINDINGS 22.3 does not show coherence to be the property read.
 - Rows 38 to 49 added 2026-10-06 (revision): the 450-update arm, the two agent-free
   detector results of revision steps 9 and 10, the corrected runs, and the readouts on
   the corrected agents (FINDINGS 17).

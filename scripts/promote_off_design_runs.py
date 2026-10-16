@@ -147,7 +147,8 @@ def gate0_block(spec: dict) -> dict:
                 "any_in_band": any(r["in_band"] for r in rows),
                 "note": "No eps in the frozen qd sweep reaches the band (highest oracle "
                         f"{max(r['oracle_auroc'] for r in rows):.3f}); eps 6.0 was matched to "
-                        "the learned map's one-step magnitude, not calibrated through gate 0.",
+                        "the white jitter G_gn's one-step RMS magnitude (0.0142 at sigma 0.01), "
+                        "not calibrated through gate 0.",
                 "pass": False}
     inst = next(i for i in doc["instances"] if i["id"] == spec["instance"])
     leg = inst["schemes"]["legacy"]

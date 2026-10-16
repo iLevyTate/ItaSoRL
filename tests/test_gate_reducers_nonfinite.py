@@ -191,6 +191,49 @@ def test_speed_min_of_finite_pools():
     assert bgt._min_or_nan({"0.0": 0.9, "0.45": 0.8}.values()) == 0.8
 
 
+def _summary_artifact(speed_min, n_nonfinite):
+    """A promoted expB2 summary in the shape promote_reviewer_gaps_runs.py writes, with the
+    speed minimum taken over the scored pools only."""
+    per_seed = {"per_seed": FINITE}
+    arm = {a: {"pool_target": per_seed} for a in ("survival", "untrained")}
+    return {"dmax": "0.45", "arms": {"0.0": arm, "0.45": arm},
+            "gates": {"engagement": {"0.0": {"pass": 10, "n": 10}},
+                      "speed_min": speed_min, "speed_n_pools": 60, "speed_n_below": 0,
+                      "speed_n_nonfinite": n_nonfinite, "pool_leak_clean_all": True,
+                      "deaths_total": 0}}
+
+
+def _summary_table(monkeypatch, art):
+    monkeypatch.setattr(bgt, "_load", lambda rel: art)
+    row = {**bgt._summary_row("X", "expB2/x.json", "explicit"), "status": "corrected"}
+    return row, bgt.render_md({"rows": [row]})
+
+
+def test_summary_row_with_an_unscored_speed_pool_is_not_a_pass(monkeypatch):
+    # One unscored pool and every scored pool at 0.9: the finite minimum would print a pass.
+    row, md = _summary_table(monkeypatch, _summary_artifact(0.9, 1))
+    assert math.isnan(row["speed_min"]) and row["speed_n_nonfinite"] == 1
+    assert "| n/a (1 unscored pool) |" in md
+    assert "Speed positive control under 0.75 in its lowest pool: 0 of 1 rows." in md
+    assert "Speed positive control with unscored pools: `X` explicit (1 unscored, " \
+           "speed min n/a)." in md
+
+
+def test_summary_row_with_an_unscored_pool_keeps_a_failing_minimum(monkeypatch):
+    # A scored pool under 0.75 fails the gate whatever the unscored pool held.
+    row, md = _summary_table(monkeypatch, _summary_artifact(0.7, 2))
+    assert row["speed_min"] == 0.7 and row["speed_n_nonfinite"] == 2
+    assert "| 0.700 (2 unscored pools) |" in md
+    assert "under 0.75 in its lowest pool: 1 of 1 rows (`X` explicit 0.700)." in md
+    assert "with unscored pools: `X` explicit (2 unscored, speed min 0.700)." in md
+
+
+def test_summary_row_with_scored_pools_keeps_its_old_shape(monkeypatch):
+    row, md = _summary_table(monkeypatch, _summary_artifact(0.9, 0))
+    assert row["speed_min"] == 0.9 and "speed_n_nonfinite" not in row
+    assert "unscored" not in md
+
+
 # --- scripts/promote_texture_trained.py (also used by promote_off_design_runs.py) -------------
 
 def _run(speed_by_pool):

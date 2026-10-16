@@ -35,7 +35,8 @@ def test_exported_surrogates_match_their_index_and_a_fresh_retrain():
         index = json.load(fh)
     for name, meta in index["files"].items():
         with open(os.path.join(d, name), "rb") as fh:
-            assert hashlib.sha256(fh.read()).hexdigest() == meta["sha256"], name
+            import reproduce
+            assert reproduce.archive_digest(hashlib.sha256(fh.read()).hexdigest()) == meta["sha256"], name
     g = GMotion.from_npz(os.path.join(d, "gmotion_h8_s0.npz"))
     # The export trains single-threaded (as the run workers do); a multi-threaded CPU fit
     # moves the last bits (about 1e-5), so pin one thread for the comparison.
@@ -467,7 +468,7 @@ def test_every_image_the_supplement_packages_is_on_the_reviewed_list():
     for arc, src in images:
         with open(src, "rb") as fh:
             data = fh.read()
-        assert reproduce.REVIEWED_IMAGES.get(arc) == hashlib.sha256(data).hexdigest(), \
+        assert reproduce.REVIEWED_IMAGES.get(arc) == reproduce.archive_digest(hashlib.sha256(data).hexdigest()), \
             f"{arc} is not on the reviewed list with these bytes; view it, then list its hash"
 
 
