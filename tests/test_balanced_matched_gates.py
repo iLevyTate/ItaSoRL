@@ -28,6 +28,7 @@ def _passing_gates(**overrides):
         "untrained_dev": 0.02,
         "targets_finite": True,
         "dropped_pairs_total": 0,
+        "matched_reconstruction_ok": True,
     }
     gates.update(overrides)
     return gates
@@ -75,3 +76,140 @@ def test_met_requires_the_matched_gates():
     assert decision == "UNINFORMATIVE"
     decision, reason = decision_from_gates(_passing_gates(), False)
     assert decision == "NOT MET" and "interval clause" in reason
+
+
+# --- C03 (2026-10-14 review): population contract, reconstruction, finiteness ------------
+
+import copy  # noqa: E402
+import json  # noqa: E402
+
+import pytest  # noqa: E402
+
+import promote_balanced_confirmation as pbc  # noqa: E402
+
+SEEDS = list(range(10, 20))
+TARGETS = {"survival": 0.80, "predictor": 0.60, "untrained": 0.50}
+
+
+def _cell(drift, seed):
+    cell = {"drift": drift, "seed": seed, "objective": "survival", "mortal": True,
+            "stack": {"device": "cpu"}, "adv_norm": True, "eng": {"engaged": True}, "agents": {}}
+    for arm in pbc.ARMS:
+        block = {"pool": {"speed": 0.9, "pool_leakage": {k: 0.5 for k in pbc.LEAK_KEYS}}}
+        if drift == 0.45:
+            block["balanced"] = {"drift": 0.45, "seed_base": 910000, "n_pairs": 110, "dropped_pairs": 0,
+                                 "target": TARGETS[arm] + 0.002 * (seed - 14), "identical_first_state": True,
+                                 "shuffled_within_pair": 0.5}
+        cell["agents"][arm] = block
+    return cell
+
+
+def _row(seed, arm, cell):
+    return {"seed": seed, "arm": arm, "drift": 0.45, "seed_base": 910000, "n_pairs": 110,
+            "dropped_pairs": 0, "target": cell["agents"][arm]["balanced"]["target"],
+            "matched_gates": {"population": "matched pairs", "n_pairs": 110, "speed": 0.9,
+                              "leakage": {k: 0.5 for k in pbc.LEAK_KEYS}}}
+
+
+def _write_run(tmp_path, alter_cells=None, alter_doc=None, sidecar=True):
+    run = tmp_path / "run"
+    (run / "cells").mkdir(parents=True)
+    cells = {(d, s): _cell(d, s) for d in (0.0, 0.45) for s in SEEDS}
+    if alter_cells:
+        alter_cells(cells)
+    for (d, s), c in cells.items():
+        (run / "cells" / f"cell_d{d:.2f}_s{s}.json").write_text(json.dumps({"cell": c}))
+    if sidecar:
+        doc = {"population": "retained pairs", "seed_base": 910000, "objective": "survival", "mortal": True,
+               "rows": [_row(s, a, cells[(0.45, s)]) for s in SEEDS for a in pbc.ARMS]}
+        if alter_doc:
+            alter_doc(doc)
+        (run / "matched_gates.json").write_text(json.dumps(doc))
+    return str(run)
+
+
+@pytest.fixture
+def run_b1(monkeypatch):
+    def make(tmp_path, **kw):
+        path = _write_run(tmp_path, **kw)
+        monkeypatch.setitem(pbc.RUNS, "B1", path)
+        return path
+    return make
+
+
+def test_a_valid_synthetic_run_still_reads_met(tmp_path, run_b1):
+    run_b1(tmp_path)
+    doc = pbc.promote("B1")
+    assert doc["decision"] == "MET", doc["reason"]
+    assert doc["gates"]["matched_reconstruction"]["status"] == "checked"
+    assert doc["gates"]["matched_reconstruction"]["max_abs_diff"] == 0.0
+
+
+@pytest.mark.parametrize("field,alter", [
+    ("seed_base", lambda d: d.update(seed_base=800000)),
+    ("objective", lambda d: d.update(objective="touch")),
+    ("mortal", lambda d: d.update(mortal=False)),
+    ("population", lambda d: d.update(population="pooled")),
+    ("seed_base", lambda d: d["rows"][3].update(seed_base=800000)),
+    ("drift", lambda d: d["rows"][0].update(drift=0.3)),
+    ("n_pairs", lambda d: d["rows"][5].update(n_pairs=5, dropped_pairs=105)),
+    ("dropped_pairs", lambda d: d["rows"][5].update(dropped_pairs=2)),
+    ("duplicate", lambda d: d["rows"].append(copy.deepcopy(d["rows"][0]))),
+    ("missing", lambda d: d["rows"].pop()),
+    ("seed set", lambda d: [r.update(seed=99) for r in d["rows"] if r["seed"] == 19]),
+])
+def test_a_sidecar_off_the_contract_is_refused_naming_the_field(tmp_path, run_b1, field, alter):
+    run_b1(tmp_path, alter_doc=alter)
+    with pytest.raises(ValueError, match=field):
+        pbc.promote("B1")
+
+
+def test_a_cell_set_of_the_right_size_with_a_wrong_member_is_refused(tmp_path, run_b1):
+    def alter(cells):
+        c = cells.pop((0.0, 19))
+        c["seed"] = 20
+        cells[(0.0, 20)] = c
+    run_b1(tmp_path, alter_cells=alter)
+    with pytest.raises(ValueError, match="seed"):
+        pbc.promote("B1")
+
+
+def test_a_reconstruction_target_off_the_balanced_target_is_refused(tmp_path, run_b1):
+    run_b1(tmp_path, alter_doc=lambda d: d["rows"][4].update(target=d["rows"][4]["target"] + 0.02))
+    with pytest.raises(ValueError, match="target"):
+        pbc.promote("B1")
+
+
+def test_a_sidecar_without_reconstruction_evidence_cannot_be_met(tmp_path, run_b1):
+    run_b1(tmp_path, alter_doc=lambda d: [r.pop("target") for r in d["rows"]])
+    doc = pbc.promote("B1")
+    assert doc["decision"] == "UNINFORMATIVE"
+    assert doc["gates"]["matched_reconstruction"]["status"].startswith("not recorded")
+
+
+@pytest.mark.parametrize("pos", [0, 14, 29])
+def test_a_nan_shuffle_anywhere_prevents_met(tmp_path, run_b1, pos):
+    seed, arm = SEEDS[pos // 3], pbc.ARMS[pos % 3]
+
+    def alter(cells):
+        cells[(0.45, seed)]["agents"][arm]["balanced"]["shuffled_within_pair"] = float("nan")
+    run_b1(tmp_path, alter_cells=alter)
+    doc = pbc.promote("B1")
+    assert doc["decision"] == "UNINFORMATIVE"
+    assert doc["gates"]["shuffled_ok"] is False and doc["gates"]["shuffled_max_abs_dev"] is None
+
+
+def test_the_collector_refuses_a_changed_configuration_resume():
+    import audit_balanced_matched_gates as col
+    stored = {"population": "retained pairs", "seed_base": 910000, "objective": "survival", "mortal": True,
+              "config": {"drift": 0.45, "n_eps": 110, "steps": 24, "ray_steps": 5, "device": "cuda"},
+              "rows": []}
+    want = col.invocation_config(seed_base=910000, objective="survival", mortal=True, device="cuda")
+    col.check_resume(stored, want)
+    with pytest.raises(SystemExit, match="objective"):
+        col.check_resume({**stored, "objective": "touch"}, want)
+    with pytest.raises(SystemExit, match="device"):
+        col.check_resume(stored, col.invocation_config(seed_base=910000, objective="survival",
+                                                       mortal=True, device="cpu"))
+    with pytest.raises(SystemExit, match="config"):
+        col.check_resume({k: v for k, v in stored.items() if k != "config"}, want)
