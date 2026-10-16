@@ -224,3 +224,64 @@ def test_exceedance_rate_counts_episodes_whose_largest_displacement_passes_r():
     from itasorl.novel_readouts import exceedance_rate
     assert exceedance_rate(np.array([0.1, 0.5, 0.31, 0.9]), 0.3) == pytest.approx(0.75)
     assert np.isnan(exceedance_rate(np.array([]), 0.3))
+
+
+def test_salience_summary_reports_the_matched_input_floor_as_a_paired_difference():
+    """A floor that only asks whether the untrained trunk is loud cannot tell two whispers
+    apart (review N03). The summary carries the untrained trunk's matched-input whisper and
+    the paired survival-minus-untrained differences, and never calls the whisper input-free."""
+    from run_salience_readout import summarize
+
+    def arm(share, km):
+        return {"share_probe_dir": share, "share_pc1": 0.3, "cohen_d_oof": 0.5,
+                "kmeans_agreement": km, "kmeans_ari": 0.0, "pc1_sign_agreement": 0.52}
+    rows = [{"seed": s,
+             "own": {"survival": arm(0.0011, 0.518), "predictor": arm(0.001, 0.52), "untrained": arm(0.001, 0.52)},
+             "replay": {"survival": arm(0.0011, 0.518), "predictor": arm(0.001, 0.52), "untrained": arm(0.0016, 0.518)},
+             "l0_survival_d0": arm(0.0005, 0.52)} for s in range(10)]
+    out = summarize(rows)
+    fl = out["readings"]["4 floor on identical input"]
+    assert fl["untrained whispers"] is True
+    assert fl["survival minus untrained, share_probe_dir"]["mean"] == pytest.approx(-0.0005)
+    assert "carried by the input" not in out["readings"]["label"]
+    assert "not carried" not in str(out["readings"])
+
+
+def test_projector_is_rank_aware():
+    """Reduced QR returned arbitrary extra directions for rank-deficient rows (review N10)."""
+    from itasorl.novel_readouts import projector
+    v = np.array([[1.0, 0, 0, 0], [2.0, 0, 0, 0]])          # dependent rows: rank 1
+    P = projector(v)
+    assert np.linalg.matrix_rank(P) == 1 and np.allclose(P @ P, P)
+    assert np.allclose(projector(np.zeros((2, 4))), np.zeros((4, 4)))
+
+
+def test_projector_rejects_a_rank_other_than_the_one_required():
+    from itasorl.novel_readouts import projector
+    with pytest.raises(ValueError, match="rank 1"):
+        projector(np.array([[1.0, 0, 0], [2.0, 0, 0]]), rank=2)
+
+
+def test_erasure_summary_carries_attrition_and_population_return_contrasts():
+    """The first run's behavior and return were read on the survivors common to all six
+    conditions, 470 of 640 attempted episodes (review N04). The summary now reports attrition
+    per condition and the erased-minus-sham contrasts on every attempted episode."""
+    from run_erasure_readout import summarize
+    base = {"n_common": 47, "n_attempted": 64, "pool_resid_max": 0.0, "gap": 1.6, "informative": True,
+            "surr_real": -0.02, "surr_sham": -0.01, "auth_real": 0.02, "auth_sham": 0.03,
+            "surr_real_minus_sham": -0.01, "auth_real_minus_sham": -0.01, "primary": -0.01,
+            "return": {"a": 1.0, "s": 0.8, "ea": 0.9, "es": 0.7, "sa": 1.0, "ss": 0.8},
+            "intake": {"a": 0.1, "s": 0.1, "ea": 0.1, "es": 0.1, "sa": 0.1, "ss": 0.1},
+            "frozen_probe_unerased": 0.75, "frozen_probe_erased": 0.5, "frozen_probe_sham": 0.74,
+            "score_spread_erased_over_unerased": 0.0, "score_spread_sham_over_unerased": 1.0,
+            "refit_probe_erased": 0.64, "seconds": 1.0,
+            "terminated": {"a": 10, "s": 12, "ea": 11, "es": 13, "sa": 10, "ss": 12},
+            "pop_return": {"a": 1.0, "s": 0.8, "ea": 0.9, "es": 0.7, "sa": 1.0, "ss": 0.8},
+            "pop_steps_alive": {"a": 70.0, "s": 68.0, "ea": 69.0, "es": 67.0, "sa": 70.0, "ss": 68.0}}
+    rows = [{**base, "seed": s, "arm": "survival"} for s in range(10)]
+    out = summarize(rows)["survival"]
+    assert out["attrition"]["excluded_fraction"]["mean"] == pytest.approx(17 / 64)
+    assert out["attrition"]["terminated_per_condition"]["es"]["mean"] == pytest.approx(13)
+    assert out["population"]["surr_return_erased_minus_sham"]["mean"] == pytest.approx(-0.1)
+    assert out["population"]["surr_terminated_erased_minus_sham"]["mean"] == pytest.approx(1.0)
+    assert out["scope"].startswith("common survivors")

@@ -252,10 +252,22 @@ def probe_block_directions(Ha: np.ndarray, Hs: np.ndarray) -> np.ndarray:
     return np.stack([coef[:hid], coef[hid:]])
 
 
-def projector(vectors: np.ndarray) -> np.ndarray:
-    """Orthogonal projector onto the span of the rows of `vectors`."""
-    Q, _ = np.linalg.qr(np.asarray(vectors, float).T)
-    return Q @ Q.T
+def projector(vectors: np.ndarray, rank: int | None = None, tol: float = 1e-10) -> np.ndarray:
+    """Orthogonal projector onto the span of the rows of `vectors`, built from the left
+    singular vectors whose singular value exceeds tol times the largest. Reduced QR returned
+    extra arbitrary directions for rank-deficient rows (review N10, 2026-10-15). With `rank`,
+    a span of any other dimension raises."""
+    V = np.asarray(vectors, float).T
+    if not np.any(V):
+        found, P = 0, np.zeros((V.shape[0], V.shape[0]))
+    else:
+        U, s, _ = np.linalg.svd(V, full_matrices=False)
+        keep = s > tol * s[0]
+        found = int(keep.sum())
+        P = U[:, keep] @ U[:, keep].T
+    if rank is not None and found != rank:
+        raise ValueError(f"projector: the rows span rank {found}, rank {rank} required")
+    return P
 
 
 def sham_projector(P: np.ndarray, rank: int, seed: int) -> np.ndarray:
