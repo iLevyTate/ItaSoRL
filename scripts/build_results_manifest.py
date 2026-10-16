@@ -1073,18 +1073,22 @@ RUNS = [
               "untrained arm on identical input does not meet the shout reading, so the whisper is not "
               "carried by the input. The C1 readout stopped once after 5 of 10 seeds on an external "
               "console-close event and resumed from the saved seeds. FINDINGS 23.1."),
-    run("WORLD-FEATURES", "Which features of its own world the state keeps beyond the senses: near and "
-        "far draw features decoded by ridge R squared (C1 and C2 agents)", experiment="B-v2 L3",
-        artifacts=["world_features/corrected_l3_h8_wm.json", "world_features/corrected_l3_h8_nowm.json"],
+    run("WORLD-FEATURES-TOROIDAL", "First run of the world-feature readout, measured with toroidal "
+        "distances in a walled world (superseded; kept as the record)", experiment="B-v2 L3",
+        artifacts=["world_features/superseded_toroidal_2026-10-15/corrected_l3_h8_wm.json",
+                   "world_features/superseded_toroidal_2026-10-15/corrected_l3_h8_nowm.json"],
         trains_survival=False, readout_of=["C1", "C2"], survival_trainer="successor_value",
-        status="corrected", commit_at_run="2cfc08d", folds="explicit",
+        status="superseded", commit_at_run="2cfc08d", folds="explicit",
         eval_seeds={"readout": "2600000, 1100 episodes, both worlds", "reach_calibration": "2650000, 110 per seed"},
         device="owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
         deps="Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
-        notes="Frozen spec docs/specs/2026-10-15-world-draw-features-design.md (58efbed), amended before "
+        notes="SUPERSEDED by WORLD-FEATURES (third amendment 2026-10-15): every distance was measured on "
+              "a torus while the world has walls, and the far targets were residualized over all episodes "
+              "before cross-validation. Kept as the record of the first run; its numbers are not read. "
+              "Frozen spec docs/specs/2026-10-15-world-draw-features-design.md (58efbed), amended before "
               "any code (87247e4: 1100 episodes, full-window reach radius) and after a two-seed setup check "
-              "(93765bc: ridge strength chosen in fold, since a fixed alpha failed the permuted-target "
-              "sanity clause). Diagnostic. Label KEEPS NOTHING BEYOND THE SENSES on both runs: with the "
+              "(93765bc: ridge strength chosen in fold, after a fixed alpha read far below the constant "
+              "baseline on the permuted target). Diagnostic. Label KEEPS NOTHING BEYOND THE SENSES on both runs: with the "
               "observation echo regressed out in fold, every feature's residual R squared is within 0.005 "
               "of zero for every arm, and the echo alone reads each near feature at least as well as the "
               "state (C1: 0.47, 0.35, 0.73 against 0.19, 0.28, 0.72). Reach radius 0.318 (C1), 0.307 (C2). "

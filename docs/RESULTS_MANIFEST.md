@@ -97,7 +97,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `B1-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
 | `B2-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
 | `SALIENCE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `WORLD-FEATURES` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `WORLD-FEATURES-TOROIDAL` | superseded | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `ERASURE-ONLINE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `DEVELOPMENT` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 
@@ -1199,17 +1199,17 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: Frozen spec docs/specs/2026-10-15-salience-design.md (58efbed, before any code or number). Diagnostic. Label WHISPER on both runs: the probe direction carries 0.001 of the state's variance, k-means agreement with the world label is 0.518 [0.512, 0.523] on C1 and 0.523 [0.514, 0.533] on C2, and the out-of-fold Cohen's d is 0.90 (C1) and 0.42 (C2). The untrained arm on identical input does not meet the shout reading, so the whisper is not carried by the input. The C1 readout stopped once after 5 of 10 seeds on an external console-close event and resumed from the saved seeds. FINDINGS 23.1.
 - Artifacts: `artifacts/salience/corrected_l3_h8_wm.json`, `artifacts/salience/corrected_l3_h8_nowm.json`
 
-### `WORLD-FEATURES`: Which features of its own world the state keeps beyond the senses: near and far draw features decoded by ridge R squared (C1 and C2 agents)
+### `WORLD-FEATURES-TOROIDAL`: First run of the world-feature readout, measured with toroidal distances in a walled world (superseded; kept as the record)
 
-- Status: corrected
+- Status: superseded
 - Trainer: inherited: successor_value
 - Commit at run: 2cfc08d
 - Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
-- Notes: Frozen spec docs/specs/2026-10-15-world-draw-features-design.md (58efbed), amended before any code (87247e4: 1100 episodes, full-window reach radius) and after a two-seed setup check (93765bc: ridge strength chosen in fold, since a fixed alpha failed the permuted-target sanity clause). Diagnostic. Label KEEPS NOTHING BEYOND THE SENSES on both runs: with the observation echo regressed out in fold, every feature's residual R squared is within 0.005 of zero for every arm, and the echo alone reads each near feature at least as well as the state (C1: 0.47, 0.35, 0.73 against 0.19, 0.28, 0.72). Reach radius 0.318 (C1), 0.307 (C2). The permuted-target clause passes. FINDINGS 23.2.
-- Artifacts: `artifacts/world_features/corrected_l3_h8_wm.json`, `artifacts/world_features/corrected_l3_h8_nowm.json`
+- Notes: SUPERSEDED by WORLD-FEATURES (third amendment 2026-10-15): every distance was measured on a torus while the world has walls, and the far targets were residualized over all episodes before cross-validation. Kept as the record of the first run; its numbers are not read. Frozen spec docs/specs/2026-10-15-world-draw-features-design.md (58efbed), amended before any code (87247e4: 1100 episodes, full-window reach radius) and after a two-seed setup check (93765bc: ridge strength chosen in fold, after a fixed alpha read far below the constant baseline on the permuted target). Diagnostic. Label KEEPS NOTHING BEYOND THE SENSES on both runs: with the observation echo regressed out in fold, every feature's residual R squared is within 0.005 of zero for every arm, and the echo alone reads each near feature at least as well as the state (C1: 0.47, 0.35, 0.73 against 0.19, 0.28, 0.72). Reach radius 0.318 (C1), 0.307 (C2). The permuted-target clause passes. FINDINGS 23.2.
+- Artifacts: `artifacts/world_features/superseded_toroidal_2026-10-15/corrected_l3_h8_wm.json`, `artifacts/world_features/superseded_toroidal_2026-10-15/corrected_l3_h8_nowm.json`
 
 ### `ERASURE-ONLINE`: Rank-two removal of the decoded world direction at every GRU step while the C1 survival agent acts, against a sham removal
 
