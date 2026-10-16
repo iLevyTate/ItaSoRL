@@ -1246,14 +1246,16 @@ class CommitPseudonyms:
             seen.add(p[:7])
             draws.append(p)
         self.full = dict(zip(self.commits, sorted(draws)))     # commit ID -> pseudonym
-        # Longest spelling first: a shorter forced spelling of the same ID (a 7-character
-        # commit_at_run beside a 40-character git_commit_at_run) takes the longer one's
-        # pseudonym prefix, so the two still match inside the archive.
-        self.forced = {}
-        for t in sorted({t.lower() for t in forced if not self.resolves(t)}, key=lambda t: (-len(t), t)):
-            longer = [L for L in self.forced if len(L) > len(t) and L.startswith(t)]
-            self.forced[t] = (self.forced[longer[0]][:len(t)] if longer
-                              else self._draw(key, "commit", t, len(t), seen))
+        # Forced IDs get the same two properties as resolvable ones. A shorter spelling of an ID
+        # (a 7-character commit_at_run beside a 40-character git_commit_at_run) takes the longer
+        # spelling's pseudonym prefix, and the pseudonyms sort as the IDs do, because the results
+        # manifest lists a run's commits sorted and its --check inside the archive would otherwise
+        # report it stale (a shallow clone forces every ID, CI 2026-10-16).
+        toks = sorted({t.lower() for t in forced if not self.resolves(t)})
+        maximal = [t for t in toks if not any(o != t and o.startswith(t) for o in toks)]
+        fdraws = sorted(self._draw(key, "commit", t, 40, seen) for t in maximal)
+        ffull = dict(zip(maximal, fdraws))
+        self.forced = {t: ffull[next(L for L in maximal if L.startswith(t))][:len(t)] for t in toks}
         # A forced ID is matched by prefix, as a resolvable one is: a field may spell the full ID
         # while code or prose quotes its first seven characters, and both must get one pseudonym
         # (a shallow clone resolves neither, 2026-10-16).

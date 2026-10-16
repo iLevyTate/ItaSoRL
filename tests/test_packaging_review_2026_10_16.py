@@ -808,3 +808,13 @@ def test_forced_spellings_of_one_commit_share_a_prefix_consistent_pseudonym():
     long_sub = h.sub('"git_commit_at_run": "%s"' % full)
     short_sub = h.sub('commit_at_run="06ecc10"')
     assert h.forced[full] in long_sub and h.forced[full][:7] in short_sub
+
+
+def test_forced_pseudonyms_sort_as_the_ids_do():
+    """The results manifest lists a run's commits sorted; forced pseudonyms must keep that order
+    or the manifest's --check fails inside an archive built from a shallow clone."""
+    ids = ["55fadf4", "3bb741f", "a8fe1bf", "dfd14b2", "8e85b03" + "c" * 33, "dde1e91"]
+    h = reproduce.CommitPseudonyms([], b"k" * 32, forced=ids)
+    order = sorted(t.lower() for t in ids)
+    assert [h.forced[t] for t in order] == sorted(h.forced[t] for t in order)
+    assert len({h.forced[t][:7] for t in order}) == len(order)
