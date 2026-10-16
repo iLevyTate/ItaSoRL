@@ -11,7 +11,9 @@ Recorded provenance (commits, config fingerprints, environment blocks) is read f
 artifacts themselves and placed next to the curated entry, so a disagreement between the
 two is visible. Each curated `commit_at_run` that names a commit is compared with the run
 commits the artifacts record (`git_commit`, `git_commit_at_run`, a readout's provenance
-`git_head`, the cells' commits; never the promotion commit) and labelled in
+`git_head` or a sweep summary's top-level one, the cells' commits, and for a directory
+artifact the same fields of each top-level JSON file in it; never the promotion commit) and
+labelled in
 `commit_at_run_source`: "recorded" when every named commit is one the artifacts record,
 otherwise "curated" with the reason, and the page marks such a commit "(curated)". A curated
 value that says the code was uncommitted at run time stays "curated", because a recorded
@@ -1353,11 +1355,30 @@ def _recorded(path: str) -> dict:
             "environment", "execution", "stack", "spec", "source_run", "run_id", "code",
             "date", "generated_by")
     out = {k: doc[k] for k in keep if k in doc}
-    # The readout scripts record the commit they ran at as provenance.git_head.
+    # The readout scripts record the commit they ran at as provenance.git_head; a sweep
+    # summary records it as a top-level git_head.
+    if isinstance(doc.get("git_head"), str):
+        out["git_head"] = doc["git_head"]
     prov = doc.get("provenance")
     if isinstance(prov, dict) and isinstance(prov.get("git_head"), str):
         out["git_head"] = prov["git_head"]
     return out
+
+
+_RUN_COMMIT_KEYS = ("git_commit", "git_commit_at_run", "git_head")
+
+
+def _dir_recorded(a: str, dirpath: str) -> dict:
+    """Provenance of a directory artifact: its cells (_cells_summary) under the directory's
+    own key, and the run commits each top-level JSON file records (git_commit,
+    git_commit_at_run, git_head) under that file's path. A sweep directory has no cells/ and
+    records its commits in its point and summary files (2026-10-16 review)."""
+    rec = {a: _cells_summary(dirpath)}
+    for f in sorted(glob.glob(os.path.join(dirpath, "*.json"))):
+        got = {k: v for k, v in _recorded(f).items() if k in _RUN_COMMIT_KEYS}
+        if got:
+            rec[a.rstrip("/") + "/" + os.path.basename(f)] = got
+    return rec
 
 
 def _cells_summary(dirpath: str) -> dict:
@@ -1420,7 +1441,10 @@ def build() -> dict:
         rec = {}
         for a in r["artifacts"]:
             p = os.path.join(ART, a)
-            rec[a] = _cells_summary(p) if os.path.isdir(p) else _recorded(p)
+            if os.path.isdir(p):
+                rec.update(_dir_recorded(a, p))
+            else:
+                rec[a] = _recorded(p)
         row = {**r, "recorded_provenance": rec}
         src = commit_source(r["commit_at_run"], _run_commits(rec))
         if src is not None:

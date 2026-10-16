@@ -3599,7 +3599,7 @@
       },
       "claims": [],
       "commit_at_run": "067efb2, 6625b05 (run/T-touch; code as main 2f4174b)",
-      "commit_at_run_source": "partly curated: the artifacts record 067efb2, 6625b05",
+      "commit_at_run_source": "partly curated: the artifacts record 067efb2, 4ca206d, 6625b05",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -3661,6 +3661,12 @@
             "64994bd0df3e6755": 20
           },
           "n_cells": 20
+        },
+        "goal_stakes/T-touch/control_diagnostics.json": {
+          "git_commit": "4ca206d"
+        },
+        "goal_stakes/T-touch/policy_controls.json": {
+          "git_commit": "4ca206d"
         }
       },
       "status": "corrected",
@@ -3697,7 +3703,7 @@
       },
       "claims": [],
       "commit_at_run": "9c2c864, 443c197 (run/S-immortal; code as main 2f4174b)",
-      "commit_at_run_source": "partly curated: the artifacts record 443c197, 9c2c864",
+      "commit_at_run_source": "partly curated: the artifacts record 0c96493, 443c197, 9c2c864",
       "config": {
         "drift_mode": "l3",
         "drifts": [
@@ -3758,6 +3764,12 @@
             "c4a9818a93f13e06": 20
           },
           "n_cells": 20
+        },
+        "goal_stakes/S-immortal/control_diagnostics.json": {
+          "git_commit": "0c96493"
+        },
+        "goal_stakes/S-immortal/policy_controls.json": {
+          "git_commit": "0c96493"
         }
       },
       "status": "corrected",
@@ -4559,7 +4571,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "67fb556 (spec); sweep code uncommitted at run time, committed with this entry",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "curated: the code was uncommitted at run time; the artifacts record HEAD 67fb556, not the working tree that ran",
       "config": {},
       "deps": null,
       "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
@@ -4576,7 +4588,43 @@
         "C1"
       ],
       "recorded_provenance": {
-        "texture/ar_sweep": {}
+        "texture/ar_sweep": {},
+        "texture/ar_sweep/A_rho0.00.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/A_rho0.50.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/A_rho0.80.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/A_rho0.90.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/A_rho0.95.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/A_rho0.99.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/B_rho0.00.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/B_rho0.50.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/B_rho0.80.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/B_rho0.95.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/B_rho0.99.json": {
+          "git_commit": "67fb556"
+        },
+        "texture/ar_sweep/summary.json": {
+          "git_head": "67fb556"
+        }
       },
       "status": "corrected",
       "surrogate": null,
@@ -4592,7 +4640,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "5f2ca71 (points); 5f7ed93 (summary)",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": null,
       "device": "owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
@@ -4609,7 +4657,28 @@
         "C1"
       ],
       "recorded_provenance": {
-        "texture/ar_sweep_c": {}
+        "texture/ar_sweep_c": {},
+        "texture/ar_sweep_c/C_rho0.00.json": {
+          "git_commit": "5f2ca71"
+        },
+        "texture/ar_sweep_c/C_rho0.50.json": {
+          "git_commit": "5f2ca71"
+        },
+        "texture/ar_sweep_c/C_rho0.80.json": {
+          "git_commit": "5f2ca71"
+        },
+        "texture/ar_sweep_c/C_rho0.90.json": {
+          "git_commit": "5f2ca71"
+        },
+        "texture/ar_sweep_c/C_rho0.95.json": {
+          "git_commit": "5f2ca71"
+        },
+        "texture/ar_sweep_c/C_rho0.99.json": {
+          "git_commit": "5f2ca71"
+        },
+        "texture/ar_sweep_c/summary.json": {
+          "git_head": "5f7ed93"
+        }
       },
       "status": "corrected",
       "surrogate": null,
@@ -4625,7 +4694,7 @@
       "budget": null,
       "claims": [],
       "commit_at_run": "6846435",
-      "commit_at_run_source": "curated: no artifact of this run records the commit it ran at",
+      "commit_at_run_source": "recorded",
       "config": {},
       "deps": null,
       "device": "owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
@@ -4642,7 +4711,16 @@
         "C1"
       ],
       "recorded_provenance": {
-        "texture/ar_sweep_c_followup": {}
+        "texture/ar_sweep_c_followup": {},
+        "texture/ar_sweep_c_followup/C_rho0.95.json": {
+          "git_commit": "6846435"
+        },
+        "texture/ar_sweep_c_followup/C_rho0.99.json": {
+          "git_commit": "6846435"
+        },
+        "texture/ar_sweep_c_followup/summary.json": {
+          "git_head": "6846435"
+        }
       },
       "status": "corrected",
       "surrogate": null,

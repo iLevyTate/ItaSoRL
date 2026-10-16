@@ -166,7 +166,7 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 | Experiment A (detectability ceiling, agent-free), L1 | **done** |
 | Experiment A, L2 | **done** |
 | Experiment B (incidental detection), L2 arc | **done: did not meet the registered encoding criterion** (its prediction-only world model received each action one step late, so that arm was a weaker predictor than designed; [`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), 2026-10-16) |
-| Experiment B, L1 organism + H2 battery | **done: did not meet it at in-band Δ=0.023 (survival 0.551 on the corrected trainer, 0 of 10 seeds at the bar, FINDINGS §22.1; 0.533 as first recorded on the original trainer, §14.7)** |
+| Experiment B, L1 organism + H2 battery | **done: did not meet the encoding criterion registered for L2 (H_B2), applied to L1 after its run ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), 2026-10-16), at in-band Δ=0.023 (survival 0.551 on the corrected trainer, 0 of 10 seeds at the bar, FINDINGS §22.1; 0.533 as first recorded on the original trainer, §14.7)** |
 | Experiment B, L3 (learned-dynamics) | **registered rule not met (L0 gate open on the registered world pair); decodability clauses met at n=10** with survival plus the next-observation auxiliary at 300 updates, corrected trainer: 0.733 against predictor 0.589 and untrained 0.523. Without the auxiliary 0.613, not met (FINDINGS §17). Historical: 0.752 on GPU, 0.730 and 0.601 on CPU (§10.8); an independently trained fingerprint 0.639 (§10.9); prefix condition remains decodable after restoring authentic dynamics, carried mostly by the physical footprint the prefix leaves rather than by memory, and retention under identical input is not shown (FINDINGS §17.7, §10.6.1). Details in [Key result](#key-result) |
 | Experiment B, L3 matched-world confirmation (B1, B2) | **uninformative.** A confirmation frozen before it ran, on new seeds 10-19 with authentic and surrogate episodes paired on the same world seeds: survival reads 0.800 and the pellet objective 0.843, but the untrained arm reads 0.614, outside the 0.1 floor. A linear sensory control frozen after those raw outcomes were known leaves 0.761 and 0.780, with the untrained arm at 0.596 and its interval [0.577, 0.615] crossing 0.60 (FINDINGS §21) |
 | Trainer correction (2026-10) | **done**: GAE truncation bootstrap fixed; both primary runs rerun; effect +0.003 and +0.012 ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), FINDINGS §17) |
@@ -182,14 +182,17 @@ number is historical and labeled so in
 [`docs/RESULTS_MANIFEST.md`](docs/RESULTS_MANIFEST.md).*
 
 Hand-authored seams (L1 discretization, L2 rollout drift): catchable from the
-outside, not decodable inside at the registered criterion. An L2 artifact a
+outside, not decodable inside at the encoding criterion registered for L2 (H_B2),
+which was applied to L1 after its run ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md),
+2026-10-16). An L2 artifact a
 nearly noiseless external detector finds at AUROC ≈ 0.99 leaves the
 prediction-only agent's state near chance (≈ 0.5). That agent's world model
 received each action one step late, so it was a weaker predictor than designed;
 the prediction-error and open-loop channels are the most exposed, and the effect
 on the state reading has not been measured
 ([`docs/CORRECTIONS.md`](docs/CORRECTIONS.md), 2026-10-16). Give that detector the input
-noise the L3 gate uses and the L2 artifacts read 0.62 to 0.65 (FINDINGS §15), so
+noise the L3 gate uses and the L2 artifacts read 0.62 to 0.65 on one noise draw,
+and 0.60 and 0.50 averaged over eight (FINDINGS §15), so
 the matched case is L1: an in-band quantization grid (detector AUROC 0.873)
 leaves the survival state at **0.551** [0.531, 0.570] on the corrected trainer
 (n = 10, 0 of 10 seeds at the bar; FINDINGS §22.1). The original trainer

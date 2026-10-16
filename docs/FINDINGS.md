@@ -55,7 +55,8 @@ prediction-only agent's state stays near chance across readout channels (section
 its world model received each action one step late, so that arm was a weaker predictor than
 designed, `docs/CORRECTIONS.md` 2026-10-16),
 and the survival-coupled variant reaches 0.610 against the 0.65 bar (section 9). Given the
-L3 gate's input noise, the same detector reads the L2 flaws at 0.62 to 0.65 (section 15),
+L3 gate's input noise, the same detector reads the L2 flaws at 0.62 to 0.65 on one noise draw,
+and at 0.60 and 0.50 averaged over eight (section 15),
 so L2 was the weaker flaw. The detectability-matched contrast is L1: at an in-band
 observation-quantization grid (Δ = 0.023, detector 0.873) the survival agent's pooled
 target is **0.533**, with 0 of 10 seeds at 0.65 (section 14.7); rerun on the corrected trainer
@@ -424,7 +425,7 @@ the oracle number comes from Experiment A's tamed diagnostic configuration - its
 hard-coded physics constants cannot run on the Experiment-B world - so the contrast
 is oracle-in-diagnostic-config vs agent-in-foraging-config; no in-config L2 oracle
 ceiling was measured, unlike L3's in-config gate. The qualitative gap is not in
-doubt, but the two numbers are not a same-world comparison.) **Resolved 2026-09-27 (section 15):** measured on P, the L2 oracle reads 1.000 at the tamed configuration's detector noise and 0.646 (ar1) / 0.618 (regime) at the L3 gate's sigma = 0.02, below L3's 0.928 on the same sweep; the cross-rung ordering in this section's headline is withdrawn in favour of the matched comparisons named there.
+doubt, but the two numbers are not a same-world comparison.) **Resolved 2026-09-27 (section 15):** measured on P, the L2 oracle reads 1.000 at the tamed configuration's detector noise and 0.646 (ar1) / 0.618 (regime) at the L3 gate's sigma = 0.02 on the first noise draw (0.604 / 0.503 averaged over eight, 2026-10-16 note in section 15), below L3's 0.928 on the same sweep; the cross-rung ordering in this section's headline is withdrawn in favour of the matched comparisons named there.
 
 Three things explain the gap:
 
@@ -479,7 +480,7 @@ inducing it (if possible) requires something more deliberate.
 
 - **H1 (detectability).** Supported at the substrate level: L1, L2, and L3 are all
   detectable by a privileged discriminator, with calibrated difficulty and a
-  validated leakage gate (Experiment A; the L3 oracle gate in section 10.1). Section 15 (2026-09-27) scores the rungs on one detector handicap: at the L3 gate's noise the L2 artifacts at the organism's drift read below the band (0.646, 0.618) while L3 reads 0.928; the section-2 L2 ceiling was measured at a hundredfold smaller handicap.
+  validated leakage gate (Experiment A; the L3 oracle gate in section 10.1). Section 15 (2026-09-27) scores the rungs on one detector handicap: at the L3 gate's noise the L2 artifacts at the organism's drift read below the band (0.646, 0.618 on the first noise draw; 0.604, 0.503 averaged over eight) while L3 reads 0.928 (0.893 over eight); the section-2 L2 ceiling was measured at a hundredfold smaller handicap.
 - **H4 (legibility / incidental encoding).** Conditionally supported. Not supported
   at L2 under any lever pulled (sections 3, 9): a hand-tuned dynamics artifact did
   not meet the registered encoding criterion even under survival pressure at scale.
@@ -3180,6 +3181,13 @@ over eight noise-seed draws (range 0.394 to 0.581): chance.
 | L3 hidden 8, seed 0 (the headline fingerprint) | 1.000 | 1.000 | 1.000 | 0.997 | **0.928** | 0.674 |
 | L3 hidden 7, seed 0 | 1.000 | 1.000 | 1.000 | 0.985 | **0.922** | 0.671 |
 
+*2026-10-16 note (after the critical review):* the bold sigma = 0.02 column is noise draw 0. The
+artifact also scores eight noise-seed draws at that sigma (`artifacts/expA/l2_inconfig_oracle.json`,
+`noise_seed_draws`): L2 ar1 averages 0.604 (sd 0.047, range 0.536 to 0.674), L2 regime 0.503
+(sd 0.110, range 0.335 to 0.629), L3 hidden 8 0.893 (sd 0.023) and L3 hidden 7 0.914 (sd 0.016).
+Averaged over the draws the regime artifact is at chance and the ordering below holds with a
+wider gap. Every quote of 0.62 to 0.65 for the L2 artifacts is the first draw.
+
 **Reading.** Three things follow, and they are stated in order of how much they
 change.
 
@@ -3188,7 +3196,8 @@ change.
    section-4 scope note is retired.
 2. At every detector handicap the L3 fingerprint is at least as detectable as the
    L2 drift, and at the handicap that defines the L3 band the L2 artifacts at
-   the organism's drift sit BELOW the band (0.646 and 0.618 against 0.928). The
+   the organism's drift sit BELOW the band (0.646 and 0.618 against 0.928 on the first
+   noise draw; 0.604 and 0.503 against 0.893 averaged over eight). The
    L2 rung was never a matched comparison to L3: the L2 negative is a negative
    on an artifact that a handicapped oracle finds weaker than L3's, not
    stronger. The wording "L2 more detectable than L3, yet only L3 encoded" is
@@ -3205,7 +3214,11 @@ change.
    14.5 (h16 0.701 at oracle 0.788, h32 0.622 at 0.656, h64 0.541 at 0.603)
    together say that, within the learned-fingerprint family, encoding tracks
    handicapped-oracle detectability, and the L2 artifacts at drift 0.45 fall
-   where that curve predicts (0.52 to 0.61 at 0.62 to 0.65 detectability). The
+   where that curve predicts (0.52 to 0.61 at 0.62 to 0.65 detectability on the first
+   noise draw). Averaged over eight draws the ar1 artifact reads 0.604 and the regime
+   artifact 0.503, at chance. At those values the ladder predicts encoding at or near
+   chance (h64 0.541 at oracle 0.603), which the low end of 0.52 to 0.61 matches and the
+   high end exceeds, so on the eight-draw means the fit is looser than on the first draw. The
    "artifact character" reading of section 4 therefore rests on the structure
    knockout of 14.5, not on the L2-versus-L3 ceiling comparison.
 
@@ -3563,6 +3576,9 @@ hundredths with no dynamics involved. Read together: the corrected drift-0 agent
 separate authentic world samples in general, and the open gate reflects the one registered
 draw that every seed shares. That is a diagnostic reading. The registered rule is evaluated
 on the registered pair, it is not met there, and the verdict stays conditional on it.
+*(2026-10-16: on the same registered pair the drift-0 survival agents of `B1`, seeds 10 to 19,
+read 0.561 [0.527, 0.595] and `B2`'s pellet agents 0.536, with predictor and untrained at chance,
+so the separation repeats on a second seed set; dated note in section 21.)*
 
 **Balanced pooled readout at drift 0.45 (secondary).** Each authentic episode is paired with a
 surrogate episode from the same world seed and initial state, both members share a CV group,
@@ -3710,6 +3726,13 @@ positioning was revised accordingly, as the frozen spec required for this outcom
 
 The drift-0 readings that make up the integrity gate are the same L0 control as elsewhere, so the
 open-gate caveat of 17.5 applies to this run too.
+
+*2026-10-16 note (after the critical review):* this pooled readout, frozen before it ran, is the
+historical one and was not repeated on the corrected trainer. A later rerun whose cells equal
+`C1`'s to the bit kept its agents (`C1-rerun`, 18.1 and 20.3), and on its drift-0 agents only the
+balanced readout exists: survival 0.787 [0.761, 0.814] against predictor 0.616 and untrained
+0.540 on the registered base (20.7; `artifacts/post_review/C1-rerun.json`,
+`summary.r33["d0.00/registered"]`). It is a diagnostic and no frozen rule reads it.
 
 ### 17.6 Who drives the evaluation episodes (revision step 6)
 
@@ -5462,6 +5485,30 @@ reward leakage, were stored for the pooled worlds, not for the balanced pairs.
 The runner prints MET next to the pooled survival means 0.758 (`B1`) and 0.835 (`B2`).
 That line is the 800000/850000 readout. The spec does not use it.
 
+*2026-10-16 note (after the critical review):* the spec says the pooled L0 at 800000 versus
+850000 "is reported beside the result and does not decide", and the record had not reported
+it. Recomputed from the run folders' cell files (`fullruns/balanced_confirmation_wm/cells/` and
+`fullruns/balanced_confirmation_touch/cells/`, key `cell.agents.<arm>.pool.target`, ten seeds,
+t-based 90% intervals; the run folders ship in the full supplement build), the pooled readout
+repeats both halves of the `C1` headline on a second seed set trained on GPU:
+
+| pooled readout, registered pair | `B1` survival | `B2` pellets | predictor | untrained |
+|---|---|---|---|---|
+| drift 0.45 | 0.758 [0.710, 0.806], 9/10 | 0.835 [0.813, 0.856], 10/10 | 0.586 [0.559, 0.612] | 0.516 [0.498, 0.534] |
+| drift 0 (L0) | 0.561 [0.527, 0.595] | 0.536 [0.514, 0.558] | 0.498 [0.479, 0.518] | 0.503 [0.480, 0.526] |
+
+The predictor and untrained arms are shared by both runs. At drift 0.45 `B1` survival leads the
+predictor by +0.172 [+0.115, +0.230] and the untrained arm by +0.242 [+0.193, +0.292], so the three
+decodability clauses hold there as they do for `C1` (0.733). At drift 0 the survival arm separates
+the two authentic pools as `C1`'s does (0.561 against 0.559) while the other two arms read
+chance. Computed as `scripts/build_corrected_verdicts.py` computes `C1`'s gate (TOST margin 0.05,
+ROPE [0.45, 0.55]), the drift-0 values give TOST p 0.717 and a 95% bootstrap interval of
+[0.528, 0.597] for `B1`, and TOST p 0.137 and a 95% bootstrap interval of [0.514, 0.560] for
+`B2`; neither is equivalent to chance. The open L0 gate of 17.5 is therefore not an accident of
+`C1`'s seeds. This is a reading beside the result: it changes no verdict, both runs stay
+UNINFORMATIVE on the matched-world rule, and `B1` and `B2` keep the historical advantage normalization (`adv_norm`), so they are not `C1`'s
+configuration.
+
 **Sensory-echo control, frozen before any trained arm was scored under it.** Spec
 `docs/specs/2026-10-13-balanced-sensory-echo-design.md`, committed at `3d85f11`. The control
 is the 2026-09-26 instantaneous basis `[x_t, x_{t-1}]`, fit in-fold, on the same base-910000
@@ -5672,7 +5719,10 @@ points at the sigma that matches 0.1175 exactly:
 With the stored rho = 0 point, M(0.99) - M(0) is -0.017 [-0.051, +0.016]: reading 3 (neither),
 the lower bound 0.001 outside the margin unit. The frozen result above stays as recorded; the
 follow-up stands beside it. Read together, coherence did not raise the margin at a matched 24-step
-deviation, and equivalence within 0.05 is not shown once the gaps are matched exactly. Every agent
+deviation, and equivalence within 0.05 is not shown with rho 0.99 at the shared point's exact gap.
+Only the rho 0.99 end of that contrast was rerun: the stored rho 0 point it is paired with sits at
+0.1162, 1.1 percent below 0.1175 (`artifacts/texture/ar_sweep_c_followup/summary.json`,
+`stored_points_exact_gaps`), inside the spec's 3 percent band but not matched exactly. Every agent
 seed and arm meets the same per-episode jitter paths (seeded from the pool base and the episode
 index, with no agent-seed term), so the seed-level intervals of both are conditional on one jitter
 realization as well as on the evaluation-world draw (`docs/CORRECTIONS.md`, 2026-10-16).

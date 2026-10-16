@@ -1151,7 +1151,10 @@ already read under" and so inherits a rule that was applied after the fact.
 `L1-PRIMARY`, `L1-CORRECTED` and `NOISE-KNOCKOUT-L1` apply rules frozen for other runs. FINDINGS
 carries a dated note in the TL;DR and in 14.7 saying that H_B2 was registered for L2 and
 applied unchanged to L1 after the run. The manuscript's list of runs without a pre-run freeze
-names the historical L1 organism run.
+names the historical L1 organism run. Later the same day, after the third review pass, the
+README status table and key result, the `CITATION.cff` abstract and `docs/PAPER_OUTLINE.md`
+were given the same wording; they had still said the L1 run did not meet the registered
+criterion.
 
 **What this does not change.** No number or verdict. H_B2 was applied with its thresholds
 unchanged, and the 2026-07-21 spec had framed the run as a positive control expected to show
@@ -1333,6 +1336,8 @@ deviation than the rho 0 point.
 
 **Change.** `scripts/run_ar_sweep_c_followup.py` (`6846435`) reruns rho 0.95 and 0.99, readout
 only on the same saved C1 agents, at the sigma that matches 0.1175 exactly (0.00869 and 0.00763).
+Only those two points were rerun; the stored rho 0 point, the other end of the contrast, sits at
+0.1162, 1.1 percent below 0.1175 and inside the 3 percent band.
 Margins +0.060 [+0.015, +0.105] and +0.049 [+0.016, +0.081]; with the stored rho 0 point the
 contrast is -0.017 [-0.051, +0.016], reading 3 (neither), its lower bound 0.001 outside the
 margin unit. The follow-up is in `artifacts/texture/ar_sweep_c_followup/` and the manifest as
@@ -1343,3 +1348,60 @@ margin", which both readings support.
 
 **What this does not change.** The frozen sweep C contrast and its reading 2, which stay as
 recorded, and the finding that no jitter setting reaches the bar.
+
+## 2026-10-16: the review archive carried branch names, and its anonymity was overstated
+
+**What was wrong.** The review archive rebuilt after the second review pass replaced commit IDs
+and recorded digests with keyed pseudonyms, but its text members still carried four public
+branch names with random suffixes, and a pull-request search on any one of them returned the
+public repository alone. The builder's leak scan had no rule for branch names, so it passed.
+Separately, `docs/REPRODUCE.md` and the submission check described the pseudonyms as if they
+left the archive with no public search key. Three remain by design. `SHA256SUMS` lists the
+real digest of every shipped file in plain text, and 53 of those digests are recorded in
+tracked files of the public repository, so reading it is enough and no hashing is needed. The
+16-character configuration fingerprints stay. Apart from the package name, the code, its
+class and function names and its docstrings match the public repository verbatim, and the
+documents do too apart from the replaced identifiers, so one code search on a class name finds
+it.
+
+**Which results it touches.** None. This is submission packaging.
+
+**Change.** The builder replaces branch names with neutral labels, and the build fails if any
+listed branch or pull-request head name survives (`docs/REPRODUCE.md`). `docs/REPRODUCE.md` ("Anonymized supplement") and
+`docs/SUBMISSION_CHECK_2026-10-16.md` (sections 2a and 2b) now say plainly that the
+replacements remove commit IDs, digests and branch names as search keys and that the archive is
+not anonymous to a search while the repository and its site are public. The archive built at
+the second review pass is not to be submitted.
+
+**What this does not change.** No number, artifact or verdict. Whether the repository and the
+site stay public during review, or the submission relies on the venue's policy on prior public
+posting, is the owner's decision before upload, and this entry does not make it.
+
+## 2026-10-16: the selection appendix read no specialist advantage from a hindsight benchmark
+
+**What was wrong.** The manuscript's selection appendix said that rearing in a world gives the
+C1 survival policies no specialist advantage. Its only basis was the own-world assignment minus
+the better single policy of each seed (-0.056), a benchmark chosen with hindsight that is
+negative whenever one policy returns more in both worlds, as on 9 of 10 seeds.
+
+**Change.** Recomputed from the C1 cell records' cross-evaluation returns: on the means each
+policy earns 0.042 more in its own world, and paired by seed the own-world assignment beats the
+average of the two fixed policies by +0.021 [-0.0004, +0.043]. The manuscript now says that a
+specialist advantage is neither shown nor ruled out.
+
+**What this does not change.** No stored number.
+
+## 2026-10-16: the matched-world runs' drift-zero pooled reading was not reported
+
+**What was wrong.** The frozen specification of the matched-world confirmation reports the
+pooled L0 reading on the registered pair beside its result, without deciding on it. The record
+reported only the drift-0.45 pooled values (0.758 and 0.835).
+
+**Change.** Recomputed from the B1 and B2 cell records (`fullruns/balanced_confirmation_wm` and
+`_touch`, not committed artifacts): at drift zero on the registered pair the survival agents of
+seeds 10 to 19 read 0.561 [0.527, 0.595] (TOST p 0.72) and the pellet-objective agents 0.536
+[0.514, 0.558], against 0.498 for the predictor and 0.503 for the untrained arm. The separation of
+that pair by the survival arm repeats on a second seed set. FINDINGS 21 and the manuscript report
+it as descriptive.
+
+**What this does not change.** The reading decides neither run, and no verdict changes.

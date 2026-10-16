@@ -195,6 +195,18 @@ def test_full_audit_fails_by_name_when_a_guarded_artifact_is_hidden(monkeypatch,
     assert "artifact present: artifacts/persistence/corrected_l3_h8_wm.json" in asr.failures, asr.failures
 
 
+def test_full_audit_fails_by_name_when_the_o2_readout_is_hidden(monkeypatch, capsys):
+    """The manuscript cites the O2 optional readout and the supplement ships it (2026-10-16
+    review), so a missing docs/optional/o2_long_history_ridge.json is a named failure in a
+    checkout and inside the archive alike, never a skip. Runs the whole audit once."""
+    hidden = os.path.abspath(os.path.join(ROOT, "docs", "optional", "o2_long_history_ridge.json"))
+    real_isfile = os.path.isfile
+    monkeypatch.setattr(os.path, "isfile", lambda p: False if os.path.abspath(p) == hidden else real_isfile(p))
+    assert asr.main() == 1
+    capsys.readouterr()
+    assert "file present: docs/optional/o2_long_history_ridge.json" in asr.failures, asr.failures
+
+
 VO_SPEC = os.path.normcase(os.path.join(ROOT, "docs", "specs", "2026-10-01-two-minds-vo-music.md"))
 SUPPLEMENT_README = os.path.normcase(os.path.join(ROOT, "README_SUPPLEMENT.md"))
 

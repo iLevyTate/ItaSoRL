@@ -69,6 +69,10 @@ twenty-six rows and ten sets against the gate table's 27 and 11.
   a search key in the way a commit hash is. The builder now replaces them with keyed pseudonyms
   as well and keeps the real byte digests in `SHA256SUMS` (`docs/REPRODUCE.md`, "Anonymized
   supplement"). This archive predates that change, and a rebuild replaces it.
+- Correction, 2026-10-16, after the third review pass: "the identity scan found nothing" is not
+  a finding that the archive is anonymous. The scan looked for names, local paths, images and
+  hex tokens. It did not look for branch names, and it cannot see that the code and documents
+  match the public repository, which no token replacement changes. See 2b.
 
 Extracted into an empty directory outside the repository: every checksum verifies,
 `python scripts/audit_stats_recheck.py` passes all 3126 checks (the one check on the left-out
@@ -85,9 +89,44 @@ in under the archive's package name, `python -E -m pytest -q` gave 1190 passed, 
 reads `docs/optional/*.json`, which `INCLUDE_FILES` does not list, so the archive carries none
 and the test's `assert paths` fails. A rebuilt archive needs that test guarded or those files
 shipped, and a full test run in a fresh extraction, before the suite can be said to pass there.
+Decided after the third review pass: the archive ships `docs/optional/` (its README and the
+readout files), the test reads them there as it does in a git checkout, and the audit
+recomputes them. A full test run in a fresh extraction of a build with that change is still owed.
 
 This file is not in the archive: `INCLUDE_FILES` in `scripts/reproduce.py` does not list it, so
 no copy of it, current or earlier, ships to reviewers.
+
+## 2b. Rebuilt review archive and what anonymity it has, 2026-10-16 (third review pass)
+
+`dist/supplement-review.zip`, rebuilt with the digest replacement at `2fc8b8e`: 1019 files, 1018
+listed in `SHA256SUMS`; 39,763,469 bytes; SHA-256
+`e93024099b8bf60dd7d53ef7d5bade5abaa7e51cca80bec768156f3077f454e9`. Its commit map records 227
+commit pseudonyms and 84 replaced digests. The third review pass found three ways back to the
+public repository in it.
+
+- Branch names. Its text members carry four public branch names with random suffixes, 16 times
+  in all (the results manifest and its builder and test, FINDINGS, the Experiment C
+  preregistration, the revision plan, one spec). A pull-request search on each name, with no
+  repository named, returned only the public repository. The builder rule for commit IDs and
+  digests has no branch-name case, so the leak scan passed. Fix: the builder replaces every
+  branch name with a neutral label, and the build fails if any listed branch or pull-request head name survives (`docs/REPRODUCE.md`).
+  This archive must not be submitted; a rebuild replaces it.
+- `SHA256SUMS`. It keeps the real digest of every shipped file so that it verifies the bytes.
+  83 of its lines (53 distinct digests: the shipped agents of both bundles, five surrogate
+  exports and eight figures) hold a value that a tracked file on the public `main` also holds,
+  so reading the file gives a search key without hashing anything. This is kept, so that the
+  checksums still verify, and disclosed (`docs/REPRODUCE.md`, "Anonymized supplement").
+- The code itself. Apart from the package name, class and function names and docstrings match
+  the public repository verbatim, and so do the 16-character configuration fingerprints. The
+  documents match too, apart from the replaced identifiers (commit IDs, recorded digests, branch
+  names, identity terms and film titles). One code search on the world's class name returned 37 hits, every one in the
+  repository. No token replacement removes this. It is disclosed, not fixed.
+
+The archive is therefore not anonymous to a search while the repository and the site are
+public. Pseudonymizing commit IDs, digests and branch names removes those search keys; it does
+not hide that the archive matches a public repository. The owner decides, before the upload,
+whether the repository and the site stay public during review, or whether the submission relies
+on the venue's policy on prior public posting. Nothing in this record makes that decision.
 
 ## 3. Clean extraction
 
@@ -137,6 +176,8 @@ built at `v1.4.1`, before that fix; the fix changes no artifact and no number.
 
 ## Remaining limitations
 
+- The review archive is not anonymous to a search while the repository and the site are public
+  (section 2b). Whether they stay public during review is the owner's decision before upload.
 - The saved-agent replay from the clean extraction ran 3 of 10 seeds before it was stopped for
   memory; a full run from the extraction is still owed. The same command from the repository on
   the same stack completed and is compared with the committed artifact in `docs/REPRODUCE.md`.

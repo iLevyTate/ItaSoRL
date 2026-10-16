@@ -16,11 +16,12 @@ abstract: >-
   state whether its world runs on authentic base dynamics or a substrate-flawed
   surrogate, set against how detectable the flaw is to a privileged detector at a
   stated detector-side noise. Hand-authored flaws (L1 discretization, L2 rollout
-  drift) are detectable but did not meet the registered encoding criterion (the
-  L2 prediction-only world model received each action one step late, so that
-  arm was a weaker predictor than designed; docs/CORRECTIONS.md, 2026-10-16); at
-  the L3 gate's detector noise the L2 flaws read 0.62 to 0.65, so the matched
-  contrast is L1 against L3. Rerun on the corrected trainer, the L1 state reads
+  drift) are detectable but did not meet the encoding criterion, which was
+  registered for L2 and applied to L1 after its run (the L2 prediction-only
+  world model received each action one step late, so that arm was a weaker
+  predictor than designed; docs/CORRECTIONS.md, 2026-10-16); at the L3 gate's
+  detector noise the L2 flaws read 0.62 to 0.65 on one noise draw and 0.60 and
+  0.50 averaged over eight, so the matched contrast is L1 against L3. Rerun on the corrected trainer, the L1 state reads
   0.551, as before the correction. Against a learned-dynamics fingerprint (L3),
   survival-trained agents carrying a next-observation auxiliary at the
   registered 300-update budget, with the trainer corrected in October 2026,

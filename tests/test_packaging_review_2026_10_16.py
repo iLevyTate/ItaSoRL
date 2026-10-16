@@ -575,6 +575,137 @@ def test_c42_the_review_archive_carries_no_tracked_digest(tmp_path, monkeypatch)
                                       for m in index["files"].values())
 
 
+# ------------------------------------------------------------------ third review, 2026-10-16
+# Branch names here are assembled at runtime: this file ships, and a literal agent-session
+# branch name would be replaced in the archived copy, changing what the test asserts.
+SESSION = "cla" + "ude/"
+
+
+def test_c13_branch_names_become_pseudonyms_in_text_and_file_names():
+    names = ["run/" + "zz-alpha", "feat/" + "zz-beta-1.2.0", "zz-plain-runner"]
+    rule = reproduce.branch_rules(names)
+    text = (f"on branch {names[0]}, origin/{names[1]}. Spec 2026-07-03-{names[2]}-design.md; "
+            f"session {SESSION}quiet-otter-x1. and {SESSION}quiet-otter-x1 again; "
+            f"~/.{SESSION}projects stays, xrun/zz-alpha stays, {names[0]}x stays")
+    out = reproduce.scrub(text, rule)
+    by_name = {v: k for k, v in rule[0][1].used.items()}
+    p0, p1, p2 = (by_name[n] for n in names)
+    ps = by_name[SESSION + "quiet-otter-x1"]
+    assert re.fullmatch(r"anon-branch-\d+", ps) and len({p0, p1, p2, ps}) == 4
+    assert out == (f"on branch {p0}, origin/{p1}. Spec 2026-07-03-{p2}-design.md; "
+                   f"session {ps}. and {ps} again; "
+                   f"~/.{SESSION}projects stays, xrun/zz-alpha stays, {names[0]}x stays")
+    # The known names take their sorted index, so every build of one checkout agrees.
+    assert reproduce.branch_rules(names)[0][1].index == {n: i + 1 for i, n in enumerate(sorted(names))}
+    # Generic names stay, and both listings parse.
+    listing = ("refs/heads/main\nrefs/heads/" + names[0] + "\nrefs/remotes/origin/HEAD\n"
+               "refs/remotes/origin/" + names[1] + "\n" + "0" * 40 + "\trefs/heads/" + names[2] + "\n")
+    assert reproduce._branch_listing(listing) == {"main", "HEAD", *names}
+
+
+def test_c13_branch_names_come_from_local_refs_and_the_remote_listing(monkeypatch):
+    local = "refs/heads/main\nrefs/heads/run/" + "zz-a\nrefs/remotes/origin/feat/" + "zz-b\n"
+    monkeypatch.setattr(reproduce, "_git", lambda args: local if args[0] == "for-each-ref"
+                        else "origin\n" if args == ["remote"] else None)
+    monkeypatch.setattr(reproduce, "_ls_remote", lambda r: "0" * 40 + "\trefs/heads/fix/" + "zz-c\n")
+    monkeypatch.setattr(reproduce, "_pr_heads", lambda: "docs/" + "zz-squashed\nmain\n")
+    assert reproduce.branch_names() == ["feat/zz-b", "run/zz-a"]
+    assert reproduce.branch_names(remote=True) == ["docs/zz-squashed", "feat/zz-b", "fix/zz-c",
+                                                   "run/zz-a"]
+    monkeypatch.setattr(reproduce, "_pr_heads", lambda: None)
+    assert reproduce.branch_names(remote=True) == ["feat/zz-b", "fix/zz-c", "run/zz-a"]
+
+
+def test_c13_a_deleted_branch_is_named_by_the_merge_subject_its_pull_request_left(monkeypatch):
+    """A branch deleted after its pull request merged is in no ref, but the merge commit's
+    subject still names it, and its pull request is still public: the name counts as known."""
+    gone = "feat/" + "zz-deleted-head"
+    subjects = ("Merge pull request #7 from someone/" + gone + "\n"
+                "Merge branch '" + "zz-local-only' into run/" + "zz-target\n"
+                "Merge remote-tracking branch 'origin/fix/" + "zz-tracked' into main\n"
+                "Merge branch 'main' of https://example.org/x/y\n"
+                "Merge branches 'zz-" + "one' and 'zz-" + "two' into main\n"
+                "Revert \"Merge pull request #8 from someone/zz-" + "not-a-merge\"\n"
+                "Ordinary subject naming nothing\n")
+    assert reproduce._merge_listing(subjects) == {gone, "zz-local-only", "run/zz-target",
+                                                  "fix/zz-tracked", "main", "zz-one", "zz-two"}
+    monkeypatch.setattr(reproduce, "_git", lambda args: subjects if args[0] == "log"
+                        else "refs/heads/main\n" if args[0] == "for-each-ref" else None)
+    names = reproduce.branch_names()
+    assert gone in names and "main" not in names
+    # It is replaced in the archive, and the leak scan fails on any spelling left.
+    assert gone not in reproduce.scrub("built on " + gone + ".", reproduce.branch_rules(names))
+    assert reproduce._hits("built on " + gone.upper(), [reproduce._branch_pattern(names, re.I)])
+
+
+def test_c13_the_leak_scan_fails_on_a_surviving_branch_name(tmp_path):
+    """Any spelling the replacement missed, in any case, in text, bytes or a member name, and any
+    agent-session branch name, fails the build."""
+    name = "run/" + "zz-alpha"
+    for member, data in (("a.md", "see " + name.upper()), ("b.bin", b"\x00" + name.encode() + b"\x00"),
+                         ("docs/x-" + name.replace("/", "_") + ".md", "ok"),
+                         ("c.md", "left " + SESSION + "other-x9")):
+        path = tmp_path / "a.zip"
+        with zipfile.ZipFile(path, "w") as z:
+            z.writestr("fine.md", "anon-branch-1 and ~/." + SESSION + "projects")
+            z.writestr(member, data)
+        want = [] if member.startswith("docs/x-") else [member]
+        assert reproduce.leak_scan(str(path), [], None, titles=[], branches=[name]) == want, member
+
+
+def test_c13_c0_the_review_archive_carries_no_branch_name_and_ships_docs_optional(tmp_path, monkeypatch):
+    """The results manifest names the branches that hold off-main commits; in the review archive
+    each reads as its pseudonym, and no branch name the build knows survives anywhere: those of
+    the refs and the remotes, and those of deleted branches that merge subjects and the pull
+    request listing still carry (the results manifest records one as a runner branch). The
+    archive also carries docs/optional, which the manuscript cites (O2), with its provenance
+    commits pseudonymized."""
+    names = reproduce.branch_names(remote=True)
+    if not names:
+        pytest.skip("needs a git checkout with branches")
+    # Only two of the record's files ship here, so an all-digit commit ID that the full archive
+    # marks as a commit in another file reads as a bare number; the number guard has its own tests.
+    monkeypatch.setattr(reproduce, "number_guard", lambda *a, **k: None)
+    rc, out, commits = _review_build(tmp_path, monkeypatch, reproduce.REVIEW_LIMIT,
+                                     files=("pyproject.toml", "docs/RESULTS_MANIFEST.md",
+                                            "artifacts/results_manifest.json"))
+    _review_needs_history(rc, out, commits)
+    assert rc == 0
+    with zipfile.ZipFile(out) as z:
+        listed = z.namelist()
+        assert {"docs/optional/README.md", "docs/optional/o2_long_history_ridge.json"} <= set(listed)
+        blob = "\n".join(listed + [z.read(n).decode("latin-1") for n in listed]).lower()
+        manifest = z.read("docs/RESULTS_MANIFEST.md").decode("utf-8")
+        readme = z.read(reproduce.README_NAME).decode("utf-8")
+        o2 = json.loads(z.read("docs/optional/o2_long_history_ridge.json").decode("utf-8"))
+    assert not [n for n in names if n.lower() in blob]
+    assert SESSION not in blob.replace("." + SESSION, "")
+    assert re.search(r"`anon-branch-\d+` \(head `", manifest) and "Branch names (" in readme
+    if commits and _in_checkout():
+        h = reproduce.CommitPseudonyms(commits, b"")
+        assert h.search(o2["provenance"]["git_head"]) is None
+
+
+def test_c12_a_directory_artifact_without_cells_reads_its_files_commits(tmp_path):
+    """A sweep directory has no cells/; its point files record git_commit and its summary a
+    top-level git_head. The manifest reads both, so the row's commit is "recorded"."""
+    import build_results_manifest as brm
+    word = "com" + "mit"                       # assembled: a literal commit field would ship
+    c1, c2 = _ids(2)
+    (tmp_path / "A_rho0.50.json").write_text(json.dumps({"git_" + word: c1[:7], "cells": []}),
+                                             encoding="utf-8")
+    (tmp_path / "summary.json").write_text(json.dumps({"git_head": c2[:7], "points": []}),
+                                           encoding="utf-8")
+    (tmp_path / "notes.txt").write_text("x\n", encoding="utf-8")
+    rec = brm._dir_recorded("texture/sweep", str(tmp_path))
+    assert rec == {"texture/sweep": {}, "texture/sweep/A_rho0.50.json": {"git_" + word: c1[:7]},
+                   "texture/sweep/summary.json": {"git_head": c2[:7]}}
+    assert brm._run_commits(rec) == {c1[:7], c2[:7]}
+    assert brm.commit_source(f"{c1[:7]} (points); {c2[:7]} (summary)", brm._run_commits(rec)) == "recorded"
+    assert brm.commit_source(f"{c2[:7]}; code uncommitted at run time",
+                             brm._run_commits(rec)).startswith("curated: the code was uncommitted")
+
+
 def test_the_review_limit_is_100_mb_and_the_profiles_differ():
     assert reproduce.REVIEW_LIMIT == 100_000_000
     assert reproduce.profile_run_dirs("review") == ["fullruns/l3_h8_heldout/agents",

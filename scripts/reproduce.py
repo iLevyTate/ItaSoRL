@@ -23,7 +23,9 @@
                are scrubbed from text files. Commit IDs, in either case, and SHA-256 digests
                become keyed pseudonyms of the same length in text and in file names
                (CommitPseudonyms); DIGEST_PSEUDONYMS.json lets a check map a digest it
-               computes to the recorded pseudonym (archive_digest). The package and project
+               computes to the recorded pseudonym (archive_digest). Branch names become
+               anon-branch-N in text and in file names (branch_rules), and the identity
+               check fails on any branch name that survives. The package and project
                name is replaced by a neutral one in text and in file names (--anon-name,
                default anonpkg; --keep-name turns this off), and so are the titles of the
                publicly released films, read at build time from the served film files.
@@ -379,12 +381,135 @@ def film_rules(slugs: list[str] | None = None) -> list:
     return rules
 
 
-def scrub_rules() -> list:
+# Branch names. A pull request keeps the name of the branch it came from, and GitHub's search
+# finds a pull request by that name across every public repository: on 2026-10-16 one search on
+# any of four branch names the review archive carried returned only this project's repository.
+# Every branch this checkout knows (local branches, remote-tracking branches and, at build time,
+# each remote's branches as `git ls-remote` lists them) becomes `anon-branch-N` in text and in
+# file names, and so does any agent-session branch name (the session prefix and a slash), which
+# catches a branch deleted from the remote since. A pull request outlives its branch, so the
+# names of deleted branches count too: every name a merge commit's subject carries ("Merge pull
+# request #N from <owner>/<name>", "Merge branch '<name>' into <name>"), read offline from the
+# whole history, and at build time every pull request's head as `gh pr list` lists it, which
+# adds the squash-merged ones no merge commit names (third review, 2026-10-16: four deleted
+# branch names had survived in the review archive, each found by one search). Names every
+# repository has (main, gh-pages) name nothing and stay. The leak scan looks for every name
+# again in any case, so a spelling the replacement missed fails the build.
+GENERIC_BRANCHES = {"main", "master", "gh-pages", "HEAD"}
+BRANCH_PSEUDONYM = "anon-branch-{}"
+# Assembled from pieces, as above: this file ships, and the pattern must not match itself.
+_SESSION_BRANCH = "cla" + "ude/" + r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?"
+
+
+def _branch_listing(text: str | None) -> set[str]:
+    """Branch names from `git for-each-ref` lines (refs/heads/..., refs/remotes/<remote>/...)
+    or `git ls-remote --heads` lines (<id> refs/heads/...)."""
+    out = set()
+    for ln in (text or "").splitlines():
+        ref = ln.split()[-1] if ln.split() else ""
+        if ref.startswith("refs/heads/"):
+            out.add(ref[len("refs/heads/"):])
+        elif ref.startswith("refs/remotes/") and "/" in ref[len("refs/remotes/"):]:
+            out.add(ref[len("refs/remotes/"):].split("/", 1)[1])
+    return out
+
+
+_MERGE_PR = re.compile(r"^Merge pull request #\d+ from [^/\s]+/(\S+)")
+_MERGE_BRANCH = re.compile(r"^Merge (remote-tracking )?branch(?:es)? ((?:'[^']+'(?:,? and |, )?)+)"
+                           r"(?: of \S+)?(?: into (\S+))?")
+
+
+def _merge_listing(text: str | None) -> set[str]:
+    """Branch names from commit subjects, one per line: the head of "Merge pull request #N from
+    <owner>/<name>", and both sides of "Merge [remote-tracking] branch '<name>' into <name>"
+    (a remote-tracking name loses its remote, the first part)."""
+    out = set()
+    for ln in (text or "").splitlines():
+        m = _MERGE_PR.match(ln)
+        if m:
+            out.add(m.group(1))
+            continue
+        m = _MERGE_BRANCH.match(ln)
+        if m:
+            for name in re.findall(r"'([^']+)'", m.group(2)):
+                out.add(name.split("/", 1)[1] if m.group(1) and "/" in name else name)
+            if m.group(3):
+                out.add(m.group(3))
+    return out
+
+
+def _pr_heads() -> str | None:
+    """`gh pr list --state all` head branch names, one per line, or None when gh is missing,
+    not signed in, or cannot reach the host in 60 s."""
+    try:
+        res = subprocess.run(["gh", "pr", "list", "--state", "all", "--limit", "10000",
+                              "--json", "headRefName", "--jq", ".[].headRefName"], cwd=ROOT,
+                             capture_output=True, text=True, check=True, timeout=60)
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return None
+    return res.stdout
+
+
+def branch_names(remote: bool = False) -> list[str]:
+    """Every branch name this checkout knows, GENERIC_BRANCHES aside, sorted: local and
+    remote-tracking branches, and every name a merge commit's subject carries in the whole
+    history (_merge_listing; a deleted branch keeps its pull request). With `remote`, also each
+    remote's branches as `git ls-remote` lists them (a branch pushed from elsewhere and never
+    fetched) and every pull request's head as `gh pr list` lists it (a squash merge leaves no
+    merge subject); a warning says when gh cannot list them. Empty outside a checkout."""
+    names = _branch_listing(_git(["for-each-ref", "--format=%(refname)", "refs/heads",
+                                  "refs/remotes"]))
+    names |= _merge_listing(_git(["log", "--all", "--format=%s"]))
+    if remote:
+        for r in (_git(["remote"]) or "").split():
+            names |= _branch_listing(_ls_remote(r))
+        heads = _pr_heads()
+        if heads is None:
+            print("  WARNING: `gh pr list` could not list the pull requests, so the head names "
+                  "of squash-merged pull requests whose branch is deleted are neither replaced "
+                  "nor looked for", flush=True)
+        names |= set((heads or "").split())
+    return sorted(n for n in names if n and n not in GENERIC_BRANCHES)
+
+
+class BranchPseudonyms:
+    """A scrub rule's replacement: each known branch name becomes BRANCH_PSEUDONYM with its
+    index in the sorted list, and an agent-session name the list lacks takes the next free
+    index on first sight. `used` records pseudonym -> name."""
+
+    def __init__(self, names):
+        self.index = {n: i + 1 for i, n in enumerate(sorted(set(names)))}
+        self.used: dict[str, str] = {}
+
+    def __call__(self, m) -> str:
+        name = m.group(0)
+        if name not in self.index:
+            self.index[name] = len(self.index) + 1
+        p = BRANCH_PSEUDONYM.format(self.index[name])
+        self.used[p] = name
+        return p
+
+
+def _branch_pattern(names, flags: int = 0):
+    alts = [re.escape(n) for n in sorted(set(names), key=len, reverse=True)]
+    alts.append(r"(?<!\.)" + _SESSION_BRANCH)
+    return re.compile(r"(?<![A-Za-z0-9])(?:" + "|".join(alts) + r")(?![A-Za-z0-9])", flags)
+
+
+def branch_rules(names=None) -> list:
+    """One rule that replaces every branch name in `names` (default branch_names()) and every
+    agent-session branch name by its pseudonym (BranchPseudonyms). A name matches as a whole
+    token: a letter or digit on either side makes it part of something else."""
+    names = branch_names() if names is None else names
+    return [(_branch_pattern(names), BranchPseudonyms(names))]
+
+
+def scrub_rules(branches=None) -> list:
     """Hosted images first, then repository URLs, then the generic rules, then one rule per
-    identity term (term_rules), then the film titles (film_rules). The order matters: see
-    url_rules."""
+    identity term (term_rules), then the film titles (film_rules), then the branch names
+    (branch_rules; `branches` as there). The order matters: see url_rules."""
     return (IMAGE_SCRUB + url_rules() + list(GENERIC_SCRUB) + term_rules(identity_terms())
-            + film_rules())
+            + film_rules() + branch_rules(branches))
 
 
 def project_name() -> str | None:
@@ -485,6 +610,10 @@ def image_reviewed(data: bytes, reviewed=None) -> bool:
 
 
 INCLUDE_DIRS = ["itasorl", "scripts", "tests", "artifacts"]
+# Document folders shipped whole (tracked files only). docs/optional holds the optional
+# readouts; the manuscript cites O2 in its Limitations and claims row 46, so it ships
+# (2026-10-16 review), its provenance commits pseudonymized like every other commit field.
+DOC_DIRS = ["docs/specs", "docs/figures", "docs/optional"]
 INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "pytest.ini",
                  "ruff.toml", "LICENSE",
                  "constraints-cpu-corrected.txt", "constraints-workstation.txt",
@@ -676,7 +805,7 @@ def _sources(runs_root: str | None = None, dropped: list | None = None,
     SUPPLEMENT_EXCLUDE names is left out and, when `dropped` is a list, recorded there as
     (path, reason)."""
     runs_root = runs_root or os.path.join(ROOT, "fullruns")
-    roots = INCLUDE_DIRS + ["docs/specs", "docs/figures"]
+    roots = INCLUDE_DIRS + DOC_DIRS
     listed = _git_files()
     if listed is None:
         repo = [f for d in roots for f in _walk(d)]
@@ -724,13 +853,13 @@ PROVENANCE_NAME = "PROVENANCE.md"
 
 def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
             provenance: str | None = None, profile: str = "full", left_out=(),
-            commits_hidden: int = 0, digests_hidden: int = 0,
+            commits_hidden: int = 0, digests_hidden: int = 0, branches_hidden: int = 0,
             title_checked: bool = True) -> str:
     """README_SUPPLEMENT.md: what the archive holds and leaves out, how to install and run it,
     and the state of every run bundle. `provenance` is None when PROVENANCE.md was written,
     else the reason it was not. `left_out` lists the full-build bundles a review build does
-    not carry; `commits_hidden` and `digests_hidden` count the commit IDs and SHA-256 digests
-    replaced by pseudonyms; `title_checked` is False when the manuscript's title could not be
+    not carry; `commits_hidden`, `digests_hidden` and `branches_hidden` count the commit IDs,
+    SHA-256 digests and branch names replaced by pseudonyms; `title_checked` is False when the manuscript's title could not be
     read, so the identity scan did not look for it."""
     L = ["# Anonymized supplement", "",
          "This archive holds the code, the tests, every committed artifact and the method and "
@@ -783,6 +912,11 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
                  "result with a recorded digest looks the result up in "
                  f"`{DIGEST_TABLE_NAME}`, which is keyed by the SHA-256 of each real digest and "
                  "so spells none of them.")
+    if branches_hidden:
+        L.append(f"- Branch names ({branches_hidden} distinct) read `anon-branch-1`, "
+                 "`anon-branch-2` and so on, in the documents, the artifacts and the file names. "
+                 "A pull request keeps the name of the branch it came from, so a branch name is "
+                 "a search key.")
     if not title_checked:
         L.append("- The manuscript's title could not be read where this archive was built, so "
                  "the identity scan did not look for it.")
@@ -1501,12 +1635,14 @@ def paper_title(path: str | None = None) -> str | None:
     return next(iter(paper_titles(path)), None)
 
 
-def _leak_patterns(old_name: str | None, titles=None) -> list:
+def _leak_patterns(old_name: str | None, titles=None, branches=None) -> list:
     """Leak-only checks beyond the scrub rules: any GitHub Pages host or hosted-image URL that
     survived, and, when the package was renamed, any spelling of the original name; the build
-    machine's account name; and the manuscript's title and subtitle (`titles`, default
-    paper_titles()) when its local source was found."""
-    pats = [re.compile(r"[\w-]+\." + _GH + r"\.io\b", re.I), re.compile(_HOSTED, re.I)]
+    machine's account name; the manuscript's title and subtitle (`titles`, default
+    paper_titles()) when its local source was found; and every branch name (`branches`, default
+    branch_names()) and agent-session branch name in any case."""
+    pats = [re.compile(r"[\w-]+\." + _GH + r"\.io\b", re.I), re.compile(_HOSTED, re.I),
+            _branch_pattern(branch_names() if branches is None else branches, re.I)]
     if old_name:
         pats.append(re.compile(re.escape(old_name), re.I))
     acct = local_account()
@@ -1537,15 +1673,17 @@ def _binary_hits(data: bytes, pats, depth: int = 0) -> bool:
     return False
 
 
-def leak_scan(path: str, rules, old_name: str | None, reviewed=None, titles=None) -> list[str]:
+def leak_scan(path: str, rules, old_name: str | None, reviewed=None, titles=None,
+              branches=None) -> list[str]:
     """Members of the archive at `path` that still carry an identity string, or may. Text
     members are scanned with every scrub rule; binary members (agent bundles, arrays, images)
     with every rule except the e-mail shape, which arbitrary bytes match by chance about once
     per few tens of MB. Member names are scanned too. An image member is a leak unless its
     bytes are on the reviewed list (REVIEWED_IMAGES, or `reviewed`), because text drawn into
-    an image is invisible to every pattern. `titles` as in _leak_patterns."""
-    text_pats = [p for p, _ in rules] + _leak_patterns(old_name, titles)
-    bin_pats = [p for p, r in rules if (p, r) != _EMAIL_RULE] + _leak_patterns(old_name, titles)
+    an image is invisible to every pattern. `titles` and `branches` as in _leak_patterns."""
+    leak = _leak_patterns(old_name, titles, branches)
+    text_pats = [p for p, _ in rules] + leak
+    bin_pats = [p for p, r in rules if (p, r) != _EMAIL_RULE] + leak
     leaks = []
     with zipfile.ZipFile(path) as z:
         for n in z.namelist():
@@ -1584,8 +1722,12 @@ def supplement(out: str, runs_root: str | None = None,
         old_name = None          # already neutral (a rebuild from an extracted archive)
     rename_pkg = renamer(old_name, anon_name)
     films = film_rules()
-    rules = scrub_rules()
     in_archive = os.path.exists(os.path.join(ROOT, README_NAME))
+    # Every branch the remotes list too, not only those fetched here (an extracted archive has
+    # no git and needs none: its names are pseudonyms already).
+    branches = branch_names(remote=not in_archive)
+    rules = scrub_rules(branches)
+    branch_rule = rules[-1:]            # scrub_rules puts the branch rule last
     titles = paper_titles(paper)
     if anon_name and not titles:
         where = paper or "docs/paper/main.tex here or in the main checkout"
@@ -1623,9 +1765,9 @@ def supplement(out: str, runs_root: str | None = None,
                              forced=forced)
 
     def rename(path_or_text: str) -> str:
-        """Package name, film titles and commit IDs, as in text, so a path a document quotes
-        still resolves in the archive."""
-        return hider.sub(rename_pkg(scrub(path_or_text, films)))
+        """Package name, film titles, branch names and commit IDs, as in text, so a path a
+        document quotes still resolves in the archive."""
+        return hider.sub(rename_pkg(scrub(path_or_text, films + branch_rule)))
 
     left_out = [r for r in RUN_DIRS if r not in run_dirs] if profile == "review" else []
     print(f"profile {profile}; run bundles under {runs_root or os.path.join(ROOT, 'fullruns')}:")
@@ -1690,10 +1832,11 @@ def supplement(out: str, runs_root: str | None = None,
                                            profile=profile, left_out=left_out,
                                            commits_hidden=hider.count(),
                                            digests_hidden=hider.digest_count(),
+                                           branches_hidden=len(set(branch_rule[0][1].used.values())),
                                            title_checked=bool(titles) or not anon_name))
             .encode("utf-8"))
         z.writestr("SHA256SUMS", "\n".join(sums) + "\n")
-    leaks = leak_scan(path, rules, old_name, titles=titles)
+    leaks = leak_scan(path, rules, old_name, titles=titles, branches=branches)
     unviewed = [n for n in leaks if is_image(n)]
     if unviewed:
         print(f"  images not on the reviewed list (view each, then add its SHA-256 to "

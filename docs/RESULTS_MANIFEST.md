@@ -81,8 +81,8 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `SURPRISE-MATCHED` | corrected | B-v2 L3 and L1 | - | inherited: successor_value | C1, L1-CORRECTED | 67fb556 (spec); readout code uncommitted at run time, committed with this entry (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `L1-STREAM-CORRECTED` | corrected | B-v2 L1 | - | inherited: successor_value | L1-CORRECTED | 73da908 (curated) | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `AR-SWEEP` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 67fb556 (spec); sweep code uncommitted at run time, committed with this entry (curated) | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `AR-SWEEP-C` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 5f2ca71 (points); 5f7ed93 (summary) (curated) | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
-| `AR-SWEEP-C-FOLLOWUP` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 6846435 (curated) | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `AR-SWEEP-C` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 5f2ca71 (points); 5f7ed93 (summary) | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `AR-SWEEP-C-FOLLOWUP` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 6846435 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `C1-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | b77d0db (readouts/post-review-C1) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `C1-R205` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | ab0388c (research/r205-decomposition) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
 | `C2-RERUN-POST-REVIEW` | corrected | B-v2 L3 | - | inherited: successor_value | C2, C2-RERUN | d3f2f75 (readouts/post-review-C2-rerun) | explicit | Claude Code cloud CPU container; Python 3.11.17, torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1 (recorded in the artifact) |
@@ -843,7 +843,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: successor_value
 - Commit at run: 067efb2, 6625b05 (run/T-touch; code as main 2f4174b)
-- Commit source: partly curated: the artifacts record 067efb2, 6625b05
+- Commit source: partly curated: the artifacts record 067efb2, 4ca206d, 6625b05
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
@@ -859,7 +859,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: successor_value
 - Commit at run: 9c2c864, 443c197 (run/S-immortal; code as main 2f4174b)
-- Commit source: partly curated: the artifacts record 443c197, 9c2c864
+- Commit source: partly curated: the artifacts record 0c96493, 443c197, 9c2c864
 - Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
@@ -1022,7 +1022,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 67fb556 (spec); sweep code uncommitted at run time, committed with this entry
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit source: curated: the code was uncommitted at run time; the artifacts record HEAD 67fb556, not the working tree that ran
 - Folds: explicit
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Notes: Frozen spec docs/specs/2026-10-15-coherence-integration-sweep-design.md (67fb556, before any code or number). Eleven settings: sweep A at one-step sigma 0.01, sweep B at the accumulated offset of A's rho = 0.9 point. Readings: coherence beyond integration NOT MET (B contrast -0.006 [-0.036, +0.023]); integration suffices NOT MET (A contrast +0.029 [-0.009, +0.068]); neither MET. Both are nondetections of the pre-stated positive contrasts, not evidence of no effect. Sweep B matches the stationary accumulated velocity SD (0.0870), not the 24-step open-loop gap (0.1205 at rho 0, 0.0970 at rho 0.99), and the AR process runs across episode boundaries (about 0.79 of its dependence shared after 24 steps at rho 0.99), which episode-grouped folds do not remove. No point reaches the bar (survival fresh 0.565 to 0.627). The run stopped once on an external console-close event after 8 points and resumed from them. Diagnostic.
@@ -1033,7 +1033,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 5f2ca71 (points); 5f7ed93 (summary)
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
 - Notes: Frozen spec docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md (c1ff308, before any code or number). Six settings, rho 0 to 0.99, each episode drawn from the AR stationary distribution, sigma set so the 24-step open-loop gap equals 0.1150 (recorded as all six within 0.0001; that calibration ran with the per-episode draw inactive and reproduced sweep A by construction, and the exact gaps are 0.1162 to 0.1267, rho 0.99 at +7.8 percent of the shared point's 0.1175; AR-SWEEP-C-FOLLOWUP). Contrast M(0.99) - M(0) +0.009 [-0.027, +0.045]: reading 2 MET (inside [-0.05, +0.05]), readings 1 and 3 not met. No point kept (survival fresh 0.568 to 0.598). At rho 0.9, M +0.050 against sweep A's +0.010, from a lower untrained fresh reading. A first launch stopped during its fourth point and recorded an absolute agents path; its points are not used. Diagnostic.
@@ -1044,7 +1044,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Status: corrected
 - Trainer: inherited: successor_value
 - Commit at run: 6846435
-- Commit source: curated: no artifact of this run records the commit it ran at
+- Commit source: recorded
 - Folds: explicit
 - Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
 - Notes: After the 2026-10-16 critical review: sweep C's calibration measured the gap with the per-episode draw inactive. For G_ar the gap is exact in closed form, sigma * sqrt(2 w'Cw); the target is the shared point's exact gap, 0.1175 (rho 0.9 at sweep A's sigma). The four lower-rho stored points sit within 1.1 percent of it; rho 0.95 (+1.6 percent) and 0.99 (+7.8 percent) were rerun at sigma 0.008690 and 0.007631. M +0.060 [+0.015, +0.105] and +0.049 [+0.016, +0.081]; no point kept. Contrast M(0.99, matched) - M(0, stored) -0.017 [-0.051, +0.016]: reading 3 (neither), the lower bound 0.001 outside the margin unit. Beside the frozen result, not in place of it. Diagnostic.

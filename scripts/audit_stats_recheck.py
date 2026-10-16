@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are. The count on 2026-10-16 is 64 pinned of 3137. A stored L0 gate (mean, TOST
+many there are. The count on 2026-10-16 is 64 pinned of 3179. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
 from them, and every tracked artifact a guarded block reads must be present: a missing one
 fails by name instead of dropping the block's checks. It also checks that the generated pages
@@ -30,8 +30,10 @@ tables and the figures 18.2 and 18.6 quote beside them (from the goal-and-stakes
 T-touch cells and each run's mechanism, policy-control and control-diagnostic readouts; the 18.5
 table and the dated notes inside section 18 are not checked), the FINDINGS 22.3 sweep tables,
 contrasts and ranges (texture/ar_sweep and texture/ar_sweep_c), the FINDINGS 23.3 refit probe
-readings, partial-erasure label and correction note (mechanism/erasure), and the corrected L3
-headline sentence of README.md (2026-10-16). In the rest of README.md, CITATION.cff, the site, the rest of
+readings, partial-erasure label and correction note (mechanism/erasure), the O2 table of
+docs/optional/README.md (its long-history ridge readout, recomputed from per_seed and checked
+against the battery's fixed-penalty readings) and the corrected L3 headline sentence of
+README.md (2026-10-16). In the rest of README.md, CITATION.cff, the site, the rest of
 PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only, a few of which
 contain a number; a number edited outside those phrases is not caught. Numbers
 the notes take from gitignored run bundles under fullruns/ are not checked.
@@ -72,8 +74,8 @@ TOL = 5e-4  # docs quote 3 decimals; allow rounding slack
 BAR = 0.65
 # The fewest checks a full run in a checkout may record (tests/test_audit_selftest.py). A run
 # that records fewer has lost checks without failing one. Raise it deliberately when checks are
-# added; the count on 2026-10-16 is 3137.
-CHECK_FLOOR = 3137
+# added; the count on 2026-10-16 is 3179.
+CHECK_FLOOR = 3179
 
 failures: list[str] = []
 n_checks = 0
@@ -3270,6 +3272,69 @@ def main() -> int:
                        and all(b > a for s, (a, b) in _chg.items() if s not in (1, 5))
                        and "Seeds 1 and 5, whose twins already shared a fold, are unchanged; "
                            "the other eight rise." in _s233)
+
+    # ---- O2: long-history ridge with the penalty chosen in fold (2026-10-16) ----
+    # The manuscript's Limitations and claims row 46 and FINDINGS 17.8 cite this optional
+    # readout, and the supplement ships it, so its numbers are guarded like an artifact's. Each
+    # mean and t90 is recomputed from summary.<basis>.<metric>.per_seed, which must equal the
+    # per-seed cells; the fixed-penalty rows must reproduce the battery's survival readings in
+    # artifacts/control_diagnostics/corrected_l3_h8_wm.json within 0.001; the table in
+    # docs/optional/README.md must quote what the seeds give.
+    print("\n== O2: long-history ridge, penalty chosen in fold (docs/optional) ==")
+    _o2p = os.path.join(root, "docs", "optional", "o2_long_history_ridge.json")
+    check_true("file present: docs/optional/o2_long_history_ridge.json", os.path.isfile(_o2p))
+    _o2bp = os.path.join(ARTROOT, "control_diagnostics", "corrected_l3_h8_wm.json")
+    if os.path.isfile(_o2p) and _artifact_present(_o2bp):
+        with open(_o2p, encoding="utf-8") as _fh:
+            _o2 = json.load(_fh)
+        _o2b = _load_art("control_diagnostics", "corrected_l3_h8_wm.json")["aggregate"]
+        _o2r = " ".join(_read("docs/optional/README.md").split())
+        check_true("O2 provenance names its script and disclaims adjudication",
+                   _o2["provenance"]["generated_by"] == "scripts/run_optional_o2.py"
+                   and "not an adjudication" in _o2["provenance"]["status"])
+        _o2cells = sorted(_o2["cells"], key=lambda c: c["seed"])
+        check_true("O2 has one cell per seed 0 to 9", [c["seed"] for c in _o2cells] == list(range(10)))
+        _o2iv = {}
+        for _bas, _name, _exp in (
+                ("resid_obs_hist", "history + traces + actions",
+                 {"auroc": (0.737, 0.690, 0.785), "nuisance_r2_heldout": (0.906, 0.904, 0.908),
+                  "fixed_auroc": (0.640, 0.608, 0.671), "fixed_r2": (-0.128, -0.234, -0.021)}),
+                ("resid_obs_hist_beh", "the same plus behavior",
+                 {"auroc": (0.691, 0.650, 0.732), "nuisance_r2_heldout": (0.909, 0.907, 0.910),
+                  "fixed_auroc": (0.606, 0.581, 0.630), "fixed_r2": (-0.177, -0.292, -0.063)})):
+            _sm = _o2["summary"][_bas]
+            _fromcells = {"auroc": [c[_bas]["auroc"] for c in _o2cells],
+                          "nuisance_r2_heldout": [c[_bas]["nuisance_r2_heldout"] for c in _o2cells],
+                          "fixed_auroc": [c[_bas]["fixed_alpha"]["auroc"] for c in _o2cells],
+                          "fixed_r2": [c[_bas]["fixed_alpha"]["nuisance_r2_heldout"] for c in _o2cells]}
+            for _met, (_mu, _lo, _hi) in _exp.items():
+                _ps = np.asarray(_sm[_met]["per_seed"], float)
+                _tl, _th = t_ci90(_ps)
+                _o2iv[(_bas, _met)] = (float(_ps.mean()), float(_tl), float(_th))
+                check_true(f"O2 {_bas} {_met}: per_seed equals the cells, and the stored mean and "
+                           "t90 equal the recomputation",
+                           list(_ps) == _fromcells[_met] and _sm[_met]["n"] == len(_ps) == 10
+                           and _same(float(_ps.mean()), _sm[_met]["mean"])
+                           and all(_same(a, b) for a, b in zip((_tl, _th), _sm[_met]["t90"])))
+                check(f"O2 {_bas} {_met} mean recomputed ({_mu:.3f})", float(_ps.mean()), _mu)
+                check(f"O2 {_bas} {_met} t90 lower recomputed ({_lo:.3f})", float(_tl), _lo)
+                check(f"O2 {_bas} {_met} t90 upper recomputed ({_hi:.3f})", float(_th), _hi)
+            _bat = _o2b[f"d=0.45 survival {_bas}"]
+            check(f"O2 {_bas}: the fixed-penalty AUROC reproduces the battery's survival reading "
+                  f"({_seed_mean(_bat):.3f}) within 0.001",
+                  _o2iv[(_bas, "fixed_auroc")][0], _seed_mean(_bat), tol=1e-3)
+            check_true(f"O2 {_bas}: the penalty is chosen from the grid on every fold, never the "
+                       "fixed 0.001",
+                       all(len(c[_bas]["alphas"]) == c[_bas]["n_folds"] and min(c[_bas]["alphas"]) > 1e-3
+                           for c in _o2cells))
+
+            def _cell(met):
+                m, lo, hi = _o2iv[(_bas, met)]
+                return f"{m:.3f} [{lo:.3f}, {hi:.3f}]"
+
+            check_true(f"docs/optional/README.md O2 table row quotes the recomputed {_bas} values",
+                       f"| {_name} | {_cell('fixed_auroc')}, {_cell('fixed_r2')} | "
+                       f"{_cell('auroc')}, {_cell('nuisance_r2_heldout')} |" in _o2r)
 
     # ---- README: the corrected L3 headline sentence (2026-10-16, finding c27) ----
     # Rendered from corrected_verdicts.json runs.C1.primary, the source FINDINGS 17 quotes; the

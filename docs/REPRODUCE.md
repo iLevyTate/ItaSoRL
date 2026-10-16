@@ -47,7 +47,7 @@ The rebuild writes, from the committed per-seed artifacts under `artifacts/`:
   They stay local like the manuscript: `docs/paper_tables/` and `docs/paper/` are both
   gitignored, nothing in them is committed, and the audit renders the tables in memory.
 
-It then runs `scripts/audit_stats_recheck.py`. The script prints the count (3137 on
+It then runs `scripts/audit_stats_recheck.py`. The script prints the count (3179 on
 2026-10-16, after the critical-review checks). **What the audit
 checks:** it recomputes each summary statistic it guards from the committed per-seed
 artifacts and compares it with a copy of the quoted value kept as a constant in the script.
@@ -289,15 +289,38 @@ such a digest becomes the same prefix of its pseudonym. A run of one or two repe
 is padding and stays. The rule covers digests of things the archive does not carry: the
 workstation NumPy tree hash in section 2 and in `constraints-workstation.txt` reads as a
 pseudonym inside the archive, and its real value is in the build's map. `SHA256SUMS` is the
-exception: it keeps the real digest of every shipped file, so it still verifies the bytes, and
-anyone who hashes a shipped binary such as a saved agent can still search for the result. A
+exception: it keeps the real digest of every shipped file, so it still verifies the bytes. Those
+digests are in plain text, and the public repository records many of them: in the review build
+of 2026-10-16, 83 lines of `SHA256SUMS` (53 distinct digests, of the shipped agents, five
+surrogate exports and eight figures) held a value that a tracked file of the repository also
+holds. Reading that file, with no hashing at all, therefore gives search keys that lead to the
+repository, and so does hashing a shipped binary such as a saved agent. A
 check that compares a digest it computes from a shipped file with the one an artifact records
 looks the computed digest up in `DIGEST_PSEUDONYMS.json`, which the archive carries
 (`archive_digest()` in `scripts/reproduce.py`). That table is keyed by the SHA-256 of each real
 digest, so it gives back none of them. Hex runs inside a number, such as the decimals of
 `-9.765625e-05`, are not IDs and stay. Any other hex string stays too, such as a 16-character
 configuration fingerprint, unless it is a commit prefix, a commit-field token or the prefix of
-a replaced digest.
+a replaced digest. Those fingerprints are recorded in the public repository as well.
+
+Branch names are replaced too. A branch name with a random suffix is as specific a key as a
+commit hash: on 2026-10-16 the review archive carried four, and a pull-request search on any one
+of them returned the public repository and nothing else. The builder replaces, with neutral
+labels in text and in file names, every branch name the local store and the remotes list, every
+name a merge commit's subject carries (a deleted branch keeps its public pull request), and every
+pull-request head that `gh pr list` lists; the build fails if any of them survives anywhere in
+the archive. When `gh` cannot list pull requests, the build warns that the heads of squash-merged,
+deleted branches are not covered.
+
+These replacements remove commit IDs, recorded digests and branch names as search keys. They do
+not make the archive anonymous to a search while the repository and its site are public. Apart
+from the package name, the code, its class and function names and its docstrings match the
+public repository verbatim, and the documents do too apart from the replaced identifiers (commit
+IDs, recorded digests, branch names, identity terms and film titles): on 2026-10-16 one code search on the class name of the
+world returned 37 hits, every one in the repository. The digests `SHA256SUMS` lists and the
+configuration fingerprints lead there too. Whether the repository and the site stay public
+during review is the owner's decision, made before the archive is uploaded; nothing in the
+archive settles it.
 
 The key is written to `dist/supplement-commit-key.txt` and stays local. The key alone does not
 give back a build's commit pseudonyms, because they are handed out in the sorted order of every
@@ -309,23 +332,27 @@ Keep that map with the submitted archive for the camera-ready version.
 
 The build fails closed. It deletes the archive it wrote and exits non-zero when any shipped
 name, text or binary member still holds an identity term or an unreviewed image, a token that
-resolves to a commit, or a real digest that should have been replaced, and when a pseudonym
+resolves to a commit, a remote branch name, or a real digest that should have been replaced, and when a pseudonym
 changes a decimal number or leaves a JSON member that no longer parses or holds a different
 number. The commit scan only knows the commits in the local object store, so the command writes
 nothing and refuses to build an anonymized archive outside a git checkout, from a shallow,
 partial or single-branch clone, when a branch tip on the remote is missing from the object
 store, or when a commit field in a shipped file names a commit the store lacks. Build from a
-full checkout with every branch fetched (`git fetch --unshallow`, then `git fetch`). When the
-remote cannot be reached, the build prints that the branch-tip check did not run and goes on.
+full checkout with every branch fetched (`git fetch --unshallow`, then `git fetch`). It refuses
+as well when a remote's branches cannot be listed, since a branch tip the store lacks would then
+go unseen; build online, or remove a remote that no longer exists.
 
-Inside an extraction of the 2026-10-16 review archive, built before digests were replaced, the
-full scalar audit passes, with its one check on the film VO and music spec skipped and counted,
-and `python scripts/reproduce.py tables` passes (`docs/SUBMISSION_CHECK_2026-10-16.md`, section
-2a). The full test suite has not yet passed there. The tests of the social-preview card and of
-the web player's beat and brain data skip inside an archive, because it leaves those files out,
-and still fail in a git checkout when a file is missing. One test does not skip yet:
-`tests/test_optional_readouts.py` reads the optional-readout files under `docs/optional/`,
-which the archive does not carry, and fails inside it.
+A fresh extraction of the first review build of 2026-10-16, made before digests and branch names
+were replaced and before `docs/optional/` shipped, passed the full scalar audit, with its one
+check on the film VO and music spec skipped and counted, and passed `python scripts/reproduce.py
+tables`. With three test files patched after that build copied in, the full test suite gave 1190
+passed, 24 skipped and 1 failed there; the failure was `tests/test_optional_readouts.py`, which
+found no optional-readout files to read. The archive now carries `docs/optional/` (its README
+and the readout files), so that test runs inside it as it does in a git checkout. The tests of
+the social-preview card and of the web player's beat and brain data skip inside an archive,
+because it leaves those files out, and still fail in a git checkout when a file is missing. No
+full test run in a fresh extraction of an archive built with these changes is on record yet. The
+record of these runs is the repository's submission check, which the archive does not carry.
 
 ## Corrections and provenance
 
