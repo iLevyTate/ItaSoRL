@@ -85,6 +85,37 @@ resolves `requirements.txt` under `constraints-cpu-corrected.txt` to the pinned 
 passes from it. On a fresh Python 3.13 environment `pip install numpy==1.26.4 --only-binary=:all:`
 finds no wheel; on Python 3.12 the same command installs the official wheel.
 
+### Supported-stack replay route
+
+Measured on 2026-10-16. Bit-exact reproduction holds only on the stack and machine that wrote a
+result. To replay a saved-agent readout elsewhere, use the pinned CPU stack and expect the
+differences below, not equality.
+
+```bash
+uv venv --python 3.11 .venv311
+uv pip install --python .venv311 torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+uv pip install --python .venv311 -r requirements.txt -c constraints-cpu-corrected.txt
+.venv311/Scripts/python scripts/run_l0_audit.py --agents-dir fullruns/corrected_l3_h8_wm/agents --out <dir>/l0.json
+.venv311/Scripts/python scripts/run_control_diagnostics.py --run-dir fullruns/corrected_l3_h8_wm --out <dir>/cd.json --workers 2
+.venv311/Scripts/python scripts/audit_sensory_echo.py --agents-dir fullruns/balanced_confirmation_wm/agents --cells-dir fullruns/balanced_confirmation_wm/cells --out-dir <dir>/echo_b1 --balanced-seed-base 910000 --objective survival --mortal on --drifts 0.45 --device cpu --no-abort
+```
+
+Stack used: Python 3.11.16, torch 2.14.1+cpu, NumPy 2.4.6, scikit-learn 1.9.1, SciPy 1.17.1, on
+the owner's Windows workstation CPU, code at `8664583`. The committed C1 readouts were written on
+the same pins in a Linux CPU container (Python 3.11.17); B1 was written on the workstation GPU
+stack (Python 3.13.2, torch 2.7.0+cu126, the local NumPy 1.26.4 build).
+
+| readout | committed artifact | equal values | largest per-seed difference | largest difference in a reported mean |
+|---|---|---|---|---|
+| L0 audit, C1 | `artifacts/l0_audit/corrected_l3_h8_wm.json` | 1136 of 1376 | 0.0025 (AUROC) | 0.0004 (pair mean); TOST p within 0.0055 |
+| control diagnostics, C1 | `artifacts/control_diagnostics/corrected_l3_h8_wm.json` | 3 of 36 aggregate means | 0.028 (MLP control), 0.017 (sequence GRU) | 0.0041 (sequence GRU); 0.0007 for every linear and ridge readout; target 0.7326 against 0.7330 |
+| sensory echo, B1, GPU to CPU | `artifacts/balanced_confirmation/sensory_echo_b1.json` | 22 of 30 cells pass the 0.0005 integrity gate | 0.0058 | 0.0005; the deciding survival `resid_obs` mean is 0.7608 on both |
+
+On B1 eight cells miss the integrity gate by 0.0005 to 0.0012, so the tool withholds its decision,
+as it must for a stored run read on another device: no reading is re-adjudicated on a replay. No
+replayed value crosses a threshold that a committed reading relies on. The C1 state dumps were not
+on this machine, so the control-diagnostics dump comparison did not run.
+
 ```bash
 python scripts/reproduce.py retrain C1            # print the commands
 python scripts/reproduce.py retrain C1 --execute  # run them

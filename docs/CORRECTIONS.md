@@ -891,3 +891,22 @@ float, apart from the projection residual's rounding, and every reading is uncha
 Removal excluded 26.6 percent of attempted episodes. On every attempted episode the return
 and termination contrasts against the sham include zero in both worlds.
 
+
+## 2026-10-16: reproduction off the writing machine is to a tolerance, not to the bit
+
+**What was wrong.** The record said the corrected runs reproduce on the stack that produced
+them, and the reproducibility statement read as if any copy of that stack would give the same
+bits. The workstation GPU results also depend on a local NumPy build (the 2026-10-14 item above)
+that no one else can install from PyPI.
+
+**What ran.** A clean Python 3.11 environment on `constraints-cpu-corrected.txt` (torch
+2.14.1+cpu, NumPy 2.4.6, scikit-learn 1.9.1, SciPy 1.17.1) on the owner's Windows CPU replayed
+the C1 L0 audit, the C1 control diagnostics and the B1 sensory-echo control. Per-seed AUROCs
+moved by up to 0.0058 on the linear readouts and up to 0.028 on the trained MLP control;
+reported means moved by at most 0.0041, and the deciding B1 mean is 0.7608 on both. Eight of
+the 30 B1 cells miss the 0.0005 integrity gate on CPU, so the replay withholds that decision.
+`docs/REPRODUCE.md` gives the commands and the full table under "Supported-stack replay route".
+
+**What this does not change.** No recorded cell, target, or verdict. Bit-exact claims are
+bounded to the stack and machine that wrote each result, and no replayed value crosses a
+threshold a committed reading relies on.

@@ -676,7 +676,11 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
          "- `python scripts/reproduce.py tables` checks and rebuilds the tables and gates from "
          "the committed per-seed artifacts without training, then runs the audit.",
          "- `python scripts/reproduce.py retrain C1` prints the commands that retrain a run "
-         "(hours of CPU; costs in docs/REPRODUCE.md section 2).", "",
+         "(hours of CPU; costs in docs/REPRODUCE.md section 2).",
+         "- Bit-exact equality holds only on the stack and machine that wrote a result. To replay a "
+         "saved-agent readout on another machine, use the pinned CPU stack "
+         "(constraints-cpu-corrected.txt, Python 3.11) as in docs/REPRODUCE.md, \"Supported-stack "
+         "replay route\", which lists the measured differences (a few thousandths of an AUROC).", "",
          "## What is renamed or left out", ""]
     if anon_name:
         L.append(f"- The project and package name is replaced by the neutral name `{anon_name}` "
