@@ -16,9 +16,13 @@ abstract: >-
   state whether its world runs on authentic base dynamics or a substrate-flawed
   surrogate, set against how detectable the flaw is to a privileged detector at a
   stated detector-side noise. Hand-authored flaws (L1 discretization, L2 rollout
-  drift) are detectable but did not meet the registered encoding criterion; at
-  the L3 gate's detector noise the L2 flaws read 0.62 to 0.65, so the matched
-  contrast is L1 against L3. Against a learned-dynamics fingerprint (L3),
+  drift) are detectable but did not meet the encoding criterion, which was
+  registered for L2 and applied to L1 after its run (the L2 prediction-only
+  world model received each action one step late, so that arm was a weaker
+  predictor than designed; docs/CORRECTIONS.md, 2026-10-16); at the L3 gate's
+  detector noise the L2 flaws read 0.62 to 0.65 on one noise draw and 0.60 and
+  0.50 averaged over eight, so the matched contrast is L1 against L3. Rerun on the corrected trainer, the L1 state reads
+  0.551, as before the correction. Against a learned-dynamics fingerprint (L3),
   survival-trained agents carrying a next-observation auxiliary at the
   registered 300-update budget, with the trainer corrected in October 2026,
   read 0.733 against 0.589 for a prediction-only arm. The registered rule is
@@ -31,11 +35,21 @@ abstract: >-
   0.01 of the survival trunk (0.721 against 0.733): the signal rides on the trajectories the foraging policy
   produces and is kept by a trunk shaped by next-observation prediction. With
   death switched off and a pellet-directed reward in place of survival, the
-  agent's state reads 0.796 and the registered rule is met with every gate, so
-  survival is not required (FINDINGS section 18). A
-  hand-authored, temporally coherent drag of matched one-step size is read
-  through the same direction while white jitter is not, so nothing here is
-  specific to learned dynamics. A common-garden control passes its frozen rule
+  agent's state reads 0.796 and was recorded as meeting every gate, but that
+  leakage gate summed the homeostatic reward rather than pellets, so full-rule
+  validity was not established (docs/CORRECTIONS.md, 2026-10-12). A
+  confirmation frozen before it ran scores the same trainer on matched world
+  seeds: survival reads 0.800 and the pellet objective 0.843, and both runs are
+  uninformative because the untrained arm reads 0.614, outside the 0.1 floor. A
+  later in-fold linear sensory control, frozen after those raw outcomes were
+  known, leaves 0.761 and 0.780 with the untrained arm at 0.596, whose interval
+  crosses 0.60 (FINDINGS section 21); survival is not required for that
+  controlled decodability reading. A hand-authored drag that, like the learned
+  law, depends on the agent's own velocity is read through the same direction,
+  so nothing here is specific to learned dynamics. Random velocity jitter
+  reaches the 0.65 bar at no setting tried, including strongly autocorrelated jitter matched
+  on its 24-step deviation, so the comparison names no mechanism (FINDINGS
+  section 22.3). A common-garden control passes its frozen rule
   on the historical agents (0.666, 0.684): prefix condition
   remains decodable after restoring authentic dynamics, and on the corrected agents that is
   carried mostly by the physical footprint of the prefix, not by memory (see
@@ -44,9 +58,13 @@ abstract: >-
   geometry in trained and untrained states alike; no named near feature of the
   agent's own world read beyond an observation-summary control; on the episodes
   that survived every condition, removing the decoded direction while the agent
-  acts changed behavior no more than a sham removal; and decodability after a
-  linear observation control grows across training snapshots while the probe
-  direction reorganizes.
+  acts changed behavior no more than a sham removal, but a probe refit on the
+  erased states, with each same-world twin pair in one fold, still reads 0.747,
+  so the removal bounds what the decoded direction carries, not what the state
+  carries; and decodability after a linear observation control grows across
+  training snapshots (clearing the frozen 0.05 bound with the auxiliary, +0.224;
+  without it +0.104, whose lower bound of 0.046 misses that bound) while the
+  probe direction reorganizes.
   Corrections and what each does not establish: docs/CORRECTIONS.md.
 keywords:
   - artificial-life

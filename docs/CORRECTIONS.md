@@ -198,7 +198,10 @@ no-auxiliary run is NOT MET before and after. The auxiliary contrast is +0.120 [
 second capacity, the transfer probes, the second and third instances, the skill-matched
 baseline, the H2 batteries) were not rerun and keep their historical label. That the
 correction barely moved the two runs that were rerun does not show it would barely move
-those.
+those. *(Updated 2026-10-16: the second capacity and the two further instances were rerun on
+the corrected trainer (FINDINGS 20), and so was the L1 organism run, `L1-CORRECTED` (FINDINGS
+22.1): 0.551 [0.531, 0.570], 0 of 10 seeds at 0.65, against 0.552 for the historical run on the
+same partition. The L1 negative reproduces. The other rows of this list keep their label.)*
 
 **Found alongside, not caused by the correction.** The readouts on the corrected agents
 narrowed four claims independently of the trainer: the survival-over-predictor margin is not a
@@ -754,6 +757,10 @@ asymmetric, so the walk's mean is not zero. At drift_sigma 0.45, 20000 steps giv
 factor 1.30 (median 1.165, sd 0.885) with 11.2% of steps pinned at the lower clip. The
 docstrings in `patch_of_earth.py` and `experiment_b.py` and the paper described the rung as
 drag volatility at a shared central level.
+(2026-10-16 addendum: the 20000 steps are 24-step episodes from reset, pooled. The walk
+restarts at zero at every reset and its level rises with episode time, so 1.30 is the mean over
+the readout's 24-step window and not a stationary level; the docstrings and the paper now say
+so.)
 
 **Change.** Both docstrings now state the level shift and the measured 1.30. No code in the
 walk changed, so every recorded L2 number stands.
@@ -910,3 +917,491 @@ the 30 B1 cells miss the 0.0005 integrity gate on CPU, so the replay withholds t
 **What this does not change.** No recorded cell, target, or verdict. Bit-exact claims are
 bounded to the stack and machine that wrote each result, and no replayed value crosses a
 threshold a committed reading relies on.
+
+## 2026-10-16: the L2 prediction-only world model predicted each step without its action
+
+**What was wrong.** `experiment_b.collect_episodes` discards the reset observation and records
+each observation after the step that produced it, so `O[t]` is the observation that action
+`A[t]` produced. `RecurrentWorldModel.forward` (`itasorl/agent.py`) feeds the pair `(O[t], A[t])`
+and `prediction_loss` scores the prediction against `O[t+1]`, which `A[t+1]` produces. The model
+therefore predicts every next observation without the action that causes it, and the scripted
+policy draws each action independently, so it cannot infer that action. `forward_rollout` uses
+the same pairing in open loop. Measured with the repo code on 60 scripted episodes of 30 steps
+(`seed0` 10000), the heading change from `O[t]` to `O[t+1]` correlates 1.000 with the turn in
+`A[t+1]` and 0.015 with the turn in `A[t]`. The B-v2 and L3 predictor arm is aligned correctly:
+`agent_ac.world_model_loss` feeds the previous action into the trunk and decodes `O[t+1]` from
+the state and the current action.
+
+**Which results it touches.** The L2 prediction-only numbers of `scripts/run_expB_full.py`,
+`run_expB_kstep.py`, `run_expB_surprise.py`, `run_expB_nonlinear.py` and `run_expB_gap.py`
+(`artifacts/expB/summary.json`; FINDINGS 3 and 4). The prediction objective, the prediction-error
+channel (0.596 at drift 0.45) and the open-loop horizon check are the most exposed. The state
+probe still saw the full observation and action history, so the recurrent-state target (0.51 at
+drift 0.45) may move little under a corrected alignment. That has not been measured.
+
+**Change.** None to code or to stored numbers; this entry is the disclosure. The manuscript's L2
+appendix now says that the L2 world model receives each action with the observation it already
+produced, a design difference that cuts against decodability, unlike the two it lists that
+favor it. A corrected run would be a new, separately labeled run under an opt-in alignment that
+keeps the reset observation and pairs each observation with the action taken from it. The
+default path stays as it is so the stored numbers reproduce. FINDINGS carries the caveat in the
+TL;DR's L2 sentence, in a dated note at the head of section 3 (covering 3.1 to 3.4), and at
+section 4 item 2, whose "the objective is local" explanation the same timing confounds.
+
+**What this does not change.** No recorded number or verdict. The L2 negative stays as recorded,
+read with the caveat that its prediction-only arm was a weaker predictor than designed. The L3
+results, the B-v2 predictor arm and the survival-trained L2 run (B-v3, FINDINGS 9) do not use
+this path.
+
+## 2026-10-16: the development readout's transfer column is in-sample by world seed
+
+**What was wrong.** The development readout (FINDINGS 23.4) reports that the frozen 300-update
+probe reads the 450-update states at 0.785 on `C1` and 0.689 on `C2`.
+`scripts/run_development_readout.py` reads every snapshot on the same registered pools (world
+bases 800000 and 850000) and calls `transfer_probe(*feats[300], *feats[b])`, which fits on all
+of the 300-update episodes and scores the other snapshot's states of the same world seeds, which each snapshot walks with
+its own policy. The
+docstring of `transfer_probe` says train and test worlds are disjoint by construction, and this
+call breaks that. At 300 updates the episodes are identical, so the column is the probe scored
+on its own training rows, 0.971
+on `C1` and 0.949 on `C2`, against cross-validated targets of 0.733 and 0.613.
+
+**Change.** FINDINGS 23.4 and the manuscript's development paragraph say that the 0.785 and
+0.689 readings score the 450-update states of the same world seeds the 300-update probe was fit
+on, so they are upper bounds and not held-out transfer, and the self-transfer at 300 updates
+shows the size of the in-sample advantage. The runner carries a comment at the call site. The
+spec froze this estimator, so the stored values and labels stay as recorded. A held-out transfer
+reading, if one is run, is a separate post hoc readout beside this one.
+
+**What this does not change.** The "reorganizes" label, which the frozen spec decides by the
+cosine between the 300 and 450-update directions alone (0.40 on `C1`, 0.42 on `C2`). The transfer
+reading enters only as an extra condition of the "one axis sharpens" label, which the cosines
+already rule out. The residual growth readings and the auxiliary reading do not use the column.
+
+## 2026-10-16: the control diagnostics called a_t an action the trunk received
+
+**What was wrong.** FINDINGS 17.8 and the manuscript said that adding "the actions the GRU
+received" (the manuscript: "the actions the trunk received") lowers the behavior control to
+0.681. `collect_pool` records `a_t` after `agent.act` has updated the state, so at readout, where
+the policy is deterministic, `a_t` is a function of `h_t`. The trunk receives only `a_{t-1}`. The
+behavior trace at t is recorded after `w.step(a_t)`. `scripts/run_control_diagnostics.py` builds
+the 31-column control from the trace, `a_t` and `a_{t-1}`, and `history_basis` appends the same
+two actions to the basis of the 608-column MLP control. The table row already named `a_t,
+a_{t-1}`; the prose did not match it.
+
+**Change.** FINDINGS 17.8, the manuscript and the `itasorl/control_diagnostics.py` docstrings
+now name `a_t` as the action the policy emitted at t and `a_{t-1}` as the one the trunk received.
+The text says these controls are conservative: a basis that holds `a_t` or the post-step trace
+also removes part of what the state itself drives, so their drop, and part of their held-out R²,
+is not input dependence alone.
+
+**What this does not change.** The recorded 0.681 and 0.620 and every verdict. The reading that
+the state is not independent of the agent's inputs rests on the stream decoder of FINDINGS 17.8
+(0.724), which uses only the observations and the previous action.
+
+## 2026-10-16: the world section said every comparison branches from byte-identical state
+
+**What was wrong.** The manuscript's world section said that dissipation does not by itself rule
+out sensitive dependence on initial conditions, "which is why every comparison branches two
+worlds from byte-identical state". Experiment A's matched pairs
+(`experiment_a_l3.generate_l3_pairs`, a snapshotted shared prefix) and the matched-pair readout
+branch that way. The primary pooled readout (`experiment_b2.pooled_readout`) does not. It
+collects the authentic and surrogate pools from fresh resets at different world-seed bases,
+800000 and 850000. The methods section and the Figure 1 caption already said so.
+
+**Change.** The manuscript sentence names Experiment A and the matched-pair readout as the
+channels that branch, and says that the primary pooled readout compares independent world
+samples and that the L0 gate measures what that draw contributes.
+
+**What this does not change.** No number or verdict. The L0 gate and the world-sample audit of
+FINDINGS 17.5 were already the record's account of the world draw.
+
+## 2026-10-16: scripted action streams share a PCG64 stream with the terrain
+
+**What was wrong.** `SeedBundle.streams()` (`itasorl/world.py`) seeds the world stream with the
+raw world integer and offsets only the weather, ecology and policy streams. Its comment says the
+offsets keep the streams independent. Several collectors seed the scripted action generator
+with that same integer, so the actions and the terrain come from identical streams:
+`experiment_b2._collect_scripted` (the predictor arm's training episodes),
+`surrogate_l3.collect_authentic_transitions` (the transitions `G` was trained on),
+`experiment_b.collect_episodes` (the Experiment B pools of the L2 arc), and the shared prefixes
+of `experiment_a_l3` (Experiment A's L3 pairs). `reset` first draws 16 uniforms from the world stream
+for the terrain fields, starting with the terrain frequencies (`_init_static_fields` in
+`itasorl/patch_of_earth.py`), and then the start heading (`_init_creatures`, two more draws
+before it for each retry when the default start is wet). The scripted policy draws three per
+step, so the first five scripted actions of each such episode are exact functions of that
+episode's terrain parameters and the sixth draws partly on the heading (for the two-draw policy of
+the Experiment A prefixes, the first eight, with the ninth drawing partly on the heading). Checked with the repo code over 55 world seeds: the first thrust divided by 0.6
+equals the uniform behind the first terrain frequency to within 4.1e-8 (float32 rounding). The
+engagement baseline (`_baseline_return`) uses one generator, seeded with the base world integer,
+for all of its episodes, so only its first episode is coupled this way.
+
+Separately, the ecology stream adds 13000 and then 20002 to the episode integer, so in the
+survival training schedule (`100000 + 10000*seed + 16*update + i`, 16 episodes per update) the
+pellet stream of seed s at update u is the terrain stream of seed s+3 about 187 updates later.
+This happens only at budgets of 188 updates or more (the registered 300 and the 450-update
+runs). The same random numbers then become pellet positions in one episode and terrain
+frequencies in another, two different transforms. The training schedules meet in other places of
+the same kind (for example the survival schedule's pellet stream and the predictor schedule's
+terrain stream); this entry does not list them all.
+
+**Which results it touches, and which it does not.** Within each collector the coupling is the
+same rule for the authentic and the surrogate class, and the label never enters a seed, so it
+adds no label signal by itself. It does mean that the early scripted actions are not independent
+of the world they run in, for the predictor arm's training data, `G`'s training transitions, the
+L2 pools and the Experiment A L3 prefixes. The pooled readouts of trained arms take their actions
+from the network and are not coupled. The scripted walk of the matched-input readouts (FINDINGS
+17.6) uses a disjoint policy base, 600000, and is not coupled either. The size of any effect has
+not been measured.
+
+**Change.** None to seeding. Changing it would change the stored bits of every run listed above.
+Any future opt-in flag that decouples the streams must default off, so stored fingerprints and
+bit-exact reproduction claims hold. The 2026-10-10 entry on the surrogate's held-out diagnostics
+already names the shared base integer for world, weather, ecology and the scripted action
+stream; this entry states what that sharing does.
+
+**What this does not change.** No recorded number or verdict.
+
+## 2026-10-16: the erasure refit probe split same-world twins across folds
+
+**What was wrong.** The online erasure readout (FINDINGS 23.3) refits a probe on the erased
+states and attaches the spec's "partial erasure" label when it reads 0.65 or above. Row i of the
+erased authentic and surrogate rollouts runs on the same world seed from the same first state,
+but `scripts/run_erasure_readout.py` gave every episode its own cross-validation group. Whenever
+the number of common survivors was not a multiple of five, twins landed in different folds and
+the probe read each test twin's label off its training twin, which pulls the AUROC toward zero.
+This breaks the pairing rule stated in `itasorl/experiment_b2.py`; the surprise readout of FINDINGS
+18.3 had the same defect (next entry). The recorded refit was 0.646
+[0.562, 0.729], under the label by 0.004, and the untrained arm read 0.258, far below chance.
+
+**Change.** The refit passes one group per twin pair (`1dc44e4`), and
+`tests/test_readout_twin_groups.py` shows the leak and its fix on synthetic twins. The readout
+was rerun on the same saved `C1` agents. Every other recorded reading of every row reproduces
+the superseded artifact bit for bit; only the refit and the wall-clock `seconds` field differ.
+The refit reads 0.747 [0.702, 0.791] (seeds 1
+and 5, whose twins already shared a fold, unchanged at 0.810 and 0.644; the other eight rise),
+and the untrained arm reads 0.576 [0.530, 0.623] over its 6 informative seeds. The label
+"partial erasure" is now attached to every reading, as the spec requires. The superseded
+artifact is kept under `artifacts/mechanism/erasure/superseded_split_twins_2026-10-16/`.
+
+**What this does not change.** The frozen-probe readings, which fit on the registered pools and
+only score the rollouts; erasure held in 10 of 10 seeds; and readings 1 to 3 (not used under
+removal MET, used and costly NOT MET). The conclusion drawn from the refit, that removal bounds
+what the decoded direction carries and not what the state carries, is stronger with the
+corrected value.
+
+## 2026-10-16: the surprise readout's AUROC split same-world twins
+
+**What was wrong.** Readout 8(a) of the mechanism readouts (FINDINGS 18.3) scores the agent's own
+next-observation error with a cross-validated probe. `scripts/run_mechanism_readouts.py` rolls the
+authentic and surrogate episodes from one seed base, 1400000, so row j of each runs on the same
+world seed from the same first state, and `common_rows` keeps the rows aligned. `surprise_auroc`
+in `itasorl/mechanism_readouts.py` gave every episode its own group, so twins could land in
+different folds, the defect of the previous entry. A probe that reads a test twin's label off its
+training twin pulls the AUROC down, so the stored surprise AUROCs are biased low: 0.846 for `C1`,
+0.848 for `S-immortal` and 0.912 for `T-touch` (`artifacts/goal_stakes/*/mechanism.json`), and the
+untrained floors recorded beside them.
+
+**Change.** `surprise_auroc` takes a `groups` argument and drops it with the non-finite rows, and
+the runner passes one group per twin pair. `tests/test_mechanism_surprise_groups.py` shows the
+leak and its fix on synthetic twins and checks that the runner passes the pair groups. The stored
+values are not rescored and are read as lower bounds. The `T-touch` and `S-immortal` agents were
+trained in a cloud container and are not on this machine, and `C1` is kept as recorded with them
+so the three columns stay comparable.
+
+**What this does not change.** The surprise reading needs a mean AUROC of at least 0.65
+(`scripts/decide_goal_stakes.py`), and every stored mean is above it, so removing a downward bias
+changes no 18.3 surprise wording. The correlation with the direction, the nudge and the
+adaptation readouts fit no cross-validated probe, and the direction itself is fit on the
+registered pools, whose authentic and surrogate episodes come from separate seed bases. The
+replay readout of FINDINGS 22.2 draws its two pools from separate seed bases (800000 and 850000),
+so its episodes have no twins and it is not affected.
+
+## 2026-10-16: two seeds of the seeds 10 to 19 runs trained on the same worlds
+
+**What.** Survival training worlds start at `100000 + 10000 * seed` and predictor training
+worlds at `200000 + 9000 * seed` (`itasorl/experiment_b2.py`), each advancing by the batch size
+per update. In the seeds 10 to 19 runs (B1 and B2), survival seed 19 and predictor seed 10
+therefore train on the same world integers. Seeds 0 to 9 have no such overlap.
+
+**What this does not change.** Every readout is computed within one seed, and the seed-paired
+contrasts pair arms of the same seed index, so no probe is fit and scored across the shared
+worlds. The two agents share training worlds, not weights or episodes of the other arm's policy.
+
+## 2026-10-16: the historical L1 organism run had no rule registered before it ran
+
+**What was wrong.** The L1 organism run (FINDINGS 14.7) is read under H_B2, and the record calls
+its outcome "the registered encoding criterion" not met. No L1 rule was registered before the
+run. `docs/PREREGISTRATION.md`, where H_B2 was frozen on 2026-06-28, covers the L2 run only (its
+section 11: "this world family, and L2 only"). The 2026-07-21 H2 spec names the run only as
+"A3 - Alternate-substrate-primitive positive control (DEFERRED, needs a train)", with no
+estimand, gate-0 rule or decision rule. The rule ledger row `L1-PRIMARY` already says so in its
+freeze note. The L1 code, the gate-0 selection of Δ = 0.023 by a fine sweep, the σ_o noise
+comparator and the result were first committed together in `01e88e4` (2026-07-25 00:14), and
+the historical cells record `8a71593`, a commit with no L1 drift mode (corrected-L1 spec,
+`docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md`). The noise-knockout rule
+`NOISE-KNOCKOUT-L1` is likewise borrowed from the 2026-07-22 spec, whose only mention of L1 is
+that it does not collide with it.
+
+**Which results it touches.** The historical L1 primary reading, its A1 and A2 ablations, and
+the corrected L1 rerun of FINDINGS 22.1, whose spec names the rule the historical run "was
+already read under" and so inherits a rule that was applied after the fact.
+
+**Change.** A dated entry in the deviation log of `docs/PREREGISTRATION.md` records that
+`L1-PRIMARY`, `L1-CORRECTED` and `NOISE-KNOCKOUT-L1` apply rules frozen for other runs. FINDINGS
+carries a dated note in the TL;DR and in 14.7 saying that H_B2 was registered for L2 and
+applied unchanged to L1 after the run. The manuscript's list of runs without a pre-run freeze
+names the historical L1 organism run. Later the same day, after the third review pass, the
+README status table and key result, the `CITATION.cff` abstract and `docs/PAPER_OUTLINE.md`
+were given the same wording; they had still said the L1 run did not meet the registered
+criterion.
+
+**What this does not change.** No number or verdict. H_B2 was applied with its thresholds
+unchanged, and the 2026-07-21 spec had framed the run as a positive control expected to show
+encoding. The not-met reading stands, at 0.533 and, on the corrected trainer, 0.551.
+
+## 2026-10-16: the development readout left out its walk-held-fixed column
+
+**What was wrong.** The frozen spec of the development readout
+(`docs/specs/2026-10-15-what-develops-design.md`) puts a matched-input column beside the
+own-episode target: the 300-update agent's recorded episodes replayed through every snapshot of
+the same seed, so the development is also read with the walk held fixed.
+`scripts/run_development_readout.py` computes it (`replay_target`) and both artifacts store it,
+but FINDINGS 23.4 and the manuscript reported only the own-episode target.
+
+**What the column shows.** From `summary.aggregate['<budget> replay_target']` of
+`artifacts/development/corrected_l3_h8_wm.json` and `corrected_l3_h8_nowm.json`, at 0, 100,
+200, 300 and 450 updates: `C1` 0.636, 0.659, 0.719, 0.733, 0.742; `C2` 0.610, 0.624, 0.608,
+0.613, 0.642. Seed-paired from 100 to 450 updates (t-based 90% interval over the `per_seed`
+arrays, n = 10), the target rises +0.083 [+0.059, +0.107] on `C1` with the walk fixed against
++0.273 [+0.222, +0.325] on own episodes, and +0.018 [-0.008, +0.044] on `C2` against +0.157
+[+0.100, +0.214]. On identical input most of the `C1` rise and nearly all of the `C2` rise is
+gone.
+
+**Change.** FINDINGS 23.4 reports the column with these contrasts, labeled descriptive as the
+spec frames it, and says that the fixed walk is the 300-update agent's and that `resid_obs` and
+`resid_trace` have no walk-fixed counterpart, so readings 1 and 2 are read on changing walks.
+
+**What this does not change.** No reading or label. Readings 1 to 4 are defined on own episodes
+and stay as recorded.
+
+## 2026-10-16: the erasure population contrasts cite an amendment the erasure spec lacks
+
+**What was wrong.** The online erasure readout's every-attempted-episode return and termination
+contrasts (FINDINGS 23.3) are labeled "descriptive, no pre-stated reading (third amendment)" in
+`scripts/run_erasure_readout.py` (lines 59 and 151), in the artifact the runner writes and in
+FINDINGS 23.3. `docs/specs/2026-10-15-online-erasure-design.md` has two amendments, one before
+any code or number and one after a two-seed setup check. It has no third. The only 2026-10-15
+third amendment is the world-features spec's. The superseded first full-run artifact
+(`artifacts/mechanism/erasure/superseded_common_survivor_2026-10-15/`) has no `population` or
+`attrition` keys, so these contrasts were defined after the first full run had been read, as
+the 2026-10-15 entry above records.
+
+**Change.** FINDINGS 23.3 calls the population lines post hoc and descriptive, says they were
+defined after the first full run, and drops the citation of a third amendment, with a dated
+marker. The runner comment and the artifact label are left for the code owner to correct, or
+for a dated amendment to the erasure spec that says it was written after the first full run.
+
+**What this does not change.** No number. The contrasts were never read against a threshold,
+and the common-survivor readings, which the spec froze, are unchanged.
+
+## 2026-10-16: a better-fitting long-history control is on record
+
+**What was wrong.** FINDINGS 17.8 and the manuscript call the 64-unit MLP joint control "the
+control that fits best" (held-out R² 0.887, residual 0.620), and the manuscript's control-ladder
+caption counts the two long-history ridge bases among the bases that put the residual below
+the bar. Those two bases fit at a fixed penalty of 0.001 with negative held-out R², which the
+same text calls failed fits. The optional sensitivity readout O2
+(`docs/optional/o2_long_history_ridge.json`, `itasorl/optional_readouts.py` `long_history_ridge`)
+chose the penalty inside each outer training fold by an episode-grouped inner split. The two
+bases then fit held-out states at R² 0.906 and 0.909, better than the MLP, and leave 0.737
+[0.690, 0.785] and 0.691 [0.650, 0.732] on the `C1` survival arm. Its fixed-penalty rows
+reproduce the recorded battery (0.640 and 0.606).
+
+**Change.** FINDINGS 17.8 carries a dated note that scopes "fits best" to the battery at its
+recorded penalty and gives the O2 values. The manuscript cites O2 as a sensitivity readout,
+scopes its "fits best" wording the same way, and no longer counts the failed fits as readings
+under the bar. `docs/optional/README.md` says O2 is now cited.
+
+**What this does not change.** No recorded row, threshold or verdict. O2 ran on CUDA on the
+survival arm only, with no untrained or predictor floor, so it is reported beside the battery
+and does not enter its table. The better-fitting linear controls remove less of the signal, not
+more.
+
+## 2026-10-16: the L1 noise knockout gave every surrogate episode of a seed one noise draw
+
+**What was wrong.** The A2 noise knockout at L1 (FINDINGS 14.7) transfers the frozen L1 probe
+onto worlds with iid observation noise at σ_o = 0.01. In `scripts/run_l1_h2_ablations.py`,
+`make_noise_world` builds a new `LObsNoise` wrapper for each surrogate world and reseeds it to
+Philox(970000 + agent seed). `collect_pool` creates one world per episode, and
+`SurrogateWrapper.reset` never reseeds the wrapper (`itasorl/surrogate_l1_families.py`,
+`itasorl/world.py`), so every surrogate episode of a seed starts the same stream and draws the
+same noise at each step: iid in time within an episode, identical across episodes. The gate-0
+calibration that matched σ_o to the band (`scripts/run_expA_l1_noise.py`, oracle 0.873) drew
+fresh noise for each pair from one continuing generator, so the tested comparator is not the
+calibrated one. The 2026-07-22 spec states its reseed rule for the L3 `GNoise` family, where the
+runner resets the stream once per pool, which gives one continuing stream across a pool's
+episodes; it names no rule for `LObsNoise`. The L1 code resets the stream at every surrogate
+world, which is every episode, and that reset is the defect.
+
+**Which results it touches.** The `a2_noise_knockout` block of `artifacts/expL1/h2_ablations.json`
+(survival 0.525, untrained 0.509, predictor 0.516) and the `NOISE-KNOCKOUT-L1` reading. A
+repeated draw lowers the variety of noise the probe meets, and its effect on the transfer reading
+has not been measured.
+
+**Change.** FINDINGS 14.7 carries a dated note. Any rerun would be a separately labeled post hoc
+readout behind an opt-in flag that keys each wrapper on its episode's world seed, defaulting
+off so the stored bits reproduce.
+
+**What this does not change.** No recorded number or verdict. The knockout was already read as
+vacuous, because the L1 primary probe does not meet the bar and has no structured direction to
+transfer.
+
+## 2026-10-16: sweep C draws one jitter realization for every agent seed and arm
+
+**What was wrong.** Sweep C of FINDINGS 22.3 draws the correlated jitter afresh for every
+surrogate episode. `per_episode_draw` in `scripts/run_texture_fresh_probe.py` reseeds the
+`G_ar` family from Philox(2550000 + 1000 + k) for the k-th world created with positive drift,
+with no agent-seed term, and `collect_pool` creates every world before it drops deaths. Each
+task (agent seed, arm and ρ) therefore meets the same Philox seeds, 2551000 onward, in the same
+order, and the jitter's innovations depend on no action, so every agent seed and arm sees the
+same per-episode jitter paths. Across ρ the standard normals behind them are also shared. The
+earlier per-pool calls `fam.reseed(bs + s)` are overwritten at the next world creation. Sweeps A
+and B (family `ar`) reseed once per pool at a base plus the agent seed, so their jitter differs
+across seeds. The frozen spec says the draw is seeded by the pool's seed base plus the episode
+index, so the code follows the spec; neither said what that implies for the interval.
+
+**Which results it touches.** Sweep C's seed-level intervals are conditional on that one jitter
+realization, as well as on the shared evaluation-world draw. Seed-to-seed variation in them is
+variation over agents, not over jitter draws.
+
+**Change.** Disclosure only. Sweep C's intervals, and those of the readout-only follow-up at the
+matched gap, which reuses the same seeding, are read with this condition wherever FINDINGS 22.3
+or the manuscript quotes them.
+
+**What this does not change.** No recorded number or reading of sweep C.
+
+## 2026-10-16: the `T-qd` artifact names the wrong reference for its sizing
+
+**What was wrong.** The gate-0 note of `artifacts/texture/T_qd_l3_h8_wm.json`
+(`gates.gate0_oracle_band.note`), written by `scripts/promote_off_design_runs.py`, says that
+eps 6.0 "was matched to the learned map's one-step magnitude". It was matched to the white
+jitter `G_gn`. In `artifacts/surrogate_diagnostics.json` the one-step RMS deviation of `qd` at
+eps 6.0 is 0.0143 (train) and 0.0141 (held out), that of `gn` at σ 0.01 is 0.0141 and 0.0143,
+and that of the learned map `gmotion_h8_s0` is 0.0361 and 0.0349, so `qd` sits at about 0.4 of
+the learned map's size. The texture-comparator spec, FINDINGS 17.9 and the manuscript all name
+`G_gn` as the match.
+
+**Change.** The promoter's note names `G_gn`'s one-step RMS magnitude as the match, and the
+artifact is re-promoted so that only this note changes.
+
+**What this does not change.** No number or reading. The run is off-design, excluded, and bears
+on no rule.
+
+## 2026-10-16: the pooled population probe groups folds by pooled row
+
+**What was wrong.** `cg_probe` (`itasorl/experiment_b2.py`) groups its cross-validation folds by
+pooled row. The pooled population panels pool every individual's common-garden pairs, which
+run on the same world seeds for each individual: Experiment C's panels and the C1 population
+readout of FINDINGS 17.11 (`scripts/validate_population_readout.py`, base 930000). One world
+seed's pairs from two individuals can then land in different folds. FINDINGS 13.F discloses
+this for Experiment C, where related individuals can lift the pooled AUROC, and
+`itasorl/experiment_c.py` carries it as a comment. The C1 population readout did not say so, and
+the manuscript's list of places where the twin grouping rule was broken did not include it.
+
+**Change.** FINDINGS 17.11 carries a dated note, and the manuscript's list names the pooled
+population probe, which was not changed in code. A rerun should group pooled rows by world-seed
+index.
+
+**What this does not change.** No number. The 0.609 and 0.536 of 17.11 are not regrouped. Those
+agents were trained independently, so they cannot test the relatedness leak, and the Experiment
+C tails were not saved, so its panels cannot be rescored.
+
+## 2026-10-16: sweep C's matched gap was measured with the per-episode draw off
+
+**What was wrong.** Sweep C (FINDINGS 22.3) sets sigma at each rho so the 24-step open-loop
+velocity gap matches the shared point, and its runner measures each setting's gap before the
+readouts. `profile` in `scripts/run_ar_sweep_c.py` wraps that measurement in `per_episode_draw`,
+which patches only the world constructor the readouts use; the measurement builds its worlds
+and calls the family directly, so the AR process ran on across the calibration episodes. The
+measured gap was sweep A's recorded gap scaled by sigma, and the record's "all six settings
+within 0.0001" held by construction.
+
+**Which results it touches.** For `G_ar` the gap from a stationary start is exact in closed
+form, sigma * sqrt(2 w'Cw) with w_t = 0.925^(23 - t) and C_ij = rho^|i - j|. The shared point
+(rho 0.9 at sweep A's sigma) reads 0.1175; the six recorded settings read 0.1162 to 0.1267, and
+rho 0.95 and 0.99 sit 1.6 and 7.8 percent above the shared point, the second outside the spec's
+3 percent band. The contrast M(0.99) - M(0) therefore compared a rho 0.99 point with more 24-step
+deviation than the rho 0 point.
+
+**Change.** `scripts/run_ar_sweep_c_followup.py` (`6846435`) reruns rho 0.95 and 0.99, readout
+only on the same saved C1 agents, at the sigma that matches 0.1175 exactly (0.00869 and 0.00763).
+Only those two points were rerun; the stored rho 0 point, the other end of the contrast, sits at
+0.1162, 1.1 percent below 0.1175 and inside the 3 percent band.
+Margins +0.060 [+0.015, +0.105] and +0.049 [+0.016, +0.081]; with the stored rho 0 point the
+contrast is -0.017 [-0.051, +0.016], reading 3 (neither), its lower bound 0.001 outside the
+margin unit. The follow-up is in `artifacts/texture/ar_sweep_c_followup/` and the manifest as
+AR-SWEEP-C-FOLLOWUP, beside the frozen result. The runner's `profile` carries a comment; its
+behavior is unchanged so the recorded run stays reproducible. FINDINGS 22.3 and the manuscript
+withdraw "coherence moved the margin by less than 0.05" and keep "coherence did not raise the
+margin", which both readings support.
+
+**What this does not change.** The frozen sweep C contrast and its reading 2, which stay as
+recorded, and the finding that no jitter setting reaches the bar.
+
+## 2026-10-16: the review archive carried branch names, and its anonymity was overstated
+
+**What was wrong.** The review archive rebuilt after the second review pass replaced commit IDs
+and recorded digests with keyed pseudonyms, but its text members still carried four public
+branch names with random suffixes, and a pull-request search on any one of them returned the
+public repository alone. The builder's leak scan had no rule for branch names, so it passed.
+Separately, `docs/REPRODUCE.md` and the submission check described the pseudonyms as if they
+left the archive with no public search key. Three remain by design. `SHA256SUMS` lists the
+real digest of every shipped file in plain text, and 53 of those digests are recorded in
+tracked files of the public repository, so reading it is enough and no hashing is needed. The
+16-character configuration fingerprints stay. Apart from the package name, the code, its
+class and function names and its docstrings match the public repository verbatim, and the
+documents do too apart from the replaced identifiers, so one code search on a class name finds
+it.
+
+**Which results it touches.** None. This is submission packaging.
+
+**Change.** The builder replaces branch names with neutral labels, and the build fails if any
+listed branch or pull-request head name survives (`docs/REPRODUCE.md`). `docs/REPRODUCE.md` ("Anonymized supplement") and
+`docs/SUBMISSION_CHECK_2026-10-16.md` (sections 2a and 2b) now say plainly that the
+replacements remove commit IDs, digests and branch names as search keys and that the archive is
+not anonymous to a search while the repository and its site are public. The archive built at
+the second review pass is not to be submitted.
+
+**What this does not change.** No number, artifact or verdict. Whether the repository and the
+site stay public during review, or the submission relies on the venue's policy on prior public
+posting, is the owner's decision before upload, and this entry does not make it.
+
+## 2026-10-16: the selection appendix read no specialist advantage from a hindsight benchmark
+
+**What was wrong.** The manuscript's selection appendix said that rearing in a world gives the
+C1 survival policies no specialist advantage. Its only basis was the own-world assignment minus
+the better single policy of each seed (-0.056), a benchmark chosen with hindsight that is
+negative whenever one policy returns more in both worlds, as on 9 of 10 seeds.
+
+**Change.** Recomputed from the C1 cell records' cross-evaluation returns: on the means each
+policy earns 0.042 more in its own world, and paired by seed the own-world assignment beats the
+average of the two fixed policies by +0.021 [-0.0004, +0.043]. The manuscript now says that a
+specialist advantage is neither shown nor ruled out.
+
+**What this does not change.** No stored number.
+
+## 2026-10-16: the matched-world runs' drift-zero pooled reading was not reported
+
+**What was wrong.** The frozen specification of the matched-world confirmation reports the
+pooled L0 reading on the registered pair beside its result, without deciding on it. The record
+reported only the drift-0.45 pooled values (0.758 and 0.835).
+
+**Change.** Recomputed from the B1 and B2 cell records (`fullruns/balanced_confirmation_wm` and
+`_touch`, not committed artifacts): at drift zero on the registered pair the survival agents of
+seeds 10 to 19 read 0.561 [0.527, 0.595] (TOST p 0.72) and the pellet-objective agents 0.536
+[0.514, 0.558], against 0.498 for the predictor and 0.503 for the untrained arm. The separation of
+that pair by the survival arm repeats on a second seed set. FINDINGS 21 and the manuscript report
+it as descriptive.
+
+**What this does not change.** The reading decides neither run, and no verdict changes.

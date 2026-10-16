@@ -111,7 +111,12 @@ def run_cell(t: dict) -> dict:
         "frozen_probe_sham": frozen("sa", "ss")[0],
         "score_spread_erased_over_unerased": frozen("ea", "es")[1],
         "score_spread_sham_over_unerased": frozen("sa", "ss")[1],
-        "refit_probe_erased": readout_from_states(Hx["ea"][:, :WIN], Hx["es"][:, :WIN], seed=s)["target"],
+        # Row i of the erased authentic and surrogate rollouts runs on the same world seed and
+        # starts from the same state, so each twin pair is one CV group (experiment_b2.py's
+        # pairing rule); split twins bias the refit AUROC toward 0 (correction 2026-10-16).
+        "refit_probe_erased": readout_from_states(
+            Hx["ea"][:, :WIN], Hx["es"][:, :WIN], seed=s,
+            groups=np.r_[np.arange(len(common)), np.arange(len(common))])["target"],
         "seconds": round(time.time() - t0, 1)})
     return out
 

@@ -196,7 +196,7 @@
     }
    ],
    "any_in_band": false,
-   "note": "No eps in the frozen qd sweep reaches the band (highest oracle 0.768); eps 6.0 was matched to the learned map's one-step magnitude, not calibrated through gate 0.",
+   "note": "No eps in the frozen qd sweep reaches the band (highest oracle 0.768); eps 6.0 was matched to the white jitter G_gn's one-step RMS magnitude (0.0142 at sigma 0.01), not calibrated through gate 0.",
    "pass": false
   },
   "engagement": {

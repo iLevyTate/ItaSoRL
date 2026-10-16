@@ -74,7 +74,10 @@ def test_provenance_block_names_the_script_and_disclaims_adjudication():
 def test_every_optional_readout_file_carries_its_provenance():
     root = Path(__file__).resolve().parents[1]
     paths = sorted((root / "docs" / "optional").glob("*.json"))
-    assert paths
+    # The anonymized supplement ships docs/optional too (2026-10-16 review): the manuscript cites
+    # O2, so this test runs, and must pass, inside an extracted archive as in a checkout.
+    assert {"o1_fold_local_speed.json", "o1_fold_local_speed_matched.json",
+            "o2_long_history_ridge.json"} <= {p.name for p in paths}
     for path in paths:
         doc = json.loads(path.read_text(encoding="utf-8"))
         block = doc.get("provenance") or {}

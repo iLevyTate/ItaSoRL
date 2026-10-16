@@ -1,7 +1,11 @@
 """One entry point for reproducing the results (revision step 15; docs/REPRODUCE.md).
 
   tables       No training. Rebuild the results manifest, the gate table, and the contrast
-               intervals from committed per-seed artifacts, then run the scalar audit. With
+               intervals from committed per-seed artifacts, then run the scalar audit. The
+               builders first compare the committed pages with their own output; a stale page
+               is rewritten, and the command then exits 3 even when the audit passes on the
+               rewritten copy. With --check nothing is rewritten: the audit reads the pages as
+               shipped and fails on a stale page as well, and a stale page exits 3. With
                --dumps DIR (state dumps written by a run, fullruns/<run>/states), also
                recompute every per-seed readout from the raw recurrent states under both fold
                partitions (scripts/rescore_fold_split.py) and the behavior control
@@ -10,39 +14,59 @@
   retrain RUN  Print, or with --execute run, the exact commands that retrain a run listed in
                docs/RESULTS_MANIFEST.md. Hours of CPU per run (estimates in docs/REPRODUCE.md).
   supplement   Build an anonymized submission archive under dist/: code, tests, committed
-               artifacts, the method documents, and each run bundle in RUN_DIRS that exists
-               under --runs-root (default fullruns/). Author names, handles, ORCID iDs,
-               e-mail addresses, repository URLs, externally hosted images and local paths
-               are scrubbed from text files. The package and project name is replaced by a
-               neutral one in text and in file names (--anon-name, default anonpkg;
-               --keep-name turns this off), and so are the titles of the publicly released
-               films, read at build time from the served film files. Outreach and
-               film-production specs and run-script figures are left out (SUPPLEMENT_EXCLUDE),
-               and Markdown links into material the archive does not carry become plain text.
-               Every shipped file, binaries included, is checked for identity strings.
+               artifacts, the method documents, and the run bundles of the chosen profile that
+               exist under --runs-root (default fullruns/). --profile full (the default) takes
+               every bundle in RUN_DIRS; --profile review takes only REVIEW_RUN_DIRS, the
+               held-out and seed-2 saved agents, and fails, writing nothing, when the archive
+               exceeds REVIEW_LIMIT (100 MB, 100,000,000 bytes). Author names, handles, ORCID
+               iDs, e-mail addresses, repository URLs, externally hosted images and local paths
+               are scrubbed from text files. Commit IDs, in either case, and SHA-256 digests
+               become keyed pseudonyms of the same length in text and in file names
+               (CommitPseudonyms); DIGEST_PSEUDONYMS.json lets a check map a digest it
+               computes to the recorded pseudonym (archive_digest). Branch names become
+               anon-branch-N in text and in file names (branch_rules), and the identity
+               check fails on any branch name that survives. The package and project
+               name is replaced by a neutral one in text and in file names (--anon-name,
+               default anonpkg; --keep-name turns this off), and so are the titles of the
+               publicly released films, read at build time from the served film files.
+               Outreach and film-production specs and run-script figures are left out
+               (SUPPLEMENT_EXCLUDE), and Markdown links into material the archive does not
+               carry become plain text. Every shipped file, binaries included, is checked for
+               identity strings (the manuscript's title among them; --paper names its source,
+               and a review build refuses to start without one), for any commit ID of this
+               repository and for any real digest a tracked file holds; a pseudonym that
+               changed a number fails the build too. A failed build leaves no archive and no
+               map, not even those of an earlier build at the same path, and a build from a
+               shallow, partial or single-branch clone, or one that cannot list the remote's
+               branches, refuses to start.
                README_SUPPLEMENT.md says what the archive holds, how to install and run it,
                and which run bundles were included; PROVENANCE.md lists every commit to
-               each preregistration and spec (UTC date and time, short hash, a count per
-               file), from git at build time; SHA256SUMS lists every other file. --require-runs fails the build when a RUN_DIRS bundle
-               is absent.
+               each preregistration and spec (UTC date and time, pseudonymized short hash, a
+               count per file), from git at build time; SHA256SUMS lists every other file.
+               --require-runs fails the build when a bundle of the profile is absent.
 
 Usage:
-    python scripts/reproduce.py tables [--dumps fullruns/corrected_l3_h8_wm/states]
+    python scripts/reproduce.py tables [--check] [--dumps fullruns/corrected_l3_h8_wm/states]
     python scripts/reproduce.py retrain C1 [--execute]
-    python scripts/reproduce.py supplement [--out dist/supplement.zip] [--runs-root DIR]
+    python scripts/reproduce.py supplement [--profile full|review] [--out FILE] [--runs-root DIR]
                                            [--anon-name NAME | --keep-name] [--require-runs]
+                                           [--paper PATH]
 """
 
 from __future__ import annotations
 
 import argparse
+import bisect
 import datetime
 import fnmatch
 import hashlib
+import hmac
 import io
+import json
 import os
 import posixpath
 import re
+import secrets
 import subprocess
 import sys
 import zipfile
@@ -94,16 +118,21 @@ BUILDERS = ("build_results_manifest.py", "build_gate_table.py", "build_contrast_
             "build_corrected_verdicts.py", "build_paper_tables.py")
 
 
-def tables(dumps: list[str]) -> int:
+STALE_EXIT = 3     # tables(): the shipped pages were stale here; they were rewritten
+
+
+def tables(dumps: list[str], check_only: bool = False) -> int:
     # Say first whether the committed pages already match what the builders produce here, so a
     # rewrite that changes a tracked file is visible as such rather than silently dirtying it.
     stale = 0
     for script in BUILDERS:
         stale |= _run([PY, os.path.join("scripts", script), "--check"])
-    print("committed tables and pages: " + ("current" if not stale else "stale here; rewriting"),
-          flush=True)
+    print("committed tables and pages: " + ("current" if not stale else
+                                            "STALE (not rewritten)" if check_only else
+                                            "stale here; rewriting"), flush=True)
     rc = 0
-    for script in BUILDERS:
+    # With --check nothing is rewritten, so the audit reads the pages as shipped.
+    for script in () if check_only else BUILDERS:
         rc |= _run([PY, os.path.join("scripts", script)])
     rc |= _run([PY, os.path.join("scripts", "audit_stats_recheck.py")])
     if dumps:
@@ -117,6 +146,15 @@ def tables(dumps: list[str]) -> int:
                     "--json", out_json])
         rc |= _run([PY, os.path.join("scripts", "audit_behavior_mediation.py"), d,
                     "--json", os.path.join("dist", f"behavior_audit_{tag}.json")])
+    # Without --check a stale page is rewritten and the audit passes on the rewritten copy. The
+    # exit code still reports it (2026-10-16 review), so 0 means the shipped pages were current.
+    # With --check the audit runs every builder's --check itself, so a stale page fails it too;
+    # that failure is the same staleness, and the exit code names it.
+    if stale and (check_only or not rc):
+        print(f"exit {STALE_EXIT}: the committed tables and pages were stale"
+              + (" (the audit output above names any other failing check)" if check_only
+                 else " before the rewrite"), flush=True)
+        rc = STALE_EXIT
     return rc
 
 
@@ -343,12 +381,135 @@ def film_rules(slugs: list[str] | None = None) -> list:
     return rules
 
 
-def scrub_rules() -> list:
+# Branch names. A pull request keeps the name of the branch it came from, and GitHub's search
+# finds a pull request by that name across every public repository: on 2026-10-16 one search on
+# any of four branch names the review archive carried returned only this project's repository.
+# Every branch this checkout knows (local branches, remote-tracking branches and, at build time,
+# each remote's branches as `git ls-remote` lists them) becomes `anon-branch-N` in text and in
+# file names, and so does any agent-session branch name (the session prefix and a slash), which
+# catches a branch deleted from the remote since. A pull request outlives its branch, so the
+# names of deleted branches count too: every name a merge commit's subject carries ("Merge pull
+# request #N from <owner>/<name>", "Merge branch '<name>' into <name>"), read offline from the
+# whole history, and at build time every pull request's head as `gh pr list` lists it, which
+# adds the squash-merged ones no merge commit names (third review, 2026-10-16: four deleted
+# branch names had survived in the review archive, each found by one search). Names every
+# repository has (main, gh-pages) name nothing and stay. The leak scan looks for every name
+# again in any case, so a spelling the replacement missed fails the build.
+GENERIC_BRANCHES = {"main", "master", "gh-pages", "HEAD"}
+BRANCH_PSEUDONYM = "anon-branch-{}"
+# Assembled from pieces, as above: this file ships, and the pattern must not match itself.
+_SESSION_BRANCH = "cla" + "ude/" + r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?"
+
+
+def _branch_listing(text: str | None) -> set[str]:
+    """Branch names from `git for-each-ref` lines (refs/heads/..., refs/remotes/<remote>/...)
+    or `git ls-remote --heads` lines (<id> refs/heads/...)."""
+    out = set()
+    for ln in (text or "").splitlines():
+        ref = ln.split()[-1] if ln.split() else ""
+        if ref.startswith("refs/heads/"):
+            out.add(ref[len("refs/heads/"):])
+        elif ref.startswith("refs/remotes/") and "/" in ref[len("refs/remotes/"):]:
+            out.add(ref[len("refs/remotes/"):].split("/", 1)[1])
+    return out
+
+
+_MERGE_PR = re.compile(r"^Merge pull request #\d+ from [^/\s]+/(\S+)")
+_MERGE_BRANCH = re.compile(r"^Merge (remote-tracking )?branch(?:es)? ((?:'[^']+'(?:,? and |, )?)+)"
+                           r"(?: of \S+)?(?: into (\S+))?")
+
+
+def _merge_listing(text: str | None) -> set[str]:
+    """Branch names from commit subjects, one per line: the head of "Merge pull request #N from
+    <owner>/<name>", and both sides of "Merge [remote-tracking] branch '<name>' into <name>"
+    (a remote-tracking name loses its remote, the first part)."""
+    out = set()
+    for ln in (text or "").splitlines():
+        m = _MERGE_PR.match(ln)
+        if m:
+            out.add(m.group(1))
+            continue
+        m = _MERGE_BRANCH.match(ln)
+        if m:
+            for name in re.findall(r"'([^']+)'", m.group(2)):
+                out.add(name.split("/", 1)[1] if m.group(1) and "/" in name else name)
+            if m.group(3):
+                out.add(m.group(3))
+    return out
+
+
+def _pr_heads() -> str | None:
+    """`gh pr list --state all` head branch names, one per line, or None when gh is missing,
+    not signed in, or cannot reach the host in 60 s."""
+    try:
+        res = subprocess.run(["gh", "pr", "list", "--state", "all", "--limit", "10000",
+                              "--json", "headRefName", "--jq", ".[].headRefName"], cwd=ROOT,
+                             capture_output=True, text=True, check=True, timeout=60)
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return None
+    return res.stdout
+
+
+def branch_names(remote: bool = False) -> list[str]:
+    """Every branch name this checkout knows, GENERIC_BRANCHES aside, sorted: local and
+    remote-tracking branches, and every name a merge commit's subject carries in the whole
+    history (_merge_listing; a deleted branch keeps its pull request). With `remote`, also each
+    remote's branches as `git ls-remote` lists them (a branch pushed from elsewhere and never
+    fetched) and every pull request's head as `gh pr list` lists it (a squash merge leaves no
+    merge subject); a warning says when gh cannot list them. Empty outside a checkout."""
+    names = _branch_listing(_git(["for-each-ref", "--format=%(refname)", "refs/heads",
+                                  "refs/remotes"]))
+    names |= _merge_listing(_git(["log", "--all", "--format=%s"]))
+    if remote:
+        for r in (_git(["remote"]) or "").split():
+            names |= _branch_listing(_ls_remote(r))
+        heads = _pr_heads()
+        if heads is None:
+            print("  WARNING: `gh pr list` could not list the pull requests, so the head names "
+                  "of squash-merged pull requests whose branch is deleted are neither replaced "
+                  "nor looked for", flush=True)
+        names |= set((heads or "").split())
+    return sorted(n for n in names if n and n not in GENERIC_BRANCHES)
+
+
+class BranchPseudonyms:
+    """A scrub rule's replacement: each known branch name becomes BRANCH_PSEUDONYM with its
+    index in the sorted list, and an agent-session name the list lacks takes the next free
+    index on first sight. `used` records pseudonym -> name."""
+
+    def __init__(self, names):
+        self.index = {n: i + 1 for i, n in enumerate(sorted(set(names)))}
+        self.used: dict[str, str] = {}
+
+    def __call__(self, m) -> str:
+        name = m.group(0)
+        if name not in self.index:
+            self.index[name] = len(self.index) + 1
+        p = BRANCH_PSEUDONYM.format(self.index[name])
+        self.used[p] = name
+        return p
+
+
+def _branch_pattern(names, flags: int = 0):
+    alts = [re.escape(n) for n in sorted(set(names), key=len, reverse=True)]
+    alts.append(r"(?<!\.)" + _SESSION_BRANCH)
+    return re.compile(r"(?<![A-Za-z0-9])(?:" + "|".join(alts) + r")(?![A-Za-z0-9])", flags)
+
+
+def branch_rules(names=None) -> list:
+    """One rule that replaces every branch name in `names` (default branch_names()) and every
+    agent-session branch name by its pseudonym (BranchPseudonyms). A name matches as a whole
+    token: a letter or digit on either side makes it part of something else."""
+    names = branch_names() if names is None else names
+    return [(_branch_pattern(names), BranchPseudonyms(names))]
+
+
+def scrub_rules(branches=None) -> list:
     """Hosted images first, then repository URLs, then the generic rules, then one rule per
-    identity term (term_rules), then the film titles (film_rules). The order matters: see
-    url_rules."""
+    identity term (term_rules), then the film titles (film_rules), then the branch names
+    (branch_rules; `branches` as there). The order matters: see url_rules."""
     return (IMAGE_SCRUB + url_rules() + list(GENERIC_SCRUB) + term_rules(identity_terms())
-            + film_rules())
+            + film_rules() + branch_rules(branches))
 
 
 def project_name() -> str | None:
@@ -444,10 +605,15 @@ def image_reviewed(data: bytes, reviewed=None) -> bool:
     """True when these exact image bytes are on the reviewed list (any path: the rename can
     move a file, and the same bytes show the same pixels)."""
     allowed = set((REVIEWED_IMAGES if reviewed is None else reviewed).values())
-    return hashlib.sha256(data).hexdigest() in allowed
+    # Inside an extracted archive the listed digests are pseudonyms (archive_digest).
+    return archive_digest(hashlib.sha256(data).hexdigest()) in allowed
 
 
 INCLUDE_DIRS = ["itasorl", "scripts", "tests", "artifacts"]
+# Document folders shipped whole (tracked files only). docs/optional holds the optional
+# readouts; the manuscript cites O2 in its Limitations and claims row 46, so it ships
+# (2026-10-16 review), its provenance commits pseudonymized like every other commit field.
+DOC_DIRS = ["docs/specs", "docs/figures", "docs/optional"]
 INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "pytest.ini",
                  "ruff.toml", "LICENSE",
                  "constraints-cpu-corrected.txt", "constraints-workstation.txt",
@@ -540,6 +706,33 @@ RUN_INCLUDED_NOTES = {
         "state dumps."),
 }
 
+# The review build (--profile review). TMLR accepts at most 100 MB of supplementary material,
+# and the full build was 501 MB on 2026-10-16, nearly all of it run bundles. The review build
+# carries the two bundles Appendix app:repro of the paper says the supplement carries: the
+# saved agents of the held-out and seed-2 runs, from which the direction-of-rearing and
+# world-sample readouts replay. The limit is read in decimal units, 100,000,000 bytes, the
+# smaller reading of "100MB" and the one the paper states.
+REVIEW_RUN_DIRS = ["fullruns/l3_h8_heldout/agents", "fullruns/l3_h8_gseed2_gpu/agents"]
+REVIEW_LIMIT = 100_000_000
+PROFILES = ("full", "review")
+# What the review README says about each full-build bundle it leaves out.
+REVIEW_LEFT_OUT = {
+    "fullruns/corrected_l3_h8_wm": "C1, the corrected primary run (cells, saved agents)",
+    "fullruns/corrected_l3_h8_nowm": "C2, the corrected run without the auxiliary (cells, saved agents)",
+    "fullruns/balanced_confirmation_wm": "B1, the matched-world survival confirmation (cells, saved "
+                                         "agents, state dumps)",
+    "fullruns/balanced_confirmation_touch": "B2, the matched-world pellet confirmation (cells, saved "
+                                            "agents, state dumps)",
+    "fullruns/corrected_l1_heldout": "L1-CORRECTED (cells, saved agents, state dumps)",
+}
+
+
+def profile_run_dirs(profile: str) -> list[str]:
+    """The run bundles a build profile carries, read when called so tests can patch RUN_DIRS."""
+    if profile not in PROFILES:
+        raise SystemExit(f"--profile must be one of {PROFILES}, got {profile!r}")
+    return list(REVIEW_RUN_DIRS if profile == "review" else RUN_DIRS)
+
 # Left out of the archive even though they sit under a packaged root, as (pattern, reason).
 # Reproduction needs none of them. Patterns are fnmatch patterns on the repository path.
 SUPPLEMENT_EXCLUDE = [
@@ -602,15 +795,17 @@ def _run_dir_source(r: str, runs_root: str) -> str:
     return os.path.join(runs_root, *sub.split("/"))
 
 
-def _sources(runs_root: str | None = None, dropped: list | None = None):
+def _sources(runs_root: str | None = None, dropped: list | None = None,
+             run_dirs: list[str] | None = None):
     """(archive path, source path) for every file the archive carries, sorted, and the status
-    of each RUN_DIRS entry as (entry, file count), the count None when the entry is absent.
+    of each run bundle (`run_dirs`, default RUN_DIRS) as (entry, file count), the count None
+    when the entry is absent.
     The repository part follows git, not the filesystem, so gitignored scratch output under
     the included directories (artifacts/clip_audit/, about 400 MB) never ships. A file that
     SUPPLEMENT_EXCLUDE names is left out and, when `dropped` is a list, recorded there as
     (path, reason)."""
     runs_root = runs_root or os.path.join(ROOT, "fullruns")
-    roots = INCLUDE_DIRS + ["docs/specs", "docs/figures"]
+    roots = INCLUDE_DIRS + DOC_DIRS
     listed = _git_files()
     if listed is None:
         repo = [f for d in roots for f in _walk(d)]
@@ -621,7 +816,7 @@ def _sources(runs_root: str | None = None, dropped: list | None = None):
     pairs = {f: os.path.join(ROOT, f) for f in repo if os.path.isfile(os.path.join(ROOT, f))}
     status = []
     gone = []
-    for r in RUN_DIRS:
+    for r in RUN_DIRS if run_dirs is None else run_dirs:
         src = _run_dir_source(r, runs_root)
         if not os.path.isdir(src):
             status.append((r, None))
@@ -657,10 +852,15 @@ PROVENANCE_NAME = "PROVENANCE.md"
 
 
 def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
-            provenance: str | None = None) -> str:
+            provenance: str | None = None, profile: str = "full", left_out=(),
+            commits_hidden: int = 0, digests_hidden: int = 0, branches_hidden: int = 0,
+            title_checked: bool = True) -> str:
     """README_SUPPLEMENT.md: what the archive holds and leaves out, how to install and run it,
     and the state of every run bundle. `provenance` is None when PROVENANCE.md was written,
-    else the reason it was not."""
+    else the reason it was not. `left_out` lists the full-build bundles a review build does
+    not carry; `commits_hidden`, `digests_hidden` and `branches_hidden` count the commit IDs,
+    SHA-256 digests and branch names replaced by pseudonyms; `title_checked` is False when the manuscript's title could not be
+    read, so the identity scan did not look for it."""
     L = ["# Anonymized supplement", "",
          "This archive holds the code, the tests, every committed artifact and the method and "
          "correction documents of the project, anonymized for review. The project's public "
@@ -673,8 +873,10 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
          "`pip install -r requirements-dev.txt`.",
          "- `python -m pytest -q` runs the test suite, about 20 minutes on a laptop CPU.",
          "- `python scripts/audit_stats_recheck.py` runs the scalar audit, a few seconds.",
-         "- `python scripts/reproduce.py tables` checks and rebuilds the tables and gates from "
-         "the committed per-seed artifacts without training, then runs the audit.",
+         "- `python scripts/reproduce.py tables --check` compares the shipped tables and gates "
+         "with a rebuild from the committed per-seed artifacts, without training, and runs the "
+         "audit; it exits 3 when a shipped page is stale. Without `--check` it rewrites a stale "
+         "page and still exits 3.",
          "- `python scripts/reproduce.py retrain C1` prints the commands that retrain a run "
          "(hours of CPU; costs in docs/REPRODUCE.md section 2).",
          "- Bit-exact equality holds only on the stack and machine that wrote a result. To replay a "
@@ -697,6 +899,27 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
     if reasons:
         L.append(f"- Left out ({len(dropped)} files): " + "; ".join(reasons) + ". Reproduction "
                  "needs none of them.")
+    if commits_hidden:
+        L.append(f"- Commit IDs ({commits_hidden} distinct commits) are replaced by keyed "
+                 "pseudonyms of the same length, in the documents, the artifacts, "
+                 f"`{PROVENANCE_NAME}` and the file names. One commit reads the same everywhere "
+                 "in the archive, and a short hash is the prefix of its full form, so references "
+                 "between files still match. They resolve in no public history.")
+    if digests_hidden:
+        L.append(f"- SHA-256 digests ({digests_hidden} distinct) in the documents and artifacts "
+                 "are replaced by keyed pseudonyms of the same length. `SHA256SUMS` lists the "
+                 "real digest of every file. A check that hashes a shipped file and compares the "
+                 "result with a recorded digest looks the result up in "
+                 f"`{DIGEST_TABLE_NAME}`, which is keyed by the SHA-256 of each real digest and "
+                 "so spells none of them.")
+    if branches_hidden:
+        L.append(f"- Branch names ({branches_hidden} distinct) read `anon-branch-1`, "
+                 "`anon-branch-2` and so on, in the documents, the artifacts and the file names. "
+                 "A pull request keeps the name of the branch it came from, so a branch name is "
+                 "a search key.")
+    if not title_checked:
+        L.append("- The manuscript's title could not be read where this archive was built, so "
+                 "the identity scan did not look for it.")
     L.append("- Figures that run scripts draw inside run bundles (under artifacts/goal_stakes/ "
              "and fullruns/) are left out whenever present: no one has viewed them for names, "
              "and the numbers they plot are in the JSON files beside them.")
@@ -704,6 +927,11 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
           "Run bundles are the outputs of training runs (cells, saved agents, state dumps). They "
           "are not kept in version control, so the archive carries those present where it was "
           "built.", ""]
+    if profile == "review":
+        L += ["This is the review build, sized for a 100 MB limit on supplementary material. "
+              "It carries only the saved agents of the historical hidden-8 held-out run and of "
+              "the hidden-8 seed-2 run, from which the direction-of-rearing and world-sample "
+              "readouts replay. It carries no state dumps.", ""]
     absent = []
     for r, n in status:
         if n is not None:
@@ -719,6 +947,17 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
         L.append("")
         L += [f"- {note}" for note in shipped]
     L.append("")
+    if left_out:
+        L += ["The review build leaves out these run bundles, which the full build carries:", ""]
+        L += [f"- `{r}`: {REVIEW_LEFT_OUT[r]}" if r in REVIEW_LEFT_OUT else f"- `{r}`"
+              for r in left_out]
+        L += ["", "Their per-seed readouts are committed under artifacts/ (the cells of C1, C2 "
+              "and L1-CORRECTED under artifacts/corrected_runs/, the B1 and B2 readouts under "
+              "artifacts/balanced_confirmation/), so every table and gate rebuilds from this "
+              "archive without them. Replaying a readout from "
+              "their saved agents or state dumps, including the matched-gate replay of B1 and "
+              "B2 and the stream and surprise readouts of L1-CORRECTED, needs a retrain from the "
+              "recorded recipe (docs/REPRODUCE.md section 2).", ""]
     if gone:
         both = " and ".join(gone)
         L += [f"The saved agents and state dumps of the corrected run{'s' if len(gone) > 1 else ''} "
@@ -734,9 +973,10 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
     L += ["", "## Files", ""]
     if provenance is None:
         L.append(f"- `{PROVENANCE_NAME}` lists every commit to each preregistration and spec "
-                 "in the archive, with its UTC date and time and short hash and a count per "
-                 "file, read from git when the archive was built, so the freeze timing of each "
-                 "and the date of every later edit can be checked.")
+                 "in the archive, with its UTC date and time and "
+                 + ("pseudonymized " if commits_hidden else "")
+                 + "short hash and a count per file, read from git when the archive was built, "
+                 "so the freeze timing of each and the date of every later edit can be checked.")
     else:
         L.append(f"- There is no `{PROVENANCE_NAME}`: {provenance}.")
     L.append(f"- `SHA256SUMS` lists the SHA-256 of every file in the archive except itself, "
@@ -789,6 +1029,449 @@ def _git(args: list[str]) -> str | None:
     except (OSError, subprocess.CalledProcessError):
         return None
     return res.stdout
+
+
+# Commit IDs and SHA-256 digests. The archive carries no git history, but a commit ID is a
+# search key: on 2026-10-16 one full hash in the review archive found the public repository in
+# a single code search, and short hashes narrow to it in two or three. A 64-character SHA-256
+# digest is a better one: the agent, fold and surrogate digests the artifacts record are on the
+# public repository verbatim (second review, 2026-10-16).
+#
+# Every hex token of 7 to 40 characters, in either case, that is a prefix of a commit in this
+# repository's object store is replaced by a keyed pseudonym of the same length and case, in
+# text and in file names. The pseudonym belongs to the full commit ID, so a short hash stays
+# the prefix of its full form and every mention of one commit reads the same; comparisons
+# between shipped files (an artifact's commit against the audit's copy, a startswith on a
+# short hash, a sorted list) still hold. A token in a commit field (a JSON key naming a commit
+# or a head, or the word "commit" before it) is replaced even when it resolves to no local
+# commit, and a history-checked build refuses to start when one does not (history_gap).
+#
+# Every 64-character hex token in a shipped text file is replaced the same way, by a keyed
+# pseudonym of the same length; a token of 12 or more characters that is a prefix of one takes
+# the prefix of its pseudonym. SHA256SUMS keeps the real digest of every member, so the
+# archive's bytes can still be verified. A check that compares a digest it computes from a
+# shipped file with the one an artifact records goes through archive_digest(), which inside an
+# extracted archive looks the computed digest up in DIGEST_PSEUDONYMS.json. That table is keyed
+# by the SHA-256 of each real digest, so it gives back no real digest, and no shipped text holds
+# one. The real digests of shipped binary members (the saved agents, the surrogate exports) are
+# still in SHA256SUMS: anyone who hashes a shipped file can search for the result.
+#
+# Digit runs inside numbers are left alone: a token of digits alone, or of digits and one
+# exponent "e", right after "digit." (the decimals of -9.765625e-05), right before ".digit", or
+# ending in an exponent "e" before its sign and digits is no ID. A token with any other hex
+# letter is an ID candidate in every context, and the leak scan (commit_scan) uses the same
+# pattern, so it sees exactly what the replacement sees. A build fails (number_guard) when the
+# pseudonyms change a decimal number, leave a JSON member that no longer parses or holds a
+# different number, or rewrite an all-digit token of 7 or more digits that nothing marks as a
+# commit: a commit field or the word "commit" in some shipped file, the word "commit" (also as
+# the end of a word, as in git_commit) right before it, or a Markdown code span around it.
+#
+# The key stays local, under dist/ (gitignored). The key alone does not give back a build's
+# commit pseudonyms: they are handed out in the sorted order of every commit in the object
+# store, so a later commit, or a gc that drops an unreachable one, shifts many of them. Each
+# build therefore writes its own map beside the archive (commit_map_path), holding the commit
+# list it drew from and the pseudonym of every spelling it replaced; keep it with the archive
+# that was submitted.
+#
+# The scan only knows the commits in the local object store. Outside a checkout, in a shallow,
+# partial or single-branch clone, or when the remote holds a branch tip the store lacks, commit
+# IDs the archive carries would pass it unseen, so an anonymized build that needs the scan
+# refuses to start there (history_gap). It refuses too when it cannot list a remote's branches
+# (offline, or a remote that no longer exists): the build needs the remote, or the remote
+# removed.
+_HEX_TOKEN = re.compile(r"(?<![0-9A-Za-z])"
+                        r"(?!(?<=\d\.)\d+(?:[eE]\d*)?(?![0-9A-Za-z]))"  # decimals after "digit."
+                        r"(?!\d+\.\d)"                                  # digits before ".digit"
+                        r"(?!\d+[eE][+-]\d)"                            # mantissa before "e-05"
+                        r"[0-9A-Fa-f]{7,64}(?![0-9A-Za-z])")
+_DIGEST_TOKEN = re.compile(r"(?<![0-9A-Za-z])[0-9A-Fa-f]{64}(?![0-9A-Za-z])")
+DIGEST_MIN_PREFIX = 12
+COMMIT_KEY = os.path.join(ROOT, "dist", "supplement-commit-key.txt")
+COMMIT_MAP_SUFFIX = ".commit-map.json"
+DIGEST_TABLE_NAME = "DIGEST_PSEUDONYMS.json"
+_DIGEST_LOOKUP_TAG = "digest-pseudonym:"
+# Where a hex token names a commit: a JSON key with "commit" or "head" in it, or ending in
+# "_fix" (the results manifest's padding_fix), holding a string or a list of strings; or the
+# word "commit" followed by the token. A key that names a fingerprint, hash, sha256 or digest
+# (fingerprint_committed) holds no commit.
+_NOT_COMMIT_KEY = r'(?![A-Za-z_]*(?:fingerprint|hash|sha\d|digest))'
+_COMMIT_FIELD = re.compile(r'(?i)"' + _NOT_COMMIT_KEY + r'[A-Za-z_]*(?:commit|head)[A-Za-z_]*"'
+                           r'\s*:\s*(\[[^\]]*\]|"[^"]*")'
+                           r'|"' + _NOT_COMMIT_KEY + r'[A-Za-z_]*_fix"\s*:\s*(\[[^\]]*\]|"[^"]*")')
+_COMMIT_PROSE = re.compile(r"(?i)\bcommits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
+
+
+def commit_map_path(archive: str) -> str:
+    """The pseudonym map of the archive at `archive`: dist/supplement-review.zip ->
+    dist/supplement-review.commit-map.json, so no other build or test overwrites it."""
+    return os.path.splitext(archive)[0] + COMMIT_MAP_SUFFIX
+
+
+def commit_ids() -> list[str]:
+    """Every commit object in this repository's object store, sorted; [] outside a checkout
+    (an extracted archive, or a folder inside some other repository)."""
+    top = (_git(["rev-parse", "--show-toplevel"]) or "").strip()
+    if not top or os.path.normcase(os.path.realpath(top)) != os.path.normcase(os.path.realpath(ROOT)):
+        return []
+    out = _git(["cat-file", "--batch-all-objects", "--batch-check=%(objectname) %(objecttype)"])
+    return sorted(ln.split()[0] for ln in (out or "").splitlines() if ln.endswith(" commit"))
+
+
+def commit_field_tokens(text: str) -> set[str]:
+    """The hex tokens (lowercase) that `text` names as commits (see _COMMIT_FIELD)."""
+    out = set()
+    for m in _COMMIT_FIELD.finditer(text):
+        out |= {t.lower() for t in re.findall(r'"([0-9A-Fa-f]{7,40})"', m.group(1) or m.group(2))}
+    out |= {m.group(1).lower() for m in _COMMIT_PROSE.finditer(text)}
+    return out
+
+
+def _ls_remote(remote: str) -> str | None:
+    """`git ls-remote --heads <remote>`, or None when the remote cannot be reached in 60 s."""
+    try:
+        res = subprocess.run(["git", "ls-remote", "--heads", remote], cwd=ROOT,
+                             capture_output=True, text=True, check=True, timeout=60)
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return None
+    return res.stdout
+
+
+def history_gap(commits: list[str], named=()) -> str | None:
+    """Why the commit scan cannot see every commit ID the archive may carry, or None. `named`
+    holds the tokens shipped files name as commits (commit_field_tokens); one that resolves to
+    no local commit shows the object store is incomplete. A remote whose branches cannot be
+    listed counts as a gap, since a branch tip the store lacks would then go unseen. An
+    extracted archive (README_SUPPLEMENT.md at the root) has no history and no real commit IDs
+    left, so rebuilding from one is allowed."""
+    if os.path.exists(os.path.join(ROOT, README_NAME)):
+        return None
+    if not commits:
+        return "this folder is not the top of a git checkout, so no commit ID is known"
+    if (_git(["rev-parse", "--is-shallow-repository"]) or "").strip() == "true":
+        return ("this is a shallow clone, which holds only the commits it fetched "
+                "(run `git fetch --unshallow`)")
+    if (_git(["config", "--get", "extensions.partialClone"]) or "").strip():
+        return "this is a partial clone, which fetches objects only when they are read"
+    have = set(commits)
+    for remote in (_git(["remote"]) or "").split():
+        specs = (_git(["config", "--get-all", f"remote.{remote}.fetch"]) or "").split()
+        if not any(s.lstrip("+").split(":")[0] in ("refs/heads/*", "refs/*") for s in specs):
+            return (f"remote {remote} fetches only some of its branches (a single-branch clone; "
+                    f"set remote.{remote}.fetch to +refs/heads/*:refs/remotes/{remote}/* and "
+                    "fetch)")
+        listing = _ls_remote(remote)
+        if listing is None:
+            return (f"the branches of remote {remote} could not be listed (`git ls-remote` failed "
+                    "or timed out), so nothing shows the object store holds every branch tip; "
+                    f"build online, or remove the remote with `git remote remove {remote}` if it "
+                    "is gone")
+        missing = [ln.split()[1] for ln in listing.splitlines()
+                   if len(ln.split()) == 2 and ln.split()[0] not in have]
+        if missing:
+            return (f"{len(missing)} branch tip(s) of remote {remote} are not in the object store "
+                    f"(run `git fetch {remote}`), for example {missing[0]}")
+    absent = sorted(t for t in named if not _resolves(commits, t))
+    if absent:
+        return (f"{len(absent)} commit ID(s) that shipped files name in commit fields resolve to "
+                f"no local commit, for example {absent[0]}, so the object store lacks commits "
+                "the archive may also name elsewhere")
+    return None
+
+
+def commit_key(path: str | None = None) -> bytes:
+    """The pseudonym key, made on first use and kept so later builds agree."""
+    path = path or COMMIT_KEY
+    try:
+        with open(path, encoding="ascii") as fh:
+            return bytes.fromhex(fh.read().strip())
+    except FileNotFoundError:
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        key = secrets.token_hex(32)
+        with open(path, "w", encoding="ascii") as fh:
+            fh.write(key + "\n")
+        return bytes.fromhex(key)
+
+
+def _resolves(sorted_ids: list[str], tok: str) -> list[str]:
+    """The entries of `sorted_ids` that `tok` (any case) is a prefix of."""
+    tok = tok.lower()
+    i = bisect.bisect_left(sorted_ids, tok)
+    out = []
+    while i < len(sorted_ids) and sorted_ids[i].startswith(tok):
+        out.append(sorted_ids[i])
+        i += 1
+    return out
+
+
+def _same_case(pseudonym: str, tok: str) -> str:
+    return pseudonym.upper() if tok.isupper() else pseudonym
+
+
+def digest_lookup_key(real: str) -> str:
+    """The DIGEST_PSEUDONYMS.json key of a real digest: the SHA-256 of the tagged digest, which
+    names it without spelling it."""
+    return hashlib.sha256((_DIGEST_LOOKUP_TAG + real.lower()).encode("ascii")).hexdigest()
+
+
+def digest_tokens(text: str) -> set[str]:
+    """The 64-character hex tokens of `text` (lowercase) that look like digests: a run of one or
+    two repeated characters is padding, not a search key."""
+    return {m.group(0).lower() for m in _DIGEST_TOKEN.finditer(text) if len(set(m.group(0))) > 2}
+
+
+class CommitPseudonyms:
+    """Same-length keyed pseudonyms for the commit IDs and SHA-256 digests in a text (see
+    _HEX_TOKEN). `sub` replaces them; `search` finds a commit ID that still resolves, with the
+    interface of a compiled pattern, so the leak scan can use it. `mapping` records pseudonym ->
+    commit ID as written, `digest_mapping` and `forced_mapping` the same for digests and for
+    commit-field tokens that resolve to no local commit (`forced`)."""
+
+    def __init__(self, commits: list[str], key: bytes, digests=(), forced=()):
+        self.commits = sorted(commits)
+        self.mapping: dict[str, str] = {}
+        self.digest_mapping: dict[str, str] = {}
+        self.forced_mapping: dict[str, str] = {}
+        # One keyed 40-character draw per commit, each distinct at 7 characters and none the
+        # prefix of a real commit, then handed out in sorted order. The pseudonyms therefore
+        # sort as the commits do: the results manifest lists a run's commits sorted, and an
+        # order that changed in the archive would make its own --check report it stale.
+        draws, seen = [], set()
+        for c in self.commits:
+            n = 0
+            while True:
+                p = hmac.new(key, f"{c}:{n}".encode(), hashlib.sha256).hexdigest()[:40]
+                if p[:7] not in seen and not self.resolves(p[:7]):
+                    break
+                n += 1
+            seen.add(p[:7])
+            draws.append(p)
+        self.full = dict(zip(self.commits, sorted(draws)))     # commit ID -> pseudonym
+        # Forced IDs get the same two properties as resolvable ones. A shorter spelling of an ID
+        # (a 7-character commit_at_run beside a 40-character git_commit_at_run) takes the longer
+        # spelling's pseudonym prefix, and the pseudonyms sort as the IDs do, because the results
+        # manifest lists a run's commits sorted and its --check inside the archive would otherwise
+        # report it stale (a shallow clone forces every ID, CI 2026-10-16).
+        toks = sorted({t.lower() for t in forced if not self.resolves(t)})
+        maximal = [t for t in toks if not any(o != t and o.startswith(t) for o in toks)]
+        fdraws = sorted(self._draw(key, "commit", t, 40, seen) for t in maximal)
+        ffull = dict(zip(maximal, fdraws))
+        self.forced = {t: ffull[next(L for L in maximal if L.startswith(t))][:len(t)] for t in toks}
+        # A forced ID is matched by prefix, as a resolvable one is: a field may spell the full ID
+        # while code or prose quotes its first seven characters, and both must get one pseudonym
+        # (a shallow clone resolves neither, 2026-10-16).
+        self.forced_ids = sorted(self.forced)
+        self.digests = sorted({d.lower() for d in digests})
+        self.dfull = {d: self._draw(key, "sha256", d, 64, seen) for d in self.digests}
+
+    def _draw(self, key: bytes, kind: str, tok: str, n: int, seen: set) -> str:
+        """A keyed pseudonym of length `n` for `tok`, distinct at 7 characters from every other
+        draw and from every real commit, and no real digest."""
+        i = 0
+        while True:
+            p = hmac.new(key, f"{kind}:{tok}:{i}".encode(), hashlib.sha256).hexdigest()[:n]
+            if p[:7] not in seen and not self.resolves(p[:7]) and p != tok:
+                seen.add(p[:7])
+                return p
+            i += 1
+
+    def resolves(self, tok: str) -> list[str]:
+        """The commits `tok` is a prefix of. An ambiguous prefix counts: it still narrows a search."""
+        return _resolves(self.commits, tok) if len(tok) <= 40 else []
+
+    def sub(self, text: str) -> str:
+        if not (self.commits or self.forced or self.digests):
+            return text
+
+        def rep(m):
+            tok = m.group(0)
+            low = tok.lower()
+            hits = self.resolves(low)
+            if hits:
+                # An ambiguous prefix takes its first commit's pseudonym, which keeps the order.
+                p = _same_case(self.full[hits[0]][:len(tok)], tok)
+                self.mapping[p] = tok
+            elif self._forced_hit(low):
+                p = _same_case(self.forced[self._forced_hit(low)][:len(tok)], tok)
+                self.forced_mapping[p] = tok
+            elif len(tok) >= DIGEST_MIN_PREFIX and _resolves(self.digests, low):
+                p = _same_case(self.dfull[_resolves(self.digests, low)[0]][:len(tok)], tok)
+                self.digest_mapping[p] = tok
+            else:
+                return tok
+            return p
+
+        return _HEX_TOKEN.sub(rep, text)
+
+    def _forced_hit(self, low: str) -> str | None:
+        """The forced ID that `low` spells, or abbreviates in 7 to 12 characters as git does.
+        A longer prefix is no abbreviation: a 16-character fingerprint that happens to start
+        like a forced ID is left alone, as fingerprints are everywhere else."""
+        if low in self.forced:
+            return low
+        hits = _resolves(self.forced_ids, low) if 7 <= len(low) <= 12 else []
+        return hits[0] if hits else None
+
+    def search(self, text: str):
+        for m in _HEX_TOKEN.finditer(text):
+            if self.resolves(m.group(0)) or self._forced_hit(m.group(0).lower()):
+                return m
+        return None
+
+    def count(self) -> int:
+        """Distinct commits replaced (an ambiguous prefix counts as its first commit)."""
+        return len({self.resolves(t)[0] for t in self.mapping.values()})
+
+    def digest_count(self) -> int:
+        """Distinct digests replaced."""
+        return len({_resolves(self.digests, t)[0] for t in self.digest_mapping.values()})
+
+    def digest_table(self) -> dict:
+        """DIGEST_PSEUDONYMS.json: digest_lookup_key(real) -> pseudonym, for every digest
+        replaced."""
+        used = {_resolves(self.digests, t)[0] for t in self.digest_mapping.values()}
+        return {digest_lookup_key(d): self.dfull[d] for d in sorted(used)}
+
+
+class DigestSet:
+    """search() finds a 64-character hex token of `tokens`, in either case, with the interface
+    of a compiled pattern, so the byte scan (_binary_hits) can use it."""
+
+    def __init__(self, tokens):
+        self.tokens = {t.lower() for t in tokens}
+
+    def search(self, text: str):
+        for m in _DIGEST_TOKEN.finditer(text):
+            if m.group(0).lower() in self.tokens:
+                return m
+        return None
+
+
+def tracked_digests() -> set[str]:
+    """Every 64-character hex token in the text files git tracks here, the copies a code search
+    of the public repository can find; empty outside a checkout."""
+    out = _git(["grep", "-h", "-o", "-I", "-E", "[0-9a-fA-F]{64}"]) or ""
+    return {t.lower() for t in out.split() if len(t) == 64}
+
+
+def commit_scan(path: str, hider: CommitPseudonyms) -> list[str]:
+    """Members of the archive at `path` whose name, text or bytes (zip containers opened) still
+    hold a commit ID of this repository, in either case."""
+    if not (hider.commits or hider.forced):
+        return []
+    out = []
+    with zipfile.ZipFile(path) as z:
+        for n in z.namelist():
+            if hider.search(n) or _binary_hits(z.read(n), [hider]):
+                out.append(n)
+    return out
+
+
+def digest_scan(path: str, digests) -> list[str]:
+    """Members of the archive at `path`, SHA256SUMS aside, whose name, text or bytes (zip
+    containers opened) hold one of `digests`, in either case."""
+    found = DigestSet(digests)
+    if not found.tokens:
+        return []
+    out = []
+    with zipfile.ZipFile(path) as z:
+        for n in z.namelist():
+            if n != "SHA256SUMS" and (found.search(n) or _binary_hits(z.read(n), [found])):
+                out.append(n)
+    return out
+
+
+_DECIMAL = re.compile(r"\d+\.\d+(?:[eE][-+]?\d+)?")
+
+
+def _json_docs(name: str, text: str) -> list[str]:
+    if name.endswith((".json", ".ipynb")):
+        return [text]
+    if name.endswith(".jsonl"):
+        return [ln for ln in text.splitlines() if ln.strip()]
+    return []
+
+
+def _leaves(obj):
+    """The non-string leaves of a parsed JSON value, in document order."""
+    if isinstance(obj, dict):
+        for v in obj.values():
+            yield from _leaves(v)
+    elif isinstance(obj, list):
+        for v in obj:
+            yield from _leaves(v)
+    elif not isinstance(obj, str):
+        yield repr(obj)
+
+
+_INTEGER = re.compile(r"(?<![0-9A-Za-z])\d{7,}(?![0-9A-Za-z])")
+_COMMIT_BEFORE = re.compile(r"(?i)commits?[\s`(:]*$")
+
+
+def _marked_commit(text: str, start: int, end: int, known) -> bool:
+    """Whether the token text[start:end] reads as a commit ID: one that `known` holds (the
+    tokens some shipped file names in a commit field), one right after the word "commit", or
+    one alone in a Markdown code span."""
+    tok = text[start:end]
+    if tok.lower() in known or _COMMIT_BEFORE.search(text[max(0, start - 16):start]):
+        return True
+    return text[start - 1:start] == "`" and text[end:end + 1] == "`"
+
+
+def number_guard(name: str, before: str, after: str, known=frozenset()) -> str | None:
+    """What the pseudonyms broke in the text member `name`, or None: a decimal number that
+    changed, a JSON document that no longer parses, a JSON number, boolean or null that
+    differs, or an all-digit token of 7 or more digits that changed although nothing marks it
+    as a commit (_marked_commit; `known` adds the commit-field tokens of the other shipped
+    files to this member's own). A document that did not parse before is not checked."""
+    if before == after:
+        return None
+    if _DECIMAL.findall(before) != _DECIMAL.findall(after):
+        return "a decimal number changed"
+    for b, a in zip(_json_docs(name, before), _json_docs(name, after)):
+        try:
+            ob = json.loads(b)
+        except ValueError:
+            continue
+        try:
+            oa = json.loads(a)
+        except ValueError as e:
+            return f"no longer parses as JSON ({e})"
+        if list(_leaves(ob)) != list(_leaves(oa)):
+            return "a JSON number, boolean or null changed"
+    if len(before) != len(after):
+        return "the text changed length, so a same-length pseudonym cannot account for it"
+    known = set(known) | commit_field_tokens(before)
+    for m in _INTEGER.finditer(before):
+        if after[m.start():m.end()] != m.group(0) and not _marked_commit(before, m.start(),
+                                                                          m.end(), known):
+            return (f"an integer of {len(m.group(0))} digits at character {m.start()} changed, "
+                    "and nothing marks it as a commit")
+    return None
+
+
+def _digest_table(root: str) -> dict:
+    try:
+        with open(os.path.join(root, DIGEST_TABLE_NAME), encoding="utf-8") as fh:
+            return json.load(fh)["pseudonyms"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return {}
+
+
+def archive_digest(real: str) -> str:
+    """The digest a shipped artifact records for the real digest `real`: inside an extracted
+    anonymized archive (README_SUPPLEMENT.md at the root), its pseudonym from
+    DIGEST_PSEUDONYMS.json; anywhere else, and for a digest the table does not hold, `real`.
+    A check that compares a digest it computes from a shipped file with a recorded one compares
+    archive_digest(computed) instead, and passes in both places."""
+    if not os.path.exists(os.path.join(ROOT, README_NAME)):
+        return real
+    p = _digest_table(ROOT).get(digest_lookup_key(real))
+    return _same_case(p, real) if p else real
+
+
+def archive_digest_text(text: str) -> str:
+    """`text` with every 64-character hex token passed through archive_digest()."""
+    return _DIGEST_TOKEN.sub(lambda m: archive_digest(m.group(0)), text)
 
 
 def _log_records(args: list[str]) -> list[tuple[str, str, list[str]]]:
@@ -848,12 +1531,15 @@ def provenance_rows(rels: list[str]):
     return rows, None
 
 
-def provenance_md(rows, rename) -> str:
-    """PROVENANCE.md: a summary line per file, then every commit to it."""
+def provenance_md(rows, rename, pseudonyms: bool = False) -> str:
+    """PROVENANCE.md: a summary line per file, then every commit to it. `pseudonyms` says the
+    hashes will be replaced by commit pseudonyms (CommitPseudonyms) before the file ships."""
+    hashes = ("short commit hashes, replaced by keyed pseudonyms of the same length (see "
+              f"{README_NAME})" if pseudonyms else "short commit hashes")
     out = ["# Provenance of the preregistrations and specs", "",
            "Read from the git history when this archive was built: every commit that changed "
-           "each file, oldest first, with committer dates and times in UTC and short commit "
-           "hashes. Names, e-mail addresses and commit messages are not included. The first "
+           f"each file, oldest first, with committer dates and times in UTC and {hashes}. "
+           "Names, e-mail addresses and commit messages are not included. The first "
            "commit is when the file entered the history, and each later one is an edit; the "
            "file's own dated entries say what changed. Commits on every branch that was merged "
            "are counted, so an edit made on a side branch is listed under its own hash. A merge "
@@ -906,31 +1592,84 @@ def local_account() -> str | None:
     return name if len(name) >= 4 and name.lower() not in _GENERIC_ACCOUNTS else None
 
 
-def paper_title() -> str | None:
-    """The manuscript's main title (before any colon), read at build time from the local,
-    untracked LaTeX source when it exists, so no tracked file spells it."""
-    path = os.path.join(ROOT, "docs", "paper", "main.tex")
+def paper_source(path: str | None = None) -> str | None:
+    """The manuscript's LaTeX source, untracked and so never in the archive: `path` (main.tex
+    or the folder that holds it) when given, else docs/paper/main.tex in this checkout, else
+    the same file in the main checkout of a git worktree (a worktree has no docs/paper of its
+    own). None when there is none."""
+    def main_tex(p: str) -> str:
+        return os.path.join(p, "main.tex") if os.path.isdir(p) else p
+    if path:
+        cands = [main_tex(path)]
+    else:
+        cands = [os.path.join(ROOT, "docs", "paper", "main.tex")]
+        common = (_git(["rev-parse", "--git-common-dir"]) or "").strip()
+        if common:
+            common = os.path.normpath(os.path.join(ROOT, common))
+            if os.path.basename(common) == ".git":
+                cands.append(os.path.join(os.path.dirname(common), "docs", "paper", "main.tex"))
+    return next((c for c in cands if os.path.isfile(c)), None)
+
+
+def paper_titles(path: str | None = None) -> list[str]:
+    """The manuscript's main title and subtitle (the parts before and after the first colon,
+    each of 8 or more characters), read at build time from paper_source(path), so no tracked
+    file spells them; [] when there is no source or no title in it."""
+    src = paper_source(path)
+    if not src:
+        return []
     try:
-        text = open(path, encoding="utf-8", errors="replace").read()
+        with open(src, encoding="utf-8", errors="replace") as fh:
+            text = fh.read()
     except OSError:
-        return None
-    m = re.search(r"\\title\{([^}:%\\]+)", text)
-    title = " ".join(m.group(1).split()) if m else ""
-    return title if len(title) >= 8 else None
+        return []
+    text = re.sub(r"(?<!\\)%.*", "", text)                 # LaTeX comments
+    m = re.search(r"pdftitle=\{", text) or re.search(r"\\title\{", text)
+    title = _braced(text, m.end()) if m else None
+    if not title:
+        return []
+    while (t := title.find("\\thanks{")) >= 0:
+        inner = _braced(title, t + len("\\thanks{"))
+        title = title[:t] + " " + (title[t + len("\\thanks{") + len(inner) + 1:]
+                                   if inner is not None else "")
+    title = re.sub(r"\\\\|\\[A-Za-z]+\*?|[{}~]", " ", title)
+    parts = [" ".join(p.split()) for p in title.split(":", 1)]
+    return [p for p in parts if len(p) >= 8]
 
 
-def _leak_patterns(old_name: str | None) -> list:
+def _braced(text: str, i: int) -> str | None:
+    """The text from `i`, just after an opening brace, to its matching closing brace."""
+    depth, j = 1, i
+    while j < len(text):
+        if text[j] == "\\":
+            j += 2
+            continue
+        depth += {"{": 1, "}": -1}.get(text[j], 0)
+        if depth == 0:
+            return text[i:j]
+        j += 1
+    return None
+
+
+def paper_title(path: str | None = None) -> str | None:
+    """The manuscript's main title (before any colon), or None (paper_titles)."""
+    return next(iter(paper_titles(path)), None)
+
+
+def _leak_patterns(old_name: str | None, titles=None, branches=None) -> list:
     """Leak-only checks beyond the scrub rules: any GitHub Pages host or hosted-image URL that
     survived, and, when the package was renamed, any spelling of the original name; the build
-    machine's account name; and the manuscript's title when its local source is present."""
-    pats = [re.compile(r"[\w-]+\." + _GH + r"\.io\b", re.I), re.compile(_HOSTED, re.I)]
+    machine's account name; the manuscript's title and subtitle (`titles`, default
+    paper_titles()) when its local source was found; and every branch name (`branches`, default
+    branch_names()) and agent-session branch name in any case."""
+    pats = [re.compile(r"[\w-]+\." + _GH + r"\.io\b", re.I), re.compile(_HOSTED, re.I),
+            _branch_pattern(branch_names() if branches is None else branches, re.I)]
     if old_name:
         pats.append(re.compile(re.escape(old_name), re.I))
     acct = local_account()
     if acct:
         pats.append(re.compile(r"(?<![A-Za-z0-9])" + re.escape(acct) + r"(?![A-Za-z0-9])", re.I))
-    title = paper_title()
-    if title:
+    for title in paper_titles() if titles is None else titles:
         pats.append(re.compile(r"\s+".join(re.escape(w) for w in title.split()), re.I))
     return pats
 
@@ -955,15 +1694,17 @@ def _binary_hits(data: bytes, pats, depth: int = 0) -> bool:
     return False
 
 
-def leak_scan(path: str, rules, old_name: str | None, reviewed=None) -> list[str]:
+def leak_scan(path: str, rules, old_name: str | None, reviewed=None, titles=None,
+              branches=None) -> list[str]:
     """Members of the archive at `path` that still carry an identity string, or may. Text
     members are scanned with every scrub rule; binary members (agent bundles, arrays, images)
     with every rule except the e-mail shape, which arbitrary bytes match by chance about once
     per few tens of MB. Member names are scanned too. An image member is a leak unless its
     bytes are on the reviewed list (REVIEWED_IMAGES, or `reviewed`), because text drawn into
-    an image is invisible to every pattern."""
-    text_pats = [p for p, _ in rules] + _leak_patterns(old_name)
-    bin_pats = [p for p, r in rules if (p, r) != _EMAIL_RULE] + _leak_patterns(old_name)
+    an image is invisible to every pattern. `titles` and `branches` as in _leak_patterns."""
+    leak = _leak_patterns(old_name, titles, branches)
+    text_pats = [p for p, _ in rules] + leak
+    bin_pats = [p for p, r in rules if (p, r) != _EMAIL_RULE] + leak
     leaks = []
     with zipfile.ZipFile(path) as z:
         for n in z.namelist():
@@ -981,7 +1722,20 @@ def leak_scan(path: str, rules, old_name: str | None, reviewed=None) -> list[str
 
 
 def supplement(out: str, runs_root: str | None = None,
-               anon_name: str | None = DEFAULT_ANON_NAME, *, require_runs: bool = False) -> int:
+               anon_name: str | None = DEFAULT_ANON_NAME, *, require_runs: bool = False,
+               profile: str = "full", key_path: str | None = None,
+               require_history: bool | None = None, paper: str | None = None) -> int:
+    """Build the archive at `out`. `require_history` (default: on for the review profile; the
+    command line always turns it on) refuses an anonymized build, writing nothing, when
+    history_gap() finds the commit scan blind. `paper` is the manuscript source the title check
+    reads (paper_source); an anonymized review build refuses to start when no title can be
+    read, except in an extracted archive, which no longer holds anything to check it against.
+    The build fails and removes the archive, writing no map, when any scan finds a leak, a
+    commit ID that still resolves, a real digest, or a number the pseudonyms changed. A build
+    that gets as far as writing the archive first removes the map of any earlier archive at
+    `out`, so a failed rebuild leaves neither; a build that refuses to start leaves an earlier
+    archive and its map as they were."""
+    run_dirs = profile_run_dirs(profile)
     old_name = project_name() if anon_name else None
     if anon_name:
         check_anon_name(anon_name, old_name)
@@ -989,21 +1743,62 @@ def supplement(out: str, runs_root: str | None = None,
         old_name = None          # already neutral (a rebuild from an extracted archive)
     rename_pkg = renamer(old_name, anon_name)
     films = film_rules()
-    rules = scrub_rules()
-
-    def rename(path_or_text: str) -> str:
-        """Package name and film titles, as in text, so a path a document quotes still
-        resolves in the archive."""
-        return rename_pkg(scrub(path_or_text, films))
+    in_archive = os.path.exists(os.path.join(ROOT, README_NAME))
+    # Every branch the remotes list too, not only those fetched here (an extracted archive has
+    # no git and needs none: its names are pseudonyms already).
+    branches = branch_names(remote=not in_archive)
+    rules = scrub_rules(branches)
+    branch_rule = rules[-1:]            # scrub_rules puts the branch rule last
+    titles = paper_titles(paper)
+    if anon_name and not titles:
+        where = paper or "docs/paper/main.tex here or in the main checkout"
+        if profile == "review" and not in_archive:
+            print(f"no archive written: the manuscript title could not be read from {where}, so "
+                  "the identity scan could not look for it. Pass --paper PATH.")
+            return 1
+        print(f"  WARNING: the manuscript title could not be read from {where}; the identity "
+              "scan will not look for it", flush=True)
+    commits = commit_ids()
+    if require_history is None:
+        require_history = profile == "review"
 
     dropped: list = []
-    pairs, status = _sources(runs_root, dropped)
-    print(f"run bundles under {runs_root or os.path.join(ROOT, 'fullruns')}:")
+    pairs, status = _sources(runs_root, dropped, run_dirs)
+    # The commit IDs that commit fields name, and the digests to replace, from every text member.
+    named: set = set()
+    digests: set = set()
+    if anon_name and not in_archive:
+        for rel, src in pairs:
+            if is_text(rel):
+                with open(src, "rb") as fh:
+                    text = fh.read().decode("utf-8", errors="replace")
+                named |= commit_field_tokens(text)
+                digests |= digest_tokens(text)
+    gap = history_gap(commits, named) if anon_name and require_history else None
+    if gap:
+        print(f"no archive written: the commit scan cannot see every commit ID, because {gap}. "
+              "Build from a full checkout.")
+        return 1
+    key_path = key_path or COMMIT_KEY
+    forced = sorted(t for t in named if not _resolves(commits, t))
+    hide = bool(commits or forced or digests)
+    hider = CommitPseudonyms(commits, commit_key(key_path) if hide else b"", digests=digests,
+                             forced=forced)
+
+    def rename(path_or_text: str) -> str:
+        """Package name, film titles, branch names and commit IDs, as in text, so a path a
+        document quotes still resolves in the archive."""
+        return hider.sub(rename_pkg(scrub(path_or_text, films + branch_rule)))
+
+    left_out = [r for r in RUN_DIRS if r not in run_dirs] if profile == "review" else []
+    print(f"profile {profile}; run bundles under {runs_root or os.path.join(ROOT, 'fullruns')}:")
     for r, n in status:
         if n is None:
             print(f"  WARNING: {r} is absent; the archive will NOT carry it", flush=True)
         else:
             print(f"  included {r} ({n} files)")
+    for r in left_out:
+        print(f"  not in the review profile: {r}")
     missing = [r for r, n in status if n is None]
     if require_runs and missing:
         print(f"--require-runs: {len(missing)} run bundle(s) absent; no archive written")
@@ -1011,10 +1806,16 @@ def supplement(out: str, runs_root: str | None = None,
     for rel, why in dropped:
         print(f"  left out {rel} ({why})")
     rows, no_prov = provenance_rows([rel for rel, _ in pairs if _is_frozen_doc(rel)])
-    os.makedirs(os.path.dirname(os.path.join(ROOT, out)) or ".", exist_ok=True)
+    path = os.path.join(ROOT, out)
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     shipped = {rename(rel) for rel, _ in pairs}
     sums = []
-    with zipfile.ZipFile(os.path.join(ROOT, out), "w", zipfile.ZIP_DEFLATED) as z:
+    broken = []
+    # The map of an earlier build at this path names an archive this build overwrites, so it
+    # goes first: a build that fails below then leaves neither archive nor map.
+    if os.path.exists(commit_map_path(path)):
+        os.remove(commit_map_path(path))
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         def put(arc: str, data: bytes) -> None:
             z.writestr(arc, data)
             sums.append(f"{hashlib.sha256(data).hexdigest()}  {arc}")
@@ -1024,27 +1825,86 @@ def supplement(out: str, runs_root: str | None = None,
                 data = fh.read()
             arc = rename(rel)
             if is_text(rel):
-                text = rename_pkg(scrub(data.decode("utf-8", errors="replace"), rules))
+                before = rename_pkg(scrub(data.decode("utf-8", errors="replace"), rules))
+                text = hider.sub(before)
+                why = number_guard(arc, before, text, known=named)
+                if why:
+                    broken.append(f"{arc}: {why}")
                 if arc.endswith(".md"):
                     text = delink(text, arc, shipped)
                 data = text.encode("utf-8")
             put(arc, data)
         if rows is not None:
-            put(PROVENANCE_NAME, provenance_md(rows, rename).encode("utf-8"))
-        put(README_NAME, _readme(status, anon_name, dropped=dropped,
-                                 films=len(film_slugs()),
-                                 provenance=no_prov).encode("utf-8"))
+            put(PROVENANCE_NAME, hider.sub(provenance_md(rows, rename, bool(hider.commits)))
+                .encode("utf-8"))
+        table = hider.digest_table()
+        if table:
+            put(DIGEST_TABLE_NAME, (json.dumps(
+                {"about": "SHA-256 digest pseudonyms. Each key is the SHA-256 of "
+                          f"'{_DIGEST_LOOKUP_TAG}' followed by a real digest in lowercase; each "
+                          "value is the pseudonym the shipped files record for it. See "
+                          "archive_digest() in scripts/reproduce.py.",
+                 "pseudonyms": table}, indent=1, sort_keys=True) + "\n").encode("utf-8"))
+        elif in_archive and os.path.isfile(os.path.join(ROOT, DIGEST_TABLE_NAME)):
+            with open(os.path.join(ROOT, DIGEST_TABLE_NAME), "rb") as fh:
+                put(DIGEST_TABLE_NAME, fh.read())       # an extracted archive rebuilding itself
+        put(README_NAME, hider.sub(_readme(status, anon_name, dropped=dropped,
+                                           films=len(film_slugs()), provenance=no_prov,
+                                           profile=profile, left_out=left_out,
+                                           commits_hidden=hider.count(),
+                                           digests_hidden=hider.digest_count(),
+                                           branches_hidden=len(set(branch_rule[0][1].used.values())),
+                                           title_checked=bool(titles) or not anon_name))
+            .encode("utf-8"))
         z.writestr("SHA256SUMS", "\n".join(sums) + "\n")
-    leaks = leak_scan(os.path.join(ROOT, out), rules, old_name)
+    leaks = leak_scan(path, rules, old_name, titles=titles, branches=branches)
     unviewed = [n for n in leaks if is_image(n)]
     if unviewed:
         print(f"  images not on the reviewed list (view each, then add its SHA-256 to "
               f"REVIEWED_IMAGES in scripts/reproduce.py): {unviewed}")
+    resolvable = commit_scan(path, hider)
+    if resolvable:
+        print(f"  COMMIT IDS THAT STILL RESOLVE in {resolvable}")
+    real = (digest_scan(path, tracked_digests() | set(hider.digests))
+            if anon_name and not in_archive else [])
+    if real:
+        print(f"  REAL SHA-256 DIGESTS in {real}")
+    for b in broken:
+        print(f"  NUMBER CHANGED BY A PSEUDONYM: {b}")
     print(f"wrote {out}: {len(sums) + 1} files ({len(sums)} listed in SHA256SUMS)"
           + (f"; POSSIBLE IDENTITY LEAKS in {leaks}" if leaks
              else "; no identity strings found in any file, binaries included, and every image "
                   "is on the reviewed list"))
-    return 1 if leaks else 0
+    size = os.path.getsize(path)
+    print(f"  {size:,} bytes")
+    if leaks or resolvable or real or broken:
+        os.remove(path)
+        print("archive removed; no map written")
+        return 1
+    if profile == "review" and size > REVIEW_LIMIT:
+        os.remove(path)
+        print(f"--profile review: {size:,} bytes exceeds the limit of {REVIEW_LIMIT:,} bytes "
+              "(100 MB); archive removed")
+        return 1
+    if hider.mapping or hider.digest_mapping or hider.forced_mapping:
+        # Outside the archive, beside it, for the camera-ready version. With the key, the
+        # commit list gives back every commit pseudonym of this build
+        # (CommitPseudonyms(commits, key)); the digest and unresolved-commit pseudonyms are
+        # listed in full.
+        with open(path, "rb") as fh:
+            digest = hashlib.sha256(fh.read()).hexdigest()
+        with open(commit_map_path(path), "w", encoding="utf-8", newline="\n") as fh:
+            json.dump({"archive": os.path.basename(path), "archive_sha256": digest,
+                       "commits": hider.commits,
+                       "pseudonyms": dict(sorted(hider.mapping.items())),
+                       "unresolved_commit_fields": dict(sorted(hider.forced_mapping.items())),
+                       "digests": dict(sorted(hider.digest_mapping.items()))}, fh, indent=1)
+            fh.write("\n")
+        print(f"  {hider.count()} commit IDs replaced by keyed pseudonyms "
+              f"({len(hider.mapping)} distinct spellings), {len(hider.forced_mapping)} unresolved "
+              f"commit-field spellings and {hider.digest_count()} SHA-256 digests "
+              f"({len(hider.digest_mapping)} spellings); map {commit_map_path(out)}")
+    return 0
 
 
 def main(argv=None) -> int:
@@ -1052,11 +1912,19 @@ def main(argv=None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     t = sub.add_parser("tables")
     t.add_argument("--dumps", nargs="*", default=[])
+    t.add_argument("--check", action="store_true",
+                   help="compare the committed tables and pages with the builders' output and run "
+                        "the audit, rewriting nothing; exit 3 when a page is stale")
     r = sub.add_parser("retrain")
     r.add_argument("run")
     r.add_argument("--execute", action="store_true")
     s = sub.add_parser("supplement")
-    s.add_argument("--out", default="dist/supplement.zip")
+    s.add_argument("--out", default=None,
+                   help="archive path (default dist/supplement.zip, or dist/supplement-review.zip "
+                        "for --profile review)")
+    s.add_argument("--profile", choices=PROFILES, default="full",
+                   help="full: every bundle in RUN_DIRS; review: only the held-out and seed-2 "
+                        "saved agents, failing above 100 MB, 100,000,000 bytes (default %(default)s)")
     s.add_argument("--runs-root", default=None,
                    help="directory that holds the run bundles named in RUN_DIRS (default: "
                         "fullruns/ in this checkout); only read")
@@ -1067,15 +1935,21 @@ def main(argv=None) -> int:
     g.add_argument("--keep-name", action="store_true",
                    help="ship the package under its own name (the archive is then not anonymous)")
     s.add_argument("--require-runs", action="store_true",
-                   help="fail, writing nothing, when a run bundle named in RUN_DIRS is absent "
+                   help="fail, writing nothing, when a run bundle of the profile is absent "
                         "(for the submission build)")
+    s.add_argument("--paper", default=None,
+                   help="the manuscript's main.tex, or its folder, for the title check (default: "
+                        "docs/paper/ here, else in the main checkout of a worktree); a review "
+                        "build refuses to start when no title can be read")
     a = ap.parse_args(argv)
     if a.cmd == "tables":
-        return tables(a.dumps)
+        return tables(a.dumps, check_only=a.check)
     if a.cmd == "retrain":
         return retrain(a.run, a.execute)
-    return supplement(a.out, runs_root=a.runs_root, anon_name=None if a.keep_name else a.anon_name,
-                      require_runs=a.require_runs)
+    out = a.out or ("dist/supplement-review.zip" if a.profile == "review" else "dist/supplement.zip")
+    return supplement(out, runs_root=a.runs_root, anon_name=None if a.keep_name else a.anon_name,
+                      require_runs=a.require_runs, profile=a.profile, require_history=True,
+                      paper=a.paper)
 
 
 if __name__ == "__main__":

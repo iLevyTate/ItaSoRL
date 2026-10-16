@@ -33,7 +33,10 @@ def test_serialized_partitions_match_the_versioned_generator():
     with open(os.path.join(ROOT, "artifacts", "folds", "explicit_v1.json"), encoding="utf-8") as fh:
         stored = json.load(fh)
     assert stored["version"] == folds.EXPLICIT_VERSION
-    assert stored == json.loads(json.dumps(folds.standard_partitions()))
+    import sys
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    from reproduce import archive_digest_text
+    assert stored == json.loads(archive_digest_text(json.dumps(folds.standard_partitions())))
 
 
 def test_pairs_stay_in_one_fold_and_the_digest_identifies_the_partition():

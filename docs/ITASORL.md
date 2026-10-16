@@ -164,10 +164,11 @@ registered world pair (0.559). Hand-authored flaws that a handicapped detector f
 did not meet the encoding criterion. The corrected readouts say what carries the signal: the
 trajectories a foraging policy produces, kept by a trunk shaped by next-observation
 prediction. At matched input a prediction-only trunk reads the world within about 0.01 of
-the survival trunk (0.721 against 0.733), and a hand-written coherent perturbation is read
-the same way as the learned one, so the result is about
-coherent, state-dependent deviations from the true law reaching a predictive state, not
-about learnedness or about the survival objective as such. The meta-RL comparison above
+the survival trunk (0.721 against 0.733), and a hand-written drag that, like the learned law,
+depends on the agent's own velocity is read the same way as the learned one, so the result is
+not about learnedness or about the survival objective as such. Which property of these
+deviations the state reads is not established: coherence over time is not shown to be it, and
+the shared dependence on the agent's velocity is a lead, not a mechanism (FINDINGS 22.3). The meta-RL comparison above
 applies directly: the agents here infer nothing they were trained to infer, and the
 condition becomes readable because their behavior exposes it. The project also contributes a
 measurement apparatus with its failure modes documented: fold-partition dependence,

@@ -7,7 +7,10 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are. The count on 2026-10-13 is 67 pinned of 2933. It also checks that the generated pages
+many there are. The count on 2026-10-16 is 64 pinned of 3179. A stored L0 gate (mean, TOST
+p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
+from them, and every tracked artifact a guarded block reads must be present: a missing one
+fails by name instead of dropping the block's checks. It also checks that the generated pages
 (index.html, the results manifest, the gate table, the contrast intervals, the manuscript
 tables) match a fresh render, and that retired wording has not returned to the pages it
 watches. Fails loudly (non-zero exit) on any mismatch beyond rounding.
@@ -22,9 +25,17 @@ agent-free artifacts), section 20 (every table row rebuilt from the per-seed val
 corrected reruns, their historical counterparts, the post-review readouts and the L1 capacity
 curve, with the readouts' pre-stated labels derived again) and the 2026-10-11 notes that point
 to it, the 2026-10-11 results entry of PREREGISTRATION_L3, the 2026-10-11 entries of
-docs/CORRECTIONS.md, and PAPER_OUTLINE rows 27, 40, 44, 46 and 54. In README.md, CITATION.cff,
-the site, the rest of PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only,
-a few of which contain a number; a number edited outside those phrases is not caught. Numbers
+docs/CORRECTIONS.md, PAPER_OUTLINE rows 27, 40, 44, 46 and 54, the FINDINGS 18.2, 18.3 and 18.4
+tables and the figures 18.2 and 18.6 quote beside them (from the goal-and-stakes artifacts, the
+T-touch cells and each run's mechanism, policy-control and control-diagnostic readouts; the 18.5
+table and the dated notes inside section 18 are not checked), the FINDINGS 22.3 sweep tables,
+contrasts and ranges (texture/ar_sweep and texture/ar_sweep_c), the FINDINGS 23.3 refit probe
+readings, partial-erasure label and correction note (mechanism/erasure), the O2 table of
+docs/optional/README.md (its long-history ridge readout, recomputed from per_seed and checked
+against the battery's fixed-penalty readings) and the corrected L3 headline sentence of
+README.md (2026-10-16). In the rest of README.md, CITATION.cff, the site, the rest of
+PAPER_OUTLINE and the rest of FINDINGS it checks selected phrases only, a few of which
+contain a number; a number edited outside those phrases is not caught. Numbers
 the notes take from gitignored run bundles under fullruns/ are not checked.
 
 What it does not do (revision 2026-10): it reruns no experiment, it cannot detect an error
@@ -61,10 +72,19 @@ ARTROOT = os.path.join(os.path.dirname(__file__), "..", "artifacts")
 ART = os.path.join(ARTROOT, "expB2")
 TOL = 5e-4  # docs quote 3 decimals; allow rounding slack
 BAR = 0.65
+# The fewest checks a full run in a checkout may record (tests/test_audit_selftest.py). A run
+# that records fewer has lost checks without failing one. Raise it deliberately when checks are
+# added; the count on 2026-10-16 is 3179.
+CHECK_FLOOR = 3179
 
 failures: list[str] = []
 n_checks = 0
 n_pins = 0
+# Checks skipped because the anonymized supplement leaves their file out (_read_or_skip in
+# main), one per skipped file; each such file guards exactly one check. The floor test counts
+# them with n_checks, so a run inside the extracted archive meets the same CHECK_FLOOR as a
+# checkout (finding p5, 2026-10-16).
+n_skipped = 0
 
 
 def t_ci(vals: list[float], level: float = 0.90) -> tuple[float, float]:
@@ -106,6 +126,17 @@ def check_true(label: str, actual: bool) -> None:
         failures.append(label)
 
 
+def _artifact_present(path: str) -> bool:
+    """Record a presence check for a tracked artifact before the block that reads it.
+
+    Every artifact these blocks read is tracked and ships in the supplement, so a missing one
+    is a failure, never a silent skip of the checks that read it (finding p5, 2026-10-16)."""
+    rel = os.path.relpath(path, ARTROOT).replace(os.sep, "/")
+    ok = os.path.isdir(path) if not path.endswith(".json") else os.path.isfile(path)
+    check_true(f"artifact present: artifacts/{rel}", ok)
+    return ok
+
+
 def load(name: str) -> dict:
     with open(os.path.join(ART, name), encoding="utf-8") as fh:
         return json.load(fh)
@@ -136,21 +167,64 @@ def _fold_seeds(art: dict, met: str, scheme: str) -> list:
             if c["agent"] == "survival" and float(c["drift"]) == 0.45]
 
 
+def _same(a: float, b: float, tol: float = 1e-9) -> bool:
+    """Both finite and equal within tol. A NaN on either side is a mismatch, never a match."""
+    return math.isfinite(a) and math.isfinite(b) and abs(a - b) <= tol
+
+
+def l0_gate_reproduces(label: str, doc: dict):
+    """The stored L0 gate of a promoted expB2 run, recomputed from its drift-0 survival per-seed
+    values with the registered TOST (against 0.5, margin 0.05) and ROPE. The stored mean, TOST p,
+    TOST verdict and ROPE verdict must all equal the recomputation, so a shifted per-seed list
+    cannot pass behind an unchanged stored gate (finding c25, 2026-10-16). Returns the TOST."""
+    ps = doc["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]
+    m, e, g = float(np.mean(ps)), equivalence_test(ps, margin=0.05), doc["gates"]
+    ok = (_same(m, float(g["l0_tost"]["mean"]))
+          and _same(m, float(g.get("l0_survival_mean", m)))
+          and _same(float(e.p_value), float(g["l0_tost"]["p_value"]))
+          and bool(e.equivalent) is bool(g["l0_tost"]["equivalent"])
+          and ("l0_rope" not in g or bool(rope_test(ps).accept) is bool(g["l0_rope"]["accept"])))
+    check_true(f"{label}: stored L0 gate (mean, TOST p and verdict, ROPE verdict) recomputes "
+               f"from the drift-0 per-seed values", ok)
+    return e
+
+
+def texture_l0_gate_reproduces(label: str, doc: dict):
+    """The same for a texture-trained artifact, whose drift-0 cells sit under l0_control."""
+    ps = doc["l0_control"]["survival"]["per_seed"]
+    m, e, g = float(np.mean(ps)), equivalence_test(ps, margin=0.05), doc["gates"]["l0_tost"]
+    check_true(f"{label}: stored L0 gate (mean, TOST p and verdict) recomputes from the drift-0 "
+               f"per-seed values",
+               _same(m, float(g["mean"])) and _same(float(e.p_value), float(g["p"]))
+               and bool(e.equivalent) is bool(g["pass"]))
+    return e
+
+
 def verify_aggregate_consistency(name: str, doc: dict) -> None:
-    """The stored `aggregate` block must be exactly reproducible from `cells`."""
+    """The stored `aggregate` block must be exactly reproducible from `cells`.
+
+    A block fails when it has no matching cells, when a matching cell is non-finite, when the
+    finite cell count differs from the stored n_seeds (where stored), or when any stored or
+    recomputed mean/lo/hi is non-finite."""
     global n_checks
     bad = 0
     for arm, metrics in doc["aggregate"].items():
         d, agent = arm.split(" ", 1)
         drift = d.split("=")[1]
         for metric, stored in metrics.items():
-            vals = [v for v in seed_vals(doc, drift, agent, metric)
-                    if np.isfinite(v)]
+            raw = seed_vals(doc, drift, agent, metric)
+            vals = [v for v in raw if np.isfinite(v)]
+            if not vals or len(vals) != len(raw):
+                bad += 1
+                failures.append(f"{name} aggregate {arm}/{metric}: "
+                                f"{len(vals)} finite of {len(raw)} cells")
+                continue
             mean, lo, hi = mean_ci(vals)
             above = int(sum(v >= doc.get("bar", BAR) for v in vals))
-            if (abs(mean - stored["mean"]) > 1e-9 or abs(lo - stored["lo"]) > 1e-9
-                    or abs(hi - stored["hi"]) > 1e-9
-                    or above != stored["n_above_bar"]):
+            if (not _same(mean, float(stored["mean"])) or not _same(lo, float(stored["lo"]))
+                    or not _same(hi, float(stored["hi"]))
+                    or above != stored["n_above_bar"]
+                    or ("n_seeds" in stored and len(vals) != stored["n_seeds"])):
                 bad += 1
                 failures.append(f"{name} aggregate {arm}/{metric}")
     n_checks += 1
@@ -689,11 +763,12 @@ def main() -> int:
             if not isinstance(e, dict) or "per_seed" not in e:
                 continue
             ps = [float(v) for v in e["per_seed"]]
-            if abs(float(np.mean(ps)) - e["mean"]) > 1e-4:
+            m = float(np.mean(ps))
+            if not (math.isfinite(m) and math.isfinite(float(e["mean"])) and abs(m - e["mean"]) <= 1e-4):
                 bad += 1
             if int(sum(v >= BAR for v in ps)) != e["n_ge_065"]:
                 bad += 1
-            if "per_seed_full" in e and any(abs(a - b) > 5.1e-5
+            if "per_seed_full" in e and any(not abs(a - b) <= 5.1e-5
                                             for a, b in zip(ps, e["per_seed_full"])):
                 bad += 1
             if "per_seed_full" in e and len(e["per_seed_full"]) != len(ps):
@@ -1056,6 +1131,7 @@ def main() -> int:
     check("10.8 survival t90 hi (0.654)", hi, 0.654)
     check_int("10.8 survival seeds >= 0.65 (1)", sv["n_ge_065"], 1)
     check("10.8 survival resid_trace (0.646)", _seed_mean(ab["behavior_audit"]["survival"]["resid_trace"]), 0.646)
+    l0_gate_reproduces("10.8", ab)
     check_true("10.8 all gates pass", ab["gates"]["l0_tost"]["equivalent"] and ab["gates"]["l0_rope"]["accept"]
                and ab["gates"]["pool_leak_clean_all"] and ab["gates"]["untrained_floor_ok"]
                and all(v["pass"] == v["n"] for v in ab["gates"]["engagement"].values()))
@@ -1085,6 +1161,7 @@ def main() -> int:
     lo, hi = t_ci(rt["per_seed"])
     check("10.9 survival resid_trace t90 lo (0.625)", lo, 0.625)
     check("10.9 survival resid_trace t90 hi (0.691)", hi, 0.691)
+    l0_gate_reproduces("10.9", si)
     check_true("10.9 all gates pass", si["gates"]["l0_tost"]["equivalent"] and si["gates"]["l0_rope"]["accept"]
                and si["gates"]["pool_leak_clean_all"] and si["gates"]["untrained_floor_ok"]
                and all(v["pass"] == v["n"] for v in si["gates"]["engagement"].values()))
@@ -1122,6 +1199,7 @@ def main() -> int:
     check_true("10.9-gpu rule not met: bar missed, both margin clauses pass",
                (not sg["decision"]["pass_bar"]) and sg["decision"]["pass_margin_predictor"]
                and sg["decision"]["pass_margin_untrained"])
+    l0_gate_reproduces("10.9-gpu", sg)
     check_true("10.9-gpu L0 gate open as stated (TOST and ROPE both reject at n = 10)",
                (not sg["gates"]["l0_tost"]["equivalent"]) and (not sg["gates"]["l0_rope"]["accept"]))
     check("10.9-gpu L0 survival mean (0.539)", _seed_mean(sg["arms"]["0.0"]["survival"]["pool_target"]), 0.539)
@@ -1360,6 +1438,7 @@ def main() -> int:
                s2["gates"]["pool_leak_clean_all"] and s2["gates"]["untrained_floor_ok"]
                and s2["gates"]["deaths_total"] == 0
                and all(v["pass"] == v["n"] for v in s2["gates"]["engagement"].values()))
+    l0_gate_reproduces("h8-seed2", s2)
     check_true("h8-seed2 L0 gate open, same drift-0 cells as the hidden 10 GPU run",
                (not s2["gates"]["l0_tost"]["equivalent"])
                and s2["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]
@@ -1444,6 +1523,7 @@ def main() -> int:
           equivalence_test(sk["arms"]["0.0"]["survival"]["pool_target"]["per_seed"], margin=0.05).p_value, 0.285)
     check("skill-match L0 ROPE P (0.736)",
           rope_test(sk["arms"]["0.0"]["survival"]["pool_target"]["per_seed"]).p_in_rope, 0.736)
+    l0_gate_reproduces("skill-match", sk)
     check_true("skill-match L0 gate recorded open, not accepted",
                (not sk["gates"]["l0_tost"]["equivalent"]) and (not sk["gates"]["l0_rope"]["accept"]))
     # Determinism cross-check: at drift 0 the untrained and predictor arms are objective
@@ -1477,6 +1557,7 @@ def main() -> int:
     lo, hi = t_ci(rt["per_seed"])
     check("10.8 device control survival resid_trace t90 lo (0.656)", lo, 0.656)
     check("10.8 device control survival resid_trace t90 hi (0.764)", hi, 0.764)
+    l0_gate_reproduces("10.8 device control", dc)
     check_true("10.8 device control all gates pass",
                dc["gates"]["l0_tost"]["equivalent"] and dc["gates"]["l0_rope"]["accept"]
                and dc["gates"]["pool_leak_clean_all"] and dc["gates"]["untrained_floor_ok"]
@@ -1561,7 +1642,9 @@ def main() -> int:
     _in_supplement = os.path.exists(os.path.join(root, "README_SUPPLEMENT.md"))
 
     def _read_or_skip(relpath: str) -> str | None:
+        global n_skipped
         if _in_supplement and not os.path.exists(os.path.join(root, relpath)):
+            n_skipped += 1
             print(f"  [skip] {relpath}: not shipped in the anonymized supplement")
             return None
         return _read(relpath)
@@ -1966,7 +2049,7 @@ def main() -> int:
                    and "The auxiliary rule is therefore NOT MET as registered" in _s17n2
                    and "the lead holds on the decodability clauses" in _s17n2)
     _bcp = os.path.join(ARTROOT, "budget_curve.json")
-    if os.path.exists(_bcp):
+    if _artifact_present(_bcp):
         _bc = _load_art("budget_curve.json")
         _on = {r["updates"]: r for r in _bc["series"]["decoder on"]}
         _off = {r["updates"]: r for r in _bc["series"]["decoder off"]}
@@ -1980,7 +2063,7 @@ def main() -> int:
                    f"{c['return']['mean']:+.3f} [{c['return']['t90'][0]:+.3f}, {c['return']['t90'][1]:+.3f}] |")
             check_true(f"FINDINGS 17.10 contrast row {c['updates']}", row in _s17)
     _xrp = os.path.join(ARTROOT, "cross_replay", "corrected_c1_c2.json")
-    if os.path.exists(_xrp):
+    if _artifact_present(_xrp):
         _xr = _load_art("cross_replay", "corrected_c1_c2.json")
         _xa = _xr["aggregate"]
         g = lambda k: f"{_xa[k]['mean']:.3f} [{_xa[k]['t90'][0]:.3f}, {_xa[k]['t90'][1]:.3f}]"
@@ -1993,7 +2076,7 @@ def main() -> int:
                        f"{c['mean']:+.3f} [{c['t90'][0]:+.3f}, {c['t90'][1]:+.3f}]" in _s17)
         check_true("the cross-replay artifact is labeled exploratory", "exploratory" in _xr["status"])
     _l0p = os.path.join(ARTROOT, "l0_audit", "corrected_l3_h8_wm.json")
-    if os.path.exists(_l0p):
+    if _artifact_present(_l0p):
         _l0 = _load_art("l0_audit", "corrected_l3_h8_wm.json")
         _ls = _l0["l0_summary"]
         for r in _ls["by_pair"]:
@@ -2011,7 +2094,7 @@ def main() -> int:
             check_true(f"FINDINGS 17.5 quotes the balanced {arm} readout",
                        f"{arm} {_ps[arm]['mean']:.3f} [{_ps[arm]['t90'][0]:.3f}, {_ps[arm]['t90'][1]:.3f}]" in _s17)
     _l1p = os.path.join(ARTROOT, "control_diagnostics", "l1_stream_readout.json")
-    if os.path.exists(_l1p):
+    if _artifact_present(_l1p):
         _f14b = _read("docs/FINDINGS.md")
         _s147 = _f14b[_f14b.index("### 14.7.1"):_f14b.index("## 15. Matched-handicap")]
         _l1 = _load_art("control_diagnostics", "l1_stream_readout.json")
@@ -2036,10 +2119,11 @@ def main() -> int:
                    _la["d=0.02 survival target"]["mean"] < 0.65)
         check_true("14.7.1 quotes the larger stream decoder", f"**{_dmax:.3f}**" in _s147)
     _gnp = os.path.join(ARTROOT, "texture", "T_gn_l3_h8_wm.json")
-    if os.path.exists(_gnp):
+    if _artifact_present(_gnp):
         _f14 = _read("docs/FINDINGS.md")
         _s14 = _f14[_f14.index("## 14. H2 substrate-grounding"):_f14.index("## 15.")]
         _gn = _load_art("texture", "T_gn_l3_h8_wm.json")
+        texture_l0_gate_reproduces("14.5.1", _gn)
         _sp = _gn["gates"]["speed_positive_control"]
         check_true("14.5.1: the gn run fails exactly the speed positive control",
                    _gn["gates_failed"] == ["speed_positive_control"])
@@ -2083,7 +2167,7 @@ def main() -> int:
                    all(g["pass"] for k, g in _gn["gates"].items()
                        if k != "speed_positive_control"))
     _rdp = os.path.join(ARTROOT, "l0_audit", "reverse_direction_l3_h8_heldout.json")
-    if os.path.exists(_rdp):
+    if _artifact_present(_rdp):
         from scripts.reverse_direction import adjudicate as _radj
         _rd = _load_art("l0_audit", "reverse_direction_l3_h8_heldout.json")
         _rs = _rd["summary"]
@@ -2113,7 +2197,7 @@ def main() -> int:
                    f"frozen before the run: {_rs['verdict']}" in _s17)
     _s13 = _f17[_f17.index("## 13. Experiment C"):_f17.index("## 14.")]
     _pip = os.path.join(ARTROOT, "expC", "emergence_pilot_per_individual_summary.json")
-    if os.path.exists(_pip):
+    if _artifact_present(_pip):
         _pi = _load_art("expC", "emergence_pilot_per_individual_summary.json")
         _g1 = _pi["gates"]["gate1_exploitability"]
         check_true("13.F: gate 1 (exploitability) fails", not _g1["passes_gate1"])
@@ -2142,7 +2226,7 @@ def main() -> int:
         check_true("13.F quotes the final control per-individual means",
                    f"control populations\n{_three('indiv_final_ctrl')}" in _s13)
     _xevp = os.path.join(ARTROOT, "corrected_runs", "corrected_l3_h8_wm", "cells")
-    if os.path.isdir(_xevp):
+    if _artifact_present(_xevp):
         _xv = {}
         for _fn in sorted(os.listdir(_xevp)):
             with open(os.path.join(_xevp, _fn), encoding="utf-8") as _fh:
@@ -2183,7 +2267,7 @@ def main() -> int:
         check_true("17.2.1 quotes the seed count of the paired return gaps",
                    "each policy returns less at drift 0.45 in 10 of 10 seeds" in _s17f)
     _wsp = os.path.join(ARTROOT, "l0_audit", "d045_world_samples_l3_h8_heldout.json")
-    if os.path.exists(_wsp):
+    if _artifact_present(_wsp):
         from itasorl.l0_audit import world_sample_summary as _wss
         _ws = _load_art("l0_audit", "d045_world_samples_l3_h8_heldout.json")
         _wsum = _ws["summary"]["survival"]
@@ -2215,7 +2299,7 @@ def main() -> int:
                    f"**{_wsum['n_at_or_above_bar']} of {_wsum['n_draws']}** independent draws" in _s17)
         check_true("17.5.1 quotes the verdict", f"verdict **{_wsum['verdict']}**" in _s17)
     _pcp = os.path.join(ARTROOT, "policy_controls", "corrected_l3_h8_wm.json")
-    if os.path.exists(_pcp):
+    if _artifact_present(_pcp):
         from itasorl.stats import paired_contrast as _pc
         _pcd = _load_art("policy_controls", "corrected_l3_h8_wm.json")
         check_true("17.6: every survival retrain was bit-identical",
@@ -2233,7 +2317,7 @@ def main() -> int:
             row = f"| {pr} | " + " | ".join(f"{c['mean']:+.3f} [{c['t90'][0]:+.3f}, {c['t90'][1]:+.3f}]" for c in cs) + " |"
             check_true(f"FINDINGS 17.6 contrast row {pr}", row in _s17)
     _psp = os.path.join(ARTROOT, "persistence", "corrected_l3_h8_wm.json")
-    if os.path.exists(_psp):
+    if _artifact_present(_psp):
         _pa = _load_art("persistence", "corrected_l3_h8_wm.json")["aggregate"]
         for _pk, _pv in _pa.items():
             _ps = _pv.get("window_per_seed")
@@ -2262,7 +2346,7 @@ def main() -> int:
         check_true("FINDINGS 17.7 states the first step under 0.55 (the fifth)", _first == 5
                    and "falls below\n0.55 at the fifth" in _s17)
     _cdp = os.path.join(ARTROOT, "control_diagnostics", "corrected_l3_h8_wm.json")
-    if os.path.exists(_cdp):
+    if _artifact_present(_cdp):
         _cd = _load_art("control_diagnostics", "corrected_l3_h8_wm.json")
         check_true("17.8: regenerated pools bit-match the run's dumps", _cd["all_dumps_bit_match"])
         _ca = _cd["aggregate"]
@@ -2305,7 +2389,7 @@ def main() -> int:
         # 2026-10-10: the stream decoder's recipe and its final training loss (FINDINGS 17.8,
         # docs/METHODS_ARMS.md), read from both control-diagnostics artifacts.
         for _fn in ("corrected_l3_h8_wm.json", "l1_stream_readout.json"):
-            if not os.path.exists(os.path.join(ARTROOT, "control_diagnostics", _fn)):
+            if not _artifact_present(os.path.join(ARTROOT, "control_diagnostics", _fn)):
                 continue
             _cells = _load_art("control_diagnostics", _fn)["cells"]
             _ftl = [x for c in _cells for x in c["seq_gru"]["final_train_loss"]]
@@ -2323,7 +2407,7 @@ def main() -> int:
                    and "roughly 176 training episodes per fold" in _s17f)
     for _fam in ("gn", "qd"):
         _tp = os.path.join(ARTROOT, "texture", f"corrected_l3_h8_wm_{_fam}.json")
-        if not os.path.exists(_tp):
+        if not _artifact_present(_tp):
             continue
         from itasorl.stats import paired_contrast as _pc2
         _ta = _load_art("texture", f"corrected_l3_h8_wm_{_fam}.json")["aggregate"]
@@ -2347,7 +2431,7 @@ def main() -> int:
             check_true(f"17.9 {_fam} {_q}: frozen rule {'passes' if _ok else 'fails'} and the wording says so",
                        (_yes if _ok else _no) in _s17n)
     _prp = os.path.join(ARTROOT, "population_readout", "corrected_l3_h8_wm.json")
-    if os.path.exists(_prp):
+    if _artifact_present(_prp):
         _pr = _load_art("population_readout", "corrected_l3_h8_wm.json")
         for _arm, _lab in (("survival", "survival agents"), ("untrained", "untrained agents")):
             _pp = _pr["panels"][_arm]
@@ -2742,17 +2826,23 @@ def main() -> int:
     print("== FINDINGS 18: goal and stakes, and the registered-trunk white-jitter run ==")
     _f18 = _read("docs/FINDINGS.md")
     _f18 = " ".join(_f18[_f18.find("## 18. Goal and stakes"):].split())
+    _ga18, _e0s = {"C1": _load_art("expB2", "corrected_l3_h8_wm.json")}, {}
     for _run, _surv, _lo, _hi, _l0, _eq in (("T-touch", 0.796, 0.762, 0.830, 0.522, True),
                                              ("S-immortal", 0.744, 0.696, 0.793, 0.537, False)):
-        _ga = _load_art("expB2", f"goal_stakes_{_run}.json")
-        _sv = _ga["decision"]["survival"]
-        check(f"18.2 {_run} survival mean", _sv, _surv)
+        _ga = _ga18[_run] = _load_art("expB2", f"goal_stakes_{_run}.json")
         _ps = _ga["arms"]["0.45"]["survival"]["pool_target"]["per_seed"]
+        check(f"18.2 {_run} survival mean", float(np.mean(_ps)), _surv)
+        check_true(f"18.2 {_run} stored decision survival equals the per-seed mean",
+                   _same(float(_ga["decision"]["survival"]), float(np.mean(_ps))))
         _lo_r, _hi_r = t_ci90(_ps)
         check(f"18.2 {_run} survival t90 lower", _lo_r, _lo)
         check(f"18.2 {_run} survival t90 upper", _hi_r, _hi)
-        check(f"18.2 {_run} L0 mean at drift 0", _ga["gates"]["l0_survival_mean"], _l0)
-        check_true(f"18.2 {_run} L0 equivalence is {_eq}", bool(_ga["gates"]["l0_tost"]["equivalent"]) is _eq)
+        # 2026-10-16 (finding c25): the L0 mean and TOST are recomputed from the drift-0
+        # per-seed values, and the stored gate must equal the recomputation.
+        _e0 = _e0s[_run] = l0_gate_reproduces(f"18.2 {_run}", _ga)
+        check(f"18.2 {_run} L0 mean at drift 0",
+              _seed_mean(_ga["arms"]["0.0"]["survival"]["pool_target"]), _l0)
+        check_true(f"18.2 {_run} L0 equivalence is {_eq}", bool(_e0.equivalent) is _eq)
         check_true(f"18.2 quotes {_run} survival {_surv:.3f} [{_lo:.3f}, {_hi:.3f}]",
                    f"{_surv:.3f} [{_lo:.3f}, {_hi:.3f}]" in _f18)
     check_true("18.2 T-touch passes every gate (promoted zone)",
@@ -2763,19 +2853,226 @@ def main() -> int:
                _dec["T-touch"]["primary"]["wording"].split("; ")[-1] in _f18)
     check_true("18.2 records the stakes rule as not testable",
                _dec["stakes"]["testable"] is False and "not testable" in _f18)
-    for _run, _mean in (("T-touch", -0.001), ("S-immortal", -0.029)):
-        check(f"18.3 {_run} intervention real minus sham", _dec[_run]["intervention"]["contrast"]["mean"], _mean)
-        check_true(f"18.3 {_run} intervention did not move behavior",
-                   _dec[_run]["intervention"]["pass"] is False)
-    _c1m = _load_art("goal_stakes", "C1", "mechanism.json")["summary"]
-    check("18.3 C1 intervention real minus sham", _c1m["intervention_real_minus_sham"]["mean"], 0.017)
-    check("18.3 C1 surprise AUROC", _c1m["surprise_auroc"]["mean"], 0.846)
-    check("18.3 C1 surprise correlation", _c1m["surprise_corr"]["mean"], -0.126)
+    # 2026-10-16 (review of finding c27): every 18.2 table row is rendered from its promoted
+    # artifact (C1 from 17.2): survival and t90, seeds at the bar, both leads from the per-seed
+    # arm means, the recomputed L0 reading and the open gates. The seed-paired differences from
+    # C1 and the touch engagement means are recomputed the same way.
+    _pt18 = lambda d, a: np.asarray(d["arms"]["0.45"][a]["pool_target"]["per_seed"], float)
+    _rows18 = {}
+    for _run in ("C1", "S-immortal", "T-touch"):
+        _ga = _ga18[_run]
+        _sv, _pr, _un = (_pt18(_ga, a) for a in ("survival", "predictor", "untrained"))
+        _lp, _lu = float(_sv.mean() - _pr.mean()), float(_sv.mean() - _un.mean())
+        _nge = int(np.sum(_sv >= BAR))
+        _st = _ga["decision"]
+        check_true(f"18.2 {_run}: stored leads and seeds at the bar equal the per-seed recomputation",
+                   _same(_lp, float(_st["lead_over_predictor"])) and _same(_lu, float(_st["lead_over_untrained"]))
+                   and _nge == int(_ga["arms"]["0.45"]["survival"]["pool_target"]["n_ge_065"]))
+        _e0 = l0_gate_reproduces(f"18.2 {_run}", _ga) if _run == "C1" else _e0s[_run]
+        _l0m = _seed_mean(_ga["arms"]["0.0"]["survival"]["pool_target"])
+        _open = list(_st["gates_open"])
+        if _open == ["l0"]:
+            _gw = "L0 open"
+        elif not _open and _run in _dec and _dec[_run]["primary"]["gates"]["all"] is True \
+                and len(_dec[_run]["primary"]["gates"]["per_gate"]) == 6:
+            _gw = "all six pass"
+        else:
+            _gw = "open: " + ", ".join(_open)
+        _lo_r, _hi_r = t_ci90(_sv)
+        _lab = "`C1` (17.2)" if _run == "C1" else f"`{_run}`"
+        _rows18[_run] = (f"| {_lab} | {_sv.mean():.3f} [{_lo_r:.3f}, {_hi_r:.3f}] | {_nge} | {_lp:+.3f} | "
+                         f"{_lu:+.3f} | {_l0m:.3f}, {'equivalent' if _e0.equivalent else 'not equivalent'} "
+                         f"| {_gw} |")
+        check_true(f"FINDINGS 18.2 table row: {_run}", _rows18[_run] in _f18)
+    _c1pr, _c1un = _pt18(_ga18["C1"], "predictor"), _pt18(_ga18["C1"], "untrained")
+    check_true("18.2 predictor and untrained per-seed values are the same in all three runs (so the "
+               "survival seeds pair with C1's)",
+               all(list(_pt18(_ga18[r], "predictor")) == list(_c1pr)
+                   and list(_pt18(_ga18[r], "untrained")) == list(_c1un) for r in ("S-immortal", "T-touch")))
+    check_true("18.2 quotes the shared predictor and untrained means",
+               f"The predictor ({_c1pr.mean():.3f}) and untrained ({_c1un.mean():.3f}) arms are the same "
+               f"in all three runs" in _f18)
+    _dq = {}
+    for _run in ("T-touch", "S-immortal"):
+        _dd = _pt18(_ga18[_run], "survival") - _pt18(_ga18["C1"], "survival")
+        _dt = t_ci90(_dd)
+        check_true(f"18.2 {_run} minus C1: the paired interval does not exclude zero",
+                   not (_dt[0] > 0 or _dt[1] < 0))
+        _dq[_run] = f"{_dd.mean():+.3f} [{_dt[0]:+.3f}, {_dt[1]:+.3f}]"
+    check_true("18.2 quotes the seed-paired differences from C1",
+               f"The seed-paired difference from `C1` is {_dq['T-touch']} for `T-touch` and "
+               f"{_dq['S-immortal']} for `S-immortal`; neither interval excludes zero" in _f18)
+    # Touch engagement: per-episode pellet means of the trained arm and both baselines over the
+    # ten drift-0.45 cells; the touch gate's ratio over the better baseline is 1.5
+    # (itasorl/experiment_b2.py TOUCH_ENGAGE_RATIO).
+    _eng = []
+    for _p in sorted(glob.glob(os.path.join(ARTROOT, "goal_stakes", "T-touch", "cells", "cell_d0.45_s*.json"))):
+        with open(_p, encoding="utf-8") as _fh:
+            _eng.append(json.load(_fh)["cell"]["eng"])
+    _em = [float(np.mean([e[k] for e in _eng])) for k in ("trained_return", "random_return", "scripted_return")]
+    check_true("18.2 T-touch: ten drift-0.45 cells, each engaged, and the mean trained intake is at "
+               "least 1.5x the better baseline",
+               len(_eng) == 10 and all(e["engaged"] is True for e in _eng) and _em[0] >= 1.5 * max(_em[1:]))
+    check_true("18.2 quotes the T-touch engagement means",
+               f"{_em[0]:.2f} pellets per episode against {_em[1]:.2f} for the random walker and "
+               f"{_em[2]:.2f} for the scripted one, past the registered 1.5x ratio" in _f18)
+    # 2026-10-16 (findings c25, c27): the 18.3 readouts are recomputed from the per-seed rows
+    # of each run's mechanism.json the way scripts/run_mechanism_readouts.py summarizes them
+    # (finite values only; a non-informative seed has no intervention score), checked against
+    # the stored summary and decision.json, and the 18.3 table is rendered from them.
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import decide_goal_stakes as _dgs
+
+    def _mech(rows, fn):
+        v = np.asarray([fn(r) for r in rows], float)
+        v = v[np.isfinite(v)]
+        return {"n": int(v.size), "mean": float(v.mean()), "ci90": [float(x) for x in t_ci90(v)]}
+
+    def _same_block(a, b):
+        return a["n"] == b["n"] and _same(a["mean"], b["mean"]) and all(
+            _same(x, y) for x, y in zip(a["ci90"], b["ci90"]))
+
+    def _iv_block(rows, get):
+        """The intervention part of run_mechanism_readouts.summarize's block for one arm."""
+        return {"n_informative": sum(bool(get(r)["intervention"]["informative"]) for r in rows),
+                "intervention_real_minus_sham": _mech(rows, lambda r: (
+                    get(r)["intervention"]["score_real"] - get(r)["intervention"]["score_sham"])
+                    if get(r)["intervention"]["informative"] else float("nan"))}
+
+    # Table labels for the decide_goal_stakes wordings; a wording outside these renders as
+    # itself, so a changed verdict cannot match the committed table.
+    _lab_iv = {"the decoded direction did not move behavior under the tested nudge": "did not move behavior"}
+    _lab_sv = {"the decoded direction tracks the agent's own prediction error": "tracks the prediction error",
+               "the surrogate is surprising to the agent, but the decoded direction is not explained by "
+               "that surprise": "not explained by surprise",
+               "prediction error does not separate the worlds for this agent":
+               "prediction error does not separate the worlds"}
+    _lab_ad = {"foraging in the fake world recovers within a lifetime": "recovers",
+               "no within-lifetime recovery was detected": "no recovery detected"}
+    _f18t = " ".join(_read("docs/FINDINGS.md").split())
+    _mrow = {"int": [], "auc": [], "corr": [], "adapt": []}
+    for _run, _mean, _auc, _corr in (("T-touch", -0.001, 0.912, -0.146),
+                                     ("S-immortal", -0.029, 0.848, -0.240),
+                                     ("C1", 0.017, 0.846, -0.126)):
+        _mj = _load_art("goal_stakes", _run, "mechanism.json")
+        _rows, _sm = _mj["per_seed"], _mj["summary"]
+        check_int(f"18.3 {_run}: ten seeds in mechanism.json", len(_rows), 10)
+        _iv = _mech(_rows, lambda r: (r["intervention"]["score_real"] - r["intervention"]["score_sham"])
+                    if r["intervention"]["informative"] else float("nan"))
+        _au = _mech(_rows, lambda r: r["surprise"]["auroc"])
+        _co = _mech(_rows, lambda r: r["surprise"]["corr_mean"])
+        check(f"18.3 {_run} intervention real minus sham", _iv["mean"], _mean)
+        check(f"18.3 {_run} surprise AUROC", _au["mean"], _auc)
+        check(f"18.3 {_run} surprise correlation", _co["mean"], _corr)
+        check_true(f"18.3 {_run}: stored mechanism summary equals the per-seed recomputation",
+                   _same_block(_iv, _sm["intervention_real_minus_sham"])
+                   and _same_block(_au, _sm["surprise_auroc"]) and _same_block(_co, _sm["surprise_corr"])
+                   and _iv["n"] == _sm["n_informative"])
+        # The three verdicts are derived again with decide_goal_stakes from the recomputed blocks
+        # (the intervention one with both floors, recomputed from their per-seed rows); for C1,
+        # which decision.json does not carry, the derived verdict is the only source of its labels.
+        _fl = {g: _iv_block(_rows, lambda r, g=g: r[f"{g}_arm"]) for g in ("untrained", "predictor")}
+        _g1 = _mech(_rows, lambda r: r["adaptation"]["gap_first"])
+        _ad = _mech(_rows, lambda r: r["adaptation"]["adaptation"])
+        check_true(f"18.3 {_run}: stored floors and adaptation summary equal the per-seed recomputation",
+                   all(_fl[g]["n_informative"] == _sm["floors"][g]["n_informative"]
+                       and _same_block(_fl[g]["intervention_real_minus_sham"],
+                                       _sm["floors"][g]["intervention_real_minus_sham"]) for g in _fl)
+                   and _same_block(_g1, _sm["adaptation_gap_first"]) and _same_block(_ad, _sm["adaptation"]))
+        _ivv = _dgs.intervention_verdict({**_iv_block(_rows, lambda r: r), "floors": _fl})
+        _sv3 = _dgs.surprise_verdict({"surprise_auroc": _au, "surprise_corr": _co})
+        _adv = _dgs.adaptation_verdict({"adaptation_gap_first": _g1, "adaptation": _ad})
+        if _run in _dec:
+            check_true(f"18.3 {_run}: decision.json intervention contrast equals the recomputation",
+                       _same_block(_iv, _dec[_run]["intervention"]["contrast"]))
+            check_true(f"18.3 {_run}: decision.json intervention, surprise and adaptation verdicts "
+                       f"equal the derived ones",
+                       _dec[_run]["intervention"]["pass"] is _ivv["pass"]
+                       and _dec[_run]["intervention"]["wording"] == _ivv["wording"]
+                       and all(_dec[_run]["surprise"][k] == _sv3[k] for k in ("auroc_met", "corr_met", "wording"))
+                       and all(_dec[_run]["adaptation"].get(k) == _adv.get(k)
+                               for k in ("informative", "pass", "wording")))
+        _mrow["int"].append(f"{_iv['mean']:+.3f} [{_iv['ci90'][0]:+.3f}, {_iv['ci90'][1]:+.3f}]: "
+                            + _lab_iv.get(_ivv["wording"], _ivv["wording"]))
+        _mrow["auc"].append(f"{_au['mean']:.3f}")
+        _mrow["corr"].append(f"{_co['mean']:.3f}: " + _lab_sv.get(_sv3["wording"], _sv3["wording"]))
+        _mrow["adapt"].append(_lab_ad.get(_adv["wording"], _adv["wording"]))
+    for _k, _lab in (("int", "intervention, real minus sham nudge"),
+                     ("auc", "surprise, prediction-error AUROC"),
+                     ("corr", "surprise, correlation with the direction"),
+                     ("adapt", "adaptation within a lifetime")):
+        check_true(f"FINDINGS 18.3 table row: {_lab}",
+                   f"| {_lab} | " + " | ".join(_mrow[_k]) + " |" in _f18t)
+    # 18.4: the policy-control and control-diagnostic tables, means recomputed from per_seed;
+    # the C1 column comes from the 17.6 and 17.8 artifacts.
+    _p18 = {"C1": _load_art("policy_controls", "corrected_l3_h8_wm.json")}
+    _d18 = {"C1": _load_art("control_diagnostics", "corrected_l3_h8_wm.json")}
+    for _run in ("S-immortal", "T-touch"):
+        _p18[_run] = _load_art("goal_stakes", _run, "policy_controls.json")
+        _d18[_run] = _load_art("goal_stakes", _run, "control_diagnostics.json")
+        check_true(f"18.4 {_run}: every retrained agent bit-identical (10 of 10)",
+                   len(_p18[_run]["cells"]) == 10
+                   and all(c["retrain_identical"] for c in _p18[_run]["cells"]))
+    _cols = ("C1", "S-immortal", "T-touch")
+
+    def _row18(lab, src, key):
+        vals = []
+        for _run in _cols:
+            blk = src[_run]["aggregate"][key]
+            check(f"18.4 {_run} {key}: stored mean equals the per-seed mean",
+                  float(np.mean(blk["per_seed"])), float(blk["mean"]), 1e-9)
+            vals.append(f"{float(np.mean(blk['per_seed'])):.3f}")
+        check_true(f"FINDINGS 18.4 table row: {lab}", f"| {lab} | " + " | ".join(vals) + " |" in _f18t)
+
+    for _lab, _key in (("trained arm, own policy", "survival own"),
+                       ("trained arm, one scripted action sequence", "survival scripted"),
+                       ("untrained trunk replaying the trained arm's episodes", "untrained replay"),
+                       ("predictor trunk replaying them", "predictor replay"),
+                       ("predictor trained on the trained arm's own batches, replaying them",
+                        "predictor_logged replay")):
+        _row18(_lab, _p18, _key)
+    for _lab, _key in (("none: the primary probe", "target"),
+                       ("behavior trace (ridge)", "resid_trace"),
+                       ("observation history plus behavior (ridge)", "resid_obs_hist_beh"),
+                       ("best nonlinear control (64-unit MLP)", "resid_joint_mlp"),
+                       ("observation stream alone, no state: summary decoder", "obs_summary_only"),
+                       ("observation stream alone, no state: sequence GRU", "seq_gru")):
+        _row18(_lab, _d18, f"d=0.45 survival {_key}")
     _gn = _load_art("texture", "T_gn_l3_h96_wm.json")
-    check("18.6 white-jitter survival mean", _gn["primary"]["survival"]["mean"], 0.541)
+    _gs = _gn["primary"]["survival"]
+    check("18.6 white-jitter survival mean", float(np.mean(_gs["per_seed"])), 0.541)
+    _glo, _ghi = t_ci90(_gs["per_seed"])
+    check("18.6 white-jitter survival t90 lower", float(_glo), 0.523)
+    check("18.6 white-jitter survival t90 upper", float(_ghi), 0.559)
+    check_true("18.6 white-jitter stored survival mean and t90 equal the per-seed recomputation",
+               _same(float(_gs["mean"]), float(np.mean(_gs["per_seed"])))
+               and _same(float(_gs["t90"][0]), float(_glo)) and _same(float(_gs["t90"][1]), float(_ghi)))
+    _ge0 = texture_l0_gate_reproduces("18.6", _gn)
+    check("18.6 white-jitter drift-0 survival", _seed_mean(_gn["l0_control"]["survival"]), 0.559)
+    check("18.6 white-jitter L0 TOST p", float(_ge0.p_value), 0.94, tol=0.005)
+    check_true("18.6 quotes the white-jitter L0 reading and the survival interval",
+               "drift-0 survival 0.559, TOST p = 0.94" in _f18t
+               and f"survival arm reads {np.mean(_gs['per_seed']):.3f} [{_glo:.3f}, {_ghi:.3f}]" in _f18t)
     check_true("18.6 white-jitter run routes UNINFORMATIVE on the L0 gate",
                _gn["routing"].startswith("UNINFORMATIVE") and _gn["gates_failed"] == ["l0_tost"])
     check_true("18.6 records the white-jitter run as uninformative", "**uninformative**" in _f18)
+    # 2026-10-16 (review of finding c27): the descriptive 18.6 numbers, recomputed from the
+    # per-seed arms and the stored gate counts.
+    _gl = {a: float(np.mean(_gs["per_seed"])) - float(np.mean(_gn["primary"][a]["per_seed"]))
+           for a in ("predictor", "untrained")}
+    _gge = int(np.sum(np.asarray(_gs["per_seed"], float) >= BAR))
+    _geng, _gsp = _gn["gates"]["engagement"], _gn["gates"]["speed_positive_control"]
+    _gne = sum(bool(c["engaged"]) for c in _geng["per_cell"])
+    check_true("18.6 white-jitter stored leads, seeds at the bar and engagement count equal the recomputation",
+               all(_same(_gl[a], float(_gn["contrasts"][a]["mean"])) for a in _gl)
+               and _gge == int(_gs["seeds_at_or_above_bar"]) and _gne == int(_geng["n_engaged"])
+               and len(_geng["per_cell"]) == int(_geng["n_cells"]))
+    _words = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
+    check_true("18.6 quotes the seeds at the bar, both leads and the engagement and speed counts",
+               f"{_words[_gge]} of {_words[len(_gs['per_seed'])]} seeds at the bar, {_gl['predictor']:+.3f} "
+               f"over the predictor and {_gl['untrained']:+.3f} over the untrained arm; engagement passes in "
+               f"{_gne} of {len(_geng['per_cell'])} cells and the speed positive control in "
+               f"{_gsp['n_pools'] - _gsp['n_below']} of {_gsp['n_pools']} pools" in _f18t)
     _c1r_same = 0
     for _p in sorted(glob.glob(os.path.join(ARTROOT, "goal_stakes", "C1-rerun", "cells", "cell_d*_s*.json"))):
         with open(_p, encoding="utf-8") as _fh:
@@ -2786,6 +3083,281 @@ def main() -> int:
         _c1r_same += sum(_r[a]["pool"]["target"] == _c[a]["pool"]["target"]
                          for a in ("survival", "predictor", "untrained"))
     check_int("18.1 C1 rerun: arm-cells bit-equal to C1", _c1r_same, 60)
+
+    # ---- FINDINGS 22.3: the correlated-jitter sweeps A, B and C (2026-10-16, finding c27) ----
+    # Every table row, both contrasts and the quoted ranges are rebuilt from the per-cell fresh
+    # and transfer readings in each point file; the summary's per-seed lists and intervals must
+    # equal that rebuild.
+    print("\n== FINDINGS 22.3: correlated-jitter sweeps (texture/ar_sweep, texture/ar_sweep_c) ==")
+    # Section 22 only: section 23 also says "Reading 2 is met", so a whole-file search would
+    # pass with the 22.3 sentence deleted.
+    _f22raw = _read("docs/FINDINGS.md")
+    _f22 = " ".join(_f22raw[_f22raw.index("\n## 22. "):_f22raw.index("\n## 23. ")].split())
+    _iv3 = lambda v: f"[{v[0]:+.3f}, {v[1]:+.3f}]"
+
+    def _ar_point(sub, pt):
+        cells = sorted(_load_art("texture", sub, pt["file"])["cells"], key=lambda c: c["seed"])
+        arm = lambda a, k: np.asarray([c[k] for c in cells if c["arm"] == a], float)
+        sv, un = arm("survival", "fresh"), arm("untrained", "fresh")
+        m = sv - un
+        ok = (len(sv) == len(un) == 10
+              and list(sv) == list(pt["survival_fresh"]["per_seed"]) and list(m) == list(pt["M"]["per_seed"])
+              and _same(float(sv.mean()), pt["survival_fresh"]["mean"]) and _same(float(m.mean()), pt["M"]["mean"])
+              and all(_same(a, b) for a, b in zip(t_ci90(m), pt["M"]["t90"]))
+              and _same(float(un.mean()), pt["untrained_fresh_mean"])
+              and _same(float(arm("survival", "transfer").mean()), pt["survival_transfer_mean"]))
+        check_true(f"22.3 {pt['sweep']} rho {pt['rho']}: summary per-seed values and intervals rebuild "
+                   f"from {sub}/{pt['file']}", ok)
+        return sv, m, float(arm("survival", "transfer").mean())
+
+    for _sub, _ckey, _pairs in (
+            ("ar_sweep", "contrasts", (("A", "A: M(0.99) - M(0)", "+0.029 [-0.009, +0.068]"),
+                                       ("B", "B: M(0.99) - M(0)", "-0.006 [-0.036, +0.023]"))),
+            ("ar_sweep_c", "contrast", (("C", "C: M(0.99) - M(0)", "+0.009 [-0.027, +0.045]"),))):
+        _sum = _load_art("texture", _sub, "summary.json")
+        _pts = {}
+        for _pt in _sum["points"]:
+            _sv, _m, _tr = _ar_point(_sub, _pt)
+            _pts[(_pt["sweep"], _pt["rho"])] = (_pt, _sv, _m, _tr)
+            if _sub == "ar_sweep":
+                _pr = _pt["profile"]
+                _lab = "A, B" if (_pt["sweep"], _pt["rho"]) == ("A", 0.9) else _pt["sweep"]
+                _row = (f"| {_lab} | {_pt['rho']:g} | {_pr['lag1_autocorr']:.2f} | "
+                        f"{_pr['rollout_gap']['24']:.3f} | {_sv.mean():.3f} | {_m.mean():+.3f} "
+                        f"{_iv3(t_ci90(_m))} |")
+            else:
+                _pr = _pt["calibration"]["profile"]
+                _row = (f"| {_pt['rho']:g} | {_pt['sigma']:.5f} | {_pr['lag1_autocorr']:.3f} | "
+                        f"{_pr['rms_one_step']:.4f} | {_pr['rollout_gap']['24']:.4f} | {_sv.mean():.3f} "
+                        f"[{t_ci90(_sv)[0]:.3f}, {t_ci90(_sv)[1]:.3f}] | {_m.mean():+.3f} {_iv3(t_ci90(_m))} |")
+            check_true(f"FINDINGS 22.3 table row, sweep {_pt['sweep']} rho {_pt['rho']}", _row in _f22)
+        for _sw, _ck, _quote in _pairs:
+            _hi_pt, _lo_pt = _pts[(_sw, 0.99)], _pts[(_sw, 0.0)]
+            _d = _hi_pt[2] - _lo_pt[2]
+            _dt = t_ci90(_d)
+            _st = _sum[_ckey][_ck]
+            check_true(f"22.3 contrast {_ck}: stored mean and t90 equal the paired recomputation",
+                       _st["n"] == len(_d) and _same(float(_d.mean()), _st["mean"])
+                       and all(_same(a, b) for a, b in zip(_dt, _st["t90"])))
+            check_true(f"FINDINGS 22.3 quotes contrast {_ck}",
+                       f"{_d.mean():+.3f} {_iv3(_dt)}" == _quote and _quote in _f22)
+            if _sw == "C":
+                # The stated wording follows the recomputation, not only the stored reading.
+                _in = bool(-0.05 <= _dt[0] and _dt[1] <= 0.05)
+                check_true("22.3 sweep C: reading 2 (interval inside [-0.05, +0.05]) as stored and stated",
+                           _in is bool(_sum["readings"]["2 within the margin unit"])
+                           and ("Reading 2 is met" in _f22) is _in and ("Reading 2 is not met" in _f22) is not _in)
+        _svs = [v[1].mean() for v in _pts.values()]
+        _trs = [v[3] for v in _pts.values()]
+        _rng = f"survival {'stays at' if _sub == 'ar_sweep' else 'fresh stays at'} {min(_svs):.3f} to {max(_svs):.3f}"
+        check_true(f"FINDINGS 22.3 quotes the {_sub} survival range", _rng in _f22)
+        _trq = (f"transfers below 0.5 at every point ({min(_trs):.3f} to {max(_trs):.3f})" if _sub == "ar_sweep"
+                else f"transfers at {min(_trs):.3f} to {max(_trs):.3f}")
+        check_true(f"FINDINGS 22.3 quotes the {_sub} transfer range", _trq in _f22)
+        check_true(f"22.3 {_sub}: no point reaches the bar and none is kept",
+                   max(_svs) < BAR and not any(v[0]["kept"] for v in _pts.values()))
+
+    # ---- FINDINGS 22.3: sweep C follow-up at the exactly matched gap (2026-10-16) ----
+    # Each point's margins rebuild from its cells; its sigma gives the target gap exactly in the
+    # closed form; the contrast with the stored rho = 0 point rebuilds, and FINDINGS quotes it with
+    # reading 3.
+    _fu_dir = os.path.join(ARTROOT, "texture", "ar_sweep_c_followup")
+    if _artifact_present(os.path.join(_fu_dir, "summary.json")):
+        _fu = _load_art("texture", "ar_sweep_c_followup", "summary.json")
+
+        def _gap24(sig, rho, lam=0.925, h=24):
+            _t = np.arange(h)
+            _w = lam ** (h - 1 - _t)
+            return float(sig * np.sqrt(2.0 * _w @ (rho ** np.abs(_t[:, None] - _t[None, :])) @ _w))
+
+        check_true("22.3 follow-up: the target is the shared point's exact gap",
+                   _same(_gap24(0.01, 0.9), _fu["gap_target_exact"]))
+        _fum = {}
+        for _pt in _fu["points"]:
+            _cells = sorted(_load_art("texture", "ar_sweep_c_followup", _pt["file"])["cells"],
+                            key=lambda c: c["seed"])
+            _sv = np.asarray([c["fresh"] for c in _cells if c["arm"] == "survival"], float)
+            _un = np.asarray([c["fresh"] for c in _cells if c["arm"] == "untrained"], float)
+            _m = _sv - _un
+            _fum[_pt["rho"]] = _m
+            check_true(f"22.3 follow-up rho {_pt['rho']}: margins rebuild from the cells and the gap is matched",
+                       len(_m) == 10 and list(_m) == list(_pt["M"]["per_seed"])
+                       and all(_same(a, b) for a, b in zip(t_ci90(_m), _pt["M"]["t90"]))
+                       and abs(_gap24(_pt["sigma"], _pt["rho"]) - _fu["gap_target_exact"]) < 1e-12
+                       and not _pt["kept"])
+            _row = (f"| {_pt['rho']:g} | {_pt['sigma']:.5f} | {_gap24(_pt['sigma'], _pt['rho']):.4f} | "
+                    f"{_sv.mean():.3f} | {_un.mean():.3f} | {_m.mean():+.3f} {_iv3(t_ci90(_m))} |")
+            check_true(f"FINDINGS 22.3 follow-up table row, rho {_pt['rho']}", _row in _f22)
+        _m0 = _ar_point("ar_sweep_c", next(q for q in _load_art("texture", "ar_sweep_c", "summary.json")["points"]
+                                          if q["rho"] == 0.0))[1]
+        _d = _fum[0.99] - _m0
+        _dt = t_ci90(_d)
+        _st = _fu["contrast"]["follow-up: M(0.99, matched) - M(0, stored)"]
+        check_true("22.3 follow-up contrast: stored mean and t90 equal the paired recomputation",
+                   _st["n"] == len(_d) and _same(float(_d.mean()), _st["mean"])
+                   and all(_same(a, b) for a, b in zip(_dt, _st["t90"])))
+        _r1, _r2 = bool(_dt[0] > 0), bool(-0.05 <= _dt[0] and _dt[1] <= 0.05)
+        check_true("22.3 follow-up readings follow the recomputation",
+                   _fu["readings"] == {"1 coherence raises at matched gap": _r1, "2 within the margin unit": _r2,
+                                       "3 neither": not _r1 and not _r2})
+        check_true("FINDINGS 22.3 quotes the follow-up contrast and its reading",
+                   f"M(0.99) - M(0) is {_d.mean():+.3f} {_iv3(_dt)}: reading 3 (neither)" in _f22
+                   and not _r1 and not _r2)
+
+    # ---- FINDINGS 23.3: the online erasure readout's refit probe (2026-10-16) ----
+    # The refit probe's mean and t-interval per arm are rebuilt from rows[].refit_probe_erased
+    # with the paired_t90 the run's summarize() used, and the partial-erasure reading from that
+    # mean. The superseded split-twin artifact must differ from the rerun only in the refit value
+    # and the wall-clock seconds, and the correction note quotes both runs' values.
+    print("\n== FINDINGS 23.3: online erasure, refit probe (mechanism/erasure) ==")
+    from itasorl.novel_readouts import paired_t90 as _pt90
+    _erp = os.path.join(ARTROOT, "mechanism", "erasure", "corrected_l3_h8_wm.json")
+    _ers = os.path.join(ARTROOT, "mechanism", "erasure", "superseded_split_twins_2026-10-16",
+                        "corrected_l3_h8_wm.json")
+    _er_ok = _artifact_present(_erp)
+    _ers_ok = _artifact_present(_ers)
+    if _er_ok:
+        _fx = _read("docs/FINDINGS.md")
+        _s233 = " ".join(_fx[_fx.index("### 23.3 "):_fx.index("### 23.4 ")].split())
+
+        def _refit(doc, arm, tag=""):
+            vals = [r.get("refit_probe_erased", np.nan) for r in doc["rows"] if r["arm"] == arm]
+            rec = _pt90([np.nan if v is None else v for v in vals])
+            st = doc["summary"][arm]["refit_probe_erased"]
+            check_true(f"23.3 {tag}{arm} refit probe: stored mean and t90 equal the recomputation from rows",
+                       rec["n"] == st["n"] and _same(rec["mean"], st["mean"])
+                       and all(_same(a, b) for a, b in zip(rec["t90"], st["t90"])))
+            return rec
+
+        _er = _load_art("mechanism", "erasure", "corrected_l3_h8_wm.json")
+        _rs, _ru = _refit(_er, "survival"), _refit(_er, "untrained")
+        check("23.3 survival refit probe mean recomputed (0.747)", _rs["mean"], 0.747)
+        check("23.3 survival refit probe t90 lower recomputed (0.702)", _rs["t90"][0], 0.702)
+        check("23.3 survival refit probe t90 upper recomputed (0.791)", _rs["t90"][1], 0.791)
+        check("23.3 untrained refit probe mean recomputed (0.576)", _ru["mean"], 0.576)
+        for _arm, _rec in (("survival", _rs), ("untrained", _ru)):
+            _pe = bool(_rec["mean"] >= 0.65)
+            check_true(f"23.3 {_arm}: partial erasure (refit probe >= 0.65) is {_pe}, as stored",
+                       _pe is bool(_er["summary"][_arm]["readings"]["partial erasure (refit probe >= 0.65)"]))
+        _sv = f"{_rs['mean']:.3f} [{_rs['t90'][0]:.3f}, {_rs['t90'][1]:.3f}]"
+        check_true("FINDINGS 23.3 table quotes the survival refit probe",
+                   f"| refit probe on erased states | {_sv} " in _s233)
+        check_true("FINDINGS 23.3 quotes the untrained refit probe",
+                   f"refit {_ru['mean']:.3f})" in _s233)
+        _pe_s = bool(_rs["mean"] >= 0.65)
+        check_true(f"FINDINGS 23.3 {'attaches' if _pe_s else 'does not attach'} the partial-erasure "
+                   f"label, as the recomputed survival refit gives",
+                   ("partial erasure** label is attached" in _s233) is _pe_s
+                   and f"reads the erased states at {_rs['mean']:.3f}" in _s233)
+        if _ers_ok:
+            _eo = _load_art("mechanism", "erasure", "superseded_split_twins_2026-10-16",
+                            "corrected_l3_h8_wm.json")
+            _skip = {"refit_probe_erased", "seconds"}
+            check_true("23.3 superseded split-twin rows equal the rerun's outside the refit probe "
+                       "and wall-clock seconds",
+                       len(_eo["rows"]) == len(_er["rows"])
+                       and all({k: v for k, v in a.items() if k not in _skip}
+                               == {k: v for k, v in b.items() if k not in _skip}
+                               for a, b in zip(_eo["rows"], _er["rows"])))
+            _os, _ou = _refit(_eo, "survival", "superseded "), _refit(_eo, "untrained", "superseded ")
+            check_true("FINDINGS 23.3 correction note quotes both runs' refit values",
+                       f"the refit reads {_sv} (was {_os['mean']:.3f} [{_os['t90'][0]:.3f}, "
+                       f"{_os['t90'][1]:.3f}]) and the untrained arm {_ru['mean']:.3f} "
+                       f"(was {_ou['mean']:.3f})" in _s233)
+            _chg = {r["seed"]: (a["refit_probe_erased"], r["refit_probe_erased"])
+                    for a, r in zip(_eo["rows"], _er["rows"]) if r["arm"] == "survival"}
+            check_true("23.3 correction note: seeds 1 and 5 unchanged, the other eight rise",
+                       sorted(s for s, (a, b) in _chg.items() if a == b) == [1, 5]
+                       and len(_chg) - 2 == 8
+                       and all(b > a for s, (a, b) in _chg.items() if s not in (1, 5))
+                       and "Seeds 1 and 5, whose twins already shared a fold, are unchanged; "
+                           "the other eight rise." in _s233)
+
+    # ---- O2: long-history ridge with the penalty chosen in fold (2026-10-16) ----
+    # The manuscript's Limitations and claims row 46 and FINDINGS 17.8 cite this optional
+    # readout, and the supplement ships it, so its numbers are guarded like an artifact's. Each
+    # mean and t90 is recomputed from summary.<basis>.<metric>.per_seed, which must equal the
+    # per-seed cells; the fixed-penalty rows must reproduce the battery's survival readings in
+    # artifacts/control_diagnostics/corrected_l3_h8_wm.json within 0.001; the table in
+    # docs/optional/README.md must quote what the seeds give.
+    print("\n== O2: long-history ridge, penalty chosen in fold (docs/optional) ==")
+    _o2p = os.path.join(root, "docs", "optional", "o2_long_history_ridge.json")
+    check_true("file present: docs/optional/o2_long_history_ridge.json", os.path.isfile(_o2p))
+    _o2bp = os.path.join(ARTROOT, "control_diagnostics", "corrected_l3_h8_wm.json")
+    if os.path.isfile(_o2p) and _artifact_present(_o2bp):
+        with open(_o2p, encoding="utf-8") as _fh:
+            _o2 = json.load(_fh)
+        _o2b = _load_art("control_diagnostics", "corrected_l3_h8_wm.json")["aggregate"]
+        _o2r = " ".join(_read("docs/optional/README.md").split())
+        check_true("O2 provenance names its script and disclaims adjudication",
+                   _o2["provenance"]["generated_by"] == "scripts/run_optional_o2.py"
+                   and "not an adjudication" in _o2["provenance"]["status"])
+        _o2cells = sorted(_o2["cells"], key=lambda c: c["seed"])
+        check_true("O2 has one cell per seed 0 to 9", [c["seed"] for c in _o2cells] == list(range(10)))
+        _o2iv = {}
+        for _bas, _name, _exp in (
+                ("resid_obs_hist", "history + traces + actions",
+                 {"auroc": (0.737, 0.690, 0.785), "nuisance_r2_heldout": (0.906, 0.904, 0.908),
+                  "fixed_auroc": (0.640, 0.608, 0.671), "fixed_r2": (-0.128, -0.234, -0.021)}),
+                ("resid_obs_hist_beh", "the same plus behavior",
+                 {"auroc": (0.691, 0.650, 0.732), "nuisance_r2_heldout": (0.909, 0.907, 0.910),
+                  "fixed_auroc": (0.606, 0.581, 0.630), "fixed_r2": (-0.177, -0.292, -0.063)})):
+            _sm = _o2["summary"][_bas]
+            _fromcells = {"auroc": [c[_bas]["auroc"] for c in _o2cells],
+                          "nuisance_r2_heldout": [c[_bas]["nuisance_r2_heldout"] for c in _o2cells],
+                          "fixed_auroc": [c[_bas]["fixed_alpha"]["auroc"] for c in _o2cells],
+                          "fixed_r2": [c[_bas]["fixed_alpha"]["nuisance_r2_heldout"] for c in _o2cells]}
+            for _met, (_mu, _lo, _hi) in _exp.items():
+                _ps = np.asarray(_sm[_met]["per_seed"], float)
+                _tl, _th = t_ci90(_ps)
+                _o2iv[(_bas, _met)] = (float(_ps.mean()), float(_tl), float(_th))
+                check_true(f"O2 {_bas} {_met}: per_seed equals the cells, and the stored mean and "
+                           "t90 equal the recomputation",
+                           list(_ps) == _fromcells[_met] and _sm[_met]["n"] == len(_ps) == 10
+                           and _same(float(_ps.mean()), _sm[_met]["mean"])
+                           and all(_same(a, b) for a, b in zip((_tl, _th), _sm[_met]["t90"])))
+                check(f"O2 {_bas} {_met} mean recomputed ({_mu:.3f})", float(_ps.mean()), _mu)
+                check(f"O2 {_bas} {_met} t90 lower recomputed ({_lo:.3f})", float(_tl), _lo)
+                check(f"O2 {_bas} {_met} t90 upper recomputed ({_hi:.3f})", float(_th), _hi)
+            _bat = _o2b[f"d=0.45 survival {_bas}"]
+            check(f"O2 {_bas}: the fixed-penalty AUROC reproduces the battery's survival reading "
+                  f"({_seed_mean(_bat):.3f}) within 0.001",
+                  _o2iv[(_bas, "fixed_auroc")][0], _seed_mean(_bat), tol=1e-3)
+            check_true(f"O2 {_bas}: the penalty is chosen from the grid on every fold, never the "
+                       "fixed 0.001",
+                       all(len(c[_bas]["alphas"]) == c[_bas]["n_folds"] and min(c[_bas]["alphas"]) > 1e-3
+                           for c in _o2cells))
+
+            def _cell(met):
+                m, lo, hi = _o2iv[(_bas, met)]
+                return f"{m:.3f} [{lo:.3f}, {hi:.3f}]"
+
+            check_true(f"docs/optional/README.md O2 table row quotes the recomputed {_bas} values",
+                       f"| {_name} | {_cell('fixed_auroc')}, {_cell('fixed_r2')} | "
+                       f"{_cell('auroc')}, {_cell('nuisance_r2_heldout')} |" in _o2r)
+
+    # ---- README: the corrected L3 headline sentence (2026-10-16, finding c27) ----
+    # Rendered from corrected_verdicts.json runs.C1.primary, the source FINDINGS 17 quotes; the
+    # survival mean and interval are recomputed from its per-seed list.
+    print("\n== README: corrected L3 headline ==")
+    _c1p = _load_art("corrected_verdicts.json")["runs"]["C1"]["primary"]
+    _c1s = _c1p["survival"]["per_seed"]
+    _c1lo, _c1hi = t_ci90(_c1s)
+    check("README corrected headline: survival mean recomputed (0.733)", float(np.mean(_c1s)), 0.733)
+    check("README corrected headline: survival t90 lower recomputed (0.669)", float(_c1lo), 0.669)
+    check("README corrected headline: survival t90 upper recomputed (0.797)", float(_c1hi), 0.797)
+    _rm = " ".join(_read("README.md").replace("**", "").split())
+    _hl = (f"reads {np.mean(_c1s):.3f} (t-based 90% CI [{_c1lo:.3f}, {_c1hi:.3f}], "
+           f"{sum(x >= BAR for x in _c1s)} of {len(_c1s)} seeds at the 0.65 bar), the predictor arm "
+           f"{_seed_mean(_c1p['predictor']):.3f} and the untrained arm {_seed_mean(_c1p['untrained']):.3f}, "
+           f"with paired margins of {_c1p['contrast_vs_predictor']['mean']:+.3f} and "
+           f"{_c1p['contrast_vs_untrained']['mean']:+.3f}")
+    check_true("README quotes the corrected L3 headline as corrected_verdicts.json gives it", _hl in _rm)
+    check_true("README corrected headline margins recompute from the per-seed lists",
+               _same(float(np.mean(np.asarray(_c1s) - np.asarray(_c1p["predictor"]["per_seed"]))),
+                     _c1p["contrast_vs_predictor"]["mean"], 1e-5)
+               and _same(float(np.mean(np.asarray(_c1s) - np.asarray(_c1p["untrained"]["per_seed"]))),
+                         _c1p["contrast_vs_untrained"]["mean"], 1e-5))
 
     agent_free_checks(_read("docs/FINDINGS.md"), _read("docs/CORRECTIONS.md"))
     repro_check_checks(_read("docs/FINDINGS.md"), _read("docs/CORRECTIONS.md"),
@@ -2803,7 +3375,10 @@ def main() -> int:
         check(f"21 {_rid} survival mean recomputed", float(_s.mean()), _doc["balanced"]["survival"]["mean"])
         check_true(f"21 {_rid} decision is UNINFORMATIVE", _doc["decision"] == "UNINFORMATIVE")
         check_true(f"21 {_rid} untrained floor fails", _doc["gates"]["untrained_floor_ok"] is False)
-        check(f"21 {_rid} untrained deviation", _doc["gates"]["untrained_dev"], 0.114)
+        _udev = abs(_seed_mean(_doc["balanced"]["untrained"]) - 0.5)
+        check(f"21 {_rid} untrained deviation", _udev, 0.114)
+        check_true(f"21 {_rid} stored untrained deviation equals the per-seed recomputation",
+                   _same(float(_doc["gates"]["untrained_dev"]), _udev))
         check_true(f"FINDINGS 21 quotes {_rid} survival interval",
                    f"[{_lo:.3f}, {_hi:.3f}]" in _f21)
         check_true(f"FINDINGS 21 quotes {_rid} margin lower bounds",
@@ -2846,6 +3421,8 @@ def main() -> int:
                "sensory-independent under matched worlds" in _f21)
 
     print()
+    if n_skipped:
+        print(f"skipped: {n_skipped} check(s) whose file the anonymized supplement leaves out.")
     print(f"pins: {n_pins} of {n_checks} checks compare a value as stored in an artifact with a "
           "constant in this script (labels start 'pinned:'): readings stored without per-seed "
           "values, configuration values, and recorded integrity results.")
@@ -3418,9 +3995,14 @@ def s20_instances() -> dict:
     for k in ("h7", "h10", "h8s2"):
         check(f"20.2 {k}: promoted survival mean equals the recomputation",
               prom[k]["decision"]["survival"], nums[k]["s"][0], 1e-12)
-        check(f"pinned: 20.2 {k}: drift-0 survival target (C1's L0 reading)",
-              prom[k]["gates"]["l0_survival_mean"], 0.559)
-        check_true(f"20.2 {k}: the L0 gate is open", prom[k]["gates"]["l0_tost"]["equivalent"] is False)
+        check(f"20.2 {k}: drift-0 survival target (C1's L0 reading)",
+              _seed_mean(prom[k]["arms"]["0.0"]["survival"]["pool_target"]), 0.559)
+        check_true(f"20.2 {k}: the L0 gate is open",
+                   l0_gate_reproduces(f"20.2 {k}", prom[k]).equivalent is False)
+    # 2026-10-16: the remaining promoted expB2 runs whose stored L0 gate the checks above do not
+    # read (C1 is recomputed in section 18.2), so the claim covers every stored L0 gate.
+    for _n in ("C2-rerun", "l3_h8_nowm", "L1-corrected"):
+        l0_gate_reproduces(f"expB2 corrected_{_n}", _af_load("expB2", f"corrected_{_n}.json"))
     g8p = prom["h8s2"]["gates"]
     check_true("20.2 H7-corrected: the open gates are L0 and reward leak",
                prom["h7"]["decision"]["gates_open"] == ["l0", "reward_leak"])

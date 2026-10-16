@@ -6,6 +6,7 @@ an explicit feature function (itasorl.experiment_b.episode_features imports torc
 """
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -169,7 +170,22 @@ def test_brain_data_keeps_the_ring_cells_on_screen():
     assert max(out["unit_signal"]) == pytest.approx(1.0, abs=1e-3)
 
 
+def _in_git_checkout() -> bool:
+    """True when ROOT is the top of a git checkout (an extracted archive placed inside some
+    other repository is still an extracted archive)."""
+    try:
+        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=ROOT,
+                             capture_output=True, text=True).stdout.strip()
+    except OSError:
+        return False
+    return bool(top) and Path(top).resolve() == ROOT
+
+
 def _brain_data_js():
+    # The anonymized supplement ships brain.js but not brain-data.js, so outside a git
+    # checkout this check skips; in a checkout a missing file still fails.
+    if not BRAIN_DATA.exists() and not _in_git_checkout():
+        pytest.skip("viz/player/brain/brain-data.js is not shipped in the anonymized supplement")
     txt = BRAIN_DATA.read_text(encoding="utf-8")
     return json.loads(txt.split("window.BRAIN_DATA = ", 1)[1].rsplit(";", 1)[0])
 

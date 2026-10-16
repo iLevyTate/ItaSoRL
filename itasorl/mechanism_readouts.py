@@ -268,17 +268,28 @@ def surprise_summaries(E: np.ndarray) -> np.ndarray:
     return np.c_[E.mean(1), E.max(1), slope]
 
 
-def surprise_auroc(Ea: np.ndarray, Es: np.ndarray) -> float:
+def surprise_auroc(Ea: np.ndarray, Es: np.ndarray, groups: np.ndarray | None = None) -> float:
     """Readout 8(a): grouped-CV AUROC of the registered probe on per-episode surprise
     summaries, authentic (0) vs surrogate (1). Rows with non-finite summaries are dropped;
-    NaN if fewer than MIN_AUROC_ROWS finite rows remain in either class."""
+    NaN if fewer than MIN_AUROC_ROWS finite rows remain in either class.
+
+    `groups` gives one CV group per row of the stacked [Ea; Es] (length len(Ea) + len(Es)).
+    When row j of Ea and row j of Es come from the same world seed, pass
+    np.r_[np.arange(k), np.arange(k)] so each twin pair stays in one fold. The default
+    (None) puts every episode in its own group, which is right only for pools drawn from
+    disjoint seed bases."""
     X = np.concatenate([surprise_summaries(Ea), surprise_summaries(Es)])
     y = np.r_[np.zeros(len(Ea)), np.ones(len(Es))].astype(int)
+    if groups is None:
+        groups = np.arange(len(y))
+    groups = np.asarray(groups)
+    if len(groups) != len(y):
+        raise ValueError(f"groups has {len(groups)} entries for {len(y)} rows")
     ok = np.isfinite(X).all(axis=1)
-    X, y = X[ok], y[ok]
+    X, y, groups = X[ok], y[ok], groups[ok]
     if (y == 0).sum() < MIN_AUROC_ROWS or (y == 1).sum() < MIN_AUROC_ROWS:
         return float("nan")
-    return float(grouped_auroc(X, y, np.arange(len(y))))
+    return float(grouped_auroc(X, y, groups))
 
 
 def direction_error_correlation(H: np.ndarray, E: np.ndarray, u: np.ndarray) -> float:

@@ -12,16 +12,29 @@ The history carries video, gif and PDF renders that the current tree no longer h
 full clone is several times the size of the tree. Checking the commit hashes that
 `docs/RESULTS_MANIFEST.md` records needs the full history (`git fetch --unshallow`), and
 some of those commits are not ancestors of `main`; the manifest says where each of them
-lives.
+lives. Inside the anonymized supplement those hashes are pseudonyms (see "Anonymized
+supplement" below), and the archive carries no history to check them against.
 
 ## 1. Inspect the central readouts without training (minutes)
 
 ```bash
 pip install -r requirements-dev.txt
+python scripts/reproduce.py tables --check
 python scripts/reproduce.py tables
 ```
 
-This rebuilds, from the committed per-seed artifacts under `artifacts/`:
+The first command compares the committed pages below with what the builders produce from the
+committed per-seed artifacts, rewrites nothing, and runs the audit on the pages as shipped. It
+prints `committed tables and pages: current` or `STALE`, and exits 3 when a page is stale. The
+audit runs every builder's `--check` itself, so it fails on a stale page as well; the exit code
+is still 3, and the audit's output names any other check that failed. The
+second command rebuilds the pages, then runs the audit. It also exits 3 when a page was stale
+before the rewrite, even though the audit then passes on the rewritten copy, so exit 0 from
+either command means the shipped pages were already current (changed 2026-10-16; before that
+the rebuild exited 0 after restoring a stale page). Any other non-zero exit is a failing
+builder or audit check.
+
+The rebuild writes, from the committed per-seed artifacts under `artifacts/`:
 
 - `docs/RESULTS_MANIFEST.md`: which commit, configuration, seeds, surrogate, budget, fold
   partition, device, and trainer produced every committed result, and whether it is
@@ -34,8 +47,8 @@ This rebuilds, from the committed per-seed artifacts under `artifacts/`:
   They stay local like the manuscript: `docs/paper_tables/` and `docs/paper/` are both
   gitignored, nothing in them is committed, and the audit renders the tables in memory.
 
-It then runs `scripts/audit_stats_recheck.py`. The script prints the count (2933 on
-2026-10-13, after the balanced sensory-echo rows). **What the audit
+It then runs `scripts/audit_stats_recheck.py`. The script prints the count (3179 on
+2026-10-16, after the critical-review checks). **What the audit
 checks:** it recomputes each summary statistic it guards from the committed per-seed
 artifacts and compares it with a copy of the quoted value kept as a constant in the script.
 Those constants mirror numbers quoted in `README.md`, `docs/FINDINGS.md`,
@@ -46,14 +59,37 @@ rendered from the artifacts. It also checks that the generated pages above and t
 `index.html` are current, and that retired wording has not returned to the pages it watches.
 **What it does not check:** a number edited by hand in `README.md`, `docs/PAPER_OUTLINE.md`,
 `CITATION.cff`, or a FINDINGS passage the script does not read passes the audit; it reruns no
-experiment; it does not read the local LaTeX manuscript (use
-`python scripts/build_paper_tables.py --manuscript docs/paper`); and it can only be as good as
-the per-seed values committed.
+experiment; it does not read the local LaTeX manuscript; and it can only be as good as the
+per-seed values committed.
 
-The raw state dumps are not in git or in the supplement; they exist only after a run.
-Retrain with `reproduce.py retrain C1` (section 2), and the dumps land in
-`fullruns/<run>/states`. With them, the per-seed readouts themselves are recomputed from the
-recurrent states, under both fold partitions and with the behavior control:
+**The manuscript check.** `python scripts/build_paper_tables.py --manuscript docs/paper` reads
+the local LaTeX source and reports items to review. It compares these numbers with the
+committed record: the C1 and C2 headline means and intervals of
+`artifacts/corrected_verdicts.json` (each required interval quoted right after its own mean,
+and no headline interval after a different number), the C1 and C2 per-seed lists, every
+three-decimal number in the paragraph headed "The corrected primary run", the rule-ledger tally
+in any sentence that counts rule-and-run pairs (against `docs/rule_ledger.json`), and the row
+and set counts in any sentence that counts the gate table's distinct sets of per-seed values
+(against `artifacts/gate_table.json`). It also checks that the generated tables are `\input`
+and current, and flags retired wording and an unlabeled pre-correction headline. No other
+number in the manuscript is compared with an artifact, the hand-typed appendix tables
+included; those are traced by hand through the claims appendix, which names the artifact
+behind every number that enters a decision, a gate or a headline comparison. "0 items to
+review" means only that the checks above found nothing.
+
+The raw state dumps of `C1` and `C2` are not in git or in the supplement. Where the saved agents
+are at hand (a local run folder, or the full build made on the machine that trained the runs),
+the dumps rebuild from them without retraining, and every pool is checked against its recorded
+target:
+
+```bash
+python scripts/regenerate_state_dumps.py --run-dir fullruns/corrected_l3_h8_wm --out-dir fullruns/corrected_l3_h8_wm/states
+```
+
+The review build carries no `C1` or `C2` agents, so from it the dumps need a retrain:
+`reproduce.py retrain C1 --execute` (section 2), after which they land in
+`fullruns/<run>/states`. With the dumps, the per-seed readouts themselves are recomputed from
+the recurrent states, under both fold partitions and with the behavior control:
 
 ```bash
 python scripts/reproduce.py tables --dumps fullruns/corrected_l3_h8_wm/states
@@ -171,27 +207,43 @@ on CUDA, whose last bits can also differ, so their integrity gates regenerate G 
 ## Anonymized supplement
 
 ```bash
-python scripts/reproduce.py supplement --out dist/supplement.zip
+python scripts/reproduce.py supplement --profile review --require-runs   # dist/supplement-review.zip
+python scripts/reproduce.py supplement --out dist/supplement.zip          # the full build
 ```
 
-The archive holds the code, the tests, every committed artifact (the per-seed results, and
-the corrected runs' cell records under `artifacts/corrected_runs/`), and the method and
-correction documents, with a `SHA256SUMS` file. It also holds the run folders listed in
-`RUN_DIRS` in `scripts/reproduce.py` that are present under the runs root (`--runs-root`,
-default `fullruns/`):
+Both builds hold the code, the tests, every committed artifact (the per-seed results, and the
+corrected runs' cell records under `artifacts/corrected_runs/`), and the method and correction
+documents, with a `SHA256SUMS` file. They differ in the run bundles.
+
+The review build (`--profile review`) is the one to submit. TMLR accepts at most 100 MB of
+supplementary material, and the full build was 501 MB on 2026-10-16. The review build carries
+only `fullruns/l3_h8_heldout/agents` and `fullruns/l3_h8_gseed2_gpu/agents`, the saved agents
+from which the direction-of-rearing and world-sample readouts replay, and no state dumps. The
+build fails, and removes the archive, when it exceeds 100 MB (100,000,000 bytes); a test
+build on 2026-10-16 came to about 40 MB. Its `README_SUPPLEMENT.md` lists the bundles it leaves
+out and says that replaying their readouts needs a retrain.
+
+The full build (the default profile) also holds the run folders listed in `RUN_DIRS` in
+`scripts/reproduce.py` that are present under the runs root (`--runs-root`, default
+`fullruns/`):
 
 - `fullruns/corrected_l3_h8_wm` and `fullruns/corrected_l3_h8_nowm`, the whole run folders of
-  the corrected runs `C1` and `C2` (cells, saved agents and state dumps). They exist only on the
+  the corrected runs `C1` and `C2` (cells and saved agents; state dumps rebuild from the
+  agents). They exist only on the
   machine where those runs were trained; built anywhere else, the archive carries no saved
   agents or state dumps of `C1` and `C2`, which then exist only after a retrain (section 2).
 - `fullruns/l3_h8_heldout/agents`, the saved agents of the historical hidden-8 held-out run.
 - `fullruns/l3_h8_gseed2_gpu/agents`, the saved agents of the hidden-8 seed-2 run.
+- `fullruns/balanced_confirmation_wm` and `fullruns/balanced_confirmation_touch`, the run folders
+  of the matched-world confirmations `B1` and `B2` (cells, saved agents, frozen normalizers and
+  the matched-world sensory-control output), from which the matched gates replay (section 2).
 - `fullruns/corrected_l1_heldout`, the run folder of `L1-CORRECTED` (20 cells, 60 saved agents
   and 60 state dumps), from which the stream and surprise readouts replay.
 
 The console and `README_SUPPLEMENT.md` name every folder that was absent. The saved agents
-are not committed to git; for review they ship only in this supplement, and a DOI archive
-record for them comes only after the review decision.
+are not committed to git. The review build carries only the held-out and seed-2 agents; the
+others ship only in the full build and are otherwise kept by the authors. A DOI archive record
+for them comes only after the review decision.
 
 Author names, handles, e-mail addresses, ORCID identifiers, and local paths (Windows, Git Bash,
 WSL, macOS and Linux forms) are scrubbed from text files; the identity terms are read at build
@@ -216,11 +268,91 @@ file, read from git at build time. Edits made on side branches are listed under 
 hashes, and a merge commit is listed when its version of the file differs from every parent.
 No names, e-mail addresses or commit messages are included. It is left out, with the reason
 in `README_SUPPLEMENT.md`, when the build runs outside a git checkout or from a shallow clone.
-`--require-runs` stops the build with nothing written when a run bundle in `RUN_DIRS` is
-absent.
+`--require-runs` stops the build with nothing written when a run bundle of the chosen profile
+is absent.
 
-Inside the extracted archive the test suite and the full scalar audit pass. The audit skips its
-one check on the film VO and music spec, which the archive leaves out.
+Commit IDs and recorded digests are replaced too. A commit hash is a search key: on 2026-10-16
+one full hash in the built archive found the public repository in a single code search. A
+64-character SHA-256 digest recorded in an artifact (an agent, surrogate or fold hash) is an
+even more specific one, since the same string sits in the public repository. Every hex token of
+7 to 40 characters, in upper or lower case, that is the prefix of a commit in the repository's
+object store becomes a keyed pseudonym of the same length and case, in text, in `PROVENANCE.md`
+and in file names. So does a token in a commit field (a JSON key naming a commit, a head or a
+fix, or the word "commit" before it), even one that resolves to no local commit. One commit
+reads the same everywhere in the archive, a short hash stays the prefix of its full form, and
+the pseudonyms sort as the commits do, so the results manifest's own check and the audit pass
+inside the archive as they do in the repository.
+
+Every 64-character hex digest in a text member becomes a keyed pseudonym too, the same one
+wherever that digest appears, and a hex token of 12 or more characters that is the prefix of
+such a digest becomes the same prefix of its pseudonym. A run of one or two repeated characters
+is padding and stays. The rule covers digests of things the archive does not carry: the
+workstation NumPy tree hash in section 2 and in `constraints-workstation.txt` reads as a
+pseudonym inside the archive, and its real value is in the build's map. `SHA256SUMS` is the
+exception: it keeps the real digest of every shipped file, so it still verifies the bytes. Those
+digests are in plain text, and the public repository records many of them: in the review build
+of 2026-10-16, 83 lines of `SHA256SUMS` (53 distinct digests, of the shipped agents, five
+surrogate exports and eight figures) held a value that a tracked file of the repository also
+holds. Reading that file, with no hashing at all, therefore gives search keys that lead to the
+repository, and so does hashing a shipped binary such as a saved agent. A
+check that compares a digest it computes from a shipped file with the one an artifact records
+looks the computed digest up in `DIGEST_PSEUDONYMS.json`, which the archive carries
+(`archive_digest()` in `scripts/reproduce.py`). That table is keyed by the SHA-256 of each real
+digest, so it gives back none of them. Hex runs inside a number, such as the decimals of
+`-9.765625e-05`, are not IDs and stay. Any other hex string stays too, such as a 16-character
+configuration fingerprint, unless it is a commit prefix, a commit-field token or the prefix of
+a replaced digest. Those fingerprints are recorded in the public repository as well.
+
+Branch names are replaced too. A branch name with a random suffix is as specific a key as a
+commit hash: on 2026-10-16 the review archive carried four, and a pull-request search on any one
+of them returned the public repository and nothing else. The builder replaces, with neutral
+labels in text and in file names, every branch name the local store and the remotes list, every
+name a merge commit's subject carries (a deleted branch keeps its public pull request), and every
+pull-request head that `gh pr list` lists; the build fails if any of them survives anywhere in
+the archive. When `gh` cannot list pull requests, the build warns that the heads of squash-merged,
+deleted branches are not covered.
+
+These replacements remove commit IDs, recorded digests and branch names as search keys. They do
+not make the archive anonymous to a search while the repository and its site are public. Apart
+from the package name, the code, its class and function names and its docstrings match the
+public repository verbatim, and the documents do too apart from the replaced identifiers (commit
+IDs, recorded digests, branch names, identity terms and film titles): on 2026-10-16 one code search on the class name of the
+world returned 37 hits, every one in the repository. The digests `SHA256SUMS` lists and the
+configuration fingerprints lead there too. Whether the repository and the site stay public
+during review is the owner's decision, made before the archive is uploaded; nothing in the
+archive settles it.
+
+The key is written to `dist/supplement-commit-key.txt` and stays local. The key alone does not
+give back a build's commit pseudonyms, because they are handed out in the sorted order of every
+commit in the object store, and a later commit shifts many of them. Each build therefore writes
+a map beside its archive (`dist/supplement-review.zip` gets
+`dist/supplement-review.commit-map.json`) with the archive's SHA-256, the commit list it drew
+from, and the pseudonym of every commit spelling, commit-field token and digest it replaced.
+Keep that map with the submitted archive for the camera-ready version.
+
+The build fails closed. It deletes the archive it wrote and exits non-zero when any shipped
+name, text or binary member still holds an identity term or an unreviewed image, a token that
+resolves to a commit, a remote branch name, or a real digest that should have been replaced, and when a pseudonym
+changes a decimal number or leaves a JSON member that no longer parses or holds a different
+number. The commit scan only knows the commits in the local object store, so the command writes
+nothing and refuses to build an anonymized archive outside a git checkout, from a shallow,
+partial or single-branch clone, when a branch tip on the remote is missing from the object
+store, or when a commit field in a shipped file names a commit the store lacks. Build from a
+full checkout with every branch fetched (`git fetch --unshallow`, then `git fetch`). It refuses
+as well when a remote's branches cannot be listed, since a branch tip the store lacks would then
+go unseen; build online, or remove a remote that no longer exists.
+
+A fresh extraction of the first review build of 2026-10-16, made before digests and branch names
+were replaced and before `docs/optional/` shipped, passed the full scalar audit, with its one
+check on the film VO and music spec skipped and counted, and passed `python scripts/reproduce.py
+tables`. With three test files patched after that build copied in, the full test suite gave 1190
+passed, 24 skipped and 1 failed there; the failure was `tests/test_optional_readouts.py`, which
+found no optional-readout files to read. The archive now carries `docs/optional/` (its README
+and the readout files), so that test runs inside it as it does in a git checkout. The tests of
+the social-preview card and of the web player's beat and brain data skip inside an archive,
+because it leaves those files out, and still fail in a git checkout when a file is missing. No
+full test run in a fresh extraction of an archive built with these changes is on record yet. The
+record of these runs is the repository's submission check, which the archive does not carry.
 
 ## Corrections and provenance
 

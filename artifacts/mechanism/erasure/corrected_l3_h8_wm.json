@@ -1,7 +1,7 @@
 {
  "provenance": {
   "generated_by": "scripts/run_erasure_readout.py",
-  "command": "python scripts/run_erasure_readout.py --agents-dir fullruns/corrected_l3_h8_wm/agents --out artifacts/mechanism/erasure/corrected_l3_h8_wm.json --ckpt fullruns/readouts_2026_10_15/ckpt/erasure_wm_pop",
+  "command": "python scripts/run_erasure_readout.py --agents-dir fullruns/corrected_l3_h8_wm/agents --out artifacts/mechanism/erasure/corrected_l3_h8_wm.json --ckpt fullruns/readouts_2026_10_16/ckpt/erasure_wm_grouped --workers 2",
   "inputs": {
    "agents_dir": "fullruns/corrected_l3_h8_wm/agents",
    "seeds": [
@@ -21,7 +21,7 @@
    "steps": 80
   },
   "status": "readout under docs/specs/2026-10-15-online-erasure-design.md; diagnostic, not an adjudication; changes no registered rule or verdict",
-  "git_head": "9e03469",
+  "git_head": "1dc44e4",
   "stack": {
    "python": "3.13.2",
    "numpy": "1.26.4",
@@ -190,10 +190,10 @@
     "n": 10
    },
    "refit_probe_erased": {
-    "mean": 0.6457525252525252,
+    "mean": 0.7467807264564841,
     "t90": [
-     0.5621086537317281,
-     0.7293963967733224
+     0.7024726827309559,
+     0.7910887701820123
     ],
     "n": 10
    },
@@ -206,7 +206,7 @@
      "seeds": 10,
      "met": true
     },
-    "partial erasure (refit probe >= 0.65)": false
+    "partial erasure (refit probe >= 0.65)": true
    }
   },
   "untrained": {
@@ -365,10 +365,10 @@
     "n": 6
    },
    "refit_probe_erased": {
-    "mean": 0.2582984273956496,
+    "mean": 0.5762879766103973,
     "t90": [
-     0.15941978465032508,
-     0.35717707014097416
+     0.5297085853166805,
+     0.6228673679041141
     ],
     "n": 6
    },
@@ -446,8 +446,8 @@
    "frozen_probe_sham": 0.6670971074380165,
    "score_spread_erased_over_unerased": 1.554187921147692e-06,
    "score_spread_sham_over_unerased": 1.0012508441534183,
-   "refit_probe_erased": 0.4145061728395062,
-   "seconds": 86.6
+   "refit_probe_erased": 0.6706790123456791,
+   "seconds": 65.5
   },
   {
    "seed": 1,
@@ -510,7 +510,7 @@
    "score_spread_erased_over_unerased": 5.146907834296945e-07,
    "score_spread_sham_over_unerased": 0.9855483135008143,
    "refit_probe_erased": 0.8098765432098766,
-   "seconds": 93.1
+   "seconds": 65.1
   },
   {
    "seed": 2,
@@ -572,8 +572,8 @@
    "frozen_probe_sham": 0.7383431416930738,
    "score_spread_erased_over_unerased": 1.7071738278899438e-06,
    "score_spread_sham_over_unerased": 0.986247222201814,
-   "refit_probe_erased": 0.6116049382716049,
-   "seconds": 83.5
+   "refit_probe_erased": 0.6892592592592592,
+   "seconds": 69.7
   },
   {
    "seed": 3,
@@ -635,8 +635,8 @@
    "frozen_probe_sham": 0.7238569488456315,
    "score_spread_erased_over_unerased": 1.996340073034698e-06,
    "score_spread_sham_over_unerased": 1.0316237164376516,
-   "refit_probe_erased": 0.5444444444444445,
-   "seconds": 73.5
+   "refit_probe_erased": 0.7141975308641975,
+   "seconds": 70.3
   },
   {
    "seed": 4,
@@ -698,8 +698,8 @@
    "frozen_probe_sham": 0.7278645833333333,
    "score_spread_erased_over_unerased": 2.3288165250298797e-06,
    "score_spread_sham_over_unerased": 0.9810379426395317,
-   "refit_probe_erased": 0.5435555555555556,
-   "seconds": 68.6
+   "refit_probe_erased": 0.7079506172839507,
+   "seconds": 70.1
   },
   {
    "seed": 5,
@@ -762,7 +762,7 @@
    "score_spread_erased_over_unerased": 1.455665733077527e-06,
    "score_spread_sham_over_unerased": 1.0460947346585918,
    "refit_probe_erased": 0.6444444444444445,
-   "seconds": 73.1
+   "seconds": 68.5
   },
   {
    "seed": 6,
@@ -824,8 +824,8 @@
    "frozen_probe_sham": 0.8370225694444444,
    "score_spread_erased_over_unerased": 2.138050693731564e-06,
    "score_spread_sham_over_unerased": 0.9868250660369646,
-   "refit_probe_erased": 0.818,
-   "seconds": 87.2
+   "refit_probe_erased": 0.8208641975308641,
+   "seconds": 72.5
   },
   {
    "seed": 7,
@@ -887,8 +887,8 @@
    "frozen_probe_sham": 0.863514033064206,
    "score_spread_erased_over_unerased": 1.501866717314805e-06,
    "score_spread_sham_over_unerased": 0.9969823690399329,
-   "refit_probe_erased": 0.8176363636363636,
-   "seconds": 91.9
+   "refit_probe_erased": 0.8621652892561983,
+   "seconds": 72.6
   },
   {
    "seed": 8,
@@ -950,8 +950,8 @@
    "frozen_probe_sham": 0.7896709704289879,
    "score_spread_erased_over_unerased": 4.6567106853621645e-06,
    "score_spread_sham_over_unerased": 0.9703772974810041,
-   "refit_probe_erased": 0.7388888888888889,
-   "seconds": 89.5
+   "refit_probe_erased": 0.8296543209876542,
+   "seconds": 69.0
   },
   {
    "seed": 9,
@@ -1013,8 +1013,8 @@
    "frozen_probe_sham": 0.7157372400756143,
    "score_spread_erased_over_unerased": 1.443234596710024e-06,
    "score_spread_sham_over_unerased": 0.9992744339400221,
-   "refit_probe_erased": 0.5145679012345679,
-   "seconds": 83.9
+   "refit_probe_erased": 0.718716049382716,
+   "seconds": 68.8
   },
   {
    "seed": 0,
@@ -1048,7 +1048,7 @@
    },
    "informative": false,
    "reason": "fewer than 5 common survivors",
-   "seconds": 56.5
+   "seconds": 54.5
   },
   {
    "seed": 1,
@@ -1110,8 +1110,8 @@
    "frozen_probe_sham": 0.5405624661979449,
    "score_spread_erased_over_unerased": 7.982278420517667e-07,
    "score_spread_sham_over_unerased": 0.9765651505773322,
-   "refit_probe_erased": 0.2941358024691358,
-   "seconds": 77.0
+   "refit_probe_erased": 0.5960262345679013,
+   "seconds": 74.6
   },
   {
    "seed": 2,
@@ -1173,8 +1173,8 @@
    "frozen_probe_sham": 0.5158730158730159,
    "score_spread_erased_over_unerased": 8.989336511121609e-07,
    "score_spread_sham_over_unerased": 1.014379405136724,
-   "refit_probe_erased": 0.17430555555555555,
-   "seconds": 70.9
+   "refit_probe_erased": 0.4952160493827161,
+   "seconds": 75.2
   },
   {
    "seed": 3,
@@ -1236,8 +1236,8 @@
    "frozen_probe_sham": 0.5588235294117647,
    "score_spread_erased_over_unerased": 5.808189610672272e-07,
    "score_spread_sham_over_unerased": 0.9973910546561555,
-   "refit_probe_erased": 0.05555555555555556,
-   "seconds": 59.8
+   "refit_probe_erased": 0.5305555555555556,
+   "seconds": 68.6
   },
   {
    "seed": 4,
@@ -1299,8 +1299,8 @@
    "frozen_probe_sham": 0.606859410430839,
    "score_spread_erased_over_unerased": 7.921951618312785e-07,
    "score_spread_sham_over_unerased": 1.0018541567216475,
-   "refit_probe_erased": 0.36944444444444446,
-   "seconds": 63.6
+   "refit_probe_erased": 0.6067515432098766,
+   "seconds": 66.9
   },
   {
    "seed": 5,
@@ -1362,8 +1362,8 @@
    "frozen_probe_sham": 0.5621301775147929,
    "score_spread_erased_over_unerased": 6.374040285897369e-07,
    "score_spread_sham_over_unerased": 0.9901245403827115,
-   "refit_probe_erased": 0.3098214285714286,
-   "seconds": 64.8
+   "refit_probe_erased": 0.5751275510204081,
+   "seconds": 70.4
   },
   {
    "seed": 6,
@@ -1397,7 +1397,7 @@
    },
    "informative": false,
    "reason": "fewer than 5 common survivors",
-   "seconds": 45.9
+   "seconds": 56.3
   },
   {
    "seed": 7,
@@ -1431,7 +1431,7 @@
    },
    "informative": false,
    "reason": "fewer than 5 common survivors",
-   "seconds": 43.8
+   "seconds": 57.2
   },
   {
    "seed": 8,
@@ -1493,8 +1493,8 @@
    "frozen_probe_sham": 0.5660321237358715,
    "score_spread_erased_over_unerased": 4.671339778187034e-07,
    "score_spread_sham_over_unerased": 1.0244340828912792,
-   "refit_probe_erased": 0.34652777777777777,
-   "seconds": 62.6
+   "refit_probe_erased": 0.654050925925926,
+   "seconds": 71.5
   },
   {
    "seed": 9,
@@ -1528,7 +1528,7 @@
    },
    "informative": false,
    "reason": "fewer than 5 common survivors",
-   "seconds": 48.6
+   "seconds": 55.7
   }
  ]
 }

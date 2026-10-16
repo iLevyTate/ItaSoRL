@@ -10,10 +10,14 @@ revision turns on, which policy-gradient implementation trained its survival age
 Recorded provenance (commits, config fingerprints, environment blocks) is read from the
 artifacts themselves and placed next to the curated entry, so a disagreement between the
 two is visible. Each curated `commit_at_run` that names a commit is compared with the run
-commits the artifacts record (`git_commit`, `git_commit_at_run`, the cells' commits; never
-the promotion commit) and labelled in `commit_at_run_source`: "recorded" when every named
-commit is one the artifacts record, otherwise "curated" with the reason, and the page marks
-such a commit "(curated)". Nothing here recomputes a result; `scripts/audit_stats_recheck.py`
+commits the artifacts record (`git_commit`, `git_commit_at_run`, a readout's provenance
+`git_head` or a sweep summary's top-level one, the cells' commits, and for a directory
+artifact the same fields of each top-level JSON file in it; never the promotion commit) and
+labelled in
+`commit_at_run_source`: "recorded" when every named commit is one the artifacts record,
+otherwise "curated" with the reason, and the page marks such a commit "(curated)". A curated
+value that says the code was uncommitted at run time stays "curated", because a recorded
+`git_head` names HEAD and not the working tree that ran. Nothing here recomputes a result; `scripts/audit_stats_recheck.py`
 does that.
 
 Status vocabulary:
@@ -135,6 +139,13 @@ L3_H8 = {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0
 GPU_OWNER = "owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126"
 CPU_CLOUD = "cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu"
 CPU_REVISION = "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu"
+# Readout 8(a) of scripts/run_mechanism_readouts.py before 2026-10-16: one CV group per episode on
+# same-world twin pools (the T-touch and S-immortal agents are not on this machine; no rescore).
+SURPRISE_SPLIT_TWINS = ("The stored surprise AUROCs (readout 8(a)) put each authentic episode and "
+                        "its same-world surrogate twin in separate CV folds, which biases them low, "
+                        "so read them as lower bounds. Every run's mean is above the 0.65 bar, the "
+                        "only quantity the surprise verdict reads; single seeds can fall below it "
+                        "(docs/CORRECTIONS.md, 2026-10-16; not rescored).")
 CLOUD_PINNED = ("Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, "
                 "scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)")
 PINNED_DEPS = "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1"
@@ -173,7 +184,11 @@ RUNS = [
         survival_trainer="none", commit_at_run="4c16be6",
         config={"agent": "itasorl/agent.py RecurrentWorldModel, next-step prediction"},
         agent_seeds=[0, 1, 2], folds="legacy", device="Colab Tesla T4",
-        deps="python 3.12.13, torch 2.11.0+cu128 (recorded)", local_run_dir="fullruns/06302026"),
+        deps="python 3.12.13, torch 2.11.0+cu128 (recorded)", local_run_dir="fullruns/06302026",
+        notes="The world model was fed each action one step late: it saw (O_t, A_t), with O_t already "
+              "produced by A_t, and was scored against O_{t+1}, so it predicted each step without the action "
+              "that caused it. The prediction-error and open-loop channels are the most exposed; the effect "
+              "was not measured, and the stored numbers stand (docs/CORRECTIONS.md, 2026-10-16)."),
     # ---------------- B-v2 / B-v3 (L2 surrogates), survival trained ----------------
     run("BV2-L2-AR1", "B-v2 survival coupling, L2 AR(1) drift, canonical replication",
         experiment="B-v2", artifacts=["expB2/expB2_results.json", "expB2/expB2_survival.png"],
@@ -707,12 +722,15 @@ RUNS = [
         local_run_dir="artifacts/goal_stakes/T-touch",
         notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in "
               "PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained "
-              "targets bit-equal to C1 in 20 of 20 cells. Primary rule met with all six gates "
-              "passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Readouts in the "
+              "targets bit-equal to C1 in 20 of 20 cells. Recorded: primary rule met with all six "
+              "gates passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Current "
+              "validity: the leakage gate summed the homeostatic reward, not pellets consumed, so "
+              "full-rule validity was not established; 0.796 stays as recorded (docs/CORRECTIONS.md "
+              "2026-10-12; the matched-world pellet run is B2, FINDINGS 21). Readouts in the "
               "directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on "
               "state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents "
               "and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) "
-              "stay on branch run/T-touch."),
+              "stay on branch run/T-touch. Mechanism surprise AUROC 0.912. " + SURPRISE_SPLIT_TWINS),
     run("S-IMMORTAL", "Survival objective, death off, registered food, n = 10 (goal-and-stakes)",
         experiment="B-v2 L3", artifacts=["goal_stakes/S-immortal", "expB2/goal_stakes_S-immortal.json"],
         claims=[], survival_trainer="successor_value", status="corrected",
@@ -726,7 +744,7 @@ RUNS = [
               "targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 "
               "[0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable "
               "(S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined "
-              "attempts stay on branch run/S-immortal."),
+              "attempts stay on branch run/S-immortal. Mechanism surprise AUROC 0.848. " + SURPRISE_SPLIT_TWINS),
     run("S-SCARCE", "Survival objective, death on, scarce food (calibrated), n = 10 (goal-and-stakes)",
         experiment="B-v2 L3", artifacts=["goal_stakes/S-scarce", "goal_stakes/calibration.json"],
         claims=[], survival_trainer="successor_value", status="corrected", commit_at_run="pending",
@@ -745,12 +763,14 @@ RUNS = [
         experiment="B-v2 L3", artifacts=["goal_stakes/C1"], trains_survival=False,
         readout_of=["C1", "C1-RERUN"], survival_trainer="successor_value", status="corrected",
         commit_at_run="run/C1-rerun", folds="explicit",
-        eval_seeds={"mechanism": "1400000 + i (authentic) / 1450000 + i (surrogate), i < 64"},
+        eval_seeds={"mechanism": "1400000 + i, i < 64, shared by the authentic and the surrogate "
+                                 "rollouts (the artifact's seed_bases)"},
         device=CLOUD_PINNED,
         notes="scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, "
               "whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: "
               "artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and "
-              "S-immortal mechanism readouts; decide_goal_stakes.py does not read it."),
+              "S-immortal mechanism readouts; decide_goal_stakes.py does not read it. Surprise AUROC "
+              "0.846. " + SURPRISE_SPLIT_TWINS),
     run("C1-RERUN", "Rerun of C1 that keeps its saved agents (reproduction)",
         experiment="B-v2 L3", artifacts=["goal_stakes/C1-rerun"], claims=[],
         survival_trainer="successor_value", status="corrected",
@@ -907,11 +927,26 @@ RUNS = [
         device="owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
         notes="Frozen spec docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md (c1ff308, before any "
               "code or number). Six settings, rho 0 to 0.99, each episode drawn from the AR stationary distribution, "
-              "sigma set so the 24-step open-loop gap equals 0.1150 (all six within 0.0001). Contrast M(0.99) - M(0) "
+              "sigma set so the 24-step open-loop gap equals 0.1150 (recorded as all six within 0.0001; that "
+              "calibration ran with the per-episode draw inactive and reproduced sweep A by construction, and the "
+              "exact gaps are 0.1162 to 0.1267, rho 0.99 at +7.8 percent of the shared point's 0.1175; "
+              "AR-SWEEP-C-FOLLOWUP). Contrast M(0.99) - M(0) "
               "+0.009 [-0.027, +0.045]: reading 2 MET (inside [-0.05, +0.05]), readings 1 and 3 not met. No point "
               "kept (survival fresh 0.568 to 0.598). At rho 0.9, M +0.050 against sweep A's +0.010, from a lower "
               "untrained fresh reading. A first launch stopped during its fourth point and recorded an absolute "
               "agents path; its points are not used. Diagnostic."),
+    run("AR-SWEEP-C-FOLLOWUP", "Sweep C follow-up: rho 0.95 and 0.99 rerun at the exactly matched 24-step gap, "
+        "on the C1 agents", experiment="B-v2 L3", artifacts=["texture/ar_sweep_c_followup"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run="6846435", folds="explicit", eval_seeds={"authentic": 2500000, "G_arc": 2550000},
+        device="owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
+        notes="After the 2026-10-16 critical review: sweep C's calibration measured the gap with the per-episode "
+              "draw inactive. For G_ar the gap is exact in closed form, sigma * sqrt(2 w'Cw); the target is the "
+              "shared point's exact gap, 0.1175 (rho 0.9 at sweep A's sigma). The four lower-rho stored points sit "
+              "within 1.1 percent of it; rho 0.95 (+1.6 percent) and 0.99 (+7.8 percent) were rerun at sigma "
+              "0.008690 and 0.007631. M +0.060 [+0.015, +0.105] and +0.049 [+0.016, +0.081]; no point kept. "
+              "Contrast M(0.99, matched) - M(0, stored) -0.017 [-0.051, +0.016]: reading 3 (neither), the lower "
+              "bound 0.001 outside the margin unit. Beside the frozen result, not in place of it. Diagnostic."),
     run("C1-POST-REVIEW", "Post-review readouts R210, R35, R206, R33 and R31 on the C1 rerun's agents",
         experiment="B-v2 L3", artifacts=["post_review/C1-rerun.json",
                                          "post_review/C1-rerun.json.partial.jsonl"],
@@ -1120,14 +1155,15 @@ RUNS = [
         eval_seeds={"rollouts": "1400000, the mechanism readouts' base, both worlds"},
         device="owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
         deps="Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
-        notes="SUPERSEDED by ERASURE-ONLINE, the rerun that adds population outcomes; its common-survivor "
-              "numbers reproduce there. "
+        notes="SUPERSEDED by ERASURE-ONLINE-SPLIT-TWINS, the rerun that adds population outcomes (itself "
+              "superseded by ERASURE-ONLINE); its common-survivor numbers reproduce there. "
               "Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any "
               "code (87247e4: rank-two removal, so the frozen probe cannot separate erased rollouts) and "
               "after a two-seed setup check (93765bc: the frozen-probe check quantizes pinned scores). "
               "Diagnostic. Erasure held in 10 of 10 seeds (frozen probe 0.754 [0.700, 0.808] unerased, "
               "0.500 erased, 0.745 after the sham); the refit probe reads the erased states at 0.646 "
-              "[0.562, 0.729], under the 0.65 partial-erasure label. The primary real-minus-sham score is "
+              "[0.562, 0.729] (biased low by split twins; 0.747 in ERASURE-ONLINE), under the 0.65 "
+              "partial-erasure label. The primary real-minus-sham score is "
               "-0.010 [-0.020, -0.001]; surrogate -0.006 [-0.027, +0.015], authentic -0.015 [-0.050, "
               "+0.020]; return erased minus sham +0.012 [-0.003, +0.027] in the surrogate. Readings: used "
               "under removal NOT MET, costly NOT MET, not used under removal MET. The untrained floor has "
@@ -1150,15 +1186,18 @@ RUNS = [
               "arm and both runs runs from -0.006 to +0.009, largest upper bound +0.013 (C2 predictor arm, far "
               "water). Reach radius 0.318 (C1), 0.307 (C2), passed by 2.6 and 2.7 percent of readout episodes. "
               "The permuted-target clause passes. FINDINGS 23.2."),
-    run("ERASURE-ONLINE", "Rank-two removal of the decoded world direction at every GRU step while the C1 "
-        "survival agent acts, against a sham removal, with attrition and population outcomes", experiment="B-v2 L3",
-        artifacts=["mechanism/erasure/corrected_l3_h8_wm.json"],
+    run("ERASURE-ONLINE-SPLIT-TWINS", "Second run of the online erasure readout, whose refit probe split "
+        "same-world twin episodes across folds (superseded; kept as the record)", experiment="B-v2 L3",
+        artifacts=["mechanism/erasure/superseded_split_twins_2026-10-16/corrected_l3_h8_wm.json"],
         trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
-        status="corrected", commit_at_run="9e03469", folds="explicit",
+        status="superseded", commit_at_run="9e03469", folds="explicit",
         eval_seeds={"rollouts": "1400000, the mechanism readouts' base, both worlds"},
         device="owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
         deps="Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
-        notes="Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code "
+        notes="SUPERSEDED by ERASURE-ONLINE (2026-10-16): the refit probe on erased states put each "
+              "authentic episode and its same-world surrogate twin in separate folds, which biases the "
+              "AUROC low; every other value reproduces there to the float. "
+              "Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code "
               "(87247e4: rank-two removal) and after a two-seed setup check (93765bc: frozen-probe scores "
               "quantized to 0.001 of the unerased spread, after the check read 0.39 to 0.61 from float32 "
               "differences). Rerun after the deep revision review, adding attrition and every attempted episode's return "
@@ -1166,6 +1205,29 @@ RUNS = [
               "common-survivor value reproduces the first run to the float apart from the projection "
               "residual's rounding, and every reading is unchanged: not used under removal MET, used and "
               "costly NOT MET, erasure held in 10 of 10 seeds, refit probe 0.646 [0.562, 0.729]. Attempted 64 "
+              "per seed, retained 44 to 51, excluded 26.6 percent [24.7, 28.5]. Every attempted episode: "
+              "return erased minus sham +0.010 [-0.009, +0.030] surrogate, +0.005 [-0.009, +0.019] authentic; "
+              "terminations per seed +0.2 [-0.3, +0.7] and -0.2 [-0.7, +0.3]; descriptive, no pre-stated "
+              "reading. The untrained floor decides nothing. FINDINGS 23.3."),
+    run("ERASURE-ONLINE", "Rank-two removal of the decoded world direction at every GRU step while the C1 "
+        "survival agent acts, against a sham removal, with attrition and population outcomes", experiment="B-v2 L3",
+        artifacts=["mechanism/erasure/corrected_l3_h8_wm.json"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="1dc44e4", folds="explicit",
+        eval_seeds={"rollouts": "1400000, the mechanism readouts' base, both worlds"},
+        device="owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU",
+        deps="Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
+        notes="Frozen spec docs/specs/2026-10-15-online-erasure-design.md (58efbed), amended before any code "
+              "(87247e4: rank-two removal) and after a two-seed setup check (93765bc: frozen-probe scores "
+              "quantized to 0.001 of the unerased spread, after the check read 0.39 to 0.61 from float32 "
+              "differences). Rerun on 2026-10-16 after the critical review: the refit probe on erased states now "
+              "keeps each same-world twin pair (authentic and surrogate rollout of one world seed) in one CV "
+              "fold, as the project's pairing rule requires; supersedes ERASURE-ONLINE-SPLIT-TWINS and, "
+              "before it, ERASURE-ONLINE-FIRST, on the same saved agents. Every other recorded reading of "
+              "every row reproduces ERASURE-ONLINE-SPLIT-TWINS bit for bit (only the wall-clock seconds "
+              "differ). Refit probe 0.747 [0.702, 0.791] (was 0.646 "
+              "[0.562, 0.729]), so the spec's partial-erasure label is attached to every reading. Readings: "
+              "not used under removal MET, used and costly NOT MET, erasure held in 10 of 10 seeds. Attempted 64 "
               "per seed, retained 44 to 51, excluded 26.6 percent [24.7, 28.5]. Every attempted episode: "
               "return erased minus sham +0.010 [-0.009, +0.030] surrogate, +0.005 [-0.009, +0.019] authentic; "
               "terminations per seed +0.2 [-0.3, +0.7] and -0.2 [-0.7, +0.3]; descriptive, no pre-stated "
@@ -1292,7 +1354,31 @@ def _recorded(path: str) -> dict:
     keep = ("git_commit", "git_commit_at_run", "git_commit_at_promotion", "fingerprint",
             "environment", "execution", "stack", "spec", "source_run", "run_id", "code",
             "date", "generated_by")
-    return {k: doc[k] for k in keep if k in doc}
+    out = {k: doc[k] for k in keep if k in doc}
+    # The readout scripts record the commit they ran at as provenance.git_head; a sweep
+    # summary records it as a top-level git_head.
+    if isinstance(doc.get("git_head"), str):
+        out["git_head"] = doc["git_head"]
+    prov = doc.get("provenance")
+    if isinstance(prov, dict) and isinstance(prov.get("git_head"), str):
+        out["git_head"] = prov["git_head"]
+    return out
+
+
+_RUN_COMMIT_KEYS = ("git_commit", "git_commit_at_run", "git_head")
+
+
+def _dir_recorded(a: str, dirpath: str) -> dict:
+    """Provenance of a directory artifact: its cells (_cells_summary) under the directory's
+    own key, and the run commits each top-level JSON file records (git_commit,
+    git_commit_at_run, git_head) under that file's path. A sweep directory has no cells/ and
+    records its commits in its point and summary files (2026-10-16 review)."""
+    rec = {a: _cells_summary(dirpath)}
+    for f in sorted(glob.glob(os.path.join(dirpath, "*.json"))):
+        got = {k: v for k, v in _recorded(f).items() if k in _RUN_COMMIT_KEYS}
+        if got:
+            rec[a.rstrip("/") + "/" + os.path.basename(f)] = got
+    return rec
 
 
 def _cells_summary(dirpath: str) -> dict:
@@ -1311,13 +1397,14 @@ _PURE_HASH = re.compile(r"^[0-9a-f]{7,40}$")
 
 
 def _run_commits(rec: dict) -> set[str]:
-    """Run commits the artifacts record about themselves: git_commit and git_commit_at_run
-    (plain hashes only) and the cells' commits. The promotion commit is not a run commit."""
+    """Run commits the artifacts record about themselves: git_commit, git_commit_at_run and
+    the readout scripts' provenance git_head (plain hashes only) and the cells' commits. The
+    promotion commit is not a run commit."""
     out: set[str] = set()
     for prov in rec.values():
         if not isinstance(prov, dict):
             continue
-        for k in ("git_commit", "git_commit_at_run"):
+        for k in ("git_commit", "git_commit_at_run", "git_head"):
             v = prov.get(k)
             out |= {x for x in (v if isinstance(v, list) else [v])
                     if isinstance(x, str) and _PURE_HASH.match(x)}
@@ -1334,6 +1421,11 @@ def commit_source(curated: str | None, recorded: set[str]) -> str | None:
         return None
     if not recorded:
         return "curated: no artifact of this run records the commit it ran at"
+    if "uncommitted" in (curated or ""):
+        # A recorded commit is HEAD; the code that ran was a dirty tree on top of it.
+        have = ", ".join(sorted(r[:7] for r in recorded))
+        return (f"curated: the code was uncommitted at run time; the artifacts record HEAD "
+                f"{have}, not the working tree that ran")
     hit = [c for c in named if any(r.startswith(c) or c.startswith(r) for r in recorded)]
     if len(hit) == len(named):
         return "recorded"
@@ -1349,7 +1441,10 @@ def build() -> dict:
         rec = {}
         for a in r["artifacts"]:
             p = os.path.join(ART, a)
-            rec[a] = _cells_summary(p) if os.path.isdir(p) else _recorded(p)
+            if os.path.isdir(p):
+                rec.update(_dir_recorded(a, p))
+            else:
+                rec[a] = _recorded(p)
         row = {**r, "recorded_provenance": rec}
         src = commit_source(r["commit_at_run"], _run_commits(rec))
         if src is not None:
@@ -1396,7 +1491,8 @@ def render_md(m: dict) -> str:
          "actor-critic. A readout-only analysis inherits the trainer of the run whose saved "
          "agents it reads.", "",
          "A commit marked (curated) is the registry's value with no matching run commit in the "
-         "run's artifacts; the run's section says what the artifacts record instead.", "",
+         "run's artifacts, or a value whose code was uncommitted at run time; the run's section "
+         "says what the artifacts record instead.", "",
          "| Run | Status | Experiment | Claims | Trainer | Readout of | Commit at run | Folds | Device |",
          "|---|---|---|---|---|---|---|---|---|"]
     for r in m["runs"]:
@@ -1447,6 +1543,10 @@ def render_md(m: dict) -> str:
             v = r.get(key)
             if v in (None, "", [], {}):
                 continue
+            # A run directory under artifacts/ on this branch is tracked; one named on another
+            # branch, or under fullruns/, is not in this checkout's git.
+            if key == "local_run_dir" and v.startswith("artifacts/") and " on branch " not in v:
+                label = "Run directory (in git)"
             L.append(f"- {label}: {json.dumps(v) if isinstance(v, (dict, list)) else v}")
         diff = {k: v for k, v in r["config"].items() if BV2_PROTOCOL.get(k) != v}
         if diff:

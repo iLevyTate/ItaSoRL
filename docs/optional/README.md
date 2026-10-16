@@ -2,9 +2,16 @@
 
 These are sensitivity readouts on saved agents. They were run after the October 13
 review plan closed, outside that plan. They are not an adjudication. No number here
-replaces a recorded control, a frozen threshold, or a verdict, and none enters the
-manuscript. Each JSON file carries a `provenance` block naming the script, the
-command, the inputs, the stack, and this standing.
+replaces a recorded control, a frozen threshold, or a verdict. Each JSON file carries a
+`provenance` block naming the script, the command, the inputs, the stack, and this
+standing.
+
+Until 2026-10-16 none of them entered the manuscript. Since the critical review of that
+date, the manuscript and FINDINGS 17.8 cite O2 as a sensitivity readout beside the
+control battery: it shows that the long-history linear bases, with the penalty chosen in
+fold, fit held-out states better than the MLP control the paper had called the best fit.
+O2 still replaces no row of the battery and enters no rule. O1 is not cited.
+(`docs/CORRECTIONS.md`, 2026-10-16.)
 
 ## O1. Fold-local speed median
 

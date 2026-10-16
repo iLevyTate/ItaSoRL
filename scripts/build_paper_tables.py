@@ -30,7 +30,11 @@ baselines and margins, the drift-zero baselines, the C1 minus C2 contrast) must 
 least once right after its own mean, and wherever the manuscript quotes one of those intervals
 the number right before it must be that mean; a per-seed list that differs from the
 artifact's in one or two places is flagged; and every three-decimal number in the paragraph
-headed "The corrected primary run" must be a value of the C1 verdict entry. It flags wording
+headed "The corrected primary run" must be a value of the C1 verdict entry. A sentence that
+counts rule-and-run pairs must give the rule ledger's tally (total, holds, fails,
+uninformative, no verdict), and a sentence that counts the gate table's rows and distinct sets
+of per-seed values must give the counts of artifacts/gate_table.json. No other number in the
+manuscript is compared with an artifact; Appendix app:claims traces those by hand. It flags wording
 the 2026-10 revision retired (the claim table in docs/REVISION_2026-10.md; matched after LaTeX
 markup is stripped) and any pre-correction headline that appears without a historical label in
 its section. A sentence that withdraws a retired reading may quote it, and a historical label
@@ -882,13 +886,79 @@ def _primary_paragraph_issues(rel: str, text: str, v: dict) -> list[str]:
     return issues
 
 
+# Counts the prose states about two generated tables, in digits or words: the rule ledger's
+# tally ("49 rule-and-run pairs ...: the threshold condition holds on 19 and fails on 21, 7 are
+# uninformative and 2 give no verdict") and the gate table's size ("the twenty-seven rows hold
+# eleven distinct sets of per-seed values"). Both went stale on 2026-10-15, when a row joined
+# each generated table and the prose that counts them was not updated.
+_UNITS = ("zero one two three four five six seven eight nine ten eleven twelve thirteen "
+          "fourteen fifteen sixteen seventeen eighteen nineteen").split()
+_TENS = {"twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70,
+         "eighty": 80, "ninety": 90}
+_COUNT = r"(\d+|[A-Za-z]+(?:-[A-Za-z]+)?)"
+_LEDGER_TOTAL = re.compile(_COUNT + r" rule-and-run (?:pairs|rows)\b")
+_LEDGER_PARTS = (("threshold met", "holds on", re.compile(r"\bholds on " + _COUNT + r"\b")),
+                 ("threshold not met", "fails on", re.compile(r"\bfails on " + _COUNT + r"\b")),
+                 ("uninformative", "uninformative", re.compile(_COUNT + r" (?:is|are) uninformative\b")),
+                 ("no verdict", "no verdict", re.compile(_COUNT + r" (?:gives|give) no verdict\b")))
+_SENTENCE_END = re.compile(r"\.(?:\s|$)")
+_GATE_COUNTS = re.compile(_COUNT + r" rows(?: in that table)?,? (?:which )?hold " + _COUNT
+                          + r" distinct sets of per-seed values")
+
+
+def _count(word: str) -> int | None:
+    """A count written in digits or in words up to ninety-nine; None for any other word."""
+    w = word.lower()
+    if w.isdigit():
+        return int(w)
+    if w in _UNITS:
+        return _UNITS.index(w)
+    head, _, tail = w.partition("-")
+    if head in _TENS and (not tail or tail in _UNITS[1:10]):
+        return _TENS[head] + (_UNITS.index(tail) if tail else 0)
+    return None
+
+
+def _count_issues(rel: str, lines: list[str], ledger_rows: list[dict] | None) -> list[str]:
+    """Per-line checks of the counts above against the committed rule ledger (evaluated as
+    `--check` evaluates it) and artifacts/gate_table.json. A count the parser cannot read is
+    skipped; a ledger that is absent skips the tally check."""
+    issues = []
+    gate = _load("gate_table.json")["rows"]
+    n_sets = _l0_sets(gate)[1]
+    tally = _tally(ledger_rows) if ledger_rows is not None else None
+    for i, raw in enumerate(lines, 1):
+        for m in _GATE_COUNTS.finditer(raw):
+            for what, got, want in (("rows", m.group(1), len(gate)), ("distinct sets", m.group(2), n_sets)):
+                if _count(got) is not None and _count(got) != want:
+                    issues.append(f"{rel}:{i}: the gate table is said to have {got} {what}; "
+                                  f"artifacts/gate_table.json has {want}")
+        if tally is None:
+            continue
+        for m in _LEDGER_TOTAL.finditer(raw):
+            end = _SENTENCE_END.search(raw, m.end())
+            sentence = raw[m.start(): end.start() if end else len(raw)]
+            found = [("rule-and-run pairs", m.group(1), len(ledger_rows))]
+            for key, label, pat in _LEDGER_PARTS:
+                p = pat.search(sentence)
+                if p:
+                    found.append((label, p.group(1), tally[key]))
+            for label, got, want in found:
+                if _count(got) is not None and _count(got) != want:
+                    issues.append(f"{rel}:{i}: the rule-ledger tally reads {got} for \"{label}\"; "
+                                  f"docs/rule_ledger.json gives {want} ({_tally_sentence(ledger_rows)})")
+    return issues
+
+
 def check_manuscript(d: str) -> int:
     """Guards, each a reviewable item: the manuscript must \\input at least one generated
     table (never retype them); must quote every headline number of
     artifacts/corrected_verdicts.json, the required intervals right after their means, and no
     headline interval after a different number; must not alter a per-seed list or a number of
-    the corrected primary-run paragraph; and must not use retired wording (matched after LaTeX
-    markup is stripped) or quote a pre-correction headline without a historical label."""
+    the corrected primary-run paragraph; must state the rule-ledger tally and the gate table's
+    row and set counts as the ledger and artifacts/gate_table.json give them; and must not use
+    retired wording (matched after LaTeX markup is stripped) or quote a pre-correction headline
+    without a historical label. No other number is compared with an artifact."""
     texs = sorted(glob.glob(os.path.join(d, "**", "*.tex"), recursive=True))
     if not texs:
         # A mistyped or empty --manuscript path must not read as a clean manuscript.
@@ -896,6 +966,8 @@ def check_manuscript(d: str) -> int:
         return 1
     current = tables()
     v = _verdicts()
+    ledger = load_ledger()
+    ledger_rows = evaluate_ledger(ledger)[0] if ledger is not None else None
     issues = 0
     inputs = 0
     full = []
@@ -937,7 +1009,8 @@ def check_manuscript(d: str) -> int:
                         print(f"{rel}:{i}: historical headline {h} without a historical or "
                               "pre-correction label in its section")
                         issues += 1
-        for msg in _location_issues(rel, raw_lines, v, found) + _primary_paragraph_issues(rel, text, v):
+        for msg in (_location_issues(rel, raw_lines, v, found) + _primary_paragraph_issues(rel, text, v)
+                    + _count_issues(rel, raw_lines, ledger_rows)):
             print(msg)
             issues += 1
     if texs and not inputs:
