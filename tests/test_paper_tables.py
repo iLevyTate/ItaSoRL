@@ -411,6 +411,7 @@ def test_gate_rows_that_read_one_set_of_agents_share_a_letter(tmp_path, monkeypa
 
 
 def test_an_interval_bound_that_rounds_to_zero_prints_without_a_sign():
+    assert bpt._sg(-0.0002) == "+0.000" and bpt._sg(-0.026) == "-0.026"
     assert bpt._iv([-0.0004, 0.031], signed=True) == "[+0.000, +0.031]"
     assert bpt._iv([-0.026, -0.0002]) == "[-0.026, 0.000]"
 
