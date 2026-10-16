@@ -80,3 +80,24 @@ def test_every_optional_readout_file_carries_its_provenance():
         block = doc.get("provenance") or {}
         assert block.get("generated_by", "").startswith("scripts/run_optional_o"), path.name
         assert "not an adjudication" in block.get("status", ""), path.name
+
+
+def test_o1_summary_uses_seed_blocks_as_its_uncertainty_unit():
+    """Rows share seeds, arms and baseline readings, so they are not independent
+    replications (2026-10-14 review, C05). The interval is taken over per-seed block means."""
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+    from run_optional_o1 import summarize
+    rows = []
+    for seed, shift in ((0, 0.001), (1, 0.003)):
+        for k in range(4):
+            rows.append({"run": "B1", "population": "pooled", "drift": 0.45, "seed": seed, "arm": "survival",
+                         "call_changed": False, "recorded_global": 0.6, "recomputed_global": 0.6,
+                         "fold_local": 0.6 + shift + (0.0005 if k % 2 else -0.0005)})
+    out = summarize(rows)
+    assert out["unit"] == "seed" and out["n_blocks"] == 2 and out["n"] == 8
+    assert abs(out["fold_minus_global_mean"] - 0.002) < 1e-12
+    assert abs(out["block_means"]["0"] - 0.001) < 1e-12 and abs(out["block_means"]["1"] - 0.003) < 1e-12
+    lo, hi = out["fold_minus_global_t90"]
+    assert lo < 0.002 < hi and hi - lo > 0.002   # two blocks: a wide t interval, not the row-level one

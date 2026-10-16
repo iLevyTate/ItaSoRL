@@ -43,7 +43,12 @@
    "torch": "2.7.0+cu126",
    "device": "cuda"
   },
-  "written": "2026-10-14"
+  "written": "2026-10-14",
+  "summary_recomputed": {
+   "date": "2026-10-15",
+   "by": "scripts/run_optional_o1.py::summarize",
+   "reason": "uncertainty unit moved from rows to seed blocks (2026-10-14 review, C05); rows unchanged, no rollout"
+  }
  },
  "summary": {
   "n": 60,
@@ -68,11 +73,27 @@
     "fold_local": 0.7609452634855112
    }
   ],
-  "fold_minus_global_mean": -3.7151283273945124e-05,
+  "unit": "seed",
+  "n_blocks": 10,
+  "estimand": "mean over seeds of the within-seed mean of fold-local minus recomputed global speed accuracy; the 90% t interval is taken over the seed-block means",
+  "block_means": {
+   "10": 0.001573158455118832,
+   "11": -0.002344220293243937,
+   "12": 0.0051415074465065436,
+   "13": -0.0021726022432947043,
+   "14": -0.0008294052692696489,
+   "15": -0.009539826810957164,
+   "16": 0.0010362607290580472,
+   "17": 0.007685613945807986,
+   "18": -0.00010180418742185744,
+   "19": -0.0008201946050435486
+  },
+  "fold_minus_global_mean": -3.7151283273945205e-05,
   "fold_minus_global_t90": [
-   -0.0027339338669113704,
-   0.00265963130036348
+   -0.0027120273425130844,
+   0.002637724775965194
   ],
+  "fold_minus_global_row_mean": -3.7151283273945124e-05,
   "max_abs_recomputed_vs_recorded": 0.00042735042735042583
  },
  "rows": [

@@ -17,11 +17,18 @@ episodes. Pair groups stay in one fold when the data are paired. Code:
 
 | File | Population | Cells | Result |
 |---|---|---|---|
-| `o1_fold_local_speed.json` | pooled worlds, bases 800000 and 850000, both drifts, three arms, B1 and B2 | 120 | recomputed global median equals the recorded `pool.speed` exactly; zero calls change; fold-local minus global +0.00162, t90 [0.00015, 0.00309] |
-| `o1_fold_local_speed_matched.json` | retained pairs at base 910000, drift 0.45, three arms, B1 and B2 | 60 | two calls change, both untrained seed 19: recorded 0.7493, fold-local 0.7609; mean shift near zero, t90 [-0.00273, 0.00266] |
+| `o1_fold_local_speed.json` | pooled worlds, bases 800000 and 850000, both drifts, three arms, B1 and B2 | 120 | recomputed global median equals the recorded `pool.speed` exactly; zero calls change; fold-local minus global +0.00162, t90 over seeds [-0.00021, 0.00345] |
+| `o1_fold_local_speed_matched.json` | retained pairs at base 910000, drift 0.45, three arms, B1 and B2 | 60 | two calls change, both untrained seed 19: recorded 0.7493, fold-local 0.7609; mean shift near zero, t90 over seeds [-0.00271, 0.00264] |
 
 The matched change does not make B1 or B2 informative. The untrained floor fails on
 its own.
+
+Rows share seeds, arms and baseline readings, so they are not independent
+replications. Each summary averages the differences within a seed first and takes the
+90% t interval over the ten seed-block means (`unit`, `n_blocks` and `block_means` in
+the file). Until 2026-10-15 the interval was taken over rows, and the pooled interval,
+then [0.00015, 0.00309], excluded zero. Over seed blocks it includes zero. The rows
+are unchanged and the summaries were recomputed from them without a rollout.
 
 ```
 python scripts/run_optional_o1.py --pooled --out docs/optional/o1_fold_local_speed.json
