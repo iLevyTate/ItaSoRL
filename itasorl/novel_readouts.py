@@ -101,6 +101,13 @@ def arena_dist(p: np.ndarray, q: np.ndarray) -> np.ndarray:
     return np.sqrt((d ** 2).sum(-1))
 
 
+def exceedance_rate(max_disp: np.ndarray, r: float) -> float:
+    """Share of episodes whose largest displacement from the start passes r. r is the 95th
+    percentile of the calibration episodes, a percentile and not a bound (review N01)."""
+    d = np.asarray(max_disp, float)
+    return float(np.mean(d > r)) if d.size else float("nan")
+
+
 def terrain_grid(world) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """(x, y, H) on a GRID x GRID lattice of the unit arena, with H the world's own height
     function evaluated in closed form. Consumes no random draw."""

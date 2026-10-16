@@ -84,16 +84,17 @@ def run_seed(t: dict) -> dict:
     from itasorl.eval_protocols import replay_states
     from itasorl.experiment_a import grouped_auroc
     from itasorl.experiment_b import episode_features
-    from itasorl.novel_readouts import (INCIDENTAL, INSTRUMENTAL, obs_summary, residual_r2_cv,
-                                        residual_targets, residualize_incidental, ridge_r2_cv)
+    from itasorl.novel_readouts import (INCIDENTAL, INSTRUMENTAL, exceedance_rate, obs_summary,
+                                        residual_r2_cv, residual_targets, residualize_incidental,
+                                        ridge_r2_cv)
 
     setup_l3()
     P = world_params()
     s = t["seed"]
     t0 = time.time()
     ag, nm = load(t["agents_dir"], DRIFT, s, "survival")
-    O, A, K, F, _, _ = record_with_worlds(ag, nm, P, t["n_eps"], t["steps"], READ_BASE,
-                                          t["ray_steps"], t["r"])
+    O, A, K, F, dmax_read, _ = record_with_worlds(ag, nm, P, t["n_eps"], t["steps"], READ_BASE,
+                                                  t["ray_steps"], t["r"])
     raw = {k: np.array([f[k] for f in F], float) for k in INSTRUMENTAL + INCIDENTAL}
     ok = np.all(np.isfinite(np.column_stack(list(raw.values()))), axis=1)
     feats = {k: v[ok] for k, v in raw.items()}
@@ -105,7 +106,8 @@ def run_seed(t: dict) -> dict:
            "feature_sds": {k: float(v.std()) for k, v in feats.items()},
            "echo_r2": {k: ridge_r2_cv(Xo, feats[k], target=tgt[k]) for k in feats}, "arms": {},
            "targets": "far features residualized on the near ones inside each training fold "
-                      "(third amendment); auroc_median_split uses the full-sample residual"}
+                      "(third amendment); auroc_median_split uses the full-sample residual",
+           "exceedance_rate": exceedance_rate(dmax_read[ok], t["r"])}
     rng = np.random.default_rng(10_000 + s)
     for g, d in ARMS[: t["n_arms"]]:
         a2, n2 = (ag, nm) if (g, d) == ("survival", DRIFT) else load(t["agents_dir"], d, s, g)
@@ -195,6 +197,10 @@ def main() -> int:
                             a.workers), key=lambda x: x["seed"])
     body = {"spec": SPEC, "reach": {"r": r, "pct95_max_disp": r,
                                     "pct95_final_disp": float(np.percentile(dfin, 95)),
+                                    "readout_exceedance_rate": float(np.nanmean([r_["exceedance_rate"] for r_ in rows])),
+                                    "note": "r is the 95th percentile of the calibration episodes' largest "
+                                            "displacement, a percentile and not a bound on where an episode "
+                                            "can reach (third amendment)",
                                     "n_calib_episodes": int(len(dmax))},
             **summarize(rows, a.arms), "rows": rows}
     write_output(a.out, "scripts/run_world_features_readout.py", sys.argv[1:],

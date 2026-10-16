@@ -216,3 +216,11 @@ def test_ridge_r2_cv_accepts_a_fold_target_callable():
     assert plain == pytest.approx(same)
     Xo = rng.normal(size=(60, 2))
     assert residual_r2_cv(X, Xo, t) == pytest.approx(residual_r2_cv(X, Xo, t, target=lambda tr, te: (t[tr], t[te])))
+
+
+def test_exceedance_rate_counts_episodes_whose_largest_displacement_passes_r():
+    """r is the 95th percentile of the calibration episodes, a percentile and not a bound
+    (review N01); the readout reports how many of its own episodes passed it."""
+    from itasorl.novel_readouts import exceedance_rate
+    assert exceedance_rate(np.array([0.1, 0.5, 0.31, 0.9]), 0.3) == pytest.approx(0.75)
+    assert np.isnan(exceedance_rate(np.array([]), 0.3))
