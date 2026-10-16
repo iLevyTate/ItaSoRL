@@ -235,7 +235,8 @@ def _gates(failed) -> str:
 
 def _iv(t90, signed: bool = False) -> str:
     f = "{:+.3f}" if signed else "{:.3f}"
-    return f"[{f.format(t90[0])}, {f.format(t90[1])}]"
+    lo, hi = (0.0 if round(x, 3) == 0 else x for x in t90)   # no "-0.000" for a value that rounds to zero
+    return f"[{f.format(lo)}, {f.format(hi)}]"
 
 
 # Plain names for the run identifiers the gate and contrast tables use (the manifest IDs).
@@ -727,16 +728,24 @@ def rule_ledger_table() -> str | None:
          r"\begin{tabular}{p{0.24\textwidth}p{0.085\textwidth}p{0.16\textwidth}p{0.07\textwidth}"
          r"p{0.11\textwidth}p{0.16\textwidth}}",
          r"\toprule", r"Rule & Frozen & Run & Bar on & Outcome & Deciding clause \\", r"\midrule"]
+    # A row whose recorded outcome was later qualified reads "recorded as" with a marked note
+    # under the table (outcome_footnote in the ledger).
+    marked = [r for r in rows if r.get("outcome_footnote")]
     for r in rows:
+        outcome = r["outcome_class"].replace("threshold ", "")
+        if r.get("outcome_footnote"):
+            outcome = f"recorded as {outcome}$^{{{chr(ord('a') + marked.index(r))}}}$"
         L.append(f"{_tex_escape(r.get('short', r['rule']))} & {r['frozen']} & {_tex_escape(r['run'])} & "
-                 f"{_bar_basis(r)} & {r['outcome_class'].replace('threshold ', '')} & "
+                 f"{_bar_basis(r)} & {outcome} & "
                  f"{_tex_escape(_deciding(r))} \\\\")
     L += [r"\midrule",
           rf"\multicolumn{{6}}{{p{{0.9\textwidth}}}}{{{_tex_escape(_tally_sentence(rows))} Outcome "
           r"says whether the threshold condition was met as frozen. Bar on: the bar is read on the "
           r"mean, the t-based 90\% lower bound (LB), a minimum over draws, or a rank. Deciding "
           r"clause: a failing gate, else the failing clause nearest its threshold, else the clause "
-          r"nearest its threshold; distances are signed, positive on the passing side.} \\",
+          r"nearest its threshold; distances are signed, positive on the passing side."
+          + "".join(f" ${chr(ord('a') + i)}$: {_tex_escape(r['outcome_footnote'])}" for i, r in enumerate(marked))
+          + r"} \\",
           r"\bottomrule", r"\end{tabular}", ""]
     return "\n".join(L)
 

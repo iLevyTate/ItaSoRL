@@ -5374,6 +5374,14 @@ Both rows are sensory-independent under matched worlds. The predictor sits at 0.
 On the `B2` pooled worlds the corrected leakage gate, trained reward and pellets consumed, is
 clean in 60 of 60 pools. The largest deviation from 0.5 is 0.076.
 
+*2026-10-16 note (after the deep revision review):* the matched-gate sidecars of `B1` and `B2` did
+not record whether the matched collection reproduced each cell's balanced target, so promotion now
+requires that check before a `MET`. Both sidecars were recollected with the reconstruction block on
+the same agents and seeds: 30 of 30 rows reproduce the balanced target with a largest difference of
+0.0, and every gate value equals the first collection's. The originals are kept beside each run as
+`matched_gates_pre_reconstruction_2026-10-15.json`. Both decisions stay UNINFORMATIVE, on the matched
+speed and untrained-floor gates as before.
+
 ## 22. The L1 rerun on the corrected trainer, and the agent's prediction error on matched input (2026-10-15)
 
 **Status: MEASURED; no recorded verdict changes.** Two readouts asked whether the paper's
@@ -5477,7 +5485,16 @@ accumulated velocity offset stays fixed (sweep B, at A's rho = 0.9 level). Reado
 
 The pre-stated readings: coherence beyond integration is not met (sweep B, M at 0.99 minus M at
 0, -0.006 [-0.036, +0.023]); integration suffices is not met (sweep A, +0.029 [-0.009, +0.068]);
-the third reading, neither, is met. No point is kept: survival stays at 0.565 to 0.627, and the
+the third reading, neither, is met. Sweep B matches the stationary per-component accumulated
+velocity standard deviation of the AR(1) process (0.0870 at both endpoints), not the 24-step
+open-loop gap, which reads 0.1205 at rho 0 and 0.0970 at rho 0.99; a 24-step trajectory started
+without an accumulated offset does not reach the stationary value. The two readings are
+nondetections of the pre-stated positive contrasts (+0.029 [-0.009, +0.068] and -0.006 [-0.036,
++0.023]); they do not establish that coherence or accumulation has no effect, and the sweeps vary
+one-step size and stationary accumulation separately rather than matching the drag on both at
+once. The AR process runs on across episode boundaries, so at rho 0.99 adjacent episodes share
+about 0.79 of its dependence after 24 steps; the episode-grouped folds do not remove that
+dependence. No point reaches the bar: survival stays at 0.565 to 0.627, and the
 direction fit on the learned law transfers below 0.5 at every point (0.397 to 0.455). The rho = 0
 point of sweep A repeats the white-jitter comparator on new seed bases and reads 0.565 against the
 recorded 0.488.
@@ -5492,14 +5509,60 @@ readout runs on different seed bases, and the drag's untrained floor (0.612) sit
 tolerance, so it is a lead, not a measured contrast. The run stopped once after 8 of 11 points on
 an external console-close event and resumed from the saved points.
 
+#### Sweep C: coherence at a matched 24-step gap, with independent episodes
+
+`docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md` (frozen at `c1ff308` before any
+code or number); `artifacts/texture/ar_sweep_c/`. Sweep B matched a stationary quantity that a
+24-step readout does not reach, and its AR process ran across episode boundaries. Sweep C fixes
+both: each episode draws its AR state afresh from the stationary distribution (family `arc`, seed
+bases 2500000 and 2550000), and sigma is set at each rho so the measured 24-step open-loop velocity
+gap equals sweep A's rho = 0.9 value, 0.1150. Every point was measured within 0.0001 of it, so no
+point needed the one recalibration step the spec allows. Same agents, probe and fresh-probe readout
+as sweeps A and B.
+
+| rho | sigma | lag-1 | one-step RMS | 24-step gap | survival fresh | M, survival minus untrained |
+|---|---|---|---|---|---|---|
+| 0 | 0.03159 | 0.001 | 0.0448 | 0.1151 | 0.594 [0.566, 0.622] | +0.066 [+0.029, +0.103] |
+| 0.5 | 0.01923 | 0.486 | 0.0273 | 0.1150 | 0.598 [0.571, 0.624] | +0.081 [+0.042, +0.120] |
+| 0.8 | 0.01238 | 0.776 | 0.0175 | 0.1150 | 0.570 [0.542, 0.597] | +0.062 [+0.011, +0.113] |
+| 0.9 | 0.01000 | 0.874 | 0.0141 | 0.1150 | 0.568 [0.538, 0.597] | +0.050 [+0.004, +0.096] |
+| 0.95 | 0.00883 | 0.923 | 0.0122 | 0.1150 | 0.573 [0.544, 0.602] | +0.066 [+0.019, +0.113] |
+| 0.99 | 0.00823 | 0.964 | 0.0110 | 0.1150 | 0.579 [0.552, 0.606] | +0.075 [+0.041, +0.110] |
+
+The contrast, M at rho 0.99 minus M at rho 0, is +0.009 [-0.027, +0.045]. Reading 2 is met: the
+interval lies inside [-0.05, +0.05], so at a matched 24-step deviation coherence moved the margin by
+less than 0.05 in either direction. Reading 1 (lower bound above zero) is not met, so reading 3 is
+not met either. No point is kept: survival fresh stays at 0.568 to 0.598, under 0.65 at every rho.
+The direction fit on the learned law transfers at 0.427 to 0.444.
+
+Descriptive: at rho = 0.9, where sigma equals the companion sweep's shared point, survival fresh
+reads 0.568 against that point's 0.570, and M reads +0.050 against +0.010. The difference is in the
+untrained arm, whose fresh probe reads 0.517 under the per-episode draw against about 0.560 in
+sweep A, so the per-episode draw changed the untrained reading at that setting. The run record:
+a first launch stopped at 23:59 on 2026-10-15 during the fourth point, with no exit line, and its
+three finished points recorded an absolute agents path; the sweep was relaunched from scratch at
+`5f2ca71` with a repo-relative label and a resume check that reads the point files' own fields, and
+its six points record that commit. The summary was rewritten at `5f7ed93` to record its command
+line with relative paths; its values are identical.
+
 ## 23. Four readouts on the saved C1 and C2 agents: how loud the world is, what of its own world the state keeps, whether the decoded direction is used, and what develops (2026-10-15)
 
 **Status: MEASURED; no recorded verdict changes.** Four readout-only designs were frozen at
 `58efbed` before any code or number, on the saved agents of `C1` (`fullruns/corrected_l3_h8_wm`)
 and `C2` (`fullruns/corrected_l3_h8_nowm`). Three were amended before the code was written
-(`87247e4`) and three again after a one- or two-seed setup check and before the full run
-(`93765bc`, `2cfc08d`); every amendment is dated in its spec. The code landed at `033e307` and
-every artifact records `2cfc08d`. None of the readings is a registered verdict.
+(`87247e4`). Three details were set after setup results were seen and before the full run:
+
+| readout | what the setup check showed | what changed | commit |
+|---|---|---|---|
+| world features | two-seed permuted-target R squared near -0.2 with a fixed ridge alpha | ridge strength chosen in fold over 0.01 to 100000 | `93765bc` |
+| erasure | erased-score AUROC 0.39 to 0.61 from float32 differences | scores quantized to 0.001 of the unerased spread before the check | `93765bc` |
+| development | one-seed integrity difference 0.0012 against a 0.001 tolerance | tolerance 0.005 | `2cfc08d` |
+
+Designs were frozen before any code; these three details were set after setup results were
+seen and before the full run. Every amendment is dated in its spec. The code landed at
+`033e307` and every first-run artifact records `2cfc08d`; the world-feature and erasure reruns
+after the deep revision review (2026-10-15) record `9e03469`. None of the readings is a
+registered verdict.
 
 Run record. A chain script smoke-tested each readout on two seeds (all four passed, 18:11Z to
 18:21Z) and began the full salience readout on `C1`, which stopped at 18:29Z after seeds 0 to 4
@@ -5529,8 +5592,13 @@ methods given no label, k-means with two clusters and the sign of the first prin
 | `C2` untrained, survival's own episodes | 0.001 | 0.185 | 0.39 [0.20, 0.57] | 0.517 | 0.520 |
 
 **Whisper** on both runs: k-means agreement has an upper bound below 0.60 and the variance share
-an upper bound below 0.10. Shout is not met. The floor is not met either: the untrained arm on
-identical input does not reach the shout reading, so the whisper is not carried by the input. The
+an upper bound below 0.10. Shout is not met, and neither is the floor (the untrained arm on
+identical input does not reach the shout reading). On identical input the untrained trunk also
+whispers (k-means 0.518, variance share 0.0016 on `C1`; 0.517 and 0.0015 on `C2`), and its
+variance share along its own probe direction is larger than the survival trunk's (paired survival
+minus untrained -0.00048 [-0.00068, -0.00029] on `C1`, -0.00069 [-0.00094, -0.00044] on `C2`).
+Low label-free recoverability is a property of both trained and untrained states on this input;
+the readout does not say what the input supplies. The
 authentic-versus-authentic control (`C1` survival at drift 0) gives k-means 0.520 and d 0.20,
 within 0.1 of chance. The world direction is one thousandth of the state's variance, against
 three tenths for the first principal component, and it separates the worlds by about one
@@ -5538,15 +5606,56 @@ standard deviation once a label picks it out.
 
 ### 23.2 Which features of its own world the state keeps
 
-`docs/specs/2026-10-15-world-draw-features-design.md`; `artifacts/world_features/`. Per-episode
-draw features of the world the agent is in, decoded from its state by ridge regression with the
-strength chosen in fold (held-out R squared pooled over five folds, 1100 episodes per seed at
-base 2600000): three near features inside a reach radius r (nearest-pellet distance, pellet
-count, water fraction) and three far features (water fraction, terrain roughness, pellet
-dispersion) residualized on the near set. r is the 95th percentile of the agent's largest
+`docs/specs/2026-10-15-world-draw-features-design.md` (third amendment 2026-10-15);
+`artifacts/world_features/`. Per-episode draw features of the world the agent is in, decoded from
+its state by ridge regression with the strength chosen in fold (held-out R squared pooled over five
+folds, 1100 episodes per seed at base 2600000): three near features inside a reach radius r
+(nearest-pellet distance, pellet count, water fraction) and three far features (water fraction,
+terrain roughness, pellet dispersion) residualized on the near set inside each training fold.
+Distances are Euclidean in the walled arena. r is the 95th percentile of the agent's largest
 displacement over 110 calibration episodes per seed at base 2650000: 0.318 (`C1`), 0.307 (`C2`).
-Each feature is also decoded from the observation summary alone (the echo) and from the state
-with that echo regressed out in fold (beyond the senses).
+It is a calibration percentile and not a bound: 2.6 percent (`C1`) and 2.7 percent (`C2`) of
+readout episodes passed it. Each feature is also decoded from the observation summary alone (the
+echo) and from the state with that echo regressed out in fold (beyond the senses).
+
+| feature, `C1` | echo | survival state | survival beyond the senses | untrained state | predictor beyond the senses |
+|---|---|---|---|---|---|
+| I1 nearest pellet | 0.46 | 0.20 | +0.001 [-0.001, +0.003] | 0.30 | -0.000 [-0.000, +0.000] |
+| I2 pellets in reach | 0.44 | 0.35 | -0.005 [-0.005, -0.005] | 0.26 | -0.005 [-0.005, -0.004] |
+| I3 water in reach | 0.72 | 0.72 | -0.001 [-0.002, +0.001] | 0.65 | -0.001 [-0.004, +0.002] |
+| N1 water, far | 0.10 | 0.10 | -0.001 [-0.004, +0.002] | 0.06 | +0.003 [+0.001, +0.006] |
+| N2 roughness, far | 0.10 | 0.12 | +0.001 [-0.003, +0.004] | 0.07 | +0.002 [+0.000, +0.004] |
+| N3 pellet dispersion, far | 0.16 | 0.14 | +0.000 [-0.000, +0.001] | 0.12 | +0.004 [+0.002, +0.006] |
+
+`C2`: echo 0.44, 0.46, 0.73 on I1 to I3; survival state 0.24, 0.38, 0.69; survival beyond the
+senses between -0.003 and +0.002 on every feature, upper bounds at most +0.004. The predictor
+arm's far features read highest of any arm on either run: +0.009 [+0.005, +0.013] (N1),
++0.008 [+0.004, +0.011] (N2), +0.003 [+0.001, +0.004] (N3).
+
+Reading 1 is not met on any of I1 to I3: survival minus untrained state R squared is -0.099
+[-0.115, -0.083], +0.090 [+0.067, +0.113] and +0.069 [+0.054, +0.084] on `C1` (-0.050, +0.091,
++0.047 on `C2`), and the survival residual lower bounds are -0.001, -0.005 and -0.002 (`C2`:
+-0.001, -0.004, -0.003), so no residual clears the 0.05 clause. Reading 2 is met on N1 to N3, with
+survival residual upper bounds +0.002, +0.004, +0.001 (`C2`: +0.003, +0.004, +0.001). The ladder
+reads -0.002 [-0.004, +0.001] on `C1` and -0.002 [-0.004, -0.001] on `C2`, not met. The echo reads
+I1 to I3 at least as well as the state on both runs; on `C1` it also does so for N3, and on `C2`
+for all six. The permuted-target clause passes on both runs.
+
+**Label: keeps nothing beyond the senses**, on both runs. The label's literal content is that no
+near feature met both clauses of reading 1. It does not say the state keeps nothing of its world:
+across every arm and both runs the residual R squared runs from -0.006 to +0.009, the largest
+upper bound is +0.013 (the `C2` predictor arm's far water), and the readout tests six named
+targets through one ridge decoder against one observation-summary control. Survival training
+lowers the readout of the nearest pellet from the state (untrained 0.30, survival 0.20 on `C1`;
+0.29 and 0.24 on `C2`).
+
+#### First run, toroidal distances (superseded)
+
+The first run measured every distance on a torus the walled world does not have, and residualized
+the far targets over all episodes before cross-validation. Its `C1` table is kept as the record;
+its numbers are not read. Its manifest note said every arm's residual sat within 0.005 of zero,
+which was false on its own numbers: the `C2` predictor arm's far water and roughness read +0.0094
+and +0.0088.
 
 | feature, `C1` | echo | survival state | survival beyond the senses | untrained state |
 |---|---|---|---|---|
@@ -5557,16 +5666,9 @@ with that echo regressed out in fold (beyond the senses).
 | N2 roughness, far | 0.09 | 0.11 | +0.001 [-0.003, +0.004] | 0.06 |
 | N3 pellet dispersion, far | -0.01 | 0.00 | -0.003 [-0.004, -0.002] | -0.01 |
 
-`C2` reads the same way (echo 0.45, 0.39, 0.74 on I1 to I3; survival state 0.24, 0.32, 0.70;
-beyond the senses within 0.003 of zero on every feature). Readings: instrumental kept is not met
-on any of I1 to I3 (survival minus untrained state R squared is -0.107 [-0.127, -0.088] on I1 and
-positive on I2 and I3, and no residual reaches 0.05); incidental not kept is met on N1 to N3; the
-ladder is -0.001 [-0.003, +0.001], not met; I1 to I3 are carried by the senses on both runs (the
-echo reads them at least as well as the state), and on `C2` so are N1 and N2. The permuted-target
-clause passes (R squared within 0.02 of zero). **Label: keeps nothing beyond the senses**, on
-both runs. The state keeps the features of its surroundings to the extent the current
-observation carries them and no further; survival training lowers the readout of the nearest
-pellet from the state (0.30 untrained, 0.19 survival) rather than raising it.
+*2026-10-15 note (after the deep revision review):* the first run's distances were toroidal and
+its far targets were residualized over all episodes; both are corrected in the third amendment,
+and the first run's artifacts are kept under `superseded_toroidal_2026-10-15`.
 
 ### 23.3 Whether the decoded direction is used: removal while the agent acts
 
@@ -5576,12 +5678,16 @@ step of the `C1` survival agent's own rollouts, 64 episodes of 80 steps in each 
 the two decoded directions (the mean block's and the final block's, the amendment's rank-two
 removal) are projected out of the hidden state to the class midpoint; the sham removes the same
 rank along the nudge readout's orthogonal direction. Readings are seed-paired over informative
-seeds, those where the agent's score separates the worlds by at least the registered gap.
+seeds, those where the agent's score separates the worlds by at least the registered gap. The
+behavior, return and probe readings are scored on common survivors, the episodes alive to the
+horizon in all six conditions (two worlds by unerased, erased and sham); the population lines
+score every attempted episode, return summed through termination.
 
 | `C1` survival, 10 informative seeds | value |
 |---|---|
+| attempted / retained per seed | 64 / 44 to 51; excluded 26.6 percent [24.7, 28.5] |
 | frozen probe, unerased rollouts | 0.754 [0.700, 0.808] |
-| frozen probe, erased rollouts | 0.500 in 10 of 10 seeds (score spread 0 relative to unerased) |
+| frozen probe, erased rollouts | 0.500 in 10 of 10 seeds, the quantized frozen-probe AUROC (scores rounded to 0.001 of the unerased spread; the erased spread is 0.5 to 4.7 parts per million of it) |
 | frozen probe, sham | 0.745 |
 | refit probe on erased states | 0.646 [0.562, 0.729] |
 | primary real-minus-sham score | -0.010 [-0.020, -0.001] |
@@ -5589,16 +5695,31 @@ seeds, those where the agent's score separates the worlds by at least the regist
 | real minus sham, authentic world | -0.015 [-0.050, +0.020] |
 | return, erased minus sham, surrogate | +0.012 [-0.003, +0.027] |
 | return, erased minus sham, authentic | -0.004 [-0.012, +0.004] |
+| every attempted episode: return, erased minus sham, surrogate | +0.010 [-0.009, +0.030] |
+| every attempted episode: return, erased minus sham, authentic | +0.005 [-0.009, +0.019] |
+| every attempted episode: terminations per seed, erased minus sham, surrogate | +0.2 [-0.3, +0.7] |
+| every attempted episode: terminations per seed, erased minus sham, authentic | -0.2 [-0.7, +0.3] |
 
 Erasure held (reading 4, 10 of 10 seeds), and the refit probe stays under the 0.65
 partial-erasure label, by 0.004. **Not used under removal** is met: both worlds' real-minus-sham
 scores sit inside [-0.10, +0.10]. Used under removal (+0.10 with the interval excluding zero) and
 costly (return upper bound below zero) are not met. The untrained arm has 6 informative seeds,
 below the 7 the spec requires, and decides nothing (frozen probe 0.552 unerased, refit 0.258).
-With the 18.4 nudge, which moved behavior no more than a sham, this is the second test in which
-the decodable direction can be changed without changing what the agent does. The refit reading
+On the common survivors, within the tested behavior band, horizon and worlds, removal changed
+the behavior gap no more than a sham, and on every attempted episode the return contrasts read
++0.010 [-0.009, +0.030] (surrogate) and +0.005 [-0.009, +0.019] (authentic), with terminations
+per seed within one episode of the sham in either direction. Whether the decoded direction is
+used in episodes that removal ends early is not tested by the common-survivor readings; the
+population contrasts bound it: removal neither ended measurably more episodes than the sham nor
+lowered return measurably across all of them. The population lines are descriptive, with no
+pre-stated reading (third amendment). The refit reading
 says a rank-two removal leaves world identity recoverable at 0.646 elsewhere in the state, so the
 test bounds what the decoded direction carries, not what the state carries.
+
+*2026-10-15 note (after the deep revision review):* the first run scored common survivors only
+and recorded no attrition or population outcome. The rerun on the same agents adds both; every
+common-survivor value reproduced, and the first artifact is kept under
+`superseded_common_survivor_2026-10-15`.
 
 ### 23.4 What develops across the training snapshots
 
@@ -5606,7 +5727,7 @@ test bounds what the decoded direction carries, not what the state carries.
 of 17.8 and 18.4, without its two sequence decoders, on the saved 100, 200, 300 and 450-update
 survival snapshots of `C1` and `C2` (the untrained agent as budget 0), on the registered pools.
 Integrity: every snapshot's own-episode target reproduces `artifacts/budget_curve.json` within
-0.0025 (largest difference 0.0017 on `C1`, 0.0025 on `C2`, against the amended 0.005 tolerance
+0.0025 (largest difference 0.0017 on `C1`, 0.0025 on `C2`, against the 0.005 tolerance, amended at `2cfc08d` after the one-seed setup check,
 for the workstation-versus-cloud stack).
 
 | updates | `C1` target | `C1` `resid_obs` | `C1` `resid_trace` | `C1` cosine to u_300 | `C1` frozen-300 transfer | `C2` target | `C2` `resid_obs` | `C2` `resid_trace` | `C2` cosine | `C2` transfer |
@@ -5617,11 +5738,15 @@ for the workstation-versus-cloud stack).
 | 300 | 0.733 | 0.699 | 0.723 | 1 | 0.971 | 0.613 | 0.582 | 0.642 | 1 | 0.949 |
 | 450 | 0.822 | 0.787 | 0.767 | 0.40 | 0.785 | 0.686 | 0.653 | 0.718 | 0.42 | 0.689 |
 
-Readings. Memory grows beyond the senses: **met** on `C1` (`resid_obs` at 450 minus at 100,
-+0.224 [+0.173, +0.275]) and **not met** on `C2` (+0.104 [+0.046, +0.162], a lower bound under
-0.05 while the target grows by +0.157 [+0.100, +0.214], so "only the trace sharpens"). A stored
-component beyond the physical trace develops: **met** on both (+0.159 [+0.113, +0.205] and
-+0.148 [+0.081, +0.215]). One axis sharpens: **reorganizes** on both; the direction fit at 300
+Each residual column names a linear control. `resid_obs` is the AUROC of a probe on the state
+after `history_basis(O, lags=1)`, a linear basis of the current and previous observation, is
+regressed out in fold; `resid_trace` is the same after the physical-trace basis (`_trace_phi`).
+Readings. Reading 1, named "memory grows beyond the senses" in the spec, reads the increase in
+`resid_obs` from 100 to 450 updates: +0.224 [+0.173, +0.275] on `C1`, which clears the frozen
+0.05 lower bound, and +0.104 [+0.046, +0.162] on `C2`, which is above zero and does not clear it
+(the target grows by +0.157 [+0.100, +0.214] there). Reading 2, named "a stored component beyond
+the physical trace develops", reads `resid_trace`: +0.159 [+0.113, +0.205] and +0.148 [+0.081,
++0.215], both clear it. One axis sharpens: **reorganizes** on both; the direction fit at 300
 updates has a cosine of 0.40 (`C1`) and 0.42 (`C2`) to the one fit at 450 and of 0.20 to the one
 at 100, while the frozen 300-update probe still reads the 450-update states at 0.785 and 0.689.
 The auxiliary: `C1` minus `C2` in `resid_obs` is +0.013 [-0.014, +0.041] at 100, +0.118 [+0.082,
@@ -5629,7 +5754,10 @@ The auxiliary: `C1` minus `C2` in `resid_obs` is +0.013 [-0.014, +0.041] at 100,
 auxiliary builds the stored component**. Descriptive: the first budget at which the target's
 lower bound exceeds the untrained mean by 0.05 is 200 for `C1` and 450 for `C2`.
 
-What the observation does not explain accumulates after 100 updates under the auxiliary; without
-it, the growth after 100 updates is mostly in the physical trace. In both runs the probe
+The two residual AUROCs are separate readings after two different linear controls, not shares of
+one signal, so they do not say what part of the growth is trace and what part is memory. A
+memoryless nonlinear function of the current observation can read high after this linear control
+(the review showed 0.996 for a squared and fourth-power basis), so "beyond the senses" here means
+beyond the named linear basis. In both runs the probe
 direction keeps turning while the reading grows, and transfer from the 300-update direction holds
 above 0.65 at 450.

@@ -94,18 +94,30 @@ def promote(run_dir: str, out_path: str, head: str | None = None) -> dict:
         out["aggregate"] = {key: value for key, value in recomputed.items() if key.startswith("d=")}
         out["integrity"]["adjudication_blockers"] = recomputed["integrity"]["adjudication_blockers"]
     else:
+        # Pooled mode recomputes the aggregates and the decision from the cells, as the
+        # balanced branch does; a stored verdict is never its own evidence (2026-10-14
+        # review, C02). A disagreement with the stored decision is recorded.
         raw_keys = agg.get("declared_keys")
         expected = ({(str(drift), int(seed), str(arm)) for drift, seed, arm in raw_keys}
                     if raw_keys else None)
-        blockers = ase.adjudication_blockers(
-            cells, quick=bool(agg.get("quick")),
+        drifts = sorted({float(c["drift"]) for c in cells})
+        arms = [a for a in ("survival", "predictor", "untrained") if any(c["agent"] == a for c in cells)]
+        recomputed = ase.aggregate(
+            cells, drifts, arms, hidden=int(agg["hidden"]), g_seed=int(agg["g_seed"]),
+            n_eps=int(agg["n_eps"]), steps=int(agg["steps"]),
+            quick=bool(agg.get("quick")), device=str(agg.get("device") or "cpu"),
             mismatches=list((agg.get("integrity") or {}).get("mismatches") or []),
-            balanced=False, expected_keys=expected)
-        if blockers:
-            out["decision"] = ase._withhold(out.get("decision"), blockers)
-            if out.get("decision_nonlinear"):
-                out["decision_nonlinear"] = ase._withhold(out["decision_nonlinear"], blockers)
-            out["integrity"]["adjudication_blockers"] = blockers
+            expected_keys=expected)
+        stored = agg.get("decision") or {}
+        fresh = recomputed.get("decision")
+        out["decision"] = fresh
+        out["decision_nonlinear"] = recomputed.get("decision_nonlinear")
+        out["aggregate"] = {key: value for key, value in recomputed.items() if key.startswith("d=")}
+        for field in ("adjudication_blockers", "checked", "all_match"):
+            out["integrity"][field] = recomputed["integrity"][field]
+        if stored and stored.get("zone") != (fresh or {}).get("zone"):
+            out["integrity"]["stored_decision_disagrees"] = {
+                "stored_zone": stored.get("zone"), "recomputed_zone": (fresh or {}).get("zone")}
     d = os.path.dirname(out_path)
     if d:
         os.makedirs(d, exist_ok=True)

@@ -106,6 +106,8 @@ BASES_IN_USE: tuple = (
     ("ar comparator surrogate", 2_450_000, POOL_N),
     ("2026-10-15 world-feature readout (both worlds share it)", 2_600_000, 1_100),
     ("2026-10-15 world-feature reach calibration", 2_650_000, POOL_N),
+    ("sweep C authentic (companion spec 2026-10-15)", 2_500_000, POOL_N),
+    ("sweep C G_ar, drawn afresh per episode (companion spec 2026-10-15)", 2_550_000, POOL_N),
 )
 
 NEW_BASES: tuple = (

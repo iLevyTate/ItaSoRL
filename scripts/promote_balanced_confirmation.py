@@ -25,6 +25,14 @@ BAR = 0.65
 MARGIN = 0.05
 FLOOR = 0.1
 LEAK_KEYS = ("reward_sum", "pellets_consumed", "length", "lifetime")
+# The registered population of the matched gates, from the frozen run specification.
+MATCHED_CONTRACT = {
+    "population": "retained pairs", "seed_base": 910000, "drift": 0.45,
+    "seeds": tuple(range(10, 20)), "drifts": (0.0, 0.45), "n_pairs": 110, "dropped_pairs": 0,
+    "runs": {"B1": {"objective": "survival", "mortal": True},
+             "B2": {"objective": "touch", "mortal": False}},
+}
+RECON_TOL = 0.005   # matched-readout target against the balanced cell target, same pairs
 
 
 def _finite(value) -> bool:
@@ -32,6 +40,11 @@ def _finite(value) -> bool:
         return bool(np.isfinite(float(value)))
     except (TypeError, ValueError):
         return False
+
+
+def _all_finite(values) -> bool:
+    values = list(values)
+    return bool(values) and all(_finite(v) for v in values)
 
 
 def decision_from_gates(gates: dict, score_ok: bool) -> tuple[str, str]:
@@ -42,7 +55,7 @@ def decision_from_gates(gates: dict, score_ok: bool) -> tuple[str, str]:
     """
     required = (
         "engagement_ok", "matched_speed_ok", "matched_leak_ok", "identical_first_state_all",
-        "shuffled_ok", "untrained_floor_ok", "targets_finite",
+        "shuffled_ok", "untrained_floor_ok", "targets_finite", "matched_reconstruction_ok",
     )
     held = all(gates.get(name) is True for name in required) and gates.get("dropped_pairs_total") == 0
     if not held:
@@ -70,6 +83,58 @@ def _cells(run_dir: str) -> list[dict]:
     return out
 
 
+def _check_cells(run_id: str, cells: list[dict]) -> None:
+    """The primary cell files hold exactly the expected seed and drift set, and each drift-0.45
+    balanced block carries the contract's seed base, pair count and zero drops."""
+    want = sorted((d, s) for d in MATCHED_CONTRACT["drifts"] for s in MATCHED_CONTRACT["seeds"])
+    found = sorted((round(float(c["drift"]), 2), int(c["seed"])) for c in cells)
+    if found != want:
+        raise ValueError(f"{run_id}: cell seed and drift set differs from the contract: "
+                         f"missing {sorted(set(want) - set(found))}, unexpected "
+                         f"{sorted(set(found) - set(want))}, {len(found) - len(set(found))} duplicated")
+    for c in cells:
+        if round(float(c["drift"]), 2) != MATCHED_CONTRACT["drift"]:
+            continue
+        for arm in ARMS:
+            bal = c["agents"][arm]["balanced"]
+            for field in ("seed_base", "n_pairs", "dropped_pairs"):
+                if bal.get(field) != MATCHED_CONTRACT[field]:
+                    raise ValueError(f"{run_id}: cell seed {c['seed']} {arm} balanced {field} is "
+                                     f"{bal.get(field)!r}, contract {MATCHED_CONTRACT[field]!r}")
+
+
+def validate_sidecar(run_id: str, doc: dict) -> dict:
+    """Rows of a matched-gates file keyed by (seed, arm), after checking the document and every
+    row against MATCHED_CONTRACT. A mismatch raises ValueError naming the field."""
+    want_doc = {"population": MATCHED_CONTRACT["population"], "seed_base": MATCHED_CONTRACT["seed_base"],
+                **MATCHED_CONTRACT["runs"][run_id]}
+    for field, value in want_doc.items():
+        if doc.get(field) != value:
+            raise ValueError(f"{run_id} matched sidecar: {field} is {doc.get(field)!r}, contract {value!r}")
+    by_key: dict = {}
+    for row in doc.get("rows", []):
+        key = (int(row["seed"]), str(row["arm"]))
+        if key in by_key:
+            raise ValueError(f"{run_id} matched sidecar: duplicate row for seed {key[0]} {key[1]}")
+        by_key[key] = row
+        for field in ("seed_base", "drift", "n_pairs", "dropped_pairs"):
+            value, got = MATCHED_CONTRACT[field], row.get(field)
+            bad = (not _finite(got) or abs(float(got) - value) > 1e-9) if field == "drift" else got != value
+            if bad:
+                raise ValueError(f"{run_id} matched sidecar: seed {key[0]} {key[1]} {field} is {got!r}, "
+                                 f"contract {value!r}")
+        block = row.get("matched_gates")
+        if isinstance(block, dict) and (block.get("population") != "matched pairs"
+                                        or block.get("n_pairs") != MATCHED_CONTRACT["n_pairs"]):
+            raise ValueError(f"{run_id} matched sidecar: seed {key[0]} {key[1]} matched_gates population "
+                             f"or n_pairs differs from the contract")
+    want = {(s, a) for s in MATCHED_CONTRACT["seeds"] for a in ARMS}
+    if set(by_key) != want:
+        raise ValueError(f"{run_id} matched sidecar: seed set differs from the contract; "
+                         f"missing {sorted(want - set(by_key))}, unexpected {sorted(set(by_key) - want)}")
+    return by_key
+
+
 def _summ(vals: list[float]) -> dict:
     a = np.asarray(vals, float)
     lo, hi = t_ci90(a)
@@ -77,49 +142,73 @@ def _summ(vals: list[float]) -> dict:
             "t90": [float(lo), float(hi)], "n": int(a.size)}
 
 
-def _attach_sidecar(run_dir: str, cells: list[dict]) -> list[dict]:
-    """Copy a readout-only matched-gates file onto the in-memory cells.
+def _attach_sidecar(run_id: str, run_dir: str, cells: list[dict]) -> tuple[list[dict], dict]:
+    """Copy a readout-only matched-gates file onto the in-memory cells, and report whether
+    its readout reconstructs the balanced target of the same pairs.
 
     The historical cell files stay as recorded. The sidecar is optional; without
-    it the matched gates are not collected and the decision cannot be MET.
+    it the matched gates are not collected and the decision cannot be MET. A sidecar off
+    the registered contract raises. One without a reconstruction target is attached, but
+    its reconstruction reads not recorded, which also keeps the decision from MET.
     """
     path = os.path.join(ROOT, run_dir, "matched_gates.json")
     if not os.path.exists(path):
-        return cells
+        return cells, {"status": "no sidecar", "tolerance": RECON_TOL}
     with open(path, encoding="utf-8") as fh:
         doc = json.load(fh)
-    by_key = {(int(row["seed"]), str(row["arm"])): row.get("matched_gates") for row in doc["rows"]}
+    by_key = validate_sidecar(run_id, doc)
+    diffs, missing = [], 0
     for cell in cells:
-        if abs(float(cell["drift"]) - 0.45) > 1e-9:
+        if abs(float(cell["drift"]) - MATCHED_CONTRACT["drift"]) > 1e-9:
             continue
         for arm in ARMS:
-            block = by_key.get((int(cell["seed"]), arm))
-            if isinstance(block, dict):
-                cell["agents"][arm]["balanced"]["matched_gates"] = block
-    return cells
+            row = by_key[(int(cell["seed"]), arm)]
+            bal = cell["agents"][arm]["balanced"]
+            if isinstance(row.get("matched_gates"), dict):
+                bal["matched_gates"] = row["matched_gates"]
+            if "target" not in row:
+                missing += 1
+                continue
+            if not (_finite(row["target"]) and _finite(bal["target"])):
+                raise ValueError(f"{run_id} matched sidecar: seed {cell['seed']} {arm} target is not finite")
+            diff = abs(float(row["target"]) - float(bal["target"]))
+            if diff > RECON_TOL:
+                raise ValueError(f"{run_id} matched sidecar: seed {cell['seed']} {arm} target "
+                                 f"{row['target']:.4f} differs from the balanced target {bal['target']:.4f} "
+                                 f"by {diff:.4f}, over the {RECON_TOL} tolerance")
+            diffs.append(diff)
+    if missing:
+        return cells, {"status": f"not recorded in the sidecar for {missing} of {missing + len(diffs)} rows",
+                       "tolerance": RECON_TOL}
+    return cells, {"status": "checked", "n": len(diffs), "max_abs_diff": float(max(diffs)),
+                   "tolerance": RECON_TOL}
 
 
 def promote(run_id: str) -> dict:
-    cells = _attach_sidecar(RUNS[run_id], _cells(RUNS[run_id]))
+    cells = _cells(RUNS[run_id])
+    _check_cells(run_id, cells)
+    cells, recon = _attach_sidecar(run_id, RUNS[run_id], cells)
     d45 = [c for c in cells if abs(float(c["drift"]) - 0.45) < 1e-9]
     d45.sort(key=lambda c: int(c["seed"]))
-    if len(d45) != 10 or len(cells) != 20:
-        raise SystemExit(f"{run_id}: expected 20 cells and 10 at drift 0.45, got {len(cells)} and {len(d45)}")
     arms = {arm: _summ([c["agents"][arm]["balanced"]["target"] for c in d45]) for arm in ARMS}
     margins = {
         "predictor": _summ([s - p for s, p in zip(arms["survival"]["per_seed"], arms["predictor"]["per_seed"])]),
         "untrained": _summ([s - u for s, u in zip(arms["survival"]["per_seed"], arms["untrained"]["per_seed"])]),
     }
-    shuf = [c["agents"][arm]["balanced"]["shuffled_within_pair"] for c in d45 for arm in ARMS]
-    speeds = [c["agents"][arm]["pool"]["speed"] for c in d45 for arm in ARMS]
+    # every gate value is checked finite before any max, min or threshold reads it
+    shuf = [c["agents"][arm]["balanced"].get("shuffled_within_pair") for c in d45 for arm in ARMS]
+    shuf_finite = _all_finite(shuf)
+    speeds = [c["agents"][arm]["pool"].get("speed") for c in d45 for arm in ARMS]
+    speeds_finite = _all_finite(speeds)
     leak_bad = []
     for c in d45:
         for arm in ARMS:
-            lk = c["agents"][arm]["pool"]["pool_leakage"]
+            lk = c["agents"][arm]["pool"].get("pool_leakage") or {}
             for key in ("reward_sum", "pellets_consumed", "length", "lifetime"):
-                if abs(float(lk[key]) - 0.5) >= FLOOR:
+                if not _finite(lk.get(key)) or abs(float(lk[key]) - 0.5) >= FLOOR:
                     leak_bad.append(f"{c['seed']} {arm} {key}")
     floor_dev = abs(arms["untrained"]["mean"] - 0.5)
+    targets_finite = bool(all(np.isfinite(arms[a]["per_seed"]).all() for a in ARMS))
     matched = [c["agents"][arm]["balanced"].get("matched_gates") for c in d45 for arm in ARMS]
     present = bool(matched) and all(isinstance(block, dict) for block in matched)
     speed_vals = [block.get("speed") for block in matched] if present else []
@@ -133,8 +222,8 @@ def promote(run_id: str) -> dict:
         "engagement_population": (
             "objective-specific engagement protocol stored on the cell, "
             "64 episodes, not the balanced pairs at 910000"),
-        "speed_min": float(min(speeds)),
-        "speed_ok": bool(min(speeds) >= 0.75),
+        "speed_min": float(min(float(v) for v in speeds)) if speeds_finite else None,
+        "speed_ok": bool(speeds_finite and min(float(v) for v in speeds) >= 0.75),
         "speed_scope": "pooled episodes at bases 800000 and 850000, not the balanced pairs",
         "pooled_leak_ok": not leak_bad,
         "pooled_leak_scope": "pooled episodes, not the balanced pairs",
@@ -146,18 +235,20 @@ def promote(run_id: str) -> dict:
             abs(float(leak[key]) - 0.5) < FLOOR for leak in leak_vals for key in LEAK_KEYS)),
         "matched_population": ("retained pairs at seed base 910000" if present else
                                "not collected; recorded speed and leakage checks used the pooled worlds"),
+        "matched_reconstruction": recon,
+        "matched_reconstruction_ok": recon["status"] == "checked",
         "identical_first_state_all": all(c["agents"][arm]["balanced"]["identical_first_state"]
                                          for c in d45 for arm in ARMS),
         "dropped_pairs_total": int(sum(c["agents"][arm]["balanced"]["dropped_pairs"]
                                        for c in d45 for arm in ARMS)),
-        "shuffled_max_abs_dev": float(max(abs(x - 0.5) for x in shuf)),
-        "shuffled_ok": bool(max(abs(x - 0.5) for x in shuf) < FLOOR),
+        "shuffled_max_abs_dev": float(max(abs(float(x) - 0.5) for x in shuf)) if shuf_finite else None,
+        "shuffled_ok": bool(shuf_finite and max(abs(float(x) - 0.5) for x in shuf) < FLOOR),
         "untrained_mean": arms["untrained"]["mean"],
         "untrained_dev": float(floor_dev),
-        "untrained_floor_ok": bool(floor_dev < FLOOR),
-        "targets_finite": all(np.isfinite(arms[a]["per_seed"]).all() for a in ARMS),
+        "untrained_floor_ok": bool(targets_finite and floor_dev < FLOOR),
+        "targets_finite": targets_finite,
     }
-    score_ok = (arms["survival"]["t90"][0] >= BAR
+    score_ok = targets_finite and (arms["survival"]["t90"][0] >= BAR
                 and margins["predictor"]["t90"][0] >= MARGIN
                 and margins["untrained"]["t90"][0] >= MARGIN)
     decision, reason = decision_from_gates(gates, score_ok)

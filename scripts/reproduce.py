@@ -473,7 +473,8 @@ INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "
 # absent is reported on the console and in README_SUPPLEMENT.md, never skipped silently.
 RUN_DIRS = ["fullruns/corrected_l3_h8_wm", "fullruns/corrected_l3_h8_nowm",
             "fullruns/l3_h8_heldout/agents", "fullruns/l3_h8_gseed2_gpu/agents",
-            "fullruns/balanced_confirmation_wm", "fullruns/balanced_confirmation_touch"]
+            "fullruns/balanced_confirmation_wm", "fullruns/balanced_confirmation_touch",
+            "fullruns/corrected_l1_heldout"]
 # What the README says about a RUN_DIRS bundle that is absent, beyond "not included".
 RUN_NOTES = {
     "fullruns/corrected_l3_h8_wm": "C1",
@@ -487,6 +488,12 @@ RUN_NOTES = {
         "B2 is absent. The matched-world pellet confirmation and its sensory "
         "control cannot be replayed from this archive. The committed summaries are "
         "in artifacts/balanced_confirmation/."
+    ),
+    "fullruns/corrected_l1_heldout": (
+        "L1-CORRECTED is absent. Its stream and surprise readouts cannot be replayed from "
+        "this archive. The committed cells are in artifacts/corrected_runs/l1-corrected/; "
+        "the retraining command is in "
+        "docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md."
     ),
 }
 
@@ -524,6 +531,13 @@ RUN_INCLUDED_NOTES = {
         "objective, death off. Replay the matched gates with "
         "`python scripts/audit_balanced_matched_gates.py --run "
         "fullruns/balanced_confirmation_touch --objective touch --mortal off`."),
+    "fullruns/corrected_l1_heldout": (
+        "`fullruns/corrected_l1_heldout` holds the L1-CORRECTED run folder: 20 cells, 60 saved "
+        "agents and their 60 state dumps. Its cells and summaries are byte-identical to the "
+        "committed artifacts/corrected_runs/l1-corrected/. The stream readout "
+        "(artifacts/control_diagnostics/l1_stream_readout_corrected.json) and the surprise "
+        "readout (artifacts/surprise/corrected_l1_heldout.json) replay from these agents and "
+        "state dumps."),
 }
 
 # Left out of the archive even though they sit under a packaged root, as (pattern, reason).
@@ -662,7 +676,11 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
          "- `python scripts/reproduce.py tables` checks and rebuilds the tables and gates from "
          "the committed per-seed artifacts without training, then runs the audit.",
          "- `python scripts/reproduce.py retrain C1` prints the commands that retrain a run "
-         "(hours of CPU; costs in docs/REPRODUCE.md section 2).", "",
+         "(hours of CPU; costs in docs/REPRODUCE.md section 2).",
+         "- Bit-exact equality holds only on the stack and machine that wrote a result. To replay a "
+         "saved-agent readout on another machine, use the pinned CPU stack "
+         "(constraints-cpu-corrected.txt, Python 3.11) as in docs/REPRODUCE.md, \"Supported-stack "
+         "replay route\", which lists the measured differences (a few thousandths of an AUROC).", "",
          "## What is renamed or left out", ""]
     if anon_name:
         L.append(f"- The project and package name is replaced by the neutral name `{anon_name}` "

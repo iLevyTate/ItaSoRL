@@ -74,7 +74,10 @@ METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_in
            "resid_obs_mlp", "resid_obs_beh_mlp")
 # Decision metrics. A partial or non-finite value here is not a smaller sample.
 REQUIRED_METRICS = ("target", "resid_obs")
-# Frozen balanced-control population: drift 0.45, seeds 10-19, three arms.
+# Frozen balanced-control population: drift 0.45, seeds 10-19, three arms, 110 pairs per
+# cell and no dropped pair (spec 2026-10-13). A cell that reports anything else is not a
+# cell of this protocol (2026-10-14 review, C02).
+BALANCED_PAIRS = 110
 BALANCED_SPEC_KEYS = {
     ("0.45", seed, arm)
     for seed in range(10, 20)
@@ -187,21 +190,31 @@ def adjudication_blockers(cells: list[dict], *, quick: bool, mismatches: list[st
         if any(not _is_finite(cell.get(met)) for met in REQUIRED_METRICS):
             problems.append(f"non-finite target or resid_obs at {where}")
         match = cell.get("integrity_match")
-        if match is not None and not bool(match):
+        if match is None:
+            problems.append(f"integrity unchecked at {where}")
+        elif not bool(match):
             problems.append(f"integrity_match false at {where}")
         if balanced:
+            if cell.get("n_pairs") != BALANCED_PAIRS:
+                problems.append(f"n_pairs is not {BALANCED_PAIRS} at {where}")
             dropped = cell.get("dropped_pairs")
             if cell.get("identical_first_state") is not True or dropped != 0:
                 problems.append(f"pair bookkeeping failed at {where}")
-            if not _is_finite(cell.get("recorded_target")) or not _is_finite(cell.get("target_abs_diff")):
+            if not _is_finite(cell.get("recorded_target")) or not _is_finite(cell.get("target")):
                 problems.append(f"non-finite recorded target at {where}")
-            elif float(cell["target_abs_diff"]) > TARGET_TOL:
-                problems.append(f"target gap above tolerance at {where}")
+            else:
+                # The gap is recomputed from the two targets; a cached gap is checked
+                # against it, never trusted on its own (2026-10-14 review, C02).
+                gap = abs(float(cell["target"]) - float(cell["recorded_target"]))
+                cached = cell.get("target_abs_diff")
+                if _is_finite(cached) and abs(float(cached) - gap) > 1e-9:
+                    problems.append(f"cached target gap disagrees with the targets at {where}")
+                if gap > TARGET_TOL:
+                    problems.append(f"target gap above tolerance at {where}")
     if len(keys) != len(set(keys)):
         problems.append("duplicate cell key")
     if expected_keys is None:
-        if balanced:
-            problems.append("declared cell set missing")
+        problems.append("declared cell set missing")
     elif set(keys) != set(expected_keys):
         problems.append("cell set does not match the declared seed, arm, and drift set")
     seen: list[str] = []
@@ -340,6 +353,13 @@ def _seal(agg: dict, cells: list[dict], *, quick: bool, mismatches: list[str],
     blockers = adjudication_blockers(cells, quick=quick, mismatches=mismatches,
                                      balanced=balanced, expected_keys=expected_keys)
     agg["integrity"]["adjudication_blockers"] = blockers
+    # Global integrity is derived from the per-cell evidence, not asserted beside it.
+    evidence = ("integrity", "n_pairs", "pair bookkeeping", "non-finite recorded", "target gap",
+                "cached target gap")
+    unchecked = any(b.startswith("integrity unchecked") for b in blockers)
+    agg["integrity"]["checked"] = bool(not quick and not unchecked)
+    agg["integrity"]["all_match"] = (None if quick else bool(
+        not mismatches and not any(b.startswith(evidence) for b in blockers)))
     if expected_keys is not None:
         agg["declared_keys"] = [list(key) for key in sorted(expected_keys)]
     key = "decision_balanced" if balanced else "decision"

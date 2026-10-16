@@ -16,23 +16,25 @@ import promote_sensory_echo as pse  # noqa: E402
 def test_promote_round_trip(tmp_path):
     run = tmp_path / "run"
     run.mkdir()
-    cells = [{"drift": "0.45", "seed": s, "agent": "survival", "n_auth": 110, "n_surr": 110,
-              "integrity_match": True, **{m: 0.7 for m in pse.METRICS}, "extra": "dropped"}
-             for s in range(3)]
+    cells = [{"drift": "0.45", "seed": s, "agent": arm, "n_auth": 110, "n_surr": 110,
+              "integrity_match": True, **{m: lvl for m in pse.METRICS}, "extra": "dropped"}
+             for s in range(3) for arm, lvl in (("survival", 0.7), ("untrained", 0.5))]
     agg = {"hidden": 8, "g_seed": 0, "n_eps": 110, "steps": 24, "quick": False, "device": "cuda",
            "bar": 0.65, "margin": 0.05,
+           "declared_keys": [["0.45", s, arm] for s in range(3) for arm in ("survival", "untrained")],
            "integrity": {"checked": True, "mismatches": [], "all_match": True},
            "d=0.45 survival": {"resid_obs": {"mean": 0.7, "per_seed": [0.7] * 3}},
-           "decision": {"survival_resid_obs": 0.7, "untrained_resid_obs": 0.5, "zone": "SENSORY-INDEPENDENT"}}
+           "decision": {"survival_resid_obs": 0.7, "untrained_resid_obs": 0.5,
+                        "zone": "SENSORY-INDEPENDENT world representation (rule passes)"}}
     (run / "cells.json").write_text(json.dumps(cells), encoding="utf-8")
     (run / "aggregate.json").write_text(json.dumps(agg), encoding="utf-8")
     out = pse.promote(str(run), str(tmp_path / "art" / "x.json"), head="abc123")
     back = json.loads((tmp_path / "art" / "x.json").read_text(encoding="utf-8"))
     assert back == out
     assert back["git_commit_at_promotion"] == "abc123"
-    assert back["aggregate"]["d=0.45 survival"]["resid_obs"]["mean"] == 0.7
-    assert back["decision"]["zone"] == "SENSORY-INDEPENDENT"
-    assert len(back["cells"]) == 3 and "extra" not in back["cells"][0]
+    assert abs(back["aggregate"]["d=0.45 survival"]["resid_obs"]["mean"] - 0.7) < 1e-9
+    assert back["decision"]["zone"].startswith("SENSORY-INDEPENDENT")
+    assert len(back["cells"]) == 6 and "extra" not in back["cells"][0]
     assert back["integrity"]["all_match"] is True
 
 
@@ -72,7 +74,7 @@ def _balanced_cells(resid_obs=0.76, untrained=0.52):
             cells.append({
                 "drift": "0.45", "seed": seed, "agent": arm, "n_auth": 110, "n_surr": 110,
                 "n_pairs": 110, "dropped_pairs": 0, "identical_first_state": True,
-                "recorded_target": 0.70, "target_abs_diff": 0.0, "integrity_match": True,
+                "recorded_target": level, "target_abs_diff": 0.0, "integrity_match": True,
                 **{metric: level for metric in pse.METRICS},
             })
     return cells
@@ -128,3 +130,41 @@ def test_agents_line_follows_the_run_capacity(tmp_path):
     out = pse.promote(str(run), str(tmp_path / "o.json"), head="abc")
     assert "l3_h7_heldout" in out["agents"]
     assert "hidden=7" in out["surrogate"]
+
+
+def test_pooled_promotion_recomputes_the_decision_instead_of_copying_a_stale_pass(tmp_path):
+    """Finite cells at 0.5 cannot meet the 0.65 bar; a stored passing decision must not
+    survive promotion (2026-10-14 review, C02). The disagreement is recorded."""
+    run = tmp_path / "run"
+    run.mkdir()
+    arms = ("survival", "predictor", "untrained")
+    cells = [{"drift": "0.45", "seed": s, "agent": a, "n_auth": 110, "n_surr": 110,
+              "integrity_match": True, **{m: 0.5 for m in pse.METRICS}} for s in range(10) for a in arms]
+    agg = {"hidden": 8, "g_seed": 0, "n_eps": 110, "steps": 24, "quick": False, "device": "cuda",
+           "bar": 0.65, "margin": 0.05, "declared_keys": [["0.45", s, a] for s in range(10) for a in arms],
+           "integrity": {"checked": True, "mismatches": [], "all_match": True},
+           "d=0.45 survival": {"resid_obs": {"mean": 0.7, "per_seed": [0.7] * 10}},
+           "decision": {"survival_resid_obs": 0.7, "untrained_resid_obs": 0.5, "pass_bar": True,
+                        "pass_margin": True, "zone": "SENSORY-INDEPENDENT world representation (rule passes)"}}
+    (run / "cells.json").write_text(json.dumps(cells), encoding="utf-8")
+    (run / "aggregate.json").write_text(json.dumps(agg), encoding="utf-8")
+    out = pse.promote(str(run), str(tmp_path / "o.json"), head="abc")
+    assert not out["decision"]["zone"].startswith("SENSORY-INDEPENDENT")
+    assert out["decision"]["pass_bar"] is False
+    assert abs(out["aggregate"]["d=0.45 survival"]["resid_obs"]["mean"] - 0.5) < 1e-9
+    assert out["integrity"]["stored_decision_disagrees"]
+
+
+def test_pooled_promotion_requires_a_declared_cell_set(tmp_path):
+    run = tmp_path / "run"
+    run.mkdir()
+    cells = [{"drift": "0.45", "seed": s, "agent": "survival", "n_auth": 110, "n_surr": 110,
+              "integrity_match": True, **{m: 0.7 for m in pse.METRICS}} for s in range(3)]
+    agg = {"hidden": 8, "g_seed": 0, "n_eps": 110, "steps": 24, "quick": False, "device": "cuda",
+           "bar": 0.65, "margin": 0.05, "integrity": {"checked": True, "mismatches": [], "all_match": True},
+           "decision": {"survival_resid_obs": 0.7, "untrained_resid_obs": 0.5, "zone": "SENSORY-INDEPENDENT"}}
+    (run / "cells.json").write_text(json.dumps(cells), encoding="utf-8")
+    (run / "aggregate.json").write_text(json.dumps(agg), encoding="utf-8")
+    out = pse.promote(str(run), str(tmp_path / "o.json"), head="abc")
+    assert out["decision"]["zone"].startswith("WITHHELD")
+    assert "declared cell set missing" in " ".join(out["integrity"]["adjudication_blockers"])

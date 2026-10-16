@@ -731,3 +731,18 @@ def test_provenance_lists_every_commit_to_a_registration_without_names(tmp_path,
     monkeypatch.setattr(reproduce, "ROOT", str(tmp_path))
     rows, why = reproduce.provenance_rows([rel])
     assert rows is None and "git checkout" in why
+
+
+def test_supplement_carries_the_corrected_l1_bundle_and_names_its_absence():
+    """The stream and surprise readouts replay from the corrected L1 bundle's agents and state
+    dumps (review N09); the supplement ships it when present and says what its absence costs."""
+    import reproduce
+    key = "fullruns/corrected_l1_heldout"
+    assert key in reproduce.RUN_DIRS
+    absent = reproduce.RUN_NOTES[key]
+    assert "L1-CORRECTED is absent" in absent and "stream" in absent and "surprise" in absent
+    assert "docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md" in absent
+    present = reproduce.RUN_INCLUDED_NOTES[key]
+    assert "60" in present and "state dumps" in present
+    assert "stream" in present and "surprise" in present
+    assert "artifacts/corrected_runs/l1-corrected" in present

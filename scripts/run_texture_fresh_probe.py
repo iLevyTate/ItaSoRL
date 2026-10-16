@@ -23,6 +23,7 @@ import _bootstrap  # noqa: F401
 from itasorl.results_io import git_head  # noqa: E402
 
 import argparse
+import contextlib
 import json
 import os
 import re
@@ -35,7 +36,33 @@ AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\
 # disjoint from every other base in the pipeline.
 BASES = {"gn": (960_000, 970_000), "qd": (1_900_000, 1_950_000),
          # correlated jitter, spec 2026-10-15-coherence-integration-sweep-design.md
-         "ar": (2_400_000, 2_450_000)}
+         "ar": (2_400_000, 2_450_000),
+         # sweep C: the ar family drawn afresh at every world creation, spec
+         # 2026-10-15-coherence-finite-horizon-companion-design.md
+         "arc": (2_500_000, 2_550_000)}
+
+
+@contextlib.contextmanager
+def per_episode_draw(fam, base: int):
+    """While active, every world created with a positive drift (through experiment_b2.make_world
+    or l0_audit's imported name) reseeds `fam` from base + 1000 + k for the k-th such world,
+    so each surrogate episode starts from its own stationary draw and nothing runs on from
+    one episode to the next (sweep C spec). Yields the patched make_world."""
+    import itasorl.experiment_b2 as b2
+    import itasorl.l0_audit as l0
+    orig, count = b2.make_world, [0]
+
+    def make_world(*args, **kw):
+        drift = kw.get("drift_sigma", args[1] if len(args) > 1 else 0.0)
+        if drift > 0:
+            fam.reseed(base + 1000 + count[0])
+            count[0] += 1
+        return orig(*args, **kw)
+    b2.make_world, l0.make_world = make_world, make_world
+    try:
+        yield make_world
+    finally:
+        b2.make_world, l0.make_world = orig, orig
 
 
 def run_one(task: dict) -> dict:
@@ -60,24 +87,27 @@ def run_one(task: dict) -> dict:
     d, s, n, steps, rs = task["drift"], task["seed"], task["n_eps"], task["steps"], task["ray_steps"]
     if task["family"] == "gn":
         fam = make_g_gn(sigma_v=task["param"], params=P, seed=0)
-    elif task["family"] == "ar":
+    elif task["family"] in ("ar", "arc"):
         fam = make_g_ar(sigma=task["param"], rho=task["rho"], params=P, seed=0)
     else:
         fam = make_g_qd(eps=task["param"], params=P)
     ba, bs = BASES[task["family"]]
+    # arc: every surrogate world reseeds the family (sweep C); otherwise one draw per pool
+    draw = per_episode_draw(fam, bs) if task["family"] == "arc" else contextlib.nullcontext()
     try:
         # the agent's own learned-law pools (standard seed bases): the transfer fit set
         Ha_tr, _ = collect_pool(agent, norm, P, 0.0, n, steps, "cpu", 800_000, rs)
         Hs_tr, _ = collect_pool(agent, norm, P, d, n, steps, "cpu", 850_000, rs)
         b2._L3_GMOTION = fam
-        if hasattr(fam, "reseed"):
-            fam.reseed(bs + s)
-        Ha_c, _ = collect_pool(agent, norm, P, 0.0, n, steps, "cpu", ba, rs)
-        Hs_c, _ = collect_pool(agent, norm, P, d, n, steps, "cpu", bs, rs)
-        if hasattr(fam, "reseed"):
-            fam.reseed(bs + 500 + s)
-        paired = paired_pooled_readout(agent, norm, P, d, n_eps=n, steps=steps, ray_steps=rs,
-                                       seed_base=ba, seed=s)
+        with draw:
+            if hasattr(fam, "reseed"):
+                fam.reseed(bs + s)
+            Ha_c, _ = collect_pool(agent, norm, P, 0.0, n, steps, "cpu", ba, rs)
+            Hs_c, _ = collect_pool(agent, norm, P, d, n, steps, "cpu", bs, rs)
+            if hasattr(fam, "reseed"):
+                fam.reseed(bs + 500 + s)
+            paired = paired_pooled_readout(agent, norm, P, d, n_eps=n, steps=steps, ray_steps=rs,
+                                           seed_base=ba, seed=s)
     finally:
         b2._L3_GMOTION = G
     Xtr = episode_features(np.concatenate([Ha_tr, Hs_tr]))
@@ -109,8 +139,8 @@ def main() -> int:
     ap.add_argument("--l3-seed", type=int, default=0)
     ap.add_argument("--quick", action="store_true")
     a = ap.parse_args()
-    if (a.family == "ar") != (a.rho is not None):
-        raise SystemExit("--rho is required for family ar and only for it")
+    if (a.family in ("ar", "arc")) != (a.rho is not None):
+        raise SystemExit("--rho is required for families ar and arc and only for them")
     if a.quick:
         a.n_eps, a.steps, a.ray_steps = 30, 12, 4
     cells = []
@@ -139,7 +169,9 @@ def main() -> int:
             if v:
                 agg[f"{g} {m}"] = {"per_seed": v, "mean": float(np.mean(v)),
                                    "t90": [float(x) for x in t_ci90(v)] if len(v) > 1 else None}
-    out = {"generated_by": "scripts/run_texture_fresh_probe.py", "git_commit": git_head(), "agents_dir": a.agents_dir,
+    from promote_bv3_gates import repo_rel
+    out = {"generated_by": "scripts/run_texture_fresh_probe.py", "git_commit": git_head(),
+           "agents_dir": repo_rel(a.agents_dir),
            "family": a.family, "param": a.param, "rho": a.rho, "seed_bases": BASES[a.family],
            "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
            "cells": results, "aggregate": agg}

@@ -93,10 +93,19 @@ def salience_measures(Ha: np.ndarray, Hs: np.ndarray, seed: int = 0) -> dict:
 GRID = 128
 
 
-def _torus_dist(p: np.ndarray, q: np.ndarray) -> np.ndarray:
-    d = np.abs(np.asarray(p, float) - np.asarray(q, float))
-    d = np.minimum(d, 1.0 - d)
+def arena_dist(p: np.ndarray, q: np.ndarray) -> np.ndarray:
+    """Euclidean distance in the unit arena. The world has walls (patch_of_earth clips a
+    position that crosses an edge and stops its normal velocity), so no distance wraps.
+    The 2026-10-15 run used a toroidal distance here; see the spec's third amendment."""
+    d = np.asarray(p, float) - np.asarray(q, float)
     return np.sqrt((d ** 2).sum(-1))
+
+
+def exceedance_rate(max_disp: np.ndarray, r: float) -> float:
+    """Share of episodes whose largest displacement from the start passes r. r is the 95th
+    percentile of the calibration episodes, a percentile and not a bound (review N01)."""
+    d = np.asarray(max_disp, float)
+    return float(np.mean(d > r)) if d.size else float("nan")
 
 
 def terrain_grid(world) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -120,15 +129,15 @@ def draw_features(world, r: float) -> dict:
     x, y, H = terrain_grid(world)
     water = water_mask(world, H)
     start = np.asarray(world.pos, float)
-    dg = _torus_dist(np.stack([x, y], -1), start)
+    dg = arena_dist(np.stack([x, y], -1), start)
     near = dg <= r
     far = ~near
     pel = np.asarray(world.pellets, float)
-    dp = _torus_dist(pel, start)
+    dp = arena_dist(pel, start)
     pf = pel[dp > r]
     if len(pf) >= 2:
         i, j = np.triu_indices(len(pf), 1)
-        disp = float(_torus_dist(pf[i], pf[j]).mean())
+        disp = float(arena_dist(pf[i], pf[j]).mean())
     else:
         disp = float("nan")
     return {"I1_nearest_pellet": float(dp.min()),
@@ -155,32 +164,55 @@ def residualize_incidental(F: dict) -> dict:
     return out
 
 
+def residual_targets(F: dict, k: str):
+    """A fold-target callable for feature `k`: for a far feature, its linear prediction from
+    the three near features (with intercept) is fit on the training rows alone and
+    subtracted from both row sets; for a near feature the raw values. Third amendment,
+    2026-10-15: the first run fit this regression over every episode before the decoder's
+    cross-validation, so held-out episodes shaped the training targets."""
+    v = np.asarray(F[k], float)
+    if k not in INCIDENTAL:
+        return lambda tr, te: (v[tr], v[te])
+    Xi = np.column_stack([np.ones(len(v))] + [np.asarray(F[j], float) for j in INSTRUMENTAL])
+
+    def fn(tr, te):
+        beta, *_ = np.linalg.lstsq(Xi[tr], v[tr], rcond=None)
+        return v[tr] - Xi[tr] @ beta, v[te] - Xi[te] @ beta
+    return fn
+
+
 ALPHAS = np.logspace(-2, 5, 15)
 
 
-def ridge_r2_cv(X: np.ndarray, t: np.ndarray) -> float:
+def ridge_r2_cv(X: np.ndarray, t: np.ndarray, target=None) -> float:
     """Held-out R^2 pooled over the five folds: ridge on columns standardized in fold, its
     strength chosen inside each training fold by leave-one-out over ALPHAS (spec amendment
-    2026-10-15: a fixed alpha of 1.0 failed the spec's permuted-target sanity check)."""
+    2026-10-15: a fixed alpha of 1.0 read far below the constant baseline on the permuted
+    target). `target(tr, te)`, when given, returns the training and held-out targets of a
+    fold, so a target transform can be fit on the training rows alone (residual_targets)."""
     from sklearn.linear_model import RidgeCV
     from sklearn.preprocessing import StandardScaler
-    pred = np.full(len(t), np.nan)
+    pred, truth = np.full(len(t), np.nan), np.full(len(t), np.nan)
     for tr, te in _folds(len(t)):
+        t_tr, t_te = (t[tr], t[te]) if target is None else target(tr, te)
         sc = StandardScaler().fit(X[tr])
-        m = RidgeCV(alphas=ALPHAS).fit(sc.transform(X[tr]), t[tr])
+        m = RidgeCV(alphas=ALPHAS).fit(sc.transform(X[tr]), t_tr)
         pred[te] = m.predict(sc.transform(X[te]))
-    sst = float(((t - t.mean()) ** 2).sum())
-    return float(1.0 - ((t - pred) ** 2).sum() / sst) if sst > 0 else float("nan")
+        truth[te] = t_te
+    sst = float(((truth - truth.mean()) ** 2).sum())
+    return float(1.0 - ((truth - pred) ** 2).sum() / sst) if sst > 0 else float("nan")
 
 
-def residual_r2_cv(Xh: np.ndarray, Xo: np.ndarray, t: np.ndarray) -> float:
+def residual_r2_cv(Xh: np.ndarray, Xo: np.ndarray, t: np.ndarray, target=None) -> float:
     """Held-out R^2 of the state features after the observation summary is regressed out
     in fold, then ridge from the residual, in the standardized state's units, to the target.
-    Both ridge strengths are chosen inside the training fold by leave-one-out over ALPHAS."""
+    Both ridge strengths are chosen inside the training fold by leave-one-out over ALPHAS.
+    `target` as in ridge_r2_cv."""
     from sklearn.linear_model import RidgeCV
     from sklearn.preprocessing import StandardScaler
-    pred = np.full(len(t), np.nan)
+    pred, truth = np.full(len(t), np.nan), np.full(len(t), np.nan)
     for tr, te in _folds(len(t)):
+        t_tr, t_te = (t[tr], t[te]) if target is None else target(tr, te)
         so = StandardScaler().fit(Xo[tr])
         sh = StandardScaler().fit(Xh[tr])
         Otr, Ote = so.transform(Xo[tr]), so.transform(Xo[te])
@@ -189,10 +221,11 @@ def residual_r2_cv(Xh: np.ndarray, Xo: np.ndarray, t: np.ndarray) -> float:
         # The residual stays in the standardized state's units. Re-standardizing it would
         # inflate the small leftover of the sensory regression back to full scale.
         Rtr, Rte = Htr - rm.predict(Otr), Hte - rm.predict(Ote)
-        m = RidgeCV(alphas=ALPHAS).fit(Rtr, t[tr])
+        m = RidgeCV(alphas=ALPHAS).fit(Rtr, t_tr)
         pred[te] = m.predict(Rte)
-    sst = float(((t - t.mean()) ** 2).sum())
-    return float(1.0 - ((t - pred) ** 2).sum() / sst) if sst > 0 else float("nan")
+        truth[te] = t_te
+    sst = float(((truth - truth.mean()) ** 2).sum())
+    return float(1.0 - ((truth - pred) ** 2).sum() / sst) if sst > 0 else float("nan")
 
 
 def obs_summary(O: np.ndarray) -> np.ndarray:
@@ -219,10 +252,22 @@ def probe_block_directions(Ha: np.ndarray, Hs: np.ndarray) -> np.ndarray:
     return np.stack([coef[:hid], coef[hid:]])
 
 
-def projector(vectors: np.ndarray) -> np.ndarray:
-    """Orthogonal projector onto the span of the rows of `vectors`."""
-    Q, _ = np.linalg.qr(np.asarray(vectors, float).T)
-    return Q @ Q.T
+def projector(vectors: np.ndarray, rank: int | None = None, tol: float = 1e-10) -> np.ndarray:
+    """Orthogonal projector onto the span of the rows of `vectors`, built from the left
+    singular vectors whose singular value exceeds tol times the largest. Reduced QR returned
+    extra arbitrary directions for rank-deficient rows (review N10, 2026-10-15). With `rank`,
+    a span of any other dimension raises."""
+    V = np.asarray(vectors, float).T
+    if not np.any(V):
+        found, P = 0, np.zeros((V.shape[0], V.shape[0]))
+    else:
+        U, s, _ = np.linalg.svd(V, full_matrices=False)
+        keep = s > tol * s[0]
+        found = int(keep.sum())
+        P = U[:, keep] @ U[:, keep].T
+    if rank is not None and found != rank:
+        raise ValueError(f"projector: the rows span rank {found}, rank {rank} required")
+    return P
 
 
 def sham_projector(P: np.ndarray, rank: int, seed: int) -> np.ndarray:

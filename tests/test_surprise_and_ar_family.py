@@ -112,3 +112,62 @@ def test_scripted_recorder_keeps_raw_observations_and_the_scripted_actions():
     rng = np.random.default_rng(600_000 + i)
     np.testing.assert_array_equal(A[0], np.stack([scripted_policy(rng) for _ in range(8)]))
     assert np.abs(O).max() > 1.5   # raw, not normalized
+
+
+def _scripts():
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+
+
+def test_arc_family_draws_each_episode_from_the_stationary_distribution():
+    """Sweep C (spec 2026-10-15-coherence-finite-horizon-companion-design.md): every world
+    creation reseeds the family from base + 1000 + k, so each episode starts from its own
+    stationary draw and nothing runs on from one episode to the next."""
+    _scripts()
+    import run_texture_fresh_probe as rt
+    from itasorl.surrogate_l3_families import make_g_ar
+    P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
+    fam = make_g_ar(sigma=0.01, rho=0.99, params=P, seed=0)
+    with rt.per_episode_draw(fam, base=2_550_000) as make_world:
+        make_world(P, 0.45, 5)
+        first = fam(np.zeros(2), np.zeros(2)).copy()
+        make_world(P, 0.45, 5)
+        second = fam(np.zeros(2), np.zeros(2)).copy()
+    fresh = make_g_ar(sigma=0.01, rho=0.99, params=P, seed=2_550_000 + 1000 + 1)
+    assert np.allclose(second, fresh(np.zeros(2), np.zeros(2)))
+    assert not np.allclose(first, second)
+
+
+def test_sweep_c_sigmas_match_the_shared_gap():
+    _scripts()
+    import run_ar_sweep_c as c
+    pts = c.points()
+    assert [p["rho"] for p in pts] == [0.0, 0.5, 0.8, 0.9, 0.95, 0.99]
+    assert pts[3]["sigma"] == pytest.approx(0.01)
+    assert pts[0]["sigma"] == pytest.approx(0.01 * 0.1150 / 0.0364, rel=1e-6)
+    assert c.BASES == (2_500_000, 2_550_000)
+
+
+def test_sweep_c_readings_are_the_three_of_the_spec():
+    _scripts()
+    import run_ar_sweep_c as c
+    k = ("1 coherence raises at matched gap", "2 within the margin unit", "3 neither")
+    assert [c.readings({"mean": 0.02, "t90": [0.005, 0.035]})[x] for x in k] == [True, True, False]
+    assert [c.readings({"mean": 0.0, "t90": [-0.04, 0.04]})[x] for x in k] == [False, True, False]
+    assert [c.readings({"mean": 0.03, "t90": [-0.02, 0.08]})[x] for x in k] == [False, False, True]
+
+
+def test_sweep_c_resume_reads_the_point_file_it_wrote():
+    """A sweep C point file keeps its inputs at the top level with a repo-relative agents label;
+    the resume check read a provenance block the probe never writes, so it refused every point."""
+    _scripts()
+    import run_ar_sweep_c as c
+    p = c.points()[2]
+    doc = {"family": "arc", "rho": p["rho"], "param": p["sigma"], "seed_bases": list(c.BASES),
+           "agents_dir": "fullruns/corrected_l3_h8_wm/agents"}
+    assert c._point_matches(doc, p, "fullruns/corrected_l3_h8_wm/agents")
+    assert c._point_matches(doc, p, "C:/elsewhere/ITASORL/fullruns/corrected_l3_h8_wm/agents")
+    assert not c._point_matches({**doc, "rho": 0.95}, p, "fullruns/corrected_l3_h8_wm/agents")
+    assert not c._point_matches({**doc, "agents_dir": "C:/x/fullruns/corrected_l3_h8_wm/agents"}, p,
+                                "fullruns/corrected_l3_h8_wm/agents")

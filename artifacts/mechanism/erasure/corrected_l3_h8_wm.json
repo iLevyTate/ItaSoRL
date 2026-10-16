@@ -1,7 +1,7 @@
 {
  "provenance": {
   "generated_by": "scripts/run_erasure_readout.py",
-  "command": "python scripts/run_erasure_readout.py --agents-dir fullruns/corrected_l3_h8_wm/agents --out artifacts/mechanism/erasure/corrected_l3_h8_wm.json --ckpt fullruns/readouts_2026_10_15/ckpt/erasure_wm",
+  "command": "python scripts/run_erasure_readout.py --agents-dir fullruns/corrected_l3_h8_wm/agents --out artifacts/mechanism/erasure/corrected_l3_h8_wm.json --ckpt fullruns/readouts_2026_10_15/ckpt/erasure_wm_pop",
   "inputs": {
    "agents_dir": "fullruns/corrected_l3_h8_wm/agents",
    "seeds": [
@@ -21,7 +21,7 @@
    "steps": 80
   },
   "status": "readout under docs/specs/2026-10-15-online-erasure-design.md; diagnostic, not an adjudication; changes no registered rule or verdict",
-  "git_head": "2cfc08d",
+  "git_head": "9e03469",
   "stack": {
    "python": "3.13.2",
    "numpy": "1.26.4",
@@ -30,13 +30,109 @@
    "torch": "2.7.0+cu126",
    "device": "cpu"
   },
-  "written": "2026-10-15",
-  "paths_rewritten": "2026-10-15: agents_dir and the command line were made repo-relative after the run, which recorded absolute paths; no other field changed"
+  "written": "2026-10-16"
  },
  "spec": "docs/specs/2026-10-15-online-erasure-design.md",
  "summary": {
   "survival": {
    "n_informative": 10,
+   "scope": "common survivors across all six conditions (behavior, return and probe readings below)",
+   "attrition": {
+    "excluded_fraction": {
+     "mean": 0.265625,
+     "t90": [
+      0.24653007361819132,
+      0.28471992638180865
+     ],
+     "n": 10
+    },
+    "terminated_per_condition": {
+     "a": {
+      "mean": 10.5,
+      "t90": [
+       9.126863676327352,
+       11.873136323672648
+      ],
+      "n": 10
+     },
+     "s": {
+      "mean": 14.3,
+      "t90": [
+       12.878762692459942,
+       15.72123730754006
+      ],
+      "n": 10
+     },
+     "ea": {
+      "mean": 10.5,
+      "t90": [
+       8.900761441134676,
+       12.099238558865324
+      ],
+      "n": 10
+     },
+     "es": {
+      "mean": 14.2,
+      "t90": [
+       12.81198928906118,
+       15.588010710938818
+      ],
+      "n": 10
+     },
+     "sa": {
+      "mean": 10.7,
+      "t90": [
+       9.105437587281205,
+       12.294562412718793
+      ],
+      "n": 10
+     },
+     "ss": {
+      "mean": 14.0,
+      "t90": [
+       12.430215869140344,
+       15.569784130859656
+      ],
+      "n": 10
+     }
+    },
+    "note": "attempted episodes per condition and how many ended before the horizon; the common-survivor readings drop every episode that ended in any condition"
+   },
+   "population": {
+    "surr_return_erased_minus_sham": {
+     "mean": 0.010243872372741703,
+     "t90": [
+      -0.009294936773260376,
+      0.029782681518743782
+     ],
+     "n": 10
+    },
+    "auth_return_erased_minus_sham": {
+     "mean": 0.00521218398442648,
+     "t90": [
+      -0.008837589044082977,
+      0.019261957012935937
+     ],
+     "n": 10
+    },
+    "surr_terminated_erased_minus_sham": {
+     "mean": 0.2,
+     "t90": [
+      -0.25725870301695397,
+      0.657258703016954
+     ],
+     "n": 10
+    },
+    "auth_terminated_erased_minus_sham": {
+     "mean": -0.2,
+     "t90": [
+      -0.657258703016954,
+      0.25725870301695397
+     ],
+     "n": 10
+    },
+    "note": "every attempted episode, return summed through termination; descriptive, no pre-stated reading (third amendment)"
+   },
    "primary": {
     "mean": -0.010456422618988371,
     "t90": [
@@ -115,6 +211,103 @@
   },
   "untrained": {
    "n_informative": 6,
+   "scope": "common survivors across all six conditions (behavior, return and probe readings below)",
+   "attrition": {
+    "excluded_fraction": {
+     "mean": 0.646875,
+     "t90": [
+      0.46163452965132834,
+      0.8321154703486716
+     ],
+     "n": 10
+    },
+    "terminated_per_condition": {
+     "a": {
+      "mean": 36.8,
+      "t90": [
+       23.672499333698376,
+       49.92750066630162
+      ],
+      "n": 10
+     },
+     "s": {
+      "mean": 38.5,
+      "t90": [
+       25.946930914354233,
+       51.05306908564577
+      ],
+      "n": 10
+     },
+     "ea": {
+      "mean": 36.7,
+      "t90": [
+       23.469800284463894,
+       49.93019971553611
+      ],
+      "n": 10
+     },
+     "es": {
+      "mean": 38.5,
+      "t90": [
+       26.13271280206856,
+       50.86728719793144
+      ],
+      "n": 10
+     },
+     "sa": {
+      "mean": 36.5,
+      "t90": [
+       23.29465795261988,
+       49.70534204738012
+      ],
+      "n": 10
+     },
+     "ss": {
+      "mean": 38.2,
+      "t90": [
+       25.639348717508813,
+       50.760651282491196
+      ],
+      "n": 10
+     }
+    },
+    "note": "attempted episodes per condition and how many ended before the horizon; the common-survivor readings drop every episode that ended in any condition"
+   },
+   "population": {
+    "surr_return_erased_minus_sham": {
+     "mean": -0.014057730354016135,
+     "t90": [
+      -0.03185698105995342,
+      0.003741520351921145
+     ],
+     "n": 10
+    },
+    "auth_return_erased_minus_sham": {
+     "mean": -0.007848746518810745,
+     "t90": [
+      -0.023947013449036124,
+      0.008249520411414635
+     ],
+     "n": 10
+    },
+    "surr_terminated_erased_minus_sham": {
+     "mean": 0.3,
+     "t90": [
+      -0.1772356562719445,
+      0.7772356562719445
+     ],
+     "n": 10
+    },
+    "auth_terminated_erased_minus_sham": {
+     "mean": 0.2,
+     "t90": [
+      -0.5125862218748085,
+      0.9125862218748084
+     ],
+     "n": 10
+    },
+    "note": "every attempted episode, return summed through termination; descriptive, no pre-stated reading (third amendment)"
+   },
    "primary": {
     "mean": -0.0006793241049061147,
     "t90": [
@@ -197,7 +390,32 @@
    "seed": 0,
    "arm": "survival",
    "n_common": 44,
-   "pool_resid_max": 1.2160572757102805e-08,
+   "pool_resid_max": 1.2160572791797275e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 15,
+    "s": 17,
+    "ea": 16,
+    "es": 17,
+    "sa": 15,
+    "ss": 17
+   },
+   "pop_return": {
+    "a": -0.17092450835437292,
+    "s": -0.2720727165825578,
+    "ea": -0.1971767580568035,
+    "es": -0.2722109825486481,
+    "sa": -0.1553129171018714,
+    "ss": -0.29394767669735805
+   },
+   "pop_steps_alive": {
+    "a": 73.484375,
+    "s": 72.9375,
+    "ea": 73.46875,
+    "es": 72.921875,
+    "sa": 73.484375,
+    "ss": 72.984375
+   },
    "gap": 1.404724154877616,
    "informative": true,
    "surr_real": -0.17902849773465165,
@@ -229,13 +447,38 @@
    "score_spread_erased_over_unerased": 1.554187921147692e-06,
    "score_spread_sham_over_unerased": 1.0012508441534183,
    "refit_probe_erased": 0.4145061728395062,
-   "seconds": 56.8
+   "seconds": 86.6
   },
   {
    "seed": 1,
    "arm": "survival",
    "n_common": 45,
-   "pool_resid_max": 2.3743142187797675e-08,
+   "pool_resid_max": 2.3743142134238088e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 10,
+    "s": 15,
+    "ea": 10,
+    "es": 15,
+    "sa": 11,
+    "ss": 14
+   },
+   "pop_return": {
+    "a": 0.10828649545813895,
+    "s": -0.1991538497049563,
+    "ea": 0.12250191917386272,
+    "es": -0.19645769180435563,
+    "sa": 0.09375167821564137,
+    "ss": -0.1814420970951179
+   },
+   "pop_steps_alive": {
+    "a": 75.625,
+    "s": 72.671875,
+    "ea": 75.546875,
+    "es": 72.671875,
+    "sa": 75.1875,
+    "ss": 73.21875
+   },
    "gap": 1.7939336238598185,
    "informative": true,
    "surr_real": -0.005371848422456402,
@@ -267,13 +510,38 @@
    "score_spread_erased_over_unerased": 5.146907834296945e-07,
    "score_spread_sham_over_unerased": 0.9855483135008143,
    "refit_probe_erased": 0.8098765432098766,
-   "seconds": 55.2
+   "seconds": 93.1
   },
   {
    "seed": 2,
    "arm": "survival",
    "n_common": 47,
-   "pool_resid_max": 1.3897341154386553e-08,
+   "pool_resid_max": 1.3897341119908924e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 10,
+    "s": 15,
+    "ea": 10,
+    "es": 15,
+    "sa": 10,
+    "ss": 15
+   },
+   "pop_return": {
+    "a": 0.1326787606851221,
+    "s": -0.17578689696384003,
+    "ea": 0.13115452619285906,
+    "es": -0.17743234743202824,
+    "sa": 0.14378777606094928,
+    "ss": -0.18503026300960285
+   },
+   "pop_steps_alive": {
+    "a": 75.375,
+    "s": 72.84375,
+    "ea": 75.375,
+    "es": 72.84375,
+    "sa": 75.375,
+    "ss": 72.859375
+   },
    "gap": 1.5474514991171908,
    "informative": true,
    "surr_real": -0.0022981414479036383,
@@ -305,13 +573,38 @@
    "score_spread_erased_over_unerased": 1.7071738278899438e-06,
    "score_spread_sham_over_unerased": 0.986247222201814,
    "refit_probe_erased": 0.6116049382716049,
-   "seconds": 56.3
+   "seconds": 83.5
   },
   {
    "seed": 3,
    "arm": "survival",
    "n_common": 47,
-   "pool_resid_max": 1.7302069324357308e-08,
+   "pool_resid_max": 1.7302069293565966e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 7,
+    "s": 16,
+    "ea": 6,
+    "es": 15,
+    "sa": 6,
+    "ss": 16
+   },
+   "pop_return": {
+    "a": 0.21056838595704522,
+    "s": -0.12588055110675186,
+    "ea": 0.23289618020962194,
+    "es": -0.11159269018649781,
+    "sa": 0.23670967852914598,
+    "ss": -0.1414426871587374
+   },
+   "pop_steps_alive": {
+    "a": 76.6875,
+    "s": 73.21875,
+    "ea": 77.109375,
+    "es": 73.203125,
+    "sa": 77.109375,
+    "ss": 73.203125
+   },
    "gap": 1.606877070630539,
    "informative": true,
    "surr_real": 8.20270401151042e-05,
@@ -343,13 +636,38 @@
    "score_spread_erased_over_unerased": 1.996340073034698e-06,
    "score_spread_sham_over_unerased": 1.0316237164376516,
    "refit_probe_erased": 0.5444444444444445,
-   "seconds": 56.8
+   "seconds": 73.5
   },
   {
    "seed": 4,
    "arm": "survival",
    "n_common": 48,
-   "pool_resid_max": 2.327545690211652e-08,
+   "pool_resid_max": 2.3275456874360945e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 8,
+    "s": 13,
+    "ea": 8,
+    "es": 13,
+    "sa": 8,
+    "ss": 13
+   },
+   "pop_return": {
+    "a": 0.17185451652712366,
+    "s": -0.08682823068688245,
+    "ea": 0.16919239335548777,
+    "es": -0.08667660179544309,
+    "sa": 0.17429086903123894,
+    "ss": -0.08633638129835572
+   },
+   "pop_steps_alive": {
+    "a": 76.9375,
+    "s": 74.265625,
+    "ea": 76.921875,
+    "es": 74.265625,
+    "sa": 76.9375,
+    "ss": 74.25
+   },
    "gap": 1.630672838962676,
    "informative": true,
    "surr_real": 0.015789707211498045,
@@ -381,13 +699,38 @@
    "score_spread_erased_over_unerased": 2.3288165250298797e-06,
    "score_spread_sham_over_unerased": 0.9810379426395317,
    "refit_probe_erased": 0.5435555555555556,
-   "seconds": 56.9
+   "seconds": 68.6
   },
   {
    "seed": 5,
    "arm": "survival",
    "n_common": 45,
-   "pool_resid_max": 2.945917101189119e-08,
+   "pool_resid_max": 2.945917100278389e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 13,
+    "s": 17,
+    "ea": 13,
+    "es": 17,
+    "sa": 13,
+    "ss": 17
+   },
+   "pop_return": {
+    "a": -0.13525125050723683,
+    "s": -0.24362083321375286,
+    "ea": -0.1352610493804793,
+    "es": -0.2448157105950034,
+    "sa": -0.1416946429740745,
+    "ss": -0.2958004203383565
+   },
+   "pop_steps_alive": {
+    "a": 74.15625,
+    "s": 73.296875,
+    "ea": 74.15625,
+    "es": 73.28125,
+    "sa": 74.15625,
+    "ss": 73.296875
+   },
    "gap": 0.8997355734981825,
    "informative": true,
    "surr_real": 0.004107326112808279,
@@ -419,13 +762,38 @@
    "score_spread_erased_over_unerased": 1.455665733077527e-06,
    "score_spread_sham_over_unerased": 1.0460947346585918,
    "refit_probe_erased": 0.6444444444444445,
-   "seconds": 55.9
+   "seconds": 73.1
   },
   {
    "seed": 6,
    "arm": "survival",
    "n_common": 48,
-   "pool_resid_max": 1.956418143244862e-08,
+   "pool_resid_max": 1.9564181403392e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 11,
+    "s": 11,
+    "ea": 11,
+    "es": 11,
+    "sa": 11,
+    "ss": 10
+   },
+   "pop_return": {
+    "a": 0.044932363587881746,
+    "s": 0.1340314304280942,
+    "ea": 0.04806103148728108,
+    "es": 0.12342279267333461,
+    "sa": 0.0369406639557546,
+    "ss": 0.09045006662941646
+   },
+   "pop_steps_alive": {
+    "a": 76.9375,
+    "s": 75.703125,
+    "ea": 77.03125,
+    "es": 75.703125,
+    "sa": 76.421875,
+    "ss": 75.71875
+   },
    "gap": 1.845413188416967,
    "informative": true,
    "surr_real": -0.007751596564841809,
@@ -457,13 +825,38 @@
    "score_spread_erased_over_unerased": 2.138050693731564e-06,
    "score_spread_sham_over_unerased": 0.9868250660369646,
    "refit_probe_erased": 0.818,
-   "seconds": 56.4
+   "seconds": 87.2
   },
   {
    "seed": 7,
    "arm": "survival",
    "n_common": 51,
-   "pool_resid_max": 1.5789241161051626e-08,
+   "pool_resid_max": 1.5789241244318353e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 9,
+    "s": 10,
+    "ea": 9,
+    "es": 10,
+    "sa": 9,
+    "ss": 9
+   },
+   "pop_return": {
+    "a": 0.10780226694639901,
+    "s": 0.008519100582871031,
+    "ea": 0.10334232407772825,
+    "es": -0.002769522085989337,
+    "sa": 0.10033928429350628,
+    "ss": 0.05421306601011894
+   },
+   "pop_steps_alive": {
+    "a": 76.546875,
+    "s": 75.15625,
+    "ea": 76.546875,
+    "es": 75.171875,
+    "sa": 76.671875,
+    "ss": 75.625
+   },
    "gap": 1.7684110299742581,
    "informative": true,
    "surr_real": -0.00240344088434846,
@@ -495,13 +888,38 @@
    "score_spread_erased_over_unerased": 1.501866717314805e-06,
    "score_spread_sham_over_unerased": 0.9969823690399329,
    "refit_probe_erased": 0.8176363636363636,
-   "seconds": 57.1
+   "seconds": 91.9
   },
   {
    "seed": 8,
    "arm": "survival",
    "n_common": 49,
-   "pool_resid_max": 1.2025149700002971e-08,
+   "pool_resid_max": 1.2025149600581632e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 10,
+    "s": 13,
+    "ea": 10,
+    "es": 13,
+    "sa": 10,
+    "ss": 14
+   },
+   "pop_return": {
+    "a": 0.2626383542364472,
+    "s": 0.00962815693321073,
+    "ea": 0.26567781477947394,
+    "es": 0.023637593924796238,
+    "sa": 0.24692626676268017,
+    "ss": -0.0252966563402868
+   },
+   "pop_steps_alive": {
+    "a": 75.40625,
+    "s": 74.234375,
+    "ea": 75.40625,
+    "es": 74.234375,
+    "sa": 75.40625,
+    "ss": 73.875
+   },
    "gap": 1.8784917776979522,
    "informative": true,
    "surr_real": 0.0008172604972521023,
@@ -533,13 +951,38 @@
    "score_spread_erased_over_unerased": 4.6567106853621645e-06,
    "score_spread_sham_over_unerased": 0.9703772974810041,
    "refit_probe_erased": 0.7388888888888889,
-   "seconds": 55.6
+   "seconds": 89.5
   },
   {
    "seed": 9,
    "arm": "survival",
    "n_common": 46,
-   "pool_resid_max": 1.0424487800753113e-08,
+   "pool_resid_max": 1.0424487818100348e-08,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 12,
+    "s": 16,
+    "ea": 12,
+    "es": 16,
+    "sa": 14,
+    "ss": 15
+   },
+   "pop_return": {
+    "a": 0.17686030987421397,
+    "s": -0.11418763309578725,
+    "ea": 0.18783534032822646,
+    "es": -0.11413979703736311,
+    "sa": 0.14036322555002287,
+    "ss": -0.09684063131633508
+   },
+   "pop_steps_alive": {
+    "a": 74.390625,
+    "s": 72.796875,
+    "ea": 74.703125,
+    "es": 72.796875,
+    "sa": 73.875,
+    "ss": 73.3125
+   },
    "gap": 1.9233130599658979,
    "informative": true,
    "surr_real": 0.009054047297889379,
@@ -571,22 +1014,72 @@
    "score_spread_erased_over_unerased": 1.443234596710024e-06,
    "score_spread_sham_over_unerased": 0.9992744339400221,
    "refit_probe_erased": 0.5145679012345679,
-   "seconds": 55.1
+   "seconds": 83.9
   },
   {
    "seed": 0,
    "arm": "untrained",
    "n_common": 0,
-   "pool_resid_max": 3.2357210126890933e-09,
+   "pool_resid_max": 3.235721018001684e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 64,
+    "s": 64,
+    "ea": 64,
+    "es": 64,
+    "sa": 64,
+    "ss": 64
+   },
+   "pop_return": {
+    "a": -2.011832750353509,
+    "s": -2.011580869456174,
+    "ea": -2.011561036368046,
+    "es": -2.0117007798581286,
+    "sa": -2.0115343666147627,
+    "ss": -2.0111393019819928
+   },
+   "pop_steps_alive": {
+    "a": 47.671875,
+    "s": 47.3125,
+    "ea": 47.65625,
+    "es": 47.3125,
+    "sa": 47.515625,
+    "ss": 47.15625
+   },
    "informative": false,
    "reason": "fewer than 5 common survivors",
-   "seconds": 39.8
+   "seconds": 56.5
   },
   {
    "seed": 1,
    "arm": "untrained",
    "n_common": 43,
-   "pool_resid_max": 3.4023775621980917e-09,
+   "pool_resid_max": 3.4023775565602404e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 17,
+    "s": 18,
+    "ea": 17,
+    "es": 18,
+    "sa": 17,
+    "ss": 17
+   },
+   "pop_return": {
+    "a": -0.4175472685400783,
+    "s": -0.531163840309014,
+    "ea": -0.4285147650904751,
+    "es": -0.5312786200543002,
+    "sa": -0.4178090246906043,
+    "ss": -0.5124141648384067
+   },
+   "pop_steps_alive": {
+    "a": 72.5625,
+    "s": 72.03125,
+    "ea": 72.5625,
+    "es": 72.03125,
+    "sa": 72.5625,
+    "ss": 72.609375
+   },
    "gap": 0.6731265313056481,
    "informative": true,
    "surr_real": -0.11522912203382076,
@@ -618,13 +1111,38 @@
    "score_spread_erased_over_unerased": 7.982278420517667e-07,
    "score_spread_sham_over_unerased": 0.9765651505773322,
    "refit_probe_erased": 0.2941358024691358,
-   "seconds": 55.9
+   "seconds": 77.0
   },
   {
    "seed": 2,
    "arm": "untrained",
    "n_common": 42,
-   "pool_resid_max": 2.5114556845848637e-09,
+   "pool_resid_max": 2.5114556738512622e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 16,
+    "s": 19,
+    "ea": 15,
+    "es": 19,
+    "sa": 17,
+    "ss": 19
+   },
+   "pop_return": {
+    "a": -0.3117786386899689,
+    "s": -0.41093292488880706,
+    "ea": -0.2963517146407024,
+    "es": -0.41120432772509846,
+    "sa": -0.3271624123987649,
+    "ss": -0.4167701404646656
+   },
+   "pop_steps_alive": {
+    "a": 73.40625,
+    "s": 71.484375,
+    "ea": 73.484375,
+    "es": 71.25,
+    "sa": 73.390625,
+    "ss": 71.46875
+   },
    "gap": 0.6528010706452392,
    "informative": true,
    "surr_real": -0.0044123199414460145,
@@ -656,13 +1174,38 @@
    "score_spread_erased_over_unerased": 8.989336511121609e-07,
    "score_spread_sham_over_unerased": 1.014379405136724,
    "refit_probe_erased": 0.17430555555555555,
-   "seconds": 55.7
+   "seconds": 70.9
   },
   {
    "seed": 3,
    "arm": "untrained",
    "n_common": 17,
-   "pool_resid_max": 2.5533289766364875e-09,
+   "pool_resid_max": 2.553328981406977e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 34,
+    "s": 35,
+    "ea": 35,
+    "es": 36,
+    "sa": 32,
+    "ss": 34
+   },
+   "pop_return": {
+    "a": -0.9484347216804627,
+    "s": -1.164415364820439,
+    "ea": -0.9807977278909712,
+    "es": -1.2216795617003706,
+    "sa": -0.9115851078635666,
+    "ss": -1.1302451280068564
+   },
+   "pop_steps_alive": {
+    "a": 67.859375,
+    "s": 64.0,
+    "ea": 66.765625,
+    "es": 64.328125,
+    "sa": 67.21875,
+    "ss": 65.1875
+   },
    "gap": 1.4177435718051246,
    "informative": true,
    "surr_real": -0.04475584747130461,
@@ -694,13 +1237,38 @@
    "score_spread_erased_over_unerased": 5.808189610672272e-07,
    "score_spread_sham_over_unerased": 0.9973910546561555,
    "refit_probe_erased": 0.05555555555555556,
-   "seconds": 50.6
+   "seconds": 59.8
   },
   {
    "seed": 4,
    "arm": "untrained",
    "n_common": 42,
-   "pool_resid_max": 2.9403236001578417e-09,
+   "pool_resid_max": 2.9403235939778893e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 18,
+    "s": 19,
+    "ea": 18,
+    "es": 19,
+    "sa": 18,
+    "ss": 19
+   },
+   "pop_return": {
+    "a": -0.27068252656244807,
+    "s": -0.4736837114082068,
+    "ea": -0.27067209279084037,
+    "es": -0.47057759613888217,
+    "sa": -0.27566393483098706,
+    "ss": -0.43743536064733174
+   },
+   "pop_steps_alive": {
+    "a": 72.375,
+    "s": 72.046875,
+    "ea": 72.375,
+    "es": 72.046875,
+    "sa": 72.390625,
+    "ss": 72.046875
+   },
    "gap": 0.6149946569370703,
    "informative": true,
    "surr_real": -0.010750429124605696,
@@ -732,13 +1300,38 @@
    "score_spread_erased_over_unerased": 7.921951618312785e-07,
    "score_spread_sham_over_unerased": 1.0018541567216475,
    "refit_probe_erased": 0.36944444444444446,
-   "seconds": 55.2
+   "seconds": 63.6
   },
   {
    "seed": 5,
    "arm": "untrained",
    "n_common": 39,
-   "pool_resid_max": 1.9866074926593036e-09,
+   "pool_resid_max": 1.98660748593725e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 14,
+    "s": 22,
+    "ea": 14,
+    "es": 22,
+    "sa": 13,
+    "ss": 21
+   },
+   "pop_return": {
+    "a": -0.22336445715471243,
+    "s": -0.49705724249101924,
+    "ea": -0.22959378859021473,
+    "es": -0.492470560264303,
+    "sa": -0.19215864670236638,
+    "ss": -0.4718821359481109
+   },
+   "pop_steps_alive": {
+    "a": 73.875,
+    "s": 70.25,
+    "ea": 73.875,
+    "es": 70.328125,
+    "sa": 73.875,
+    "ss": 70.953125
+   },
    "gap": 0.5303168340859412,
    "informative": true,
    "surr_real": 0.006322109161838303,
@@ -770,31 +1363,106 @@
    "score_spread_erased_over_unerased": 6.374040285897369e-07,
    "score_spread_sham_over_unerased": 0.9901245403827115,
    "refit_probe_erased": 0.3098214285714286,
-   "seconds": 55.8
+   "seconds": 64.8
   },
   {
    "seed": 6,
    "arm": "untrained",
    "n_common": 0,
-   "pool_resid_max": 2.3434957867503325e-09,
+   "pool_resid_max": 2.343495784581928e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 64,
+    "s": 64,
+    "ea": 64,
+    "es": 64,
+    "sa": 64,
+    "ss": 64
+   },
+   "pop_return": {
+    "a": -2.0094091406253654,
+    "s": -2.0089895902445667,
+    "ea": -2.009378874670835,
+    "es": -2.0089749113593713,
+    "sa": -2.009387077072785,
+    "ss": -2.0090090590515013
+   },
+   "pop_steps_alive": {
+    "a": 47.0625,
+    "s": 46.90625,
+    "ea": 47.0625,
+    "es": 46.90625,
+    "sa": 47.0625,
+    "ss": 46.90625
+   },
    "informative": false,
    "reason": "fewer than 5 common survivors",
-   "seconds": 39.7
+   "seconds": 45.9
   },
   {
    "seed": 7,
    "arm": "untrained",
    "n_common": 0,
-   "pool_resid_max": 2.925935744233811e-09,
+   "pool_resid_max": 2.925935739788582e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 64,
+    "s": 64,
+    "ea": 64,
+    "es": 64,
+    "sa": 64,
+    "ss": 64
+   },
+   "pop_return": {
+    "a": -2.0104133461822324,
+    "s": -2.00956279474981,
+    "ea": -2.0097916362789903,
+    "es": -2.009585760622181,
+    "sa": -2.01040997676476,
+    "ss": -2.009542192784329
+   },
+   "pop_steps_alive": {
+    "a": 47.078125,
+    "s": 46.90625,
+    "ea": 47.046875,
+    "es": 46.90625,
+    "sa": 47.078125,
+    "ss": 46.90625
+   },
    "informative": false,
    "reason": "fewer than 5 common survivors",
-   "seconds": 39.1
+   "seconds": 43.8
   },
   {
    "seed": 8,
    "arm": "untrained",
    "n_common": 41,
-   "pool_resid_max": 2.3060385434970493e-09,
+   "pool_resid_max": 2.3060385331700236e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 20,
+    "s": 20,
+    "ea": 19,
+    "es": 21,
+    "sa": 19,
+    "ss": 21
+   },
+   "pop_return": {
+    "a": -0.40857005240372213,
+    "s": -0.5161825801301756,
+    "ea": -0.39598897044098946,
+    "es": -0.5240847588574662,
+    "sa": -0.3855372979944215,
+    "ss": -0.5365888138637656
+   },
+   "pop_steps_alive": {
+    "a": 71.5625,
+    "s": 71.546875,
+    "ea": 71.34375,
+    "es": 71.328125,
+    "sa": 71.578125,
+    "ss": 71.328125
+   },
    "gap": 0.6568055345651591,
    "informative": true,
    "surr_real": -0.05747772876298686,
@@ -826,16 +1494,41 @@
    "score_spread_erased_over_unerased": 4.671339778187034e-07,
    "score_spread_sham_over_unerased": 1.0244340828912792,
    "refit_probe_erased": 0.34652777777777777,
-   "seconds": 54.6
+   "seconds": 62.6
   },
   {
    "seed": 9,
    "arm": "untrained",
    "n_common": 2,
-   "pool_resid_max": 2.2722407456575618e-09,
+   "pool_resid_max": 2.2722407428928462e-09,
+   "n_attempted": 64,
+   "terminated": {
+    "a": 57,
+    "s": 60,
+    "ea": 57,
+    "es": 58,
+    "sa": 57,
+    "ss": 59
+   },
+   "pop_return": {
+    "a": -1.8381398139745726,
+    "s": -1.9186442994392259,
+    "ea": -1.8391533588682574,
+    "es": -1.8708134221568586,
+    "sa": -1.8520686555091963,
+    "ss": -1.876766697609839
+   },
+   "pop_steps_alive": {
+    "a": 54.90625,
+    "s": 52.515625,
+    "ea": 55.03125,
+    "es": 52.78125,
+    "sa": 54.75,
+    "ss": 52.625
+   },
    "informative": false,
    "reason": "fewer than 5 common survivors",
-   "seconds": 43.9
+   "seconds": 48.6
   }
  ]
 }

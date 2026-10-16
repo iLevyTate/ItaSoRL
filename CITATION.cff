@@ -8,8 +8,8 @@ authors:
     orcid: "https://orcid.org/0009-0009-1337-0709"
 repository-code: "https://github.com/iLevyTate/ItaSoRL"
 license: MIT
-version: 1.4.0
-date-released: "2026-10-15"
+version: 1.4.1
+date-released: "2026-10-16"
 abstract: >-
   ITASORL measures whether a recurrent agent trained from scratch, with no
   imported semantic knowledge and no reward for detection, comes to carry in its
@@ -41,9 +41,12 @@ abstract: >-
   carried mostly by the physical footprint of the prefix, not by memory (see
   FINDINGS section 10.6.1 and 17.7). Four readouts on the saved agents
   (FINDINGS section 23) find the world direction faint in the state's own
-  geometry, nothing of the agent's own world kept beyond the senses, no change
-  in behavior when the decoded direction is removed while the agent acts, and
-  a stored component that grows and reorganizes across training snapshots.
+  geometry in trained and untrained states alike; no named near feature of the
+  agent's own world read beyond an observation-summary control; on the episodes
+  that survived every condition, removing the decoded direction while the agent
+  acts changed behavior no more than a sham removal; and decodability after a
+  linear observation control grows across training snapshots while the probe
+  direction reorganizes.
   Corrections and what each does not establish: docs/CORRECTIONS.md.
 keywords:
   - artificial-life

@@ -119,10 +119,17 @@ def matched(device: str) -> list[dict]:
 
 
 def summarize(rows: list[dict]) -> dict:
+    """Rows share seeds, arms and baseline readings, so they are not independent replications.
+    The uncertainty unit is the seed: differences are averaged within each seed first and the
+    t interval is taken over the seed-block means (2026-10-14 review, C05)."""
     changed = [r for r in rows if r["call_changed"]]
-    diffs = [r["fold_local"] - r["recomputed_global"]
-             for r in rows if np.isfinite(r["fold_local"]) and np.isfinite(r["recomputed_global"])]
-    lo, hi = t_ci90(diffs) if len(diffs) > 1 else (float("nan"), float("nan"))
+    ok = [r for r in rows if np.isfinite(r["fold_local"]) and np.isfinite(r["recomputed_global"])]
+    by_seed: dict = {}
+    for r in ok:
+        by_seed.setdefault(r["seed"], []).append(r["fold_local"] - r["recomputed_global"])
+    blocks = {str(k): float(np.mean(v)) for k, v in sorted(by_seed.items())}
+    bm = list(blocks.values())
+    lo, hi = t_ci90(bm) if len(bm) > 1 else (float("nan"), float("nan"))
     gaps = [abs(r["recomputed_global"] - r["recorded_global"])
             for r in rows if np.isfinite(r["recorded_global"]) and np.isfinite(r["recomputed_global"])]
     return {
@@ -131,8 +138,15 @@ def summarize(rows: list[dict]) -> dict:
         "changed": [{"run": r["run"], "population": r["population"], "drift": r["drift"],
                      "seed": r["seed"], "arm": r["arm"], "recorded": r["recorded_global"],
                      "fold_local": r["fold_local"]} for r in changed],
-        "fold_minus_global_mean": float(np.mean(diffs)) if diffs else float("nan"),
+        "unit": "seed",
+        "n_blocks": len(bm),
+        "estimand": ("mean over seeds of the within-seed mean of fold-local minus recomputed global "
+                     "speed accuracy; the 90% t interval is taken over the seed-block means"),
+        "block_means": blocks,
+        "fold_minus_global_mean": float(np.mean(bm)) if bm else float("nan"),
         "fold_minus_global_t90": [float(lo), float(hi)],
+        "fold_minus_global_row_mean": float(np.mean([r["fold_local"] - r["recomputed_global"] for r in ok]))
+        if ok else float("nan"),
         "max_abs_recomputed_vs_recorded": float(max(gaps)) if gaps else float("nan"),
     }
 

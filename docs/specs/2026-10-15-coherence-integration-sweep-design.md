@@ -64,3 +64,17 @@ registered verdict.
 
 `artifacts/texture/ar_sweep/` with one JSON per point and `summary.json` holding the profile,
 per-seed values, M by point, and the readings.
+
+## Note 2026-10-15, after the deep revision review
+
+Two facts about the design as run. First, sweep B matches the stationary per-component
+accumulated velocity standard deviation of the AR(1) process (0.0870), not the 24-step
+open-loop gap, which reads 0.1205 at rho 0 and 0.0970 at rho 0.99; a 24-step trajectory
+started without an accumulated offset does not reach the stationary value. Second, the
+process runs on across episode boundaries, so at rho 0.99 adjacent episodes share about 0.79
+of its dependence after 24 steps, which the episode-grouped folds do not remove. A companion
+readout matched on the 24-step gap, with each episode drawn independently from the stationary
+distribution, is the test of finite-window integration. It is frozen in
+`docs/specs/2026-10-15-coherence-finite-horizon-companion-design.md` (sweep C) and recorded
+separately. The readings of this sweep stand as written and are read as nondetections.
+

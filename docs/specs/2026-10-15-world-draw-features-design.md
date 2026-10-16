@@ -117,3 +117,34 @@ state-on-observation step and the residual decode) now chooses its strength insi
 training fold by leave-one-out over 15 values from 0.01 to 100000, log spaced. The sanity
 clause then reads within 0.015 of 0 on both seeds. No threshold, feature, seed base or
 reading changes, and the two-seed check is not part of the result.
+
+## Third amendment 2026-10-15, after the deep revision review and before the corrected run
+
+Three corrections, each found by the 2026-10-15 review of the first run's record.
+
+1. Geometry. The spec and the code measured every distance on a torus (`min(d, 1 - d)` per
+   axis). The world has walls: `patch_of_earth.py` clips a position that crosses an edge to
+   0 or 1 and stops its normal velocity, and pellet consumption uses plain differences. Every
+   distance in this readout is now Euclidean in the unit arena: the reach calibration, the
+   nearest-pellet distance, the pellet count and water fraction within r, the near and far
+   terrain partition, and the far-pellet dispersion. The first run's artifacts are kept at
+   `artifacts/world_features/superseded_toroidal_2026-10-15/` as the record of what was
+   measured; the corrected run replaces them at the spec's output paths.
+2. Held-out residual targets. The first run fit each far feature's regression on the near
+   features over every episode before the decoder's cross-validation. The regression is now
+   fit inside each training fold and applied to its held-out fold, so no held-out episode
+   shapes a training target. The median-split AUROC keeps the full-sample residual and is
+   labeled as such.
+3. Reach. r stays the 95th percentile of the calibration episodes' largest displacement and
+   is reported as a percentile, not a bound: the share of readout episodes whose largest
+   displacement passes r is recorded beside it.
+
+No threshold, feature, seed base or reading changes. The readings are read on the corrected
+run. The label names are kept as labels; "keeps nothing beyond the senses" is reported with
+its literal meaning, that no near feature met both of reading 1's clauses, and not as a
+statement that the state keeps nothing of its world (review N02).
+
+Correction to the second amendment's wording: a permuted-target R squared of -0.2 does not
+violate the sanity clause, which bounds it above by 0.02. The fixed alpha was replaced because
+the permuted decode read far below the constant baseline, which showed the decoder fitting
+noise out of sample; the clause itself was met.

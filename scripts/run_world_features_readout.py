@@ -19,7 +19,7 @@ import time
 
 import numpy as np
 
-from _readout_common import DRIFT, load, run_tasks, setup_l3, world_params, write_output
+from _readout_common import DRIFT, fingerprint_extra, load, run_tasks, setup_l3, world_params, write_output
 
 SPEC = "docs/specs/2026-10-15-world-draw-features-design.md"
 READ_BASE = 2_600_000       # listed in itasorl.post_review.BASES_IN_USE
@@ -35,7 +35,7 @@ def record_with_worlds(agent, norm, P, n_eps: int, steps: int, seed_base: int, r
     import torch
 
     from itasorl.experiment_b2 import _seeds, make_world
-    from itasorl.novel_readouts import _torus_dist, draw_features
+    from itasorl.novel_readouts import arena_dist, draw_features
 
     O, A, K, F, dmax, dfin = [], [], [], [], [], []
     for i in range(n_eps):
@@ -54,7 +54,7 @@ def record_with_worlds(agent, norm, P, n_eps: int, steps: int, seed_base: int, r
             orow.append(obs.astype(np.float32))
             arow.append(a)
             res = w.step(a)
-            dist.append(float(_torus_dist(np.asarray(w.pos, float), start)))
+            dist.append(float(arena_dist(np.asarray(w.pos, float), start)))
             prev = env_act
             obs = res.obs.astype(np.float64)
             if res.terminated:
@@ -84,35 +84,43 @@ def run_seed(t: dict) -> dict:
     from itasorl.eval_protocols import replay_states
     from itasorl.experiment_a import grouped_auroc
     from itasorl.experiment_b import episode_features
-    from itasorl.novel_readouts import (INCIDENTAL, INSTRUMENTAL, obs_summary, residual_r2_cv,
-                                        residualize_incidental, ridge_r2_cv)
+    from itasorl.novel_readouts import (INCIDENTAL, INSTRUMENTAL, exceedance_rate, obs_summary,
+                                        residual_r2_cv, residual_targets, residualize_incidental,
+                                        ridge_r2_cv)
 
     setup_l3()
     P = world_params()
     s = t["seed"]
     t0 = time.time()
     ag, nm = load(t["agents_dir"], DRIFT, s, "survival")
-    O, A, K, F, _, _ = record_with_worlds(ag, nm, P, t["n_eps"], t["steps"], READ_BASE,
-                                          t["ray_steps"], t["r"])
+    O, A, K, F, dmax_read, _ = record_with_worlds(ag, nm, P, t["n_eps"], t["steps"], READ_BASE,
+                                                  t["ray_steps"], t["r"])
     raw = {k: np.array([f[k] for f in F], float) for k in INSTRUMENTAL + INCIDENTAL}
     ok = np.all(np.isfinite(np.column_stack(list(raw.values()))), axis=1)
-    feats = residualize_incidental({k: v[ok] for k, v in raw.items()})
+    feats = {k: v[ok] for k, v in raw.items()}
+    full = residualize_incidental(feats)      # full-sample residual: the descriptive median split only
+    tgt = {k: residual_targets(feats, k) for k in feats}   # far targets residualized in fold
     Xo = obs_summary(O[ok])
     out = {"seed": s, "n": int(ok.sum()), "n_recorded": int(len(K)),
-           "feature_means": {k: float(v[ok].mean()) for k, v in raw.items()},
-           "feature_sds": {k: float(v[ok].std()) for k, v in raw.items()},
-           "echo_r2": {k: ridge_r2_cv(Xo, feats[k]) for k in feats}, "arms": {}}
+           "feature_means": {k: float(v.mean()) for k, v in feats.items()},
+           "feature_sds": {k: float(v.std()) for k, v in feats.items()},
+           "echo_r2": {k: ridge_r2_cv(Xo, feats[k], target=tgt[k]) for k in feats}, "arms": {},
+           "targets": "far features residualized on the near ones inside each training fold "
+                      "(third amendment); auroc_median_split uses the full-sample residual",
+           "exceedance_rate": exceedance_rate(dmax_read[ok], t["r"])}
     rng = np.random.default_rng(10_000 + s)
     for g, d in ARMS[: t["n_arms"]]:
         a2, n2 = (ag, nm) if (g, d) == ("survival", DRIFT) else load(t["agents_dir"], d, s, g)
         Xh = episode_features(replay_states(a2, n2, O[ok], A[ok])).astype(np.float64)
         blk = {}
         for k, v in feats.items():
-            yb = (v > np.median(v)).astype(int)
-            blk[k] = {"r2_state": ridge_r2_cv(Xh, v), "r2_resid": residual_r2_cv(Xh, Xo, v),
+            yb = (full[k] > np.median(full[k])).astype(int)
+            blk[k] = {"r2_state": ridge_r2_cv(Xh, v, target=tgt[k]),
+                      "r2_resid": residual_r2_cv(Xh, Xo, v, target=tgt[k]),
                       "auroc_median_split": float(grouped_auroc(Xh, yb, np.arange(len(yb))))}
             if (g, d) == ("survival", DRIFT):
-                blk[k]["r2_permuted"] = ridge_r2_cv(Xh, rng.permutation(v))
+                perm = {**feats, k: rng.permutation(v)}
+                blk[k]["r2_permuted"] = ridge_r2_cv(Xh, perm[k], target=residual_targets(perm, k))
         out["arms"][f"{g}_d{d:.2f}"] = blk
     out["seconds"] = round(time.time() - t0, 1)
     return out
@@ -177,8 +185,9 @@ def main() -> int:
     a = ap.parse_args()
     ckpt = a.ckpt or a.out + ".ckpt"
     base = {"agents_dir": a.agents_dir, "steps": a.steps, "ray_steps": a.ray_steps}
+    fpx = fingerprint_extra(__file__, a.agents_dir, a.seeds, ARMS[: a.arms])
     cal = run_tasks(calibrate, [{**base, "seed": s, "n_calib": a.n_calib} for s in a.seeds],
-                    os.path.join(ckpt, "calib"), lambda t: f"s{t['seed']}", a.workers)
+                    os.path.join(ckpt, "calib"), lambda t: f"s{t['seed']}", a.workers, fpx)
     dmax = np.concatenate([c["max_disp"] for c in cal])
     dfin = np.concatenate([c["final_disp"] for c in cal])
     r = float(np.percentile(dmax, 95))
@@ -186,9 +195,13 @@ def main() -> int:
           f"{np.percentile(dfin, 95):.4f})", flush=True)
     tasks = [{**base, "seed": s, "n_eps": a.n_eps, "r": r, "n_arms": a.arms} for s in a.seeds]
     rows = sorted(run_tasks(run_seed, tasks, os.path.join(ckpt, "read"), lambda t: f"s{t['seed']}",
-                            a.workers), key=lambda x: x["seed"])
+                            a.workers, fpx), key=lambda x: x["seed"])
     body = {"spec": SPEC, "reach": {"r": r, "pct95_max_disp": r,
                                     "pct95_final_disp": float(np.percentile(dfin, 95)),
+                                    "readout_exceedance_rate": float(np.nanmean([r_["exceedance_rate"] for r_ in rows])),
+                                    "note": "r is the 95th percentile of the calibration episodes' largest "
+                                            "displacement, a percentile and not a bound on where an episode "
+                                            "can reach (third amendment)",
                                     "n_calib_episodes": int(len(dmax))},
             **summarize(rows, a.arms), "rows": rows}
     write_output(a.out, "scripts/run_world_features_readout.py", sys.argv[1:],

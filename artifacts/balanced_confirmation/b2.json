@@ -148,6 +148,13 @@
   "matched_speed_ok": false,
   "matched_leak_ok": true,
   "matched_population": "retained pairs at seed base 910000",
+  "matched_reconstruction": {
+   "status": "checked",
+   "n": 30,
+   "max_abs_diff": 0.0,
+   "tolerance": 0.005
+  },
+  "matched_reconstruction_ok": true,
   "identical_first_state_all": true,
   "dropped_pairs_total": 0,
   "shuffled_max_abs_dev": 0.06776859504132227,

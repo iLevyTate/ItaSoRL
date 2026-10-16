@@ -71,7 +71,24 @@ def contrast(hi: dict, lo: dict) -> dict:
     return {"mean": float(x.mean()) if len(x) else float("nan"), "t90": [float(lo_), float(hi_)], "n": int(len(x))}
 
 
+def check_point(path: str, p: dict, agents_dir: str) -> None:
+    """An existing point file is reused only when it was written for this point: same family,
+    rho, sigma, agents directory and seed bases. A mismatch raises instead of being skipped."""
+    from promote_bv3_gates import repo_rel
+    from run_texture_fresh_probe import BASES
+    with open(path, encoding="utf-8") as fh:
+        doc = json.load(fh)
+    want = {"family": "ar", "rho": p["rho"], "param": p["sigma"], "agents_dir": repo_rel(agents_dir),
+            "seed_bases": list(BASES["ar"])}
+    bad = [k for k, v in want.items()
+           if (abs(doc.get(k, float("nan")) - v) > 1e-12 if isinstance(v, float) else doc.get(k) != v)]
+    if bad:
+        raise RuntimeError(f"{path} was written for different inputs; differing fields: {bad}")
+
+
 def main() -> int:
+    from promote_bv3_gates import repo_rel
+
     from itasorl.optional_readouts import provenance
     from itasorl.stats import t_ci90
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -83,7 +100,9 @@ def main() -> int:
     pts, lam, target = points()
     for p in pts:
         path = os.path.join(a.out_dir, p["file"])
-        if not os.path.exists(path):
+        if os.path.exists(path):
+            check_point(path, p, a.agents_dir)
+        else:
             print(f"== sweep {p['sweep']} rho {p['rho']} sigma {p['sigma']:.5f}", flush=True)
             subprocess.run([sys.executable, "scripts/run_texture_fresh_probe.py", "--agents-dir", a.agents_dir,
                             "--family", "ar", "--param", repr(p["sigma"]), "--rho", repr(p["rho"]),
@@ -113,8 +132,9 @@ def main() -> int:
     r3 = cA["t90"][0] <= 0 <= cA["t90"][1]
     summ["contrasts"] = {"A: M(0.99) - M(0)": cA, "B: M(0.99) - M(0)": cB}
     summ["readings"] = {"1 coherence beyond integration": r1, "2 integration suffices": r2, "3 neither": r3}
-    summ["provenance"] = provenance("scripts/run_ar_sweep.py", "python " + " ".join(["scripts/run_ar_sweep.py", *sys.argv[1:]]),
-                                    {"agents_dir": a.agents_dir, "rhos": list(RHOS), "sigma_A": SIGMA_A,
+    summ["provenance"] = provenance("scripts/run_ar_sweep.py", "python " + " ".join(["scripts/run_ar_sweep.py", *(repo_rel(x) if os.path.isabs(x) else x
+                                                                  for x in sys.argv[1:])]),
+                                    {"agents_dir": repo_rel(a.agents_dir), "rhos": list(RHOS), "sigma_A": SIGMA_A,
                                      "rho_match": RHO_MATCH}, device="cpu")
     summ["provenance"]["status"] = ("readout under docs/specs/2026-10-15-coherence-integration-sweep-design.md; "
                                     "diagnostic, not an adjudication; changes no registered rule or verdict")

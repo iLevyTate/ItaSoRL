@@ -207,3 +207,42 @@ def test_committed_balanced_controls_still_pass():
         assert agg["decision_balanced"]["pass_bar"] is True
         assert abs(agg["decision_balanced"]["trained_resid_obs"]
                    - doc["decision_balanced"]["trained_resid_obs"]) < 1e-9
+
+
+def test_unchecked_integrity_and_wrong_pair_bookkeeping_cannot_pass():
+    """The 2026-10-14 review's five altered inputs (C02): integrity set to None or removed,
+    n_pairs removed or wrong, and a recorded target moved away from the regenerated one
+    while the cached gap stays zero. Each must withhold the pass and name the field."""
+    full = _prepare_balanced(_cells(surv=0.80, untr=0.52))
+    expected = _keys(full)
+
+    def zone_and_blockers(cells):
+        # straight to aggregate: _prepare_balanced would fill a missing integrity flag
+        agg = ase.aggregate(cells, [0.45], ["survival", "untrained", "predictor"], hidden=8,
+                            g_seed=0, n_eps=110, steps=24, quick=False, device="cpu", mismatches=[],
+                            balanced_seed_base=910_000, objective="touch", mortal=False,
+                            expected_keys=expected)
+        return agg["decision_balanced"]["zone"], " ".join(agg["integrity"]["adjudication_blockers"]), agg["integrity"]
+
+    none_match = [{**c, "integrity_match": None} for c in full]
+    z, b, integ = zone_and_blockers(none_match)
+    assert z.startswith("WITHHELD") and "integrity unchecked" in b and integ["all_match"] is False
+
+    removed = [{k: v for k, v in c.items() if k != "integrity_match"} for c in full]
+    z, b, _ = zone_and_blockers(removed)
+    assert z.startswith("WITHHELD") and "integrity unchecked" in b
+
+    no_pairs = [{k: v for k, v in c.items() if k != "n_pairs"} for c in full]
+    z, b, _ = zone_and_blockers(no_pairs)
+    assert z.startswith("WITHHELD") and "n_pairs" in b
+
+    one_pair = [{**c, "n_pairs": 1} for c in full]
+    z, b, integ = zone_and_blockers(one_pair)
+    assert z.startswith("WITHHELD") and "n_pairs" in b and integ["all_match"] is False
+
+    moved = [{**c, "recorded_target": c["target"] + 0.25, "target_abs_diff": 0.0} for c in full]
+    z, b, integ = zone_and_blockers(moved)
+    assert z.startswith("WITHHELD") and "target gap" in b and integ["all_match"] is False
+
+    clean = zone_and_blockers(full)
+    assert clean[0].startswith("SENSORY-INDEPENDENT") and clean[2]["all_match"] is True

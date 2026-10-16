@@ -324,3 +324,22 @@ def test_decide_touch_primary_reads_the_promoted_layout():
     assert t["met"] is True and t["gates_pass"] is False
     assert t["wording"].startswith("pellet-seeking without stakes did not meet")
     assert t["zone"] == "DECODABILITY CLAUSES MET, GATE OPEN: l0"
+
+
+def test_rollout_behavior_reports_every_attempted_episode():
+    """Existing outputs (B, H, E, kept, ret) stay survivor-only. New outputs cover every
+    attempted episode: return through termination, whether it terminated, and the steps it
+    lived (review N04, 2026-10-15)."""
+    torch = pytest.importorskip("torch")
+    from itasorl.experiment_b2 import RecurrentActorCritic, RunningNorm, make_world
+    P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
+    w = make_world(P, 0.0, 4)
+    torch.manual_seed(0)
+    ag = RecurrentActorCritic(w.obs_spec.size, w.action_spec.size, embed=16, hidden=8).train(False)
+    nm = RunningNorm(w.obs_spec.size).freeze()
+    out = mr.rollout_behavior(ag, nm, P, 0.0, n_eps=6, steps=8, seed_base=1_400_000, ray_steps=4)
+    assert out["ret_all"].shape == (6,) and out["terminated"].shape == (6,) and out["steps_alive"].shape == (6,)
+    assert set(out["kept"].tolist()) == set(np.flatnonzero(~out["terminated"]).tolist())
+    assert np.allclose(out["ret_all"][out["kept"]], out["ret"])
+    assert (out["steps_alive"][~out["terminated"]] == 8).all()
+    assert (out["steps_alive"][out["terminated"]] < 8).all()

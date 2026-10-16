@@ -44,17 +44,38 @@
    "torch": "2.7.0+cu126",
    "device": "cpu"
   },
-  "written": "2026-10-14"
+  "written": "2026-10-14",
+  "summary_recomputed": {
+   "date": "2026-10-15",
+   "by": "scripts/run_optional_o1.py::summarize",
+   "reason": "uncertainty unit moved from rows to seed blocks (2026-10-14 review, C05); rows unchanged, no rollout"
+  }
  },
  "summary": {
   "n": 120,
   "n_call_changed": 0,
   "changed": [],
+  "unit": "seed",
+  "n_blocks": 10,
+  "estimand": "mean over seeds of the within-seed mean of fold-local minus recomputed global speed accuracy; the 90% t interval is taken over the seed-block means",
+  "block_means": {
+   "10": -0.004198775526758912,
+   "11": 0.003078232162679717,
+   "12": 0.003356242359225751,
+   "13": 0.007604954840147273,
+   "14": 0.002166618885399004,
+   "15": 6.52289862833888e-05,
+   "16": 0.001026720843599856,
+   "17": 0.0023372212906282905,
+   "18": -0.001666563770241658,
+   "19": 0.002418624356237307
+  },
   "fold_minus_global_mean": 0.0016188504427200017,
   "fold_minus_global_t90": [
-   0.00014959579152322932,
-   0.0030881050939167744
+   -0.00021263836921921403,
+   0.0034503392546592175
   ],
+  "fold_minus_global_row_mean": 0.0016188504427200017,
   "max_abs_recomputed_vs_recorded": 0.0
  },
  "rows": [
