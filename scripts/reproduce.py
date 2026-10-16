@@ -1303,10 +1303,12 @@ class CommitPseudonyms:
         return _HEX_TOKEN.sub(rep, text)
 
     def _forced_hit(self, low: str) -> str | None:
-        """The forced ID that `low` spells or is a prefix of (at least 7 characters), if any."""
+        """The forced ID that `low` spells, or abbreviates in 7 to 12 characters as git does.
+        A longer prefix is no abbreviation: a 16-character fingerprint that happens to start
+        like a forced ID is left alone, as fingerprints are everywhere else."""
         if low in self.forced:
             return low
-        hits = _resolves(self.forced_ids, low) if len(low) >= 7 else []
+        hits = _resolves(self.forced_ids, low) if 7 <= len(low) <= 12 else []
         return hits[0] if hits else None
 
     def search(self, text: str):
