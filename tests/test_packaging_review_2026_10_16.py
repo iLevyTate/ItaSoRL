@@ -797,3 +797,14 @@ def test_a_forced_commit_and_its_short_prefix_get_one_pseudonym():
     assert code == 'x.startswith("%s")' % p[:7]
     assert h.search('startswith("06ecc10")') is not None
     assert h.search('startswith("%s")' % p[:7]) is None
+
+
+def test_forced_spellings_of_one_commit_share_a_prefix_consistent_pseudonym():
+    """A 7-character commit_at_run and a 40-character git_commit_at_run of the same unresolved
+    commit are both forced; the short pseudonym must be the long one's prefix."""
+    full = "06ecc10" + "b" * 33
+    h = reproduce.CommitPseudonyms([], b"k" * 32, forced=["06ecc10", full])
+    assert h.forced["06ecc10"] == h.forced[full][:7]
+    long_sub = h.sub('"git_commit_at_run": "%s"' % full)
+    short_sub = h.sub('commit_at_run="06ecc10"')
+    assert h.forced[full] in long_sub and h.forced[full][:7] in short_sub

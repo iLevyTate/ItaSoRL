@@ -1246,8 +1246,14 @@ class CommitPseudonyms:
             seen.add(p[:7])
             draws.append(p)
         self.full = dict(zip(self.commits, sorted(draws)))     # commit ID -> pseudonym
-        self.forced = {t.lower(): self._draw(key, "commit", t.lower(), len(t), seen)
-                       for t in sorted(forced) if not self.resolves(t)}
+        # Longest spelling first: a shorter forced spelling of the same ID (a 7-character
+        # commit_at_run beside a 40-character git_commit_at_run) takes the longer one's
+        # pseudonym prefix, so the two still match inside the archive.
+        self.forced = {}
+        for t in sorted({t.lower() for t in forced if not self.resolves(t)}, key=lambda t: (-len(t), t)):
+            longer = [L for L in self.forced if len(L) > len(t) and L.startswith(t)]
+            self.forced[t] = (self.forced[longer[0]][:len(t)] if longer
+                              else self._draw(key, "commit", t, len(t), seen))
         # A forced ID is matched by prefix, as a resolvable one is: a field may spell the full ID
         # while code or prose quotes its first seven characters, and both must get one pseudonym
         # (a shallow clone resolves neither, 2026-10-16).
