@@ -156,3 +156,18 @@ def test_sweep_c_readings_are_the_three_of_the_spec():
     assert [c.readings({"mean": 0.02, "t90": [0.005, 0.035]})[x] for x in k] == [True, True, False]
     assert [c.readings({"mean": 0.0, "t90": [-0.04, 0.04]})[x] for x in k] == [False, True, False]
     assert [c.readings({"mean": 0.03, "t90": [-0.02, 0.08]})[x] for x in k] == [False, False, True]
+
+
+def test_sweep_c_resume_reads_the_point_file_it_wrote():
+    """A sweep C point file keeps its inputs at the top level with a repo-relative agents label;
+    the resume check read a provenance block the probe never writes, so it refused every point."""
+    _scripts()
+    import run_ar_sweep_c as c
+    p = c.points()[2]
+    doc = {"family": "arc", "rho": p["rho"], "param": p["sigma"], "seed_bases": list(c.BASES),
+           "agents_dir": "fullruns/corrected_l3_h8_wm/agents"}
+    assert c._point_matches(doc, p, "fullruns/corrected_l3_h8_wm/agents")
+    assert c._point_matches(doc, p, "C:/elsewhere/ITASORL/fullruns/corrected_l3_h8_wm/agents")
+    assert not c._point_matches({**doc, "rho": 0.95}, p, "fullruns/corrected_l3_h8_wm/agents")
+    assert not c._point_matches({**doc, "agents_dir": "C:/x/fullruns/corrected_l3_h8_wm/agents"}, p,
+                                "fullruns/corrected_l3_h8_wm/agents")

@@ -83,14 +83,17 @@ def readings(c: dict) -> dict:
 
 
 def _point_matches(doc: dict, p: dict, agents_dir: str) -> bool:
-    prov = doc.get("provenance", {})
-    inp = prov.get("inputs", {})
-    return (inp.get("family") == "arc" and inp.get("rho") == p["rho"]
-            and abs(float(inp.get("param", np.nan)) - p["sigma"]) < 1e-12
-            and tuple(inp.get("seed_bases", ())) == BASES and inp.get("agents_dir") == agents_dir)
+    """A point file records its inputs at the top level (scripts/run_texture_fresh_probe.py),
+    with the agents directory as a repo-relative label."""
+    from promote_bv3_gates import repo_rel
+    return (doc.get("family") == "arc" and doc.get("rho") == p["rho"]
+            and abs(float(doc.get("param", np.nan)) - p["sigma"]) < 1e-12
+            and tuple(doc.get("seed_bases", ())) == BASES and doc.get("agents_dir") == repo_rel(agents_dir))
 
 
 def main() -> int:
+    from promote_bv3_gates import repo_rel
+
     from itasorl.optional_readouts import provenance
     from itasorl.stats import t_ci90
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -139,7 +142,7 @@ def main() -> int:
                                   "rho_0.9_survival_fresh": next(p["survival_fresh"].get("mean") for p in summ["points"] if p["rho"] == 0.9),
                                   "companion_sweep_shared_point": {"M": 0.010, "survival_fresh": 0.570}}
     summ["provenance"] = provenance("scripts/run_ar_sweep_c.py", "python " + " ".join(["scripts/run_ar_sweep_c.py", *sys.argv[1:]]),
-                                    {"agents_dir": a.agents_dir, "rhos": list(RHOS), "gap_target": GAP_TARGET,
+                                    {"agents_dir": repo_rel(a.agents_dir), "rhos": list(RHOS), "gap_target": GAP_TARGET,
                                      "seed_bases": list(BASES)}, device="cpu")
     summ["provenance"]["status"] = (f"readout under {SPEC}; diagnostic, not an adjudication; "
                                     "changes no registered rule or verdict")

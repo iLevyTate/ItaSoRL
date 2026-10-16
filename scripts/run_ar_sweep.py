@@ -87,6 +87,8 @@ def check_point(path: str, p: dict, agents_dir: str) -> None:
 
 
 def main() -> int:
+    from promote_bv3_gates import repo_rel
+
     from itasorl.optional_readouts import provenance
     from itasorl.stats import t_ci90
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -131,7 +133,7 @@ def main() -> int:
     summ["contrasts"] = {"A: M(0.99) - M(0)": cA, "B: M(0.99) - M(0)": cB}
     summ["readings"] = {"1 coherence beyond integration": r1, "2 integration suffices": r2, "3 neither": r3}
     summ["provenance"] = provenance("scripts/run_ar_sweep.py", "python " + " ".join(["scripts/run_ar_sweep.py", *sys.argv[1:]]),
-                                    {"agents_dir": a.agents_dir, "rhos": list(RHOS), "sigma_A": SIGMA_A,
+                                    {"agents_dir": repo_rel(a.agents_dir), "rhos": list(RHOS), "sigma_A": SIGMA_A,
                                      "rho_match": RHO_MATCH}, device="cpu")
     summ["provenance"]["status"] = ("readout under docs/specs/2026-10-15-coherence-integration-sweep-design.md; "
                                     "diagnostic, not an adjudication; changes no registered rule or verdict")

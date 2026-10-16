@@ -169,7 +169,9 @@ def main() -> int:
             if v:
                 agg[f"{g} {m}"] = {"per_seed": v, "mean": float(np.mean(v)),
                                    "t90": [float(x) for x in t_ci90(v)] if len(v) > 1 else None}
-    out = {"generated_by": "scripts/run_texture_fresh_probe.py", "git_commit": git_head(), "agents_dir": a.agents_dir,
+    from promote_bv3_gates import repo_rel
+    out = {"generated_by": "scripts/run_texture_fresh_probe.py", "git_commit": git_head(),
+           "agents_dir": repo_rel(a.agents_dir),
            "family": a.family, "param": a.param, "rho": a.rho, "seed_bases": BASES[a.family],
            "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
            "cells": results, "aggregate": agg}
