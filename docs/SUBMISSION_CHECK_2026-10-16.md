@@ -70,7 +70,6 @@ built at `v1.4.1`, before that fix; the fix changes no artifact and no number.
 - The saved-agent replay from the clean extraction ran 3 of 10 seeds before it was stopped for
   memory; a full run from the extraction is still owed. The same command from the repository on
   the same stack completed and is compared with the committed artifact in `docs/REPRODUCE.md`.
-
 - The supplement is 501 MB. A venue with a smaller limit for supplementary material needs the
   run bundles split out or hosted separately.
 - Bit-exact equality holds only on the stack and machine that wrote a result; off that machine
