@@ -59,7 +59,11 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
     `erase` = (Pr, m), Pr a (hidden, hidden) orthogonal projector and m a (hidden,) vector:
     after every GRU update (and after any nudge) the state becomes h - Pr (h - m), so its
     component in the projector's subspace is pinned to m's (spec
-    2026-10-15-online-erasure-design.md). The returned `ret` is the summed task reward."""
+    2026-10-15-online-erasure-design.md). The returned `ret` is the summed task reward.
+
+    `ret_all`, `terminated` and `steps_alive` cover every attempted episode (review N04,
+    2026-10-15): the summed task reward through termination, whether the episode ended
+    before `steps`, and the steps it lived. B, halves, H, E, kept and ret stay survivor-only."""
     import torch
 
     from itasorl.experiment_b2 import task_reward
@@ -74,6 +78,7 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
         erase_t = (torch.as_tensor(np.asarray(erase[0], np.float32), device=device),
                    torch.as_tensor(np.asarray(erase[1], np.float32), device=device)[None, :])
     B, halves, Hs, Es, kept, rets = [], [], [], [], [], []
+    ret_all, term, alive_steps = [], [], []
     half = steps // 2
     for i in range(n_eps):
         w = make_world(params, drift_sigma, ray_steps)
@@ -111,6 +116,9 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
             if r.terminated:
                 alive = False
                 break
+        ret_all.append(ret)
+        term.append(not alive)
+        alive_steps.append(t + 1)
         if not alive:
             continue
         B.append(aggregate_behavior(np.asarray(rows)))
@@ -124,7 +132,9 @@ def rollout_behavior(agent, norm, params, drift_sigma: float, *, n_eps: int, ste
             "halves": np.asarray(halves).reshape(-1, 2),
             "H": np.stack(Hs) if Hs else np.zeros((0, steps, hid), np.float32),
             "E": np.stack(Es) if Es else np.zeros((0, steps - 1), np.float32),
-            "kept": np.asarray(kept, int), "ret": np.asarray(rets, float)}
+            "kept": np.asarray(kept, int), "ret": np.asarray(rets, float),
+            "ret_all": np.asarray(ret_all, float), "terminated": np.asarray(term, bool),
+            "steps_alive": np.asarray(alive_steps, int)}
 
 
 def replay_prediction_error(agent, norm, obs_raw: np.ndarray, acts: np.ndarray,
