@@ -130,6 +130,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.venv*/
 env/
 venv/
 ENV/
@@ -206,6 +207,9 @@ expB2_run*.log
 
 # Ad-hoc n=10 / launcher logs (committed artifacts live under artifacts/expB2/)
 artifacts/expB2/logs/
+# Agent weights never go on the public remote: a weight extraction that lands under
+# artifacts/ (D1 step 0) stays local. Saved agents live under fullruns/ (ignored above).
+/artifacts/**/*.pt
 # Claude Code local session state
 .claude/
 

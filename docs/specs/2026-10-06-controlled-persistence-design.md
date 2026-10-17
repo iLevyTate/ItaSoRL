@@ -47,3 +47,20 @@ The historical agents behind 0.666 and 0.684 are not in this repository, so the 
 the saved agents of the corrected run `C1` (`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`).
 The historical common-garden numbers stay as recorded, under the narrow wording, whatever the
 test shows; a claim about memory in the published agents would need those agents.
+
+## Post-run notes 2026-10-17 (not amendments)
+
+World seeds. The base 980000 + p above is called disjoint from every other readout. It is not:
+it is the authentic pool of the hidden-16 arm of the 2026-07-22 substrate-grounding ablations,
+which used it from July, and `BASES_IN_USE` in `itasorl/post_review.py` lists it as "persistence
+and H2 h16 authentic". Episode p of that pool and pair p here draw the same world integers. The
+two readouts score different agents (historical hidden-8 agents there, the `C1` agents here) and
+fit no probe across each other, so the readout's values are unchanged.
+
+Pairs. "110 pairs" above is the attempted count. A pair is dropped when either prefix dies, and
+a condition drops a pair when any of its tails dies (`itasorl/persistence.py`), so the scored
+pools hold 93 to 110 pairs per condition across the 40 cells. At drift 0.45 the survival replay
+condition keeps 108 to 110, the predictor replay 104 to 110 and the untrained replay 102 to 110;
+the factorial and reset-hidden conditions keep down to 96 (predictor, seed 6) and 93 (untrained,
+seed 7). At drift 0 the survival arm keeps 107 to 110. The readings and the verdict are
+unchanged.

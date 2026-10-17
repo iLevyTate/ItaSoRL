@@ -181,8 +181,10 @@ def main() -> int:
             if v:
                 agg[f"{g} {pr}"] = {"per_seed": v, "mean": float(np.mean(v)),
                                    "t90": [float(x) for x in t_ci90(v)] if len(v) > 1 else None}
+    # A seed whose retrain was not bit-identical returns an error beside an empty targets block,
+    # so the error, not the missing key, marks it excluded.
     excluded = [{"seed": r["seed"], "error": r.get("error", "no targets")}
-                for r in results if "targets" not in r]
+                for r in results if "error" in r or not r.get("targets")]
     out = {"generated_by": "scripts/run_policy_controlled_readouts.py", "git_commit": git_head(), "run_dir": a.run_dir,
            "config": base, "fold_scheme": folds.current_scheme(),
            "fold_version": folds.scheme_version(), "cells": results, "aggregate": agg,
@@ -193,6 +195,13 @@ def main() -> int:
     for key, v in agg.items():
         print(f"  {key:28s} {v['mean']:.3f} {v['t90']}")
     print(f"wrote {a.out}")
+    if not agg or len(excluded) == len(results):
+        # An empty readout is a failure, not a result: a C2 run read without --no-world-model
+        # retrains a different survival arm, every seed fails the identity check, and the file
+        # above holds only the exclusions.
+        print(f"FAILED: {len(excluded)} of {len(results)} seeds excluded and "
+              f"{len(agg)} aggregate rows; see seeds_excluded in {a.out}", flush=True)
+        return 1
     return 0
 
 

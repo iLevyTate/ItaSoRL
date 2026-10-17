@@ -9,6 +9,7 @@ and an empty input as not passed, and record how many inputs were non-finite.
 from __future__ import annotations
 
 import copy
+import json
 import math
 import os
 import sys
@@ -17,10 +18,13 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+sys.path.insert(0, os.path.dirname(__file__))
 
 import build_corrected_verdicts as bcv  # noqa: E402
 import build_gate_table as bgt  # noqa: E402
+import promote_bv3_gates as pb  # noqa: E402
 import promote_texture_trained as pt  # noqa: E402
+from test_promote_bv3_gates import _bundle as _bv3_bundle  # noqa: E402
 
 from itasorl import experiment_b2 as b2  # noqa: E402
 
@@ -279,3 +283,37 @@ def test_texture_leak_gate_all_nan_and_empty():
 def test_texture_leak_gate_finite_pools_keep_their_old_shape():
     g = pt.leak_gate([0.52, 0.45, 0.55])
     assert g == {"tolerance": pt.LEAK_TOL, "max_abs_dev": pytest.approx(0.05), "pass": True}
+
+
+# --- scripts/promote_bv3_gates.py -------------------------------------------------------------
+
+BV3_SPEED = {"first": [NAN, 0.91, 0.92], "later": [0.9, NAN, 0.95], "all": [NAN, NAN, NAN]}
+
+
+def _bv3_gates(tmp_path, pool_speed=None):
+    run_dir = tmp_path / "fullruns" / "07062026"
+    _bv3_bundle(run_dir, leak_seed=None)
+    if pool_speed is not None:
+        p = run_dir / "artifacts" / "expB2_results.json"
+        res = json.loads(p.read_text(encoding="utf-8"))
+        res["0.45"]["predictor"]["pool_speed"] = pool_speed
+        p.write_text(json.dumps(res), encoding="utf-8")
+    out = tmp_path / "out.json"
+    assert pb.main(["--run-dir", str(run_dir), "--out", str(out)]) == 0
+    return json.loads(out.read_text(encoding="utf-8"))["gates"]
+
+
+@pytest.mark.parametrize("where", sorted(BV3_SPEED))
+def test_bv3_speed_gate_fails_on_a_nan_pool(tmp_path, where):
+    g = _bv3_gates(tmp_path, BV3_SPEED[where])
+    sp = g["speed_positive_control"]
+    assert sp["pass"] is False and g["all_pass"] is False
+    assert sp["min_speed"]["d=0.45 predictor"] is None
+    assert sp["n_nonfinite"]["d=0.45 predictor"] == (3 if where == "all" else 1)
+    assert sum(sp["n_nonfinite"].values()) == sp["n_nonfinite"]["d=0.45 predictor"]
+
+
+def test_bv3_finite_bundle_writes_no_nonfinite_key(tmp_path):
+    g = _bv3_gates(tmp_path)
+    assert g["speed_positive_control"]["pass"] is True and g["all_pass"] is True
+    assert "n_nonfinite" not in g["speed_positive_control"]

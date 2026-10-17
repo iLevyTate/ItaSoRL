@@ -14,6 +14,11 @@ A transfer failure answers only question 1.
 Usage:
     python scripts/run_texture_fresh_probe.py --agents-dir fullruns/corrected_l3_h8_wm/agents \\
         --family gn --param 0.01 --out artifacts/texture/corrected_l3_h8_wm_gn.json
+
+`--jitter-key {pool,agent}` (closing hook A7e, family arc only, default pool) sets the per-world
+jitter seeds of sweep C. pool is the recorded run: the k-th surrogate world of every agent
+reseeds from 2551000 + k, so all agents share one realization. agent gives each agent seed its
+own block (jitter_seed), a second realization of the same family.
 """
 
 from __future__ import annotations
@@ -40,14 +45,31 @@ BASES = {"gn": (960_000, 970_000), "qd": (1_900_000, 1_950_000),
          # sweep C: the ar family drawn afresh at every world creation, spec
          # 2026-10-15-coherence-finite-horizon-companion-design.md
          "arc": (2_500_000, 2_550_000)}
+JITTER_KEYS = ("pool", "agent")
+AGENT_STRIDE = 1000   # surrogate worlds per agent under --jitter-key agent (a cell builds ~2 n_eps)
+
+
+def jitter_seed(base: int, k: int, key: str = "pool", agent_seed: int = 0) -> int:
+    """Family seed for the k-th surrogate world under per_episode_draw. pool (recorded):
+    base + 1000 + k for every agent. agent: base + 1000 + AGENT_STRIDE * (agent_seed + 1) + k,
+    one block per agent seed, disjoint from the pool block and from each other."""
+    if key == "pool":
+        return base + 1000 + k
+    if key != "agent":
+        raise ValueError(f"jitter key must be one of {JITTER_KEYS}, got {key!r}")
+    if not 0 <= k < AGENT_STRIDE:
+        raise ValueError(f"world {k} overruns the agent block of {AGENT_STRIDE} jitter seeds")
+    return base + 1000 + AGENT_STRIDE * (int(agent_seed) + 1) + k
 
 
 @contextlib.contextmanager
-def per_episode_draw(fam, base: int):
+def per_episode_draw(fam, base: int, key: str = "pool", agent_seed: int = 0):
     """While active, every world created with a positive drift (through experiment_b2.make_world
-    or l0_audit's imported name) reseeds `fam` from base + 1000 + k for the k-th such world,
-    so each surrogate episode starts from its own stationary draw and nothing runs on from
-    one episode to the next (sweep C spec). Yields the patched make_world."""
+    or l0_audit's imported name) reseeds `fam` from jitter_seed(base, k, key, agent_seed) for
+    the k-th such world (base + 1000 + k under the default key), so each surrogate episode
+    starts from its own stationary draw and nothing runs on from one episode to the next
+    (sweep C spec). Yields the patched make_world."""
+    jitter_seed(base, 0, key, agent_seed)   # an unknown key fails before anything is patched
     import itasorl.experiment_b2 as b2
     import itasorl.l0_audit as l0
     orig, count = b2.make_world, [0]
@@ -55,7 +77,7 @@ def per_episode_draw(fam, base: int):
     def make_world(*args, **kw):
         drift = kw.get("drift_sigma", args[1] if len(args) > 1 else 0.0)
         if drift > 0:
-            fam.reseed(base + 1000 + count[0])
+            fam.reseed(jitter_seed(base, count[0], key, agent_seed))
             count[0] += 1
         return orig(*args, **kw)
     b2.make_world, l0.make_world = make_world, make_world
@@ -93,7 +115,8 @@ def run_one(task: dict) -> dict:
         fam = make_g_qd(eps=task["param"], params=P)
     ba, bs = BASES[task["family"]]
     # arc: every surrogate world reseeds the family (sweep C); otherwise one draw per pool
-    draw = per_episode_draw(fam, bs) if task["family"] == "arc" else contextlib.nullcontext()
+    draw = (per_episode_draw(fam, bs, task.get("jitter_key", "pool"), s)
+            if task["family"] == "arc" else contextlib.nullcontext())
     try:
         # the agent's own learned-law pools (standard seed bases): the transfer fit set
         Ha_tr, _ = collect_pool(agent, norm, P, 0.0, n, steps, "cpu", 800_000, rs)
@@ -121,7 +144,21 @@ def run_one(task: dict) -> dict:
             "seconds": round(time.time() - t0, 1)}
 
 
-def main() -> int:
+def provenance_block(out_path: str, argv=None) -> dict:
+    """Closing item G46: tracked changes, stack and argv beside the git_commit key the script
+    already writes. A readout of saved agents, so the commit key is git_commit_at_promotion."""
+    import sys
+
+    from agent_free_common import provenance
+    from promote_bv3_gates import rel_flags
+    prov = provenance("scripts/run_texture_fresh_probe.py", commit_key="git_commit_at_promotion",
+                      output=out_path, device="cpu")
+    prov.pop("generated_by")
+    prov["argv"] = rel_flags(list(sys.argv[1:] if argv is None else argv))
+    return prov
+
+
+def main(argv=None) -> int:
     from itasorl import folds
     from itasorl.stats import t_ci90
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -138,9 +175,14 @@ def main() -> int:
     ap.add_argument("--l3-hidden", type=int, default=8)
     ap.add_argument("--l3-seed", type=int, default=0)
     ap.add_argument("--quick", action="store_true")
-    a = ap.parse_args()
+    ap.add_argument("--jitter-key", choices=JITTER_KEYS, default="pool",
+                    help="family arc: pool (recorded; every agent shares the per-world jitter "
+                         "seeds) or agent (each agent seed draws its own block)")
+    a = ap.parse_args(argv)
     if (a.family in ("ar", "arc")) != (a.rho is not None):
         raise SystemExit("--rho is required for families ar and arc and only for them")
+    if a.jitter_key != "pool" and a.family != "arc":
+        raise SystemExit("--jitter-key agent applies to family arc only")
     if a.quick:
         a.n_eps, a.steps, a.ray_steps = 30, 12, 4
     cells = []
@@ -153,7 +195,8 @@ def main() -> int:
     dmax = max(c[0] for c in cells)
     tasks = [{"path": os.path.join(a.agents_dir, nm), "drift": d, "seed": s, "arm": g,
               "family": a.family, "param": a.param, "rho": a.rho, "n_eps": a.n_eps, "steps": a.steps,
-              "ray_steps": a.ray_steps, "l3_hidden": a.l3_hidden, "l3_seed": a.l3_seed}
+              "ray_steps": a.ray_steps, "l3_hidden": a.l3_hidden, "l3_seed": a.l3_seed,
+              "jitter_key": a.jitter_key}
              for d, s, g, nm in cells if d == dmax]
     if a.workers > 1:
         import multiprocessing as mp
@@ -175,6 +218,9 @@ def main() -> int:
            "family": a.family, "param": a.param, "rho": a.rho, "seed_bases": BASES[a.family],
            "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
            "cells": results, "aggregate": agg}
+    if a.jitter_key != "pool":   # the recorded (pool) output gains no key here
+        out["jitter_key"] = a.jitter_key
+    out.update(provenance_block(a.out, argv))
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1, default=float)

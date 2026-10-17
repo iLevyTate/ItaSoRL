@@ -115,3 +115,39 @@ quantized to one thousandth of the unerased rollouts' score spread before the AU
 so a pinned score reads 0.5, and the ratio of the erased to the unerased score spread is
 recorded beside it. Reading 4 is otherwise unchanged. The two-seed check is not part of the
 result.
+
+## Amendment 2026-10-17 for the full-rank extension, before its run
+
+The extension readouts spec (`docs/specs/2026-10-17-extension-readouts-design.md`, section X10) extends the rank-two erasure above to full rank
+on the same agents. Its readings are this spec's frozen readings 1 to 3 ("Readings, stated before
+any number"), unchanged: used under removal (real minus sham at least +0.10, interval excluding
+zero), costly (erased minus sham surrogate-world return with an upper bound below 0), not used
+under removal (both worlds' scores inside [-0.10, +0.10]). The rank-two default path, its stored
+artifact and its readings do not change. The following are new thresholds and rules, not in the
+frozen text, stated here before the run:
+
+1. Refit stop and rank cap. The erased rank grows until the refit probe on the erased pools
+   reads at or under 0.55, or the rank reaches 16 of the 96 units. Pooled out-of-fold refit
+   scores become unreliable as the erased rank approaches the state width (the in-fold scaler
+   blows up on near-null residual dimensions), which is why the cap is 16. A fold that runs out
+   of new directions keeps its last subspace at higher ranks.
+2. Orthogonalization. Each refit direction is projected onto the complement of the already-erased
+   subspace before it is stacked, because a refit direction on erased states lies largely inside
+   the erased subspace.
+3. In-fold stop statistic. For each outer fold of the explicit twin-grouped partition, the
+   subspace is grown from the rank-two projector refit on that fold's training rows only, and the
+   refit probe trained on erased training rows is scored on erased test rows; the out-of-fold
+   scores are pooled per rank. k is the smallest rank whose pooled in-fold refit is at or under
+   0.55, else 16. An erasure fit on every episode, test folds included, pushes the refit AUROC
+   toward and below chance once the real signal is erased, which would stop early and understate
+   k; that all-episode curve is reported, labeled biased low, and never read. The rollout
+   projector is grown on all episodes to that k, and the sham has rank k, orthogonal to it.
+4. Capacity-confounded rule. If the sham's surrogate-world return drops by more than 10 percent of
+   the unerased return (the upper bound of the paired difference below -0.10 times the unerased
+   mean), no use reading is made.
+5. Gate E. The in-fold refit must reach 0.55 or less in at least 8 of 10 seeds at rank at most
+   16, else the full-rank readout is void and only k is reported.
+
+The refit curve by rank is reported so a reader can apply another stop. This is the only
+pre-run entry for the extension; a post-run note on the rank-two run's labels is a separate dated
+entry in this file.

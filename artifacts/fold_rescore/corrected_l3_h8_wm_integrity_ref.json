@@ -1,0 +1,563 @@
+{
+ "generated_by": "scripts/build_integrity_ref.py",
+ "git_commit_at_promotion": "eb848f0",
+ "tracked_changes_at_generation": [],
+ "stack": {
+  "python": "3.13.2",
+  "numpy": "1.26.4",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "OMP_NUM_THREADS": null,
+  "MKL_NUM_THREADS": null,
+  "scipy": "1.15.3",
+  "sklearn": "1.5.2",
+  "torch": "2.7.0+cu126",
+  "torch_threads": 10
+ },
+ "cells_dir": "fullruns/corrected_l3_h8_wm/cells",
+ "fold_scheme": "explicit",
+ "note": "pooled targets copied from the run's cell records; integrity reference only",
+ "n_cells": 60,
+ "cells": [
+  {
+   "drift": "0.00",
+   "seed": 0,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5727272727272728
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s0.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 0,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.4314049586776859
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s0.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 0,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.40495867768595045
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s0.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 1,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5504132231404959
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s1.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 1,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.5537190082644629
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s1.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 1,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.49214876033057847
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s1.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 2,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5640495867768596
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s2.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 2,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.6074380165289256
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s2.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 2,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5338842975206611
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s2.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 3,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5735537190082645
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s3.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 3,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.4830578512396694
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s3.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 3,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.49421487603305786
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s3.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 4,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5380165289256198
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s4.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 4,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.5351239669421488
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s4.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 4,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5264462809917355
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s4.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 5,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5384297520661157
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s5.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 5,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.48636363636363633
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s5.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 5,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5128099173553718
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s5.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 6,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5942148760330579
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s6.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 6,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.4826446280991735
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s6.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 6,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.4615702479338843
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s6.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 7,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5603305785123968
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s7.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 7,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.4231404958677686
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s7.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 7,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.4524793388429752
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s7.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 8,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5524793388429752
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s8.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 8,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.5487603305785125
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s8.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 8,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.4826446280991735
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s8.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 9,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.55
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s9.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 9,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.5268595041322314
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s9.json"
+  },
+  {
+   "drift": "0.00",
+   "seed": 9,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5446280991735538
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.00_s9.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 0,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.6322314049586778
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s0.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 0,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.5318181818181819
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s0.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 0,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.4867768595041323
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s0.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 1,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.8049586776859504
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s1.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 1,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.6144628099173554
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s1.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 1,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5301652892561983
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s1.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 2,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.6913223140495868
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s2.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 2,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.6371900826446282
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s2.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 2,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5847107438016529
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s2.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 3,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.7438016528925621
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s3.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 3,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.587603305785124
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s3.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 3,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5884297520661157
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s3.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 4,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.66198347107438
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s4.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 4,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.6165289256198347
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s4.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 4,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5355371900826447
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s4.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 5,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.5223140495867769
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s5.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 5,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.6041322314049588
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s5.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 5,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.48512396694214877
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s5.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 6,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.8847107438016529
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s6.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 6,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.5595041322314049
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s6.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 6,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.4991735537190083
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s6.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 7,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.7826446280991736
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s7.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 7,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.5351239669421487
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s7.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 7,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5256198347107438
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s7.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 8,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.8677685950413222
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s8.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 8,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.5743801652892561
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s8.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 8,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.41487603305785115
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s8.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 9,
+   "agent": "survival",
+   "explicit": {
+    "target": 0.7384297520661157
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s9.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 9,
+   "agent": "predictor",
+   "explicit": {
+    "target": 0.6252066115702479
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s9.json"
+  },
+  {
+   "drift": "0.45",
+   "seed": 9,
+   "agent": "untrained",
+   "explicit": {
+    "target": 0.5756198347107437
+   },
+   "source": "fullruns/corrected_l3_h8_wm/cells/cell_d0.45_s9.json"
+  }
+ ]
+}

@@ -58,7 +58,10 @@ def main() -> int:
                          "certification seeds (7000-7009): certifying a sweep-selected "
                          "layout on the seeds it was selected on would inherit the "
                          "selection maximum (winner's curse). The recorded 2026-07-17 "
-                         "sweep used 7000-7005, before this guard.")
+                         "sweep used 7000-7005, before this guard. Its output at the "
+                         "default --json path (fullruns/expC_gate1_sweep/steepness.json) "
+                         "was overwritten by the 2026-07-20 rerun; the promoted grid is "
+                         "artifacts/expC/gate1_steepness_sweep.json.")
     ap.add_argument("--reaches", type=float, nargs="+", default=[0.15, 0.25, 0.35, 0.5, 0.75])
     ap.add_argument("--horizons", type=int, nargs="+", default=[20, 30, 40, 60, 80])
     ap.add_argument("--ctrl-reach", type=float, default=0.05)

@@ -125,3 +125,44 @@ def test_transfer_readout_restores_surrogate_on_exception(l3_tiny, monkeypatch):
                          np.zeros((5, 5, 8), np.float32), n_eps=5, steps=5,
                          ray_steps=RS, device="cpu")
     assert b2._L3_GMOTION is before, "finally block must restore the trained surrogate"
+
+
+# --- closing hook A7c: opt-in train/test world overlap guard ------------------------------
+
+
+def test_transfer_probe_disjoint_worlds_score_as_without_the_guard():
+    rng = np.random.default_rng(4)
+    Xtr, ytr = _pools(rng, 40, 8, sig_dim=2, shift=2.0)
+    Xte, yte = _pools(rng, 40, 8, sig_dim=2, shift=2.0)
+    tw = np.concatenate([np.arange(40), np.arange(40)]) + 2_700_000   # twins share a world
+    ew = np.concatenate([np.arange(40), np.arange(40)]) + 2_750_000
+    plain = transfer_probe(Xtr, ytr, Xte, yte)
+    assert transfer_probe(Xtr, ytr, Xte, yte, train_worlds=tw, test_worlds=ew) == plain
+    a, b = (transfer_probe(Xtr, ytr, Xte, yte, return_scores=True),
+            transfer_probe(Xtr, ytr, Xte, yte, return_scores=True, train_worlds=tw, test_worlds=ew))
+    assert a[0] == b[0] and np.array_equal(a[1], b[1]) and np.array_equal(a[2], b[2])
+
+
+def test_transfer_probe_refuses_shared_worlds():
+    rng = np.random.default_rng(5)
+    Xtr, ytr = _pools(rng, 20, 8, sig_dim=2, shift=2.0)
+    Xte, yte = _pools(rng, 20, 8, sig_dim=2, shift=2.0)
+    tw = np.concatenate([np.arange(20), np.arange(20)])
+    ew = tw + 19                                   # world 19 is on both sides
+    with pytest.raises(ValueError, match="share 1 world"):
+        transfer_probe(Xtr, ytr, Xte, yte, train_worlds=tw, test_worlds=ew)
+    with pytest.raises(ValueError, match="share 20 world"):
+        transfer_probe(Xtr, ytr, Xte, yte, train_worlds=tw, test_worlds=tw)
+
+
+def test_transfer_probe_guard_arguments_must_be_complete():
+    rng = np.random.default_rng(6)
+    Xtr, ytr = _pools(rng, 10, 4, sig_dim=1, shift=2.0)
+    Xte, yte = _pools(rng, 10, 4, sig_dim=1, shift=2.0)
+    w = np.arange(20)
+    with pytest.raises(ValueError, match="together"):
+        transfer_probe(Xtr, ytr, Xte, yte, train_worlds=w)
+    with pytest.raises(ValueError, match="together"):
+        transfer_probe(Xtr, ytr, Xte, yte, test_worlds=w + 100)
+    with pytest.raises(ValueError, match="one entry per row"):
+        transfer_probe(Xtr, ytr, Xte, yte, train_worlds=w[:5], test_worlds=w + 100)

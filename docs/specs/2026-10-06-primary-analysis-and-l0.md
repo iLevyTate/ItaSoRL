@@ -69,3 +69,13 @@ no signal of its own (`tests/test_l0_audit.py`); at drift > 0 any separation com
 dynamics. It is run on the corrected agents as a **secondary** readout beside the frozen
 primary. It does not replace the primary, because switching estimators after the frozen
 protocol would be choosing the analysis by its outcome.
+
+## Note 2026-10-17 (not an amendment)
+
+The L0 audit artifact (`artifacts/l0_audit/corrected_l3_h8_wm.json`) also carries a
+two-one-sided test over the eight independent draw means (p = 0.022 on the signed means), which
+the manuscript quotes. That test is a diagnostic added with the artifact. The frozen text above
+does not name it: it names the registered TOST on the standard pair, the agent-based rescoring
+on independent pairs, and the across-pair spread. The registered gate and its reading do not
+change, and wherever the across-draw test is quoted it is labeled a diagnostic not named in the
+frozen spec. No permutation null is run for it in the closing pass.

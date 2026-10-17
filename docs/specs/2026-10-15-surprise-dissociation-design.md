@@ -66,3 +66,16 @@ beside the matched-input ones and do not decide a reading.
 
 `artifacts/surprise/corrected_l3_h8_wm.json` and `artifacts/surprise/corrected_l1_heldout.json`,
 each with provenance, per-seed values, and the four readings.
+
+## Note 2026-10-17, after the run (not an amendment)
+
+`scripts/run_surprise_readout.py` (`_call`) reports readings 1 and 3 as "reversed" when the
+seed-paired 90 percent upper bound lies below -0.05, the mirror of their 0.05 lower bound. The
+frozen text above states a reversal bound only for reading 2 ("An upper bound below 0 reads the
+reverse"), which the code applies as written; "Each reading is reported as met, not met, or
+reversed" admits the label for every reading, and reading 4 is reported only as met or not met.
+The -0.05 bound was added with the artifact. Under the alternative bound of 0 no stored label
+changes. On `C1` the upper bounds of readings 1 and 3 are -0.118 and -0.113 on the agent's own
+streams and -0.090 and -0.080 on the scripted streams, "reversed" under either bound. On L1 they
+are +0.080 and +0.036 on the own streams and +0.036 and +0.007 on the scripted streams, "not met"
+under either. Both artifacts stay as they are, and no value or verdict changes.

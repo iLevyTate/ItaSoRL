@@ -3441,7 +3441,7 @@
       "deps": null,
       "device": "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu",
       "eval_seeds": {
-        "persistence": "980000 + p, p < 110"
+        "persistence": "980000 + p, p < 110; shared with the H2 h16 authentic pool of the 2026-07-22 ablations (BASES_IN_USE: 'persistence and H2 h16 authentic'); different agents, no probe fit across them, values unchanged"
       },
       "experiment": "B-v2 L3",
       "folds": "explicit",
@@ -5234,6 +5234,96 @@
       "title": "Frozen-rule verdicts, integrity, and correction effect for C1 and C2"
     },
     {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "fold_rescore/corrected_l3_h8_wm_integrity_ref.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "explicit",
+      "id": "C1-INTEGRITY-REFS",
+      "local_run_dir": null,
+      "notes": "scripts/build_integrity_ref.py; pooled targets copied from the C1 cell records in fullruns/corrected_l3_h8_wm/cells at drifts 0.00 and 0.45, three arms, seeds 0-9 (60 entries); no value recomputed. Read by reverse_direction.py and run_world_sample_sensitivity.py as --integrity-ref (closing pass 2026-10, G45, G56, G02).",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "fold_rescore/corrected_l3_h8_wm_integrity_ref.json": {
+          "generated_by": "scripts/build_integrity_ref.py",
+          "git_commit_at_promotion": "eb848f0",
+          "stack": {
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "scipy": "1.15.3",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 10
+          }
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Integrity reference for readouts of the C1 agents: recorded pooled targets per drift, seed and arm"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "balanced_pooled/registered_pair.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "BALANCED-POOLED",
+      "local_run_dir": null,
+      "notes": "scripts/promote_balanced_pooled.py; the pooled targets at 800000 / 850000 copied from the B1 and B2 cell records (fullruns/balanced_confirmation_{wm,touch}/cells), per seed and as means; descriptive, decides nothing (the balanced pairs at 910000 decide B1 and B2). Closing pass 2026-10, H01.",
+      "readout_only_on": [
+        "B1-BALANCED",
+        "B2-BALANCED"
+      ],
+      "recorded_provenance": {
+        "balanced_pooled/registered_pair.json": {
+          "generated_by": "scripts/promote_balanced_pooled.py",
+          "git_commit_at_promotion": "9adc09f",
+          "spec": "docs/specs/2026-10-12-balanced-confirmation-design.md",
+          "stack": {
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "scipy": "1.15.3",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 10
+          }
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "B1 and B2 pooled readings on the registered evaluation-world pair"
+    },
+    {
       "affected_by_gae_correction": false,
       "agent_seeds": [
         0,
@@ -5320,10 +5410,11 @@
       "folds": "explicit",
       "id": "B1-BALANCED",
       "local_run_dir": "fullruns/balanced_confirmation_wm",
-      "notes": "docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.761). FINDINGS 21.",
+      "notes": "docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5, and the matched speed gate collected 2026-10-14 on the retained pairs is under 0.75 on the untrained arm at seeds 13 (0.7499) and 19 (0.749). The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.761). FINDINGS 21.",
       "readout_only_on": null,
       "recorded_provenance": {
         "balanced_confirmation/b1.json": {
+          "fingerprint": "cd7f35c28a343bc2",
           "generated_by": "scripts/promote_balanced_confirmation.py",
           "git_commit_at_run": "2c170f0",
           "spec": "docs/specs/2026-10-12-balanced-confirmation-design.md",
@@ -5398,10 +5489,11 @@
       "folds": "explicit",
       "id": "B2-BALANCED",
       "local_run_dir": "fullruns/balanced_confirmation_touch",
-      "notes": "docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.780). FINDINGS 21.",
+      "notes": "docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5, and the matched speed gate collected 2026-10-14 on the retained pairs is under 0.75 on the untrained arm at seeds 13 (0.7499) and 19 (0.749). The untrained arm matches B1. The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.780). FINDINGS 21.",
       "readout_only_on": null,
       "recorded_provenance": {
         "balanced_confirmation/b2.json": {
+          "fingerprint": "f5e46b22c0c31ecf",
           "generated_by": "scripts/promote_balanced_confirmation.py",
           "git_commit_at_run": "2c170f0",
           "spec": "docs/specs/2026-10-12-balanced-confirmation-design.md",

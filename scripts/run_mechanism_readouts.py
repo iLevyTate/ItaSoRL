@@ -17,6 +17,11 @@ is taken on the episodes that survived in ALL six rollout variants (`n_common`; 
 counts before the cross-world intersection are `n_common_auth` / `n_common_surr`), and the
 behavior and adaptation blocks (readouts 7 and 9) on the episodes that survived in both
 unnudged rollouts (`n_paired`). The behavior scale is computed on the rows it standardizes.
+
+`--also-ungrouped-surprise` (closing item G22) adds `surprise.auroc_ungrouped` to every arm's
+block: the same rollouts scored with one CV group per episode, the estimate the runs before
+2026-10-16 stored. It exists only to tie a rerun to those stored values and is never a reading;
+the twin-grouped `surprise.auroc` is. Without the flag the output gains no key.
 """
 
 from __future__ import annotations
@@ -28,6 +33,7 @@ import glob
 import json
 import multiprocessing as mp
 import os
+import sys
 import time
 
 import numpy as np
@@ -81,6 +87,14 @@ def _nan_intervention(gap: float, n_auth: int, n_surr: int, n_common: int, u: np
             "informative": False, "reason": reason, "nudge_sd": NUDGE_SD, "s": s,
             "u": u.tolist(), "v": None,
             "n_common_auth": int(n_auth), "n_common_surr": int(n_surr), "n_common": int(n_common)}
+
+
+def ungrouped_surprise(Ea: np.ndarray, Es: np.ndarray) -> float:
+    """Readout 8(a) with one CV group per episode, as stored before the 2026-10-16 twin-group
+    correction (docs/CORRECTIONS.md). The twins of Ea and Es can then fall on both sides of a
+    split, so the value is biased low; it reproduces the stored number and is not a reading."""
+    from itasorl import mechanism_readouts as mr
+    return mr.surprise_auroc(Ea, Es, groups=np.arange(len(Ea) + len(Es)))
 
 
 def run_seed(task: dict) -> dict:
@@ -181,6 +195,9 @@ def run_seed(task: dict) -> dict:
                          "corr_mean": _finite_mean(corr_auth, corr_surr)},
             "adaptation": {**mr.adaptation(Hpa, Hps), "n_paired": n_paired},
         }
+        if k.get("also_ungrouped_surprise"):
+            block["surprise"]["auroc_ungrouped"] = (ungrouped_surprise(Ea, Es) if ag.world_model
+                                                    else float("nan"))
         if g == "survival":
             out.update(block)
         else:
@@ -240,6 +257,17 @@ def summarize(rows: list[dict]) -> dict:
     }
 
 
+def run_provenance(a) -> dict:
+    """Closing item G46: commit, tracked changes, stack, agents dir and argv. A readout of a
+    run's saved agents, so the commit key is git_commit_at_promotion."""
+    from agent_free_common import provenance
+    from promote_bv3_gates import rel_flags, repo_rel
+    p = provenance("scripts/run_mechanism_readouts.py", commit_key="git_commit_at_promotion",
+                   output=repo_rel(a.out), device="cpu")
+    return {**p, "agents_dir": repo_rel(os.path.join(a.run_dir, "agents")),
+            "argv": rel_flags(list(sys.argv[1:]))}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--run-dir", required=True)
@@ -253,6 +281,9 @@ def main() -> int:
     ap.add_argument("--ray-steps", type=int, default=5)
     ap.add_argument("--gru-epochs", type=int, default=60)
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--also-ungrouped-surprise", action="store_true",
+                    help="also write surprise.auroc_ungrouped, the pre-2026-10-16 one-group-per-"
+                         "episode estimate on the same rollouts (a reproduction check, never a reading)")
     a = ap.parse_args()
     if a.quick:
         a.n_eps, a.steps, a.pool_n, a.pool_steps, a.gru_epochs = 6, 12, 8, 6, 2
@@ -279,6 +310,9 @@ def main() -> int:
                  "gru_epochs": a.gru_epochs, "objective": any_cell.get("objective", "survival"),
                  "mortal": bool(any_cell.get("mortal", True)), "knobs": knobs,
                  "cells": {f"{d:.2f}/{s}": {"xeval": c["xeval"]} for (d, s), c in cells.items()}}
+    if a.also_ungrouped_surprise:
+        task_base["also_ungrouped_surprise"] = True
+    prov = run_provenance(a)
     tasks = [{**task_base, "seed": s} for s in seeds]
     if a.workers > 1:
         ctx = mp.get_context("spawn")            # spawn: safe with torch, as run_expB2 does
@@ -295,6 +329,7 @@ def main() -> int:
            "settings": {"n_eps": a.n_eps, "steps": a.steps, "pool_n": a.pool_n,
                         "pool_steps": a.pool_steps, "nudge_sd": NUDGE_SD, "gap_min": GAP_MIN},
            "per_seed": rows, "summary": summarize(rows)}
+    out["provenance"] = prov
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1, default=float)

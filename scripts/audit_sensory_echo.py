@@ -27,6 +27,13 @@ integrity gate then reads each cell's recorded `balanced.target` from `--cells-d
 instead of bit-comparing state dumps. The same controls run; the aggregate adds the
 floor clause (untrained resid_obs within 0.1 of 0.5) ahead of the trained-arm rule.
 
+Fresh-base repeat (closing item G03): with `--integrity-seed-base` (the run's own balanced
+base, 910000) next to `--balanced-seed-base`, each cell is rolled twice. The rollout at the
+integrity base must reproduce the recorded `balanced.target`, exactly as above; every reading
+comes from the rollout at the balanced (read) base. The read base must miss every registered
+world-seed base (itasorl.post_review), unless it is the G03-fresh entry registered for this
+repeat (2250000); 2200000, the post-review balanced pairs, is refused.
+
 Usage:
     python scripts/audit_sensory_echo.py --agents-dir fullruns/l3_h8_heldout/agents \\
         --states-dir fullruns/l3_h8_heldout/states --out-dir fullruns/l3_h8_sensory_echo \\
@@ -35,6 +42,7 @@ Usage:
     python scripts/audit_sensory_echo.py --agents-dir fullruns/balanced_confirmation_wm/agents \\
         --cells-dir fullruns/balanced_confirmation_wm/cells --balanced-seed-base 910000 \\
         --out-dir fullruns/balanced_confirmation_wm/sensory_echo --drifts 0.45 --device cuda
+    ... --balanced-seed-base 2250000 --integrity-seed-base 910000   (G03 fresh-base repeat)
 """
 
 from __future__ import annotations
@@ -46,6 +54,7 @@ import json
 import os
 import platform
 import re
+import sys
 import time
 
 import numpy as np
@@ -93,6 +102,18 @@ def stack_record(device: str) -> dict:
             "torch": torch.__version__, "device": device}
 
 
+def run_provenance(a, device: str) -> dict:
+    """The aggregate's provenance block (closing item G46): commit, tracked changes, stack,
+    agents dir and argv. A readout of saved agents, so the commit key is
+    git_commit_at_promotion."""
+    from agent_free_common import provenance
+    from promote_bv3_gates import rel_flags, repo_rel
+    out = repo_rel(os.path.join(a.out_dir, "aggregate.json"))
+    return {**provenance("scripts/audit_sensory_echo.py", commit_key="git_commit_at_promotion",
+                         output=out, device=device),
+            "agents_dir": repo_rel(a.agents_dir), "argv": rel_flags(list(sys.argv[1:]))}
+
+
 def cfg():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--agents-dir", required=True)
@@ -102,6 +123,10 @@ def cfg():
                     help="balanced mode: one seed base for both pools, pairs grouped in CV")
     ap.add_argument("--cells-dir",
                     help="balanced mode: run_expB2 cells carrying the recorded balanced.target")
+    ap.add_argument("--integrity-seed-base", type=int, default=None,
+                    help="balanced mode: roll each cell at this base too (the run's own pairs, "
+                         "910000) for the recorded-target integrity gate, and read every "
+                         "metric from --balanced-seed-base (G03 fresh-base repeat)")
     ap.add_argument("--objective", choices=("survival", "touch"), default="survival",
                     help="the objective the agents were trained under (sets the reward the "
                          "pools accumulate and the engagement world)")
@@ -200,12 +225,20 @@ def adjudication_blockers(cells: list[dict], *, quick: bool, mismatches: list[st
             dropped = cell.get("dropped_pairs")
             if cell.get("identical_first_state") is not True or dropped != 0:
                 problems.append(f"pair bookkeeping failed at {where}")
-            if not _is_finite(cell.get("recorded_target")) or not _is_finite(cell.get("target")):
+            # A fresh-base repeat (G03) checks the rollout at the integrity base against the
+            # record; its own pair bookkeeping must be clean too.
+            itarget = cell["integrity_target"] if "integrity_target" in cell else cell.get("target")
+            if "integrity_target" in cell and (
+                    cell.get("integrity_n_pairs") != BALANCED_PAIRS
+                    or cell.get("integrity_dropped_pairs") != 0
+                    or cell.get("integrity_identical_first_state") is not True):
+                problems.append(f"integrity pair bookkeeping failed at {where}")
+            if not _is_finite(cell.get("recorded_target")) or not _is_finite(itarget):
                 problems.append(f"non-finite recorded target at {where}")
             else:
                 # The gap is recomputed from the two targets; a cached gap is checked
                 # against it, never trusted on its own (2026-10-14 review, C02).
-                gap = abs(float(cell["target"]) - float(cell["recorded_target"]))
+                gap = abs(float(itarget) - float(cell["recorded_target"]))
                 cached = cell.get("target_abs_diff")
                 if _is_finite(cached) and abs(float(cached) - gap) > 1e-9:
                     problems.append(f"cached target gap disagrees with the targets at {where}")
@@ -292,6 +325,34 @@ def balanced_integrity(cells_dir: str, drift: float, seed: int, arm: str, cell: 
     return (not problems), "; ".join(problems)
 
 
+def read_base_collisions(read_base: int, n_eps: int) -> list[tuple[str, str]]:
+    """Registered world-seed bases the G03 read pool would share draws with. Empty when the
+    read base is fresh, or when it is the G03-fresh base registered for this repeat."""
+    from itasorl import post_review
+    _, registered, _ = post_review.registered_later("G03-fresh")
+    hits = post_review.base_collisions(new=(("G03 read", int(read_base), int(n_eps)),),
+                                       in_use=post_review.all_bases_in_use())
+    return [] if int(read_base) == registered else hits
+
+
+def integrity_rollout(agent, norm, drift: float, *, n_eps: int, steps: int, device: str,
+                      integrity_seed_base: int) -> dict:
+    """The rollout at the run's own balanced base, which the recorded target was scored on:
+    its pair bookkeeping and its registered-probe target, for `balanced_integrity`."""
+    H, _, _, y, groups, meta, _ = collect_cell(agent, norm, drift, n_eps=n_eps, steps=steps,
+                                               device=device, balanced_seed_base=integrity_seed_base)
+    return {**meta, "target": grouped_auroc(episode_features(H), y, groups)}
+
+
+def integrity_fields(icell: dict) -> dict:
+    """The integrity rollout's values a fresh-base cell carries beside its own readings."""
+    return {"integrity_target": icell["target"], "recorded_target": icell.get("recorded_target"),
+            "target_abs_diff": icell.get("target_abs_diff"),
+            "integrity_n_pairs": icell.get("n_pairs"),
+            "integrity_dropped_pairs": icell.get("dropped_pairs"),
+            "integrity_identical_first_state": icell.get("identical_first_state")}
+
+
 def balanced_decision(agg: dict, trained_arm: str = "survival") -> dict:
     """Floor clause then trained clause, as frozen in the 2026-10-13 spec. The trained
     zone is read only when the floor is explained."""
@@ -374,12 +435,15 @@ def _seal(agg: dict, cells: list[dict], *, quick: bool, mismatches: list[str],
 def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_eps: int,
               steps: int, quick: bool, device: str, mismatches: list[str],
               balanced_seed_base: int | None = None, objective: str = "survival",
-              mortal: bool = True, expected_keys: set | None = None) -> dict:
+              mortal: bool = True, expected_keys: set | None = None,
+              integrity_seed_base: int | None = None) -> dict:
     """Across-seed aggregation plus the frozen decision rule. Every value is a plain
     Python float/bool/list so the result is JSON-serializable.
 
     A positive zone requires `expected_keys` and a cell list that matches it, with
     finite required metrics and clean integrity. Otherwise the zone is WITHHELD.
+    `integrity_seed_base` (G03) records the base the integrity gate read beside the base
+    the metrics were read from; without it the aggregate gains no key.
     """
     balanced = balanced_seed_base is not None
     agg: dict = {"hidden": hidden, "g_seed": g_seed, "n_eps": n_eps, "steps": steps,
@@ -389,6 +453,9 @@ def aggregate(cells: list[dict], drifts, arms, *, hidden: int, g_seed: int, n_ep
                  "mortal": bool(mortal), "stack": stack_record(device),
                  "integrity": {"checked": not quick, "mismatches": list(mismatches),
                                "all_match": (not mismatches) if not quick else None}}
+    if integrity_seed_base is not None:
+        agg["integrity_seed_base"] = integrity_seed_base
+        agg["read_seed_base"] = balanced_seed_base
     for d in drifts:
         drift = fmt_drift(d)
         for arm in arms:
@@ -459,6 +526,14 @@ def main() -> int:
         raise SystemExit("balanced mode needs --cells-dir for the recorded-target integrity gate")
     if not balanced and not a.quick and not a.states_dir:
         raise SystemExit("pooled mode needs --states-dir for the bit-match integrity gate")
+    fresh = a.integrity_seed_base is not None
+    if fresh and not balanced:
+        raise SystemExit("--integrity-seed-base needs --balanced-seed-base (the read base)")
+    if fresh:
+        hits = read_base_collisions(a.balanced_seed_base, n_eps)
+        if hits:
+            raise SystemExit(f"read base {a.balanced_seed_base} shares world draws with registered "
+                             f"bases {hits}; use the G03-fresh base or a fresh one")
     os.makedirs(a.out_dir, exist_ok=True)
     cells, mismatches = [], []
     t0 = time.time()
@@ -519,7 +594,13 @@ def main() -> int:
                 "resid_obs_int": sensory_residual_probe_auroc(H, Ot, y, groups=groups, integrated=True),
                 "resid_obs_beh": sensory_residual_probe_auroc(H, Ot, y, Bt=Bt, groups=groups)}
         if balanced and not a.quick:
-            ok, why = balanced_integrity(a.cells_dir, drift, seed, arm, cell)
+            if fresh:
+                icell = integrity_rollout(agent, norm, drift, n_eps=n_eps, steps=steps, device=dev,
+                                          integrity_seed_base=a.integrity_seed_base)
+                ok, why = balanced_integrity(a.cells_dir, drift, seed, arm, icell)
+                cell.update(integrity_fields(icell))
+            else:
+                ok, why = balanced_integrity(a.cells_dir, drift, seed, arm, cell)
             cell["integrity_match"] = integrity = ok
             if not ok:
                 mismatches.append(name)
@@ -551,7 +632,9 @@ def main() -> int:
     agg = aggregate(cells, a.drifts, a.arms, hidden=a.hidden, g_seed=a.g_seed, n_eps=n_eps,
                     steps=steps, quick=a.quick, device=dev, mismatches=mismatches,
                     balanced_seed_base=a.balanced_seed_base, objective=a.objective,
-                    mortal=a.mortal == "on", expected_keys=expected)
+                    mortal=a.mortal == "on", expected_keys=expected,
+                    integrity_seed_base=a.integrity_seed_base)
+    agg["provenance"] = run_provenance(a, dev)
     if "decision_balanced" in agg:
         print("\nDECISION (balanced, frozen 2026-10-13 rule, drift 0.45):",
               json.dumps(agg["decision_balanced"], indent=1))

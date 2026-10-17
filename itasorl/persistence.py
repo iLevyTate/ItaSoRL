@@ -42,7 +42,7 @@ from . import folds
 from .experiment_a import grouped_auroc
 from .experiment_b2 import _episode_feature, _seeds, make_world
 
-SEED_BASE = 980_000          # disjoint from every other seed base in the pipeline
+SEED_BASE = 980_000          # shared with the H2 h16 authentic pool (post_review.BASES_IN_USE); no probe spans both
 CONDITIONS = ("replay", "common_state", "factorial", "reset_hidden")
 
 

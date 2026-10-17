@@ -10,6 +10,12 @@ Usage:
         --states-dir fullruns/l1_heldout/states \
         --noise-json fullruns/l1_noise_calib.json \
         --out-dir fullruns/l1_h2_ablations --device cuda
+
+`--noise-reseed` (closing hook A7b, default per-pool) sets how the A2 noise stream is seeded.
+per-pool is the recorded run: every surrogate world of a seed's pool restarts the same Philox
+stream (970000 + seed), so every episode in the pool sees the same noise draws. per-episode
+gives the k-th surrogate world of the pool its own stream (noise_episode_seed). The out dir
+also gets provenance.json (closing item G46).
 """
 
 from __future__ import annotations
@@ -20,6 +26,7 @@ import argparse
 import json
 import os
 import re
+import sys
 
 import numpy as np
 
@@ -38,6 +45,7 @@ from itasorl.surrogate_l1_families import LObsNoise
 from itasorl.world import WorldParams
 
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
+NOISE_RESEED = ("per-pool", "per-episode")
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 
 
@@ -76,7 +84,42 @@ def gn_verdict(survival_mean: float, untrained_mean: float) -> dict:
     }
 
 
-def cfg():
+def noise_episode_seed(seed: int, k: int) -> int:
+    """Philox seed of the k-th surrogate world of agent seed `seed` under per-episode reseeding:
+    a SeedSequence of (970000 + seed, k), so streams differ across episodes and seeds and none
+    equals the per-pool stream."""
+    return int(np.random.SeedSequence([970_000 + int(seed), int(k)]).generate_state(1, np.uint64)[0])
+
+
+def noise_world_factory(old_make_world, *, headline: float, sensor_sigma: float,
+                        noise_sigma: float, seed: int, reseed: str = "per-pool"):
+    """The make_world replacement the A2 knockout installs: drift 0 builds the authentic world
+    through `old_make_world`; any other drift builds the headline L1 world wrapped in LObsNoise.
+    `reseed` picks the noise stream (module docstring). per-pool is the recorded behavior."""
+    if reseed not in NOISE_RESEED:
+        raise ValueError(f"reseed must be one of {NOISE_RESEED}, got {reseed!r}")
+    built = [0]
+
+    def make_noise_world(params, drift_sigma, ray_steps, food_override=None, _seed=seed):
+        if drift_sigma == 0.0:
+            return old_make_world(params, 0.0, ray_steps, food_override)
+        w = PatchOfEarthV0(params or P, drift_sigma=0.0, drift_mode="ar1",
+                           l1_delta=headline, sensor_sigma=sensor_sigma)
+        w.ray_steps = ray_steps
+        for k, v in {**b2.SURVIVAL_METAB, **b2.SURVIVAL_FOOD, **(food_override or {})}.items():
+            setattr(w, k, v)
+        wrap = LObsNoise(w, sigma=noise_sigma, seed=960_000 + _seed)
+        if reseed == "per-pool":
+            wrap.reseed(970_000 + _seed)
+        else:
+            wrap.reseed(noise_episode_seed(_seed, built[0]))
+        built[0] += 1
+        return wrap
+
+    return make_noise_world
+
+
+def cfg(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--agents-dir", required=True)
     ap.add_argument("--states-dir", required=True)
@@ -96,7 +139,10 @@ def cfg():
                     help="A1 graded-seam delta ladder (default: 0.0, 0.25, 0.5, 0.75, 1.0 of headline)")
     ap.add_argument("--quick", action="store_true",
                     help="smoke: seed 0, deltas {0, headline}, tiny pools, no bit compare")
-    return ap.parse_args()
+    ap.add_argument("--noise-reseed", choices=NOISE_RESEED, default="per-pool",
+                    help="A2 noise stream: per-pool (recorded; every episode of a pool sees "
+                         "the same draws) or per-episode (one stream per surrogate episode)")
+    return ap.parse_args(argv)
 
 
 def _headline_and_cells(a):
@@ -207,20 +253,9 @@ def _run_noise(a, dev, headline, cells, noise_sigma: float):
         Ha_train, _ = collect_pool(agent, norm, P, 0.0, n_eps, steps, dev, 800_000 + seed, 5)
         Hs_train, _ = collect_pool(agent, norm, P, headline, n_eps, steps, dev, 850_000 + seed, 5)
         old_make_world = b2.make_world
-
-        def make_noise_world(params, drift_sigma, ray_steps, food_override=None, _seed=seed):
-            if drift_sigma == 0.0:
-                return old_make_world(params, 0.0, ray_steps, food_override)
-            w = PatchOfEarthV0(params or P, drift_sigma=0.0, drift_mode="ar1",
-                               l1_delta=headline, sensor_sigma=a.sensor_sigma)
-            w.ray_steps = ray_steps
-            for k, v in {**b2.SURVIVAL_METAB, **b2.SURVIVAL_FOOD, **(food_override or {})}.items():
-                setattr(w, k, v)
-            wrap = LObsNoise(w, sigma=noise_sigma, seed=960_000 + _seed)
-            wrap.reseed(970_000 + _seed)
-            return wrap
-
-        b2.make_world = make_noise_world
+        b2.make_world = noise_world_factory(old_make_world, headline=headline,
+                                            sensor_sigma=a.sensor_sigma, noise_sigma=noise_sigma,
+                                            seed=seed, reseed=a.noise_reseed)
         try:
             out = transfer_readout(
                 agent, norm, P, headline, Ha_train, Hs_train,
@@ -238,6 +273,8 @@ def _run_noise(a, dev, headline, cells, noise_sigma: float):
 
     agg = {"noise_sigma": round(float(noise_sigma), 5), "quick": a.quick,
            "n_eps": n_eps, "steps": steps, "gn_dropped_at_gate0": False}
+    if a.noise_reseed != "per-pool":   # the recorded per-pool aggregate gains no key
+        agg["noise_reseed"] = a.noise_reseed
     for arm in a.arms:
         vals = [r["target"] for r in rows if r["arm"] == arm]
         v = np.asarray(vals, float)
@@ -252,12 +289,30 @@ def _run_noise(a, dev, headline, cells, noise_sigma: float):
     return rows, agg
 
 
-def main():
-    a = cfg()
+def write_provenance(a, argv=None) -> str:
+    """`<out-dir>/provenance.json` (closing item G46): commit, tracked changes, stack, inputs
+    and argv. A readout of saved agents, so the commit key is git_commit_at_promotion."""
+    from agent_free_common import provenance, write_json
+    from promote_bv3_gates import rel_flags, repo_rel
+    path = os.path.join(a.out_dir, "provenance.json")
+    prov = provenance("scripts/run_l1_h2_ablations.py", commit_key="git_commit_at_promotion",
+                      output=path, device=a.device_used)
+    prov.update({"agents_dir": repo_rel(a.agents_dir), "states_dir": repo_rel(a.states_dir),
+                 "noise_json": repo_rel(a.noise_json) if a.noise_json else None,
+                 "channels": list(a.channels), "arms": list(a.arms),
+                 "noise_reseed": a.noise_reseed,
+                 "argv": rel_flags(list(sys.argv[1:] if argv is None else argv))})
+    write_json(path, prov)
+    return path
+
+
+def main(argv=None):
+    a = cfg(argv)
     dev = default_device() if a.device == "auto" else a.device
     if a.device == "cuda" and dev != "cuda":
         raise SystemExit("--device cuda requested but CUDA unavailable")
     os.makedirs(a.out_dir, exist_ok=True)
+    a.device_used = dev
     b2.DRIFT_MODE = "l1"
     b2.SENSOR_SIGMA = a.sensor_sigma
 
@@ -300,6 +355,7 @@ def main():
                 json.dump(noise_agg, f, indent=1, default=float)
             print("wrote", os.path.join(a.out_dir, "noise_aggregate.json"),
                   f"verdict={noise_agg.get('gn_verdict')}")
+    print("wrote", write_provenance(a, argv))
 
 
 if __name__ == "__main__":

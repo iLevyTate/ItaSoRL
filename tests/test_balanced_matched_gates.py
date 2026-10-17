@@ -71,7 +71,16 @@ def test_met_requires_the_matched_gates():
     decision, reason = decision_from_gates(
         _passing_gates(matched_speed_ok=False, untrained_floor_ok=False, untrained_dev=0.114), True)
     assert decision == "UNINFORMATIVE"
-    assert reason == "the untrained balanced mean is 0.114 from 0.5, outside the 0.1 floor"
+    assert reason == ("gates not held: matched speed does not hold or is not finite; "
+                      "untrained floor (0.114 from 0.5, outside the 0.1 floor)")
+    # Both failing gates are named, not only the first (H78).
+    decision, reason = decision_from_gates(
+        _passing_gates(matched_speed_ok=False, matched_speed_min=0.7493, untrained_floor_ok=False,
+                       untrained_dev=0.114), True)
+    assert decision == "UNINFORMATIVE"
+    assert "untrained floor" in reason and "matched speed" in reason
+    assert reason == ("gates not held: matched speed (min 0.749 under 0.75); "
+                      "untrained floor (0.114 from 0.5, outside the 0.1 floor)")
     decision, _ = decision_from_gates(_passing_gates(matched_leak_ok=False), True)
     assert decision == "UNINFORMATIVE"
     decision, reason = decision_from_gates(_passing_gates(), False)
@@ -118,7 +127,8 @@ def _write_run(tmp_path, alter_cells=None, alter_doc=None, sidecar=True):
     if alter_cells:
         alter_cells(cells)
     for (d, s), c in cells.items():
-        (run / "cells" / f"cell_d{d:.2f}_s{s}.json").write_text(json.dumps({"cell": c}))
+        (run / "cells" / f"cell_d{d:.2f}_s{s}.json").write_text(json.dumps(
+            {"cell": c, "git_commit": "abc1234", "fingerprint": "0123456789abcdef"}))
     if sidecar:
         doc = {"population": "retained pairs", "seed_base": 910000, "objective": "survival", "mortal": True,
                "rows": [_row(s, a, cells[(0.45, s)]) for s in SEEDS for a in pbc.ARMS]}
@@ -141,6 +151,9 @@ def test_a_valid_synthetic_run_still_reads_met(tmp_path, run_b1):
     run_b1(tmp_path)
     doc = pbc.promote("B1")
     assert doc["decision"] == "MET", doc["reason"]
+    # provenance is read from the cell files, never written as a literal (H77)
+    assert doc["git_commit_at_run"] == "abc1234"
+    assert doc["fingerprint"] == "0123456789abcdef"
     assert doc["gates"]["matched_reconstruction"]["status"] == "checked"
     assert doc["gates"]["matched_reconstruction"]["max_abs_diff"] == 0.0
 
@@ -213,3 +226,24 @@ def test_the_collector_refuses_a_changed_configuration_resume():
                                                        mortal=True, device="cpu"))
     with pytest.raises(SystemExit, match="config"):
         col.check_resume({k: v for k, v in stored.items() if k != "config"}, want)
+
+
+def _rewrite_cell(run, name, edit):
+    p = run / "cells" / name
+    doc = json.loads(p.read_text())
+    edit(doc)
+    p.write_text(json.dumps(doc))
+
+
+def test_a_cell_with_a_different_fingerprint_is_refused_naming_the_file(tmp_path, run_b1):
+    run = Path(run_b1(tmp_path))
+    _rewrite_cell(run, "cell_d0.45_s13.json", lambda d: d.update(fingerprint="fedcba9876543210"))
+    with pytest.raises(ValueError, match=r"fingerprint.*cell_d0\.45_s13\.json"):
+        pbc.promote("B1")
+
+
+def test_a_cell_without_git_commit_is_refused_naming_the_file(tmp_path, run_b1):
+    run = Path(run_b1(tmp_path))
+    _rewrite_cell(run, "cell_d0.00_s17.json", lambda d: d.pop("git_commit"))
+    with pytest.raises(ValueError, match=r"cell_d0\.00_s17\.json.*git_commit"):
+        pbc.promote("B1")

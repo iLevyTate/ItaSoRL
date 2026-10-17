@@ -759,7 +759,7 @@ def leakage_audit_b2(auth_eps: list, surr_eps: list, margin: float = 0.1,
 
 
 def transfer_probe(Xtr: np.ndarray, ytr: np.ndarray, Xte: np.ndarray, yte: np.ndarray,
-                   return_scores: bool = False):
+                   return_scores: bool = False, *, train_worlds=None, test_worlds=None):
     """Held-out fingerprint transfer: fit the STANDARD linear probe family (same
     scaler+logistic pipeline grouped_auroc uses) once on the training pools, then
     score a FROZEN AUROC on the test pools. No CV, so the caller must supply test
@@ -768,11 +768,29 @@ def transfer_probe(Xtr: np.ndarray, ytr: np.ndarray, Xte: np.ndarray, yte: np.nd
     the trained fingerprint generalize to an unseen one). A caller that scores the
     same worlds (run_development_readout.py) gets an in-sample upper bound.
     return_scores=True also returns (yte, p_te) so callers can bootstrap a CI
-    with itasorl.stats.auroc_ci (no refit), mirroring _auroc_with_ci."""
+    with itasorl.stats.auroc_ci (no refit), mirroring _auroc_with_ci.
+
+    Opt-in overlap guard (closing hook A7c, 2026-10): a caller that passes
+    `train_worlds` and `test_worlds` (one world seed per row of Xtr and Xte) gets a
+    ValueError when any world appears on both sides, so a score that is meant to be
+    held out cannot silently be in-sample. Both must be given together; with neither,
+    nothing is checked and the score is as before."""
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import roc_auc_score
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
+    if (train_worlds is None) != (test_worlds is None):
+        raise ValueError("transfer_probe: pass train_worlds and test_worlds together")
+    if train_worlds is not None:
+        tw, ew = np.asarray(train_worlds).ravel(), np.asarray(test_worlds).ravel()
+        if len(tw) != len(Xtr) or len(ew) != len(Xte):
+            raise ValueError("transfer_probe: train_worlds / test_worlds must have one entry "
+                             f"per row ({len(tw)} vs {len(Xtr)}, {len(ew)} vs {len(Xte)})")
+        shared = np.intersect1d(tw, ew)
+        if shared.size:
+            raise ValueError("transfer_probe: train and test pools share "
+                             f"{shared.size} world(s), e.g. {shared[:5].tolist()}; the score "
+                             "would not be held out")
     if len(np.unique(ytr)) < 2 or len(np.unique(yte)) < 2:
         nan = float("nan")
         return (nan, yte, np.array([])) if return_scores else nan
@@ -1145,6 +1163,15 @@ def pooled_readout(agent, norm, params, drift_sigma, *, n_eps=110, steps=24, ray
         "pool_n_eps": n_eps, "deaths_auth": n_eps - len(Ha), "deaths_surr": n_eps - len(Hs),
         "n": len(y), "n_auth": len(Ha), "n_surr": len(Hs), "too_few_survivors": False,
     }
+    # The fold scheme and the partition actually used (H39, 2026-10): the scheme comes from
+    # ITASORL_FOLDS, outside the config fingerprint, so a cell file alone could not say
+    # which partition produced it. np.arange(len(y)) is the groups default _auroc_with_ci
+    # takes above, so the record describes the split after deaths. Cells written before
+    # this change carry none of these keys; every existing key and value is untouched.
+    from itasorl import folds as _folds
+    out["folds"] = _folds.current_scheme()   # the key the results manifest uses
+    out["fold_version"] = _folds.scheme_version()
+    out["fold_partition"] = _folds.partition_record(np.arange(len(y)), y)
     return (out, (Ha, Hs)) if return_pools else out
 
 
@@ -1201,7 +1228,8 @@ def transfer_readout(agent, norm, params, drift_sigma, Ha_train, Hs_train, *,
 
 def common_garden_rollout(agent, norm, params, drift_sigma, *, n_pairs=110,
                           prefix_steps=20, tail_steps=24, ray_steps=5,
-                          device=None, seed_base=930_000, return_stats: bool = False):
+                          device=None, seed_base=930_000, return_stats: bool = False,
+                          return_index: bool = False):
     """Common-garden channel (spec 2026-07-14): PAIRED episodes from identical
     seeds run their prefix in the authentic vs the surrogate world, then BOTH
     continue under authentic dynamics (fresh authentic world restored from each
@@ -1213,10 +1241,17 @@ def common_garden_rollout(agent, norm, params, drift_sigma, *, n_pairs=110,
     return_stats=True additionally returns (auth_stats, surr_stats): per
     surviving pair, dicts with label / tail mean speed / tail reward_sum /
     length / lifetime - the inputs the Experiment-C gate battery needs
-    (leakage_audit_b2 and the speed positive control) without a second rollout."""
+    (leakage_audit_b2 and the speed positive control) without a second rollout.
+
+    return_index=True appends, as the LAST element, the list of pair indices p
+    (world seed seed_base + p) that survived, one per returned tail, so tails pooled
+    across individuals on the same pair seeds can be grouped by world seed
+    (experiment_c.group_by_world_seed; closing hook A7a, 2026-10). The rollout
+    itself is unchanged."""
     device = device or default_device()
     auth_tails, surr_tails = [], []
     auth_stats, surr_stats = [], []
+    kept: list[int] = []
     for p in range(n_pairs):
         seeds = _seeds(seed_base + p)
         pair = []
@@ -1263,16 +1298,42 @@ def common_garden_rollout(agent, norm, params, drift_sigma, *, n_pairs=110,
             surr_tails.append(pair[1])
             auth_stats.append(stats[0])
             surr_stats.append(stats[1])
+            kept.append(p)
+    out = (auth_tails, surr_tails)
     if return_stats:
-        return auth_tails, surr_tails, auth_stats, surr_stats
-    return auth_tails, surr_tails
+        out = out + (auth_stats, surr_stats)
+    if return_index:
+        out = out + (kept,)
+    return out
 
 
-def cg_probe(auth_tails: list, surr_tails: list, *, late_k: int = 8, seed: int = 0) -> dict:
+def cg_groups(n: int, groups=None) -> np.ndarray:
+    """CV groups for `n` matched pairs laid out as [auth rows..., surr rows...].
+
+    None gives the pooled-row default, one group per pair (`concat(arange(n), arange(n))`).
+    A length-n `groups` (one id per pair, for example the world-seed index each pair was
+    drawn at) is expanded to `concat(groups, groups)` so the two members of a pair, and
+    every pair that shares an id, sit in one fold. A length-2n `groups` is taken as given."""
+    if groups is None:
+        return np.concatenate([np.arange(n), np.arange(n)])
+    g = np.asarray(groups).ravel()
+    if len(g) == n:
+        return np.concatenate([g, g])
+    if len(g) == 2 * n:
+        return g
+    raise ValueError(f"cg_probe: groups must have length {n} (per pair) or {2 * n} (per row), "
+                     f"got {len(g)}")
+
+
+def cg_probe(auth_tails: list, surr_tails: list, *, late_k: int = 8, seed: int = 0,
+             groups=None) -> dict:
     """Probe tail-only states for the PREFIX world. cg_tail_target uses the full
     tail's [mean h, final h]; cg_latetail_target repeats it on the last late_k
     steps only - the persistence-decay check (a reactive signal washes out along
-    the tail; a persistent representation does not)."""
+    the tail; a persistent representation does not).
+
+    `groups` (closing hook A7a, 2026-10) overrides the CV grouping; see cg_groups. The
+    default, None, is the pooled-row grouping every recorded run used."""
     n = len(auth_tails)
     out = {"cg_n_pairs": n, "cg_tail_target": float("nan"), "cg_tail_lo": float("nan"),
            "cg_tail_hi": float("nan"), "cg_latetail_target": float("nan")}
@@ -1282,10 +1343,11 @@ def cg_probe(auth_tails: list, surr_tails: list, *, late_k: int = 8, seed: int =
     # Matched pairs share the prefix world state: same group id for both members so
     # GroupKFold keeps each pair in one fold (see probe_world_identity).
     # When the tails pool several individuals on the same pair seeds (Experiment C,
-    # itasorl/experiment_c.py _pooled_common_garden), the group is still the pooled row, so
-    # the same world seed's pairs from related individuals can straddle folds; see the note
-    # in experiment_c.common_garden_panel. Behavior unchanged.
-    g = np.concatenate([np.arange(n), np.arange(n)])
+    # itasorl/experiment_c.py _pooled_common_garden), the default group is still the pooled
+    # row, so the same world seed's pairs from related individuals can straddle folds; see
+    # the note in experiment_c.common_garden_panel. Default behavior unchanged; a caller
+    # that wants world-seed grouping passes `groups` (experiment_c.group_by_world_seed).
+    g = cg_groups(n, groups)
     X = np.stack([_episode_feature(H) for H in auth_tails + surr_tails])
     k = min(late_k, auth_tails[0].shape[0])
     Xl = np.stack([_episode_feature(H[-k:]) for H in auth_tails + surr_tails])

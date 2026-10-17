@@ -234,3 +234,18 @@ calibration amendment.
 A surrogate that costs food only in the fake world (rejected: the agent observes its own
 energy, so that would leak the condition into the observation). Whether the signal is
 specific to learned dynamics (17.9). Retention under identical input (17.7).
+
+## Post-run note 2026-10-17 (not an amendment): the touch engagement floor
+
+Commit 2c170f0 of 2026-10-12, one day after `T-touch` was promoted (aed9865, 2026-10-11),
+changed the touch engagement gate in code. The run-time clause `trained_ret > 0.0 and
+trained_ret >= 1.5 * best` became `trained_ret >= 0.25 and trained_ret >= 1.5 * best`, an
+absolute floor of 0.25 pellets per episode beside the ratio (`TOUCH_ENGAGE_MIN_PELLETS` in
+`itasorl/experiment_b2.py`), frozen for `B2` in
+`docs/specs/2026-10-12-balanced-confirmation-design.md`. No frozen text, section-12 entry or
+CORRECTIONS line recorded the change at the time. The "Decision rules (frozen)" block above
+stays as written. `T-touch` was adjudicated under the ratio rule, and its cells carry engagement
+blocks computed under it. The smallest trained return over its 20 cells is 0.78125 pellets per
+episode (drift 0, seed 3), so every cell also clears the later floor. The `T-touch` verdict is
+not re-adjudicated and no recorded value changes. A matching dated line goes into
+`docs/CORRECTIONS.md`.

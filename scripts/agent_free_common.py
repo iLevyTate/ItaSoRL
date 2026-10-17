@@ -19,12 +19,17 @@ from itasorl.results_io import git_head
 
 
 def stack_record() -> dict:
-    """Python, numpy, scikit-learn and torch versions, the OS and the thread settings."""
+    """Python, numpy, scipy, scikit-learn and torch versions, the OS and the thread settings."""
     import numpy
     out = {"python": sys.version.split()[0], "numpy": numpy.__version__,
            "platform": platform.platform(), "machine": platform.machine(),
            "OMP_NUM_THREADS": os.environ.get("OMP_NUM_THREADS"),
            "MKL_NUM_THREADS": os.environ.get("MKL_NUM_THREADS")}
+    try:
+        import scipy
+        out["scipy"] = scipy.__version__
+    except ImportError:
+        out["scipy"] = None
     try:
         import sklearn
         out["sklearn"] = sklearn.__version__
@@ -67,14 +72,18 @@ def tracked_changes(exclude: tuple[str, ...] = ()) -> list[str] | None:
 
 
 def provenance(generated_by: str, commit_key: str = "git_commit",
-               output: str | None = None) -> dict:
+               output: str | None = None, device: str | None = None) -> dict:
     """Generator, commit, tracked changes and stack. An analysis that IS the run (the
     agent-free computations) records `git_commit`; a promotion or readout of an earlier run
     records `git_commit_at_promotion`, because scripts/build_results_manifest.py reads
-    `git_commit` as the commit a run executed at."""
+    `git_commit` as the commit a run executed at. `device`, when given, goes into the stack
+    block as the torch device the computation ran on."""
+    stack = stack_record()
+    if device is not None:
+        stack["device"] = str(device)
     return {"generated_by": generated_by, commit_key: git_head(),
             "tracked_changes_at_generation": tracked_changes((output,) if output else ()),
-            "stack": stack_record()}
+            "stack": stack}
 
 
 NL = chr(10)

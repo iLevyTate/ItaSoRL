@@ -52,6 +52,18 @@ def test_inconclusive_and_gate_conditional_wording():
     assert v["verdict"].startswith("NOT MET as registered (open gate(s): l0); decodability clauses MET")
 
 
+def test_integrity_fails_closed_without_historical_cells():
+    # An absent historical directory used to read compared 0, no mismatches, pass True.
+    cells = bcv.load_cells(bcv.RUNS["C1"]["dir"])
+    r = bcv.integrity(cells, {})
+    assert not r["pass"]
+    assert r["historical_cells_missing"] == {"predictor": 20, "untrained": 20}
+    assert not bcv.integrity(cells, bcv.load_cells("artifacts/does_not_exist"))["pass"]
+    # The full comparison passes and writes no missing-cells key.
+    full = bcv.integrity(cells, bcv.load_cells(bcv.RUNS["C1"]["historical"]))
+    assert full["pass"] and "historical_cells_missing" not in full
+
+
 def test_missing_run_gets_no_verdict(monkeypatch):
     monkeypatch.setattr(bcv, "RUNS", {"C1": {"dir": "artifacts/does_not_exist", "replaces": "x",
                                              "historical": HIST_WM, "auxiliary": True}})

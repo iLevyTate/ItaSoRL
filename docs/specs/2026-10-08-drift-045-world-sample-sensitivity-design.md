@@ -109,3 +109,18 @@ auxiliary on at 300 updates. Two no-auxiliary runs of that fingerprint also kept
 450 updates); none of these other agent sets was scored by this design. The text above is left
 as frozen, and the scored agents and the result do not change. Dated entry:
 `docs/CORRECTIONS.md`, 2026-10-10.
+
+## Amendment 2026-10-17, before the corrected-agent run
+
+The corrected C1 survival agents at drift 0.45 are on this machine
+(`fullruns/corrected_l3_h8_wm/agents`, the C1 rerun, whose cells equal C1's to the bit), so the
+nine draws above can be scored on them. The closing readouts spec (`docs/specs/2026-10-17-closing-readouts-design.md`, section G02) does that
+with this design's draws, statistic (signed per-draw means, never folded) and integrity gate:
+the registered draw must reproduce the C1 drift-0.45 survival targets of
+`artifacts/fold_rescore/corrected_l3_h8_wm_integrity_ref.json` within 0.01 on all ten seeds, or
+the run is void and no number from it is reported. That run is post hoc. Its R1, R2 and R3
+labels are computed and reported as descriptions, and none of them triggers the wording of "What
+is written in each case" above, which governed the historical run and has been applied. The
+record's propagation of the draw component, which uses this run's between-draw standard
+deviation of 0.042, stays as written; C1's own standard deviation and the interval it implies
+are reported beside it. No verdict changes.

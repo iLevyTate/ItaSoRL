@@ -682,7 +682,9 @@ RUNS = [
         "C1 agents", experiment="B-v2 L3", artifacts=["persistence/corrected_l3_h8_wm.json"],
         trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
         status="corrected", commit_at_run="34e2c0d", folds="explicit",
-        eval_seeds={"persistence": "980000 + p, p < 110"}, device=CPU_REVISION,
+        eval_seeds={"persistence": "980000 + p, p < 110; shared with the H2 h16 authentic pool of the "
+                    "2026-07-22 ablations (BASES_IN_USE: 'persistence and H2 h16 authentic'); "
+                    "different agents, no probe fit across them, values unchanged"}, device=CPU_REVISION,
         notes="scripts/run_persistence_readout.py; revision step 7; rule frozen in "
               "docs/specs/2026-10-06-controlled-persistence-design.md."),
     run("C1-CONTROL-DIAG", "Behavior and sensory controls with fit diagnostics, and sequence "
@@ -1073,6 +1075,22 @@ RUNS = [
         status="corrected", folds="explicit",
         notes="scripts/build_corrected_verdicts.py; rules frozen in "
               "docs/specs/2026-10-06-corrected-trainer-confirmation-design.md."),
+    run("C1-INTEGRITY-REFS", "Integrity reference for readouts of the C1 agents: recorded pooled "
+        "targets per drift, seed and arm", experiment="methods",
+        artifacts=["fold_rescore/corrected_l3_h8_wm_integrity_ref.json"], trains_survival=False,
+        readout_of=["C1"], survival_trainer="successor_value", status="corrected", folds="explicit",
+        notes="scripts/build_integrity_ref.py; pooled targets copied from the C1 cell records in "
+              "fullruns/corrected_l3_h8_wm/cells at drifts 0.00 and 0.45, three arms, seeds 0-9 "
+              "(60 entries); no value recomputed. Read by reverse_direction.py and "
+              "run_world_sample_sensitivity.py as --integrity-ref (closing pass 2026-10, G45, G56, G02)."),
+    run("BALANCED-POOLED", "B1 and B2 pooled readings on the registered evaluation-world pair",
+        experiment="B-v2 L3", artifacts=["balanced_pooled/registered_pair.json"], trains_survival=False,
+        readout_of=["B1-BALANCED", "B2-BALANCED"], survival_trainer="successor_value", status="corrected",
+        folds="explicit",
+        notes="scripts/promote_balanced_pooled.py; the pooled targets at 800000 / 850000 copied from the "
+              "B1 and B2 cell records (fullruns/balanced_confirmation_{wm,touch}/cells), per seed and as "
+              "means; descriptive, decides nothing (the balanced pairs at 910000 decide B1 and B2). "
+              "Closing pass 2026-10, H01."),
     # ---------------- Experiment C (neuroevolution, no actor-critic) ----------------
     run("C-EMERGENCE", "Experiment C emergence under selection, fixed-code re-run",
         experiment="C", artifacts=["expC/emergence_pilot_summary.json",
@@ -1093,7 +1111,9 @@ RUNS = [
         eval_seeds={"balanced_pairs": "910000, same base for both worlds, 110 episodes",
                     "pooled_secondary": "800000 / 850000"},
         notes="docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: "
-              "the untrained balanced mean is 0.114 from 0.5. The 2026-10-13 sensory-echo "
+              "the untrained balanced mean is 0.114 from 0.5, and the matched speed gate collected "
+              "2026-10-14 on the retained pairs is under 0.75 on the untrained arm at seeds 13 (0.7499) and 19 (0.749). "
+              "The 2026-10-13 sensory-echo "
               "control on the same pairs meets its frozen rule (resid_obs 0.761). FINDINGS 21."),
     run("B2-BALANCED", "Balanced confirmation, pellet objective, death off, seeds 10-19",
         experiment="B-v2 L3", artifacts=["balanced_confirmation/b2.json",
@@ -1107,7 +1127,9 @@ RUNS = [
                     "pooled_secondary": "800000 / 850000"},
         config={"objective": "touch", "mortal": False, "adv_norm": "historical"},
         notes="docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: "
-              "the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. "
+              "the untrained balanced mean is 0.114 from 0.5, and the matched speed gate collected "
+              "2026-10-14 on the retained pairs is under 0.75 on the untrained arm at seeds 13 (0.7499) and 19 (0.749). "
+              "The untrained arm matches B1. "
               "The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule "
               "(resid_obs 0.780). FINDINGS 21."),
     run("SALIENCE", "Whisper or shout: how prominent world identity is in the state without a label "

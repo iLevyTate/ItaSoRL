@@ -47,8 +47,8 @@ The rebuild writes, from the committed per-seed artifacts under `artifacts/`:
   They stay local like the manuscript: `docs/paper_tables/` and `docs/paper/` are both
   gitignored, nothing in them is committed, and the audit renders the tables in memory.
 
-It then runs `scripts/audit_stats_recheck.py`. The script prints the count (3179 on
-2026-10-16, after the critical-review checks). **What the audit
+It then runs `scripts/audit_stats_recheck.py`. The script prints the count (3231 on
+2026-10-17, after the closing-pass checks). **What the audit
 checks:** it recomputes each summary statistic it guards from the committed per-seed
 artifacts and compares it with a copy of the quoted value kept as a constant in the script.
 Those constants mirror numbers quoted in `README.md`, `docs/FINDINGS.md`,

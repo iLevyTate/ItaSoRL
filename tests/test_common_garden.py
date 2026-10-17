@@ -104,3 +104,112 @@ def test_cg_probe_persistent_vs_reactive():
     reac = cg_probe(reac_a, reac_s, late_k=8, seed=0)
     assert pers["cg_tail_target"] > 0.9 and pers["cg_latetail_target"] > 0.9
     assert abs(reac["cg_latetail_target"] - 0.5) < 0.20, "late window must not see an early-only signal"
+
+
+# --- closing hook A7a and G21: world-seed grouping, opt-in --------------------------------
+
+
+def _tails(rng, n, T=10, hid=6):
+    return ([rng.normal(0, 1, (T, hid)).astype(np.float32) for _ in range(n)],
+            [rng.normal(0, 1, (T, hid)).astype(np.float32) + 0.3 for _ in range(n)])
+
+
+def test_cg_groups_default_and_expansion():
+    from itasorl.experiment_b2 import cg_groups
+    assert np.array_equal(cg_groups(4), [0, 1, 2, 3, 0, 1, 2, 3])
+    assert np.array_equal(cg_groups(3, [7, 7, 9]), [7, 7, 9, 7, 7, 9])
+    assert np.array_equal(cg_groups(2, [5, 6, 5, 6]), [5, 6, 5, 6])
+    with pytest.raises(ValueError, match="groups must have length"):
+        cg_groups(3, [1, 2])
+
+
+def test_cg_probe_default_equals_explicit_pair_groups():
+    auth, surr = _tails(np.random.default_rng(3), 23)
+    assert cg_probe(auth, surr) == cg_probe(auth, surr, groups=np.arange(23))
+    assert cg_probe(auth, surr) == cg_probe(auth, surr, groups=None)
+
+
+def test_world_seed_groups_keep_a_seed_in_one_fold():
+    from itasorl import folds
+    from itasorl.experiment_b2 import cg_groups
+    from itasorl.experiment_c import group_by_world_seed
+    widx = [[0, 1, 2, 4, 5, 6, 7], [0, 2, 3, 4, 6, 7], [1, 2, 3, 5, 6, 7]]  # deaths drop pairs
+    g = group_by_world_seed(widx)
+    assert g.tolist() == [p for ix in widx for p in ix]
+    G = cg_groups(len(g), g)
+    assert len(G) == 2 * len(g)
+    for tr, te in folds.split(G):
+        assert not set(G[te]) & set(G[tr]), "a world seed straddles a fold"
+    assert group_by_world_seed([]).size == 0
+
+
+def test_return_index_adds_kept_pairs_and_leaves_the_rollout_alone():
+    agent, norm = _agent_norm()
+    kw = dict(n_pairs=3, prefix_steps=4, tail_steps=6, ray_steps=RS, device="cpu")
+    a0, s0 = common_garden_rollout(agent, norm, P, 0.5, **kw)
+    a1, s1, ix = common_garden_rollout(agent, norm, P, 0.5, return_index=True, **kw)
+    a2, s2, ast, sst, ix2 = common_garden_rollout(agent, norm, P, 0.5, return_index=True,
+                                                  return_stats=True, **kw)
+    assert len(ix) == len(a0) and ix == ix2 and ix == sorted(set(ix))
+    assert all(0 <= p < 3 for p in ix) and len(ast) == len(sst) == len(a0)
+    for x, y in ((a0, a1), (s0, s1), (a0, a2), (s0, s2)):
+        assert all(np.array_equal(u, v) for u, v in zip(x, y))
+
+
+def test_common_garden_panel_world_seed_groups_is_opt_in():
+    from itasorl.experiment_c import common_garden_panel
+    from itasorl.patch_of_earth import PatchOfEarthV0
+    w = PatchOfEarthV0(P)
+    pop = []
+    for i in range(2):
+        torch.manual_seed(500 + i)
+        pop.append(RecurrentActorCritic(w.obs_spec.size, w.action_spec.size, embed=4, hidden=4,
+                                        world_model=False))
+    kw = dict(drift_sigma=0.02, n_pairs=6, prefix_steps=5, tail_steps=6, seed_base=930_000)
+    base = common_garden_panel(pop, 0, **kw)
+    off = common_garden_panel(pop, 0, world_seed_groups=False, **kw)
+    on = common_garden_panel(pop, 0, world_seed_groups=True, **kw)
+    assert "cv_groups" not in base
+    assert list(off) == list(base)
+    assert repr(off) == repr(base)
+    assert on.pop("cv_groups") == "world_seed"
+    assert list(on) == list(base) and on["cg_n_pairs"] == base["cg_n_pairs"]
+    assert on["survival"] == base["survival"]
+
+
+def _population_script():
+    import sys
+    from pathlib import Path
+    scripts = str(Path(__file__).resolve().parents[1] / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    import validate_population_readout as vpr
+    return vpr
+
+
+def test_population_readout_flag_off_block_is_the_old_pooled_probe():
+    vpr = _population_script()
+    rng = np.random.default_rng(11)
+    widx = [[0, 1, 2, 3, 4, 5, 6, 7, 8], [0, 1, 3, 4, 5, 6, 8], [0, 2, 3, 4, 5, 7, 8]]
+    auth, surr = _tails(rng, sum(len(ix) for ix in widx))
+    off = vpr.pooled_probe_block(auth, surr)
+    assert off == {"pooled_probe": float(cg_probe(auth, surr)["cg_tail_target"])}
+    on = vpr.pooled_probe_block(auth, surr, widx)
+    assert set(on) == {"pooled_probe", "pooled_probe_world_grouped",
+                       "pooled_probe_world_grouped_ci", "n_world_groups"}
+    assert on["pooled_probe"] == off["pooled_probe"]
+    ref = cg_probe(auth, surr, groups=np.concatenate([np.asarray(ix) for ix in widx]))
+    assert on["pooled_probe_world_grouped"] == float(ref["cg_tail_target"])
+    assert on["pooled_probe_world_grouped_ci"] == [float(ref["cg_tail_lo"]), float(ref["cg_tail_hi"])]
+    assert on["n_world_groups"] == 9
+
+
+def test_population_readout_help_lists_the_world_seed_flag():
+    import subprocess
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    r = subprocess.run([sys.executable, str(root / "scripts" / "validate_population_readout.py"),
+                        "--help"], cwd=root, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr[-400:]
+    assert "--group-by-world-seed" in r.stdout

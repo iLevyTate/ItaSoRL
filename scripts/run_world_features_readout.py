@@ -6,6 +6,12 @@ calibration episodes pooled over seeds, then the per-seed readout at that radius
 
     python scripts/run_world_features_readout.py --agents-dir fullruns/corrected_l3_h8_wm/agents \\
         --out artifacts/world_features/corrected_l3_h8_wm.json
+
+`--protocol own` (closing item G07, post hoc) runs the spec's secondary protocol: every arm is
+read on its own episodes at the same seed base instead of on the headline agent's replayed
+episodes. Each row then carries per-arm counts, feature summaries and echo, and every recorded
+episode's feature values (H24). The default, replay, is the registered protocol and its
+output is unchanged.
 """
 
 from __future__ import annotations
@@ -13,6 +19,7 @@ from __future__ import annotations
 import _bootstrap  # noqa: F401
 
 import argparse
+import json
 import os
 import sys
 import time
@@ -25,6 +32,7 @@ SPEC = "docs/specs/2026-10-15-world-draw-features-design.md"
 READ_BASE = 2_600_000       # listed in itasorl.post_review.BASES_IN_USE
 CALIB_BASE = 2_650_000
 ARMS = (("survival", DRIFT), ("predictor", DRIFT), ("untrained", DRIFT), ("survival", 0.0))
+PROTOCOLS = ("replay", "own")
 
 
 def record_with_worlds(agent, norm, P, n_eps: int, steps: int, seed_base: int, ray_steps: int,
@@ -81,6 +89,8 @@ def calibrate(t: dict) -> dict:
 
 
 def run_seed(t: dict) -> dict:
+    if t.get("protocol", "replay") == "own":
+        return run_seed_own(t)
     from itasorl.eval_protocols import replay_states
     from itasorl.experiment_a import grouped_auroc
     from itasorl.experiment_b import episode_features
@@ -122,6 +132,67 @@ def run_seed(t: dict) -> dict:
                 perm = {**feats, k: rng.permutation(v)}
                 blk[k]["r2_permuted"] = ridge_r2_cv(Xh, perm[k], target=residual_targets(perm, k))
         out["arms"][f"{g}_d{d:.2f}"] = blk
+    out["seconds"] = round(time.time() - t0, 1)
+    return out
+
+
+def run_seed_own(t: dict) -> dict:
+    """The secondary protocol (G07, post hoc): every arm acts on its own episodes at READ_BASE
+    and is read on them, with the replay protocol's decoders, targets and permutation draws.
+    Each arm keeps its own episode count, feature summaries and echo under `per_arm`, with
+    every recorded episode's index, finite-feature flag and feature values. The row-level
+    n, feature summaries, echo and exceedance are the headline arm's, so `summarize` reads
+    an own-episode row as it reads a replay row."""
+    from itasorl.eval_protocols import replay_states
+    from itasorl.experiment_a import grouped_auroc
+    from itasorl.experiment_b import episode_features
+    from itasorl.novel_readouts import (INCIDENTAL, INSTRUMENTAL, exceedance_rate, obs_summary,
+                                        residual_r2_cv, residual_targets, residualize_incidental,
+                                        ridge_r2_cv)
+
+    setup_l3()
+    P = world_params()
+    s = t["seed"]
+    t0 = time.time()
+    head = f"survival_d{DRIFT:.2f}"
+    out = {"seed": s, "protocol": "own", "arms": {}, "per_arm": {}}
+    rng = np.random.default_rng(10_000 + s)
+    for g, d in ARMS[: t["n_arms"]]:
+        arm = f"{g}_d{d:.2f}"
+        ag, nm = load(t["agents_dir"], d, s, g)
+        O, A, K, F, dmax, _ = record_with_worlds(ag, nm, P, t["n_eps"], t["steps"], READ_BASE,
+                                                 t["ray_steps"], t["r"])
+        raw = {k: np.array([f[k] for f in F], float) for k in INSTRUMENTAL + INCIDENTAL}
+        ok = np.all(np.isfinite(np.column_stack(list(raw.values()))), axis=1)
+        feats = {k: v[ok] for k, v in raw.items()}
+        full = residualize_incidental(feats)
+        tgt = {k: residual_targets(feats, k) for k in feats}
+        Xo = obs_summary(O[ok])
+        Xh = episode_features(replay_states(ag, nm, O[ok], A[ok])).astype(np.float64)
+        blk = {}
+        for k, v in feats.items():
+            yb = (full[k] > np.median(full[k])).astype(int)
+            blk[k] = {"r2_state": ridge_r2_cv(Xh, v, target=tgt[k]),
+                      "r2_resid": residual_r2_cv(Xh, Xo, v, target=tgt[k]),
+                      "auroc_median_split": float(grouped_auroc(Xh, yb, np.arange(len(yb))))}
+            if arm == head:
+                perm = {**feats, k: rng.permutation(v)}
+                blk[k]["r2_permuted"] = ridge_r2_cv(Xh, perm[k], target=residual_targets(perm, k))
+        out["arms"][arm] = blk
+        out["per_arm"][arm] = {
+            "n": int(ok.sum()), "n_recorded": int(len(K)),
+            "feature_means": {k: float(v.mean()) for k, v in feats.items()},
+            "feature_sds": {k: float(v.std()) for k, v in feats.items()},
+            "echo_r2": {k: ridge_r2_cv(Xo, feats[k], target=tgt[k]) for k in feats},
+            "exceedance_rate": exceedance_rate(dmax[ok], t["r"]),
+            "episode_index": [int(i) for i in K], "episode_ok": [bool(x) for x in ok],
+            "episode_features": {k: [float(x) for x in v] for k, v in raw.items()}}
+    hp = out["per_arm"][head]
+    out.update({k: hp[k] for k in ("n", "n_recorded", "feature_means", "feature_sds", "echo_r2",
+                                   "exceedance_rate")})
+    out["targets"] = ("far features residualized on the near ones inside each training fold "
+                      "(third amendment); auroc_median_split uses the full-sample residual; "
+                      "each arm on its own episodes")
     out["seconds"] = round(time.time() - t0, 1)
     return out
 
@@ -182,7 +253,12 @@ def main() -> int:
     ap.add_argument("--arms", type=int, default=len(ARMS), help="first N of survival, predictor, untrained, survival d0")
     ap.add_argument("--workers", type=int, default=1)
     ap.add_argument("--ckpt", default=None)
+    ap.add_argument("--protocol", choices=PROTOCOLS, default="replay",
+                    help="replay (registered): every arm reads the headline agent's episodes; "
+                         "own (secondary, post hoc): every arm reads its own episodes")
     a = ap.parse_args()
+    own = a.protocol == "own"
+    prov = run_provenance(a)
     ckpt = a.ckpt or a.out + ".ckpt"
     base = {"agents_dir": a.agents_dir, "steps": a.steps, "ray_steps": a.ray_steps}
     fpx = fingerprint_extra(__file__, a.agents_dir, a.seeds, ARMS[: a.arms])
@@ -194,8 +270,10 @@ def main() -> int:
     print(f"reach radius r = {r:.4f} (95th pct of max displacement; final-step pct "
           f"{np.percentile(dfin, 95):.4f})", flush=True)
     tasks = [{**base, "seed": s, "n_eps": a.n_eps, "r": r, "n_arms": a.arms} for s in a.seeds]
-    rows = sorted(run_tasks(run_seed, tasks, os.path.join(ckpt, "read"), lambda t: f"s{t['seed']}",
-                            a.workers, fpx), key=lambda x: x["seed"])
+    if own:     # the replay task dict, and so its checkpoint fingerprint, gains no key
+        tasks = [{**t, "protocol": "own"} for t in tasks]
+    rows = sorted(run_tasks(run_seed, tasks, os.path.join(ckpt, "read_own" if own else "read"),
+                            lambda t: f"s{t['seed']}", a.workers, fpx), key=lambda x: x["seed"])
     body = {"spec": SPEC, "reach": {"r": r, "pct95_max_disp": r,
                                     "pct95_final_disp": float(np.percentile(dfin, 95)),
                                     "readout_exceedance_rate": float(np.nanmean([r_["exceedance_rate"] for r_ in rows])),
@@ -204,11 +282,41 @@ def main() -> int:
                                             "can reach (third amendment)",
                                     "n_calib_episodes": int(len(dmax))},
             **summarize(rows, a.arms), "rows": rows}
-    write_output(a.out, "scripts/run_world_features_readout.py", sys.argv[1:],
-                 {"agents_dir": a.agents_dir, "seeds": a.seeds, "n_eps": a.n_eps,
-                  "seed_bases": {"readout": READ_BASE, "calibration": CALIB_BASE}}, SPEC, body)
+    inputs = {"agents_dir": a.agents_dir, "seeds": a.seeds, "n_eps": a.n_eps,
+              "seed_bases": {"readout": READ_BASE, "calibration": CALIB_BASE}}
+    if own:
+        body = {"protocol": "own (secondary protocol of the spec, post hoc)", **body}
+        inputs["protocol"] = "own"
+    write_output(a.out, "scripts/run_world_features_readout.py", sys.argv[1:], inputs, SPEC, body)
+    add_provenance(a.out, prov)
     print("  label:", body["readings"]["label"])
     return 0
+
+
+def run_provenance(a) -> dict:
+    """Closing item G46: the keys the shared readout provenance lacks. A readout of saved
+    agents, so the commit key is git_commit_at_promotion."""
+    from agent_free_common import provenance
+    from promote_bv3_gates import rel_flags, repo_rel
+    p = provenance("scripts/run_world_features_readout.py", commit_key="git_commit_at_promotion",
+                   output=repo_rel(a.out), device="cpu")
+    return {**p, "agents_dir": repo_rel(a.agents_dir), "argv": rel_flags(list(sys.argv[1:]))}
+
+
+def add_provenance(path: str, extra: dict) -> None:
+    """Merge `extra` into the written file's provenance block and rewrite it the way
+    write_output wrote it. Every key write_output recorded keeps its value, the stack block
+    included; nothing outside the provenance block changes."""
+    with open(path, encoding="utf-8") as fh:
+        doc = json.load(fh)
+    prov = doc["provenance"]
+    for k, v in extra.items():
+        if k == "stack":
+            prov["stack"] = {**v, **prov.get("stack", {})}
+        elif k not in prov:
+            prov[k] = v
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh, indent=1, default=float)
 
 
 if __name__ == "__main__":

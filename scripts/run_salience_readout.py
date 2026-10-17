@@ -87,13 +87,21 @@ def summarize(rows: list) -> dict:
                 "whispers apart; the paired differences are descriptive and are not a causal "
                 "decomposition of what the input supplies"}
     l0 = agg["l0 survival_d0 kmeans_agreement"]["mean"]
+    l0_at_chance = bool(abs(l0 - 0.5) < 0.1)
     label = "shout" if shout else "whisper" if whisper else "audible"
+    if shout and floor:
+        label += " (carried by the input)"
+    # Spec line 44: when the L0 analogue does not sit within 0.1 of 0.5, every agreement
+    # here is reported as carrying the world-sample draw. The boolean below records the
+    # gate; the label carries the qualifier so a reader of the label alone sees it.
+    if not l0_at_chance:
+        label += " (carrying the world-sample draw: L0 analogue not at chance)"
     return {"aggregate": agg, "readings": {
         "1 shout": shout, "2 whisper": whisper, "3 between (audible)": not shout and not whisper,
         "4 floor: untrained meets reading 1 on identical input": floor,
         "4 floor on identical input": floor_block,
-        "label": label + (" (carried by the input)" if shout and floor else ""),
-        "l0 kmeans agreement": l0, "l0 within 0.1 of 0.5": bool(abs(l0 - 0.5) < 0.1)}}
+        "label": label,
+        "l0 kmeans agreement": l0, "l0 within 0.1 of 0.5": l0_at_chance}}
 
 
 def main() -> int:

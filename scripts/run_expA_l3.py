@@ -38,6 +38,7 @@ import _bootstrap  # noqa: F401
 import argparse
 import json
 import os
+import sys
 
 import numpy as np
 
@@ -81,6 +82,16 @@ def cfg():
     ap.add_argument("--gn-sigmas", type=float, nargs="+", default=None,
                     help="override the gn sigma_v sweep (bisection); default = frozen GN_SWEEP")
     return ap.parse_args()
+
+
+def run_provenance(a, device: str) -> dict:
+    """Closing items G46 and H31: commit, tracked changes, stack and argv. The calibration is
+    agent free and IS the run, so the commit key is git_commit."""
+    from agent_free_common import provenance
+    from promote_bv3_gates import rel_flags, repo_rel
+    p = provenance("scripts/run_expA_l3.py", commit_key="git_commit", output=repo_rel(a.json),
+                   device=device)
+    return {**p, "argv": rel_flags(list(sys.argv[1:]))}
 
 
 def main():
@@ -188,6 +199,7 @@ def main():
         if a.family != "mlp":
             payload["selected"] = (None if selected is None
                                    else {"family": a.family, last_knob: selected})
+        payload["provenance"] = run_provenance(a, dev)
         with open(a.json, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2)
         print(f"saved {a.json}")

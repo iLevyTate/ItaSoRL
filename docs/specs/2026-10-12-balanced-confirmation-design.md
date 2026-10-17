@@ -116,3 +116,14 @@ scores appear in `B1` and `B2`. Descriptively the trained arms clear the interva
 `B1` survival 0.800 [0.772, 0.829], `B2` 0.843 [0.825, 0.860], with both margins' lower
 bounds above 0.05. FINDINGS 21 records the gates and the numbers. The runner's MET line is
 the pooled readout and is not this decision.
+
+2026-10-17 note: the matched-pair speed gate (gate 2), collected 2026-10-14, also fails at 0.749; see CORRECTIONS 2026-10-14 and the artifact gates block.
+
+2026-10-17 note (seed bases): "Seeds 10 to 19 occupy 200000 through about 298000, short of the
+Experiment C panels at 320000" holds for the survival schedule only (100000 + 10000 s + 16 u:
+200000 to 294799). The predictor arm trains on 200000 + 9000 s + 16 u, which for seeds 10 to 19
+runs from 290000 to 375799, and for seeds 14 to 19 from 326000 to 375800 (end of span), inside
+the Experiment C panel range (320000 + 10000 s + p, from 320000). The overlap is a fact of two
+training schedules and not a new draw: no `B1` or `B2` readout draws from those panels, and the
+balanced run's own bases (910000) are unaffected. `BASES_IN_USE` in `itasorl/post_review.py`
+now lists the predictor span. No reading changes.

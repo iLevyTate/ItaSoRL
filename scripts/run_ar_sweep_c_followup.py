@@ -31,7 +31,7 @@ import sys
 import numpy as np
 
 from run_ar_sweep import SIGMA_A, contrast, margin_by_seed
-from run_ar_sweep_c import BASES, OUT as SWEEP_C, SPEC, readings
+from run_ar_sweep_c import BASES, OUT as SWEEP_C, SPEC, _point_matches, readings
 
 OUT = "artifacts/texture/ar_sweep_c_followup"
 RERUN = (0.95, 0.99)
@@ -81,8 +81,8 @@ def main() -> int:
         path = os.path.join(a.out_dir, p["file"])
         if os.path.exists(path):
             doc = json.load(open(path, encoding="utf-8"))
-            if not (doc.get("rho") == p["rho"] and abs(float(doc.get("param", np.nan)) - p["sigma"]) < 1e-12
-                    and tuple(doc.get("seed_bases", ())) == BASES and doc.get("agents_dir") == repo_rel(a.agents_dir)):
+            # The resume check of sweep C itself, which also checks the family (2026-10-17).
+            if not _point_matches(doc, p, a.agents_dir):
                 raise RuntimeError(f"{path} exists but was written for different inputs; move it aside")
             continue
         print(f"== follow-up rho {p['rho']} sigma {p['sigma']:.6f} exact gap {p['exact_gap']:.4f}", flush=True)
@@ -107,6 +107,10 @@ def main() -> int:
                                "kept": bool(sf.get("mean", 0) >= 0.65 and mv.mean() >= 0.05)})
     m0 = margin_by_seed(json.load(open(os.path.join(SWEEP_C, "C_rho0.00.json"), encoding="utf-8")))
     c = contrast(M[0.99], m0)
+    # contrast() pairs the seeds the two points share and drops non-finite ones; the readings
+    # are defined on all ten seeds, so a shorter pairing stops here instead of being read.
+    if c["n"] != 10:
+        raise RuntimeError(f"the contrast pairs {c['n']} seeds, not 10; check both point files")
     summ["contrast"] = {"follow-up: M(0.99, matched) - M(0, stored)": c}
     summ["readings"] = readings(c)
     summ["frozen_result"] = {"contrast": stored["contrast"], "readings": stored["readings"]}

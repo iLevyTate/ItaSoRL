@@ -36,11 +36,17 @@ POLICY_SEED_BASE = 600_000   # disjoint from every world seed base in the pipeli
 
 
 def collect_pool_scripted(agent, norm, params, drift_sigma, n_eps, steps, device, seed_base,
-                          ray_steps, policy_seed_base: int = POLICY_SEED_BASE):
+                          ray_steps, policy_seed_base: int = POLICY_SEED_BASE,
+                          thrust_scale: float = 1.0):
     """Like collect_pool, but actions come from the scripted policy with rng seed
     policy_seed_base + i, not from the agent. The agent's GRU receives each observation and
     the scripted action as its previous action, exactly as in predictor training. Returns
-    (H (k, steps, hidden), kept indices) for full-length survivors."""
+    (H (k, steps, hidden), kept indices) for full-length survivors.
+
+    `thrust_scale` multiplies the scripted thrust (action[0]) before the step, clipped to the
+    world's [0, 1] range, so a speed-matched walk keeps the scripted headings and draws
+    (closing item B2). The GRU receives the scaled action. At the default 1.0 nothing is
+    multiplied and the pool is the historical one byte for byte."""
     Hs, kept = [], []
     for i in range(n_eps):
         w = make_world(params, drift_sigma, ray_steps)
@@ -56,6 +62,8 @@ def collect_pool_scripted(agent, norm, params, drift_sigma, n_eps, steps, device
                 h = agent.step_state(o, prev, h)
                 row.append(h[0].cpu().numpy())
                 a = scripted_policy(rng)
+                if thrust_scale != 1.0:
+                    a[0] = np.float32(min(max(float(a[0]) * thrust_scale, 0.0), 1.0))
                 r = w.step(a)
                 prev = torch.as_tensor(a[None], dtype=torch.float32, device=device)
                 obs = r.obs.astype(np.float64)

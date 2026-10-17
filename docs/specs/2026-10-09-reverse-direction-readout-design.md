@@ -121,3 +121,20 @@ in `8aa2b9f` at 2026-10-08 21:39:03 local time (UTC-4), and the run started 20 s
 and the same timestamp, is on `origin/feat/direction-and-comparator-runs` and reached `main` in
 the squash merge `c05d791` (#130). The header is left as written. Dated entry:
 `docs/PREREGISTRATION_L3.md` section 12, 2026-10-10.
+
+## Amendment 2026-10-17, before the corrected-agent run
+
+"The corrected C1 agents are not in this repository and cannot be scored" (under "What is
+scored") is stale. The saved agents of the C1 rerun, whose cells equal C1's to the bit, are on
+this machine at `fullruns/corrected_l3_h8_wm/agents/`, and its 30 drift-0 agents
+(`agent_d0.00_s*_{survival,predictor,untrained}.pt`, seeds 0 to 9) can be scored with this
+design. The closing readouts spec (`docs/specs/2026-10-17-closing-readouts-design.md`, section B3) does so: the same two readouts at drift
+0.45 on the registered pair, the same three labels, and an integrity gate of the same form, the
+drift-0 rescore reproducing the C1 drift-0 cell targets
+(`artifacts/fold_rescore/corrected_l3_h8_wm_integrity_ref.json`) within 0.01 on all 30
+agent-cells, or the run is void and nothing from it is reported. The label on C1 is descriptive:
+it enters no rule-ledger row, and the ledger's "about" field gains one sentence saying so. "What
+is written in each case" above governs the historical result; the text changes for the C1
+reading are the ones that spec's B3 section names. The frozen text above, the historical result
+and its wording do not change. The run is announced in `docs/PREREGISTRATION_L3.md` section 12,
+2026-10-17.

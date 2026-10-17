@@ -131,3 +131,18 @@ the same ten scores in both runs. The trained clause holds on both runs. `B1` su
 `resid_obs` is 0.761 [0.727, 0.795], 10 of 10 seeds at or above 0.65. `B2` is 0.780
 [0.757, 0.804], 10 of 10. Both are sensory-independent under matched worlds. The
 2026-10-12 routes stay UNINFORMATIVE as recorded. FINDINGS 21.
+
+## Amendment 2026-10-17, before a second-draw run
+
+The result at base 910000 above is unchanged. A second evaluation draw is read descriptively,
+because both floor verdicts rest on that one draw and the controlled floor clause is met by
+0.004. The integrity gate stays where it is: the regenerated balanced targets are checked at
+910000 (`--integrity-seed-base 910000`), with the same 5e-4 tolerance, first-state and
+dropped-pair checks. The readings come from fresh pairs at base 2_250_000
+(`--balanced-seed-base 2250000`), registered as "G03-fresh" in `REGISTERED_LATER` in
+`itasorl/post_review.py`. 2_200_000 is not used: it is the post-review balanced pairs' base
+(`BALANCED_FRESH_BASE`), which the r33 readout read, and the runner refuses it. The floor and
+trained clauses above are computed on the second draw and reported as descriptions; neither
+changes the result section above. Pair drops at the fresh base are reported as they come out
+(`n_pairs`, or a WITHHELD zone). Outputs go to `fullruns/closing_2026-10/g03/{wm,touch}/`, never
+to the shipped run folders. Commands and text map: `docs/specs/2026-10-17-closing-readouts-design.md`, section G03.

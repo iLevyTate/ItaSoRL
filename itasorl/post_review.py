@@ -45,7 +45,9 @@ ARMS = ("survival", "predictor", "untrained")
 # ---------------------------------------------------------------------------
 # Fresh evaluation worlds, shared by r35, r206 and r31 (one authentic and one surrogate
 # sample, so the three readouts see the same episodes), and one base for the balanced pairs
-# of r33. Every base already in use sits below 2_000_000 (BASES_IN_USE below).
+# of r33. Every base registered before these three sits below 2_000_000; the bases
+# registered after them (the 2026-10-15 readouts at the tail of BASES_IN_USE, and
+# REGISTERED_LATER) were placed to miss them, which base_collisions checks.
 FRESH_AUTH_BASE = 2_100_000
 FRESH_SURR_BASE = 2_150_000
 BALANCED_FRESH_BASE = 2_200_000
@@ -70,6 +72,13 @@ STREAM_OFFSETS = (0, 7_000 + 10_001, 13_000 + 20_002)
 #: itasorl/l0_audit.py and do not concern this module; the new bases must miss all of them.
 BASES_IN_USE: tuple = (
     ("survival and predictor training (100000 + 10000 s + 16 u, 200000 + 9000 s + 16 u)", 100_000, 185_800),
+    # The entry above spans the survival schedule of seeds 0 to 19 and the predictor schedule
+    # of seeds 0 to 9 only. The predictor schedule of seeds 14 to 19 (B1 and B2, 2026-10-12)
+    # runs from 200000 + 9000 x 14 = 326000 to 200000 + 9000 x 19 + 16 x 300 = 375800, past
+    # that span and inside the Experiment C panel entry below. The overlap is a historical
+    # fact of two training schedules, not a new draw: Experiment C trains its own populations
+    # and no B1 or B2 readout draws from those panels (H25, 2026-10-17).
+    ("predictor training, seeds 14 to 19 (200000 + 9000 s + 16 u)", 326_000, 49_800),
     ("experiment C panels (320000 + 10000 s + p)", 320_000, 100_000),
     ("untrained normalizer warmup", 555_000, 8),
     ("matched pairs", 700_000, 60),
@@ -115,6 +124,35 @@ NEW_BASES: tuple = (
     ("post-review fresh surrogate", FRESH_SURR_BASE, POOL_N),
     ("post-review balanced pairs", BALANCED_FRESH_BASE, POOL_N),
 )
+
+#: Bases registered after the post-review readouts, for the closing readouts of 2026-10
+#: (runbook stage 1.5): the B2 walk-speed pools, the B6 development transfer pools and the
+#: fresh read base of the G03 sensory-echo repeat. Each of their runners refuses to start
+#: when base_collisions(new=own, in_use=all_bases_in_use()) is non-empty. They are not
+#: copied into BASES_IN_USE or NEW_BASES: those two tuples are the record of the bases
+#: the registered readouts drew, and tests/test_world_seed_bases.py checks these against
+#: them and against each other.
+REGISTERED_LATER: tuple = (
+    ("B2-auth", 2_800_000, POOL_N),
+    ("B2-surr", 2_850_000, POOL_N),
+    ("B6-auth", 2_700_000, POOL_N),
+    ("B6-surr", 2_750_000, POOL_N),
+    ("G03-fresh", 2_250_000, POOL_N),
+)
+
+
+def all_bases_in_use() -> tuple:
+    """Every base a registered readout has drawn: BASES_IN_USE plus the post-review
+    NEW_BASES. The `in_use` argument for a base registered later."""
+    return BASES_IN_USE + NEW_BASES
+
+
+def registered_later(name: str) -> tuple[str, int, int]:
+    """The REGISTERED_LATER entry called `name` (KeyError when there is none)."""
+    for entry in REGISTERED_LATER:
+        if entry[0] == name:
+            return entry
+    raise KeyError(name)
 
 
 def seed_footprint(base: int, n: int) -> list[tuple[int, int]]:
