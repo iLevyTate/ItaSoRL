@@ -82,7 +82,27 @@ def test_the_recorded_off_target_values_recompute():
     assert [r for r, v in off.items() if abs(v) > fu.GAP_TOL] == [0.99]
 
 
+def _close(a, b, path="$"):
+    """Equal up to float rounding: the t quantile moves in the last digits between scipy
+    releases (1.15 here, 1.18 on CI), so a recomputed interval matches its stored copy to
+    about 1e-13, not bit for bit. Every non-float value must still match exactly."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        assert a.keys() == b.keys(), (path, sorted(set(a) ^ set(b)))
+        for k in a:
+            _close(a[k], b[k], f"{path}.{k}")
+    elif isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+        assert len(a) == len(b), path
+        for i, (x, y) in enumerate(zip(a, b)):
+            _close(x, y, f"{path}[{i}]")
+    elif isinstance(a, float) or isinstance(b, float):
+        assert a == pytest.approx(b, rel=1e-9, abs=1e-12, nan_ok=True), (path, a, b)
+    else:
+        assert a == b, (path, a, b)
+
+
 def test_contrast_pairs_by_seed_not_by_order():
+
+
     hi = {3: 0.30, 1: 0.10, 2: 0.25, 9: 0.5}
     lo = {1: 0.05, 2: 0.20, 3: 0.10, 7: 0.0}
     c = contrast(hi, lo)
@@ -97,7 +117,8 @@ def test_the_stored_contrast_is_the_seed_paired_one():
     m0 = margin_by_seed(_load(SC, "C_rho0.00.json"))
     c = contrast(m99, m0)
     st = _load(FU, "summary.json")["contrast"]["follow-up: M(0.99, matched) - M(0, stored)"]
-    assert c == st and c["n"] == 10
+    _close(c, st)
+    assert c["n"] == 10
 
 
 def _run(tmp_path, monkeypatch, edit=None):
@@ -128,7 +149,7 @@ def test_resume_from_the_stored_points_rebuilds_the_stored_summary(tmp_path, mon
     old = _load(FU, "summary.json")
     new.pop("provenance")
     old.pop("provenance")
-    assert json.dumps(new, sort_keys=True) == json.dumps(old, sort_keys=True)
+    _close(new, old)
 
 
 def test_resume_refuses_a_point_file_of_another_family(tmp_path, monkeypatch):

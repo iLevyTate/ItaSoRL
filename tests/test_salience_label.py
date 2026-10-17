@@ -50,12 +50,32 @@ def _rows(n: int, km: float, share: float, l0_km: float) -> list:
     return rows
 
 
+def _close(a, b, path="$"):
+    """Equal up to float rounding: the t quantile moves in the last digits between scipy
+    releases (1.15 here, 1.18 on CI), so a recomputed interval matches its stored copy to
+    about 1e-13, not bit for bit. Every non-float value must still match exactly."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        assert a.keys() == b.keys(), (path, sorted(set(a) ^ set(b)))
+        for k in a:
+            _close(a[k], b[k], f"{path}.{k}")
+    elif isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+        assert len(a) == len(b), path
+        for i, (x, y) in enumerate(zip(a, b)):
+            _close(x, y, f"{path}[{i}]")
+    elif isinstance(a, float) or isinstance(b, float):
+        assert a == pytest.approx(b, rel=1e-9, abs=1e-12, nan_ok=True), (path, a, b)
+    else:
+        assert a == b, (path, a, b)
+
+
 @pytest.mark.parametrize("name", ARTS)
+
+
 def test_summarize_reproduces_the_committed_readings_from_their_rows(name):
     art = _load(name)
     got = rsr.summarize(copy.deepcopy(art["rows"]))
-    assert got["readings"] == art["readings"]
-    assert got["aggregate"] == art["aggregate"]
+    _close(got["readings"], art["readings"])
+    _close(got["aggregate"], art["aggregate"])
     assert got["readings"]["l0 within 0.1 of 0.5"] is True
     assert "world-sample draw" not in got["readings"]["label"]
 
