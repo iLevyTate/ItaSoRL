@@ -5257,7 +5257,7 @@
       "recorded_provenance": {
         "fold_rescore/corrected_l3_h8_wm_integrity_ref.json": {
           "generated_by": "scripts/build_integrity_ref.py",
-          "git_commit_at_promotion": "1bbe7f5",
+          "git_commit_at_promotion": "eb848f0",
           "stack": {
             "MKL_NUM_THREADS": null,
             "OMP_NUM_THREADS": null,
@@ -5276,6 +5276,52 @@
       "surrogate": null,
       "survival_trainer": "inherited: successor_value",
       "title": "Integrity reference for readouts of the C1 agents: recorded pooled targets per drift, seed and arm"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "balanced_pooled/registered_pair.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": null,
+      "config": {},
+      "deps": null,
+      "device": null,
+      "eval_seeds": null,
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "BALANCED-POOLED",
+      "local_run_dir": null,
+      "notes": "scripts/promote_balanced_pooled.py; the pooled targets at 800000 / 850000 copied from the B1 and B2 cell records (fullruns/balanced_confirmation_{wm,touch}/cells), per seed and as means; descriptive, decides nothing (the balanced pairs at 910000 decide B1 and B2). Closing pass 2026-10, H01.",
+      "readout_only_on": [
+        "B1-BALANCED",
+        "B2-BALANCED"
+      ],
+      "recorded_provenance": {
+        "balanced_pooled/registered_pair.json": {
+          "generated_by": "scripts/promote_balanced_pooled.py",
+          "git_commit_at_promotion": "9adc09f",
+          "spec": "docs/specs/2026-10-12-balanced-confirmation-design.md",
+          "stack": {
+            "MKL_NUM_THREADS": null,
+            "OMP_NUM_THREADS": null,
+            "machine": "AMD64",
+            "numpy": "1.26.4",
+            "platform": "Windows-11-10.0.26300-SP0",
+            "python": "3.13.2",
+            "scipy": "1.15.3",
+            "sklearn": "1.5.2",
+            "torch": "2.7.0+cu126",
+            "torch_threads": 10
+          }
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "B1 and B2 pooled readings on the registered evaluation-world pair"
     },
     {
       "affected_by_gae_correction": false,

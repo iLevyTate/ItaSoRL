@@ -96,6 +96,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 7870bba (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
 | `C1-INTEGRITY-REFS` | corrected | methods | - | inherited: successor_value | C1 | not recorded | explicit | not recorded |
+| `BALANCED-POOLED` | corrected | B-v2 L3 | - | inherited: successor_value | B1-BALANCED, B2-BALANCED | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 | `B1-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
 | `B2-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
@@ -1180,6 +1181,14 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: explicit
 - Notes: scripts/build_integrity_ref.py; pooled targets copied from the C1 cell records in fullruns/corrected_l3_h8_wm/cells at drifts 0.00 and 0.45, three arms, seeds 0-9 (60 entries); no value recomputed. Read by reverse_direction.py and run_world_sample_sensitivity.py as --integrity-ref (closing pass 2026-10, G45, G56, G02).
 - Artifacts: `artifacts/fold_rescore/corrected_l3_h8_wm_integrity_ref.json`
+
+### `BALANCED-POOLED`: B1 and B2 pooled readings on the registered evaluation-world pair
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Folds: explicit
+- Notes: scripts/promote_balanced_pooled.py; the pooled targets at 800000 / 850000 copied from the B1 and B2 cell records (fullruns/balanced_confirmation_{wm,touch}/cells), per seed and as means; descriptive, decides nothing (the balanced pairs at 910000 decide B1 and B2). Closing pass 2026-10, H01.
+- Artifacts: `artifacts/balanced_pooled/registered_pair.json`
 
 ### `C-EMERGENCE`: Experiment C emergence under selection, fixed-code re-run
 

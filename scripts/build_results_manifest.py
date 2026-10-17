@@ -1083,6 +1083,14 @@ RUNS = [
               "fullruns/corrected_l3_h8_wm/cells at drifts 0.00 and 0.45, three arms, seeds 0-9 "
               "(60 entries); no value recomputed. Read by reverse_direction.py and "
               "run_world_sample_sensitivity.py as --integrity-ref (closing pass 2026-10, G45, G56, G02)."),
+    run("BALANCED-POOLED", "B1 and B2 pooled readings on the registered evaluation-world pair",
+        experiment="B-v2 L3", artifacts=["balanced_pooled/registered_pair.json"], trains_survival=False,
+        readout_of=["B1-BALANCED", "B2-BALANCED"], survival_trainer="successor_value", status="corrected",
+        folds="explicit",
+        notes="scripts/promote_balanced_pooled.py; the pooled targets at 800000 / 850000 copied from the "
+              "B1 and B2 cell records (fullruns/balanced_confirmation_{wm,touch}/cells), per seed and as "
+              "means; descriptive, decides nothing (the balanced pairs at 910000 decide B1 and B2). "
+              "Closing pass 2026-10, H01."),
     # ---------------- Experiment C (neuroevolution, no actor-critic) ----------------
     run("C-EMERGENCE", "Experiment C emergence under selection, fixed-code re-run",
         experiment="C", artifacts=["expC/emergence_pilot_summary.json",

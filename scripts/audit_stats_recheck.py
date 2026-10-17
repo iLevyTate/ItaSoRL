@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are: 76 pinned of 3187 on 2026-10-17 (PIN_COUNT and CHECK_FLOOR below). The count
+many there are: 84 pinned of 3231 on 2026-10-17 (PIN_COUNT and CHECK_FLOOR below). The count
 is of check() calls; composite check_true gates that also compare a stored reading with a
 literal are not counted. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
@@ -78,10 +78,10 @@ BAR = 0.65
 # (tests/test_audit_selftest.py). A run that records fewer has lost checks without failing one.
 # Change it deliberately when checks are added or removed, from the count the run prints, never
 # by hand; the manuscript sentences that quote it are checked against it by
-# scripts/build_paper_tables.py --manuscript. The count on 2026-10-17 is 3187.
-CHECK_FLOOR = 3187
+# scripts/build_paper_tables.py --manuscript. The count on 2026-10-17 is 3231.
+CHECK_FLOOR = 3231
 # How many of those checks are pins (labels start "pinned:"), as printed in "pins: P of N".
-PIN_COUNT = 76
+PIN_COUNT = 84
 
 failures: list[str] = []
 n_checks = 0
@@ -3409,6 +3409,23 @@ def main() -> int:
         check_true(f"FINDINGS 21 quotes {_rid} margin lower bounds",
                    f"{_mp:.3f}" in _f21 and f"{_mu:.3f}" in _f21)
     check_true("FINDINGS 21 names the decision", "Both runs are UNINFORMATIVE" in _f21)
+    # H01: the pooled readings on the registered pair that the record quotes for B1 and B2
+    # (descriptive; decides nothing). Each mean and interval is recomputed from its per-seed list,
+    # and each quoted three-decimal value is tied to its mean.
+    _bp = _load_art("balanced_pooled", "registered_pair.json")
+    for _rid, _run in sorted(_bp["runs"].items()):
+        for _d, _arms in sorted(_run["pool_target"].items()):
+            for _arm, _cell in sorted(_arms.items()):
+                _v = np.asarray(_cell["per_seed"], float)
+                _vlo, _vhi = t_ci90(_v)
+                check(f"H01 {_rid} d{_d} {_arm} pooled mean recomputed", float(_v.mean()), _cell["mean"])
+                check(f"H01 {_rid} d{_d} {_arm} pooled t90 lo recomputed", float(_vlo), _cell["t90"][0])
+                check(f"H01 {_rid} d{_d} {_arm} pooled t90 hi recomputed", float(_vhi), _cell["t90"][1])
+    for _rid, _d, _arm, _q in (("B1", "0.45", "survival", 0.758), ("B2", "0.45", "survival", 0.835),
+                               ("B1", "0.45", "predictor", 0.586), ("B1", "0.45", "untrained", 0.516),
+                               ("B1", "0.00", "survival", 0.561), ("B2", "0.00", "survival", 0.536),
+                               ("B1", "0.00", "predictor", 0.498), ("B1", "0.00", "untrained", 0.503)):
+        check(f"pinned: H01 {_rid} d{_d} {_arm} pooled mean as quoted", round(_bp["runs"][_rid]["pool_target"][_d][_arm]["mean"], 3), _q)
     for _ename, _mean, _lo, _hi in (
             ("sensory_echo_b1.json", 0.761, 0.727, 0.795),
             ("sensory_echo_b2.json", 0.780, 0.757, 0.804)):
