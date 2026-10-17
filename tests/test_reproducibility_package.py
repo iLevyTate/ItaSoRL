@@ -712,6 +712,10 @@ def test_provenance_lists_every_commit_to_a_registration_without_names(tmp_path,
     rows, why = reproduce.provenance_rows([rel])
     if rows is None:
         assert "shallow" in why
+        if os.environ.get("CI") == "true":
+            # ci.yml checks out the full history (fetch-depth 0), so a shallow clone in CI is
+            # a broken checkout, not a reason to skip.
+            pytest.fail(f"CI checkout is a shallow clone: {why}")
         pytest.skip(why)
     (got, commits, _), = rows
     assert got == rel and len(commits) >= 2

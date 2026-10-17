@@ -10,6 +10,10 @@ instead of retyping numbers:
   gate_table.tex          the authentic-versus-authentic (L0) gate for every run and partition
   run_legend.tex          what each run identifier in the two tables above names
   rule_ledger.tex         every frozen decision rule adjudicated at the 0.65 bar or the 0.05 margin
+  ci95.tex                every adjudicated cell's mean with its t-based 90% and 95% intervals,
+                          from the per-seed lists named in CI95_ROWS
+  holm.tex                post hoc: the bar clauses read on the t90 lower bound, with Holm's
+                          procedure in two families; no ledger reading changes
 
 The tables are manuscript material and stay LOCAL: they are written to docs/paper_tables/,
 which .gitignore excludes, beside (never inside) the gitignored manuscript directory
@@ -33,8 +37,12 @@ artifact's in one or two places is flagged; and every three-decimal number in th
 headed "The corrected primary run" must be a value of the C1 verdict entry. A sentence that
 counts rule-and-run pairs must give the rule ledger's tally (total, holds, fails,
 uninformative, no verdict), and a sentence that counts the gate table's rows and distinct sets
-of per-seed values must give the counts of artifacts/gate_table.json. No other number in the
-manuscript is compared with an artifact; Appendix app:claims traces those by hand. It flags wording
+of per-seed values must give the counts of artifacts/gate_table.json. The sentences that give
+the verification script's check count, pin count and their ratio must give CHECK_FLOOR,
+PIN_COUNT and round(CHECK_FLOOR / PIN_COUNT) of scripts/audit_stats_recheck.py. In a file with an
+abstract, every number headline_needles() lists for the abstract and the Contributions list
+must appear there as its artifact gives it. Other numbers are not compared with an artifact;
+Appendix app:claims traces those by hand. It flags wording
 the 2026-10 revision retired (the claim table in docs/REVISION_2026-10.md; matched after LaTeX
 markup is stripped) and any pre-correction headline that appears without a historical label in
 its section. A sentence that withdraws a retired reading may quote it, and a historical label
@@ -769,12 +777,287 @@ def tables() -> dict[str, str]:
     rl = rule_ledger_table()
     if rl is not None:
         out["rule_ledger.tex"] = rl
+    out["ci95.tex"] = ci95_table()
+    hm = holm_table()
+    if hm is not None:
+        out["holm.tex"] = hm
     # A negative number in text mode prints a hyphen; typeset it as a math minus. Only a sign
     # directly before a digit and not inside math or a word is touched.
     return {n: _TEX_MINUS.sub(r"$-$\1", t) for n, t in out.items()}
 
 
 _TEX_MINUS = re.compile(r"(?<![\w$\\-])-(\d)")
+
+
+# ------------------------------------------------------------------ 95% sensitivity table (G09)
+# Every row of the manuscript's 95% sensitivity table (Appendix app:ci95), as (block, label,
+# artifact, per-seed selector). A selector is a slash path to a list of per-seed values (or to
+# a block whose "per_seed" key holds them), or "cells:key=value,...:metric" for an artifact
+# that stores one record per seed under "cells". The table used to be typed by hand from a JSON
+# that was never committed and had gone stale; it is now rendered from these lists.
+CI95_ROWS = (
+    ("corrected", "Corrected C1, pooled target", "corrected_verdicts.json", "runs/C1/primary/survival/per_seed"),
+    ("corrected", "Corrected C1, behavior-controlled (seven channels)", "control_diagnostics/corrected_l3_h8_wm.json",
+     "aggregate/d=0.45 survival resid_trace/per_seed"),
+    ("corrected", "Corrected C1, behavior plus actions controlled", "control_diagnostics/corrected_l3_h8_wm.json",
+     "aggregate/d=0.45 survival resid_trace_act/per_seed"),
+    ("corrected", "Corrected C1, best-fitting nonlinear control", "control_diagnostics/corrected_l3_h8_wm.json",
+     "aggregate/d=0.45 survival resid_joint_mlp/per_seed"),
+    ("corrected", "Corrected C1, observation and previous-action stream decoder",
+     "control_diagnostics/corrected_l3_h8_wm.json", "aggregate/d=0.45 survival seq_gru/per_seed"),
+    ("corrected", "Corrected C2, survival without auxiliary", "corrected_verdicts.json", "runs/C2/primary/survival/per_seed"),
+    ("corrected", "Corrected L1 organism, pooled target", "expB2/corrected_L1-corrected.json",
+     "arms/0.023/survival/pool_target/per_seed"),
+    # The 2026-10-11 runs, omitted from the hand-typed table.
+    ("corrected", "Corrected hidden 7, second capacity (gate 0 fails, off-design)", "expB2/corrected_H7-corrected.json",
+     "arms/0.45/survival/pool_target/per_seed"),
+    ("corrected", "Corrected hidden 10, $G$ seed 1, survival", "expB2/corrected_H10GS1-corrected.json",
+     "arms/0.45/survival/pool_target/per_seed"),
+    ("corrected", "Corrected hidden 8, $G$ seed 2, survival", "expB2/corrected_H8GS2-corrected.json",
+     "arms/0.45/survival/pool_target/per_seed"),
+    ("corrected", "Pellet-seeking run (T-touch)", "expB2/goal_stakes_T-touch.json", "arms/0.45/survival/pool_target/per_seed"),
+    ("corrected", "Death-off survival run (S-immortal)", "expB2/goal_stakes_S-immortal.json",
+     "arms/0.45/survival/pool_target/per_seed"),
+    ("historical", "L3 hidden 8, pooled target (historical)", "expB2/sensory_echo_l3_h8.json",
+     "aggregate/d=0.45 survival/target/per_seed"),
+    ("historical", "Authentic-raised readout, historical held-out agents", "l0_audit/reverse_direction_l3_h8_heldout.json",
+     "summary/standard/survival/per_seed"),
+    ("historical", "Drift-0.45 registered draw, historical held-out agents", "agent_free/rf_probe_l3_n10_historical.json",
+     "aggregate/d=0.45 survival/explicit/linear/per_seed"),
+    ("historical", "L3 hidden 8, behavior-controlled (four channels)", "expB2/behavior_audit_l3_h8_traces.json",
+     "cells:drift=0.45,agent=survival:resid_trace"),
+    ("historical", "L3 hidden 8, behavior-controlled (with position, heading)", "expB2/sensory_echo_l3_h8.json",
+     "aggregate/d=0.45 survival/resid_trace/per_seed"),
+    ("historical", "L3 hidden 8, sensory-controlled", "expB2/sensory_echo_l3_h8.json", "aggregate/d=0.45 survival/resid_obs/per_seed"),
+    ("historical", "L3 hidden 7, sensory-controlled", "expB2/sensory_echo_l3_h7.json", "aggregate/d=0.45 survival/resid_obs/per_seed"),
+    ("historical", "L3 hidden 8, sensory and behavior jointly controlled", "expB2/sensory_echo_l3_h8.json",
+     "aggregate/d=0.45 survival/resid_obs_beh/per_seed"),
+    ("historical", "L3 hidden 8, nonlinear joint control", "expB2/sensory_echo_l3_h8_mlp.json",
+     "aggregate/d=0.45 survival/resid_obs_beh_mlp/per_seed"),
+    ("historical", "L3 hidden 8, survival-with-auxiliary arm on CPU (device control)",
+     "expB2/device_control_l3_h8_wm_cpu.json", "arms/0.45/survival/pool_target/per_seed"),
+    ("historical", "L3 hidden 8, predictor target", "expB2/sensory_echo_l3_h8.json", "aggregate/d=0.45 predictor/target/per_seed"),
+    ("historical", "L3 hidden 8, untrained target", "expB2/sensory_echo_l3_h8.json", "aggregate/d=0.45 untrained/target/per_seed"),
+    ("historical", "L3 hidden 7, pooled target", "expB2/sensory_echo_l3_h7.json", "aggregate/d=0.45 survival/target/per_seed"),
+    ("historical", "L3 hidden 7, predictor target", "expB2/sensory_echo_l3_h7.json", "aggregate/d=0.45 predictor/target/per_seed"),
+    ("historical", "L3 hidden 7, behavior-controlled", "expB2/behavior_audit_l3_h7_traces.json",
+     "cells:drift=0.45,agent=survival:resid_trace"),
+    ("historical", "L3 hidden 8, survival without auxiliary", "expB2/arch_baseline_l3_h8_nowm.json",
+     "arms/0.45/survival/pool_target/per_seed"),
+    ("historical", "L3 hidden 10, $G$ seed 1, survival", "expB2/second_instance_l3_h10_gseed1.json",
+     "arms/0.45/survival/pool_target/per_seed"),
+    ("historical", "L3 hidden 10, $G$ seed 1, behavior-controlled", "expB2/second_instance_l3_h10_gseed1.json",
+     "behavior_audit/survival/resid_trace/per_seed"),
+    ("historical", "L3 hidden 10, $G$ seed 1, survival, GPU re-measure", "expB2/second_instance_l3_h10_gseed1_gpu.json",
+     "arms/0.45/survival/pool_target/per_seed"),
+    ("historical", "L3 hidden 10, $G$ seed 1, behavior-controlled, GPU re-measure",
+     "expB2/second_instance_l3_h10_gseed1_gpu.json", "behavior_audit/survival/resid_trace/per_seed"),
+    ("historical", "L3 hidden 8, $G$ seed 2, survival", "expB2/second_seed_l3_h8_gseed2_gpu.json",
+     "arms/0.45/survival/pool_target/per_seed"),
+    ("historical", "L3 hidden 8, $G$ seed 2, behavior-controlled", "expB2/second_seed_l3_h8_gseed2_gpu.json",
+     "behavior_audit/survival/resid_trace/per_seed"),
+    ("historical", "Transfer, hidden 8 to held-out hidden 7", "expB2/heldout_l3_h8_summary.json",
+     "cells:drift=0.45,agent=survival:transfer_target"),
+    ("historical", "Transfer, hidden 7 to held-out hidden 8", "expB2/heldout_l3_h7_reverse_summary.json",
+     "cells:drift=0.45,agent=survival:transfer_target"),
+    ("historical", "Cross-recipe transfer (RFF)", "l3_crossrecipe/summary.json", "transfer_rff/survival_per_seed"),
+    ("historical", "Common garden, hidden-8 tail", "expB2/heldout_l3_h8_cg_rescore.json",
+     "strong_drift/survival/cg_tail_per_seed"),
+    ("historical", "Common garden, hidden-7 tail", "expB2/heldout_l3_h7_reverse_cg_rescore.json",
+     "strong_drift/survival/cg_tail_per_seed"),
+    ("historical", "B-v3 regime, pooled target", "expB2/bv3_n10_summary.json",
+     "pooled_target_drift045/survival/pool_target_per_seed"),
+    ("historical", "L2 supervised reference", "expB2/sysid_ceiling_n10_summary.json",
+     "pooled_target_drift045/survival/pool_target_per_seed"),
+    ("historical", "L1 organism, pooled target (historical)", "expL1/organism_summary.json", "arms/0.023/survival/pool_target"),
+    ("historical", r"Graded seam, $\alpha = 0$", "expH2/summary.json", "cells/survival/a0.00/per_seed"),
+    ("matched", "B1 matched survival (sensitivity)", "balanced_confirmation/b1.json", "balanced/survival/per_seed"),
+    ("matched", "B2 matched pellets (sensitivity)", "balanced_confirmation/b2.json", "balanced/survival/per_seed"),
+    ("matched", "B1 sensory residual (sensitivity)", "balanced_confirmation/sensory_echo_b1.json",
+     "aggregate/d=0.45 survival/resid_obs/per_seed"),
+    ("matched", "B2 sensory residual (sensitivity)", "balanced_confirmation/sensory_echo_b2.json",
+     "aggregate/d=0.45 survival/resid_obs/per_seed"),
+)
+
+
+def per_seed_values(artifact: str, selector: str, cache: dict | None = None) -> list[float]:
+    """The per-seed list a CI95_ROWS selector names, in seed order."""
+    cache = {} if cache is None else cache
+    if artifact not in cache:
+        with open(os.path.join(ART, artifact), encoding="utf-8") as fh:
+            cache[artifact] = json.load(fh)
+    doc = cache[artifact]
+    if selector.startswith("cells:"):
+        _, where, key = selector.split(":")
+        cond = dict(kv.split("=") for kv in where.split(","))
+        rows = [c for c in doc["cells"] if all(_same(c.get(k), w) or str(c.get(k)) == w for k, w in cond.items())
+                and key in c]
+        rows.sort(key=lambda c: c["seed"])
+        if len({c["seed"] for c in rows}) != len(rows):
+            raise ValueError(f"{artifact}:{selector} selects one seed twice")
+        vals = [c[key] for c in rows]
+    else:
+        vals = _walk(doc, selector)
+        if isinstance(vals, dict):
+            vals = vals["per_seed"]
+    if not vals:
+        raise ValueError(f"{artifact}:{selector} selects no values")
+    return [float(x) for x in vals]
+
+
+def t_interval(x, level: float) -> tuple[float, float]:
+    """Student-t interval of the across-seed mean."""
+    from scipy.stats import t as student_t
+    a = np.asarray(x, float)
+    n = a.size
+    q = float(student_t.ppf(1.0 - (1.0 - level) / 2.0, n - 1))
+    se = float(a.std(ddof=1)) / np.sqrt(n)
+    return float(a.mean() - q * se), float(a.mean() + q * se)
+
+
+def ci95_rows() -> list[dict]:
+    cache: dict = {}
+    out = []
+    for block, label, art, sel in CI95_ROWS:
+        x = np.asarray(per_seed_values(art, sel, cache), float)
+        if not np.all(np.isfinite(x)) or x.size < 2:
+            raise ValueError(f"{art}:{sel} has a non-finite value or fewer than two seeds")
+        out.append({"block": block, "label": label, "artifact": art, "selector": sel, "n": int(x.size),
+                    "mean": float(x.mean()), "t90": t_interval(x, 0.90), "t95": t_interval(x, 0.95)})
+    return out
+
+
+def ci95_table() -> str:
+    """The 95% sensitivity table: each adjudicated cell's mean with its t-based 90% and 95%
+    intervals, recomputed from the per-seed lists in CI95_ROWS. Blocks: corrected trainer
+    (with the 2026-10-11 runs), historical agents, and the matched-world sensitivity rows."""
+    L = [r"% generated by scripts/build_paper_tables.py from the per-seed lists named in its CI95_ROWS; do not edit",
+         r"\begin{tabular}{lccc}", r"\toprule",
+         r"Cell (survival arm unless noted) & mean & t 90\% & t 95\% \\", r"\midrule"]
+    prev = None
+    for r in ci95_rows():
+        if prev is not None and r["block"] != prev:
+            L.append(r"\midrule")
+        prev = r["block"]
+        L.append(f"{r['label']} & {r['mean']:.3f} & \\ci{{{r['t90'][0]:.3f}}}{{{r['t90'][1]:.3f}}} & "
+                 f"\\ci{{{r['t95'][0]:.3f}}}{{{r['t95'][1]:.3f}}} \\\\")
+    L += [r"\bottomrule", r"\end{tabular}", ""]
+    return "\n".join(L)
+
+
+# ------------------------------------------------------------------ Holm sensitivity (G08)
+# Post hoc and descriptive: a family-wise view of the bar clauses read on the t-based 90% lower
+# bound. A lower bound at or above 0.65 is a one-sided t test of mean > 0.65 at 0.05, so each
+# clause gets that p from its per-seed values, and Holm's step-down procedure is applied at 0.05
+# within two families: the corrected and successor trainers' rules, and every rule in the
+# ledger. No ledger reading or outcome changes.
+HOLM_ALPHA = 0.05
+HOLM_FAMILIES = (("corrected or successor trainer", ("corrected", "successor")), ("every rule", None))
+
+
+def _clause_per_seed(spec: dict, cache: dict) -> list[float]:
+    """The per-seed values behind a ledger clause that reads a t90 lower bound."""
+    art = spec["artifact"]
+    if spec.get("stat") == "t90_lower":
+        if art not in cache:
+            with open(os.path.join(ART, art), encoding="utf-8") as fh:
+                cache[art] = json.load(fh)
+        x = _walk(cache[art], spec["path"])
+        if "where" in spec:
+            x = [c[spec["key"]] for c in sorted(x, key=lambda c: c.get("seed", 0))
+                 if all(_same(c.get(k), w) for k, w in spec["where"].items())]
+        return [float(v) for v in x]
+    path = spec["path"]
+    if path.endswith("/t90/0"):
+        sel = path[: -len("/t90/0")] + "/per_seed"
+    elif path.endswith("_t90/0") and path.startswith("aggregate/"):
+        sel = path[: -len("_t90/0")] + "_per_seed"
+    elif path in ("decision/survival_t90/0", "device_control/decoder_survival_t90/0"):
+        sel = "arms/0.45/survival/pool_target/per_seed"
+    else:
+        raise ValueError(f"{art}:{path}: no per-seed list is known for this clause")
+    return per_seed_values(art, sel, cache)
+
+
+def _holm(ps: list[float], alpha: float = HOLM_ALPHA) -> tuple[list[float], list[bool]]:
+    """Holm-adjusted p values and rejections, in the input order."""
+    m = len(ps)
+    order = sorted(range(m), key=lambda i: ps[i])
+    adj, rej, run, stop = [0.0] * m, [False] * m, 0.0, False
+    for rank, i in enumerate(order):
+        run = max(run, min(1.0, (m - rank) * ps[i]))
+        adj[i] = run
+        if not stop and ps[i] <= alpha / (m - rank):
+            rej[i] = True
+        else:
+            stop = True
+    return adj, rej
+
+
+def holm_rows(ledger: dict | None = None) -> list[dict]:
+    """One entry per rule-role bar clause on the t90 lower bound, with its one-sided p and the
+    Holm reading in each family (None where the row is outside the family)."""
+    from scipy.stats import t as student_t
+    ledger = ledger if ledger is not None else load_ledger()
+    if ledger is None:
+        return []
+    cache: dict = {}
+    out = []
+    for row in ledger["rows"]:
+        for c in row["clauses"]:
+            if not (c["role"] == "rule" and c["basis"] == "t90 lower bound" and c["threshold"] == 0.65
+                    and c["value"] is not None):
+                continue
+            x = np.asarray(_clause_per_seed(c["value"], cache), float)
+            lo = float(t_ci90(x)[0])
+            want = ledger_value(c["value"], cache)
+            if abs(lo - want) > 1e-6:
+                raise ValueError(f"{row['id']}: per-seed values give a t90 lower bound of {lo:.6f}, "
+                                 f"the clause reads {want:.6f}")
+            se = float(x.std(ddof=1)) / np.sqrt(x.size)
+            p = float(student_t.sf((x.mean() - c["threshold"]) / se, x.size - 1))
+            out.append({"id": row["id"], "rule": row.get("short", row["rule"]), "run": row["run"],
+                        "trainer": row["trainer"], "clause": c["clause"], "n": int(x.size),
+                        "mean": float(x.mean()), "t90_lower": lo, "p_one_sided": p})
+    for fam, trainers in HOLM_FAMILIES:
+        idx = [i for i, r in enumerate(out) if trainers is None or r["trainer"] in trainers]
+        adj, rej = _holm([out[i]["p_one_sided"] for i in idx])
+        for k, i in enumerate(idx):
+            out[i].setdefault("holm", {})[fam] = {"m": len(idx), "p_adjusted": adj[k], "holds": rej[k]}
+        for i in set(range(len(out))) - set(idx):
+            out[i].setdefault("holm", {})[fam] = None
+    return out
+
+
+def holm_table() -> str | None:
+    rows = holm_rows()
+    if not rows:
+        return None
+    fams = [f for f, _ in HOLM_FAMILIES]
+    L = [r"% generated by scripts/build_paper_tables.py from docs/rule_ledger.json and the artifacts "
+         r"it names; post hoc, changes no ledger reading; do not edit",
+         r"\begin{tabular}{llcccccc}", r"\toprule",
+         r"Rule & Clause & $n$ & mean & t 90\% LB & one-sided $p$ & "
+         + " & ".join(f"Holm, {_tex_escape(f)}" for f in fams) + r" \\", r"\midrule"]
+
+    def cell(h):
+        if h is None:
+            return "--"
+        return f"{h['p_adjusted']:.3f} ({'holds' if h['holds'] else 'fails'})"
+    for r in rows:
+        L.append(f"{_tex_escape(r['rule'])} & {_tex_escape(r['clause'])} & {r['n']} & {r['mean']:.3f} & "
+                 f"{r['t90_lower']:.3f} & {r['p_one_sided']:.3f} & "
+                 + " & ".join(cell(r["holm"][f]) for f in fams) + r" \\")
+    n_f = {f: next(r["holm"][f]["m"] for r in rows if r["holm"][f] is not None) for f in fams}
+    L += [r"\midrule",
+          rf"\multicolumn{{8}}{{p{{0.9\textwidth}}}}{{Post hoc. Each bar clause read on the t-based 90\% "
+          rf"lower bound is a one-sided $t$ test of a mean above 0.65 at {HOLM_ALPHA:g}; Holm's step-down "
+          rf"procedure at {HOLM_ALPHA:g} is applied within each family ("
+          + "; ".join(f"{_tex_escape(f)}, {n_f[f]} clauses" for f in fams)
+          + r"). The adjusted $p$ is shown with whether the clause still holds. No ledger reading or "
+          r"outcome changes.} \\",
+          r"\bottomrule", r"\end{tabular}", ""]
+    return "\n".join(L)
 
 
 # ------------------------------------------------------------------ the manuscript check
@@ -950,15 +1233,165 @@ def _count_issues(rel: str, lines: list[str], ledger_rows: list[dict] | None) ->
     return issues
 
 
+# The verification script's own count, which the manuscript quotes twice: "a verification script
+# of N checks" and "(N at the submission commit, P of them comparing a stored summary with a
+# constant in the script, about one check in K". N is CHECK_FLOOR and P is PIN_COUNT in
+# scripts/audit_stats_recheck.py, both read from the count the audit prints; K is round(N / P).
+_AUDIT_N = re.compile(r"verification\s+script\s+of\s+(\d[\d,]*)\s+checks")
+_AUDIT_N_AT = re.compile(r"(\d[\d,]*)\s+at\s+the\s+submission\s+commit")
+_AUDIT_P = re.compile(_COUNT + r"\s+of\s+them\s+comparing\s+a\s+stored\s+summary\s+with\s+a\s+constant")
+_AUDIT_K = re.compile(r"about\s+one\s+check\s+in\s+" + _COUNT)
+
+
+def audit_counts() -> tuple[int, int]:
+    """(CHECK_FLOOR, PIN_COUNT) from scripts/audit_stats_recheck.py."""
+    import audit_stats_recheck as asr
+    return int(asr.CHECK_FLOOR), int(asr.PIN_COUNT)
+
+
+def _audit_count_issues(rel: str, text: str, n: int | None = None, p: int | None = None) -> list[str]:
+    """Each place the manuscript states the audit's check count, pin count or their ratio,
+    compared with the constants the audit pins its own run to."""
+    if n is None or p is None:
+        n, p = audit_counts()
+    k = round(n / p)
+    issues = []
+
+    def line(m):
+        return text[: m.start()].count("\n") + 1
+
+    for pat, what, want in ((_AUDIT_N, "check count", n), (_AUDIT_N_AT, "check count", n),
+                            (_AUDIT_P, "pin count", p), (_AUDIT_K, "one check in K ratio", k)):
+        for m in pat.finditer(text):
+            got = _count(m.group(1).replace(",", ""))
+            if got is not None and got != want:
+                issues.append(f"{rel}:{line(m)}: the audit's {what} reads {m.group(1)}; "
+                              f"scripts/audit_stats_recheck.py gives {want} "
+                              f"(CHECK_FLOOR {n}, PIN_COUNT {p}, round(N/P) = {k})")
+    return issues
+
+
+# ------------------------------------------------------------------ abstract and contributions (H41)
+def _art(rel: str) -> dict:
+    with open(os.path.join(ROOT, rel), encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _num(x: float, signed: bool = False) -> str:
+    return _sg(x) if signed else f"{x:.3f}"
+
+
+def _ivs(t, signed: bool = False) -> str:
+    return f"\\ci{{{_num(t[0], signed)}}}{{{_num(t[1], signed)}}}"
+
+
+def _b2_floor_slack() -> float:
+    d = _art("artifacts/balanced_confirmation/sensory_echo_b2.json")
+    return 0.1 - abs(float(d["aggregate"]["d=0.45 untrained"]["resid_obs"]["mean"]) - 0.5)
+
+
+def _ar_followup() -> dict:
+    s = _art("artifacts/texture/ar_sweep_c_followup/summary.json")
+    return s["contrast"]["follow-up: M(0.99, matched) - M(0, stored)"]
+
+
+def _qd(arm: str) -> float:
+    return float(_art("artifacts/texture/corrected_l3_h8_wm_qd.json")["aggregate"][f"{arm} fresh"]["mean"])
+
+
+# The numbers the abstract and the Contributions list quote, each with the artifact and key it
+# comes from. A needle is (block, label, artifact path, key, text). The text is what the block
+# must contain: a three-decimal value, a signed one, or an interval as \ci{lo}{hi}.
+def headline_needles() -> list[tuple[str, str, str, str, str]]:
+    v = _verdicts()["runs"]["C1"]
+    l1 = _art("artifacts/expB2/corrected_L1-corrected.json")["decision"]
+    sweeps = [p["survival_fresh"]["mean"] for s in ("ar_sweep", "ar_sweep_c")
+              for p in _art(f"artifacts/texture/{s}/summary.json")["points"]]
+    fu = _ar_followup()
+    o2 = _art("docs/optional/o2_long_history_ridge.json")["summary"]
+    b2 = _art("artifacts/balanced_confirmation/sensory_echo_b2.json")["decision_balanced"]
+    cv = "artifacts/corrected_verdicts.json"
+    return [
+        ("abstract", "L1 oracle", "artifacts/expL1/organism_summary.json", "gate0.delta.chosen_auroc",
+         _num(_art("artifacts/expL1/organism_summary.json")["gate0"]["delta"]["chosen_auroc"])),
+        ("abstract", "L1 stream reader", "artifacts/control_diagnostics/l1_stream_readout_corrected.json",
+         'aggregate["d=0.02 survival obs_summary_only"].mean',
+         _num(_art("artifacts/control_diagnostics/l1_stream_readout_corrected.json")
+              ["aggregate"]["d=0.02 survival obs_summary_only"]["mean"])),
+        ("abstract", "corrected L1 survival", "artifacts/expB2/corrected_L1-corrected.json", "decision.survival",
+         _num(l1["survival"])),
+        ("abstract", "corrected L1 survival interval", "artifacts/expB2/corrected_L1-corrected.json",
+         "decision.survival_t90", _ivs(l1["survival_t90"])),
+        ("abstract", "C1 survival", cv, "runs.C1.primary.survival.mean", _num(v["primary"]["survival"]["mean"])),
+        ("abstract", "C1 survival interval", cv, "runs.C1.primary.survival.t90", _ivs(v["primary"]["survival"]["t90"])),
+        ("abstract", "C1 predictor", cv, "runs.C1.primary.predictor.mean", _num(v["primary"]["predictor"]["mean"])),
+        ("abstract", "C1 untrained", cv, "runs.C1.primary.untrained.mean", _num(v["primary"]["untrained"]["mean"])),
+        ("abstract", "drag fresh probe", "artifacts/texture/corrected_l3_h8_wm_qd.json",
+         'aggregate["survival fresh"].mean', _num(_qd("survival"))),
+        ("abstract", "drag margin over the untrained arm", "artifacts/texture/corrected_l3_h8_wm_qd.json",
+         'aggregate["survival fresh"].mean - aggregate["untrained fresh"].mean', _num(_qd("survival") - _qd("untrained"), True)),
+        ("abstract", "drag untrained floor", "artifacts/texture/corrected_l3_h8_wm_qd.json",
+         'aggregate["untrained fresh"].mean', _num(_qd("untrained"))),
+        ("abstract", "jitter maximum", "artifacts/texture/ar_sweep/summary.json and artifacts/texture/ar_sweep_c/summary.json",
+         "max of points[*].survival_fresh.mean", _num(max(sweeps))),
+        ("abstract", "sweep C follow-up contrast", "artifacts/texture/ar_sweep_c_followup/summary.json",
+         'contrast["follow-up: M(0.99, matched) - M(0, stored)"].mean', _num(fu["mean"], True)),
+        ("abstract", "sweep C follow-up interval", "artifacts/texture/ar_sweep_c_followup/summary.json",
+         'contrast["follow-up: M(0.99, matched) - M(0, stored)"].t90', _ivs(fu["t90"], True)),
+        ("abstract", "C1 L0 mean", cv, "runs.C1.gates.l0.mean", _num(v["gates"]["l0"]["mean"])),
+        ("abstract", "T-touch survival", "artifacts/expB2/goal_stakes_T-touch.json", "decision.survival",
+         _num(_art("artifacts/expB2/goal_stakes_T-touch.json")["decision"]["survival"])),
+        ("contributions", "B2 sensory-echo survival", "artifacts/balanced_confirmation/sensory_echo_b2.json",
+         "decision_balanced.trained_resid_obs", _num(b2["trained_resid_obs"])),
+        ("contributions", "B2 untrained floor slack", "artifacts/balanced_confirmation/sensory_echo_b2.json",
+         '0.1 - |aggregate["d=0.45 untrained"].resid_obs.mean - 0.5|', _num(_b2_floor_slack())),
+        ("contributions", "O2 long-history ridge", "docs/optional/o2_long_history_ridge.json",
+         "summary.resid_obs_hist.auroc.mean", _num(o2["resid_obs_hist"]["auroc"]["mean"])),
+        ("contributions", "O2 long-history ridge with behavior", "docs/optional/o2_long_history_ridge.json",
+         "summary.resid_obs_hist_beh.auroc.mean", _num(o2["resid_obs_hist_beh"]["auroc"]["mean"])),
+    ]
+
+
+_ABSTRACT = re.compile(r"\\begin\{abstract\}(.*?)\\end\{abstract\}", re.S)
+_CONTRIB = re.compile(r"\\paragraph\{Contributions\.?\}(.*?)\\end\{enumerate\}", re.S)
+
+
+def _flat_tex(s: str) -> str:
+    """Whitespace collapsed and math dollars dropped, so "$+0.142$" reads "+0.142"."""
+    return " ".join(s.replace("$", "").split())
+
+
+def _headline_block_issues(rel: str, text: str, needles=None) -> list[str]:
+    """Every abstract and Contributions number must be the artifact's value. Only a file that
+    has an abstract is read; the Contributions needles apply when that paragraph exists."""
+    a = _ABSTRACT.search(text)
+    if not a:
+        return []
+    c = _CONTRIB.search(text)
+    blocks = {"abstract": (_flat_tex(a.group(1)), text[: a.start()].count("\n") + 1)}
+    if c:
+        blocks["contributions"] = (_flat_tex(c.group(1)), text[: c.start()].count("\n") + 1)
+    issues = []
+    for block, label, art, key, want in (needles if needles is not None else headline_needles()):
+        if block not in blocks:
+            continue
+        body, ln = blocks[block]
+        if _flat_tex(want) not in body:
+            issues.append(f"{rel}:{ln}: the {block} does not quote {want} ({label}; {art} {key})")
+    return issues
+
+
 def check_manuscript(d: str) -> int:
     """Guards, each a reviewable item: the manuscript must \\input at least one generated
     table (never retype them); must quote every headline number of
     artifacts/corrected_verdicts.json, the required intervals right after their means, and no
     headline interval after a different number; must not alter a per-seed list or a number of
     the corrected primary-run paragraph; must state the rule-ledger tally and the gate table's
-    row and set counts as the ledger and artifacts/gate_table.json give them; and must not use
-    retired wording (matched after LaTeX markup is stripped) or quote a pre-correction headline
-    without a historical label. No other number is compared with an artifact."""
+    row and set counts as the ledger and artifacts/gate_table.json give them; must state the
+    audit's check count, pin count and one-check-in-K ratio as audit_stats_recheck.py pins them;
+    must quote, in a file with an abstract, every abstract and Contributions number of
+    headline_needles() as its artifact gives it; and must not use retired wording (matched after
+    LaTeX markup is stripped) or quote a pre-correction headline without a historical label."""
     texs = sorted(glob.glob(os.path.join(d, "**", "*.tex"), recursive=True))
     if not texs:
         # A mistyped or empty --manuscript path must not read as a clean manuscript.
@@ -1010,7 +1443,8 @@ def check_manuscript(d: str) -> int:
                               "pre-correction label in its section")
                         issues += 1
         for msg in (_location_issues(rel, raw_lines, v, found) + _primary_paragraph_issues(rel, text, v)
-                    + _count_issues(rel, raw_lines, ledger_rows)):
+                    + _count_issues(rel, raw_lines, ledger_rows) + _audit_count_issues(rel, text)
+                    + _headline_block_issues(rel, text)):
             print(msg)
             issues += 1
     if texs and not inputs:

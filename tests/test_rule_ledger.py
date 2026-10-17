@@ -166,3 +166,21 @@ def test_the_tally_counts_every_row_once(evaluated):
     t = bpt._tally(rows)
     assert sum(t.values()) == len(rows)
     assert bpt._tally_sentence(rows).startswith(f"{len(rows)} rule-and-run rows")
+
+
+def test_the_balanced_rows_carry_the_promoted_reason_and_the_echo_rows_are_unchanged(ledger):
+    """The two uninformative balanced rows read 'UNINFORMATIVE: ' plus the reason the promoter
+    writes, which names every gate that fails (H78); the descriptive sensory-echo rows for the
+    same runs keep their outcome text."""
+    rows = {r["id"]: r for r in ledger["rows"]}
+    for rid, art in (("B1-BALANCED", "b1.json"), ("B2-BALANCED", "b2.json")):
+        with open(os.path.join(bpt.ART, "balanced_confirmation", art), encoding="utf-8") as fh:
+            doc = json.load(fh)
+        row = rows[rid]
+        assert row["outcome_class"] == "uninformative"
+        assert row["outcome"] == "UNINFORMATIVE: " + doc["reason"]
+        assert "untrained floor" in row["outcome"] and "matched speed" in row["outcome"]
+        assert "Speed and leakage were stored for the pooled worlds only." not in row["note"]
+    for rid in ("B1-BALANCED-ECHO", "B2-BALANCED-ECHO"):
+        assert rows[rid]["outcome_class"] == "threshold met"
+        assert rows[rid]["outcome"] == "passes: sensory-independent under matched worlds"

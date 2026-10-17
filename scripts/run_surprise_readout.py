@@ -8,6 +8,16 @@ the agent's model error (S) and its state probe (R) are compared on identical in
         --drift 0.45 --out artifacts/surprise/corrected_l3_h8_wm.json
     python scripts/run_surprise_readout.py --agents-dir fullruns/corrected_l1_heldout/agents \\
         --drift-mode l1 --drift 0.023 --out artifacts/surprise/corrected_l1_heldout.json
+
+`--snapshots U [U ...]` (closing item X04, E05; post hoc, descriptive, L3 only) adds the arms
+survival_u<U>, the frozen snapshots agent_d<drift>_s<seed>_survival_u<U>.pt, read on the same
+recorded streams. The output then gains a `snapshots` block: per budget b (0 is the untrained
+arm, 300 the survival arm) the prediction-error AUROC S_b and both mean errors, the per-seed
+Spearman between the authentic mean error and the stored fixed-walk target (`<b> replay_target`
+of --development-ref) across the budgets, and the S_450 - S_100 label. Gate: S_300 and both mean
+errors per seed equal --snapshot-ref rows[*].own.survival within 1e-6, and the b = 0 row equals
+rows[*].own.untrained, else nothing is written and the script exits 1. Without the flag the
+output is unchanged.
 """
 
 from __future__ import annotations
@@ -24,6 +34,16 @@ import numpy as np
 
 AUTH_BASE, SURR_BASE = 800_000, 850_000   # the registered pools
 ARMS = ("survival", "predictor", "untrained", "survival_d0")
+SNAPSHOT_REF = "artifacts/surprise/corrected_l3_h8_wm.json"
+DEVELOPMENT_REF = "artifacts/development/corrected_l3_h8_wm.json"
+SNAPSHOT_TOL = 1e-6
+
+
+def snapshot_paths(agents_dir: str, drift: float, seed: int, snapshots) -> dict:
+    """{"survival_u<U>": path} for each snapshot, by the `_u{updates}` suffix rule of
+    _readout_common.agent_path."""
+    from _readout_common import agent_path
+    return {f"survival_u{u}": agent_path(agents_dir, drift, seed, "survival", u) for u in snapshots}
 
 
 def _setup(t: dict):
@@ -51,6 +71,9 @@ def run_seed(t: dict) -> dict:
     dtag = f"{d:.2f}" if t["drift_mode"] == "l3" else f"{d:.4f}"
     paths = {"survival": f"agent_d{dtag}_s{s}_survival.pt", "predictor": f"agent_d{dtag}_s{s}_predictor.pt",
              "untrained": f"agent_d{dtag}_s{s}_untrained.pt", "survival_d0": f"agent_d0.00_s{s}_survival.pt"}
+    if t.get("snapshots"):
+        paths.update({g: os.path.basename(p) for g, p in
+                      snapshot_paths(t["agents_dir"], d, s, t["snapshots"]).items()})
     agents = {g: load_agent_bundle(os.path.join(t["agents_dir"], p), "cpu") for g, p in paths.items()}
     t0 = time.time()
     surv, snorm = agents["survival"]
@@ -100,6 +123,9 @@ def _call(c: dict, threshold: float) -> str:
     if lo > threshold:
         return "met"
     if hi < (0.0 if threshold == 0.0 else -threshold):
+        # "reversed" for readings 1 and 3 means the upper bound lies below -0.05 (the mirror of their
+        # 0.05 bound), added with the artifact and not in the frozen spec text; reading 2 uses the
+        # spec's bound of 0. See the 2026-10-17 note in docs/specs/2026-10-15-surprise-dissociation-design.md.
         return "reversed"
     return "not met"
 
@@ -136,6 +162,73 @@ def summarize(rows: list[dict]) -> dict:
     return summ
 
 
+def _close(a, b, tol: float = SNAPSHOT_TOL) -> bool:
+    a, b = float(a), float(b)
+    if not (np.isfinite(a) and np.isfinite(b)):
+        return bool(np.isnan(a) and np.isnan(b))
+    return abs(a - b) <= tol
+
+
+def snapshot_gate(rows: list[dict], ref: dict) -> list[str]:
+    """Failures of the X04 gate: S, mean_err_auth and mean_err_surr of own.survival (b = 300)
+    and of own.untrained (b = 0) per seed against the stored readout."""
+    stored = {int(r["seed"]): r for r in ref["rows"]}
+    fails = []
+    for r in rows:
+        s = int(r["seed"])
+        if s not in stored:
+            fails.append(f"seed {s}: not in the stored readout")
+            continue
+        for arm in ("survival", "untrained"):
+            for q in ("S", "mean_err_auth", "mean_err_surr"):
+                got, want = r["own"][arm][q], stored[s]["own"][arm][q]
+                if not _close(got, want):
+                    fails.append(f"seed {s} own.{arm}.{q}: {got!r} vs stored {want!r}")
+    return fails
+
+
+def snapshot_summary(rows: list[dict], snapshots, dev: dict) -> dict:
+    """Per budget S, mean errors and the stored fixed-walk target; per-seed Spearman of the
+    authentic mean error against that target; the S_450 - S_100 label."""
+    from scipy.stats import spearmanr
+
+    from itasorl.novel_readouts import paired_t90
+    arm_of = {0: "untrained", 300: "survival", **{int(u): f"survival_u{u}" for u in snapshots}}
+    budgets = sorted(arm_of)
+    dev_seeds = sorted(int(r["seed"]) for r in dev["rows"])
+    agg = dev["summary"]["aggregate"]
+    R = {b: dict(zip(dev_seeds, agg[f"{b} replay_target"]["per_seed"])) for b in budgets
+         if f"{b} replay_target" in agg}
+    per_budget = {}
+    for b in budgets:
+        blk = {"arm": arm_of[b]}
+        for q in ("S", "mean_err_auth", "mean_err_surr"):
+            v = [r["own"][arm_of[b]][q] for r in rows]
+            blk[q] = {**paired_t90(v), "per_seed": v}
+        if b in R:
+            blk["R_stored_fixed_walk_target"] = [R[b].get(int(r["seed"]), float("nan")) for r in rows]
+        per_budget[str(b)] = blk
+    rb = [b for b in budgets if b in R]
+    rho = []
+    for r in rows:
+        L = [r["own"][arm_of[b]]["mean_err_auth"] for b in rb]
+        T = [R[b].get(int(r["seed"]), float("nan")) for b in rb]
+        ok = len(rb) >= 3 and np.all(np.isfinite(L)) and np.all(np.isfinite(T))
+        rho.append(float(spearmanr(L, T)[0]) if ok else float("nan"))
+    out = {"budgets": budgets, "per_budget": per_budget,
+           "spearman_L_vs_R": {"budgets": rb, "per_seed": rho, **paired_t90(rho),
+                               "note": "descriptive, unthresholded"}}
+    if {100, 450} <= set(budgets):
+        d = paired_t90(per_budget["450"]["S"]["per_seed"], per_budget["100"]["S"]["per_seed"])
+        lo, hi = d["t90"]
+        lab = ("not computable" if not np.isfinite(lo) else "detection grows" if lo > 0.05
+               else "detection falls" if hi < -0.05 else "detection flat")
+        out["S_450_minus_S_100"] = {**d, "label": lab}
+    else:
+        out["S_450_minus_S_100"] = {"label": "not computable (needs snapshots 100 and 450)"}
+    return out
+
+
 def main() -> int:
     from itasorl import folds
     from itasorl.optional_readouts import provenance
@@ -152,14 +245,38 @@ def main() -> int:
     ap.add_argument("--workers", type=int, default=1)
     ap.add_argument("--ckpt", default=None, help="directory of per-seed JSON; finished seeds are skipped")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--snapshots", type=int, nargs="+", default=None, metavar="U",
+                    help="also read the survival_u<U> snapshots (X04; L3 only)")
+    ap.add_argument("--snapshot-ref", default=SNAPSHOT_REF,
+                    help="stored readout whose own.survival and own.untrained rows gate --snapshots")
+    ap.add_argument("--development-ref", default=DEVELOPMENT_REF,
+                    help="stored development readout holding the fixed-walk targets (<b> replay_target)")
+    ap.add_argument("--dry-run", action="store_true", help="check the agent files, print the plan and exit")
     a = ap.parse_args()
+    if a.snapshots:
+        if a.drift_mode != "l3":
+            ap.error("--snapshots reads the L3 survival snapshots; the L1 runs have none")
+        if folds.current_scheme() != "explicit":
+            ap.error("--snapshots is read with the explicit fold scheme; unset ITASORL_FOLDS or set it to explicit")
+        missing = [p for s in a.seeds for p in snapshot_paths(a.agents_dir, a.drift, s, a.snapshots).values()
+                   if not os.path.exists(p)]
+        if missing:
+            print(f"snapshots {a.snapshots}: missing agent files {missing}", file=sys.stderr)
+            return 1
     tasks = [{"agents_dir": a.agents_dir, "seed": s, "drift": a.drift, "drift_mode": a.drift_mode,
               "l1_delta": a.l1_delta, "l1_sigma": a.l1_sigma, "n_eps": a.n_eps, "steps": a.steps,
               "ray_steps": a.ray_steps} for s in a.seeds]
-    from _readout_common import fingerprint_extra, run_tasks
+    if a.snapshots:
+        tasks = [{**t, "snapshots": list(a.snapshots)} for t in tasks]
+    if a.dry_run:
+        print(f"{len(tasks)} seed task(s), arms {list(ARMS)} plus snapshots {a.snapshots or []}; would write {a.out}")
+        return 0
+    from _readout_common import agent_file_hashes, fingerprint_extra, run_tasks
     if a.ckpt:
         arms = [("survival", 0.0) if g == "survival_d0" else (g, a.drift) for g in ARMS]
         fpx = fingerprint_extra(__file__, a.agents_dir, a.seeds, arms)
+        for u in a.snapshots or ():
+            fpx["agents"].update(agent_file_hashes(a.agents_dir, a.seeds, [("survival", a.drift)], updates=u))
         rows = run_tasks(run_seed, tasks, a.ckpt, lambda t: f"s{t['seed']}", a.workers, fpx)
     elif a.workers > 1:
         import multiprocessing as mp
@@ -176,6 +293,23 @@ def main() -> int:
     prov["status"] = ("readout under docs/specs/2026-10-15-surprise-dissociation-design.md; "
                       "diagnostic, not an adjudication; changes no registered rule or verdict")
     doc = {"provenance": prov, "fold_scheme": folds.current_scheme(), "summary": summarize(rows), "rows": rows}
+    if a.snapshots:
+        with open(a.snapshot_ref, encoding="utf-8") as fh:
+            fails = snapshot_gate(rows, json.load(fh))
+        if fails:
+            print("snapshot gate failed; nothing written:\n  " + "\n  ".join(fails), file=sys.stderr)
+            return 1
+        with open(a.development_ref, encoding="utf-8") as fh:
+            dev = json.load(fh)
+        from agent_free_common import provenance as provenance_14
+        from promote_bv3_gates import repo_rel
+        p14 = provenance_14("scripts/run_surprise_readout.py", commit_key="git_commit_at_promotion",
+                            output=repo_rel(a.out), device="cpu")
+        prov.update({k: v for k, v in p14.items() if k != "generated_by"})
+        prov["agents_dir"] = repo_rel(a.agents_dir)
+        doc["snapshots"] = {"status": "post hoc, descriptive (X04); changes no stored value or verdict",
+                            "snapshot_ref": repo_rel(a.snapshot_ref), "development_ref": repo_rel(a.development_ref),
+                            "gate": "PASS", **snapshot_summary(rows, a.snapshots, dev)}
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=1, default=float)

@@ -1,8 +1,10 @@
 """L1 surrogate families for H2 ablations.
 
-These are off-ladder observation-level perturbations used as structured comparators
-in the A3 L1 substrate-grounding tests. They wrap a World and expose the identical
-World protocol so the B-v2 readout pipeline can use them unchanged.
+These are off-ladder observation-level perturbations written as candidate comparators
+for the A3 L1 substrate-grounding battery (FINDINGS 14.7). Only LObsNoise is used by a
+committed run, the A2 noise knockout in scripts/run_l1_h2_ablations.py. L1Offset is
+unused by any runner. Both wrap a World and expose the identical World protocol so the
+B-v2 readout pipeline can use them unchanged.
 """
 
 from __future__ import annotations
@@ -43,7 +45,9 @@ class L1Offset(SurrogateWrapper):
 
     Quantizes observations to a grid shifted by `offset`: each dimension is snapped to
     the nearest value of {k*delta + offset}. Same spacing as the headline L1 grid, but
-    a different phase. Used as a same-recipe-different-parameter transfer test for H2.
+    a different phase. Not used by any committed run or runner; kept as a candidate
+    same-recipe-different-parameter comparator and covered only by
+    tests/test_surrogate_l1_families.py.
 
     At offset=0 the wrapper is byte-identical to plain L1 quantization (provided the
     base world already applies the same delta and sensor noise).

@@ -36,6 +36,8 @@ import re
 import subprocess
 import sys
 
+import numpy as np
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from itasorl.stats import equivalence_test, mean_ci, rope_test, t_ci90  # noqa: E402
@@ -168,6 +170,8 @@ def build_gates_doc(results: dict, cell_files: list[dict], manifest: dict | None
 
     # gate verdicts (PREREGISTRATION_Bv3 section 7)
     l0 = drifts[0]
+    if float(l0) != 0.0:
+        raise ValueError(f"L0 control needs a drift-0 slice; lowest drift is {l0}")
     l0_vals = [float(v) for v in results[l0]["survival"]["pool_target"]]
     tost = equivalence_test(l0_vals, margin=TOST_MARGIN)
     rope = rope_test(l0_vals)
@@ -177,13 +181,20 @@ def build_gates_doc(results: dict, cell_files: list[dict], manifest: dict | None
         eng_by_drift[d] = {"n_cells": len(rows),
                            "n_engaged": int(sum(bool(e["engaged"]) for e in rows)),
                            "engaged_per_seed": [bool(e["engaged"]) for e in rows]}
+    # The builtin min drops a NaN that is not first, so the speed gate fails closed the way
+    # build_corrected_verdicts._pool_gate does: a non-finite pool makes that arm's minimum NaN
+    # (written as null), fails the gate, and is counted in n_nonfinite.
     speed = {}
+    n_nonfinite = {}
     speed_pass = True
     for d in drifts:
         for arm in ARMS:
-            ms = float(min(results[d][arm]["pool_speed"]))
+            v = np.asarray(results[d][arm]["pool_speed"], float)
+            n_bad = int(np.count_nonzero(~np.isfinite(v)))
+            ms = float(v.min()) if v.size and not n_bad else float("nan")
             speed[f"d={d} {arm}"] = ms
-            speed_pass = speed_pass and ms >= SPEED_THRESHOLD
+            n_nonfinite[f"d={d} {arm}"] = n_bad
+            speed_pass = speed_pass and bool(v.size) and not n_bad and ms >= SPEED_THRESHOLD
     leak_counts = {}
     leak_failures = []
     for d in drifts:
@@ -214,6 +225,8 @@ def build_gates_doc(results: dict, cell_files: list[dict], manifest: dict | None
                        "pass": bool(tost.equivalent)},
         "speed_positive_control": {"threshold": SPEED_THRESHOLD, "min_speed": speed,
                                    "pass": speed_pass},
+        # n_nonfinite is added below only when a pool is non-finite, so a finite bundle
+        # writes the same keys and bytes as before.
         "leakage": {"channel": "matched-pair (mp) reward_sum / length / lifetime, margin 0.1",
                     "per_arm": leak_counts,
                     "n_clean": int(sum(v["n_clean"] for v in leak_counts.values())),
@@ -221,6 +234,8 @@ def build_gates_doc(results: dict, cell_files: list[dict], manifest: dict | None
                     "failures": leak_failures,
                     "pass": not leak_failures},
     }
+    if sum(n_nonfinite.values()):
+        gates["speed_positive_control"]["n_nonfinite"] = n_nonfinite
     gates["all_pass"] = all(gates[k]["pass"] for k in
                             ("engagement", "l0_control", "speed_positive_control", "leakage"))
 
@@ -279,7 +294,7 @@ def main(argv: list[str] | None = None) -> int:
     g = doc["gates"]
     print(f"wrote {args.out}  (engaged {g['engagement']['n_engaged']}/{g['engagement']['n_cells']}, "
           f"L0 TOST p={g['l0_control']['tost']['p_value']:.4f} equiv={g['l0_control']['tost']['equivalent']}, "
-          f"speed min {min(g['speed_positive_control']['min_speed'].values()):.3f}, "
+          f"speed min {float(np.min(list(g['speed_positive_control']['min_speed'].values()))):.3f}, "
           f"mp leak clean {g['leakage']['n_clean']}/{g['leakage']['n_cells']}, "
           f"all_pass={g['all_pass']})")
     return 0

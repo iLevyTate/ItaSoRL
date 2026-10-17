@@ -3558,10 +3558,10 @@
    "n": 10,
    "clauses_hold": true,
    "gates_hold": false,
-   "outcome": "UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5, outside the 0.1 floor",
+   "outcome": "UNINFORMATIVE: gates not held: matched speed (min 0.749 under 0.75); untrained floor (0.114 from 0.5, outside the 0.1 floor)",
    "outcome_class": "uninformative",
    "recorded_in": "FINDINGS 21",
-   "note": "The interval clauses hold descriptively. The runner MET line is the pooled readout and is not this decision. Speed and leakage were stored for the pooled worlds only.",
+   "note": "The interval clauses hold descriptively. The runner MET line is the pooled readout and is not this decision. Matched-pair speed and leakage were collected 2026-10-14 (CORRECTIONS); the speed gate reads 0.749 at its minimum (untrained arm, seed 19; seed 13 is also under 0.75 at 0.7499) in both runs.",
    "clauses": [
     {
      "clause": "bar",
@@ -3634,10 +3634,10 @@
    "n": 10,
    "clauses_hold": true,
    "gates_hold": false,
-   "outcome": "UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5, outside the 0.1 floor",
+   "outcome": "UNINFORMATIVE: gates not held: matched speed (min 0.749 under 0.75); untrained floor (0.114 from 0.5, outside the 0.1 floor)",
    "outcome_class": "uninformative",
    "recorded_in": "FINDINGS 21",
-   "note": "The interval clauses hold descriptively. The runner MET line is the pooled readout and is not this decision. Speed and leakage were stored for the pooled worlds only.",
+   "note": "The interval clauses hold descriptively. The runner MET line is the pooled readout and is not this decision. Matched-pair speed and leakage were collected 2026-10-14 (CORRECTIONS); the speed gate reads 0.749 at its minimum (untrained arm, seed 19; seed 13 is also under 0.75 at 0.7499) in both runs.",
    "clauses": [
     {
      "clause": "bar",

@@ -135,29 +135,49 @@ def mixed_world_fitness(
     return fits
 
 
+def group_by_world_seed(index_lists: list) -> np.ndarray:
+    """One CV group id per POOLED pair, keyed by the world seed the pair was drawn at.
+
+    `index_lists` holds, per individual in rollout order, the pair indices p that
+    `common_garden_rollout(..., return_index=True)` returned (world seed seed_base + p).
+    Every individual runs on the same pair seeds, so pair p of individual i and pair p of
+    individual j are near-duplicate episodes in a near-clonal population; giving them one
+    group keeps them in one fold. The result has one entry per pooled pair and is the
+    `groups` argument of `cg_probe`, which expands it to both pair members. Opt-in
+    (closing hook A7a, 2026-10): no recorded panel used it."""
+    if not index_lists:
+        return np.zeros(0, dtype=int)
+    return np.concatenate([np.asarray(ix, dtype=int).ravel() for ix in index_lists])
+
+
 def _pooled_common_garden(
     sample: Population, drift_sigma: float, *, params, ray_steps, device, norm,
-    n_pairs, prefix_steps, tail_steps, seed_base,
-) -> tuple[list, list, list, list]:
+    n_pairs, prefix_steps, tail_steps, seed_base, return_index: bool = False,
+):
     """Run the shared-prefix authentic-vs-``drift_sigma`` common garden for every
     sampled policy and POOL the surviving tail states (and per-pair tail stats,
-    for the gate battery) into one detection sample."""
+    for the gate battery) into one detection sample. return_index=True appends the
+    per-individual lists of surviving pair indices (for group_by_world_seed)."""
     auth: list = []
     surr: list = []
     auth_st: list = []
     surr_st: list = []
+    widx: list = []
     for agent in sample:
         agent.train(False)
         n = norm or RunningNorm(agent.obs_dim)
-        a, s, ast, sst = common_garden_rollout(
+        a, s, ast, sst, ix = common_garden_rollout(
             agent, n, params, drift_sigma, n_pairs=n_pairs, prefix_steps=prefix_steps,
             tail_steps=tail_steps, ray_steps=ray_steps, device=device, seed_base=seed_base,
-            return_stats=True,
+            return_stats=True, return_index=True,
         )
         auth.extend(a)
         surr.extend(s)
         auth_st.extend(ast)
         surr_st.extend(sst)
+        widx.append(ix)
+    if return_index:
+        return auth, surr, auth_st, surr_st, widx
     return auth, surr, auth_st, surr_st
 
 
@@ -204,6 +224,7 @@ def common_garden_panel(
     surv_n_eps: int = 2,
     surv_max_steps: int | None = None,
     surv_seed_base: int | None = None,
+    world_seed_groups: bool = False,
 ) -> dict[str, Any]:
     """One fixed-horizon common-garden detection panel (docs/PREREGISTRATION_C.md sec. 5).
 
@@ -214,6 +235,11 @@ def common_garden_panel(
     OWN foraging rollouts and returned under a separate ``survival`` key, never pooled
     into the detection estimate. An L0 authentic-vs-authentic floor is measured every
     generation. Deterministic given the seeds.
+
+    ``world_seed_groups=True`` (opt-in, closing hook A7a, 2026-10) groups the pooled
+    rows by world-seed index across individuals for the detection probe, the L0 floor
+    and the gate battery, and records ``cv_groups: "world_seed"``. The default keeps the
+    pooled-row grouping of every recorded panel and adds no key.
     """
     sample = population if sample_size is None else population[:sample_size]
     surv_max_steps = surv_max_steps or (prefix_steps + tail_steps)
@@ -228,9 +254,12 @@ def common_garden_panel(
     # different folds. In an evolved, near-clonal population those are near-duplicate
     # episodes, a leak that grows with relatedness (at gen 0 the networks are independent).
     # A rescore or redesign should group pooled rows by world-seed index p across
-    # individuals. The tails are not saved, so the recorded runs cannot be rescored.
-    auth, surr, a_st, s_st = _pooled_common_garden(sample, drift_sigma, **cg_kw)
-    det = cg_probe(auth, surr, late_k=late_k)
+    # individuals (world_seed_groups=True does that for a new run). The tails are not
+    # saved, so the recorded runs cannot be rescored.
+    auth, surr, a_st, s_st, widx = _pooled_common_garden(sample, drift_sigma, **cg_kw,
+                                                         return_index=True)
+    wg = group_by_world_seed(widx) if world_seed_groups else None
+    det = cg_probe(auth, surr, late_k=late_k, groups=wg)
     # The "L0" sub-panel (gate 3) is an estimator identity check, not a shuffle or an
     # apparatus-drift control (recorded 2026-10-10, behavior unchanged): at drift_sigma 0
     # both branches of a pair reset on the same seeds and run the same deterministic policy
@@ -238,8 +267,9 @@ def common_garden_panel(
     # by construction. Gate 3's TOST then sees zero variance and passes whatever the
     # apparatus does. A future run that wants the registered drift control should build L0
     # from two different authentic world samples per pair, as itasorl/l0_audit.py does.
-    a0, s0, _, _ = _pooled_common_garden(sample, 0.0, **cg_kw)
-    l0 = cg_probe(a0, s0, late_k=late_k)
+    a0, s0, _, _, widx0 = _pooled_common_garden(sample, 0.0, **cg_kw, return_index=True)
+    l0 = cg_probe(a0, s0, late_k=late_k,
+                  groups=group_by_world_seed(widx0) if world_seed_groups else None)
     survival = _survival_by_world(
         sample, drift_sigma, params=params, ray_steps=ray_steps, device=device, norm=norm,
         n_eps=surv_n_eps, max_steps=surv_max_steps, seed_base=surv_seed_base,
@@ -254,13 +284,14 @@ def common_garden_panel(
     leak: dict[str, Any] = {}
     speed_control = float("nan")
     if len(a_st) >= 5:
-        g = np.concatenate([np.arange(len(a_st)), np.arange(len(s_st))])
+        g = (np.concatenate([wg, wg]) if wg is not None
+             else np.concatenate([np.arange(len(a_st)), np.arange(len(s_st))]))
         leak = leakage_audit_b2(a_st, s_st, groups=g)
         X = np.stack([_episode_feature(H) for H in auth + surr])
         spd = np.array([e["speed"] for e in a_st + s_st])
         if float(np.ptp(spd)) > 1e-9:
             speed_control = grouped_auroc(X, (spd > np.median(spd)).astype(int), g)
-    return {
+    out = {
         "gen": int(gen),
         "cg_n_pairs": det["cg_n_pairs"],
         "cg_tail_target": det["cg_tail_target"],
@@ -276,6 +307,9 @@ def common_garden_panel(
         "speed_control": float(speed_control),
         "speed_control_pass": bool(speed_control >= 0.75) if np.isfinite(speed_control) else False,
     }
+    if world_seed_groups:
+        out["cv_groups"] = "world_seed"
+    return out
 
 
 # ---------------------------------------------------------------------------

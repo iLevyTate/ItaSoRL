@@ -16,6 +16,7 @@ import _bootstrap  # noqa: F401
 import argparse
 import json
 import os
+import sys
 
 import numpy as np
 
@@ -97,6 +98,15 @@ def cfg():
     return ap.parse_args()
 
 
+def run_provenance(a) -> dict:
+    """Closing item G46: commit, tracked changes, stack and argv. The calibration is agent
+    free and IS the run, so the commit key is git_commit."""
+    from agent_free_common import provenance
+    from promote_bv3_gates import rel_flags, repo_rel
+    p = provenance("scripts/run_expA_l1.py", commit_key="git_commit", output=repo_rel(a.out))
+    return {**p, "argv": rel_flags(list(sys.argv[1:]))}
+
+
 def main():
     a = cfg()
     print(f"Generating {a.n_pairs} clean pairs x {a.steps} steps under B-v2 world params...")
@@ -117,6 +127,7 @@ def main():
         "sensor_sigma": a.sensor_sigma,
         "deltas_sweep": results,
         "chosen_delta": chosen,
+        "provenance": run_provenance(a),
     }
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     with open(a.out, "w") as f:

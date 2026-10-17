@@ -13,12 +13,16 @@
                dist/behavior_audit_<run>.json. Minutes on a laptop.
   retrain RUN  Print, or with --execute run, the exact commands that retrain a run listed in
                docs/RESULTS_MANIFEST.md. Hours of CPU per run (estimates in docs/REPRODUCE.md).
+               Every output, the printed follow-up readouts included, goes under --dest
+               (default dist/retrain_<UTC date>), never under artifacts/ or docs/figures/. A
+               recipe that runs a bash script needs Git Bash on Windows (git_bash()).
   supplement   Build an anonymized submission archive under dist/: code, tests, committed
                artifacts, the method documents, and the run bundles of the chosen profile that
                exist under --runs-root (default fullruns/). --profile full (the default) takes
                every bundle in RUN_DIRS; --profile review takes only REVIEW_RUN_DIRS, the
-               held-out and seed-2 saved agents, and fails, writing nothing, when the archive
-               exceeds REVIEW_LIMIT (100 MB, 100,000,000 bytes). Author names, handles, ORCID
+               held-out and seed-2 saved agents and the saved agents and cells of the C1 and
+               C2 reruns, and fails, writing nothing, when the archive exceeds REVIEW_LIMIT
+               (100 MB, 100,000,000 bytes). Author names, handles, ORCID
                iDs, e-mail addresses, repository URLs, externally hosted images and local paths
                are scrubbed from text files. Commit IDs, in either case, and SHA-256 digests
                become keyed pseudonyms of the same length in text and in file names
@@ -42,12 +46,15 @@
                README_SUPPLEMENT.md says what the archive holds, how to install and run it,
                and which run bundles were included; PROVENANCE.md lists every commit to
                each preregistration and spec (UTC date and time, pseudonymized short hash, a
-               count per file), from git at build time; SHA256SUMS lists every other file.
+               count per file), from git at build time; PREREG_HISTORY/ holds the full text
+               history of each one as a patch (prereg_history), scrubbed and pseudonymized like
+               every other text file; SHA256SUMS lists every other file. PROVENANCE.md and
+               PREREG_HISTORY/ are not written from a shallow clone.
                --require-runs fails the build when a bundle of the profile is absent.
 
 Usage:
     python scripts/reproduce.py tables [--check] [--dumps fullruns/corrected_l3_h8_wm/states]
-    python scripts/reproduce.py retrain C1 [--execute]
+    python scripts/reproduce.py retrain C1 [--execute] [--dest DIR]
     python scripts/reproduce.py supplement [--profile full|review] [--out FILE] [--runs-root DIR]
                                            [--anon-name NAME | --keep-name] [--require-runs]
                                            [--paper PATH]
@@ -67,6 +74,8 @@ import os
 import posixpath
 import re
 import secrets
+import shlex
+import shutil
 import subprocess
 import sys
 import zipfile
@@ -75,9 +84,13 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 PY = sys.executable
 
 L3 = "python scripts/run_expB2.py --drift-mode l3 --seeds 0 1 2 3 4 5 6 7 8 9 --updates 300 --device cpu"
+# Retraining recipes. `{dest}` is the retrain folder (default dist/retrain_<UTC date>, see
+# retrain_dest()), so a retrain never writes into artifacts/, docs/figures/ or the run bundles
+# under fullruns/ that the supplement ships. A line that starts with "#" is a note: printed,
+# never run.
 RETRAIN = {
-    "C1": ["bash scripts/revision/run_corrected_confirmation.sh . 4   # runs C1 then C2"],
-    "C2": ["bash scripts/revision/run_corrected_confirmation.sh . 4   # runs C1 then C2"],
+    "C1": ["bash scripts/revision/run_corrected_confirmation.sh {dest} 4 wm"],
+    "C2": ["bash scripts/revision/run_corrected_confirmation.sh {dest} 4 nowm"],
     "L3-H8-WM-CPU": [f"{L3} --l3-hidden 8 --gae-bootstrap pre_transition --workers 3 "
                      "--save-agents --dump-states fullruns/l3_h8_wm_cpu/states --out-dir fullruns/l3_h8_wm_cpu"],
     "L3-H8-NOWM-CPU": [f"{L3} --l3-hidden 8 --no-world-model --gae-bootstrap pre_transition --workers 3 "
@@ -87,26 +100,61 @@ RETRAIN = {
     "L3-H8-N10": [f"{L3.replace('--device cpu', '--device cuda')} --l3-hidden 8 --gae-bootstrap "
                   "pre_transition --dump-states fullruns/l3_h8_traces/states --out-dir fullruns/l3_h8_traces"
                   "   # published on GPU; ITASORL_FOLDS=legacy on the publishing stack reproduces 0.752"],
+    # docs/specs/2026-10-15-corrected-l1-organism-rerun-design.md, "Run"; only the output
+    # paths differ.
+    "L1-CORRECTED": ["python scripts/run_expB2.py --drift-mode l1 --l1-delta 0.023 --sensor-sigma 0.01 "
+                     "--drifts 0.0 0.023 --seeds 0 1 2 3 4 5 6 7 8 9 --updates 300 "
+                     "--gae-bootstrap successor --workers 3 --device cpu --save-agents --resume "
+                     "--dump-states {dest}/fullruns/corrected_l1_heldout/states "
+                     "--out-dir {dest}/fullruns/corrected_l1_heldout"],
+    # docs/specs/2026-10-12-balanced-confirmation-design.md, "Commands"; only the output paths
+    # differ.
+    "B1-BALANCED": ["# Both runs are one worker on CUDA, so G and the agents train on the same device "
+                    "(the spec's run section). ITASORL_FOLDS=explicit, the default.",
+                    "python scripts/run_expB2.py --drift-mode l3 --l3-hidden 8 --l3-seed 0 --seeds 10 11 12 "
+                    "13 14 15 16 17 18 19 --gae-bootstrap successor --adv-norm historical "
+                    "--balanced-seed-base 910000 --save-agents "
+                    "--dump-states {dest}/fullruns/balanced_confirmation_wm/states "
+                    "--out-dir {dest}/fullruns/balanced_confirmation_wm --device cuda --workers 1"],
+    "B2-BALANCED": ["# Both runs are one worker on CUDA, so G and the agents train on the same device "
+                    "(the spec's run section). ITASORL_FOLDS=explicit, the default.",
+                    "python scripts/run_expB2.py --drift-mode l3 --l3-hidden 8 --l3-seed 0 --seeds 10 11 12 "
+                    "13 14 15 16 17 18 19 --objective touch --mortal off --gae-bootstrap successor "
+                    "--adv-norm historical --balanced-seed-base 910000 --save-agents "
+                    "--dump-states {dest}/fullruns/balanced_confirmation_touch/states "
+                    "--out-dir {dest}/fullruns/balanced_confirmation_touch --device cuda --workers 1"],
 }
+# Run-specific flags of the follow-ups that retrain the survival arm: C2 has no decoder.
+RUN_FLAGS = {"C1": "", "C2": " --no-world-model"}
+# Readout-only follow-ups on a retrained run's saved agents. Every output goes under
+# {dest}/readouts/, with the relative name the committed file has under artifacts/, so a
+# retrain never overwrites a committed artifact and compare_run_cells.py can set the two
+# side by side.
 READOUTS = [
-    "python scripts/run_l0_audit.py --agents-dir {run}/agents --out artifacts/l0_audit/{name}.json",
-    "python scripts/run_policy_controlled_readouts.py --run-dir {run} --out artifacts/policy_controls/{name}.json --workers 4",
-    "python scripts/run_persistence_readout.py --agents-dir {run}/agents --out artifacts/persistence/{name}.json --workers 4",
-    "python scripts/run_control_diagnostics.py --run-dir {run} --out artifacts/control_diagnostics/{name}.json --workers 4",
-    "python scripts/run_texture_fresh_probe.py --agents-dir {run}/agents --family gn --param 0.01 --out artifacts/texture/{name}_gn.json --workers 4",
-    "python scripts/run_texture_fresh_probe.py --agents-dir {run}/agents --family qd --param 6.0 --out artifacts/texture/{name}_qd.json --workers 4",
-    "python scripts/validate_population_readout.py --run-dir {run} --out artifacts/population_readout/{name}.json",
+    "python scripts/run_l0_audit.py --agents-dir {run}/agents --out {dest}/readouts/l0_audit/{name}.json",
+    "python scripts/run_policy_controlled_readouts.py --run-dir {run}{flags} --out {dest}/readouts/policy_controls/{name}.json --workers 4",
+    "python scripts/run_persistence_readout.py --agents-dir {run}/agents --out {dest}/readouts/persistence/{name}.json --workers 4",
+    "python scripts/run_control_diagnostics.py --run-dir {run} --out {dest}/readouts/control_diagnostics/{name}.json --workers 4",
+    "python scripts/run_texture_fresh_probe.py --agents-dir {run}/agents --family gn --param 0.01 --out {dest}/readouts/texture/{name}_gn.json --workers 4",
+    "python scripts/run_texture_fresh_probe.py --agents-dir {run}/agents --family qd --param 6.0 --out {dest}/readouts/texture/{name}_qd.json --workers 4",
+    "python scripts/validate_population_readout.py --run-dir {run} --out {dest}/readouts/population_readout/{name}.json",
+    "python scripts/compare_run_cells.py --rerun {dest}/corrected_runs/{name}/cells "
+    "--committed artifacts/corrected_runs/{name}/cells --out {dest}/readouts/compare_cells_{name}.json"
+    "   # value by value against the committed cells",
 ]
-# After both corrected runs: frozen-rule verdicts, the budget curve, and the exploratory
-# cross-run replay (FINDINGS 17.4, 17.10).
+# After both corrected runs: the budget curve and the exploratory cross-run replay (FINDINGS
+# 17.4, 17.10). The frozen-rule verdicts read the committed cells only, so the first line checks
+# that they still match them and rewrites nothing.
 AFTER_BOTH = [
-    "python scripts/build_corrected_verdicts.py",
-    'python scripts/build_budget_curve.py --run "decoder on=artifacts/corrected_runs/corrected_l3_h8_wm" '
-    '--run "decoder off=artifacts/corrected_runs/corrected_l3_h8_nowm" --out artifacts/budget_curve.json '
-    "--figure docs/figures/budget_curve.png",
-    "python scripts/run_cross_replay.py --a fullruns/corrected_l3_h8_wm --b fullruns/corrected_l3_h8_nowm "
-    "--out artifacts/cross_replay/corrected_c1_c2.json   # exploratory, post hoc",
+    "python scripts/build_corrected_verdicts.py --check",
+    'python scripts/build_budget_curve.py --run "decoder on={dest}/corrected_runs/corrected_l3_h8_wm" '
+    '--run "decoder off={dest}/corrected_runs/corrected_l3_h8_nowm" --out {dest}/readouts/budget_curve.json '
+    "--figure {dest}/readouts/budget_curve.png",
+    "python scripts/run_cross_replay.py --a {dest}/fullruns/corrected_l3_h8_wm "
+    "--b {dest}/fullruns/corrected_l3_h8_nowm "
+    "--out {dest}/readouts/cross_replay/corrected_c1_c2.json   # exploratory, post hoc",
 ]
+CORRECTED_RUN_DIRS = {"C1": "corrected_l3_h8_wm", "C2": "corrected_l3_h8_nowm"}
 
 
 def _run(cmd: list[str]) -> int:
@@ -169,27 +217,120 @@ def dump_tag(d: str) -> str:
     return leaf or "states"
 
 
-def retrain(run: str, execute: bool) -> int:
-    cmds = RETRAIN.get(run)
-    if cmds is None:
+def retrain_dest() -> str:
+    """The default retrain folder, dist/retrain_<UTC date> (dist/ is gitignored)."""
+    return "dist/retrain_" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
+
+
+def _fill(template: str, **kw) -> str:
+    return template.format(**kw)
+
+
+def retrain_lines(run: str, dest: str) -> tuple[list[str], list[str]]:
+    """(recipe, follow-ups) for `run` with every `{dest}` filled in: the commands that retrain
+    it, then, for C1 and C2, the readout-only follow-ups on its saved agents and the steps
+    that need both runs. KeyError for a run with no recipe."""
+    recipe = [_fill(c, dest=dest) for c in RETRAIN[run]]
+    follow: list[str] = []
+    name = CORRECTED_RUN_DIRS.get(run)
+    if name:
+        run_dir = f"{dest}/fullruns/{name}"
+        follow.append("# readout-only follow-ups on the saved agents (revision steps 5 to 12):")
+        follow += [_fill(r, run=run_dir, name=name, dest=dest, flags=RUN_FLAGS[run])
+                   for r in READOUTS]
+        follow.append("# once both C1 and C2 exist:")
+        follow += [_fill(r, dest=dest) for r in AFTER_BOTH]
+    return recipe, follow
+
+
+def git_bash() -> str | None:
+    """The bash that runs the retrain scripts, or None when there is none to trust. On Windows
+    the `bash` on PATH is often the WSL launcher (System32) or the Store alias (WindowsApps),
+    which run another system with another python, so both are rejected and Git for Windows'
+    bash under %ProgramFiles% is tried instead."""
+    found = shutil.which("bash")
+    if os.name != "nt":
+        return found
+
+    def trusted(p: str) -> bool:
+        parts = os.path.normcase(os.path.abspath(p)).split(os.sep)
+        return "system32" not in parts and "windowsapps" not in parts
+
+    program_files = os.environ.get("ProgramFiles", r"C:\Program Files")
+    cands = [found, os.path.join(program_files, "Git", "bin", "bash.exe")]
+    return next((c for c in cands if c and os.path.isfile(c) and trusted(c)), None)
+
+
+def bash_preflight(bash: str) -> str | None:
+    """Why the python that `bash` finds cannot run a retrain (it cannot import torch), or
+    None when it can."""
+    try:
+        res = subprocess.run([bash, "-c", "python -c 'import torch'"], cwd=ROOT,
+                             capture_output=True, text=True, timeout=600)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return f"{bash} could not run python ({e})"
+    if res.returncode == 0:
+        return None
+    last = (res.stderr or res.stdout).strip().splitlines()
+    return f"`python -c 'import torch'` inside {bash} exited {res.returncode}" + (
+        f": {last[-1]}" if last else "")
+
+
+def _dest_refusal(dest: str) -> str | None:
+    """Why `dest` cannot take a retrain, or None: the repository root, or a folder inside
+    artifacts/ or docs/, whose files are the committed record."""
+    full = os.path.normcase(os.path.abspath(os.path.join(ROOT, dest)))
+    root = os.path.normcase(os.path.abspath(ROOT))
+    if full == root:
+        return "it is the repository root"
+    for d in ("artifacts", "docs"):
+        sub = os.path.join(root, d)
+        if full == sub or full.startswith(sub + os.sep):
+            return f"it is inside {d}/, which holds the committed record"
+    return None
+
+
+def retrain(run: str, execute: bool, dest: str | None = None) -> int:
+    if run not in RETRAIN:
         print(f"no retraining recipe recorded for {run!r}; known: {sorted(RETRAIN)}")
         print("(every run's configuration is in docs/RESULTS_MANIFEST.md)")
         return 1
-    run_dir = {"C1": "fullruns/corrected_l3_h8_wm", "C2": "fullruns/corrected_l3_h8_nowm"}.get(run)
-    for c in cmds:
+    dest = dest or retrain_dest()
+    recipe, follow = retrain_lines(run, dest)
+    for c in recipe:
         print(c)
-    if run_dir:
-        print("\n# readout-only follow-ups on the saved agents (revision steps 5 to 12):")
-        for r in READOUTS:
-            print(r.format(run=run_dir, name=os.path.basename(run_dir)))
-        print("\n# once both C1 and C2 exist:")
-        for r in AFTER_BOTH:
-            print(r)
-    if execute:
-        rc = 0
-        for c in cmds:
-            rc |= subprocess.call(c.split("   #")[0], shell=True, cwd=ROOT)
-        return rc
+    if follow:
+        print()
+        for r in follow:
+            print(("\n" if r.startswith("# once") else "") + r)
+    if not execute:
+        return 0
+    why = _dest_refusal(dest)
+    if why:
+        print(f"not run: the retrain folder {dest!r} is refused because {why}")
+        return 1
+    steps = [c for c in RETRAIN[run] if not c.lstrip().startswith("#")]
+    bash = None
+    if any(c.startswith("bash ") for c in steps):
+        bash = git_bash()
+        if bash is None:
+            print("not run: no usable bash. On Windows install Git for Windows (its bash.exe under "
+                  "%ProgramFiles%\\Git\\bin); the WSL and Store launchers are not used.")
+            return 1
+        why = bash_preflight(bash)
+        if why:
+            print(f"not run: {why}. Activate the environment that has the requirements first.")
+            return 1
+    for c in steps:
+        # Split the template before filling it in, so a destination with spaces or backslashes
+        # stays one argument; an argv list, never a shell string.
+        argv = [_fill(tok, dest=dest) for tok in shlex.split(c.split("   #")[0])]
+        argv[0] = {"bash": bash, "python": PY}.get(argv[0]) or argv[0]
+        print("+", " ".join(argv), flush=True)
+        rc = subprocess.call(argv, cwd=ROOT)
+        if rc:
+            print(f"exit {rc}; stopped")
+            return rc
     return 0
 
 
@@ -557,7 +698,8 @@ def check_anon_name(name: str, old: str | None) -> None:
 
 
 TEXT_EXT = {".py", ".md", ".json", ".jsonl", ".txt", ".sh", ".toml", ".ini", ".cfg", ".log", ".yml",
-            ".yaml", ".cff", ".html", ".js", ".css", ".err", ".tex", ".bib", ".csv", ".ipynb"}
+            ".yaml", ".cff", ".html", ".js", ".css", ".err", ".tex", ".bib", ".csv", ".ipynb",
+            ".patch"}
 
 
 def is_text(name: str) -> bool:
@@ -704,21 +846,53 @@ RUN_INCLUDED_NOTES = {
         "(artifacts/control_diagnostics/l1_stream_readout_corrected.json) and the surprise "
         "readout (artifacts/surprise/corrected_l1_heldout.json) replay from these agents and "
         "state dumps."),
+    # The review build ships the C1 and C2 reruns' agents and cells as four entries (no state
+    # dumps). Each note says where the folder came from and how its dumps rebuild.
+    "fullruns/corrected_l3_h8_wm/agents": (
+        "`fullruns/corrected_l3_h8_wm/agents` holds the saved agents of the rerun of C1, the "
+        "corrected primary run, made on the same stack to keep the agents; they include the "
+        "survival arm's budget snapshots. With the cells beside them, `ITASORL_FOLDS=explicit "
+        "python scripts/regenerate_state_dumps.py --run-dir fullruns/corrected_l3_h8_wm "
+        "--out-dir <dir> --report <json>` rebuilds the state dumps and checks every pool against "
+        "the target recorded in its cell."),
+    "fullruns/corrected_l3_h8_nowm/agents": (
+        "`fullruns/corrected_l3_h8_nowm/agents` holds the saved agents of the rerun of C2, the "
+        "corrected run without the auxiliary, made on the same stack to keep the agents. With "
+        "the cells beside them, `ITASORL_FOLDS=explicit python scripts/regenerate_state_dumps.py "
+        "--run-dir fullruns/corrected_l3_h8_nowm --out-dir <dir> --report <json>` rebuilds its "
+        "state dumps as for C1."),
+    "fullruns/corrected_l3_h8_wm/cells": (
+        "`fullruns/corrected_l3_h8_wm/cells` holds the cell records of the C1 rerun that wrote "
+        "these agents. They are not byte-identical to the committed C1 cells under "
+        "artifacts/corrected_runs/, and scripts/regenerate_state_dumps.py reads its recorded "
+        "targets from them, so they ship beside the agents."),
+    "fullruns/corrected_l3_h8_nowm/cells": (
+        "`fullruns/corrected_l3_h8_nowm/cells` holds the cell records of the C2 rerun that wrote "
+        "these agents, which scripts/regenerate_state_dumps.py reads beside them."),
 }
 
 # The review build (--profile review). TMLR accepts at most 100 MB of supplementary material,
 # and the full build was 501 MB on 2026-10-16, nearly all of it run bundles. The review build
-# carries the two bundles Appendix app:repro of the paper says the supplement carries: the
-# saved agents of the held-out and seed-2 runs, from which the direction-of-rearing and
-# world-sample readouts replay. The limit is read in decimal units, 100,000,000 bytes, the
-# smaller reading of "100MB" and the one the paper states.
-REVIEW_RUN_DIRS = ["fullruns/l3_h8_heldout/agents", "fullruns/l3_h8_gseed2_gpu/agents"]
+# carries the saved agents of the held-out and seed-2 runs, from which the direction-of-rearing
+# and world-sample readouts replay, and the saved agents and cells of the C1 and C2 reruns
+# (2026-10-17), from which a reviewer rebuilds their state dumps with
+# scripts/regenerate_state_dumps.py, which opens <run>/cells/ beside <run>/agents/. The rerun
+# cells differ byte for byte from the committed artifacts/corrected_runs cells, so the agents
+# need their own. The limit is read in decimal units, 100,000,000 bytes, the smaller reading of
+# "100MB" and the one the paper states.
+REVIEW_RUN_DIRS = ["fullruns/l3_h8_heldout/agents", "fullruns/l3_h8_gseed2_gpu/agents",
+                   "fullruns/corrected_l3_h8_wm/agents", "fullruns/corrected_l3_h8_nowm/agents",
+                   "fullruns/corrected_l3_h8_wm/cells", "fullruns/corrected_l3_h8_nowm/cells"]
 REVIEW_LIMIT = 100_000_000
 PROFILES = ("full", "review")
-# What the review README says about each full-build bundle it leaves out.
+# What the review README says about each full-build bundle it leaves out. The C1 and C2 bundles
+# ship their agents and cells in the review build too; only their other files stay out.
 REVIEW_LEFT_OUT = {
-    "fullruns/corrected_l3_h8_wm": "C1, the corrected primary run (cells, saved agents)",
-    "fullruns/corrected_l3_h8_nowm": "C2, the corrected run without the auxiliary (cells, saved agents)",
+    "fullruns/corrected_l3_h8_wm": "C1, the corrected primary run: every file outside its agents/ "
+                                   "and cells/ folders, which this build carries",
+    "fullruns/corrected_l3_h8_nowm": "C2, the corrected run without the auxiliary: every file "
+                                     "outside its agents/ and cells/ folders, which this build "
+                                     "carries",
     "fullruns/balanced_confirmation_wm": "B1, the matched-world survival confirmation (cells, saved "
                                          "agents, state dumps)",
     "fullruns/balanced_confirmation_touch": "B2, the matched-world pellet confirmation (cells, saved "
@@ -849,16 +1023,17 @@ def _files(runs_root: str | None = None) -> list[str]:
 
 README_NAME = "README_SUPPLEMENT.md"
 PROVENANCE_NAME = "PROVENANCE.md"
+PREREG_HISTORY_DIR = "PREREG_HISTORY"
 
 
 def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
             provenance: str | None = None, profile: str = "full", left_out=(),
             commits_hidden: int = 0, digests_hidden: int = 0, branches_hidden: int = 0,
-            title_checked: bool = True) -> str:
+            title_checked: bool = True, histories: int = 0) -> str:
     """README_SUPPLEMENT.md: what the archive holds and leaves out, how to install and run it,
     and the state of every run bundle. `provenance` is None when PROVENANCE.md was written,
-    else the reason it was not. `left_out` lists the full-build bundles a review build does
-    not carry; `commits_hidden`, `digests_hidden` and `branches_hidden` count the commit IDs,
+    else the reason it was not; `histories` counts the PREREG_HISTORY patch files written.
+    `left_out` lists the full-build bundles a review build does not carry; `commits_hidden`, `digests_hidden` and `branches_hidden` count the commit IDs,
     SHA-256 digests and branch names replaced by pseudonyms; `title_checked` is False when the manuscript's title could not be
     read, so the identity scan did not look for it."""
     L = ["# Anonymized supplement", "",
@@ -868,6 +1043,11 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
          "are not part of it, so links to them in the documents read as plain text. Start with "
          "section 1 of docs/REPRODUCE.md and skip its clone step: the folder this file sits in "
          "is the repository root.", "",
+         "In the Markdown documents, a link to the repository or to a file the archive does not "
+         "carry becomes plain text. index.html, index.template.html and viz/player/index.html "
+         "ship only as inputs to the scalar audit and the site tests. They do not render here, "
+         "and their links to the repository and to files outside the archive do not resolve.",
+         "",
          "## Install and run", "",
          "- Python 3.10 to 3.13. Install the dependencies with "
          "`pip install -r requirements-dev.txt`.",
@@ -931,7 +1111,8 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
         L += ["This is the review build, sized for a 100 MB limit on supplementary material. "
               "It carries only the saved agents of the historical hidden-8 held-out run and of "
               "the hidden-8 seed-2 run, from which the direction-of-rearing and world-sample "
-              "readouts replay. It carries no state dumps.", ""]
+              "readouts replay, and the saved agents and cells of the C1 and C2 reruns, from "
+              "which their state dumps rebuild. It carries no state dumps.", ""]
     absent = []
     for r, n in status:
         if n is not None:
@@ -948,15 +1129,16 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
         L += [f"- {note}" for note in shipped]
     L.append("")
     if left_out:
-        L += ["The review build leaves out these run bundles, which the full build carries:", ""]
+        L += ["The review build leaves out these run bundles, or the parts of them named, which "
+              "the full build carries:", ""]
         L += [f"- `{r}`: {REVIEW_LEFT_OUT[r]}" if r in REVIEW_LEFT_OUT else f"- `{r}`"
               for r in left_out]
         L += ["", "Their per-seed readouts are committed under artifacts/ (the cells of C1, C2 "
               "and L1-CORRECTED under artifacts/corrected_runs/, the B1 and B2 readouts under "
               "artifacts/balanced_confirmation/), so every table and gate rebuilds from this "
-              "archive without them. Replaying a readout from "
-              "their saved agents or state dumps, including the matched-gate replay of B1 and "
-              "B2 and the stream and surprise readouts of L1-CORRECTED, needs a retrain from the "
+              "archive without them. Replaying a readout from the saved agents or state dumps "
+              "of B1, B2 and L1-CORRECTED, including the matched-gate replay of B1 and B2 and "
+              "the stream and surprise readouts of L1-CORRECTED, needs a retrain from the "
               "recorded recipe (docs/REPRODUCE.md section 2).", ""]
     if gone:
         both = " and ".join(gone)
@@ -965,9 +1147,10 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
               "trained in a 4-vCPU cloud container, and the bundles were not available where this "
               "archive was built. Their per-seed cell records are under "
               "artifacts/corrected_runs/, so every corrected table rebuilds without training. "
-              "`python scripts/reproduce.py retrain C1 --execute` retrains C1 and then C2 (about "
-              "3 h 20 min and 4 h 25 min on 4 CPU workers, docs/REPRODUCE.md section 2), and "
-              "prints the readout-only follow-ups that need the saved agents.", ""]
+              "`python scripts/reproduce.py retrain C1 --execute` retrains C1 and `retrain C2 "
+              "--execute` retrains C2 (about 3 h 20 min and 4 h 25 min on 4 CPU workers, "
+              "docs/REPRODUCE.md section 2), under dist/retrain_<date>; each prints the "
+              "readout-only follow-ups that need the saved agents.", ""]
     L.append("A run whose bundle is not listed as included has no saved agents or state dumps "
              "here; its committed per-seed records are under artifacts/.")
     L += ["", "## Files", ""]
@@ -979,6 +1162,15 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
                  "so the freeze timing of each and the date of every later edit can be checked.")
     else:
         L.append(f"- There is no `{PROVENANCE_NAME}`: {provenance}.")
+    if histories:
+        L.append(f"- `{PREREG_HISTORY_DIR}/` holds one patch file per preregistration and spec "
+                 f"({histories} files): every committed change to it, oldest first, as `git log "
+                 "-p --follow` printed it when the archive was built. Each commit's header gives "
+                 f"its {'pseudonymized ' if commits_hidden else ''}short hash, as in "
+                 f"`{PROVENANCE_NAME}`, and its committer time in UTC. Blob IDs, path prefixes, "
+                 "names, e-mail addresses and commit messages are left out, and the text is "
+                 "anonymized like every other file, so the registered text at each commit can "
+                 "be read.")
     L.append(f"- `SHA256SUMS` lists the SHA-256 of every file in the archive except itself, "
              f"`{README_NAME}` included.")
     return "\n".join(L) + "\n"
@@ -1574,6 +1766,49 @@ def provenance_md(rows, rename, pseudonyms: bool = False) -> str:
     return "\n".join(out) + "\n"
 
 
+def _git_bytes_text(args: list[str]) -> str | None:
+    """`git <args>` decoded as UTF-8 whatever the locale (the documents are UTF-8, and a Windows
+    code page cannot decode every byte), or None when git fails."""
+    try:
+        res = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return res.stdout.decode("utf-8", errors="replace")
+
+
+def prereg_history(rel: str) -> str | None:
+    """The full text history of the frozen document `rel` as one patch file, oldest commit
+    first, or None outside a git checkout or in a shallow clone (as provenance_rows). From
+    `git log -p --follow --cc --format=%x00%h %ct`: each commit's header becomes
+    "commit <short hash> <YYYY-MM-DD HH:MM> UTC", the committer time in UTC, so no time-zone
+    offset ships; the diffs have no a/ and b/ path prefixes, and the `index` lines, which name
+    blob IDs, are dropped. Names, e-mail addresses and commit messages are not read. The caller
+    scrubs the text like any other shipped file before it ships."""
+    top = (_git(["rev-parse", "--show-toplevel"]) or "").strip()
+    if not top or os.path.normcase(os.path.realpath(top)) != os.path.normcase(os.path.realpath(ROOT)):
+        return None
+    if (_git(["rev-parse", "--is-shallow-repository"]) or "").strip() == "true":
+        return None
+    out = _git_bytes_text(["-c", "core.quotepath=off", "log", "-p", "--follow", "--cc",
+                           "--no-color", "--no-ext-diff", "--no-textconv", "--no-prefix",
+                           "--format=%x00%h %ct", "--", rel])
+    if out is None:
+        return None
+    chunks = []
+    for chunk in out.split("\0")[1:]:
+        lines = chunk.split("\n")
+        h, ts = lines[0].split()
+        when = datetime.datetime.fromtimestamp(int(ts), tz=datetime.timezone.utc).strftime(
+            "%Y-%m-%d %H:%M")
+        body = [ln for ln in lines[1:] if not ln.startswith("index ")]
+        chunks.append("\n".join([f"commit {h} {when} UTC", *body]).rstrip("\n") + "\n")
+    if not chunks:
+        return None
+    head = (f"# Every committed change to {rel}, oldest first (git log -p --follow; "
+            "committer times in UTC).\n\n")
+    return head + "\n".join(reversed(chunks))
+
+
 def _is_frozen_doc(rel: str) -> bool:
     return (fnmatch.fnmatchcase(rel, "docs/PREREGISTRATION*.md")
             or fnmatch.fnmatchcase(rel, "docs/specs/*.md"))
@@ -1779,6 +2014,17 @@ def supplement(out: str, runs_root: str | None = None,
         print(f"no archive written: the commit scan cannot see every commit ID, because {gap}. "
               "Build from a full checkout.")
         return 1
+    # The provenance table and the full text history of every frozen document, read before the
+    # pseudonyms are drawn, so a digest that only an earlier version names is replaced too.
+    # Neither is read in a shallow clone or outside a checkout (provenance_rows says why).
+    rows, no_prov = provenance_rows([rel for rel, _ in pairs if _is_frozen_doc(rel)])
+    histories = {}
+    for rel, _, _ in rows or ():
+        patch = prereg_history(rel)
+        if patch:
+            histories[rel] = patch
+            if anon_name and not in_archive:
+                digests |= digest_tokens(patch)
     key_path = key_path or COMMIT_KEY
     forced = sorted(t for t in named if not _resolves(commits, t))
     hide = bool(commits or forced or digests)
@@ -1805,7 +2051,6 @@ def supplement(out: str, runs_root: str | None = None,
         return 1
     for rel, why in dropped:
         print(f"  left out {rel} ({why})")
-    rows, no_prov = provenance_rows([rel for rel, _ in pairs if _is_frozen_doc(rel)])
     path = os.path.join(ROOT, out)
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     shipped = {rename(rel) for rel, _ in pairs}
@@ -1837,6 +2082,16 @@ def supplement(out: str, runs_root: str | None = None,
         if rows is not None:
             put(PROVENANCE_NAME, hider.sub(provenance_md(rows, rename, bool(hider.commits)))
                 .encode("utf-8"))
+        # Each history goes through the same chain as a shipped text file: scrub and package
+        # rename, then the pseudonyms, then the number check.
+        for rel, patch in histories.items():
+            arc = f"{PREREG_HISTORY_DIR}/{rename(rel)}.patch"
+            before = rename_pkg(scrub(patch, rules))
+            text = hider.sub(before)
+            why = number_guard(arc, before, text, known=named)
+            if why:
+                broken.append(f"{arc}: {why}")
+            put(arc, text.encode("utf-8"))
         table = hider.digest_table()
         if table:
             put(DIGEST_TABLE_NAME, (json.dumps(
@@ -1854,7 +2109,8 @@ def supplement(out: str, runs_root: str | None = None,
                                            commits_hidden=hider.count(),
                                            digests_hidden=hider.digest_count(),
                                            branches_hidden=len(set(branch_rule[0][1].used.values())),
-                                           title_checked=bool(titles) or not anon_name))
+                                           title_checked=bool(titles) or not anon_name,
+                                           histories=len(histories)))
             .encode("utf-8"))
         z.writestr("SHA256SUMS", "\n".join(sums) + "\n")
     leaks = leak_scan(path, rules, old_name, titles=titles, branches=branches)
@@ -1918,13 +2174,18 @@ def main(argv=None) -> int:
     r = sub.add_parser("retrain")
     r.add_argument("run")
     r.add_argument("--execute", action="store_true")
+    r.add_argument("--dest", default=None,
+                   help="folder that receives the retrained run and every follow-up output "
+                        "(default dist/retrain_<UTC date>); never the repository root, "
+                        "artifacts/ or docs/")
     s = sub.add_parser("supplement")
     s.add_argument("--out", default=None,
                    help="archive path (default dist/supplement.zip, or dist/supplement-review.zip "
                         "for --profile review)")
     s.add_argument("--profile", choices=PROFILES, default="full",
                    help="full: every bundle in RUN_DIRS; review: only the held-out and seed-2 "
-                        "saved agents, failing above 100 MB, 100,000,000 bytes (default %(default)s)")
+                        "saved agents and the C1 and C2 rerun agents and cells, failing above "
+                        "100 MB, 100,000,000 bytes (default %(default)s)")
     s.add_argument("--runs-root", default=None,
                    help="directory that holds the run bundles named in RUN_DIRS (default: "
                         "fullruns/ in this checkout); only read")
@@ -1945,7 +2206,7 @@ def main(argv=None) -> int:
     if a.cmd == "tables":
         return tables(a.dumps, check_only=a.check)
     if a.cmd == "retrain":
-        return retrain(a.run, a.execute)
+        return retrain(a.run, a.execute, a.dest)
     out = a.out or ("dist/supplement-review.zip" if a.profile == "review" else "dist/supplement.zip")
     return supplement(out, runs_root=a.runs_root, anon_name=None if a.keep_name else a.anon_name,
                       require_runs=a.require_runs, profile=a.profile, require_history=True,

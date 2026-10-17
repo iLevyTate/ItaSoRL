@@ -26,10 +26,10 @@ import audit_stats_recheck as asr  # noqa: E402
 @pytest.fixture(autouse=True)
 def _reset_counters():
     """The audit keeps its tally in module globals; give every test a clean slate."""
-    before = (asr.n_checks, asr.n_skipped, list(asr.failures))
-    asr.n_checks, asr.n_skipped, asr.failures[:] = 0, 0, []
+    before = (asr.n_checks, asr.n_skipped, asr.n_pins, list(asr.failures))
+    asr.n_checks, asr.n_skipped, asr.n_pins, asr.failures[:] = 0, 0, 0, []
     yield
-    asr.n_checks, asr.n_skipped, asr.failures[:] = before[0], before[1], before[2]
+    asr.n_checks, asr.n_skipped, asr.n_pins, asr.failures[:] = before[0], before[1], before[2], before[3]
 
 
 def test_check_records_a_failure_only_when_the_value_moves():
@@ -251,11 +251,75 @@ def test_full_audit_records_at_least_the_check_floor(where, monkeypatch, capsys)
     asr.main()
     capsys.readouterr()
     assert asr.n_skipped == (1 if where == "supplement" else 0), asr.n_skipped
-    assert asr.n_checks + asr.n_skipped >= asr.CHECK_FLOOR, (asr.n_checks, asr.n_skipped, asr.CHECK_FLOOR)
+    # Exact, not a floor: the manuscript and docs/REPRODUCE.md quote the count, so a check added
+    # or lost must move CHECK_FLOOR (read from the printed count) in the same change (A5).
+    assert asr.n_checks + asr.n_skipped == asr.CHECK_FLOOR, (asr.n_checks, asr.n_skipped, asr.CHECK_FLOOR)
+    assert asr.n_pins == asr.PIN_COUNT, (asr.n_pins, asr.PIN_COUNT)
     assert opened, "the open recorder saw no file; the manuscript check below would be empty"
     paper = os.path.normcase(os.path.join(ROOT, "docs", "paper")) + os.sep
     read_manuscript = [p for p in opened if p.startswith(paper) or os.path.basename(p) == "main.tex"]
     assert not read_manuscript, ("the audit must not read the manuscript", read_manuscript)
+
+
+def test_reproduce_md_quotes_the_check_count():
+    """docs/REPRODUCE.md tells a reader the count the audit prints; it must be CHECK_FLOOR."""
+    with open(os.path.join(ROOT, "docs", "REPRODUCE.md"), encoding="utf-8") as fh:
+        text = " ".join(fh.read().split())
+    assert f"prints the count ({asr.CHECK_FLOOR} on" in text, asr.CHECK_FLOOR
+
+
+# A6a: one full audit with one value moved in each of the three blocks added on 2026-10-16
+# (FINDINGS 22.3 sweep C follow-up, FINDINGS 23.3 erasure refit probe, the O2 optional
+# readout). Their presence tests show the blocks run; this shows each one can fail, and that
+# the failure stays inside its own block.
+_MUTATIONS = {
+    os.path.join("artifacts", "texture", "ar_sweep_c_followup", "C_rho0.99.json"): "follow-up",
+    os.path.join("artifacts", "mechanism", "erasure", "corrected_l3_h8_wm.json"): "erasure",
+    os.path.join("docs", "optional", "o2_long_history_ridge.json"): "o2",
+}
+
+
+def _mutate(kind: str, doc: dict) -> dict:
+    if kind == "follow-up":
+        cell = next(c for c in doc["cells"] if c["arm"] == "survival")
+        cell["fresh"] = float(cell["fresh"]) + 0.05
+    elif kind == "erasure":
+        row = next(r for r in doc["rows"] if r["arm"] == "survival" and r["seed"] == 0)
+        row["refit_probe_erased"] = float(row["refit_probe_erased"]) + 0.05
+    else:
+        cell = next(c for c in doc["cells"] if c["seed"] == 0)
+        cell["resid_obs_hist"]["auroc"] = float(cell["resid_obs_hist"]["auroc"]) + 0.05
+    return doc
+
+
+def test_full_audit_fails_inside_each_2026_10_16_block_when_one_value_moves(monkeypatch, capsys):
+    """Runs the whole audit once, about half a minute."""
+    targets = {os.path.normcase(os.path.join(ROOT, rel)): kind for rel, kind in _MUTATIONS.items()}
+    real_load = json.load
+    seen = set()
+
+    def mutating_load(fh, *a, **k):
+        doc = real_load(fh, *a, **k)
+        kind = targets.get(os.path.normcase(os.path.abspath(getattr(fh, "name", ""))))
+        # Only the audit's own reads see the moved value; the results-manifest rebuild the
+        # audit also runs reads the files through its own module and stays as committed.
+        caller = os.path.basename(sys._getframe(1).f_code.co_filename)
+        if kind is not None and caller == "audit_stats_recheck.py":
+            seen.add(kind)
+            doc = _mutate(kind, doc)
+        return doc
+
+    monkeypatch.setattr(json, "load", mutating_load)
+    assert asr.main() == 1
+    capsys.readouterr()
+    assert seen == set(_MUTATIONS.values()), seen
+    assert "22.3 follow-up rho 0.99: margins rebuild from the cells and the gap is matched" in asr.failures
+    assert "22.3 follow-up contrast: stored mean and t90 equal the paired recomputation" in asr.failures
+    assert "23.3 survival refit probe: stored mean and t90 equal the recomputation from rows" in asr.failures
+    assert ("O2 resid_obs_hist auroc: per_seed equals the cells, and the stored mean and t90 equal "
+            "the recomputation") in asr.failures
+    allowed = ("22.3 ", "FINDINGS 22.3 ", "23.3 ", "FINDINGS 23.3 ", "O2 ")
+    assert all(f.startswith(allowed) for f in asr.failures), asr.failures
 
 
 def test_seed_vals_returns_the_cells_in_seed_order():

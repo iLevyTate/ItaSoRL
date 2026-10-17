@@ -59,27 +59,65 @@ def decision_from_gates(gates: dict, score_ok: bool) -> tuple[str, str]:
     )
     held = all(gates.get(name) is True for name in required) and gates.get("dropped_pairs_total") == 0
     if not held:
-        if gates.get("untrained_floor_ok") is False:
-            return ("UNINFORMATIVE",
-                    f"the untrained balanced mean is {gates['untrained_dev']:.3f} from 0.5, "
-                    "outside the 0.1 floor")
-        if not gates.get("matched_speed_collected") or not gates.get("matched_leak_collected"):
-            return ("UNINFORMATIVE",
-                    "the balanced speed and leakage gates were not collected on the matched pairs")
-        return "UNINFORMATIVE", "a required gate does not hold or is not finite"
+        # Name every required gate that is not True, so the reason never stops at the first.
+        parts = []
+        for name in required:
+            if gates.get(name) is True:
+                continue
+            if name == "untrained_floor_ok" and _finite(gates.get("untrained_dev")):
+                parts.append(f"untrained floor ({gates['untrained_dev']:.3f} from 0.5, "
+                             "outside the 0.1 floor)")
+            elif name in ("matched_speed_ok", "matched_leak_ok"):
+                channel = name.split("_")[1]
+                if not gates.get(f"matched_{channel}_collected"):
+                    parts.append(f"matched {channel} not collected on the matched pairs")
+                elif channel == "speed" and _finite(gates.get("matched_speed_min")):
+                    parts.append(f"matched speed (min {gates['matched_speed_min']:.3f} under 0.75)")
+                elif channel == "leak":
+                    parts.append("matched leak (a channel 0.1 or more from 0.5)")
+                else:
+                    parts.append(f"matched {channel} does not hold or is not finite")
+            else:
+                parts.append(f"{name} does not hold or is not finite")
+        if gates.get("dropped_pairs_total") != 0:
+            parts.append(f"dropped pairs ({gates.get('dropped_pairs_total')!r}, not 0)")
+        return "UNINFORMATIVE", "gates not held: " + "; ".join(parts)
     if score_ok:
         return "MET", "every required gate holds and both interval clauses clear"
     return "NOT MET", "the required gates hold and an interval clause does not"
 
 
 def _cells(run_dir: str) -> list[dict]:
+    """The cells of one run, each with the file's recorded `git_commit` and `fingerprint`
+    kept beside it under `_provenance`. A file without either key raises ValueError naming
+    it; so does a run whose files record more than one commit or fingerprint."""
     d = os.path.join(ROOT, run_dir, "cells")
     out = []
     for name in sorted(os.listdir(d)):
         if not name.endswith(".json"):
             continue
-        with open(os.path.join(d, name), encoding="utf-8") as fh:
-            out.append(json.load(fh)["cell"])
+        path = os.path.join(d, name)
+        with open(path, encoding="utf-8") as fh:
+            doc = json.load(fh)
+        for key in ("git_commit", "fingerprint"):
+            if not doc.get(key):
+                raise ValueError(f"{path}: cell file has no top-level {key}")
+        cell = doc["cell"]
+        cell["_provenance"] = {"file": path, "git_commit": doc["git_commit"],
+                               "fingerprint": doc["fingerprint"]}
+        out.append(cell)
+    return out
+
+
+def _run_provenance(cells: list[dict]) -> dict:
+    """The single commit and fingerprint a run's cell files record."""
+    out = {}
+    for key in ("git_commit", "fingerprint"):
+        seen = {c["_provenance"][key]: c["_provenance"]["file"] for c in cells}
+        if len(seen) != 1:
+            raise ValueError(f"cells record more than one {key}: "
+                             + ", ".join(f"{v} ({f})" for v, f in sorted(seen.items())))
+        out[key] = next(iter(seen))
     return out
 
 
@@ -186,6 +224,7 @@ def _attach_sidecar(run_id: str, run_dir: str, cells: list[dict]) -> tuple[list[
 
 def promote(run_id: str) -> dict:
     cells = _cells(RUNS[run_id])
+    prov = _run_provenance(cells)
     _check_cells(run_id, cells)
     cells, recon = _attach_sidecar(run_id, RUNS[run_id], cells)
     d45 = [c for c in cells if abs(float(c["drift"]) - 0.45) < 1e-9]
@@ -256,7 +295,8 @@ def promote(run_id: str) -> dict:
         "generated_by": "scripts/promote_balanced_confirmation.py",
         "spec": "docs/specs/2026-10-12-balanced-confirmation-design.md",
         "run": run_id,
-        "git_commit_at_run": "2c170f0",
+        "git_commit_at_run": prov["git_commit"],
+        "fingerprint": prov["fingerprint"],
         "seed_base": 910000,
         "seeds": [int(c["seed"]) for c in d45],
         "stack": d45[0].get("stack"),

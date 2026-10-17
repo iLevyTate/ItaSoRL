@@ -7,7 +7,9 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are. The count on 2026-10-16 is 64 pinned of 3179. A stored L0 gate (mean, TOST
+many there are: 76 pinned of 3187 on 2026-10-17 (PIN_COUNT and CHECK_FLOOR below). The count
+is of check() calls; composite check_true gates that also compare a stored reading with a
+literal are not counted. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
 from them, and every tracked artifact a guarded block reads must be present: a missing one
 fails by name instead of dropping the block's checks. It also checks that the generated pages
@@ -72,10 +74,14 @@ ARTROOT = os.path.join(os.path.dirname(__file__), "..", "artifacts")
 ART = os.path.join(ARTROOT, "expB2")
 TOL = 5e-4  # docs quote 3 decimals; allow rounding slack
 BAR = 0.65
-# The fewest checks a full run in a checkout may record (tests/test_audit_selftest.py). A run
-# that records fewer has lost checks without failing one. Raise it deliberately when checks are
-# added; the count on 2026-10-16 is 3179.
-CHECK_FLOOR = 3179
+# The exact number of checks a full run records, skipped ones included
+# (tests/test_audit_selftest.py). A run that records fewer has lost checks without failing one.
+# Change it deliberately when checks are added or removed, from the count the run prints, never
+# by hand; the manuscript sentences that quote it are checked against it by
+# scripts/build_paper_tables.py --manuscript. The count on 2026-10-17 is 3187.
+CHECK_FLOOR = 3187
+# How many of those checks are pins (labels start "pinned:"), as printed in "pins: P of N".
+PIN_COUNT = 76
 
 failures: list[str] = []
 n_checks = 0
@@ -98,6 +104,8 @@ def t_ci(vals: list[float], level: float = 0.90) -> tuple[float, float]:
 
 
 def check(label: str, actual: float, expected: float, tol: float = TOL) -> None:
+    # Convention: a check whose actual value is read as stored in an artifact (no per-seed
+    # recomputation) carries a label starting "pinned:", so the printed pin count is honest.
     global n_checks, n_pins
     n_checks += 1
     if label.startswith("pinned:"):
@@ -470,15 +478,17 @@ def main() -> int:
     ]
     for tag, doc, exp in cg_cases:
         sd, adj = doc["strong_drift"], doc["adjudication"]
-        surv = float(sd["survival"]["cg_tail_mean"])
-        untr = float(sd["untrained"]["cg_tail_mean"])
+        # The tails are recomputed from the per-seed values; the late tail and the margin
+        # threshold are stored without them, so those two are pins (H40, 2026-10-17).
+        surv = float(np.mean(sd["survival"]["cg_tail_per_seed"]))
+        untr = float(np.mean(sd["untrained"]["cg_tail_per_seed"]))
         late = float(sd["survival"]["cg_latetail_mean"])
         check(f"cg re-score {tag} survival tail", surv, exp["surv"])
         check(f"cg re-score {tag} untrained floor", untr, exp["untr"])
         check(f"cg re-score {tag} predictor tail",
-              float(sd["predictor"]["cg_tail_mean"]), exp["pred"])
-        check(f"cg re-score {tag} late-tail", late, exp["late"])
-        check(f"cg re-score {tag} margin threshold (untrained + 0.05)",
+              float(np.mean(sd["predictor"]["cg_tail_per_seed"])), exp["pred"])
+        check(f"pinned: cg re-score {tag} late-tail", late, exp["late"])
+        check(f"pinned: cg re-score {tag} margin threshold (untrained + 0.05)",
               float(adj["margin_threshold"]), exp["margin"])
         check_true(f"cg re-score {tag} drift-0.00 L0 floors == 0.500 (bias fix confirmed)",
                    all(abs(float(v) - 0.5) <= 1e-6 for v in doc["floor_drift0"].values()))
@@ -607,19 +617,21 @@ def main() -> int:
                    f > 0.6 for o, f in zip(g0["cd"]["sweep_oracle"],
                                            g0["cd"]["sweep_floor"]) if o >= 0.85))
 
-    # Estimator sanity gate: once a corrected cg re-score is promoted
-    # (artifacts/expB2/cg_rescore*.json), its drift-0 L0 floors MUST sit in the
-    # chance band - a floor outside [0.4, 0.6] means a broken estimator and the
-    # audit FAILS, so the July-18 bias class can never silently pass this gate
-    # again. (No-op until a re-score artifact exists.)
+    # Estimator sanity gate on the promoted cg re-scores (artifacts/expB2/*cg_rescore*.json,
+    # written by scripts/promote_cg_rescore.py): the drift-0 L0 floors must sit in the chance
+    # band. A floor outside [0.4, 0.6] means a broken estimator and the audit FAILS, so the
+    # July-18 bias class cannot silently pass this gate again. The == 0.500 pin above is
+    # stricter; this band is the estimator-class guard. Until 2026-10-17 the loop read an
+    # "aggregate" key the promoted files do not have and ran no check (H55). A promoted file
+    # without floor_drift0 now fails by KeyError instead of becoming a no-op.
     import glob as _glob
     for rp in sorted(_glob.glob(os.path.join(ARTROOT, "expB2", "*cg_rescore*.json"))):
         with open(rp, encoding="utf-8") as fh:
             rs = json.load(fh)
-        for key, agg in rs.get("aggregate", {}).items():
-            if key.startswith("d0.00_"):
-                check_true(f"cg re-score L0 floor in chance band ({os.path.basename(rp)}:{key})",
-                           0.4 <= agg["cg_tail_mean"] <= 0.6)
+        name = os.path.basename(rp)
+        for agent, floor in rs["floor_drift0"].items():
+            check_true(f"cg re-score L0 floor in chance band ({name}:{agent})",
+                       0.4 <= float(floor) <= 0.6)
 
     # Same gate for the corrected mp re-scores (FINDINGS 10.6 banner resolution,
     # 2026-07-22): fixed-estimator L0 floors must sit at chance, and every cell's
@@ -642,12 +654,14 @@ def main() -> int:
         check(f"mp re-score survival mean matches doc quote ({rp})",
               _seed_mean(rs["strong_drift"]["survival"], "mp_fixed_per_seed"), quoted, tol=5e-4)
 
-    print("== FINDINGS Exp C: emergence pilot (milestone 3, N=48 G=30 3 seeds) ==")
-    # NOTE (2026-07-18): this block re-verifies the INVALIDATED pilot artifact
-    # (git_commit 9758202, pre-fix; FINDINGS 13.C) as a historical record. The
-    # re-run's summary will be gated as a separate artifact when promoted.
-    print("  [invalidation marker] Exp C checks verify the invalidated pilot's "
-          "historical record; re-run pending (FINDINGS 13.C)")
+    print("== FINDINGS Exp C: emergence under selection, fixed-code re-run (N=48 G=30 3 seeds) ==")
+    # This block verifies the fixed-code re-run (artifact git_commit_at_run a0cb850; FINDINGS
+    # 13.D). The invalidated pilot (git_commit 9758202, FINDINGS 13.C) was overwritten in place
+    # by bfc14bd and survives only as
+    # `git show 3c3e4f4:artifacts/expC/emergence_pilot_summary.json`. Registered verdict:
+    # uninformative (13.F).
+    print("  [record note] Exp C checks verify the fixed-code re-run (a0cb850, FINDINGS 13.D); "
+          "registered verdict uninformative (13.F)")
     with open(os.path.join(ARTROOT, "expC", "emergence_pilot_summary.json"),
               encoding="utf-8") as fh:
         ec = json.load(fh)
@@ -813,7 +827,7 @@ def main() -> int:
         # drift-0.45 survival mean reproduces the published headline
         integ = doc["integrity"]
         check_true(f"h{hid} integrity gate PASSED in run log", integ.get("gate_passed") is True)
-        check(f"h{hid} integrity reproduces published survival ({exp['pub']:.3f})",
+        check(f"pinned: h{hid} integrity reproduces published survival ({exp['pub']:.3f})",
               integ.get("survival_mean_reproduced", float("nan")), exp["pub"])
         check(f"pinned: h{hid} published_target_check recorded ({exp['pub']:.3f})",
               doc["config"]["published_target_check"], exp["pub"])
@@ -917,7 +931,7 @@ def main() -> int:
                and abs(gn_["chosen_row"]["sensor_sigma"] - 0.01) <= 1e-12)
     # organism result at the headline grid (n = 10, three arms)
     hd = org["headline_drift"]
-    check("L1 headline drift key is 0.023", float(hd), 0.023)
+    check("pinned: L1 headline drift key is 0.023", float(hd), 0.023)
     l1s = [float(v) for v in org["arms"][hd]["survival"]["pool_target"]]
     l1p = [float(v) for v in org["arms"][hd]["predictor"]["pool_target"]]
     l1u = [float(v) for v in org["arms"][hd]["untrained"]["pool_target"]]
@@ -964,14 +978,15 @@ def main() -> int:
     # 2026-10-12: the agent-accessible L1 ceiling. The grid-residual oracle is blind to the
     # static Hyd/Hydmax offset; the episode-mean probe reads it.
     _l1c = _load_art("expL1", "observation_ceiling.json")
-    check("L1 observation ceiling, grid-residual oracle (0.782)",
+    # The artifact stores these five as scalars with no per-seed values, so they are pins.
+    check("pinned: L1 observation ceiling, grid-residual oracle (0.782)",
           _l1c["grid_residual_oracle"], 0.782)
-    check("L1 observation ceiling, episode-mean probe (0.977)",
+    check("pinned: L1 observation ceiling, episode-mean probe (0.977)",
           _l1c["episode_mean_probe"], 0.977)
-    check("L1 observation ceiling, Hyd channel ablated (0.627)",
+    check("pinned: L1 observation ceiling, Hyd channel ablated (0.627)",
           _l1c["hyd_ablated_probe"], 0.627)
-    check("L1 observation ceiling, L0 control (0.478)", _l1c["l0_control"], 0.478)
-    check("L1 observation ceiling, same-seed twins (0.995)", _l1c["same_seed_twins"], 0.995)
+    check("pinned: L1 observation ceiling, L0 control (0.478)", _l1c["l0_control"], 0.478)
+    check("pinned: L1 observation ceiling, same-seed twins (0.995)", _l1c["same_seed_twins"], 0.995)
     check_true("L1 ceilings readable (energy / food anchors > 0.6 in every survival pool)",
                all(v > 0.6 for v in org["arms"][hd]["survival"]["pool_anchor_energy"]
                    + org["arms"][hd]["survival"]["pool_anchor_food"]))
@@ -1247,7 +1262,7 @@ def main() -> int:
     lo, hi = t_ci(sv7["resid_obs_beh"]["per_seed"])
     check("h7 10.4.2 survival resid_obs_beh t90 lo (0.618)", lo, 0.618)
     check("h7 10.4.2 survival resid_obs_beh t90 hi (0.725)", hi, 0.725)
-    p7o = s7["aggregate"]["d=0.45 predictor"]["resid_obs"]["mean"]
+    p7o = _seed_mean(s7["aggregate"]["d=0.45 predictor"]["resid_obs"])
     check("h7 10.4.2 predictor resid_obs (0.589)", p7o, 0.589)
     check("h7 10.4.2 predictor raw target (0.714)", _seed_mean(s7["aggregate"]["d=0.45 predictor"]["target"]), 0.714)
     check("h7 10.4.2 untrained resid_obs (0.549)", _seed_mean(s7["aggregate"]["d=0.45 untrained"]["resid_obs"]), 0.549)
@@ -2015,6 +2030,12 @@ def main() -> int:
             check_true(f"FINDINGS 17 quotes {label}", needle in _s17)
         check_true("C1 integrity passes (successor bootstrap, baselines bit-identical)",
                    _c1["integrity"]["pass"])
+        # H68: the integrity pass is vacuous when the historical cells are absent, so the
+        # "all 20 cells" sentence (main.tex, FINDINGS 17) is pinned to the compared counts.
+        check_true("C1 baselines compared in all 20 cells",
+                   bool(_c1["integrity"]["bit_identical_to_historical"])
+                   and all(v["compared"] == 20
+                           for v in _c1["integrity"]["bit_identical_to_historical"].values()))
     _c2 = _v["runs"].get("C2", {})
     if _c2.get("status") == "complete":
         _p2, _g2 = _c2["primary"], _c2["gates"]
@@ -2038,6 +2059,10 @@ def main() -> int:
         ]:
             check_true(f"FINDINGS 17.4 quotes {label}", needle in _s17n2)
         check_true("C2 integrity passes", _c2["integrity"]["pass"])
+        check_true("C2 baselines compared in all 20 cells",
+                   bool(_c2["integrity"]["bit_identical_to_historical"])
+                   and all(v["compared"] == 20
+                           for v in _c2["integrity"]["bit_identical_to_historical"].values()))
         _ac = _v["auxiliary_comparison"]
         check_true("FINDINGS 17.4 quotes the auxiliary contrast",
                    f"**{_ac['c1_minus_c2']:+.3f}**, paired by seed **{_sv2(_ac['paired']['t90'])}**" in _s17n2)
@@ -3438,37 +3463,25 @@ def main() -> int:
 # ---- The per-value rerun at 4b6e1f3 (CORRECTIONS 2026-10-11) -------------------------------
 # The prose says the second rerun reproduced all 157 recorded values of both seed-0 cells with
 # matching fingerprints. Recount that from the saved rerun cells and the committed cells, so
-# the sentence cannot outlive the files.
+# the sentence cannot outlive the files. The comparator is scripts/compare_run_cells.py (G59),
+# the committed tool a reader runs on a reproduced run; its entry for each cell must also equal
+# the stored report's entry, so the report and the tool cannot drift apart.
 
 def repro_check_checks(findings: str, corrections: str, reproduce: str) -> None:
     print("\n== per-value rerun at 4b6e1f3 (CORRECTIONS 2026-10-11) ==")
-    import math
-
-    def flat(o, p=""):
-        if isinstance(o, dict):
-            for k, v in o.items():
-                yield from flat(v, f"{p}/{k}")
-        elif isinstance(o, list):
-            for i, v in enumerate(o):
-                yield from flat(v, f"{p}[{i}]")
-        else:
-            yield p, o
-
-    def same(a, b):
-        nan = isinstance(a, float) and isinstance(b, float) and math.isnan(a) and math.isnan(b)
-        return nan or a == b
+    from compare_run_cells import compare_docs
 
     rep = _af_load("repro_check", "per_value_4b6e1f3_l3_h8_wm_cpu_s0.json")
     for name in ("cell_d0.00_s0.json", "cell_d0.45_s0.json"):
         rerun = _af_load("repro_check", "rerun_cells", name)
         committed = _af_load("reviewer_gaps_runs", "l3_h8_wm_cpu", "cells", name)
-        fr, fc = dict(flat(rerun["cell"])), dict(flat(committed["cell"]))
-        diff = [k for k in fr.keys() & fc.keys() if not same(fr[k], fc[k])]
+        e = compare_docs(rerun, committed)
         check_true(f"{name}: the rerun at 4b6e1f3 has the committed cell's 157 leaves and "
                    "fingerprint, and every value matches",
-                   len(fc) == 157 and fr.keys() == fc.keys() and not diff
-                   and rerun["fingerprint"] == committed["fingerprint"]
-                   and rep["cells"][name]["n_differ"] == 0)
+                   e["n_shared_leaves"] == 157 and not e["only_in_rerun"]
+                   and not e["only_in_committed"] and e["n_differ"] == 0
+                   and e["fingerprint_match"] and e["fingerprint_rerun"] == committed["fingerprint"]
+                   and rep["cells"][name]["n_differ"] == 0 and e == rep["cells"][name])
     check_true("the per-value report records 4b6e1f3 and the pinned stack",
                rep["commit_rerun"] == "4b6e1f3" and rep["stack"]["torch"].startswith("2.14.1")
                and rep["all_shared_values_identical"] is True)

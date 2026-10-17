@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import inspect
+import json
+import os
 
 import numpy as np
 import pytest
@@ -98,14 +100,34 @@ def test_grouped_auroc_uses_the_active_scheme():
         assert a == b
 
 
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# The re-score artifacts folds.py cites for its references (folds.py, REFERENCE_SURVIVAL_TARGET
+# comment); the held-out hidden-8 re-score holds the same drift-0.45 survival cells.
+REFERENCE_ARTIFACTS = {8: ("l3_h8_traces.json", "l3_h8_heldout.json"), 7: ("l3_h7_traces.json",)}
+
+
+def _artifact_survival_mean(name: str, scheme: str) -> float:
+    path = os.path.join(ROOT, "artifacts", "fold_rescore", name)
+    if not os.path.exists(path):
+        pytest.skip(f"artifacts/fold_rescore/{name} is not in this tree")
+    with open(path, encoding="utf-8") as fh:
+        doc = json.load(fh)
+    vals = [c[scheme]["target"] for c in doc["cells"]
+            if c["agent"] == "survival" and float(c["drift"]) == 0.45]
+    assert len(vals) == 10, name
+    return float(np.mean(vals))
+
+
 def test_integrity_reference_is_keyed_by_scheme():
-    with folds.fold_scheme("legacy"):
-        assert folds.reference_survival_target(8) == 0.752
-        assert folds.reference_survival_target(7) == 0.737
+    # The references are read from the re-score artifacts, not from test constants, so a
+    # drift between folds.py and the artifact it cites fails here (H44).
+    for scheme in ("legacy", "explicit"):
+        with folds.fold_scheme(scheme):
+            for hidden, names in REFERENCE_ARTIFACTS.items():
+                for name in names:
+                    want = round(_artifact_survival_mean(name, scheme), 3)
+                    assert folds.reference_survival_target(hidden) == want, (scheme, hidden, name)
     with folds.fold_scheme("explicit"):
-        # recorded by the 2026-09-29 re-score (docs/specs/2026-09-28-explicit-cv-folds.md)
-        assert folds.reference_survival_target(8) == 0.774
-        assert folds.reference_survival_target(7) == 0.740
         with pytest.raises(SystemExit, match="ITASORL_FOLDS=legacy"):
             folds.reference_survival_target(99)
         assert folds.reference_survival_target(99, strict=False) is None

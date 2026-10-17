@@ -166,12 +166,23 @@ def _review_build(tmp_path, monkeypatch, limit: int, agent: bytes = AGENT, paper
     return rc, out, commits
 
 
+def _skip_or_fail_on_gap(gap: str) -> None:
+    """Skip when the review build cannot see the whole history. In CI the checkout is a full
+    clone (ci.yml sets fetch-depth 0), so a shallow or partial clone there is a broken CI
+    setup and fails instead of hiding the leak guards behind a skip. A network failure or a
+    missing branch tip still skips: history_gap needs the commits on old remote branches,
+    which a later branch prune can remove."""
+    if os.environ.get("CI") == "true" and ("shallow clone" in gap or "partial clone" in gap):
+        pytest.fail(f"CI checkout lacks the history the review build needs: {gap}")
+    pytest.skip(f"the review build needs a full checkout: {gap}")
+
+
 def _review_needs_history(rc, out, commits) -> None:
-    """In a shallow clone (CI) or outside a checkout the review build refuses to start."""
+    """In a shallow clone or outside a checkout the review build refuses to start."""
     gap = reproduce.history_gap(commits)
     if gap:
         assert rc == 1 and not out.exists()
-        pytest.skip(f"the review build needs a full checkout: {gap}")
+        _skip_or_fail_on_gap(gap)
 
 
 def test_the_review_profile_ships_only_its_bundles_and_says_what_it_leaves_out(tmp_path, monkeypatch):
@@ -231,11 +242,12 @@ def test_the_review_profile_fails_and_removes_an_archive_over_the_limit(tmp_path
     (tmp_path / "review.zip").write_bytes(b"an earlier archive")
     (tmp_path / "review.commit-map.json").write_text('{"archive": "review.zip"}\n', encoding="utf-8")
     rc, out, commits = _review_build(tmp_path, monkeypatch, 1000)
-    if reproduce.history_gap(commits):
+    gap = reproduce.history_gap(commits)
+    if gap:
         # Refused before writing anything: the earlier pair stays as it was.
         assert rc == 1 and out.read_bytes() == b"an earlier archive"
         assert (tmp_path / "review.commit-map.json").exists()
-        pytest.skip("the review build needs a full checkout")
+        _skip_or_fail_on_gap(gap)
     assert rc == 1 and not out.exists()
     assert not (tmp_path / "review.commit-map.json").exists()
 
@@ -709,7 +721,11 @@ def test_c12_a_directory_artifact_without_cells_reads_its_files_commits(tmp_path
 def test_the_review_limit_is_100_mb_and_the_profiles_differ():
     assert reproduce.REVIEW_LIMIT == 100_000_000
     assert reproduce.profile_run_dirs("review") == ["fullruns/l3_h8_heldout/agents",
-                                                    "fullruns/l3_h8_gseed2_gpu/agents"]
+                                                    "fullruns/l3_h8_gseed2_gpu/agents",
+                                                    "fullruns/corrected_l3_h8_wm/agents",
+                                                    "fullruns/corrected_l3_h8_nowm/agents",
+                                                    "fullruns/corrected_l3_h8_wm/cells",
+                                                    "fullruns/corrected_l3_h8_nowm/cells"]
     assert reproduce.profile_run_dirs("full") == reproduce.RUN_DIRS
     assert set(reproduce.RUN_DIRS) - set(reproduce.REVIEW_RUN_DIRS) <= set(reproduce.REVIEW_LEFT_OUT)
     with pytest.raises(SystemExit):

@@ -7,7 +7,9 @@ artifacts/corrected_verdicts.json with, in the order the spec requires
 
   integrity   every cell records gae_bootstrap = successor; the predictor and untrained arms,
               which train no actor-critic, equal the historical cell at the same (drift, seed)
-              to the bit; the fold partition of the pooled 110 + 110 design
+              to the bit; the check also fails when any historical cell is absent, so a
+              missing comparison never reads as a match; the fold partition of the pooled
+              110 + 110 design
   gates       engagement in every cell, L0 equivalence (TOST margin 0.05; the bootstrap ROPE
               check beside it), speed control >= 0.75, pooled reward leakage within 0.1 of
               0.5, untrained floor within 0.1 of 0.5, no deaths
@@ -107,8 +109,15 @@ def integrity(cells: dict, hist: dict) -> dict:
                 != hist[(d, s)]["agents"][arm]["pool"]["target"]]
         same[arm] = {"compared": sum((d, s) in hist for d in DRIFTS for s in SEEDS),
                      "mismatches": mism}
-    ok = boot == ["successor"] and all(not v["mismatches"] for v in same.values())
-    return {"gae_bootstrap": boot, "bit_identical_to_historical": same, "pass": ok}
+    # A missing historical cell is a comparison that never ran, not a match: an absent
+    # directory used to give compared 0, no mismatches and a pass.
+    expected = len(DRIFTS) * len(SEEDS)
+    short = {a: expected - v["compared"] for a, v in same.items() if v["compared"] < expected}
+    ok = boot == ["successor"] and not short and all(not v["mismatches"] for v in same.values())
+    out = {"gae_bootstrap": boot, "bit_identical_to_historical": same, "pass": ok}
+    if short:
+        out["historical_cells_missing"] = short
+    return out
 
 
 def _pool_gate(vals: list[float], reduce, key: str, ok) -> dict:

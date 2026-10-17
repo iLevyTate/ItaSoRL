@@ -179,3 +179,19 @@ def test_source_label():
     assert pb.source_label("fullruns/07062026") == "fullruns/07062026"
     assert pb.source_label("C:/x/y/fullruns/07062026") == "fullruns/07062026"
     assert pb.source_label("D:\\bundles\\run7") == "D:/bundles/run7"
+
+
+def test_lowest_drift_must_be_zero(tmp_path: Path):
+    # The L0 control reads the smallest drift; a bundle without a drift-0 slice must not
+    # promote its lowest drift as the L0 gate.
+    run_dir = tmp_path / "fullruns" / "07062026"
+    results = _bundle(run_dir, leak_seed=None)
+    shifted = {"0.1" if dk == "0.0" else dk: v for dk, v in results.items()}
+    cells = []
+    for q in sorted((run_dir / "artifacts" / "cells").glob("*.json")):
+        c = json.loads(q.read_text())
+        if c["cell"]["drift"] == 0.0:
+            c["cell"]["drift"] = 0.1
+        cells.append(c)
+    with pytest.raises(ValueError, match="drift-0 slice; lowest drift is 0.1"):
+        pb.build_gates_doc(shifted, cells, None, None)

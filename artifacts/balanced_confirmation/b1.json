@@ -3,6 +3,7 @@
  "spec": "docs/specs/2026-10-12-balanced-confirmation-design.md",
  "run": "B1",
  "git_commit_at_run": "2c170f0",
+ "fingerprint": "cd7f35c28a343bc2",
  "seed_base": 910000,
  "seeds": [
   10,
@@ -28,7 +29,7 @@
  "mortal": true,
  "adv_norm": "historical",
  "decision": "UNINFORMATIVE",
- "reason": "the untrained balanced mean is 0.114 from 0.5, outside the 0.1 floor",
+ "reason": "gates not held: matched speed (min 0.749 under 0.75); untrained floor (0.114 from 0.5, outside the 0.1 floor)",
  "score_clauses_hold": true,
  "balanced": {
   "survival": {

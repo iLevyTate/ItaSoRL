@@ -5,9 +5,12 @@ A runnable, deterministic instance of the authentic world for the lean first
 experiment: single focal agent, one species, no reproduction; channels =
 vision + interoception (smell masked, format preserved). Food is discrete
 pellets - a lean stand-in for the sec. 4 biomass field - and the scent PDE
-fields are omitted while smell is off. Everything is float64 and reproducible
-to the bit, so L0 runs at chance, the matched-pair branch is exact, and the
-Experiment A oracle can be built on the resulting logs.
+fields are omitted while smell is off. Physics state is float64 and every step
+is deterministic given the seeds, so L0 runs at chance, the matched-pair branch
+is exact, and the Experiment A oracle can be built on the resulting logs.
+Observations are assembled as float32 (ObsSpec dtype); a world built with
+sensor_sigma > 0 (the L1 rung, sigma 0.01) returns them as float64 after the
+noise add, in both twins of a pair.
 
 Fills the PatchOfEarth stubs from world.py.
 """

@@ -532,3 +532,10 @@ is the plan. [`docs/ITASORL_world_spec.md`](docs/ITASORL_world_spec.md) is the w
 
 Citation metadata lives in [`CITATION.cff`](CITATION.cff). GitHub renders a
 "Cite this repository" button from it. `cffconvert -f bibtex` if you want BibTeX.
+
+## License
+
+The code and the record are MIT licensed ([`LICENSE`](LICENSE)); the 17 web fonts
+under `assets/` (IBM Plex Mono, Hanken Grotesk, Space Grotesk) are under the SIL
+Open Font License 1.1, with their copyright lines and the full license text in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

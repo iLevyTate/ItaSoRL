@@ -32,8 +32,24 @@ def scripted_policy(rng) -> np.ndarray:
                      float(rng.random() < 0.3), 0.0, 0.0], dtype=np.float32)
 
 
+ALIGNMENTS = ("legacy", "obs_then_action")
+
+
 def collect_episodes(label: int, n: int, steps: int = 30, drift_sigma: float = 0.0,
-                     ray_steps: int = 6, seed0: int = 0, params: WorldParams | None = None) -> list[dict]:
+                     ray_steps: int = 6, seed0: int = 0, params: WorldParams | None = None,
+                     align: str = "legacy") -> list[dict]:
+    """Scripted-policy episodes with the world label recorded, never shown to the model.
+
+    align: "legacy" (the stored Experiment B record) drops the reset observation and
+    records each observation after the step that produced it, so O[t] is the observation
+    action A[t] produced and the world model predicts O[t+1] without A[t+1]
+    (CORRECTIONS 2026-10-16). "obs_then_action" records the observation the policy saw
+    before A[t], starting from the reset observation, so O[t+1] = step(O[t], A[t]) and
+    the model receives each action with the observation it acts on. The world, the
+    policy draws and the speed summary are the same under both; only the pairing moves.
+    """
+    if align not in ALIGNMENTS:
+        raise ValueError(f"align must be one of {ALIGNMENTS}, got {align!r}")
     params = params or WorldParams()
     eps = []
     for i in range(n):
@@ -42,11 +58,15 @@ def collect_episodes(label: int, n: int, steps: int = 30, drift_sigma: float = 0
         w.ray_steps = ray_steps
         w.reset(SeedBundle(world=seed0 + i, weather=seed0 + 7000 + i, ecology=seed0 + 13000 + i))
         O, A, spd = [], [], []
-        w.observe()
+        o = w.observe()
         for _ in range(steps):
             a = scripted_policy(rng)
             r = w.step(a)
-            O.append(r.obs.copy()); A.append(a); spd.append(float(np.linalg.norm(w.vel)))
+            if align == "legacy":
+                O.append(r.obs.copy())
+            else:
+                O.append(o.copy()); o = r.obs
+            A.append(a); spd.append(float(np.linalg.norm(w.vel)))
         eps.append({"obs": np.asarray(O, np.float32), "act": np.asarray(A, np.float32),
                     "label": label, "speed": float(np.mean(spd))})
     return eps

@@ -39,7 +39,7 @@ def test_render_raises_on_unknown_placeholder():
 def test_committed_index_is_regenerable_and_check_passes():
     # The committed page must equal a fresh render; --check must agree (idempotent).
     template = (ROOT / "index.template.html").read_text(encoding="utf-8")
-    metrics = site_metrics.derive_metrics(ROOT / "artifacts" / "expB2")
+    metrics = build_index.all_metrics(ROOT)
     rendered = build_index.render(template, metrics)
     assert rendered == (ROOT / "index.html").read_text(encoding="utf-8")
     assert build_index.build(ROOT, check=True) == 0
@@ -47,6 +47,6 @@ def test_committed_index_is_regenerable_and_check_passes():
 
 def test_every_metric_is_used_by_the_template():
     template = (ROOT / "index.template.html").read_text(encoding="utf-8")
-    metrics = site_metrics.derive_metrics(ROOT / "artifacts" / "expB2")
+    metrics = build_index.all_metrics(ROOT)
     for key in metrics:
         assert "{{" + key + "}}" in template, f"metric '{key}' is derived but never placed"

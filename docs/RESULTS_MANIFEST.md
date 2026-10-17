@@ -95,6 +95,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `BUDGET-CURVE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | not recorded | explicit | not recorded |
 | `CROSS-REPLAY` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 7870bba (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `CORRECTED-VERDICTS` | corrected | methods | - | inherited: successor_value | C1, C2, L3-H8-WM-CPU, L3-H8-NOWM-CPU | not recorded | explicit | not recorded |
+| `C1-INTEGRITY-REFS` | corrected | methods | - | inherited: successor_value | C1 | not recorded | explicit | not recorded |
 | `C-EMERGENCE` | historical | C | 27 | none | - | a0cb850 | legacy | not recorded |
 | `B1-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
 | `B2-BALANCED` | corrected | B-v2 L3 | - | successor_value | - | 2c170f0 | explicit | owner's laptop GPU, 1 worker, RTX 4050 |
@@ -1172,6 +1173,14 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: scripts/build_corrected_verdicts.py; rules frozen in docs/specs/2026-10-06-corrected-trainer-confirmation-design.md.
 - Artifacts: `artifacts/corrected_verdicts.json`
 
+### `C1-INTEGRITY-REFS`: Integrity reference for readouts of the C1 agents: recorded pooled targets per drift, seed and arm
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Folds: explicit
+- Notes: scripts/build_integrity_ref.py; pooled targets copied from the C1 cell records in fullruns/corrected_l3_h8_wm/cells at drifts 0.00 and 0.45, three arms, seeds 0-9 (60 entries); no value recomputed. Read by reverse_direction.py and run_world_sample_sensitivity.py as --integrity-ref (closing pass 2026-10, G45, G56, G02).
+- Artifacts: `artifacts/fold_rescore/corrected_l3_h8_wm_integrity_ref.json`
+
 ### `C-EMERGENCE`: Experiment C emergence under selection, fixed-code re-run
 
 - Status: historical
@@ -1196,7 +1205,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: owner's laptop GPU, 1 worker, RTX 4050
 - Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3
 - Local run directory (not in git): fullruns/balanced_confirmation_wm
-- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.761). FINDINGS 21.
+- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5, and the matched speed gate collected 2026-10-14 on the retained pairs is under 0.75 on the untrained arm at seeds 13 (0.7499) and 19 (0.749). The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.761). FINDINGS 21.
 - Artifacts: `artifacts/balanced_confirmation/b1.json`, `artifacts/balanced_confirmation/sensory_echo_b1.json`
 
 ### `B2-BALANCED`: Balanced confirmation, pellet objective, death off, seeds 10-19
@@ -1211,7 +1220,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: owner's laptop GPU, 1 worker, RTX 4050
 - Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4, scikit-learn 1.5.2, scipy 1.15.3
 - Local run directory (not in git): fullruns/balanced_confirmation_touch
-- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5. The untrained arm matches B1. The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.780). FINDINGS 21.
+- Notes: docs/specs/2026-10-12-balanced-confirmation-design.md. Decision UNINFORMATIVE: the untrained balanced mean is 0.114 from 0.5, and the matched speed gate collected 2026-10-14 on the retained pairs is under 0.75 on the untrained arm at seeds 13 (0.7499) and 19 (0.749). The untrained arm matches B1. The 2026-10-13 sensory-echo control on the same pairs meets its frozen rule (resid_obs 0.780). FINDINGS 21.
 - Config (beyond the standard protocol): {"objective": "touch", "mortal": false, "adv_norm": "historical"}
 - Artifacts: `artifacts/balanced_confirmation/b2.json`, `artifacts/balanced_confirmation/sensory_echo_b2.json`
 

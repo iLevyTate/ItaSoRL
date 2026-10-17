@@ -129,3 +129,30 @@ def test_the_folder_with_the_most_agents_wins_over_a_stray_copy_nearer_the_root(
     _write_agents(tmp_path / "pack" / "agents")
     found = fsa.find_agents_dir(tmp_path, drift=0.45, arm="survival")
     assert found == tmp_path / "pack" / "agents"
+
+
+def test_inside_the_anonymized_archive_the_recorded_pseudonym_verifies(tmp_path, monkeypatch):
+    """In an extracted review archive the artifact records each agent's digest as its keyed
+    pseudonym, and verify_agents compares archive_digest(computed) with it: the pseudonym
+    verifies, a tampered file does not, and outside the archive the same pseudonym is no match."""
+    import reproduce
+    d = tmp_path / "archive" / "fullruns" / "l3_h8_heldout" / "agents"
+    shas = _write_agents(d)
+    fake = {n: hashlib.sha256(b"pseudonym:" + n.encode()).hexdigest() for n in shas}
+    ref = _artifact(tmp_path, fake)
+    root = tmp_path / "archive"
+    (root / reproduce.README_NAME).write_text("# supplement\n", encoding="utf-8")
+    table = {reproduce.digest_lookup_key(real): fake[n] for n, real in shas.items()}
+    (root / reproduce.DIGEST_TABLE_NAME).write_text(json.dumps({"pseudonyms": table}), encoding="utf-8")
+    monkeypatch.setattr(reproduce, "ROOT", str(root))
+    report = fsa.verify_agents(d, ref, drift=0.45, arm="survival")
+    assert report["ok"] and report["n_checked"] == 3 and report["mismatched"] == []
+
+    (d / NAMES[0]).write_bytes(b"tampered")
+    report = fsa.verify_agents(d, ref, drift=0.45, arm="survival")
+    assert not report["ok"] and report["mismatched"] == [NAMES[0]]
+
+    (root / reproduce.README_NAME).unlink()          # a checkout: digests are compared as they are
+    _write_agents(d)
+    report = fsa.verify_agents(d, ref, drift=0.45, arm="survival")
+    assert not report["ok"] and report["mismatched"] == NAMES

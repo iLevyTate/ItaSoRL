@@ -18,16 +18,25 @@ permissions:
 jobs:
   python:
     name: Lint & test (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    # A pinned image, so the runner does not move to a new Ubuntu release on its own.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
+      # Full history: the anonymized review-build tests resolve every commit the
+      # archive names, and in CI a shallow clone fails them instead of skipping.
+      # reproduce.history_gap() also needs the commits that live only on old
+      # remote branches, so do not prune those branches without first checking
+      # r.history_gap(r.commit_ids()) in a fresh full clone.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -60,19 +69,23 @@ jobs:
         run: |
           # Run only if there are tests; an empty suite must not fail CI.
           if git ls-files '*test_*.py' '*_test.py' 'tests/**.py' | grep -q .; then
-            pytest -q
+            # -rs prints every skip reason, so a new skip shows in the log.
+            pytest -q -rs
           else
             echo "No tests found yet — skipping pytest."
           fi
 
   audit:
     name: Stats recheck (published numbers vs committed artifacts)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -95,11 +108,12 @@ jobs:
     name: Publish site (sync gh-pages to main)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [python, audit]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 

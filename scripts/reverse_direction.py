@@ -34,6 +34,7 @@ import hashlib  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
 import re  # noqa: E402
+import sys  # noqa: E402
 import time  # noqa: E402
 
 import numpy as np  # noqa: E402
@@ -138,6 +139,17 @@ def _reference(path: str, arms) -> dict:
     return out
 
 
+def run_provenance(a) -> dict:
+    """Closing item G46: commit, tracked changes, stack, agents dir and argv, as a new key
+    beside the historical top-level generated_by and git_commit. A readout of saved agents,
+    so the commit key is git_commit_at_promotion."""
+    from agent_free_common import provenance
+    from promote_bv3_gates import rel_flags, repo_rel
+    p = provenance("scripts/reverse_direction.py", commit_key="git_commit_at_promotion",
+                   output=repo_rel(a.out), device="cpu")
+    return {**p, "agents_dir": repo_rel(a.agents_dir), "argv": rel_flags(list(sys.argv[1:]))}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--agents-dir", required=True)
@@ -187,6 +199,7 @@ def main() -> int:
         "fold_scheme": folds.current_scheme(), "fold_version": folds.scheme_version(),
         "cells": [],
     }
+    out["provenance"] = run_provenance(a)
 
     t0 = time.time()
     for seed, arm, name in cells:
