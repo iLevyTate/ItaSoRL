@@ -1404,6 +1404,218 @@ Rigor carried from the B-v3 audit (2026-07-10):
   is supported only in that narrower form, for the controlled decodability reading of the
   pellet-seeking, death-off agents. No registered threshold moved and no verdict is re-read.
 
+- **2026-10-17 - L1 STATE AT A SUPRA-BAND GRID (B1), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B1).** The L1 negative is read at
+  the in-band grid 0.023, and the record says the state readout was never shown to register a
+  quantization seam at any grid. This readout reads the saved agents' states at the supra-band
+  grid 0.06 as well: the 30 drift-0.023 agents of the corrected L1 rerun, which decide, and those
+  of the historical L1 run beside them. Integrity gate: the regenerated pools at 0.023 equal the
+  saved dumps bit for bit, or that run reports nothing. The labels (readout sensitive, both arms
+  at chance, other) and the text each one changes are fixed in the spec; the title stays under
+  every label. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - WALK SPEED AGAINST GOAL DIRECTION (B2), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-walk-speed-vs-goal-readout-design.md`, the whole spec).** Whether the C1
+  reading needs goal direction, rather than the speed of the survival walk or the larger law
+  deviation a faster walk visits, was not tested. This readout reads C1's saved drift-0.45 agents
+  on the survival walk, a speed-matched scripted walk and an open-loop replay of the survival
+  actions, on fresh pools at bases 2800000 and 2850000 registered for it. Integrity gate: the base
+  collision check is empty and every value is finite. The labels and text map are fixed in the
+  spec. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - REVERSE DIRECTION ON THE CORRECTED C1 DRIFT-0 AGENTS (B3), ANNOUNCED BEFORE THE
+  RUN (spec `docs/specs/2026-10-17-closing-readouts-design.md`, section B3).** The design of the
+  2026-10-09 reverse-direction entry above, with its spec's dated 2026-10-17 amendment, applied to
+  the 30 drift-0 agents of the C1 rerun, now on this machine. Integrity gate: the drift-0 rescore
+  reproduces the C1 drift-0 cell targets within 0.01 on all 30 agent-cells, or the run is void.
+  The CARRIED, NOT CARRIED and AMBIGUOUS labels are descriptive on C1 and enter no rule-ledger
+  row. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - C1 POPULATION PROBE REGROUPED BY WORLD SEED (B4), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B4).** The pooled population probe
+  on C1's survival and untrained agents (0.609 and 0.536) grouped its folds by pooled row. This
+  rerun computes the row-grouped and world-seed-grouped values on the same tails. Integrity gate:
+  both values are finite and present; the row-grouped value is compared with the stored one, and a
+  difference is a platform note. The spec states before the run that under the explicit folds the
+  two groupings can differ only through pair deaths, so an equal value is the expected outcome.
+  Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - SURPRISE AUROC WITH TWIN GROUPS (B5), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B5).** The stored surprise AUROCs of
+  C1, T-touch and S-immortal split same-world twins across folds and are lower bounds. This rerun
+  computes the grouped and ungrouped values in one pass on the saved agents. Tolerance gate: per
+  seed within 0.01 of the stored values for four quantities, a miss being a cross-stack note; NaN
+  rule: a stored NaN must come back NaN with the same reason and is excluded, a NaN on one side
+  only fails that arm, and a NaN is never a pass. Post hoc, descriptive, changes no stored value
+  or verdict.
+
+- **2026-10-17 - DEVELOPMENT HELD-OUT TRANSFER (B6), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B6).** The development readout's
+  transfer column is in-sample. This readout scores the frozen 300-update probe of C1 and C2 on
+  fresh 450-update and 300-update states at bases 2700000 and 2750000, registered for it.
+  Integrity gate: the stored in-sample transfer column is reproduced within 1e-9, or the 0.785 and
+  0.689 clause is dropped instead and nothing from the run is quoted. Post hoc, descriptive,
+  changes no stored value or verdict.
+
+- **2026-10-17 - L1 NOISE KNOCKOUT WITH FRESH NOISE PER EPISODE (B7), ANNOUNCED BEFORE THE RUN
+  (spec `docs/specs/2026-10-17-closing-readouts-design.md`, section B7).** The historical L1 noise
+  knockout gave every surrogate episode of a seed one noise sequence. This rerun draws fresh noise
+  per episode on the 30 drift-0.023 agents of the historical L1 run. Integrity gate: the same
+  agents' registered pools bit-match their dumps (the historical half of B1), and every value is
+  finite. Labels: the same call as stored, or a changed call. Post hoc, descriptive, changes no
+  stored value or verdict.
+
+- **2026-10-17 - SWEEP C SECOND JITTER REALIZATION (B8), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B8).** The sweep C intervals rest on
+  one realization of the per-episode jitter. This readout draws a second realization at the two
+  points the stored contrast reads, on C1's saved agents. Integrity gate: finite values, n = 10
+  per arm. The companion spec's three readings are applied to the new contrast as descriptions.
+  Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - EXPERIMENT B WITH CORRECT ACTION TIMING (C1), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section C1).** The L2 prediction-only world
+  model received each action one step late. This rerun trains the small Experiment B world models
+  under the legacy and the corrected alignment on this machine (no actor-critic, no saved agent).
+  Gate: every output exists and the stored figures are untouched; legacy must reproduce the
+  recorded row's interval. The RESTORE, NARROW and DISCLOSURE STANDS labels and the text each one
+  changes are fixed in the spec. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - PROBE-PENALTY SENSITIVITY (G01), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G01).** Every probe value on record
+  uses C = 1. This readout scores the stored dumps of six runs at C in {0.001, 0.01, 0.1, 1, 10}
+  and a nested in-fold C. Integrity gate: C = 1 reproduces one recorded target per states dir
+  within 1e-9 (C1 within the G57 tolerance), or that dir reports nothing. No TOST or gate is
+  computed at any other C. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - DRIFT-0.45 WORLD-SAMPLE READOUT ON THE C1 AGENTS (G02), ANNOUNCED BEFORE THE RUN
+  (spec `docs/specs/2026-10-17-closing-readouts-design.md`, section G02).** The design of the
+  2026-10-08 world-sample entry above, with its spec's dated 2026-10-17 amendment, applied to C1's
+  ten drift-0.45 survival agents. Integrity gate: the registered draw reproduces the recorded C1
+  targets within 0.01 on all ten seeds, or the run is void. The R1, R2 and R3 labels are computed
+  as descriptions and trigger no frozen wording; the recorded 0.042 propagation stays. Post hoc,
+  descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - BALANCED SENSORY-ECHO CONTROL ON A SECOND DRAW (G03), ANNOUNCED BEFORE THE RUN
+  (spec `docs/specs/2026-10-17-closing-readouts-design.md`, section G03).** The 2026-10-13
+  sensory-echo result rests on one evaluation draw at base 910000. This readout reads the B1 and
+  B2 agents on fresh pairs at base 2250000, registered for it, with integrity still checked at
+  910000 as the frozen spec requires. The 910000 result is unchanged, and the frozen clauses are
+  computed on the second draw as descriptions. Post hoc, descriptive, changes no stored value or
+  verdict.
+
+- **2026-10-17 - WITHIN-EPISODE DECODING CURVE (G04), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G04).** The registered probe on h_t
+  alone at steps 1 to 24 of the registered pools, from the stored dumps of six runs. Integrity
+  gate: each dir's registered target reproduces within 1e-9 (C1 within the G57 tolerance) and the
+  step-24 column matches the recorded final-state component where one exists. A curve on the
+  historical dumps was looked at in a scratch read before the spec, which the spec records. Post
+  hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - WORLD FEATURES ON EACH ARM'S OWN EPISODES (G07), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G07(a)).** The world-feature spec's
+  secondary protocol was not run. It runs now on the C1 and C2 agents, after the replay numbers
+  were seen, under that spec's dated 2026-10-17 amendment. Integrity gate: finite values, with the
+  per-episode features and the per-seed values per arm and feature present. The frozen readings
+  are computed as descriptions; the stored artifacts are not rewritten. Post hoc, descriptive,
+  changes no stored value or verdict.
+
+- **2026-10-17 - L1 GATE-0 ORACLE UNDER BOTH PARTITIONS (G47), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G47).** Agent-free. The L1 gate-0
+  oracle at grids 0.022, 0.023 and 0.024 under the legacy and the explicit fold partition.
+  Integrity gate: legacy gives 0.872875 at 0.023, bit-equal to the stored calibration, and
+  explicit gives 0.871125, or nothing is promoted. Post hoc, descriptive, changes no stored value
+  or verdict.
+
+- **2026-10-17 - C1 STATE DUMPS REGENERATED ON THIS MACHINE (G57), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G57).** C1's state dumps are
+  regenerated from the saved agents of the C1 rerun as a cross-stack replay. Integrity gate: every
+  regenerated target lies within 0.002 of its recorded value; otherwise the C1 rows of the
+  probe-penalty and within-episode readouts are omitted and the miss is reported. Post hoc,
+  descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - THE DRAG COMPARATOR'S ORACLE AT EPS 6.0 (H31), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section H31).** Agent-free. The gate-0
+  oracle of the hand-authored quadratic drag at eps 4, 6 and 8, eps 6 being the setting the
+  comparator runs used. Integrity gate: the eps 4 and 8 oracle readings equal the stored sweep bit
+  for bit, or the run is void. The reading enters no gate; the drag's gate 0 stays failed whatever
+  eps 6 reads. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - L1 NONLINEAR STATE PROBE (H53), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section H53).** An MLP and a random forest
+  on the corrected L1 rerun's stored dumps, the rung whose negative has been read by the linear
+  probe alone. Run only after the B1 bit check passed. Integrity gate: the linear C = 1 survival
+  target at drift 0.023 reproduces 0.5506 within 1e-9, or nothing is reported. Post hoc,
+  descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - NUDGE DOSE-RESPONSE (X01), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X01).** C1's survival and
+  untrained agents, nudged along the decoded direction and a sham at 0.5, 1, 2 and 4 standard
+  deviations, with a positive control along the actor-sensitive direction. Integrity gate: the 1 s
+  real and sham scores reproduce the local B5 rerun within 0.01, arm by arm under the NaN rule, or
+  nothing is reported. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - DEVELOPMENT ON A FIXED WALK (X02), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X02).** The residual controls of
+  the development readout on identical input, replaying the 300-update agent's recorded episodes
+  through every snapshot of C1 and C2. Integrity gates: the stored replay targets are reproduced
+  within 1e-6, and the recorded observations equal the collected episodes, or nothing is reported.
+  Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - HEAD OVERLAP (X03), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X03).** The overlap of the decoded
+  direction with the actor, critic and decoder weights of C1's three arms, and the one-step action
+  and recurrence sensitivities along it. Integrity gate: the fitted probe reproduces each cell
+  target within 0.002, 30 of 30, or nothing is reported. Post hoc, descriptive, changes no stored
+  value or verdict.
+
+- **2026-10-17 - SURPRISE ACROSS SNAPSHOTS (X04), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X04).** C1's prediction-error
+  separation of the worlds at the 0, 100, 200, 300 and 450-update snapshots on the 300-update
+  agent's own streams. Integrity gate: the 300-update and zero-update rows reproduce the stored
+  surprise artifact within 1e-6, or nothing is reported. Post hoc, descriptive, changes no stored
+  value or verdict.
+
+- **2026-10-17 - PREQUENTIAL CODE LENGTH (X05), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X05).** The online code length of
+  the registered probe over training prefixes taken in whole twin groups, on the stored dumps of
+  six runs, read only as a seed-paired difference between arms. Integrity gate: the full-n AUROC
+  reproduces each dir's recorded target within 1e-9 (C1 within the G57 tolerance), or that cell is
+  void. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - SPARSE SUPPORT (X06), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X06).** The L1-penalized probe at
+  eight penalties on the same dumps, with the smallest support that reaches 0.65. Integrity gate:
+  the dense C = 1 fit reproduces each dir's recorded target within 1e-9, or that cell is void; a
+  fit that did not converge is not read. Post hoc, descriptive, changes no stored value or
+  verdict.
+
+- **2026-10-17 - PELLET-DENSITY DOSE (X07), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X07).** The registered pooled
+  probe on C1's three arms in evaluation worlds with 2 to 96 pellets. Integrity gate: the
+  24-pellet row reproduces every cell target within 0.002, 30 of 30, or the run is void. Post hoc,
+  descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - BUDGET-CURVE DYNAMICS (X08), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X08).** Agent-free, on the
+  committed budget curve and cells of C1 and C2. Disclosed as post hoc: its numbers were seen in a
+  scratch read before the rule was written. Integrity gate: the inputs equal the committed
+  artifact and cells bit for bit. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - BAYES FACTORS WITH AN INTERVAL NULL (X09), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X09).** Agent-free, on committed
+  per-seed arrays. Disclosed as post hoc: the values were computed in a scratch read during script
+  development, and the spec keeps the predictions written before it. Integrity gate: every input
+  equals its committed artifact bit for bit. The result annotates and never relabels, and no label
+  enters a claims row. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - FULL-RANK ERASURE (X10), ANNOUNCED BEFORE THE RUN (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X10).** The rank-two erasure of
+  the C1 survival agents extended until an in-fold refit probe reads 0.55 or less, or the rank
+  reaches 16, with an equal-rank sham, under the erasure spec's dated 2026-10-17 pre-run
+  amendment. Integrity gates: the rank-two values reproduce the stored erasure artifact within
+  0.01, or nothing is reported; the refit reaches the stop in at least 8 of 10 seeds, or only k is
+  reported. Post hoc, descriptive, changes no stored value or verdict.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

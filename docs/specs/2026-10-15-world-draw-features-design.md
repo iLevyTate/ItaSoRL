@@ -148,3 +148,22 @@ Correction to the second amendment's wording: a permuted-target R squared of -0.
 violate the sanity clause, which bounds it above by 0.02. The fixed alpha was replaced because
 the permuted decode read far below the constant baseline, which showed the decoder fitting
 noise out of sample; the clause itself was met.
+
+## Fourth amendment 2026-10-17, before the own-episode run
+
+The secondary protocol, each arm on its own episodes, was not run with the replay readout. It
+is run now (`docs/specs/2026-10-17-closing-readouts-design.md`, section G07(a)), after the replay numbers were seen, so it is post hoc:
+readings 1 to 4 and the labels are computed on it as descriptions beside the stored replay
+labels, and nothing in the stored readout changes. Agents, seed bases, reach calibration,
+features, decoders and fold rules are those of the third amendment. Its output goes to new
+files, never to the two artifacts the Output section names.
+
+Output clause. The Output section says each artifact carries per-episode features. The
+committed artifacts carry per-seed feature means and standard deviations
+(`rows[].feature_means`, `rows[].feature_sds`) and not the per-episode values. The per-episode
+features depend on no agent: for episode i they are the features of the world reset at seed
+2600000 + i, at the artifact's recorded radius `reach.r`, with the Euclidean distances of the
+third amendment. Episodes whose far-pellet dispersion is not finite are dropped (`rows[].n`
+against `rows[].n_recorded`). The own-episode run writes the per-episode values and the
+per-seed values for every arm and feature. The stored artifacts are not rewritten, and no
+number or reading changes.

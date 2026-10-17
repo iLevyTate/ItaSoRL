@@ -595,3 +595,13 @@ linear cross-validations per cell. From the costs measured in the C1-rerun sessi
 readouts of r33 ran at about 35 to 50 s each on four workers), about 7 to 8 CPU minutes per seed,
 about 75 for ten seeds, so about 20 to 25 minutes of wall clock on four workers. It runs alone
 with `--readouts r205` into its own output and partial file.
+
+## Note 2026-10-17, before the within-episode readout (not an amendment)
+
+The closing readouts spec (`docs/specs/2026-10-17-closing-readouts-design.md`, section G04) adds a within-episode decoding curve: the
+registered linear probe on h_t alone at steps 1, 2, 4, 8, 12, 16 and 24 of the registered pools,
+read from stored dumps, with the step-24 column checked against this spec's R205 "final"
+feature set where it exists. It adds no readout id to this runner, and no procedure, base,
+statistic or reading above changes. A within-episode curve on the historical hidden-8 dumps was
+looked at first, in a scratch read before the closing spec was written. That read is not part of
+any result, and it makes the G04 readout post hoc and descriptive.
