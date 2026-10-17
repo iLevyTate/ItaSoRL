@@ -1,7 +1,7 @@
 {
  "generated_by": "scripts/build_integrity_ref.py",
- "git_commit_at_promotion": "1bbe7f5",
- "tracked_changes_at_generation": [".github/workflows/ci.yml", ".github/workflows/release.yml", ".gitignore", "README.md", "artifacts/balanced_confirmation/b1.json", "artifacts/balanced_confirmation/b2.json", "artifacts/results_manifest.json", "docs/RESULTS_MANIFEST.md", "docs/RULE_LEDGER.md", "docs/rule_ledger.json", "docs/social-card/index.html", "docs/social-card/social-preview.png", "docs/specs/2026-10-12-balanced-confirmation-design.md", "itasorl/experiment_b.py", "itasorl/experiment_b2.py", "itasorl/experiment_c.py", "itasorl/patch_of_earth.py", "itasorl/post_review.py", "itasorl/surrogate_l1_families.py", "pyproject.toml", "requirements.txt", "scripts/agent_free_common.py", "scripts/audit_stats_recheck.py", "scripts/build_corrected_verdicts.py", "scripts/build_index.py", "scripts/build_results_manifest.py", "scripts/promote_balanced_confirmation.py", "scripts/promote_bv3_gates.py", "scripts/run_expB_full.py", "scripts/run_expB_gap.py", "scripts/run_expB_kstep.py", "scripts/run_expB_nonlinear.py", "scripts/run_expB_surprise.py", "scripts/run_expC_gate1_sweep.py", "scripts/run_salience_readout.py", "tests/test_audit_selftest.py", "tests/test_balanced_matched_gates.py", "tests/test_corrected_verdicts.py", "tests/test_gate_reducers_nonfinite.py", "tests/test_packaging_review_2026_10_16.py", "tests/test_promote_bv3_gates.py", "tests/test_reproducibility_package.py", "tests/test_rule_ledger.py", "tests/test_social_card.py"],
+ "git_commit_at_promotion": "eb848f0",
+ "tracked_changes_at_generation": [],
  "stack": {
   "python": "3.13.2",
   "numpy": "1.26.4",
