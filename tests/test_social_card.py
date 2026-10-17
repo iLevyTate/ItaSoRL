@@ -57,6 +57,19 @@ def test_every_percent_on_the_card_is_in_the_readme_opening():
     assert not missing, missing
 
 
+def test_the_own_state_tile_matches_the_readme_lead():
+    """The every-percent test above lets a stale tile through whenever the README still
+    quotes the old number somewhere in its opening (it quotes 53% as the first scoring), so
+    the tile labeled "own state" is pinned to the number the README leads with (H82)."""
+    html = _card_file(CARD).read_text(encoding="utf-8")
+    tiles = re.findall(r'<div class="num">(\d+%)</div><div class="lab">(.*?)</div>', html, flags=re.S)
+    own = [num for num, lab in tiles if "own state" in lab]
+    assert len(own) == 1, tiles
+    lead = re.search(r"own state reads\s*\*\*(\d+%)\*\*", _readme_opening())
+    assert lead, "the README opening no longer leads with the own-state number"
+    assert own[0] == lead.group(1)
+
+
 def test_the_card_does_not_credit_survival_alone():
     text = _visible_text(_card_file(CARD).read_text(encoding="utf-8")).lower()
     for banned in ("survival made it matter", "costs it dinner", "life depended",
