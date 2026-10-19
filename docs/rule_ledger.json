@@ -1,5 +1,5 @@
 {
- "about": "Every frozen decision rule in this repository adjudicated at the 0.65 bar or the 0.05 margin, one row per rule and run, as recorded at the time. No rule is re-adjudicated and no threshold is changed here. Each clause names the artifact value it reads. scripts/build_paper_tables.py reads that value, recomputes it from the per-seed list when the clause names a statistic, checks it against the recorded reading and the recorded outcome, and renders docs/RULE_LEDGER.md.",
+ "about": "Every frozen decision rule in this repository adjudicated at the 0.65 bar or the 0.05 margin, one row per rule and run, as recorded at the time. No rule is re-adjudicated and no threshold is changed here. Each clause names the artifact value it reads. scripts/build_paper_tables.py reads that value, recomputes it from the per-seed list when the clause names a statistic, checks it against the recorded reading and the recorded outcome, and renders docs/RULE_LEDGER.md. The reverse-direction reading on the corrected C1 agents (artifacts/l0_audit/reverse_direction_corrected_l3_h8_wm.json, label R1 CARRIED) is descriptive, not a frozen decision rule, so it enters no row.",
  "rows": [
   {
    "id": "BV2-PRIMARY",

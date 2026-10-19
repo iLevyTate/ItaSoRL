@@ -1,0 +1,99 @@
+{
+ "script": "scripts/run_expB_kstep.py",
+ "align": "legacy",
+ "config": {
+  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
+  "steps": 24,
+  "ray_steps": 5,
+  "pool": 150,
+  "sub": 110,
+  "epochs": 18,
+  "hidden": 96,
+  "seeds": [0, 1, 2],
+  "open_horizons": [0, 8, 16],
+  "drifts": [0.0, 0.45],
+  "fold_scheme": "explicit"
+ },
+ "rows": [
+  {
+   "open_horizon": 0,
+   "drift": 0.0,
+   "rollout_context": null,
+   "target_mean": 0.48760330578512395,
+   "target_std": 0.01615626737601701,
+   "per_seed": {
+    "target": [0.5057851239669422, 0.4665289256198347, 0.49049586776859505]
+   }
+  },
+  {
+   "open_horizon": 0,
+   "drift": 0.45,
+   "rollout_context": null,
+   "target_mean": 0.506060606060606,
+   "target_std": 0.015550714079784225,
+   "per_seed": {
+    "target": [0.5243801652892561, 0.48636363636363633, 0.5074380165289256]
+   }
+  },
+  {
+   "open_horizon": 8,
+   "drift": 0.0,
+   "rollout_context": 16,
+   "target_mean": 0.4539944903581268,
+   "target_std": 0.021103618601794112,
+   "per_seed": {
+    "target": [0.47520661157024796, 0.4615702479338843, 0.42520661157024797]
+   }
+  },
+  {
+   "open_horizon": 8,
+   "drift": 0.45,
+   "rollout_context": 16,
+   "target_mean": 0.46542699724517905,
+   "target_std": 0.0025768990267038376,
+   "per_seed": {
+    "target": [0.4619834710743801, 0.46818181818181814, 0.46611570247933887]
+   }
+  },
+  {
+   "open_horizon": 16,
+   "drift": 0.0,
+   "rollout_context": 8,
+   "target_mean": 0.40922865013774107,
+   "target_std": 0.015539729780904083,
+   "per_seed": {
+    "target": [0.43016528925619835, 0.39297520661157026, 0.4045454545454545]
+   }
+  },
+  {
+   "open_horizon": 16,
+   "drift": 0.45,
+   "rollout_context": 8,
+   "target_mean": 0.4763085399449036,
+   "target_std": 0.06353909540022588,
+   "per_seed": {
+    "target": [0.45950413223140496, 0.40826446280991735, 0.5611570247933885]
+   }
+  }
+ ],
+ "figure": "fullruns/closing_2026-10/expB_legacy_local/expB_kstep.png",
+ "provenance": {
+  "generated_by": "scripts/run_expB_kstep.py",
+  "git_commit": "75ce098",
+  "tracked_changes_at_generation": [],
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "machine": "AMD64",
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "torch_threads": 1,
+   "device": "cpu"
+  },
+  "argv": ["--align", "legacy", "--out-dir", "fullruns/closing_2026-10/expB_legacy_local"]
+ }
+}

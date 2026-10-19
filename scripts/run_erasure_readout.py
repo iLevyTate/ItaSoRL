@@ -91,8 +91,9 @@ def run_cell(t: dict, _given: tuple | None = None) -> dict:
     for x in v.values():
         common &= set(x["kept"].tolist())
     common = sorted(common)
-    # Every attempted episode, before the common-survivor intersection (third amendment,
-    # review N04): termination count, mean return summed through termination, mean steps.
+    # Every attempted episode, before the common-survivor intersection (review N04): termination
+    # count, mean return summed through termination, mean steps. Post hoc: defined after the
+    # first full run had been read, not in an amendment of the erasure spec (its post-run note).
     attempted = {"n_attempted": int(t["n_eps"]),
                  "terminated": {k: int(x["terminated"].sum()) for k, x in v.items()},
                  "pop_return": {k: float(x["ret_all"].mean()) for k, x in v.items()},
@@ -438,7 +439,7 @@ def summarize(rows: list) -> dict:
                    "auth_terminated_erased_minus_sham": paired_t90([r["terminated"]["ea"] for r in rr if "terminated" in r],
                                                                    [r["terminated"]["sa"] for r in rr if "terminated" in r]),
                    "note": "every attempted episode, return summed through termination; descriptive, "
-                           "no pre-stated reading (third amendment)"},
+                           "no pre-stated reading (post hoc, defined after the first full run)"},
                "primary": f("primary"),
                "surr_real_minus_sham": f("surr_real_minus_sham"),
                "auth_real_minus_sham": f("auth_real_minus_sham"),

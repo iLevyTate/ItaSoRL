@@ -8,11 +8,12 @@ entry of index.json with train_g_motion defaults on its recorded hidden size and
 single-threaded as the export was, and compares the normalization statistics, the weights
 and 200 probe outputs with the committed file.
 
-The bound is a cross-stack one, atol 1e-4 and rtol 0, not the exporting stack's 1e-6: on
-the workstation stack (torch 2.7.0, NumPy 1.26.4, Python 3.13.2, one thread) the measured
-worst case is 4.3e-5 on the weights (h8_s0) and 2.9e-5 on the outputs (h8_s2), while
-h7_s0, h10_s1 and h4_s0 agree under 1.1e-6. The measured maxima go into the assertion
-message. Each retrain takes 15 to 20 s here, under the 60 s mark that would call for a
+The bound is atol 1e-4, rtol 0, a cross-stack one. On the workstation stack (Windows,
+Python 3.13.2, torch 2.7.0+cu126, NumPy 1.26.4, one thread; constraints-workstation.txt) the
+measured worst case is 4.3e-5 on the weights (h8_s0) and 2.9e-5 on the outputs (h8_s2), while
+h7_s0, h10_s1 and h4_s0 agree to about 1e-6, so on that stack exactly those three are held to
+1e-6 (h7_s0's weights, at 1.013e-6, to 2e-6). No other stack has been measured, so everywhere
+else every export keeps 1e-4. The measured maxima go into the assertion message. Each retrain takes 15 to 20 s here, under the 60 s mark that would call for a
 slow marker. The normalization statistics come from a deterministic float64 rollout, so
 they are held much tighter.
 """
@@ -21,6 +22,8 @@ from __future__ import annotations
 
 import json
 import os
+import platform
+import sys
 
 import numpy as np
 import pytest
@@ -33,8 +36,26 @@ from itasorl.world import WorldParams  # noqa: E402
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 SURR = os.path.join(ROOT, "artifacts", "surrogates")
 P = WorldParams(k_land=1.5, k_water=1.5, gravity=0.4)
-ATOL_WEIGHTS = 1e-4
-ATOL_OUTPUTS = 1e-4
+# The cross-stack (weights, outputs) bound, the one CI on Linux and unpinned torch is held to.
+ATOL_CROSS_STACK = (1e-4, 1e-4)
+# The workstation stack the tight bounds were measured on, as constraints-workstation.txt records it.
+WORKSTATION_STACK = ("win32", "3.13.2", "2.7.0+cu126", "1.26.4")
+# Tighter bounds measured on that stack only; h7_s0's weights read 1.013e-6 there, hence 2e-6.
+ATOL_WORKSTATION = {"gmotion_h7_s0.npz": (2e-6, 1e-6), "gmotion_h10_s1.npz": (1e-6, 1e-6),
+                    "gmotion_h4_s0.npz": (1e-6, 1e-6)}
+
+
+def _on_workstation_stack() -> bool:
+    import torch
+    return (sys.platform, platform.python_version(), torch.__version__,
+            np.__version__) == WORKSTATION_STACK
+
+
+def _atol(name: str) -> tuple[float, float]:
+    # h8_s0 and h8_s2 drift 4.3e-5 (weights) and 2.9e-5 (outputs) even on the workstation.
+    if _on_workstation_stack():
+        return ATOL_WORKSTATION.get(name, ATOL_CROSS_STACK)
+    return ATOL_CROSS_STACK
 ATOL_NORM = 1e-9
 N_PROBES = 200
 
@@ -87,5 +108,6 @@ def test_each_committed_export_matches_a_fresh_single_thread_retrain(name):
     msg = (f"{name}: max |diff| normalization {norm_diff:.3e}, weights {weight_diff:.3e}, "
            f"outputs over {N_PROBES} rng(0) probes {out_diff:.3e}")
     assert norm_diff <= ATOL_NORM, msg
-    assert weight_diff <= ATOL_WEIGHTS, msg
-    assert out_diff <= ATOL_OUTPUTS, msg
+    atol_weights, atol_outputs = _atol(name)
+    assert weight_diff <= atol_weights, msg
+    assert out_diff <= atol_outputs, msg

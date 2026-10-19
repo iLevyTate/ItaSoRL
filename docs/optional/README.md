@@ -25,7 +25,7 @@ episodes. Pair groups stay in one fold when the data are paired. Code:
 | File | Population | Cells | Result |
 |---|---|---|---|
 | `o1_fold_local_speed.json` | pooled worlds, bases 800000 and 850000, both drifts, three arms, B1 and B2 | 120 | recomputed global median equals the recorded `pool.speed` exactly; zero calls change; fold-local minus global +0.00162, t90 over seeds [-0.00021, 0.00345] |
-| `o1_fold_local_speed_matched.json` | retained pairs at base 910000, drift 0.45, three arms, B1 and B2 | 60 | two calls change, both untrained seed 19: recorded 0.7493, fold-local 0.7609; mean shift near zero, t90 over seeds [-0.00271, 0.00264] |
+| `o1_fold_local_speed_matched.json` | retained pairs at base 910000, drift 0.45, three arms, B1 and B2 | 60 | two calls change, both untrained seed 19: recorded 0.7493, fold-local 0.7609; mean shift near zero, t90 over seeds [-0.00271, 0.00264]; the recomputed global median differs from the recorded matched speed in one of 60 cells (B1 seed 13 survival, recorded 0.9459, recomputed 0.9463, max 0.00043), with no call affected; the matched pairs are re-rolled on CUDA, the pooled rows are read from the stored dumps |
 
 The matched change does not make B1 or B2 informative. The untrained floor fails on
 its own.

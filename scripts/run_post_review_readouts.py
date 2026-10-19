@@ -21,7 +21,7 @@ run's cell fingerprints.
 
     ITASORL_FOLDS=explicit python scripts/run_post_review_readouts.py \\
         --run-dir artifacts/goal_stakes/C1-rerun \\
-        --out artifacts/goal_stakes/C1-rerun/post_review.json --workers 4 \\
+        --out artifacts/post_review/C1-rerun.json --workers 4 \\
         [--readouts r210,r35,r206,r33,r31] [--seeds 0 1 2] \\
         [--balanced-reference artifacts/l0_audit/corrected_l3_h8_wm.json]
 

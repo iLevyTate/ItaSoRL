@@ -146,7 +146,10 @@ def _strip(doc: dict) -> dict:
 
 def test_rank_two_default_path_is_byte_identical(fakes, tmp_path):
     pre = _pre_hook_module(tmp_path)
-    old = json.loads(_run(pre, fakes, tmp_path, "pre").read_text())
+    # A8 (2026-10-19) relabels one descriptive note; every other byte must still match.
+    old = json.loads(_run(pre, fakes, tmp_path, "pre").read_text().replace(
+        "no pre-stated reading (third amendment)",
+        "no pre-stated reading (post hoc, defined after the first full run)"))
     new = json.loads(_run(rer, fakes, tmp_path, "new").read_text())
     assert json.dumps(_strip(new)) == json.dumps(_strip(old))
     assert set(new["provenance"]) == set(old["provenance"])

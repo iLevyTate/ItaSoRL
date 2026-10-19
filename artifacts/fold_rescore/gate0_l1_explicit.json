@@ -1,0 +1,64 @@
+{
+  "sensor_sigma": 0.01,
+  "deltas_sweep": [
+    {
+      "delta": 0.022,
+      "sigma": 0.01,
+      "oracle_auroc": 0.8198749999999999,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.023,
+      "sigma": 0.01,
+      "oracle_auroc": 0.8711249999999999,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    },
+    {
+      "delta": 0.024,
+      "sigma": 0.01,
+      "oracle_auroc": 0.9366249999999999,
+      "leakage": {
+        "reward": 0.5,
+        "length": 0.5,
+        "metadata": 0.5
+      },
+      "leakage_pass": true
+    }
+  ],
+  "chosen_delta": 0.023,
+  "provenance": {
+    "generated_by": "scripts/run_expA_l1.py",
+    "git_commit": "75ce098",
+    "tracked_changes_at_generation": [],
+    "stack": {
+      "python": "3.13.2",
+      "numpy": "1.26.4",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "machine": "AMD64",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "scipy": "1.15.3",
+      "sklearn": "1.5.2",
+      "torch": "2.7.0+cu126",
+      "torch_threads": 1
+    },
+    "argv": [
+      "--out",
+      "fullruns/closing_2026-10/g47/gate0_l1_explicit.json",
+      "--deltas",
+      "0.022",
+      "0.023",
+      "0.024"
+    ]
+  }
+}

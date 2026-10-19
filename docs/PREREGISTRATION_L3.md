@@ -1414,6 +1414,21 @@ Rigor carried from the B-v3 audit (2026-07-10):
   at chance, other) and the text each one changes are fixed in the spec; the title stays under
   every label. Post hoc, descriptive, changes no stored value or verdict.
 
+- **2026-10-18 - L1 STATE AT A SUPRA-BAND GRID (B1), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B1; artifacts
+  `artifacts/expL1/l1_coarse_grid_{corrected,historical}.json`).** Ran 2026-10-18 (UTC) at
+  `75ce098`; read 2026-10-19. Integrity passes for both runs: at grid 0.023 every regenerated pool
+  equals its saved dump bit for bit. Label, decided by the corrected run: (a) SENSITIVE. At grid
+  0.06 the untrained arm reads 0.672 [0.640, 0.704], so the state readout registers this class of
+  seam at a supra-band grid, and the L1 negative is a negative at grid 0.023, not an insensitivity
+  of the readout to the class. Described beside the label, which does not read it: the survival arm
+  reads 0.643 [0.619, 0.667] at 0.06, below the untrained arm (survival minus untrained -0.029
+  [-0.062, +0.005]), so what registers the seam at 0.06 is the readout on an untrained trunk, not a
+  survival-specific encoding. At 0.023 the reading reproduces (survival 0.551 [0.531, 0.570]). The
+  historical companion decides nothing; its survival arm reads 0.638 at 0.06, and its untrained and
+  predictor values equal the corrected run's (one floor read twice). No prediction was stated. The
+  title stays. Changes no stored value or verdict.
+
 - **2026-10-17 - WALK SPEED AGAINST GOAL DIRECTION (B2), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-walk-speed-vs-goal-readout-design.md`, the whole spec).** Whether the C1
   reading needs goal direction, rather than the speed of the survival walk or the larger law
@@ -1423,6 +1438,19 @@ Rigor carried from the B-v3 audit (2026-07-10):
   collision check is empty and every value is finite. The labels and text map are fixed in the
   spec. Post hoc, descriptive, changes no stored value or verdict.
 
+- **2026-10-18 - WALK SPEED AGAINST GOAL DIRECTION (B2), RESULT (spec
+  `docs/specs/2026-10-17-walk-speed-vs-goal-readout-design.md`; artifact
+  `artifacts/walk_speed/corrected_l3_h8_wm.json`).** Ran 2026-10-18 (UTC) at `75ce098`. Integrity
+  passes: the base collision and footprint checks pass, every agent file is present and every
+  target is finite. Reading 1 (speed) is UNRESOLVED: only seed 5 of 10 was speed-matched within
+  0.001 and the rule needs 7 (unmatched 0, 1, 2, 3, 4, 6, 7, 8, 9); the survival arm's own walk
+  minus the speed-matched walk reads +0.104 [+0.050, +0.159], lower bound 0.0497. Reading 2 is
+  CLOSED LOOP ADDS: own walk minus open-loop replay reads +0.073 [+0.051, +0.095], lower bound
+  0.0512. Label: NOT SEPARATED, since GOAL DIRECTION needs speed not to suffice. The spec's stated
+  expectation, that the speed match would leave several seeds unmatched and reading 1 might be
+  UNRESOLVED, was borne out. The replay walk is still slower than the own walk (0.174 against
+  0.185). Post hoc, descriptive, changes no stored value or verdict.
+
 - **2026-10-17 - REVERSE DIRECTION ON THE CORRECTED C1 DRIFT-0 AGENTS (B3), ANNOUNCED BEFORE THE
   RUN (spec `docs/specs/2026-10-17-closing-readouts-design.md`, section B3).** The design of the
   2026-10-09 reverse-direction entry above, with its spec's dated 2026-10-17 amendment, applied to
@@ -1430,6 +1458,16 @@ Rigor carried from the B-v3 audit (2026-07-10):
   reproduces the C1 drift-0 cell targets within 0.01 on all 30 agent-cells, or the run is void.
   The CARRIED, NOT CARRIED and AMBIGUOUS labels are descriptive on C1 and enter no rule-ledger
   row. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-18 - REVERSE DIRECTION ON THE CORRECTED C1 DRIFT-0 AGENTS (B3), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B3; artifact
+  `artifacts/l0_audit/reverse_direction_corrected_l3_h8_wm.json`).** Ran 2026-10-18 (UTC) at
+  `75ce098`. Integrity passes: the drift-0 rescore reproduces the recorded targets on 30 of 30
+  agent-cells, worst deviation 0.0008, a cross-stack rescore within 0.01 and not bit-equal. Label:
+  R1 CARRIED, descriptive on C1 with no rule-ledger row: survival 0.754 [0.721, 0.787], untrained
+  0.523 [0.491, 0.555], predictor 0.572 [0.545, 0.599], margin over untrained +0.231. The stored
+  balanced value, 0.787 [0.761, 0.814] against predictor 0.616 and untrained 0.540, stays beside
+  it. No prediction was stated. Changes no stored value or verdict.
 
 - **2026-10-17 - C1 POPULATION PROBE REGROUPED BY WORLD SEED (B4), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section B4).** The pooled population probe
@@ -1440,6 +1478,20 @@ Rigor carried from the B-v3 audit (2026-07-10):
   two groupings can differ only through pair deaths, so an equal value is the expected outcome.
   Post hoc, descriptive, changes no stored value or verdict.
 
+- **2026-10-19 - C1 POPULATION PROBE REGROUPED BY WORLD SEED (B4), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B4; artifact
+  `artifacts/population_readout/corrected_l3_h8_wm_world_grouped.json`).** Ran 2026-10-19 (UTC) at
+  `75ce098` as a fresh rerun; the 2026-10-18 attempt was interrupted by the owner's stop and
+  recorded no reading. Integrity passes: both values are finite and come from the same tails in one
+  pass. Platform note: the local row-grouped values differ from the stored ones by +1.2e-4
+  (survival) and -2.5e-4 (untrained), so the contrast is read between the two local values. Label:
+  DIFFERS. Survival reads 0.609 grouped by row and 0.617 grouped by world seed (+0.008, 110 world
+  groups); untrained 0.536 and 0.537 (+0.001, 108 world groups). The spec's expected outcome,
+  EQUAL, was not borne out. The label is to be reported with the number of dead pairs, and the
+  output did not record it; only the world-group counts survive. Claim row 49 holds on the
+  world-grouped values (0.617 above 0.537 and below the per-individual 0.649). Changes no stored
+  value or verdict.
+
 - **2026-10-17 - SURPRISE AUROC WITH TWIN GROUPS (B5), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section B5).** The stored surprise AUROCs of
   C1, T-touch and S-immortal split same-world twins across folds and are lower bounds. This rerun
@@ -1449,6 +1501,21 @@ Rigor carried from the B-v3 audit (2026-07-10):
   only fails that arm, and a NaN is never a pass. Post hoc, descriptive, changes no stored value
   or verdict.
 
+- **2026-10-18 - SURPRISE AUROC WITH TWIN GROUPS (B5), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B5; artifacts
+  `artifacts/goal_stakes_grouped_surprise/{C1,T-touch,S-immortal}.json`).** Ran 2026-10-18 (UTC) at
+  `75ce098` on the saved agents of the three runs. The NaN rule is met on every arm of every run:
+  no seed is NaN on one side only. Tolerance gate: T-touch and S-immortal reproduce their stored
+  values within 0.01 on all four quantities, and their ungrouped surprise exactly (worst 0.0000);
+  C1's ungrouped surprise misses 0.01 on five survival
+  seeds (worst 0.051) and five untrained seeds (worst 0.035), a cross-stack note that does not void
+  the comparison. Label: GROUPED ABOVE 0.65 in all three runs. Grouped surprise AUROC: C1 0.856
+  [0.791, 0.922], T-touch 0.917 [0.897, 0.937], S-immortal 0.859 [0.814, 0.904]; grouping effect
+  -0.0002 [-0.008, +0.007], +0.005 [-0.001, +0.010] and +0.011 [+0.007, +0.015], only the last
+  excluding zero. The stored 0.846, 0.912 and 0.848 stay as recorded lower bounds. The three runs
+  used `--workers 2` where the sealed command says 4; values are unaffected. No prediction was
+  stated. Changes no stored value or verdict.
+
 - **2026-10-17 - DEVELOPMENT HELD-OUT TRANSFER (B6), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section B6).** The development readout's
   transfer column is in-sample. This readout scores the frozen 300-update probe of C1 and C2 on
@@ -1456,6 +1523,17 @@ Rigor carried from the B-v3 audit (2026-07-10):
   Integrity gate: the stored in-sample transfer column is reproduced within 1e-9, or the 0.785 and
   0.689 clause is dropped instead and nothing from the run is quoted. Post hoc, descriptive,
   changes no stored value or verdict.
+
+- **2026-10-18 - DEVELOPMENT HELD-OUT TRANSFER (B6), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B6; artifact
+  `artifacts/development/heldout_transfer.json`).** Ran 2026-10-18 (UTC) at `75ce098` on fresh
+  pools at bases 2700000 and 2750000. Integrity passes: the stored in-sample transfer column is
+  reproduced within 1e-9 (40 of 40 values for C1 and 40 of 40 for C2), so the 0.785 and 0.689
+  clause stays. Label: REPORTED. The frozen 300-update probe reads the held-out 450-update states
+  at 0.736 [0.680, 0.791] on C1 and 0.632 [0.594, 0.670] on C2, beside the in-sample 0.785 and
+  0.689; held-out minus in-sample -0.049 [-0.068, -0.030] and -0.057 [-0.084, -0.029]. No threshold
+  reads these values, and the reorganization label does not read this column. No prediction was
+  stated. Changes no stored value or verdict.
 
 - **2026-10-17 - L1 NOISE KNOCKOUT WITH FRESH NOISE PER EPISODE (B7), ANNOUNCED BEFORE THE RUN
   (spec `docs/specs/2026-10-17-closing-readouts-design.md`, section B7).** The historical L1 noise
@@ -1465,12 +1543,32 @@ Rigor carried from the B-v3 audit (2026-07-10):
   finite. Labels: the same call as stored, or a changed call. Post hoc, descriptive, changes no
   stored value or verdict.
 
+- **2026-10-18 - L1 NOISE KNOCKOUT WITH FRESH NOISE PER EPISODE (B7), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B7; artifact
+  `artifacts/expL1/l1_h2_noise_per_episode.json`).** Ran 2026-10-18 (UTC) at `75ce098` on the 30
+  drift-0.023 agents of the historical L1 run. Integrity passes: the same agents' registered pools
+  bit-match their dumps (the historical half of B1), and every per-seed value is finite, n = 10 per
+  arm. Label: SAME CALL. With fresh noise per episode the survival arm reads 0.508 [0.485, 0.531],
+  untrained 0.513 [0.488, 0.538] and predictor 0.513 [0.488, 0.537], margin -0.005, and the call is
+  H2_SUPPORTED, as stored (0.525, 0.509, 0.516). No prediction was stated; the knockout stays read
+  as vacuous. Changes no stored value or verdict.
+
 - **2026-10-17 - SWEEP C SECOND JITTER REALIZATION (B8), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section B8).** The sweep C intervals rest on
   one realization of the per-episode jitter. This readout draws a second realization at the two
   points the stored contrast reads, on C1's saved agents. Integrity gate: finite values, n = 10
   per arm. The companion spec's three readings are applied to the new contrast as descriptions.
   Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-18 - SWEEP C SECOND JITTER REALIZATION (B8), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section B8; artifacts
+  `artifacts/texture/ar_sweep_c_realization2/C_rho{0.0,0.99}.json`).** Ran 2026-10-17 to 2026-10-18
+  (UTC) at `75ce098`: one second realization, keyed by agent seed, at rho 0.0 and 0.99. Integrity
+  passes: every value finite, n = 10 per arm at both points. Reading (2), within the margin unit:
+  M(0.99) minus M(0) reads -0.0002 [-0.027, +0.027], with M(0) +0.053 [+0.005, +0.101] and M(0.99)
+  +0.053 [+0.011, +0.096]. Beside it: CONSISTENT, since the new mean lies inside the stored
+  follow-up interval -0.017 [-0.051, +0.016]. No prediction was stated. Changes no stored value or
+  reading.
 
 - **2026-10-17 - EXPERIMENT B WITH CORRECT ACTION TIMING (C1), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section C1).** The L2 prediction-only world
@@ -1480,12 +1578,38 @@ Rigor carried from the B-v3 audit (2026-07-10):
   recorded row's interval. The RESTORE, NARROW and DISCLOSURE STANDS labels and the text each one
   changes are fixed in the spec. Post hoc, descriptive, changes no stored value or verdict.
 
+- **2026-10-18 - EXPERIMENT B WITH CORRECT ACTION TIMING (C1), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section C1; artifacts
+  `artifacts/expB_legacy_local_2026-10-18/` and `artifacts/expB_aligned_2026-10-18/`, JSON only).**
+  Ran 2026-10-18 (UTC) at `75ce098`, both alignments retrained on this machine, three seeds each.
+  Integrity passes: all ten outputs written, the stored figures untouched, and the legacy
+  drift-0.45 prediction-only target, 0.517 ± 0.056, lies inside the recorded row's interval [0.429,
+  0.591] (recorded 0.510 ± 0.039). Label: RESTORE. The aligned value, 0.544 ± 0.037, lies inside
+  the same interval, so the L2 negative stands with correct timing. Prediction error reads
+  0.599 ± 0.007 aligned against 0.596 ± 0.004 legacy (recorded 0.596 ± 0.007); the nonlinear probe
+  0.459 ± 0.015 against 0.486 ± 0.034. The frozen spec printed the recorded interval as [0.430, 0.591], a
+  rounding slip: its own formula, 0.510 plus or minus t(0.95, 2) x 0.039 x sqrt(3/2) / sqrt(3),
+  gives [0.429, 0.591]. No label moves, since 0.517 and 0.544 lie inside either way. No prediction
+  was stated. Changes no stored value or verdict.
+
 - **2026-10-17 - PROBE-PENALTY SENSITIVITY (G01), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section G01).** Every probe value on record
   uses C = 1. This readout scores the stored dumps of six runs at C in {0.001, 0.01, 0.1, 1, 10}
   and a nested in-fold C. Integrity gate: C = 1 reproduces one recorded target per states dir
   within 1e-9 (C1 within the G57 tolerance), or that dir reports nothing. No TOST or gate is
   computed at any other C. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - PROBE-PENALTY SENSITIVITY (G01), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G01; artifacts
+  `artifacts/probe_sensitivity/*.json`, six states dirs).** Ran 2026-10-17 (UTC) at `75ce098`,
+  after G57 passed; read 2026-10-19. Integrity passes on all six dirs: at C = 1 each reproduces its
+  recorded target with worst difference 0.0, the C1 rows on the regenerated dumps, labeled
+  "cross-stack regenerated, max abs target delta = 0.00165". Label: PENALTY-SENSITIVE for every
+  states dir, the extreme at C = 0.001 and below the C = 1 value in each. The open L0 reading of C1
+  at drift 0 ranges 0.507 to 0.559 across C (nested in-fold C 0.519 [0.498, 0.540]). At C = 0.1 and
+  C = 10 the survival target stays within 0.02 of its C = 1 value in every dir at both drifts; the
+  sensitivity comes from C = 0.001 and 0.01. Descriptive: no TOST or gate is computed at any other
+  C. No prediction was stated. Changes no stored value or verdict.
 
 - **2026-10-17 - DRIFT-0.45 WORLD-SAMPLE READOUT ON THE C1 AGENTS (G02), ANNOUNCED BEFORE THE RUN
   (spec `docs/specs/2026-10-17-closing-readouts-design.md`, section G02).** The design of the
@@ -1495,6 +1619,17 @@ Rigor carried from the B-v3 audit (2026-07-10):
   as descriptions and trigger no frozen wording; the recorded 0.042 propagation stays. Post hoc,
   descriptive, changes no stored value or verdict.
 
+- **2026-10-18 - DRIFT-0.45 WORLD-SAMPLE READOUT ON THE C1 AGENTS (G02), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G02; artifact
+  `artifacts/l0_audit/d045_world_samples_corrected_l3_h8_wm.json`).** Ran 2026-10-18 (UTC) at
+  `75ce098`. Integrity passes: the registered draw reproduces the recorded targets on 10 of 10
+  seeds, worst deviation 0.00165. Label, computed as a description that triggers no frozen wording:
+  R1 SECURE. The eight independent draws read 0.685 to 0.829, 8 of 8 at or above 0.65; the
+  registered draw, 0.733, ranks 6 of 9; C1's own between-draw SD is 0.052. Propagated with that SD,
+  the corrected primary reads 0.733 [0.618, 0.848], a lower bound below the 0.65 bar; the record's
+  propagation with the historical 0.042 stays. No prediction was stated. Changes no stored value or
+  verdict.
+
 - **2026-10-17 - BALANCED SENSORY-ECHO CONTROL ON A SECOND DRAW (G03), ANNOUNCED BEFORE THE RUN
   (spec `docs/specs/2026-10-17-closing-readouts-design.md`, section G03).** The 2026-10-13
   sensory-echo result rests on one evaluation draw at base 910000. This readout reads the B1 and
@@ -1502,6 +1637,18 @@ Rigor carried from the B-v3 audit (2026-07-10):
   910000 as the frozen spec requires. The 910000 result is unchanged, and the frozen clauses are
   computed on the second draw as descriptions. Post hoc, descriptive, changes no stored value or
   verdict.
+
+- **2026-10-19 - BALANCED SENSORY-ECHO CONTROL ON A SECOND DRAW (G03), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G03; artifacts
+  `artifacts/balanced_confirmation/sensory_echo_b{1,2}_fresh.json`).** Ran 2026-10-19 (UTC) at
+  `75ce098` on CUDA, B1 then B2. Integrity passes for both: at 910000 every cell matches its
+  recorded balanced target (largest difference 0.0), no pair is dropped, the first states match,
+  the 2250000 base collision check is empty and no adjudication blocker is raised. On the second
+  draw the floor is explained (untrained `resid_obs` 0.577, 0.077 from 0.5, inside the 0.1 floor by
+  0.023; the first draw's 0.596 was 0.096 from 0.5, inside by 0.004), and the reading is
+  sensory-independent under matched worlds for B1 (0.724 [0.689, 0.759]) and for B2 (0.761 [0.746,
+  0.777]). B1 and B2 share their untrained and predictor agents, so this is one floor read twice.
+  The 910000 result is unchanged. No prediction was stated. Changes no stored value or verdict.
 
 - **2026-10-17 - WITHIN-EPISODE DECODING CURVE (G04), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section G04).** The registered probe on h_t
@@ -1511,6 +1658,17 @@ Rigor carried from the B-v3 audit (2026-07-10):
   historical dumps was looked at in a scratch read before the spec, which the spec records. Post
   hoc, descriptive, changes no stored value or verdict.
 
+- **2026-10-17 - WITHIN-EPISODE DECODING CURVE (G04), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G04; artifacts
+  `artifacts/step_resolved/*.json`, six states dirs).** Ran 2026-10-17 (UTC) at `75ce098`, after a
+  first attempt was interrupted; read 2026-10-19. Integrity passes on all six dirs: each registered
+  target reproduces with worst difference 0.0, and the step-24 column equals the recorded final
+  reading on 60 of 60 cells. Labels on the step-24 minus step-1 target at the strongest drift: the
+  survival arm BUILDS WITHIN THE EPISODE in the four L3 dirs (C1 regenerated +0.272 [+0.204,
+  +0.339]) and is UNRESOLVED in the two L1 dirs; the label of every dir and arm is in the
+  artifacts. Post hoc: a curve on the historical dumps was seen in a scratch read before the spec.
+  No prediction was stated. Changes no stored value or verdict.
+
 - **2026-10-17 - WORLD FEATURES ON EACH ARM'S OWN EPISODES (G07), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section G07(a)).** The world-feature spec's
   secondary protocol was not run. It runs now on the C1 and C2 agents, after the replay numbers
@@ -1519,12 +1677,32 @@ Rigor carried from the B-v3 audit (2026-07-10):
   are computed as descriptions; the stored artifacts are not rewritten. Post hoc, descriptive,
   changes no stored value or verdict.
 
+- **2026-10-18 - WORLD FEATURES ON EACH ARM'S OWN EPISODES (G07), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G07(a); artifacts
+  `artifacts/world_features/own_episode_posthoc/corrected_l3_h8_{wm,nowm}.json`).** Ran 2026-10-18
+  (UTC) at `75ce098`, C1 then C2. Integrity passes for both: every value finite, with the
+  per-episode features and the per-seed values present. Label on both runs: "keeps nothing beyond
+  the senses", as on the stored replay protocol; it means that no near feature met both clauses of
+  reading 1. The own-episode survival residual R squared ranges -0.0053 to +0.0018 across the two
+  runs. The label reads the drift-0.45 survival arm, whose own episodes are the replay episodes, so
+  it could not move under this protocol; what moves is the other arms: survival minus untrained
+  r2_state rises on every instrumental feature, and I1 changes sign on both runs. Run after the
+  replay numbers were seen. No prediction was stated. Changes no stored value or verdict.
+
 - **2026-10-17 - L1 GATE-0 ORACLE UNDER BOTH PARTITIONS (G47), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section G47).** Agent-free. The L1 gate-0
   oracle at grids 0.022, 0.023 and 0.024 under the legacy and the explicit fold partition.
   Integrity gate: legacy gives 0.872875 at 0.023, bit-equal to the stored calibration, and
   explicit gives 0.871125, or nothing is promoted. Post hoc, descriptive, changes no stored value
   or verdict.
+
+- **2026-10-17 - L1 GATE-0 ORACLE UNDER BOTH PARTITIONS (G47), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G47; artifacts
+  `artifacts/fold_rescore/gate0_l1_{legacy,explicit}.json`).** Agent-free, ran 2026-10-17 (UTC) at
+  `75ce098`; read 2026-10-19. Integrity passes: legacy gives 0.872875 at grid 0.023, bit-equal to
+  `artifacts/expA/l1_calib.json`, and explicit gives 0.871125. Label: REPRODUCED. The oracle at
+  0.023 reads 0.873 on the legacy partition and 0.871 on the explicit one. No prediction was
+  stated. Changes no stored value or verdict.
 
 - **2026-10-17 - C1 STATE DUMPS REGENERATED ON THIS MACHINE (G57), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section G57).** C1's state dumps are
@@ -1533,12 +1711,30 @@ Rigor carried from the B-v3 audit (2026-07-10):
   probe-penalty and within-episode readouts are omitted and the miss is reported. Post hoc,
   descriptive, changes no stored value or verdict.
 
+- **2026-10-17 - C1 STATE DUMPS REGENERATED ON THIS MACHINE (G57), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section G57; report
+  `artifacts/repro_check_c1_regen/c1_regen_local_stack.json`; the dumps are not shipped).** Ran
+  2026-10-17 (UTC) at `75ce098`. Integrity passes: 60 dumps written and every regenerated target
+  within 0.002 of its recorded value, 60 of 60, max abs target delta 0.00165; 22 of 60 equal to the
+  bit. Label: WITHIN TOLERANCE, so the C1 rows of G01 and G04 are kept, labeled "cross-stack
+  regenerated, max abs target delta = 0.00165". No prediction was stated. Changes no stored value
+  or verdict.
+
 - **2026-10-17 - THE DRAG COMPARATOR'S ORACLE AT EPS 6.0 (H31), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section H31).** Agent-free. The gate-0
   oracle of the hand-authored quadratic drag at eps 4, 6 and 8, eps 6 being the setting the
   comparator runs used. Integrity gate: the eps 4 and 8 oracle readings equal the stored sweep bit
   for bit, or the run is void. The reading enters no gate; the drag's gate 0 stays failed whatever
   eps 6 reads. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - THE DRAG COMPARATOR'S ORACLE AT EPS 6.0 (H31), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section H31; artifact
+  `artifacts/agent_free/qd_eps6_oracle.json`).** Agent-free, ran 2026-10-17 (UTC) at `75ce098`; the
+  script exits 1 by design when no eps passes gate 0, and the second of two runs is the output.
+  Integrity passes: the eps 4 and 8 oracle readings equal the stored sweep bit for bit (0.656 and
+  0.697), and the floors agree within 0.01, so no cross-stack note is triggered. Label: (b)
+  OUTSIDE. The eps 6 oracle reads 0.671, outside [0.85, 0.95]. It enters no gate, and the drag's
+  gate 0 stays failed. No prediction was stated. Changes no stored value or verdict.
 
 - **2026-10-17 - L1 NONLINEAR STATE PROBE (H53), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-closing-readouts-design.md`, section H53).** An MLP and a random forest
@@ -1547,12 +1743,36 @@ Rigor carried from the B-v3 audit (2026-07-10):
   target at drift 0.023 reproduces 0.5506 within 1e-9, or nothing is reported. Post hoc,
   descriptive, changes no stored value or verdict.
 
+- **2026-10-18 - L1 NONLINEAR STATE PROBE (H53), RESULT (spec
+  `docs/specs/2026-10-17-closing-readouts-design.md`, section H53; artifact
+  `artifacts/expL1/l1_nonlinear_corrected.json`).** Ran 2026-10-18 (UTC) at `75ce098`, after the B1
+  bit check passed. Integrity passes: the linear C = 1 survival target at drift 0.023 reproduces
+  0.5506 with mean absolute difference 0.0. Label: (b), both nonlinear probes under 0.65 on
+  survival at drift 0.023: random forest 0.529 [0.516, 0.543] and MLP 0.534 [0.512, 0.557], against
+  the linear 0.551 [0.531, 0.570]. No prediction was stated. Descriptive, changes no stored value
+  or verdict.
+
 - **2026-10-17 - NUDGE DOSE-RESPONSE (X01), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X01).** C1's survival and
   untrained agents, nudged along the decoded direction and a sham at 0.5, 1, 2 and 4 standard
   deviations, with a positive control along the actor-sensitive direction. Integrity gate: the 1 s
   real and sham scores reproduce the local B5 rerun within 0.01, arm by arm under the NaN rule, or
   nothing is reported. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-19 - NUDGE DOSE-RESPONSE (X01), RESULT: STOPPED at gate (I) (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X01; no artifact).** Ran 2026-10-18
+  to 2026-10-19 (UTC) at `75ce098` and stopped at its integrity gate, as the spec requires. The
+  owner decided on 2026-10-19 (00:19 UTC) to record the step as stopped, with no survival-only
+  reading. Gate (I) passed on the survival arm (10 of 10 seeds, 1 s real and sham equal to the B5
+  rerun) and failed on the untrained arm: seed 9 has an empty pool in the nudge run and a finite
+  value in the B5 rerun, a NaN on one side only. Nothing was read or reported, and no summary was
+  computed from the per-seed checkpoints. Disclosures: the positive control moved behavior in 10 of
+  10 survival seeds; `scripts/run_nudge_dose_readout.py`:249-253 writes no 1 s block for an empty
+  pool and counts it as a failure, so the spec's exclusion of seeds empty on both sides (0, 6 and 7
+  here) is unreachable in the script, and seed 9 fails regardless of that defect; while diagnosing,
+  seed 0's survival per-magnitude scores were printed to the session (one seed, raw), and no other
+  seed or summary was looked at. The prediction (gate (i) passes and the label is "not used up to 4
+  s") was not tested.
 
 - **2026-10-17 - DEVELOPMENT ON A FIXED WALK (X02), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X02).** The residual controls of
@@ -1561,12 +1781,30 @@ Rigor carried from the B-v3 audit (2026-07-10):
   within 1e-6, and the recorded observations equal the collected episodes, or nothing is reported.
   Post hoc, descriptive, changes no stored value or verdict.
 
+- **2026-10-19 - DEVELOPMENT ON A FIXED WALK (X02), RESULT: NOT RUN (owner decision 2026-10-18,
+  before any result was seen).** The owner's final run list of 2026-10-18 (22:47 UTC) left this
+  step out, and it was never launched. No artifact. Every disclosure it would have replaced stands:
+  the development readout's control readings are on own episodes and have no walk-fixed
+  counterpart.
+
 - **2026-10-17 - HEAD OVERLAP (X03), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X03).** The overlap of the decoded
   direction with the actor, critic and decoder weights of C1's three arms, and the one-step action
   and recurrence sensitivities along it. Integrity gate: the fitted probe reproduces each cell
   target within 0.002, 30 of 30, or nothing is reported. Post hoc, descriptive, changes no stored
   value or verdict.
+
+- **2026-10-19 - HEAD OVERLAP (X03), RESULT (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X03; artifact
+  `artifacts/head_overlap/corrected_l3_h8_wm.json`).** Ran 2026-10-19 (UTC) at `75ce098`. Integrity
+  passes: the fitted probe reproduces the cell target within 0.002 on 30 of 30 arm-cells. Label:
+  undetermined. The survival arm's r_actor reads 0.905 [0.495, 1.315] and its one-step action ratio
+  1.242 [0.899, 1.585] (ratios to the random expectation), so neither "policy-blind" (both upper
+  bounds under 0.5) nor "policy-read" (both lower bounds above 2) holds. The prediction,
+  "policy-blind" with the decoder block reading u above its expectation, was not borne out: the
+  decoder state block reads 1.005 [0.944, 1.065], at its expectation (declared weak in advance). A
+  one-step overlap is not a behavioral test, and X01, which would have measured that, stopped at
+  its gate. Changes no stored value or verdict.
 
 - **2026-10-17 - SURPRISE ACROSS SNAPSHOTS (X04), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X04).** C1's prediction-error
@@ -1575,12 +1813,23 @@ Rigor carried from the B-v3 audit (2026-07-10):
   surprise artifact within 1e-6, or nothing is reported. Post hoc, descriptive, changes no stored
   value or verdict.
 
+- **2026-10-19 - SURPRISE ACROSS SNAPSHOTS (X04), RESULT: NOT RUN (owner decision 2026-10-18,
+  before any result was seen).** The owner's final run list of 2026-10-18 (22:47 UTC) left this
+  step out, and it was never launched. No artifact. Every disclosure it would have replaced stands:
+  the surprise readout on identical input (0.626 against 0.764) and the withdrawn reading of
+  FINDINGS 18.3 stay as written.
+
 - **2026-10-17 - PREQUENTIAL CODE LENGTH (X05), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X05).** The online code length of
   the registered probe over training prefixes taken in whole twin groups, on the stored dumps of
   six runs, read only as a seed-paired difference between arms. Integrity gate: the full-n AUROC
   reproduces each dir's recorded target within 1e-9 (C1 within the G57 tolerance), or that cell is
   void. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-19 - PREQUENTIAL CODE LENGTH (X05), RESULT: NOT RUN (owner decision 2026-10-18, before
+  any result was seen).** The owner's final run list of 2026-10-18 (22:47 UTC) left this step out,
+  and it was never launched. No artifact. Every disclosure it would have replaced stands: no
+  code-length column sits beside the probe-penalty table.
 
 - **2026-10-17 - SPARSE SUPPORT (X06), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X06).** The L1-penalized probe at
@@ -1589,17 +1838,46 @@ Rigor carried from the B-v3 audit (2026-07-10):
   fit that did not converge is not read. Post hoc, descriptive, changes no stored value or
   verdict.
 
+- **2026-10-19 - SPARSE SUPPORT (X06), RESULT: NOT RUN (owner decision 2026-10-18, before any
+  result was seen).** The owner's final run list of 2026-10-18 (22:47 UTC) left this step out, and
+  it was never launched. No artifact. Every disclosure it would have replaced stands: the salience
+  reading gains no support-size number.
+
 - **2026-10-17 - PELLET-DENSITY DOSE (X07), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X07).** The registered pooled
   probe on C1's three arms in evaluation worlds with 2 to 96 pellets. Integrity gate: the
   24-pellet row reproduces every cell target within 0.002, 30 of 30, or the run is void. Post hoc,
   descriptive, changes no stored value or verdict.
 
+- **2026-10-19 - PELLET-DENSITY DOSE (X07), RESULT (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X07; artifact
+  `artifacts/pellet_dose/corrected_l3_h8_wm.json`).** Ran 2026-10-19 (UTC) at `75ce098`. Integrity
+  passes: the 24-pellet row reproduces every cell target within 0.002, 30 of 30. Label:
+  locomotion-carried. At 2 pellets the survival arm reads 0.726 [0.655, 0.796], +0.197 [+0.117,
+  +0.278] over the untrained arm. The prediction, that the survival reading falls toward 0.57 to
+  0.64 at low density, was not borne out: the survival curve is flat at 0.72 to 0.73 from 2 to 96
+  pellets. The untrained trunk replaying the survival arm's own episodes reads 0.620 to 0.660
+  across densities, so the walk's input carries much of the reading. Every row carries "gate-0
+  oracle not recalibrated at this density". The run used `--workers 2` where the sealed command
+  says 4; values are unaffected. No verdict; changes no stored value.
+
 - **2026-10-17 - BUDGET-CURVE DYNAMICS (X08), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X08).** Agent-free, on the
   committed budget curve and cells of C1 and C2. Disclosed as post hoc: its numbers were seen in a
   scratch read before the rule was written. Integrity gate: the inputs equal the committed
   artifact and cells bit for bit. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-17 - BUDGET-CURVE DYNAMICS (X08), RESULT (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X08; artifact
+  `artifacts/budget_curve_dynamics/corrected_runs.json`).** Agent-free, ran 2026-10-17 (UTC) at
+  `75ce098`; read 2026-10-19. Integrity passes: the input arrays equal the committed budget curve
+  and cells bit for bit. Labels: C1 "tracks budget" (target per 100 updates +0.064 [+0.047,
+  +0.080], on return +0.090 [-0.026, +0.195]); C2 "both" (on return +0.177 [+0.001, +0.316], whose
+  lower bound is +0.0005 to four decimals; per 100 updates +0.021 [+0.002, +0.049]); the C2
+  100-to-200 segment label "decodability moves without return" is NOT met (target +0.037 [-0.006,
+  +0.079]). The prediction that the segment label is not met was borne out. The slope intervals are
+  seed-bootstrap 90 percent intervals. Post hoc: its numbers were seen in a scratch read before the
+  rule was written. Changes no stored value or verdict.
 
 - **2026-10-17 - BAYES FACTORS WITH AN INTERVAL NULL (X09), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X09).** Agent-free, on committed
@@ -1608,6 +1886,22 @@ Rigor carried from the B-v3 audit (2026-07-10):
   equals its committed artifact bit for bit. The result annotates and never relabels, and no label
   enters a claims row. Post hoc, descriptive, changes no stored value or verdict.
 
+- **2026-10-17 - BAYES FACTORS WITH AN INTERVAL NULL (X09), RESULT (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X09; artifact
+  `artifacts/bayes_factors/interval_null.json`).** Agent-free, ran 2026-10-17 (UTC) at `75ce098`;
+  read 2026-10-19. Integrity passes: every input equals its committed artifact. The spec reports the
+  labels only in the manuscript's appendix table; here each reading is given at the 0.707 scale, to 3
+  significant digits: (1) the C1 L0 registered pair, BF01 = 0.133 (annotation, 0.707 scale); (2) the
+  eight independent L0 pairs, signed BF01 = 224 (annotation, 0.707 scale) and folded BF01 = 3.73
+  (annotation, 0.707 scale); (3) B1 drift-0 survival BF01 = 0.747 (annotation, 0.707 scale) and B2
+  BF01 = 4.99 (annotation, 0.707 scale); (4) the sweep C stored contrast BF01 = 89.1 (annotation,
+  0.707 scale) and the follow-up contrast BF01 = 38.4 (annotation, 0.707 scale); (5) corrected L1
+  survival minus untrained BF01 = 4.13 (annotation, 0.707 scale) and minus predictor BF01 = 21.2
+  (annotation, 0.707 scale). Prediction (1) was borne out; predictions (2) to (5) were not, in any of
+  their eight rows. The predictions predate a scratch read during script development that saw several
+  of these values, which the spec discloses. The factors annotate and never relabel, and none enters
+  a claims row. Changes no stored value or verdict.
+
 - **2026-10-17 - FULL-RANK ERASURE (X10), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-extension-readouts-design.md`, section X10).** The rank-two erasure of
   the C1 survival agents extended until an in-fold refit probe reads 0.55 or less, or the rank
@@ -1615,6 +1909,17 @@ Rigor carried from the B-v3 audit (2026-07-10):
   amendment. Integrity gates: the rank-two values reproduce the stored erasure artifact within
   0.01, or nothing is reported; the refit reaches the stop in at least 8 of 10 seeds, or only k is
   reported. Post hoc, descriptive, changes no stored value or verdict.
+
+- **2026-10-18 - FULL-RANK ERASURE (X10), RESULT: VOID (gate E) (spec
+  `docs/specs/2026-10-17-extension-readouts-design.md`, section X10; no artifact).** Ran 2026-10-18
+  (UTC) at `75ce098` with `--max-rank 16 --refit-stop 0.55 --swap`. Gate (I) passed: the rank-two
+  values reproduced the stored erasure artifact within 0.01. Gate E failed, so no use reading was
+  made: the in-fold refit reached the 0.55 stop by rank 16 in 1 of 10 seeds (seed 5, at rank 2; the
+  rule needs 8); in the other 9 it stayed above 0.55 up to the rank cap of 16. Nothing was
+  promoted; the per-seed values live in the run output
+  (`fullruns/closing_2026-10/x10/corrected_l3_h8_wm.json`), not in a committed artifact. The
+  prediction (gate E passes with k between 4 and 10) was not borne out. The stored rank-two reading
+  stands as recorded.
 
 ## 13. How to run (milestones, in order)
 

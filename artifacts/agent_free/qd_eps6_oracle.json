@@ -1,0 +1,114 @@
+{
+  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
+  "sigma_meas": 0.02,
+  "band": [
+    0.85,
+    0.95
+  ],
+  "floor_tol": 0.1,
+  "drift": 0.45,
+  "floor_seeds": [
+    0,
+    1,
+    2
+  ],
+  "g_seed": 0,
+  "rows": [
+    {
+      "family": "qd",
+      "eps": 4.0,
+      "oracle_auroc": 0.6555555555555556,
+      "in_band": false,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.6736111111111112,
+      "floor": 0.559779614325069,
+      "floor_per_seed": [
+        0.48636363636363644,
+        0.5673553719008264,
+        0.6256198347107438
+      ],
+      "floor_ok": true,
+      "pool_reward_leak_per_seed": [
+        0.5314049586776859,
+        0.5338842975206611,
+        0.5504132231404959
+      ],
+      "passes_gate0": false
+    },
+    {
+      "family": "qd",
+      "eps": 6.0,
+      "oracle_auroc": 0.6708333333333333,
+      "in_band": false,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.7166666666666667,
+      "floor": 0.6095041322314051,
+      "floor_per_seed": [
+        0.506198347107438,
+        0.6057851239669422,
+        0.7165289256198347
+      ],
+      "floor_ok": false,
+      "pool_reward_leak_per_seed": [
+        0.5570247933884298,
+        0.5359504132231405,
+        0.5545454545454545
+      ],
+      "passes_gate0": false
+    },
+    {
+      "family": "qd",
+      "eps": 8.0,
+      "oracle_auroc": 0.6972222222222222,
+      "in_band": false,
+      "mech_leak_pass": true,
+      "oracle_reward_leak": 0.7541666666666667,
+      "floor": 0.6818181818181818,
+      "floor_per_seed": [
+        0.5822314049586776,
+        0.6723140495867769,
+        0.790909090909091
+      ],
+      "floor_ok": false,
+      "pool_reward_leak_per_seed": [
+        0.578512396694215,
+        0.5396694214876033,
+        0.5537190082644627
+      ],
+      "passes_gate0": false
+    }
+  ],
+  "regression_ok": null,
+  "selected_hidden": null,
+  "selected": null,
+  "provenance": {
+    "generated_by": "scripts/run_expA_l3.py",
+    "git_commit": "75ce098",
+    "tracked_changes_at_generation": [],
+    "stack": {
+      "python": "3.13.2",
+      "numpy": "1.26.4",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "machine": "AMD64",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "scipy": "1.15.3",
+      "sklearn": "1.5.2",
+      "torch": "2.7.0+cu126",
+      "torch_threads": 1,
+      "device": "cpu"
+    },
+    "argv": [
+      "--family",
+      "qd",
+      "--qd-epss",
+      "4.0",
+      "6.0",
+      "8.0",
+      "--device",
+      "cpu",
+      "--json",
+      "fullruns/closing_2026-10/h31/qd_eps6_oracle.json"
+    ]
+  }
+}

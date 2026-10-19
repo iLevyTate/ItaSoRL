@@ -1,0 +1,80 @@
+{
+ "script": "scripts/run_expB_full.py",
+ "align": "obs_then_action",
+ "config": {
+  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
+  "steps": 28,
+  "ray_steps": 5,
+  "pool": 150,
+  "sub": 110,
+  "epochs": 15,
+  "hidden": 96,
+  "seeds": [0, 1, 2],
+  "drifts": [0.0, 0.2, 0.45],
+  "fold_scheme": "explicit"
+ },
+ "drift_sweep": [
+  {
+   "drift": 0.0,
+   "target_mean": 0.4984848484848485,
+   "target_std": 0.04616442094846285,
+   "shuffled_mean": 0.5106980633159378,
+   "shuffled_std": 0.05896064919010539,
+   "speed_mean": 0.9067470878911751,
+   "speed_std": 0.02638740043849492,
+   "per_seed": {
+    "target": [0.5409090909090908, 0.5202479338842976, 0.43429752066115707],
+    "shuffled": [0.43383430162940434, 0.5771211719623013, 0.5211387163561076],
+    "speed": [0.870387866963954, 0.9322032114638485, 0.9176501852457231]
+   }
+  },
+  {
+   "drift": 0.2,
+   "target_mean": 0.5078512396694215,
+   "target_std": 0.0504888111466129,
+   "shuffled_mean": 0.5267752615063532,
+   "shuffled_std": 0.028267548736057375,
+   "speed_mean": 0.9058392996838157,
+   "speed_std": 0.004980868873764365,
+   "per_seed": {
+    "target": [0.5012396694214876, 0.44958677685950404, 0.5727272727272728],
+    "shuffled": [0.5003487531013565, 0.5659656442541421, 0.5140113871635611],
+    "speed": [0.8989563995039467, 0.9105779952948145, 0.9079835042526858]
+   }
+  },
+  {
+   "drift": 0.45,
+   "target_mean": 0.5443526170798899,
+   "target_std": 0.03730367307548153,
+   "shuffled_mean": 0.5508250378486931,
+   "shuffled_std": 0.009872180520088656,
+   "speed_mean": 0.9071285665699481,
+   "speed_std": 0.004499845792197972,
+   "per_seed": {
+    "target": [0.49958677685950414, 0.590909090909091, 0.5425619834710744],
+    "shuffled": [0.5465645042222582, 0.5414411476260985, 0.5644694616977226],
+    "speed": [0.9097970397607386, 0.9107975645635829, 0.9007910953855227]
+   }
+  }
+ ],
+ "figure": "fullruns/closing_2026-10/expB_obs_then_action_local/expB_incidental.png",
+ "provenance": {
+  "generated_by": "scripts/run_expB_full.py",
+  "git_commit": "75ce098",
+  "tracked_changes_at_generation": [],
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "machine": "AMD64",
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "torch_threads": 1,
+   "device": "cpu"
+  },
+  "argv": ["--align", "obs_then_action", "--out-dir", "fullruns/closing_2026-10/expB_obs_then_action_local"]
+ }
+}

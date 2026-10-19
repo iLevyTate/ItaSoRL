@@ -1,6 +1,6 @@
 """Exporter: real recorded runs -> viz/data/scene.json for the outreach film player.
 
-Record-then-render (spec docs/superpowers/specs/2026-07-14-outreach-video-design.md):
+Record-then-render (spec docs/specs/2026-07-14-outreach-video-design.md):
 rolls a saved survival agent in the authentic world and the L3 learned-surrogate
 world on identical seeds, samples the terrain fields the player bakes, and fails
 loudly if the film's caption numbers drift from the committed corrected-trainer

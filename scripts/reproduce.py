@@ -775,10 +775,13 @@ INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "
 # Run bundles the archive carries when they exist under --runs-root (default fullruns/). They
 # are gitignored by design. The corrected runs' directories (cells, saved agents, state dumps)
 # exist only where those runs were trained; their cell records ship either way under
-# artifacts/corrected_runs/. The saved agents of the historical hidden-8 held-out run and of
-# the hidden-8 seed-2 GPU run (60 files each) back the direction-of-rearing readout, the
-# drift-0.45 world-sample check and the committed artifacts read from them. A bundle that is
-# absent is reported on the console and in README_SUPPLEMENT.md, never skipped silently.
+# artifacts/corrected_runs/. The saved agents of the historical hidden-8 held-out run (60 files)
+# back the direction-of-rearing readout and the drift-0.45 world-sample check
+# (artifacts/l0_audit/reverse_direction_l3_h8_heldout.json, d045_world_samples_l3_h8_heldout.json).
+# The hidden-8 seed-2 GPU run's agents (60 files; the 30 drift-0 files equal the held-out run's)
+# back no committed readout and have no integrity reference of their own; both readout scripts
+# gate against the held-out run's targets. A bundle that is absent is reported on the console
+# and in README_SUPPLEMENT.md, never skipped silently.
 RUN_DIRS = ["fullruns/corrected_l3_h8_wm", "fullruns/corrected_l3_h8_nowm",
             "fullruns/l3_h8_heldout/agents", "fullruns/l3_h8_gseed2_gpu/agents",
             "fullruns/balanced_confirmation_wm", "fullruns/balanced_confirmation_touch",
@@ -813,9 +816,10 @@ RUN_INCLUDED_NOTES = {
         "`fullruns/corrected_l3_h8_wm` holds the cells and saved agents of a rerun of C1 on the "
         "same stack, made to keep the agents. Its pooled targets equal the committed C1 cells in "
         "60 of 60 arm-cells (docs/FINDINGS.md 18.1). The agents include the survival arm's "
-        "budget snapshots. State dumps are not shipped: `python scripts/regenerate_state_dumps.py "
-        "--run-dir fullruns/corrected_l3_h8_wm --out-dir <dir> --report <json>` rebuilds them "
-        "from the agents and checks every pool against its recorded target."),
+        "budget snapshots. State dumps are not shipped: `ITASORL_FOLDS=explicit python "
+        "scripts/regenerate_state_dumps.py --run-dir fullruns/corrected_l3_h8_wm --out-dir <dir> "
+        "--report <json>` rebuilds them from the agents and checks every pool against its "
+        "recorded target."),
     "fullruns/corrected_l3_h8_nowm": (
         "`fullruns/corrected_l3_h8_nowm` holds the cells and saved agents of a rerun of C2 on the "
         "same stack, made to keep the agents. All 5000 values its cells share with the committed "
@@ -823,10 +827,13 @@ RUN_INCLUDED_NOTES = {
         "for C1."),
     "fullruns/l3_h8_heldout/agents": (
         "`fullruns/l3_h8_heldout/agents` holds the saved agents of the historical hidden-8 "
-        "held-out run (pre-correction trainer)."),
+        "held-out run (pre-correction trainer). The direction-of-rearing and drift-0.45 "
+        "world-sample readouts replay from them (docs/REPRODUCE.md, \"Replay from the "
+        "archive\")."),
     "fullruns/l3_h8_gseed2_gpu/agents": (
         "`fullruns/l3_h8_gseed2_gpu/agents` holds the saved agents of the historical hidden-8, "
-        "G seed 2 run on GPU (pre-correction trainer)."),
+        "G seed 2 run on GPU (pre-correction trainer). They back no committed readout and have "
+        "no integrity reference of their own; their 30 drift-0 files equal the held-out run's."),
     "fullruns/balanced_confirmation_wm": (
         "`fullruns/balanced_confirmation_wm` holds the B1 cells, saved agents, frozen "
         "normalizers and matched-world sensory-control output. Seed base 910000. "
@@ -873,8 +880,9 @@ RUN_INCLUDED_NOTES = {
 
 # The review build (--profile review). TMLR accepts at most 100 MB of supplementary material,
 # and the full build was 501 MB on 2026-10-16, nearly all of it run bundles. The review build
-# carries the saved agents of the held-out and seed-2 runs, from which the direction-of-rearing
-# and world-sample readouts replay, and the saved agents and cells of the C1 and C2 reruns
+# carries the saved agents of the held-out run, from which the direction-of-rearing and
+# world-sample readouts replay, those of the seed-2 run, which back no committed readout, and
+# the saved agents and cells of the C1 and C2 reruns
 # (2026-10-17), from which a reviewer rebuilds their state dumps with
 # scripts/regenerate_state_dumps.py, which opens <run>/cells/ beside <run>/agents/. The rerun
 # cells differ byte for byte from the committed artifacts/corrected_runs cells, so the agents
@@ -1049,8 +1057,11 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
          "and their links to the repository and to files outside the archive do not resolve.",
          "",
          "## Install and run", "",
-         "- Python 3.10 to 3.13. Install the dependencies with "
-         "`pip install -r requirements-dev.txt`.",
+         "- Python 3.10 to 3.13. Create a virtual environment first (`python3 -m venv .venv && "
+         ". .venv/bin/activate`; on Windows `py -m venv .venv`, then `.venv\\Scripts\\activate`), "
+         "since a current Debian or Ubuntu system Python refuses a bare `pip install`, then "
+         "install the dependencies with `pip install -r requirements-dev.txt`. Every `python` "
+         "below is that environment's interpreter.",
          "- `python -m pytest -q` runs the test suite, about 20 minutes on a laptop CPU.",
          "- `python scripts/audit_stats_recheck.py` runs the scalar audit, a few seconds.",
          "- `python scripts/reproduce.py tables --check` compares the shipped tables and gates "
@@ -1058,7 +1069,10 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
          "audit; it exits 3 when a shipped page is stale. Without `--check` it rewrites a stale "
          "page and still exits 3.",
          "- `python scripts/reproduce.py retrain C1` prints the commands that retrain a run "
-         "(hours of CPU; costs in docs/REPRODUCE.md section 2).",
+         "(hours of CPU; costs in docs/REPRODUCE.md section 2). Every output goes under the "
+         "retrain folder, dist/retrain_<date> by default (`--dest`), the follow-up readouts "
+         "under its readouts/ folder; a recipe that runs a bash script needs Git Bash on "
+         "Windows.",
          "- Bit-exact equality holds only on the stack and machine that wrote a result. To replay a "
          "saved-agent readout on another machine, use the pinned CPU stack "
          "(constraints-cpu-corrected.txt, Python 3.11) as in docs/REPRODUCE.md, \"Supported-stack "
@@ -1109,10 +1123,11 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
           "built.", ""]
     if profile == "review":
         L += ["This is the review build, sized for a 100 MB limit on supplementary material. "
-              "It carries only the saved agents of the historical hidden-8 held-out run and of "
-              "the hidden-8 seed-2 run, from which the direction-of-rearing and world-sample "
-              "readouts replay, and the saved agents and cells of the C1 and C2 reruns, from "
-              "which their state dumps rebuild. It carries no state dumps.", ""]
+              "It carries only the saved agents of the historical hidden-8 held-out run, from "
+              "which the direction-of-rearing and world-sample readouts replay, those of the "
+              "hidden-8 seed-2 run, which back no committed readout, and the saved agents and "
+              "cells of the C1 and C2 reruns, from which their state dumps rebuild. It carries "
+              "no state dumps.", ""]
     absent = []
     for r, n in status:
         if n is not None:
@@ -1149,8 +1164,10 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
               "artifacts/corrected_runs/, so every corrected table rebuilds without training. "
               "`python scripts/reproduce.py retrain C1 --execute` retrains C1 and `retrain C2 "
               "--execute` retrains C2 (about 3 h 20 min and 4 h 25 min on 4 CPU workers, "
-              "docs/REPRODUCE.md section 2), under dist/retrain_<date>; each prints the "
-              "readout-only follow-ups that need the saved agents.", ""]
+              "docs/REPRODUCE.md section 2), under the retrain folder dist/retrain_<date> "
+              "(`--dest`); each prints the readout-only follow-ups that need the saved agents, "
+              "which write under dist/retrain_<date>/readouts/, and a compare step that sets the "
+              "retrained cells beside the committed ones.", ""]
     L.append("A run whose bundle is not listed as included has no saved agents or state dumps "
              "here; its committed per-seed records are under artifacts/.")
     L += ["", "## Files", ""]

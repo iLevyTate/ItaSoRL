@@ -86,6 +86,12 @@ python scripts/audit_behavior_mediation.py /tmp/T-touch_states \
 
 ## L3 owed runs (human-launched, GPU)
 
+Status (2026-10-19): every step in this section has been run. The DONE and Result comments
+below give the date (2026-07-13 or 2026-07-14), outcome and output directory of each run; the
+hidden=7 behavior-mediation audit has no dated comment, and its artifact,
+`artifacts/expB2/behavior_audit_l3_h7_traces.json`, is committed. The heading keeps its
+original name because `docs/PREREGISTRATION_L3.md` cites it.
+
 Pre-registered follow-ups needing fresh dumps (the audited n=10 run predates
 the trace extension: no `bta`/`bts`, no checkpoints):
 

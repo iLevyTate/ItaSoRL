@@ -189,7 +189,8 @@ def test_notebook_text_matches_the_record():
     text = "\n".join(_src(c) for c in nb["cells"])
     for stale in ("Zenodo", "paper's archive", "published with the paper", "hidden-8 agents",
                   "inform the paper", "learned-texture claim", "about half a day",
-                  "expect noticeably longer", "reproduce the research"):
+                  "expect noticeably longer", "reproduce the research",
+                  "No such specification exists", "one comparator-trained run"):
         assert stale not in text, stale
     assert "learned-texture rule, which remains unmet" in text
     assert "scripts/reproduce.py retrain C1" in text

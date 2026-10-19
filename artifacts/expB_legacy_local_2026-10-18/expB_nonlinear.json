@@ -1,0 +1,66 @@
+{
+ "script": "scripts/run_expB_nonlinear.py",
+ "align": "legacy",
+ "config": {
+  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
+  "steps": 24,
+  "ray_steps": 5,
+  "pool": 150,
+  "sub": 110,
+  "epochs": 15,
+  "hidden": 96,
+  "seeds": [0, 1, 2],
+  "drifts": [0.0, 0.45],
+  "probe": "random forest, 200 trees, random_state 0",
+  "fold_scheme": "explicit"
+ },
+ "drift_sweep": [
+  {
+   "drift": 0.0,
+   "target_mean": 0.46515151515151515,
+   "target_std": 0.018898151940652908,
+   "speed_mean": 0.8591190916080285,
+   "speed_std": 0.015445645453942598,
+   "shuffled_mean": 0.5116027462434215,
+   "shuffled_std": 0.05711778903490745,
+   "per_seed": {
+    "target": [0.48801652892561986, 0.465702479338843, 0.4417355371900826],
+    "speed": [0.8445258434213084, 0.880491573606111, 0.8523398577966657],
+    "shuffled": [0.4485541380053061, 0.5868571027953516, 0.4993969979296066]
+   }
+  },
+  {
+   "drift": 0.45,
+   "target_mean": 0.4859504132231405,
+   "target_std": 0.03391493944751711,
+   "speed_mean": 0.8935526817964042,
+   "speed_std": 0.007120092104089689,
+   "shuffled_mean": 0.48351238214321307,
+   "shuffled_std": 0.02183360694937265,
+   "per_seed": {
+    "target": [0.48243801652892565, 0.4462809917355372, 0.5291322314049587],
+    "speed": [0.8896020909262017, 0.9035490863311428, 0.8875068681318682],
+    "shuffled": [0.5081008912385214, 0.4550436568474326, 0.48739259834368537]
+   }
+  }
+ ],
+ "provenance": {
+  "generated_by": "scripts/run_expB_nonlinear.py",
+  "git_commit": "75ce098",
+  "tracked_changes_at_generation": [],
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "machine": "AMD64",
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "torch_threads": 1,
+   "device": "cpu"
+  },
+  "argv": ["--align", "legacy", "--out-dir", "fullruns/closing_2026-10/expB_legacy_local"]
+ }
+}

@@ -1,0 +1,157 @@
+{
+ "generated_by": "scripts/validate_population_readout.py",
+ "git_commit": "75ce098",
+ "run_dir": "fullruns/corrected_l3_h8_wm",
+ "drift": 0.45,
+ "seeds": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9
+ ],
+ "panels": {
+  "survival": {
+   "per_individual": [
+    0.6284796012068739,
+    0.7459024381102304,
+    0.5986469518937051,
+    0.6275360281853788,
+    0.6400498491407582,
+    0.5463615749330035,
+    0.6892561983471075,
+    0.6563117257922453,
+    0.7479901051329623,
+    0.6076750810517044
+   ],
+   "mean": 0.6488209553793969,
+   "t90": [
+    0.61185315546823,
+    0.6857887552905637
+   ],
+   "share_ge_065": 0.4,
+   "pooled_probe": 0.6088348765432098,
+   "pooled_probe_world_grouped": 0.6166916577782162,
+   "pooled_probe_world_grouped_ci": [
+    0.5919237475075588,
+    0.6417851907750883
+   ],
+   "n_world_groups": 110
+  },
+  "untrained": {
+   "per_individual": [
+    0.5556537396121884,
+    0.5351783137497425,
+    0.5216178482412249,
+    0.6417018046888178,
+    0.5178726035868892,
+    0.5904761904761905,
+    0.5674972299168975,
+    0.6089875346260387,
+    0.550588444744289,
+    0.5959977324263038
+   ],
+   "mean": 0.5685571442068583,
+   "t90": [
+    0.545213386686949,
+    0.5919009017267677
+   ],
+   "share_ge_065": 0.0,
+   "pooled_probe": 0.5360210254916857,
+   "pooled_probe_world_grouped": 0.5373668366243728,
+   "pooled_probe_world_grouped_ci": [
+    0.515820911353142,
+    0.5596339549840246
+   ],
+   "n_world_groups": 108
+  }
+ },
+ "value_of_world_information": {
+  "per_seed": [
+   {
+    "matched_return": -0.09407897141919724,
+    "best_single_return": 0.04258910923928952,
+    "value_of_information": -0.13666808065848676
+   },
+   {
+    "matched_return": -0.09569098097901532,
+    "best_single_return": -0.07874523093735017,
+    "value_of_information": -0.016945750041665153
+   },
+   {
+    "matched_return": -0.005097285316829209,
+    "best_single_return": 0.008036336547555034,
+    "value_of_information": -0.013133621864384243
+   },
+   {
+    "matched_return": -0.09308613096742399,
+    "best_single_return": -0.02748408180498657,
+    "value_of_information": -0.06560204916243742
+   },
+   {
+    "matched_return": -0.0770072758329141,
+    "best_single_return": -0.050783422764438826,
+    "value_of_information": -0.026223853068475272
+   },
+   {
+    "matched_return": -0.1606548858623273,
+    "best_single_return": -0.08999524811583381,
+    "value_of_information": -0.07065963774649348
+   },
+   {
+    "matched_return": 0.17993102618399448,
+    "best_single_return": 0.15093218807913472,
+    "value_of_information": 0.02899883810485976
+   },
+   {
+    "matched_return": -0.184356060081249,
+    "best_single_return": -0.0049599719070541615,
+    "value_of_information": -0.17939608817419483
+   },
+   {
+    "matched_return": -0.028045607495087152,
+    "best_single_return": 0.006889567436318203,
+    "value_of_information": -0.034935174931405355
+   },
+   {
+    "matched_return": -0.14295929567641158,
+    "best_single_return": -0.09626416280788358,
+    "value_of_information": -0.046695132868528
+   }
+  ],
+  "mean": -0.05612605504112108,
+  "t90": [
+   -0.0917791297035059,
+   -0.020472980378736266
+  ]
+ },
+ "group_by_world_seed": true,
+ "git_commit_at_promotion": "75ce098",
+ "tracked_changes_at_generation": [],
+ "stack": {
+  "python": "3.13.2",
+  "numpy": "1.26.4",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "OMP_NUM_THREADS": "1",
+  "MKL_NUM_THREADS": "1",
+  "scipy": "1.15.3",
+  "sklearn": "1.5.2",
+  "torch": "2.7.0+cu126",
+  "torch_threads": 1,
+  "device": "cpu"
+ },
+ "agents_dir": "fullruns/corrected_l3_h8_wm/agents",
+ "argv": [
+  "--run-dir",
+  "fullruns/corrected_l3_h8_wm",
+  "--out",
+  "fullruns/closing_2026-10/b4/corrected_l3_h8_wm_world_grouped.json",
+  "--group-by-world-seed"
+ ]
+}
