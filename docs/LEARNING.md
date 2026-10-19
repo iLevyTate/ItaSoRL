@@ -4,7 +4,8 @@ This is the explainer. Every term, experiment, and process in ordinary English,
 then the research it sits on (APA 7 at the end). Written for an adult, not a
 child. Acts 1 to 9 of section 8 keep their numbers as first recorded, and every
 survival creature in them was trained with the historical trainer. Section 8 was
-updated 2026-10-06 with the corrected-trainer results (Act 10). Living sources:
+updated 2026-10-06 with the corrected-trainer results (Act 10) and 2026-10-19 with
+Acts 11 and 12, which cover October 11 to 16. Living sources:
 `docs/FINDINGS.md` and `docs/PREREGISTRATION_L3.md`.
 
 Each idea gets a comparison first, then a precise sentence. If you can walk from
@@ -123,13 +124,15 @@ Two mechanical terms that come up constantly:
 
 A **surrogate** is the stand-in world, the counterfeit. The **surrogate ladder**
 is a series of counterfeits, from "photocopy" to "master forger," each with a
-different kind of flaw (the **tell**). Code: `itasorl/world.py` wraps the real
-world, and `itasorl/surrogate_l3.py` builds the learned one.
+different kind of flaw (the **tell**). Code: `itasorl/patch_of_earth.py` selects the
+rung through `drift_mode` ("l1", "ar1", "regime", "l3"), `itasorl/surrogate_l3.py` builds the
+learned law, and `itasorl/world.py` holds the World protocol and the first ladder sketch
+(superseded, see README).
 
 | Rung | Counterfeit comparison | Precisely | Tell |
 |------|------------------------|-----------|------|
 | **L0** | A second genuine bill from the same mint | An identical rebuild of the real world | None. Detection must sit at chance (0.5). This is the honesty check: if the apparatus "detects" L0, the apparatus is broken. |
-| **L1** | A pixelated printout of a photo | Observations snapped to a grid (rounding in space or time; grid spacing 0.06 in the headline) | Staircase patterns and reduced variety, because values can only land on grid points. Visible in a single frame. |
+| **L1** | A pixelated printout of a photo | Observations snapped to a grid (rounding in space or time). Experiment A's ceiling headline uses grid 0.06 (oracle 1.000); the creature's L1 negative is read at the in-band grid 0.023 (oracle 0.873, Act 1 correction and Act 10) | Staircase patterns and reduced variety, because values can only land on grid points. Visible in a single frame. |
 | **L2** | Ink that slowly smears the longer you copy | The drag coefficient drifts during the episode (a slow random walk pulled toward home, called AR(1); strength set by `drift_sigma`) | The physics stops adding up over time: energy and momentum budgets slowly break. You need a window of time to see it, not one frame. |
 | **L2-regime (B-v3)** | Every copy is smeared by one fixed, random amount | The drag offset is constant within an episode but drawn fresh each episode (`drag_mode="regime"`) | A stable handicap you could, in principle, identify and adapt to, rather than a moving wobble. |
 | **L3** | A forger who studied thousands of real bills and now draws them from memory | A small neural network (**G_motion**, or just **G**) is trained to imitate the real motion law, then frozen and swapped in as the world's physics | The **generative fingerprint**: slight blur, missing fine detail, a characteristic learned noise, and **mode collapse** (the forger never draws the rare serial numbers, so rare events stop happening). |
@@ -443,13 +446,17 @@ Precisely (`itasorl/behavior_audit.py`, `scripts/audit_behavior_mediation.py`):
 
 ---
 
-## 8. What We Found So Far (updated 2026-10-06)
+## 8. What We Found So Far (updated 2026-10-19)
 
-The story in ten acts, with real numbers. Remember: 0.5 is blind guessing, 1.0
+The story in twelve acts, with real numbers. Remember: 0.5 is blind guessing, 1.0
 is perfect, and 0.65 is the pre-registered bar. Acts 1 to 5 are the original arc.
 Acts 6 to 9 are the work from September 2026, which narrowed the headline claim in
 one important way and tested it in four others. Act 10 is October 2026: a training
-bug, the reruns, and four new tests that changed what the result means.
+bug, the reruns, and four new tests that changed what the result means. Acts 11 and 12 cover
+October 11 to 16: new jobs for the creature, a confirmation on matched worlds, the L1 rerun, and
+readouts that ask what the signal is and whether the creature uses it. Intervals are 90%
+intervals over the creatures, computed the standard t-based way unless marked as a seed
+bootstrap, a resampling method that comes out a little narrower at ten creatures.
 
 **Act 1: the inspector is nearly perfect (Experiment A).**
 L0 photocopy: inspector 0.523, which is chance, exactly as required (the honesty
@@ -466,8 +473,8 @@ L2 smears read 0.646 and 0.618 while the L3 forger reads 0.928; the L2 artifacts
 only reach 1.000 when the detector is a hundred times sharper. So the project no
 longer says "L2 is more detectable than L3 yet only L3 is encoded". The clean
 matched comparison is L1 against L3: an L1 seam sitting inside the same band
-(0.873 to the inspector) leaves the creature just above chance (0.533) and far
-under the bar, while an in-band forger is read (Act 10 has the corrected
+(0.873 to the inspector) leaves the creature just above chance (0.533 as first
+recorded; 0.551 on the fixed trainer, Act 12) and far under the bar, while an in-band forger is read (Act 10 has the corrected
 reading). Detectable at the creature's own resolution turns out to be necessary
 but not sufficient.
 
@@ -477,15 +484,18 @@ nothing about it in its notebook: target about 0.51 at every drift strength, whi
 the speed control reads about 0.90 (the notebook is perfectly legible, just
 silent on this topic). The prediction-error channel shows a faint 0.596 at the
 strongest drift. Longer imagination horizons: no lift. The stronger reader (a
-random forest): nothing. This is the headline negative: detectable does not mean
+random forest): nothing. A later check found that this creature's model received each action
+one step late, which made it a weaker predictor than designed; retrained in October 2026 with
+the timing corrected, it reads the same (0.544 against 0.517 with the old timing, three seeds
+each). This is the headline negative: detectable does not mean
 encoded. Nothing about predicting the next moment requires caring whether the drag
 slowly wobbles.
 
 **Act 3: even hunger does not make L2 matter (B-v2, B-v3).**
 Make it life and death: the survival creature at L2 drift reads 0.523 (plus or
 minus 0.045) in the authoritative replication, and an earlier run's 0.595 did not
-reproduce. A steady per-episode handicap (B-v3) reaches 0.610, interval [0.585,
-0.634], still under the bar. Even force-feeding the answer (the sysid capacity
+reproduce. A steady per-episode handicap (B-v3) reaches 0.610 (seed-bootstrap interval [0.585,
+0.634]; t-based [0.581, 0.639]), still under the bar. Even force-feeding the answer (the sysid capacity
 ceiling) saturates the pooled readout at only 0.596. This is a strengthened
 negative: for hand-tuned artifacts, survival pressure does not create incidental
 encoding.
@@ -502,7 +512,8 @@ survives the nonlinear probe.
 Then comes the deflating objection: behavior alone reveals the world at 0.803,
 better than the state probe, so maybe the reader is just seeing the limp. The
 pre-registered per-timestep control answers it: after surgically subtracting the
-behavior trace, 0.726 remains (90% CI [0.685, 0.765]; 9 of 10 seeds clear the bar;
+behavior trace, 0.726 remains (seed-bootstrap 90% interval [0.685, 0.765], t-based [0.679, 0.772];
+9 of 10 seeds clear the bar;
 the quadratic version is 0.721). A later audit widened that subtraction to also
 remove the creature's absolute position and heading, the one covariate the two
 worlds' different motion laws could smuggle in; the signal barely moved, to 0.723,
@@ -528,8 +539,8 @@ negative. The cause: it had been calibrated on the wrong world settings before a
 fix. The fix: gate-0 became a committed, runnable per-capacity check, and a fresh
 recalibration sweep re-froze the second capacity at hidden=7 (inspector 0.922, in
 band; floor 0.566, elevated but within tolerance). The hidden=7 run of 10 seeds
-then passed every gate. Results: the survival target is 0.737 (90% CI [0.688,
-0.780], 8 of 10 seeds), and the signal left after the behavior control replicates almost
+then passed every gate. Results: the survival target is 0.737 (seed-bootstrap 90% interval
+[0.688, 0.780], t-based [0.682, 0.791]; 8 of 10 seeds), and the signal left after the behavior control replicates almost
 exactly at 0.722 versus 0.726 at hidden=8. But the predictor now also reads 0.714,
 only 0.023 behind survival, so the pre-registered "survival must beat predictor by
 0.05" requirement fails. The reading: the hidden=7 forger is a coarser, more
@@ -675,6 +686,67 @@ With more practice the gap narrows but holds. At 450 updates the creature withou
 imagination job reads 0.685, and the one with it 0.821, while both collect about the
 same reward, which is a coarse measure and not a skill match.
 
+**Act 11: does it need survival, and does it hold on new creatures? (October 11 to 13).**
+Two new jobs asked whether the result needs the threat of death. In the first, death was
+switched off and the creature was paid for every food pellet it ate. Its state read the world
+at 0.796, and the run was first recorded as passing every check. A day later a mistake turned
+up in one of those checks: the test for reward leaking into the reading had added up the
+creature's comfort signal instead of the pellets it ate. The 0.796 stays as a number, but
+whether the run passes the full rule was never established (FINDINGS 18.2 and 18.7;
+`docs/CORRECTIONS.md`, 2026-10-12). In the second, the survival creature kept its job and lost
+its death. It read 0.744, with the honesty check of Act 10 still open, so removing death
+changed nothing measurable. In both runs, nudging the creature's state along the decoded
+direction changed its behavior no more than a sham nudge. That says the registered nudge found
+no use of the direction. It does not prove the direction is unused (FINDINGS 18.3).
+
+The other forgers of Acts 5 and 7 were trained again with the fixed trainer. The hidden=7 forger
+fails its calibration check on the untrained floor, so that run is off-design. The second
+hidden=8 forger reads 0.659 but is uninformative, because a speed check and the honesty check
+fail. The hidden=10 forger reads 0.626, under the bar, with both margins passing (FINDINGS 20.2).
+
+Then came a confirmation frozen before it ran: ten new creatures (seeds 10 to 19), each fake
+episode paired with a real one on the same world. The survival job reads 0.800 and the pellet
+job 0.843. Both runs are uninformative all the same, because an untrained network already
+reads 0.614 there, outside the 0.1 tolerance around chance. A random brain's own walk already
+separates the matched worlds, so the run cannot say what training added. A sensory control
+written after those results were known, and before any trained creature was scored under it,
+subtracts what the last two observations predict. It leaves 0.761 and 0.780, with the
+untrained network at 0.596 and an interval (0.577 to 0.615) that crosses 0.60 (FINDINGS 21). On
+the one pair of real worlds where the honesty check of Act 10 stays open, these new survival
+creatures read 0.561 (interval 0.527 to 0.595), so that open check repeats on a second set of
+creatures.
+
+**Act 12: the L1 rerun, and four questions about what the signal is (October 15 and 16).**
+The L1 pixelation run of the Act 1 correction was the one verdict-bearing creature run with
+no rerun on the fixed trainer. Rerun on the fixed one, it reads 0.551 (interval 0.531 to
+0.570), with 0 of 10 seeds at the bar; the old creatures, scored the same way, read 0.552 (FINDINGS 22.1). So the L1
+negative does not depend on the trainer bug. The interval excludes 0.5, so this is a reading
+under the bar, not a proof that nothing is there.
+
+Does the creature's own surprise detect the fake? Feed every brain the same episodes, and an
+untrained, randomly wired predictor separates the worlds better than the trained one (0.764
+against 0.626). Creatures raised in the real world are also more surprised by real episodes.
+Surprise tracks how predictable a stream is, not which law the creature grew up under
+(FINDINGS 22.2).
+
+Is it the consistency of the error? Velocity jitter that stays correlated over time was matched
+to the plain jitter three ways: same one-step size, same long-run offset, and same drift over 24
+steps. No setting reaches the bar, and correlation did not raise the reading; with the 24-step
+drift matched exactly at the two most correlated settings and within 1.1 percent at the
+uncorrelated one, the contrast also misses the equivalence band by 0.001. The drag of Act
+10 and the forger still share one thing the jitter lacks: how hard each pushes depends on how
+fast the body already moves. That stays a lead, not a measured mechanism (FINDINGS 22.3).
+
+Four readouts on the saved creatures of Act 10 close the month (FINDINGS 23). The world
+direction is faint in the state's own geometry, in trained and untrained brains alike (23.1).
+No named nearby feature of the creature's own world is kept beyond what a summary of its
+senses explains (23.2). Removing the decoded direction while the creature acts changes its
+behavior no more than a sham removal, but a probe refit on the erased states still reads
+0.747, so the removal bounds what that one direction carries, not what the state carries
+(23.3). And across training snapshots, the signal left after a linear control on the senses
+grows, by +0.224 with the imagination job and +0.104 without it, while the probe direction
+itself reorganizes (23.4).
+
 **Honest caveats, current scoreboard:**
 
 - At L3 the registered rule is not met as a whole: the honesty check with both
@@ -691,6 +763,15 @@ same reward, which is a coarse measure and not a skill match.
   creatures 0.723 survives the per-timestep control and 0.620 survives the strongest
   well-fitting control, which is under the bar; the senses and actions alone read
   0.724 (Act 10).
+- At L1 the creature's state stays under the bar: 0.551 on the fixed trainer, beside
+  0.533 as first recorded on the historical one (Act 12; Act 1 correction). The interval
+  excludes chance, so this is a reading under the bar, not a demonstrated absence.
+- Survival is not required for a decodable walk: the pellet job with death off reads 0.796,
+  though its full rule was never established, and the matched-world confirmation is
+  uninformative because an untrained network already reads 0.614 there (Act 11).
+- Pushing the state along the decoded direction, or removing that direction while the
+  creature acts, moves its behavior no more than a sham does, and its own surprise does not
+  show that it detects the fake (Acts 11 and 12). Neither test proves the direction is unused.
 - There are 10 seeds, one world family, and one frozen oracle band. The positive
   comes from one trunk width, a 96-unit GRU. The only other width that was run is
   8 units, in the two comparator-trained texture runs and in Experiment C's evolved
@@ -717,7 +798,9 @@ same reward, which is a coarse measure and not a skill match.
   a little low (0.609 against 0.649 one by one) but does not go blind.
 
 Where results live: `docs/FINDINGS.md` (the narrative), `docs/PREREGISTRATION_L3.md`
-section 12 (the dated lab log), `artifacts/expB2/*.json` (the committed numbers),
+section 12 (the dated lab log), `artifacts/` (the committed numbers; the saved creatures of the corrected L3 runs
+(C1, C2, the pellet and death-off runs, the corrected instance and comparator runs) are on
+the repository's `run/*` branches),
 and `fullruns/` (the full bundles, ignored by git, with the latest pointer in
 `results/LATEST_RUN.txt`). A verification script recomputes the statistics it guards
 from the committed per-seed results and compares each with a copy of the quoted value
@@ -814,7 +897,7 @@ the training defect of Act 10 passed it for months.
 | Signal B | Route 2: your predictions feel wrong in the fake (prediction-error texture) | theory |
 | Substrate | The computational machinery under the world; the only allowed source of tells | core invariant |
 | Surrogate | The stand-in world; the counterfeit | ladder |
-| Surrogate ladder | The series of counterfeits, from L0 photocopy to L4 master forger | `world.py` |
+| Surrogate ladder | The series of counterfeits, from L0 photocopy to L4 master forger | `patch_of_earth.py` (`drift_mode`) |
 | Survival (agent) | The hungry survivor arm (A2C plus GAE plus a prediction side task) | B-v2/L3 |
 | Survivorship check | No missing bodies: zero early deaths so pools are unbiased (110 of 110) | gates |
 | Tabula rasa | Blank slate: no pre-trained knowledge, everything learned from experience | core invariant |

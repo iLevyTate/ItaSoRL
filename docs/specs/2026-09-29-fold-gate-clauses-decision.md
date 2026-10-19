@@ -5,6 +5,13 @@ Status: **DRAFT, awaiting the owner's call.** Nothing here is a new measurement.
 number is re-read from `artifacts/fold_rescore/*.json` and the promoted run artifacts, and
 the arithmetic is reproducible from those files alone.
 
+Status update (2026-09-30, recorded 2026-10-19): both calls were taken on 2026-09-30, by
+reporting rather than by running. The L0 equivalence clause is reported as an open clause,
+and hidden 7 stays the second in-band capacity with the at-tolerance floor qualifier. The
+outcome is in `docs/FINDINGS.md` section 16 and `docs/STATUS_2026-09-27.md`; the explicit
+partition was then frozen for the corrected runs in
+`docs/specs/2026-10-06-primary-analysis-and-l0.md`.
+
 Two pre-registered gate clauses flip when the published dumps are re-scored under the
 stack-independent fold partition (FINDINGS section 16): the hidden 7 gate-0 untrained floor,
 and the L0 authentic-vs-authentic equivalence test on the GPU-scored runs. FINDINGS records

@@ -3,6 +3,17 @@
 
 *Working design document. Part I is the conceptual overview and research plan; Part II is the methodological hardening and implementation roadmap.*
 
+> **The pre-study research plan of 2026-06, kept as written (status note, 2026-10-19).** This
+> plan was written in June 2026, before any run. Its "not yet" statements describe the project
+> at that time and are left as written. The world it calls unspecified is specified in
+> [`docs/ITASORL_world_spec.md`](ITASORL_world_spec.md), and the hypotheses and tests it
+> proposes were frozen in the preregistrations (`docs/PREREGISTRATION.md`,
+> `docs/PREREGISTRATION_Bv3.md`, `docs/PREREGISTRATION_L3.md`, `docs/PREREGISTRATION_C.md`).
+> The results are in [`docs/FINDINGS.md`](FINDINGS.md) (section 17 for the corrected trainer),
+> and what changed is recorded in [`docs/CORRECTIONS.md`](CORRECTIONS.md). Part II's roadmap
+> dates are planned dates, not a log. The paragraphs marked "added 2026-10" were written after
+> the corrected runs.
+
 ---
 
 Can a blank-slate digital organism, trained only on what it lives, tell that its

@@ -1,6 +1,16 @@
 # Revision 2026-10 quality audit (2026-10-07)
 
-Produced by a 208-agent audit run against main at 329dfb7: ten independent auditors, three adversarial verifiers per finding, a completeness critic, and a synthesizer. Findings are listed only if at least two of three verifiers re-established them from the files. The manuscript under docs/paper was read, never edited. This file is not committed; it is the hand-off record for the next agent.
+Produced by a 208-agent audit run against main at 329dfb7: ten independent auditors, three adversarial verifiers per finding, a completeness critic, and a synthesizer. Findings are listed only if at least two of three verifiers re-established them from the files. The manuscript under docs/paper was read, never edited. This file is not committed; it is the hand-off record for the next agent. [Correction, 2026-10-19: the file was committed in 7aeb249 (PR #121) and is kept as a dated snapshot.]
+
+> **Status (2026-10-19, read first).** The FAIL verdict and the 13 blockers below are the
+> 2026-10-07 snapshot and are kept as written. Hand-off items 0 to 10 were closed, or
+> recorded as left as written by owner decision, by 2026-10-08: the insert below names PRs
+> #121 to #123 and the manuscript for the items it lists, and items 8 and 9 landed in PR #125. The authoritative status is [`docs/REVISION_2026-10.md`](REVISION_2026-10.md)
+> and [`docs/CORRECTIONS.md`](CORRECTIONS.md). Item 11 is done: v1.2.0 to v1.4.1 are
+> tagged, `CITATION.cff` reads 1.4.1, and the plain-language paper page lives in the paper
+> repository. The social-preview card upload is the one hand-off item still owed; this line
+> is to be marked done when it is uploaded. This file is deliberately not shipped in the
+> anonymized supplement.
 
 ## Progress since this audit ran (appended 2026-10-08; findings above are unchanged)
 
@@ -52,6 +62,8 @@ been done against the hand-off list since:
   or source for it exists in the repository.
 - **Still open**: item 11 (version bump, release tag, and the plain-language paper page), and
   the social-preview card re-upload.
+  [Correction, 2026-10-19: item 11 is done; see the status note above. The social-preview
+  upload is tracked in `docs/REVISION_2026-10.md`.]
 
 ## Verdict: FAIL
 

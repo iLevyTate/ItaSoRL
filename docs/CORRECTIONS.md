@@ -210,6 +210,12 @@ signal under the bar (17.8), the common garden reads the physical footprint (17.
 hand-authored coherent perturbation is read like the learned one (17.9). These are recorded as
 claim decisions in `docs/REVISION_2026-10.md`.
 
+*(Follow-up 2026-10-19: the 0.493 is the average of the eight signed pair means. The
+two-one-sided test over them, a diagnostic that the L0 audit artifact carries and the frozen
+spec does not name, accepts equivalence to 0.5 at p = 0.022 on those signed means. Folded about
+0.5, the same eight draws average 0.537 and give p = 0.129, not equivalent. The registered L0
+gate is the TOST on the registered pair, so neither form changes a gate or verdict.)*
+
 ## 2026-10-06: branch history rewritten to keep the manuscript tables out of main
 
 **What.** Three commits on the revision branch had committed the LaTeX tables generated for the
@@ -299,6 +305,16 @@ frozen.
 **What this does not change.** Both readouts scored the agents their specs named, and neither
 result moves. None of the other agent sets has been scored by either design. Like every saved
 agent set, these directories are gitignored local files and are not in the repository.
+
+*(Follow-up 2026-10-19: both designs have since scored the corrected `C1` agents, on 2026-10-18,
+as post hoc readouts (`docs/specs/2026-10-17-closing-readouts-design.md`, sections G02 and B3).
+The world-sample readout reads C1's eight independent drift-0.45 draws at 0.685 to 0.829, label
+R1 SECURE, with C1's own between-draw SD 0.052
+(`artifacts/l0_audit/d045_world_samples_corrected_l3_h8_wm.json`); the record's 0.042
+propagation stays. The reverse-direction readout reads the drift-0 agents at 0.754 [0.721,
+0.787], label R1 CARRIED, descriptive on C1 with no rule-ledger row
+(`artifacts/l0_audit/reverse_direction_corrected_l3_h8_wm.json`). No stored value or verdict
+changes.)*
 
 ## 2026-10-10: three Experiment B cells in FINDINGS 3.1 were off by 0.001
 
@@ -805,6 +821,19 @@ recorded L1 number stands.
 paper quotes (0.873) is the grid-residual oracle, which understates what the agent's own
 stream carries. The negative is read against the higher ceiling from here on.
 
+*(Follow-up 2026-10-19: the 0.873 ceiling is the oracle on the legacy fold partition. Rerun
+agent-free on 2026-10-17 under both partitions
+(`docs/specs/2026-10-17-closing-readouts-design.md`, section G47;
+`artifacts/fold_rescore/gate0_l1_{legacy,explicit}.json`), it reproduces 0.872875 at grid 0.023
+on the legacy partition, bit-equal to `artifacts/expA/l1_calib.json`, and reads 0.871125 on the
+explicit one: REPRODUCED, 0.873 legacy and 0.871 explicit. No stored value or verdict changes.)*
+
+*(Follow-up 2026-10-19: the results manifest filed `artifacts/expL1/observation_ceiling.json`
+under the July L1 organism run, `L1-ORGANISM` (commit `8a71593`), although
+`scripts/run_l1_observation_ceiling.py` wrote it for this entry. It now has its own manifest
+entry, `L1-OBSERVATION-CEILING`, which names that runner and `2c170f0`, the commit that added
+the file. The file is unchanged.)*
+
 ## 2026-10-12: the pellet run's leakage gate summed the homeostatic reward
 
 **What was wrong.** `collect_pool` and the matched-pair branch added `r.reward` regardless of
@@ -818,6 +847,14 @@ matched-world rerun is FINDINGS 21.
 
 **What this does not change.** No committed `T-touch` number. The historical leakage readings
 on survival and predictor runs used the reward those runs trained on, so they stand.
+
+*(Follow-up 2026-10-19: commit `2c170f0` of 2026-10-12, one day after `T-touch` was promoted,
+also changed the touch engagement gate: it gained an absolute floor of 0.25 pellets per episode
+beside the 1.5x ratio (`TOUCH_ENGAGE_MIN_PELLETS` in `itasorl/experiment_b2.py`). No frozen
+text, section-12 entry or entry here recorded it at the time. The goal-and-stakes spec now
+carries a dated post-run note on it (`docs/specs/2026-10-07-goal-and-stakes-design.md`,
+2026-10-17). `T-touch` was adjudicated under the ratio rule, and every one of its cells also
+clears the later floor; its verdict is not re-adjudicated and no recorded value changes.)*
 
 ## 2026-10-14: the workstation NumPy pin is not an official Python 3.13 wheel
 
@@ -856,6 +893,13 @@ A later readout on the saved agents, `scripts/audit_balanced_matched_gates.py`,
 scored the retained pairs. Leakage stays within 0.1 of 0.5 in every pool. The
 speed probe is under 0.75 on the untrained arm at seed 19 (0.749) in both runs.
 That readout is not folded back into the historical cell files.
+
+*(Follow-up 2026-10-19: the promoter's `reason` field named only the untrained floor, though the
+matched speed gate fails as well. It now lists every failed gate: "gates not held: matched speed
+(min 0.749 under 0.75); untrained floor (0.114 from 0.5, outside the 0.1 floor)". `b1.json` and
+`b2.json` were regenerated in place on 2026-10-17 (`4a4bb13`), adding a `fingerprint` key read
+from the cells and changing no other field. The decision, the gates and every number are
+unchanged.)*
 
 ## 2026-10-15: world-feature distances were toroidal in a walled world
 
@@ -953,6 +997,22 @@ read with the caveat that its prediction-only arm was a weaker predictor than de
 results, the B-v2 predictor arm and the survival-trained L2 run (B-v3, FINDINGS 9) do not use
 this path.
 
+*(Follow-up 2026-10-19: the corrected run this entry anticipates ran on 2026-10-18 on this
+machine under the opt-in alignment and the legacy one, three seeds each, with no saved agent
+(`docs/specs/2026-10-17-closing-readouts-design.md`, section C1;
+`artifacts/expB_legacy_local_2026-10-18/` and `artifacts/expB_aligned_2026-10-18/`, JSON only).
+At drift 0.45 the prediction-only state reads 0.544 ± 0.037 with correct timing and
+0.517 ± 0.056 under the legacy pairing, both inside the recorded row's interval [0.429, 0.591] around
+0.510 ± 0.039, so the label is RESTORE and the L2 negative stands with correct timing. The
+prediction-error channel reads 0.599 ± 0.007 aligned and 0.596 ± 0.004 legacy. The effect on
+decodability is therefore measured, and the weaker-predictor caveat above is read with it. The
+frozen spec printed the recorded interval as [0.430, 0.591], a rounding slip: its formula gives
+[0.429, 0.591], and no label moves, since 0.517 and 0.544 lie inside either way. No stored
+number or verdict changes.)*
+
+*(Follow-up 2026-10-19: the survival-trained L2 run named above, B-v3, is reported in
+FINDINGS 7.1, not section 9, which holds the B-v2 arc.)*
+
 ## 2026-10-16: the development readout's transfer column is in-sample by world seed
 
 **What was wrong.** The development readout (FINDINGS 23.4) reports that the frozen 300-update
@@ -977,6 +1037,14 @@ reading, if one is run, is a separate post hoc readout beside this one.
 cosine between the 300 and 450-update directions alone (0.40 on `C1`, 0.42 on `C2`). The transfer
 reading enters only as an extra condition of the "one axis sharpens" label, which the cosines
 already rule out. The residual growth readings and the auxiliary reading do not use the column.
+
+*(Follow-up 2026-10-19: the held-out reading ran on 2026-10-18 as a separate post hoc readout
+(`docs/specs/2026-10-17-closing-readouts-design.md`, section B6;
+`artifacts/development/heldout_transfer.json`), on fresh pools at bases 2700000 and 2750000,
+after reproducing the in-sample column within 1e-9. The frozen 300-update probe reads the
+450-update states at 0.736 [0.680, 0.791] on `C1` and 0.632 [0.594, 0.670] on `C2`, against the
+in-sample 0.785 and 0.689 (label REPORTED). No threshold reads the column; the stored values and
+the "reorganizes" label stay as recorded.)*
 
 ## 2026-10-16: the control diagnostics called a_t an action the trunk received
 
@@ -1117,6 +1185,19 @@ registered pools, whose authentic and surrogate episodes come from separate seed
 replay readout of FINDINGS 22.2 draws its two pools from separate seed bases (800000 and 850000),
 so its episodes have no twins and it is not affected.
 
+*(Erratum 2026-10-19: two statements of the Change paragraph no longer hold, that the stored
+values are not rescored and that the `T-touch` and `S-immortal` agents are not on this machine.
+The agents are on this machine (from the run branches `run/T-touch` and `run/S-immortal`, copied
+under `fullruns/branch_preserve/`), and the three runs were rescored with twin groups on
+2026-10-18, readout only, into new files (`docs/specs/2026-10-17-closing-readouts-design.md`,
+section B5; `artifacts/goal_stakes_grouped_surprise/{C1,T-touch,S-immortal}.json`). Grouped, the
+surprise AUROC reads 0.856 [0.791, 0.922] for `C1`, 0.917 [0.897, 0.937] for `T-touch` and 0.859
+[0.814, 0.904] for `S-immortal`: GROUPED ABOVE 0.65 in all three, so each stored lower bound and
+its verdict agree with the grouped value. The stored 0.846, 0.912 and 0.848 are not rewritten
+and stay the recorded values. `T-touch` and `S-immortal` reproduce their stored ungrouped values
+exactly (worst 0.0000); `C1`'s stored file came from another stack, and its ungrouped surprise misses 0.01
+on five survival seeds (worst 0.051), a cross-stack note that does not void the comparison.)*
+
 ## 2026-10-16: two seeds of the seeds 10 to 19 runs trained on the same worlds
 
 **What.** Survival training worlds start at `100000 + 10000 * seed` and predictor training
@@ -1159,6 +1240,16 @@ criterion.
 **What this does not change.** No number or verdict. H_B2 was applied with its thresholds
 unchanged, and the 2026-07-21 spec had framed the run as a positive control expected to show
 encoding. The not-met reading stands, at 0.533 and, on the corrected trainer, 0.551.
+
+*(Follow-up 2026-10-19: two post hoc readouts on the corrected L1 agents ran on 2026-10-18
+(`docs/specs/2026-10-17-closing-readouts-design.md`, sections B1 and H53). At the supra-band
+grid 0.06 the state readout registers this class of seam: the untrained arm reads 0.672 [0.640,
+0.704], label (a) SENSITIVE (`artifacts/expL1/l1_coarse_grid_{corrected,historical}.json`), so
+the not-met reading is a negative at grid 0.023, not an insensitivity of the readout to the
+class; the survival arm reads below the untrained arm there (-0.029 [-0.062, +0.005]). A random
+forest and an MLP read the survival state at 0.529 and 0.534 at grid 0.023, both under 0.65,
+label (b) (`artifacts/expL1/l1_nonlinear_corrected.json`). No rule, number or verdict above
+changes.)*
 
 ## 2026-10-16: the development readout left out its walk-held-fixed column
 
@@ -1204,6 +1295,20 @@ for a dated amendment to the erasure spec that says it was written after the fir
 
 **What this does not change.** No number. The contrasts were never read against a threshold,
 and the common-survivor readings, which the spec froze, are unchanged.
+
+*(Follow-up 2026-10-19: the runner's source now labels the contrasts "post hoc, defined after
+the first full run", and the erasure spec carries a dated post-run note (2026-10-19) that says
+the same; the committed artifact keeps the label it was written with.)*
+
+*(Follow-up 2026-10-19: the full-rank extension of this readout, run on 2026-10-18
+(`docs/specs/2026-10-17-extension-readouts-design.md`, section X10), is VOID for survival under
+its gate E. Gate (I) passed: the rank-two values reproduced the stored artifact within 0.01.
+Gate E failed, so no use reading was made: the in-fold refit reached the 0.55 stop by rank 16 in
+1 of 10 seeds (seed 5, at rank 2; the rule needs 8); in the other 9 it stayed above 0.55 up to
+the rank cap of 16. Nothing was promoted; the per-seed values live in the run output
+(`fullruns/closing_2026-10/x10/corrected_l3_h8_wm.json`), not in a committed artifact. The
+rank-two reading stands as recorded. The prediction (gate E passes with k between 4 and 10)
+was not borne out.)*
 
 ## 2026-10-16: a better-fitting long-history control is on record
 
@@ -1257,6 +1362,12 @@ off so the stored bits reproduce.
 vacuous, because the L1 primary probe does not meet the bar and has no structured direction to
 transfer.
 
+*(Follow-up 2026-10-19: the opt-in rerun ran on 2026-10-18 with fresh noise per episode on the
+same 30 agents (`docs/specs/2026-10-17-closing-readouts-design.md`, section B7;
+`artifacts/expL1/l1_h2_noise_per_episode.json`). Survival reads 0.508 [0.485, 0.531] and
+untrained 0.513 [0.488, 0.538], and the call is H2_SUPPORTED, as stored (label SAME CALL): the
+shared draw does not change the call. The stored 0.525, 0.509 and 0.516 stay as recorded.)*
+
 ## 2026-10-16: sweep C draws one jitter realization for every agent seed and arm
 
 **What was wrong.** Sweep C of FINDINGS 22.3 draws the correlated jitter afresh for every
@@ -1281,6 +1392,14 @@ or the manuscript quotes them.
 
 **What this does not change.** No recorded number or reading of sweep C.
 
+*(Follow-up 2026-10-19: a second jitter realization, keyed by agent seed, was drawn on
+2026-10-17 to 2026-10-18 at the two points the stored contrast reads, rho 0 and 0.99, on the same `C1` agents
+(`docs/specs/2026-10-17-closing-readouts-design.md`, section B8;
+`artifacts/texture/ar_sweep_c_realization2/C_rho{0.0,0.99}.json`). Its contrast M(0.99) - M(0)
+reads -0.0002 [-0.027, +0.027], reading (2), within the margin unit, and CONSISTENT with the
+stored matched-gap follow-up -0.017 [-0.051, +0.016]. The stored intervals stay conditional on
+their one realization each.)*
+
 ## 2026-10-16: the `T-qd` artifact names the wrong reference for its sizing
 
 **What was wrong.** The gate-0 note of `artifacts/texture/T_qd_l3_h8_wm.json`
@@ -1297,6 +1416,12 @@ artifact is re-promoted so that only this note changes.
 
 **What this does not change.** No number or reading. The run is off-design, excluded, and bears
 on no rule.
+
+*(Follow-up 2026-10-19: the gate-0 oracle at the eps 6.0 setting was measured agent-free on
+2026-10-17 (`docs/specs/2026-10-17-closing-readouts-design.md`, section H31;
+`artifacts/agent_free/qd_eps6_oracle.json`): 0.671, outside the [0.85, 0.95] band, label (b)
+OUTSIDE; the stored eps 4 and 8 readings, 0.656 and 0.697, reproduce bit for bit. The run stays
+off-design, and the drag's gate 0 stays failed.)*
 
 ## 2026-10-16: the pooled population probe groups folds by pooled row
 
@@ -1316,6 +1441,17 @@ index.
 **What this does not change.** No number. The 0.609 and 0.536 of 17.11 are not regrouped. Those
 agents were trained independently, so they cannot test the relatedness leak, and the Experiment
 C tails were not saved, so its panels cannot be rescored.
+
+*(Follow-up 2026-10-19: an opt-in world-seed grouping was added with the default unchanged, and
+the C1 population readout was rerun on 2026-10-19 with both groupings on the same tails
+(`docs/specs/2026-10-17-closing-readouts-design.md`, section B4;
+`artifacts/population_readout/corrected_l3_h8_wm_world_grouped.json`). Regrouped by world seed,
+the C1 readings are 0.617 (survival) and 0.537 (untrained), against 0.609 and 0.536 grouped by
+row: label DIFFERS, where the spec expected EQUAL. Claim row 49 holds on the world-grouped
+values (0.617 above 0.537 and below 0.649). The label asks for the number of dead pairs, which
+the output did not record; it records only the world-group counts (110 survival, 108 untrained).
+The stored 0.609 and 0.536 stay as recorded, and the Experiment C panels still cannot be
+rescored.)*
 
 ## 2026-10-16: sweep C's matched gap was measured with the per-episode draw off
 
@@ -1405,3 +1541,63 @@ that pair by the survival arm repeats on a second seed set. FINDINGS 21 and the 
 it as descriptive.
 
 **What this does not change.** The reading decides neither run, and no verdict changes.
+
+## 2026-10-17: the steepness-sweep paragraph of FINDINGS 13 said no cell was steeper than the pilot cell
+
+**What was wrong.** The follow-on de-risk paragraph of FINDINGS 13 says that once the gate-1 gap
+is normalized for reach distance "none was steeper than the pilot cell", and it points at the
+gitignored `fullruns/expC_gate1_sweep/steepness.json`. The committed grid,
+`artifacts/expC/gate1_steepness_sweep.json` (the bias-guarded rerun of 2026-07-20, seeds
+7100-7105, disjoint from the certification seeds 7000-7009; `4909f1b`), ranks the cells two
+ways. By raw gap the best cell is reach 0.50 / horizon 60 at 0.00445, 1.9 times the 0.0023 pilot
+baseline. By reach-normalized gap the best cell is reach 0.15 / horizon 80 at 0.0241, against
+0.0132 for the pilot cell (reach 0.25 / horizon 30), so one cell is steeper than the pilot cell
+by that measure. The 2026-07-17 sweep on seeds 7000-7005 that the paragraph was written from
+read the same way, and `docs/PREREGISTRATION_C.md` section 14 item 4 singles out the same reach
+0.15 / horizon 80 cell. That sweep was not promoted, and its output file was overwritten by the
+rerun at the same path. The sentence misread the sweep; it was not superseded.
+
+**Change.** FINDINGS 13 keeps the paragraph as written and gains a dated note directly after it
+(2026-10-17) that gives these values from the committed artifact, the only grid on record.
+
+**What this does not change.** No cell reaches the 0.005 gate-1 margin, which is the reading the
+go/no-go in `docs/PREREGISTRATION_C.md` section 14 item 4 rests on, and the routing to
+controller expressiveness stands on that margin, not on the normalized ranking. The manuscript
+sentence (at most 0.00445, 1.9 times the baseline, no cell reached 0.005) and the no-launch
+disposition do not move. No verdict changes.
+
+## 2026-10-19: follow-up lines for closing-pass readouts that extend no earlier entry
+
+**What.** The closing pass ran post hoc readouts frozen in
+`docs/specs/2026-10-17-closing-readouts-design.md`,
+`docs/specs/2026-10-17-walk-speed-vs-goal-readout-design.md` and
+`docs/specs/2026-10-17-extension-readouts-design.md` and announced in
+`docs/PREREGISTRATION_L3.md` section 12 before they ran, all at `75ce098`. A readout that
+extends an entry above carries its follow-up line there. Each line below extends no entry; it
+names the artifact and the label, and section 12 carries the result entry.
+
+- B2, walk speed against goal direction (run 2026-10-18;
+  `artifacts/walk_speed/corrected_l3_h8_wm.json`): NOT SEPARATED. Reading 1 is UNRESOLVED (1 of
+  10 seeds speed-matched; the rule needs 7), and reading 2 is CLOSED LOOP ADDS (own walk minus
+  replay +0.073 [+0.051, +0.095]).
+- G03, the balanced sensory-echo control on a second draw (run 2026-10-19;
+  `artifacts/balanced_confirmation/sensory_echo_b{1,2}_fresh.json`): the floor is explained on
+  the second draw (untrained `resid_obs` 0.577, 0.077 from 0.5 and inside the 0.1 floor by
+  0.023; first draw 0.596, 0.096 and 0.004; one floor read twice, since B1 and B2 share their
+  untrained and predictor agents), and the reading is sensory-independent under matched worlds
+  for B1 (0.724) and B2 (0.761). The 910000 result is unchanged.
+- X03, head overlap (run 2026-10-19; `artifacts/head_overlap/corrected_l3_h8_wm.json`):
+  undetermined. The prediction, policy-blind, was not borne out.
+- X07, pellet-density dose (run 2026-10-19; `artifacts/pellet_dose/corrected_l3_h8_wm.json`):
+  locomotion-carried (survival 0.726 [0.655, 0.796] at 2 pellets). The predicted fall at low
+  density was not borne out.
+- X08, budget-curve dynamics (run 2026-10-17;
+  `artifacts/budget_curve_dynamics/corrected_runs.json`): C1 tracks budget and C2 both; the C2
+  100-to-200 segment label is not met, as predicted.
+- X09, Bayes factors with an interval null (run 2026-10-17;
+  `artifacts/bayes_factors/interval_null.json`): an annotation that relabels nothing, with its
+  labels only in the manuscript's appendix table; the C1 L0 registered pair reads BF01 = 0.133
+  (annotation, 0.707 scale), and one of the five predictions was borne out.
+
+**What this does not change.** No stored value, label or verdict. X01 stopped at its integrity
+gate and reported nothing, so it has no line here.

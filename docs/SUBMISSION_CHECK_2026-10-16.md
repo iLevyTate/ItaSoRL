@@ -185,6 +185,11 @@ built at `v1.4.1`, before that fix; the fix changes no artifact and no number.
   (`--profile review`, about 40 MB) carries only the held-out and seed-2 agents; the saved
   agents and state dumps of C1, C2, B1, B2 and L1-CORRECTED would need separate anonymous
   hosting if reviewers are to replay those readouts.
+  [Correction, 2026-10-19: since 2026-10-17 the review profile also carries the saved agents and
+  rerun cells of the corrected C1 and C2 runs (`fullruns/corrected_l3_h8_wm/` and `_nowm/`,
+  per-file digests in `SHA256SUMS`), so the C1 and C2 state dumps rebuild from the archive; the
+  about 40 MB above predates them, and the size check before upload decides whether both ship.
+  The B1, B2 and L1-CORRECTED bundles are still left out.]
 - Bit-exact equality holds only on the stack and machine that wrote a result; off that machine
   the replay route of `docs/REPRODUCE.md` gives the measured tolerances.
 - The GPU results depend on the workstation's local NumPy 1.26.4 build, which no one else can

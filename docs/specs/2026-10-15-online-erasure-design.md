@@ -151,3 +151,16 @@ frozen text, stated here before the run:
 The refit curve by rank is reported so a reader can apply another stop. This is the only
 pre-run entry for the extension; a post-run note on the rank-two run's labels is a separate dated
 entry in this file.
+
+## Post-run note 2026-10-19 (not an amendment)
+
+This note changes no reading, threshold, rule or stored value. The rank-two run's
+every-attempted-episode return and termination contrasts (the `population` and `attrition`
+blocks of `artifacts/mechanism/erasure/corrected_l3_h8_wm.json`) were added to the runner after
+the first full run, which scored common survivors only, had been read. They are post hoc and
+descriptive, with no pre-stated reading. The runner labeled them "(third amendment)", but this
+spec had two amendments when they were added, and the only third amendment of 2026-10-15 is the
+world-features spec's (`docs/CORRECTIONS.md`, 2026-10-16). The runner's source now labels them
+post hoc, defined after the first full run; the committed artifact keeps the label it was
+written with. The 2026-10-17 entry above is the amendment for the full-rank extension and is
+not this one.

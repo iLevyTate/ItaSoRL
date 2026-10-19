@@ -18,10 +18,14 @@ supplement" below), and the archive carries no history to check them against.
 ## 1. Inspect the central readouts without training (minutes)
 
 ```bash
+python3 -m venv .venv && . .venv/bin/activate   # Windows: py -m venv .venv, then .venv\Scripts\activate
 pip install -r requirements-dev.txt
 python scripts/reproduce.py tables --check
 python scripts/reproduce.py tables
 ```
+
+Create the environment first: a current Debian or Ubuntu system Python refuses a bare
+`pip install` outside one. Every `python` in this guide is that environment's interpreter.
 
 The first command compares the committed pages below with what the builders produce from the
 committed per-seed artifacts, rewrites nothing, and runs the audit on the pages as shipped. It
@@ -47,15 +51,17 @@ The rebuild writes, from the committed per-seed artifacts under `artifacts/`:
   They stay local like the manuscript: `docs/paper_tables/` and `docs/paper/` are both
   gitignored, nothing in them is committed, and the audit renders the tables in memory.
 
-It then runs `scripts/audit_stats_recheck.py`. The script prints the count (3231 on
-2026-10-17, after the closing-pass checks). **What the audit
-checks:** it recomputes each summary statistic it guards from the committed per-seed
-artifacts and compares it with a copy of the quoted value kept as a constant in the script.
-Those constants mirror numbers quoted in `README.md`, `docs/FINDINGS.md`,
-`docs/PAPER_OUTLINE.md`, `CITATION.cff`, and the B-v3 preregistration's gate entry. The
-script reads the quoted numbers themselves only in a few passages of `docs/FINDINGS.md` (section 17, section
-10.1.1, and selected passages of sections 13 and 14), where it requires them to equal values
-rendered from the artifacts. It also checks that the generated pages above and the site's
+It then runs `scripts/audit_stats_recheck.py`. The script prints the count (3874 on 2026-10-19,
+after the closing-pass checks). Inside the extracted archive the count reads one lower (3873
+checks plus one skipped), because one check reads the film VO and music spec, which the archive
+leaves out; the script names that file on a `[skip]` line and prints the count on a `skipped:`
+line. **What the audit checks:** it recomputes each summary statistic it guards from the
+committed per-seed artifacts and compares it with a copy of the quoted value kept as a constant
+in the script. Those constants mirror numbers quoted in `README.md`, `docs/FINDINGS.md`,
+`docs/PAPER_OUTLINE.md`, `CITATION.cff`, and the B-v3 preregistration's gate entry. The script
+reads the quoted numbers themselves only in a few passages of `docs/FINDINGS.md` (section 17,
+section 10.1.1, and selected passages of sections 13 and 14), where it requires them to equal
+values rendered from the artifacts. It also checks that the generated pages above and the site's
 `index.html` are current, and that retired wording has not returned to the pages it watches.
 **What it does not check:** a number edited by hand in `README.md`, `docs/PAPER_OUTLINE.md`,
 `CITATION.cff`, or a FINDINGS passage the script does not read passes the audit; it reruns no
@@ -77,23 +83,113 @@ included; those are traced by hand through the claims appendix, which names the 
 behind every number that enters a decision, a gate or a headline comparison. "0 items to
 review" means only that the checks above found nothing.
 
-The raw state dumps of `C1` and `C2` are not in git or in the supplement. Where the saved agents
-are at hand (a local run folder, or the full build made on the machine that trained the runs),
-the dumps rebuild from them without retraining, and every pool is checked against its recorded
-target:
+The raw state dumps of `C1` and `C2` are not in git or in the supplement, but the
+review build carries both runs' saved agents and rerun cells (`fullruns/corrected_l3_h8_wm/` and
+`fullruns/corrected_l3_h8_nowm/`, per-file digests in `SHA256SUMS`), so the dumps rebuild from
+them without retraining. The rebuild checks every pool against the target recorded in its cell:
+bit for bit on the stack that recorded it, and within the tolerance given by `--tolerance` on any
+other stack:
 
 ```bash
-python scripts/regenerate_state_dumps.py --run-dir fullruns/corrected_l3_h8_wm --out-dir fullruns/corrected_l3_h8_wm/states
+ITASORL_FOLDS=explicit python scripts/regenerate_state_dumps.py --run-dir fullruns/corrected_l3_h8_wm --out-dir fullruns/corrected_l3_h8_wm/states --report fullruns/corrected_l3_h8_wm/regen_report.json
+# on another stack add --tolerance 0.002; the C1 regeneration row of the replay table in section 2 gives what that check found on the workstation
 ```
 
-The review build carries no `C1` or `C2` agents, so from it the dumps need a retrain:
-`reproduce.py retrain C1 --execute` (section 2), after which they land in
-`fullruns/<run>/states`. With the dumps, the per-seed readouts themselves are recomputed from
-the recurrent states, under both fold partitions and with the behavior control:
+From the review build the dumps rebuild with the command above; a full retrain
+(`reproduce.py retrain C1 --execute` and `reproduce.py retrain C2 --execute`, section 2) is
+needed only to reproduce the training itself. With the dumps, the per-seed readouts themselves are recomputed from the recurrent
+states, under both fold partitions and with the behavior control:
 
 ```bash
 python scripts/reproduce.py tables --dumps fullruns/corrected_l3_h8_wm/states
 ```
+
+The command writes `dist/fold_rescore_<run>.json` and `dist/behavior_audit_<run>.json`, named
+after the run folder above `states`. The explicit-partition targets in the first are read from
+dumps whose pools the rebuild has already checked against the recorded cells. No committed `C1`
+record carries a legacy-partition value, so the legacy half has no committed counterpart and is
+descriptive. The behavior audit can be set beside the committed
+`artifacts/corrected_runs/corrected_l3_h8_wm/behavior_audit.json` with
+`scripts/compare_run_cells.py`; no tolerance for that comparison is on record. After a retrain
+neither output has a committed comparator (section 2).
+
+From a git checkout without the run folders, the same `C1` agents and cells are on the public
+branch `run/C1-rerun` (byte-identical to `fullruns/corrected_l3_h8_wm/agents` and `cells`), and
+`C2`'s are on `run/C2-rerun`. `tables --dumps` accepts a folder outside the repository and names
+its outputs after the folder above `states`:
+
+```bash
+git fetch --depth 1 origin run/C1-rerun
+mkdir -p <dir>
+git archive FETCH_HEAD artifacts/goal_stakes/C1-rerun/agents artifacts/goal_stakes/C1-rerun/cells | tar -x -C <dir>
+ITASORL_FOLDS=explicit python scripts/regenerate_state_dumps.py --run-dir <dir>/artifacts/goal_stakes/C1-rerun --out-dir <dir>/corrected_l3_h8_wm/states --report <dir>/c1_regen.json --tolerance 0.002
+python scripts/reproduce.py tables --dumps <dir>/corrected_l3_h8_wm/states
+```
+
+### Agent-free calibration (seconds to minutes)
+
+The detector AUROC that the README opens with, 0.873 at the organism's grid 0.023, is the gate-0
+oracle of `artifacts/expA/l1_calib.json`, which was scored on the legacy fold partition. Both
+partitions recompute it without agents or training:
+
+```bash
+ITASORL_FOLDS=legacy python scripts/run_expA_l1.py --out <dir>/gate0_l1_legacy.json --deltas 0.022 0.023 0.024
+ITASORL_FOLDS=explicit python scripts/run_expA_l1.py --out <dir>/gate0_l1_explicit.json --deltas 0.022 0.023 0.024
+```
+
+At grid 0.023 the legacy partition gives 0.872875, bit-equal to `artifacts/expA/l1_calib.json`,
+and the stack-independent explicit partition gives 0.871125. The closing pass recorded both on
+2026-10-17 in `artifacts/fold_rescore/gate0_l1_legacy.json` and `gate0_l1_explicit.json`, with
+the neighbouring grids 0.022 and 0.024 beside them.
+
+The L1 observation ceiling (`artifacts/expL1/observation_ceiling.json`, the 2026-10-12 audit in
+`docs/CORRECTIONS.md`) is agent-free too, on the registered scripted pools at grid 0.023:
+
+```bash
+PYTHONPATH=. python scripts/run_l1_observation_ceiling.py --out <dir>/observation_ceiling.json
+```
+
+The script imports the package from the repository root, so it needs `PYTHONPATH=.` unless
+the package is installed, and its default `--out` is the committed file. The committed values
+are episode means 0.977, hydration removed 0.627, grid residual 0.782, L0 control 0.478 and
+same-seed twins 0.995. That file records no commit or stack; it was added in `2c170f0`, and the
+results manifest lists it under its own entry, `L1-OBSERVATION-CEILING`.
+
+### Replay from the archive
+
+Two committed readouts replay from saved agents the review build carries, without training.
+Both read the historical hidden-8 held-out run's agents (`fullruns/l3_h8_heldout/agents`):
+
+```bash
+python scripts/fetch_saved_agents.py --local-dir fullruns/l3_h8_heldout/agents   # checks the ten drift-0.45 survival agents' sha256
+python scripts/reverse_direction.py --agents-dir fullruns/l3_h8_heldout/agents --out <dir>/reverse_direction.json --checkpoint-dir <dir>/ckpt_rd
+python scripts/run_world_sample_sensitivity.py --agents-dir fullruns/l3_h8_heldout/agents --out <dir>/d045.json --checkpoint-dir <dir>/ckpt_ws
+python scripts/compare_run_cells.py --rerun <dir>/reverse_direction.json --committed artifacts/l0_audit/reverse_direction_l3_h8_heldout.json --tolerance 0.01 --out <dir>/compare_rd.json
+python scripts/compare_run_cells.py --rerun <dir>/d045.json --committed artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json --tolerance 0.01 --out <dir>/compare_ws.json
+```
+
+The first readout is the authentic-raised direction: the drift-0 agents of all three arms read
+at drift 0.45 (committed `artifacts/l0_audit/reverse_direction_l3_h8_heldout.json`, verdict
+CARRIED). The second is the drift-0.45 world sample: the ten drift-0.45 survival agents on eight
+independent world-sample pairs (committed
+`artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`, verdict SECURE). Each script first
+rescores the agents at their own drift and compares the pooled targets with those recorded in
+`artifacts/fold_rescore/l3_h8_heldout.json` (its default `--integrity-ref`). The worst absolute
+deviation must be at most 0.01, over 30 cells for the direction readout and 10 seeds for the
+world sample, or the verdict is VOID; the committed runs record 0.0012 and 0.0037. A replay
+counts as reproducing the record when that gate passes, the verdict equals the committed one,
+and `scripts/compare_run_cells.py` lists no readout value that differs by more than 0.01. Its
+report also lists the commit, path, stack and wall-time leaves, which differ by construction.
+Both committed files were written on one laptop CPU and no replay on a second machine is on
+record, so no cross-machine tolerance is claimed for the readout values. The `fetch_saved_agents.py`
+line checks only the ten drift-0.45 survival agents, against the sha256 values recorded in
+`artifacts/l0_audit/d045_world_samples_l3_h8_heldout.json`.
+
+The seed-2 agents (`fullruns/l3_h8_gseed2_gpu/agents`) have no integrity reference or readout of
+their own, so neither script replays from them. Their 30 drift-0 files are byte-identical to the
+held-out run's. Their 30 drift-0.45 agents were trained under G seed 2, and both scripts gate by
+default against the held-out run's recorded targets. They ship as the saved agents of the
+second-seed instance.
 
 ## 2. Retrain (hours of CPU per run)
 
@@ -131,14 +227,19 @@ differences below, not equality.
 uv venv --python 3.11 .venv311
 uv pip install --python .venv311 torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
 uv pip install --python .venv311 -r requirements.txt -c constraints-cpu-corrected.txt
-.venv311/Scripts/python scripts/run_l0_audit.py --agents-dir fullruns/corrected_l3_h8_wm/agents --out <dir>/l0.json
-.venv311/Scripts/python scripts/run_control_diagnostics.py --run-dir fullruns/corrected_l3_h8_wm --out <dir>/cd.json --workers 2
-.venv311/Scripts/python scripts/audit_sensory_echo.py --agents-dir fullruns/balanced_confirmation_wm/agents --cells-dir fullruns/balanced_confirmation_wm/cells --out-dir <dir>/echo_b1 --balanced-seed-base 910000 --objective survival --mortal on --drifts 0.45 --device cpu --no-abort
+uv pip install --python .venv311 -r requirements-dev.txt -c constraints-cpu-corrected.txt   # pytest and ruff, for the tests
+PY=.venv311/Scripts/python   # Windows; on Linux and macOS PY=.venv311/bin/python
+$PY scripts/run_l0_audit.py --agents-dir fullruns/corrected_l3_h8_wm/agents --out <dir>/l0.json
+$PY scripts/run_control_diagnostics.py --run-dir fullruns/corrected_l3_h8_wm --out <dir>/cd.json --workers 2
+$PY scripts/audit_sensory_echo.py --agents-dir fullruns/balanced_confirmation_wm/agents --cells-dir fullruns/balanced_confirmation_wm/cells --out-dir <dir>/echo_b1 --balanced-seed-base 910000 --objective survival --mortal on --drifts 0.45 --device cpu --no-abort
 ```
+
+On Linux and macOS set `PY` as shown. The route has been run on Windows only (Git Bash).
 
 Stack used: Python 3.11.16, torch 2.14.1+cpu, NumPy 2.4.6, scikit-learn 1.9.1, SciPy 1.17.1, on
 the owner's Windows workstation CPU, code at `8664583`. The committed C1 readouts were written on
-the same pins in a Linux CPU container (Python 3.11.17); B1 was written on the workstation GPU
+the same pins in a Linux CPU container (Python 3.11.17) whose image is not public, so the pins
+rebuild its Python packages but not its operating system; B1 was written on the workstation GPU
 stack (Python 3.13.2, torch 2.7.0+cu126, the local NumPy 1.26.4 build).
 
 | readout | committed artifact | equal values | largest per-seed difference | largest difference in a reported mean |
@@ -146,16 +247,50 @@ stack (Python 3.13.2, torch 2.7.0+cu126, the local NumPy 1.26.4 build).
 | L0 audit, C1 | `artifacts/l0_audit/corrected_l3_h8_wm.json` | 1136 of 1376 | 0.0025 (AUROC) | 0.0004 (pair mean); TOST p within 0.0055 |
 | control diagnostics, C1 | `artifacts/control_diagnostics/corrected_l3_h8_wm.json` | 3 of 36 aggregate means | 0.028 (MLP control), 0.017 (sequence GRU) | 0.0041 (sequence GRU); 0.0007 for every linear and ridge readout; target 0.7326 against 0.7330 |
 | sensory echo, B1, GPU to CPU | `artifacts/balanced_confirmation/sensory_echo_b1.json` | 22 of 30 cells pass the 0.0005 integrity gate | 0.0058 | 0.0005; the deciding survival `resid_obs` mean is 0.7608 on both |
+| C1 state-dump regeneration, workstation stack | `fullruns/corrected_l3_h8_wm/cells`, whose pool targets equal the committed C1 cells; report in `artifacts/repro_check_c1_regen/` | 22 of 60 pool targets equal to the bit; 60 of 60 within 0.002 | 0.00165 (max abs target delta) | not computed (the report compares pool targets) |
+
+The C1 regeneration row was measured on 2026-10-17 on the workstation GPU stack with the agents
+on the CPU device (Python 3.13.2, torch 2.7.0+cu126, the local NumPy 1.26.4 build), at code
+`75ce098`, by `scripts/regenerate_state_dumps.py` with `--tolerance 0.002` (report
+`artifacts/repro_check_c1_regen/c1_regen_local_stack.json`).
 
 On B1 eight cells miss the integrity gate by 0.0005 to 0.0012, so the tool withholds its decision,
 as it must for a stored run read on another device: no reading is re-adjudicated on a replay. No
 replayed value crosses a threshold that a committed reading relies on. The C1 state dumps were not
-on this machine, so the control-diagnostics dump comparison did not run.
+on this machine on 2026-10-16, so the control-diagnostics dump comparison did not run.
 
 ```bash
 python scripts/reproduce.py retrain C1            # print the commands
 python scripts/reproduce.py retrain C1 --execute  # run them
+python scripts/reproduce.py retrain C2 --execute  # C2, the run without the auxiliary
 ```
+
+Every output goes under the retrain folder `--dest` (default `dist/retrain_<UTC date>`; the
+repository root and any folder inside `artifacts/` or `docs/` are refused): the run folder in
+`<dest>/fullruns/<run>`, its cells and summaries in `<dest>/corrected_runs/<run>`, and every
+printed follow-up readout in `<dest>/readouts/`, under the relative name the committed file has
+under `artifacts/`. The follow-ups for each run end with the compare step,
+
+```bash
+python scripts/compare_run_cells.py --rerun <dest>/corrected_runs/corrected_l3_h8_wm/cells --committed artifacts/corrected_runs/corrected_l3_h8_wm/cells --out <dest>/readouts/compare_cells_corrected_l3_h8_wm.json
+```
+
+which sets the retrained cells beside the committed ones value by value. Retrained agents differ
+from the record by design, and no retrain of `C1` or `C2` on another stack is on record, so the
+spread between such a retrain and the committed values is unmeasured; read the report as a
+replication, not a reproduction. The retrain also writes state dumps to
+`<dest>/fullruns/corrected_l3_h8_wm/states`, and `python scripts/reproduce.py tables --dumps
+<dest>/fullruns/corrected_l3_h8_wm/states` recomputes the readouts from them. That
+recomputation has no committed comparator: the retrained agents differ from the record by
+design, and no committed `C1` record carries the legacy partition it also produces. The compare
+step is the only comparison.
+
+The recipe runs `scripts/revision/run_corrected_confirmation.sh` under bash. On Windows that
+must be Git Bash: `--execute` refuses the WSL and Store launchers that `bash` often resolves to
+there, falls back to `%ProgramFiles%\Git\bin\bash.exe`, and first checks that the `python`
+inside that bash imports torch. The script calls `python`, `git` and `nproc` from that shell
+and takes the worker count as its second argument (default 4). Outside a git checkout, as in
+the anonymized archive, the commit in its log's START line is empty.
 
 The matched-world confirmations are readout replays on saved agents, not retrains:
 
@@ -166,14 +301,19 @@ python scripts/audit_balanced_matched_gates.py --run fullruns/balanced_confirmat
 
 If either bundle is missing from the supplement, README_SUPPLEMENT.md says so. Absence is not inclusion.
 
-Recipes are recorded for the corrected runs `C1` and `C2`, for the historical CPU runs (with
-`--gae-bootstrap pre_transition`, the historical trainer, kept for exact reproduction), and
-for the published GPU headline. Every other run's configuration is in
-`docs/RESULTS_MANIFEST.md`.
+Recipes are recorded for the corrected runs `C1` and `C2`, for the corrected L1 rerun
+`L1-CORRECTED` (the README's second headline, 0.551), for the matched-world confirmations
+`B1-BALANCED` and `B2-BALANCED` (one CUDA worker each, as their spec ran them), for the
+historical CPU runs (with `--gae-bootstrap pre_transition`, the historical trainer, kept for
+exact reproduction), and for the published GPU headline. `tests/test_expb2_trunk_guard.py`
+checks that every recorded `run_expB2.py` recipe hashes to the configuration fingerprint its
+committed run records, except the GPU headline, whose cells are not committed. Every other run's
+configuration is in `docs/RESULTS_MANIFEST.md`.
 
-Measured cost on a 4-vCPU cloud container (torch 2.14.1+cpu), one cell (three arms at one
-drift and seed, 300 survival updates): about 22 CPU-minutes uncontended, of which survival
-training is about 9 and predictor training about 7. A 20-cell run on 4 workers takes about
+Measured cost on a 4-vCPU cloud container (torch 2.14.1+cpu; Linux x86_64, kernel 6.18.44,
+glibc 2.39, as the per-value report below records it), one cell (three arms at one drift and
+seed, 300 survival updates): about 22 CPU-minutes uncontended, of which survival training is
+about 9 and predictor training about 7. A 20-cell run on 4 workers takes about
 two to three hours; the corrected runs, which extend the survival arm to 450 updates for the
 budget curve, take longer. On this container the original code at `4b6e1f3` reran a committed
 historical CPU cell and reproduced its recorded values, including survival target 0.66570 and
@@ -185,9 +325,15 @@ recorded values of both seed-0 cells of that run exactly
 
 The readout-only follow-ups on a run's saved agents (L0 world-sample audit, policy-controlled
 readouts, controlled persistence, control diagnostics, both texture comparators, population
-readout validation) are printed by `retrain C1` after the training commands, followed by
-the steps that need both runs (verdicts, budget curve, and the exploratory cross-run
-replay). `scripts/revision/run_corrected_readouts.sh` runs the per-run chain unattended. On
+readout validation) are printed by `retrain C1` and `retrain C2` after the training commands,
+each writing under `<dest>/readouts/`, followed by the steps that need both runs (a check that
+the frozen-rule verdicts still match the committed cells, the budget curve, and the
+exploratory cross-run replay). That chain has been run on `C1` only. No committed readout under
+`artifacts/l0_audit/`, `policy_controls/`, `persistence/`, `control_diagnostics/`, `texture/` or
+`population_readout/` is `C2`'s, so the `C2` follow-ups have never been run and have no
+committed counterpart; until 2026-10-17 the printed `C2` policy-controlled line also lacked
+`--no-world-model`, without which a `C2` run gives an empty artifact.
+`scripts/revision/run_corrected_readouts.sh` runs the per-run chain unattended. On
 the revision container the C1 chain took about 2 h 50 min at reduced priority alongside
 the C2 training run; C1 and C2 themselves took about 3 h 20 min and 4 h 25 min on 4 workers
 (C2 shared the CPU with the readouts).
@@ -217,11 +363,15 @@ documents, with a `SHA256SUMS` file. They differ in the run bundles.
 
 The review build (`--profile review`) is the one to submit. TMLR accepts at most 100 MB of
 supplementary material, and the full build was 501 MB on 2026-10-16. The review build carries
-only `fullruns/l3_h8_heldout/agents` and `fullruns/l3_h8_gseed2_gpu/agents`, the saved agents
-from which the direction-of-rearing and world-sample readouts replay, and no state dumps. The
-build fails, and removes the archive, when it exceeds 100 MB (100,000,000 bytes); a test
-build on 2026-10-16 came to about 40 MB. Its `README_SUPPLEMENT.md` lists the bundles it leaves
-out and says that replaying their readouts needs a retrain.
+`fullruns/l3_h8_heldout/agents` (the held-out agents, from which the direction-of-rearing and
+world-sample readouts replay; section 1, "Replay from the archive"),
+`fullruns/l3_h8_gseed2_gpu/agents` (the seed-2 agents, which back no committed readout), and the
+saved agents and rerun cells of the corrected C1 and C2 runs (`fullruns/corrected_l3_h8_wm/` and
+`_nowm/`, per-file digests in `SHA256SUMS`), from which their state dumps rebuild (section 1). It
+carries no state dumps. The build fails, and removes the archive, when it exceeds 100 MB
+(100,000,000 bytes); a test build on 2026-10-16, before the C1 and C2 agents and cells were
+added, came to about 40 MB. Its `README_SUPPLEMENT.md` lists the bundles it leaves out and says
+that replaying their readouts needs a retrain.
 
 The full build (the default profile) also holds the run folders listed in `RUN_DIRS` in
 `scripts/reproduce.py` that are present under the runs root (`--runs-root`, default
@@ -229,11 +379,14 @@ The full build (the default profile) also holds the run folders listed in `RUN_D
 
 - `fullruns/corrected_l3_h8_wm` and `fullruns/corrected_l3_h8_nowm`, the whole run folders of
   the corrected runs `C1` and `C2` (cells and saved agents; state dumps rebuild from the
-  agents). They exist only on the
-  machine where those runs were trained; built anywhere else, the archive carries no saved
-  agents or state dumps of `C1` and `C2`, which then exist only after a retrain (section 2).
-- `fullruns/l3_h8_heldout/agents`, the saved agents of the historical hidden-8 held-out run.
-- `fullruns/l3_h8_gseed2_gpu/agents`, the saved agents of the hidden-8 seed-2 run.
+  agents). They exist only on the machine where those runs were trained; built anywhere else,
+  the full archive carries none of their files. The same agents and cells are on the public
+  branches `run/C1-rerun` and `run/C2-rerun` (section 1 gives the fetch route), so a retrain
+  (section 2) is needed only to reproduce the training itself.
+- `fullruns/l3_h8_heldout/agents`, the saved agents of the historical hidden-8 held-out run,
+  from which the direction-of-rearing and world-sample readouts replay.
+- `fullruns/l3_h8_gseed2_gpu/agents`, the saved agents of the hidden-8 seed-2 run. They back no
+  committed readout (section 1, "Replay from the archive").
 - `fullruns/balanced_confirmation_wm` and `fullruns/balanced_confirmation_touch`, the run folders
   of the matched-world confirmations `B1` and `B2` (cells, saved agents, frozen normalizers and
   the matched-world sensory-control output), from which the matched gates replay (section 2).
@@ -241,9 +394,13 @@ The full build (the default profile) also holds the run folders listed in `RUN_D
   and 60 state dumps), from which the stream and surprise readouts replay.
 
 The console and `README_SUPPLEMENT.md` name every folder that was absent. The saved agents
-are not committed to git. The review build carries only the held-out and seed-2 agents; the
-others ship only in the full build and are otherwise kept by the authors. A DOI archive record
-for them comes only after the review decision.
+are not committed to `main`. The review build carries the held-out agents, beside the hidden-8
+seed-2 run's agents and the saved agents and rerun cells of the corrected C1 and C2 runs
+(`fullruns/corrected_l3_h8_wm/` and `_nowm/`, per-file digests in `SHA256SUMS`); the full
+archive, built where the runs live, carries the whole run folders. The other bundles ship only
+in the full build and are otherwise kept by the authors; the C1 and C2 agents and cells are
+also on the public branches `run/C1-rerun` and `run/C2-rerun`. A DOI archive record for them
+comes only after the review decision.
 
 Author names, handles, e-mail addresses, ORCID identifiers, and local paths (Windows, Git Bash,
 WSL, macOS and Linux forms) are scrubbed from text files; the identity terms are read at build

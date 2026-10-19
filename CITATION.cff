@@ -19,15 +19,22 @@ abstract: >-
   drift) are detectable but did not meet the encoding criterion, which was
   registered for L2 and applied to L1 after its run (the L2 prediction-only
   world model received each action one step late, so that arm was a weaker
-  predictor than designed; docs/CORRECTIONS.md, 2026-10-16); at the L3 gate's
+  predictor than designed, docs/CORRECTIONS.md, 2026-10-16; retrained with the
+  timing corrected it reads the same, 0.544 against 0.517 with the old timing,
+  three seeds each); at the L3 gate's
   detector noise the L2 flaws read 0.62 to 0.65 on one noise draw and 0.60 and
   0.50 averaged over eight, so the matched contrast is L1 against L3. Rerun on the corrected trainer, the L1 state reads
-  0.551, as before the correction. Against a learned-dynamics fingerprint (L3),
+  0.551, as before the correction; the same readout registers the seam at a
+  coarser, supra-band grid (0.06), where an untrained trunk already reads 0.672,
+  so the L1 negative is specific to the in-band grid. Against a learned-dynamics fingerprint (L3),
   survival-trained agents carrying a next-observation auxiliary at the
   registered 300-update budget, with the trainer corrected in October 2026,
-  read 0.733 against 0.589 for a prediction-only arm. The registered rule is
+  read 0.733 against 0.589 for a prediction-only arm, each arm on the episodes
+  its own policy drives; a decoder that sees only the observations and actions
+  reads 0.724. The registered rule is
   not met, because the L0 gate is open on the registered evaluation-world pair
-  (0.559); the decodability clauses are met. Across eight independent pairs the
+  (0.559); the decodability clauses are met. On the same pair, survival agents
+  of a second seed set read 0.561 [0.527, 0.595]. Across eight independent pairs the
   gate is equivalent to chance on the pooled test, while it accepts on two of
   the eight draws individually. Without the auxiliary the arm reads 0.613 at 300 updates
   and 0.685 at 450, so the auxiliary result is bounded by budget. At matched
