@@ -50,7 +50,7 @@ def _args(runs, out):
 
 def test_the_artifact_is_byte_stable_on_a_fixed_cell_set(tmp_path):
     runs = _write_runs(tmp_path)
-    prov = {"generated_by": pbp.GENERATED_BY, "git_commit_at_promotion": "abc1234",
+    prov = {"generated_by": pbp.GENERATED_BY, "git_commit_at_promotion": "2c170f0",
             "tracked_changes_at_generation": [], "stack": {"python": "x"}}
     a = pbp.dumps(pbp.build(runs, prov))
     b = pbp.dumps(pbp.build(runs, prov))
