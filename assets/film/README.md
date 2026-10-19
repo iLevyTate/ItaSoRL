@@ -26,7 +26,7 @@ here, add an explicit `!/assets/film/<name>` line; without one it is ignored.
 |------|------------|--------|
 | `detectable-all-along-web.mp4` | 1280x720, 24 fps, H.264 CRF 23, AAC 128 kb/s stereo, 89.8 s, 12.5 MB. The cut the site plays. | Web encode of the released master (below). |
 | `detectable-all-along-poster.jpg` | Poster frame at 1.5 s. | Same master. |
-| `detectable-all-along-web.vtt` | WebVTT captions of the voiceover, 27 cues timed to the speech in the web encode (the last ends at 1:20.8). Added 2026-10-19. | The recorded script in `docs/specs/2026-07-22-outreach-video-vo-music.md`, checked against the encode's audio. |
+| `detectable-all-along-web.vtt` | WebVTT captions of the voiceover, 27 cues timed to the speech in the web encode (the last ends at 1:20.8). Added 2026-10-19. | The script in `docs/specs/2026-07-22-outreach-video-vo-music.md`, as spoken in the encode's audio (three small wording departures; the VTT NOTE lists them). |
 
 The master is `ItasorlOverview.mov`: 1920x1080, 24 fps, H.264 at 21 Mb/s with
 a 320 kb/s AAC track, 239.8 MB, exported from DaVinci Resolve and released on
