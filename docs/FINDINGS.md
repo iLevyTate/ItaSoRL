@@ -102,6 +102,9 @@ reads **0.613** [0.552, 0.675], not met; the decoder adds **+0.120** [+0.065, +0
 registered auxiliary rule asks `C1` to meet its primary rule, so it is NOT MET as registered; the
 lead holds on the decodability clauses (added 2026-10-10, 17.4). The correction itself moved the
 two drift-0.45 readings by +0.003 and +0.012.
+*(Note 2026-10-19: the bar clause conditions on the one evaluation-world draw all seeds share;
+carried through C1's own between-draw spread its lower bound would be 0.618 (17.5.1, note of
+2026-10-19).)*
 
 What the corrected agents show about that result:
 
@@ -355,6 +358,13 @@ The target sits at chance even at strong drift, while the positive control reads
 speed at ≈ 0.90 and the drift = 0 control is clean. The apparatus works; the agent
 simply did not encode world identity.
 
+*(Note 2026-10-19: "sits at chance" and "the agent simply did not encode world identity" are
+read as "the target reads near 0.5 at every drift, below the criterion". No equivalence test
+was run at three seeds, and `artifacts/expB/summary.json` stores no equivalence statistic, so a
+reading near 0.5 is not shown to be chance and an absence of encoding is not shown. The figure
+caption below is read the same way. The values are unchanged. The manuscript revision of
+2026-10-19 (full-review pass) words the result so; `docs/CORRECTIONS.md`, 2026-10-19.)*
+
 ![Experiment B, recurrent-state probe across the drift sweep: the world-identity target stays at chance while the speed positive control stays high](figures/expB_incidental.png)
 
 ### 3.2 Prediction-error (surprise) channel
@@ -391,6 +401,9 @@ grows.
 No liftoff. The target stays at chance across all horizons; the control stays
 flat (the horizon-16 control dips slightly below chance, within its error bar
 at n = 3 seeds).
+
+*(Note 2026-10-19: "stays at chance" is read as "stays near 0.5, below the criterion", with no
+equivalence test at three seeds; 3.1, the note of the same date.)*
 
 *Correction (2026-07-13).* An earlier version of this table quoted numbers from
 the original pre-refactor run (0.516/0.523/0.490 drift; 0.465/0.444/0.468
@@ -444,6 +457,11 @@ from 3.1. The random-forest value is 0.460 ± 0.009 in `artifacts/expB/summary.j
 (`expB_nonlinear`) and in the run log. The speed standard deviations in the 3.1 table, like
 its shuffled ones, come only from `fullruns/06302026/steps/expB_full.log`; the artifact
 stores none. `docs/CORRECTIONS.md`, 2026-10-10.)*
+
+*(Note 2026-10-19: "leaves the target at chance" and "World identity is encoded neither linearly
+nor nonlinearly" are read as "leaves the target near 0.5, below the criterion, under both
+probes". No equivalence test was run, so an absence of encoding is not shown; 3.1, the note of
+the same date.)*
 
 The null therefore holds across objective horizon, objective engagement, and probe
 nonlinearity.
@@ -509,6 +527,8 @@ indistinguishable.
   baselines), and a nonlinear probe also finds world identity at chance while
   still reading the positive control. The null is robust to objective horizon,
   objective engagement, and probe nonlinearity.
+  *(Note 2026-10-19: "at chance" is read as "near 0.5, below the criterion", with no
+  equivalence test at three seeds; 3.1, the note of the same date.)*
 
 A null from small runs does not prove incidental detection is impossible; it shows
 it does not happen *for free* under natural self-supervised objectives, and that
@@ -812,6 +832,8 @@ the initial run.
   oracle reads the same artifact at ≈ 0.99). Drag-ceiling probes read ≈ 0.75 while
   identity-target probes read ≈ 0.52: the state tracks *dynamics*, while the
   identity target does not meet the encoding criterion.
+  *(Note 2026-10-19: "at chance" is read as "near 0.5, below the criterion", with no
+  equivalence test at three seeds; 3.1, the note of the same date.)*
 - **Verdict (pre-registered decision matrix): the strong hypothesis is not
   supported.** *Detectability ≫ incidental encoding* survives the move to survival
   pressure and an independent 4-hour full-scale replication. Treat the initial 0.595
@@ -4509,6 +4531,9 @@ populations.
    0.001 (wording corrected 2026-10-19), so coherence is not shown to be the property read. The
    drag and the learned law share a deviation that depends on the agent's own velocity; no
    mechanism is claimed.)*
+   *(Note 2026-10-19: the drag is read as a margin over an untrained arm whose floor (0.612)
+   sits outside tolerance (17.9), and the jitter readings hold for the tested agents, worlds
+   and jitter draws (22.3).)*
 7. **The evolutionary result is uninformative, not a null** (revised 2026-10-10). Both
    readouts are flat, the speed positive control fails, and the preregistration interprets
    no contrast unless every gate passes (13.F; gate 1 fails only against an unratified draft
@@ -4705,6 +4730,15 @@ where the sealed command says four; the 24-pellet check shows the values are una
 reading depends on the survival walk's input". The input reference is a separate reading, not a
 share of the survival value; 17.10, the 2026-10-19 note on the cross replay.)*
 
+*(Note 2026-10-19: "a trunk that never trained on the objective reads most of the signal", in
+the sentence under the table, is read as "an untrained trunk replaying the trained arm's
+episodes reads 0.636, 0.648 and 0.739, above what the arm reads on a common scripted sequence
+and below the trained arm's 0.733, 0.744 and 0.796". The reading depends on the stream the
+trained policy generates, and on identical streams a trained trunk still reads more (17.6,
+including the normalizer-matched replay, label TRUNK). AUROC does not split into a fraction per
+source, so neither the walk nor the trunk is credited with most of it. The manuscript revision
+of 2026-10-19 (full-review pass) words it so; `docs/CORRECTIONS.md`, 2026-10-19.)*
+
 Control diagnostics on the trained arm (`control_diagnostics.json`; `C1` from 17.8):
 
 | basis removed or decoder | `C1` | `S-immortal` | `T-touch` |
@@ -4760,6 +4794,15 @@ limitation that no comparator-trained run supports it stays.
    on `T-touch` summed the homeostatic reward, not pellets, so full-rule validity was not
    established. The 0.796 figure stays as recorded. The matched-world pellet run and its sensory
    control are section 21.)*
+   *(Note 2026-10-19: the reading that now stands behind this item is `B2`'s 0.780 [0.757,
+   0.804] in section 21, a conditional result under the sensory-echo procedure, which was frozen
+   after the raw `B1` and `B2` outcomes and the untrained diagnostics were known. It is not a
+   confirmation under the original complete rule, on which both matched-world runs are
+   UNINFORMATIVE, and the linear control does not show independence from nonlinear or
+   longer-history sensory information. Read the item as "survival is not required for the
+   controlled decodability reading of the pellet-seeking, death-off agents" in that sense. The
+   manuscript revision of 2026-10-19 (full-review pass) words it so; `docs/CORRECTIONS.md`,
+   2026-10-19.)*
 2. **Removing death changes nothing measurable** in the survival run (18.2). The stakes question
    itself stays open, with no scarce rung.
 3. **The decoded direction is not used under the tested nudge** (18.3), in both runs and in `C1`.
@@ -4769,6 +4812,13 @@ limitation that no comparator-trained run supports it stays.
 4. **The walk carries the signal** (18.4, 18.5), as in `C1`: a common scripted sequence removes it,
    replaying the trained arm's episodes gives it to untrained trunks, and behavior traces alone
    decode the world better than the state.
+   *(Note 2026-10-19: "the walk carries the signal" is read as "the reading depends on the walk",
+   and "gives it to untrained trunks" as "untrained trunks replaying those
+   episodes read above the scripted sequence and below the trained arm" (18.4, the note of the
+   same date). The reading depends on the stream the trained policy generates, and on identical
+   streams a trained trunk still reads more, so the walk and the trained trunk both carry it.
+   The manuscript revision of 2026-10-19 (full-review pass) words it so; `docs/CORRECTIONS.md`,
+   2026-10-19.)*
 5. **The white-jitter question stays open** (18.6). The run reads low, but its L0 gate fails, so it
    is not evidence.
 
@@ -5948,6 +5998,15 @@ Both rows are sensory-independent under matched worlds. The predictor sits at 0.
 0.673] in both runs. The joint sensory-plus-behavior control, which no rule reads, leaves
 0.675 [0.650, 0.699] on `B1` and 0.648 [0.630, 0.665] on `B2`.
 
+*(Note 2026-10-19: "sensory-independent under matched worlds" is the frozen label of the
+2026-10-13 spec and stays as recorded. It names a conditional result under that later
+procedure, frozen after the raw `B1` and `B2` outcomes and the untrained diagnostics were known
+and before any trained arm was scored under it: the trained arms keep 0.761 and 0.780 after an
+in-fold linear control on `[x_t, x_{t-1}]`. It is not a confirmation under the original complete
+rule, on which both runs stay UNINFORMATIVE, and it does not show independence from nonlinear
+sensory transformations, longer history or the previous action. The manuscript revision of
+2026-10-19 (full-review pass) words it so; `docs/CORRECTIONS.md`, 2026-10-19.)*
+
 On the `B2` pooled worlds the corrected leakage gate, trained reward and pellets consumed, is
 clean in 60 of 60 pools. The largest deviation from 0.5 is 0.076.
 
@@ -5976,6 +6035,13 @@ control, the untrained balanced target on this draw is 0.558 [0.543, 0.573], aga
 first draw, and survival reads 0.782 [0.743, 0.820] (`B1`) and 0.829 [0.815, 0.842] (`B2`). The
 reading is descriptive: the decisions at 910000 are unchanged, and both runs stay UNINFORMATIVE on
 the matched-world rule.)*
+
+*(Note 2026-10-19: "Sensory-independent under matched worlds on both runs" in the note above
+carries the reading of the first draw's label, a conditional result under the later procedure.
+The second draw adds readings on new worlds, but the procedure it applies was fixed after the
+first draw's raw outcomes and untrained diagnostics, so it is not a prospective test of that
+rule and does not make the rule independent of them. The manuscript revision of 2026-10-19
+(full-review pass) words it so; `docs/CORRECTIONS.md`, 2026-10-19.)*
 
 *(Note 2026-10-19: Bayes factors with an interval null annotate the drift-0 pooled readings of
 the first note above (`docs/specs/2026-10-17-extension-readouts-design.md`, section "X09. Bayes
@@ -6486,6 +6552,16 @@ was not borne out.)*
 speaks to what the decoded direction carries, not to what the state carries"; the removal and the
 refit give no numerical bound. The partial-erasure label is unchanged. `docs/CORRECTIONS.md`,
 2026-10-19.)*
+
+*(Note 2026-10-19: **not used under removal** is the frozen label and stays as recorded. It says
+that within this test removal moved the behavior gap no more than a sham. The test is limited in
+three ways: the removal is partial (the refit probe reads the erased states at 0.747), the
+behavior readings score only common survivors, the episodes alive in all six rollouts (26.6
+percent of attempted episodes excluded, 470 of 640 kept), and the behavioral endpoint is a fixed
+gap over five per-step behavior means. A use outside that endpoint is not tested, and an absence
+of use is not shown. The nudge readout of 18.3 shares the survivor rule and the endpoint. The
+manuscript revision of 2026-10-19 (full-review pass) words the use tests so;
+`docs/CORRECTIONS.md`, 2026-10-19.)*
 
 ### 23.4 What develops across the training snapshots
 

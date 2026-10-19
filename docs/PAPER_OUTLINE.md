@@ -22,7 +22,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      (L1, L2) that a detector finds and that did not meet the encoding criterion
      registered for L2 (applied to L1 after its run); (c) a learned-dynamics flaw (L3) whose decodability clauses are met for
      survival plus next-observation prediction at the registered budget on the corrected
-     primary run, while the registered rule is NOT MET as registered (L0 open on the
+     primary run, on the one evaluation-world draw all seeds share, while the registered rule is NOT MET as registered (L0 open on the
      registered world pair, 0.559), bounded by that budget,
      where the signal rides on the foraging trajectories and is kept by a trunk shaped
      by prediction, and where a hand-written drag that depends on the agent's own velocity
@@ -78,8 +78,9 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      (`docs/CORRECTIONS.md`, 2026-10-16). Experiment B
      predates the first preregistration, so its 0.65 bar is applied after the fact.
    - 4.3 The L3 primary result (FINDINGS 17.2, 17.5): corrected survival with the
-     next-observation auxiliary at 300 updates reads 0.733 [0.669, 0.797] against
-     predictor 0.589 and untrained 0.523. The registered rule is NOT MET, because L0 is
+     next-observation auxiliary at 300 updates reads 0.733 [0.669, 0.797] (on the one shared
+     evaluation-world draw; carried through C1's between-draw spread the bar clause's lower
+     bound would be 0.618, FINDINGS 17.5.1 note) against predictor 0.589 and untrained 0.523. The registered rule is NOT MET, because L0 is
      open on the registered world pair (0.559); the decodability clauses are met, and
      across eight independent pairs L0 averages 0.493 (TOST over pairs p 0.022). The
      historical 0.752 [0.698, 0.807] is reported beside it.
@@ -91,7 +92,9 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      concatenation includes zero.)*
    - 4.4 The auxiliary contrast, bounded by budget (FINDINGS 10.8, 10.8.1, 17): the
      corrected decoder-on minus decoder-off difference, +0.120 [+0.065, +0.174] (0.733
-     against 0.613), and the budget curve: without the decoder 0.685 at 450 updates;
+     against 0.613; the registered auxiliary rule is not met because C1 does not meet its
+     primary rule, and the lead compares the tested regimes, not general necessity), and the
+     budget curve: without the decoder 0.685 at 450 updates;
      at 450 the decoder arm reads 0.821; the return difference, -0.054 [-0.198, +0.090], is
      too wide to show equal foraging. Historical: 0.601 against
      0.730 on the same CPU; 0.717 at 450 updates with a failed skill match.
@@ -225,6 +228,11 @@ is the standard deviation over seeds.
 
 ## Known gaps
 
+- 2026-10-19 (full review 1): the manuscript attaches the shared evaluation-world draw to 0.733,
+  the tested-regime and general-necessity qualifiers to the auxiliary lead, the drag's
+  untrained floor and the jitter-draw qualifier to the texture readings, the later-procedure
+  status to the matched-world sensory result, and the use-test limits to the nudge and
+  erasure; no row's number or status changes. `docs/CORRECTIONS.md`, 2026-10-19.
 - 2026-10-19 (review response 1): the manuscript's section 4.3 gains a registration timeline
   (the tuning run before the first registration, the engagement margin set after the first
   confirmatory run had been read, the executed MLP surrogate first committed after the L3
