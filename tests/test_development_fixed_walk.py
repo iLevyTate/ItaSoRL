@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -54,7 +55,7 @@ def test_smoke_on_a_tmp_snapshot_set(fakes, tmp_path):
     out = tmp_path / "x02"
     assert fw.main(["--run", f"wm={agents}", "--run", f"nowm={agents}", "--out-dir", str(out), *SMALL]) == 0
     doc = json.loads((out / "fixed_walk_wm.json").read_text())
-    assert doc["provenance"]["git_commit_at_promotion"]
+    assert_commit_recorded(doc["provenance"])
     assert doc["integrity"]["gate"].startswith("NOT CHECKED")
     row = doc["rows"][0]
     assert set(row["budgets"]) == {"0", "100", "200", "300", "450"}

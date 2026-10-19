@@ -21,6 +21,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -121,7 +122,7 @@ def test_snapshot_arms_resolve_to_the_u_files(fakes, tmp_path):
     assert blk["gate"] == "PASS"
     assert blk["budgets"] == [0, 100, 200, 300, 450]
     assert blk["per_budget"]["100"]["arm"] == "survival_u100"
-    assert doc["provenance"]["git_commit_at_promotion"]
+    assert_commit_recorded(doc["provenance"])
     assert "tracked_changes_at_generation" in doc["provenance"]
     assert _strip(doc)["summary"] == _strip(json.loads(ref.read_text()))["summary"]
     # a stored row that does not match stops the readout and writes nothing

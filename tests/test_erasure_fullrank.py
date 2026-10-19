@@ -20,6 +20,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -161,7 +162,7 @@ def test_flags_run_end_to_end_and_gate_on_the_rank_two_values(fakes, tmp_path):
     out = _run(rer, fakes, tmp_path, "full", "--max-rank", "4", "--refit-stop", "0.55", "--swap",
                "--erasure-ref", str(ref))
     doc = json.loads(out.read_text())
-    assert doc["provenance"]["git_commit_at_promotion"]
+    assert_commit_recorded(doc["provenance"])
     assert "tracked_changes_at_generation" in doc["provenance"]
     assert doc["fullrank"]["integrity"]["gate_I"] == "PASS"
     row = doc["rows"][0]

@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -106,7 +107,7 @@ def test_end_to_end_on_a_small_trunk(monkeypatch, tmp_path):
             "--pool-steps", "6", "--n-random", "30", "--out", str(out)]
     assert ho.main(argv) == 0
     doc = json.loads(out.read_text())
-    assert doc["provenance"]["git_commit_at_promotion"]
+    assert_commit_recorded(doc["provenance"])
     assert doc["integrity"]["gate"] == "PASS"
     (run / "cells" / "cell_d0.45_s0.json").write_text(json.dumps(
         {"cell": {"agents": {"survival": {"pool": {"target": row["pooled_target"] + 0.01}}}}}))

@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 pytest.importorskip("sklearn")
 
@@ -125,8 +126,7 @@ def test_end_to_end_both_modes_and_the_drift_tag_rule(tmp_path, monkeypatch):
         assert mdl.main(["--mode", mode, "--states", str(run / "states"), "--drifts", "0.023",
                          "--out-dir", str(out)]) == 0
         doc = json.loads((out / f"{mode}_tmp_run.json").read_text())
-        assert doc["provenance"]["git_commit_at_promotion"]
-        assert "git_commit" not in doc["provenance"]
+        assert_commit_recorded(doc["provenance"])
         assert doc["drifts"] == ["0.0230"]
         assert {r["gate"] for r in doc["rows"]} == {"PASS"}
         assert len(doc["rows"]) == 6

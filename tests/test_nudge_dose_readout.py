@@ -19,6 +19,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -122,7 +123,7 @@ def test_magnitude_one_without_control_reproduces_the_mechanism_path(monkeypatch
             "--integrity-ref", str(tmp_path / "mech.json")]
     assert nd.main(argv) == 0
     doc = json.loads(out.read_text())
-    assert doc["provenance"]["git_commit_at_promotion"]
+    assert_commit_recorded(doc["provenance"])
     assert doc["integrity"]["gate_I"] == "PASS"
     blk = doc["per_seed"][0]["survival"]
     assert set(blk["n_common_per_magnitude"]) == {"1", "4"}

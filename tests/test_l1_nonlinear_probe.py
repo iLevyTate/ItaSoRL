@@ -12,6 +12,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 pytest.importorskip("sklearn")
 pytest.importorskip("torch")
@@ -67,7 +68,7 @@ def test_smoke_scores_every_class_after_the_gate(tmp_path):
     assert nl.main(argv) == 0
     doc = json.loads(out.read_text(encoding="utf-8"))
     prov = doc["provenance"]
-    assert prov["git_commit_at_promotion"] and "git_commit" not in prov
+    assert_commit_recorded(prov)
     assert {"tracked_changes_at_generation", "stack", "argv", "states_dir"} <= set(prov)
     assert doc["gate"]["pass"] and doc["gate"]["gate_drift"] == "0.0230"
     assert doc["gate"]["mean_abs_diff"] == 0.0

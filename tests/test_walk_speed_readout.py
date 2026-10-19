@@ -15,6 +15,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -93,7 +94,7 @@ def test_smoke_writes_every_walk_for_every_arm(fakes, tmp_path):
     assert ws.main(argv) == 0
     doc = json.loads(out.read_text())
     prov = doc["provenance"]
-    assert prov["git_commit_at_promotion"] and "git_commit" not in prov
+    assert_commit_recorded(prov)
     assert {"tracked_changes_at_generation", "stack", "argv", "agents_dir"} <= set(prov)
     assert doc["bases"]["B2-auth"] == 2_800_000 and doc["bases"]["B2-surr"] == 2_850_000
     row = doc["rows"][0]

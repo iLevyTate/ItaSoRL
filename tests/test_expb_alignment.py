@@ -18,6 +18,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "scripts") not in sys.path:
@@ -168,7 +169,7 @@ def test_out_dir_runs_write_json_and_leave_record_figures_alone(tmp_path):
         assert doc["align"] == "obs_then_action" and doc["script"] == f"scripts/run_{name}.py"
         assert doc["config"]["pool"] == 12 and doc["config"]["seeds"] == [0]
         prov = doc["provenance"]
-        assert prov["git_commit"] and "git_commit_at_promotion" not in prov
+        assert_commit_recorded(prov, "git_commit")
         assert "tracked_changes_at_generation" in prov and prov["stack"]["device"] == "cpu"
         assert "scipy" in prov["stack"] and "--out-dir" in prov["argv"]
         if name in FIGURES:
