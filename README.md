@@ -264,8 +264,9 @@ A decoder that never sees the brain, only the senses and the actions, reads
 signal rides on where the survival policy takes the body, and a trunk trained
 to predict keeps it; at matched input the survival objective adds nothing
 measurable, and "survival-specific" is withdrawn. A replay across the two
-corrected runs puts about half of the decoder's +0.120 in the trunk and half in
-the paths the decoder-carrying policy takes (exploratory, FINDINGS §17.10).
+corrected runs puts part of the decoder's +0.120 in the trunk and part in the
+paths the decoder-carrying policy takes, in shares that depend on the order of
+the exchange (exploratory, FINDINGS §17.10).
 
 **Bounded by budget.** Trained to 450 updates, the arm without the decoder
 reaches 0.685 and the arm with it 0.821; the return interval is too wide to

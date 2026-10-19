@@ -144,14 +144,15 @@ CPU_REVISION = "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu"
 # run/S-immortal into the gitignored fullruns/branch_preserve, and all three runs were rescored with
 # twin groups on 2026-10-18 (closing pass B5, artifacts/goal_stakes_grouped_surprise/).
 SURPRISE_SPLIT_TWINS = ("The stored surprise AUROCs (readout 8(a)) put each authentic episode and "
-                        "its same-world surrogate twin in separate CV folds, which biases them low, "
-                        "so read them as lower bounds. Every run's mean is above the 0.65 bar, the "
+                        "its same-world surrogate twin in separate CV folds, which biases them low "
+                        "in expectation; that does not make each stored value a numerical bound. "
+                        "Every run's mean is above the 0.65 bar, the "
                         "only quantity the surprise verdict reads; single seeds can fall below it "
                         "(docs/CORRECTIONS.md, 2026-10-16). The stored values stay as recorded. "
                         "Rescored on 2026-10-18 with one CV group per twin pair "
                         "(artifacts/goal_stakes_grouped_surprise/), the grouped survival mean is above "
-                        "0.65 on all three runs (label GROUPED ABOVE 0.65), so the stored lower bound "
-                        "and the verdict agree.")
+                        "0.65 on all three runs (label GROUPED ABOVE 0.65), so the stored values "
+                        "and the verdict agree, and the grouped rescores carry the inference.")
 CLOUD_PINNED = ("Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, "
                 "scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)")
 PINNED_DEPS = "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1"

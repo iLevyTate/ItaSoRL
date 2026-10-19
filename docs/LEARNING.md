@@ -402,7 +402,8 @@ Precisely (`itasorl/behavior_audit.py`, `scripts/audit_behavior_mediation.py`):
   (knows nothing) and 1.0 is perfect. So 0.75 means "gets the pair right three
   times out of four."
 - **The 0.65 bar (SESOI, Smallest Effect Size Of Interest)**: the height a claim
-  must clear, fixed to the wall before anyone jumps. Precisely: incidental
+  must clear, fixed to the wall before the jumps that count (it was written after a
+  survival tuning run and before the first confirmatory run). Precisely: incidental
   encoding is claimed only if the survival AUROC is at least 0.65 and beats the
   untrained creature by 0.05 and beats the predictor by 0.05. Choosing this in
   advance stops anyone from lowering the bar after seeing the data.
@@ -742,9 +743,9 @@ direction is faint in the state's own geometry, in trained and untrained brains 
 No named nearby feature of the creature's own world is kept beyond what a summary of its
 senses explains (23.2). Removing the decoded direction while the creature acts changes its
 behavior no more than a sham removal, but a probe refit on the erased states still reads
-0.747, so the removal bounds what that one direction carries, not what the state carries
-(23.3). And across training snapshots, the signal left after a linear control on the senses
-grows, by +0.224 with the imagination job and +0.104 without it, while the probe direction
+0.747, so the removal speaks to what that one direction carries, not to what the state
+carries (23.3). And across training snapshots, the signal left after a linear control on the
+senses grows, by +0.224 with the imagination job and +0.104 without it, while the probe direction
 itself reorganizes (23.4).
 
 **Honest caveats, current scoreboard:**
@@ -753,8 +754,9 @@ itself reorganizes (23.4).
   worlds real stays open on the registered pair of evaluation worlds (0.559). The
   0.65 bar and both 0.05 margins are met (Act 10).
 - At 300 updates the positive needs both jobs: with the fixed trainer, survival alone
-  reads 0.613 and both together 0.733 (Act 10). A replay across the two runs puts about
-  half of the imagination job's effect in the brain and half in where the creature goes.
+  reads 0.613 and both together 0.733 (Act 10). A replay across the two runs puts part
+  of the imagination job's effect in the brain and part in where the creature goes, in
+  shares that depend on the order of the exchange.
   With more practice, survival alone reaches 0.685.
 - The survival creature's lead over the prediction-only creature disappears when both
   read the same senses (Act 10), so the project no longer calls the signal
