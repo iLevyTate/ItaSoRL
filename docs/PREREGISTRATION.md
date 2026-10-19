@@ -184,8 +184,10 @@ raw metrics in `expB2_results.json`. Published confirmatory copies live in
   `NOISE-KNOCKOUT-L1`. `docs/CORRECTIONS.md`, 2026-10-16, and FINDINGS 14.7.
 - **2026-10-19 - TIMING OF THE TUNING RUN AND THE ENGAGEMENT MARGIN, STATED IN ONE PLACE (a
   record; no rule, number or verdict changes).** The section 9 configuration was tuned on a
-  drift-0.45 de-risk run before this registration was committed (`51e086e`, 2026-06-28); its
-  outputs were not committed, and section 9 names no selection criterion. The 0.65 bar and the
+  drift-0.45 de-risk run, after an earlier pilot whose outcome the code of `51e086e` cites,
+  before this registration was committed (`51e086e`, 2026-06-28). The code of that commit also
+  sets the harsh metabolism and food density. The outputs of both runs were not committed, and
+  section 9 names no selection criterion. The 0.65 bar and the
   0.05 margins first appear in `51e086e`. The 2026-06-28 engagement recalibration (`5c3aca1`)
   was made after the first confirmatory run (`07ef113`) had been read and the GAE fix
   (`679fee6`) had landed, and before the rerun (`83e9297`, 2026-06-29 UTC). It was calibrated

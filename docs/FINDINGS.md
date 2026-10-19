@@ -669,7 +669,7 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    deaths per world, a survivorship asymmetry the matched-pair channel is designed to
    avoid; the volatility readouts are secondary/exploratory, not part of the 0.65
    decision.)
-   *(Note 2026-10-19: the B-v3 registration's identifiability premise
+   (Note 2026-10-19: the B-v3 registration's identifiability premise
    (`docs/PREREGISTRATION_Bv3.md` section 1, "a single trajectory does not identify a stable
    'world'") concerns the drag value, which under `ar1` wanders within an episode. The
    generative condition, authentic or surrogate, is fixed per episode, and the privileged
@@ -678,7 +678,7 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    the wander lacks is a constant drag value; under `regime` the drag value is constant within
    an episode. The L2 reading is below the criterion, and equivalence to chance was not shown.
    The registration text stays as frozen; `docs/PREREGISTRATION_Bv3.md` section 12,
-   2026-10-19.)*
+   2026-10-19.)
 2. **A stronger multi-step objective.** The open-loop, longer-horizon objective was
    confirmed to engage the world model yet still did not induce encoding (§3.4).
 3. **Probe class and sampling power.** A nonlinear probe finds nothing (§3.4) and the
@@ -1957,6 +1957,8 @@ Stated once, plainly, with pointers into the code.
    `07ef113` had been read and before the rerun `83e9297`. It was calibrated on a de-risk run
    under the fixed trainer (the `5c3aca1` message: "The fixed-GAE de-risk showed"), with the
    non-learner reference (+0.04) named "the v2 pilot" in the code comment of that commit.
+   Where the tuning-provenance note above says "the same de-risk data", read "a de-risk rerun
+   under the fixed trainer", which is not the pre-registration de-risk.
    "Frozen from the pilot" in this note's heading means set on de-risk data after the first
    confirmatory result was read. The manuscript's section 4.3 tabulates this with the later
    registrations; `docs/CORRECTIONS.md`, 2026-10-19.)* **Swept 2026-09-28 on the
@@ -4630,7 +4632,7 @@ where the sealed command says four; the values are unaffected.)*
 
 *(Note 2026-10-19: "read as lower bounds" in the 2026-10-16 note and "the stored lower bounds" in
 the note above should read "stored values from a biased estimator". A bias in expectation does
-not make each stored value a numerical bound, and `C1`'s grouped minus ungrouped, -0.0002
+not make each stored value a numerical bound, and `C1`'s local grouped minus ungrouped, -0.0002
 [-0.008, +0.007], includes zero. The twin-grouped rescores carry the inference.
 `docs/CORRECTIONS.md`, 2026-10-19.)*
 
@@ -4701,7 +4703,7 @@ where the sealed command says four; the 24-pellet check shows the values are una
 
 *(Note 2026-10-19: "the survival walk's input carries much of the reading" is read as "the
 reading depends on the survival walk's input". The input reference is a separate reading, not a
-share of the survival value; 17.10, 2026-10-19 note.)*
+share of the survival value; 17.10, the 2026-10-19 note on the cross replay.)*
 
 Control diagnostics on the trained arm (`control_diagnostics.json`; `C1` from 17.8):
 

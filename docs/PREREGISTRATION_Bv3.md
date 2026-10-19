@@ -197,7 +197,7 @@ sysid-aux CEILING (PR #14) as the capacity reference.
   episode. The generative condition, authentic or surrogate, is fixed per episode, and the
   privileged residual oracle, which scores one row per branch, classifies the `ar1` condition at
   drift 0.45 from single trajectories at 1.000 at detector noise 0.001 and below (FINDINGS 15).
-  What the wander lacks is a constant drag value, and `regime` supplies one. The B-v2 reading is
+  What the wander lacks is a constant drag value, and `regime` supplies one. The L2 reading is
   below the criterion; equivalence to chance was not shown. FINDINGS 7.1 item 1 carries the same
   note.
 

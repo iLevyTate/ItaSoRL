@@ -87,9 +87,9 @@ def run_task(t: dict) -> dict:
     # loop in the same AUTH_BASE / SURR_BASE world seeds (110 + 110), so the 300-update probe is
     # scored on states from the worlds it was fit on, though each snapshot acts its own
     # trajectories there. This breaks transfer_probe's "disjoint worlds" precondition. The spec
-    # froze this estimator, so it stays as recorded and reads as an upper bound: at b = 300 it
-    # is the probe scored on its own training rows (C1 0.971 against the CV target 0.733; C2
-    # 0.949 against 0.613). In the "3 direction" verdict the transfer is only an extra
+    # froze this estimator, so it stays as recorded and reads as an in-sample, optimistic estimate:
+    # at b = 300 it is the probe scored on its own training rows (C1 0.971 against the CV target
+    # 0.733; C2 0.949 against 0.613). In the "3 direction" verdict the transfer is only an extra
     # condition for "one axis sharpens"; "reorganizes" is decided by cos_to_300 alone.
     # Disclosed 2026-10-16.
     for b in BUDGETS:

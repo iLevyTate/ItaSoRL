@@ -1937,6 +1937,14 @@ Rigor carried from the B-v3 audit (2026-07-10):
   the input reference is a separate reading and not a share. The manuscript's section 4.3
   tabulates these dates; `docs/CORRECTIONS.md`, 2026-10-19.
 
+- **2026-10-19 - THE B5 SURPRISE VALUES CALLED LOWER BOUNDS (a record; the entries above stay as
+  written and no rule, number or verdict changes).** The B5 entries above (the 2026-10-17
+  announcement and its 2026-10-18 result) say the stored surprise AUROCs "are lower bounds" and
+  "stay as recorded lower bounds"; read both as "are values from a biased estimator". A bias in
+  expectation does not make each stored value a numerical bound, and `C1`'s local grouped minus
+  ungrouped, -0.0002 [-0.008, +0.007], includes zero. The stored values and the GROUPED ABOVE
+  0.65 label are unchanged. `docs/CORRECTIONS.md`, 2026-10-19.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

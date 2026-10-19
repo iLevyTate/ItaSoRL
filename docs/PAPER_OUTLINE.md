@@ -59,8 +59,8 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
      draw (0.604 and 0.503 averaged over eight) against L3 0.928. Privileged detector scores, not agent capabilities.
    - 4.2 Hand-authored flaws (FINDINGS 3, 4, 9, 14.7, 22.1): the prediction-only state stays
      near chance across channels, horizons, and probes at L2; survival coupling 0.610
-     (seed bootstrap [0.585, 0.634]; t 90% CI [0.581, 0.639]); supervised reference 0.596 (a lower-bound reference, not an
-     architectural ceiling); L1 organism 0.551 [0.531, 0.570], 0/10, at the in-band grid on
+     (seed bootstrap [0.585, 0.634]; t 90% CI [0.581, 0.639]); supervised reference 0.596 (a reference for what the pooled readout
+     can express under direct supervision, not an architectural ceiling); L1 organism 0.551 [0.531, 0.570], 0/10, at the in-band grid on
      the corrected trainer and the stack-independent partition (FINDINGS 22.1, row 35a),
      0.533 as first recorded on the original trainer and the legacy partition (row 35).
      *(Note 2026-10-16: the L2 prediction-only world model received each action one step
@@ -168,7 +168,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 7 | L2 null holds under a nonlinear probe (same world model and action timing as row 4; with correct timing it reads the same) | no actor-critic | 0.482 ± 0.031; rerun 2026-10-18: aligned 0.459 ± 0.015, legacy 0.486 ± 0.034 | FINDINGS 3.4 | artifacts/expB/summary.json; artifacts/expB_aligned_2026-10-18/expB_nonlinear.json, artifacts/expB_legacy_local_2026-10-18/expB_nonlinear.json | - |
 | 8 | Survival coupling does not rescue L2 | historical | 0.523 ± 0.045 (replication) | FINDINGS 9 | artifacts/expB2/expB2_results.json | expB2_survival.png |
 | 9 | B-v3 regime negative at scale | historical | 0.610, seed bootstrap 90% [0.585, 0.634] (t 90% CI [0.581, 0.639]), n=10 | FINDINGS 7.1 | artifacts/expB2/bv3_n10_summary.json | - |
-| 10 | L2 supervised reference below bar (a lower-bound reference, not an architectural ceiling) | historical | 0.596, seed bootstrap 90% [0.577, 0.616] (t 90% CI [0.573, 0.619]), n=10 | FINDINGS 7.1 | artifacts/expB2/sysid_ceiling_n10_summary.json | - |
+| 10 | L2 supervised reference below bar (a reference for what the pooled readout can express under direct supervision, not an architectural ceiling) | historical | 0.596, seed bootstrap 90% [0.577, 0.616] (t 90% CI [0.573, 0.619]), n=10 | FINDINGS 7.1 | artifacts/expB2/sysid_ceiling_n10_summary.json | - |
 | 11 | L3 gate frozen in-band | agent-free | oracle 0.928, floor 0.483 (the seed-0 floor; the three-seed mean is 0.482, row 22) | FINDINGS 10.1 | PREREGISTRATION_L3.md sec. 12 | - |
 | 12 | L3 decodable from survival-trained agents carrying the next-observation auxiliary at 300 updates (neither objective alone reached the bar at that budget; FINDINGS 10.8) | historical; primary, replaced by C1 | 0.752, t 90% CI [0.698, 0.807], 8/10 seeds | FINDINGS 10.2 | artifacts/expB2/behavior_audit_l3_h8_traces.json | - |
 | 13 | L3 predictor baseline near chance | historical; primary, replaced by C1 | 0.573, seed bootstrap [0.546, 0.599] (t 90% CI [0.542, 0.604]) | FINDINGS 10.2 | artifacts/expB2/behavior_audit_l3_h8_traces.json | - |
@@ -233,8 +233,10 @@ is the standard deviation over seeds.
   control's rule committed with its result); its Appendix D.1 writes the survival reward, the
   normalizations, the nudge score and the erasure score as equations; L2 wording is "below the
   criterion"; the trajectory attribution is dependence plus a trained-trunk advantage with an
-  order-dependent split; in-sample and biased estimates are no longer called bounds. No row's
-  number or status changes. `docs/CORRECTIONS.md`, 2026-10-19.
+  order-dependent split; in-sample and biased estimates are no longer called bounds; the 0.596
+  supervised control (section 4.2 item and row 10) is called a reference for what the pooled
+  readout can express under direct supervision, not a lower-bound reference (FINDINGS 7.1,
+  2026-10-19 note). No row's number or status changes. `docs/CORRECTIONS.md`, 2026-10-19.
 - 2026-10-19: rows 4 to 7 gain the Experiment B rerun with correct action timing (RESTORE) beside
   the stored values, and section 4.2's 2026-10-16 note no longer says the effect is unmeasured;
   row 49 and section 4.7 gain the world-grouped pooled readings (DIFFERS; the claim holds); row 51

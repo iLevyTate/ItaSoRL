@@ -172,7 +172,7 @@ a different fingerprint, with its own gate 0 and its own provenance.
 
 *(Follow-up 2026-10-19: the MLP `train_g_motion` was first committed in `489a772` (2026-07-10,
 14:00 UTC), after the L3 registration `0217263` (10:23 UTC the same day) and before the first L3
-organism run (`ced27f4`, 21:23 UTC). See the 2026-10-19 entry on registration timing below.)*
+organism run, recorded in `ced27f4` (21:23 UTC). See the 2026-10-19 entry on registration timing below.)*
 
 ## 2026-10-06: what the bootstrap correction did to the primary comparisons
 
@@ -1616,9 +1616,11 @@ gate and reported nothing, so it has no line here.
 
 **What was wrong.** The manuscript's abstract, its section 4.2 and its bar-and-margin
 sensitivity paragraph said the 0.65 bar and the 0.05 margins were fixed before any
-survival-trained run. A drift-0.45 survival de-risk run of B-v2, whose outputs were never
-committed, tuned the trainer before the first registration, `51e086e` (2026-06-28, 18:48 UTC),
-and the bar and margins first appear in that commit (`git grep 0.65 51e086e^` finds nothing).
+survival-trained run. A drift-0.45 survival de-risk run of B-v2 and an earlier pilot, whose
+outputs were never committed, preceded the first registration, `51e086e` (2026-06-28, 18:48
+UTC); the trainer settings were tuned on the de-risk, the code of that commit sets the harsh
+metabolism and food density and cites the pilot's outcome, and the bar and margins first appear
+in that commit (`git grep 0.65 51e086e^` finds nothing).
 The engagement margin (`ENGAGE_MARGIN = 0.15`, `LIFE_TOL = 2.0`) was set at `5c3aca1` (22:13
 UTC) after the first confirmatory B-v2 result, `07ef113` (21:18 UTC), had been read and the GAE
 fix `679fee6` had landed, and before the rerun `83e9297` (2026-06-29, 00:44 UTC); the
@@ -1652,7 +1654,8 @@ written.
 `C1`, 0.912 for `T-touch`, 0.848 for `S-immortal`) lower bounds. An in-sample estimate is
 optimistic, and an estimator that splits same-world twins across folds is biased low in
 expectation; neither makes a stored value a numerical bound. On `C1` the grouped minus
-ungrouped surprise contrast is -0.0002 [-0.008, +0.007], slightly negative with an interval
+ungrouped surprise contrast, both computed on the local stack (the stored 0.846 came from another
+stack), is -0.0002 [-0.008, +0.007], slightly negative with an interval
 that includes zero. The erasure readout was said to bound what the decoded direction carries,
 which a removal and a refit do not establish.
 
@@ -1661,7 +1664,8 @@ optimistic estimates and the surprise values values from a biased estimator, and
 held-out transfer (FINDINGS 23.4, 2026-10-19 note) and the twin-grouped rescores (FINDINGS
 18.3, 2026-10-19 note) carry the inference. The erasure sentence says the removal speaks to
 what the direction carries, not to what the state carries. FINDINGS 18.3, 23.3 and 23.4 gain
-dated notes, and the results manifest's surprise note drops the word. The 2026-10-16 entries
+dated notes, `docs/PREREGISTRATION_L3.md` section 12 (B5 entries) gains one, and the results
+manifest's surprise note drops the word. The 2026-10-16 entries
 above keep their wording.
 
 **What this does not change.** No stored value or label. The partial-erasure label stands.
