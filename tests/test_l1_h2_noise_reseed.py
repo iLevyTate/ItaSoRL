@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 pytest.importorskip("torch")
 
@@ -141,7 +142,7 @@ def test_provenance_json_records_the_readout_commit_key(tmp_path):
     path = rh.write_provenance(a, ["--noise-reseed", "per-episode"])
     doc = json.loads(Path(path).read_text(encoding="utf-8"))
     assert Path(path).name == "provenance.json"
-    assert doc["git_commit_at_promotion"] and "git_commit" not in doc
+    assert_commit_recorded(doc)
     assert "tracked_changes_at_generation" in doc and doc["stack"]["device"] == "cpu"
     assert doc["agents_dir"] == "fullruns/l1_heldout/agents"
     assert doc["noise_reseed"] == "per-episode" and doc["argv"] == ["--noise-reseed", "per-episode"]

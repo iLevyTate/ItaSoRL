@@ -13,6 +13,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 pytest.importorskip("sklearn")
 pytest.importorskip("torch")
@@ -84,7 +85,7 @@ def test_cell_target_dir_and_regenerated_dir(tmp_path):
     assert ps.main([*argv, "--dry-run"]) == 0 and not out.exists()
     assert ps.main(argv) == 0
     doc = json.loads((out / "corrected_l1_heldout.json").read_text())
-    assert doc["provenance"]["git_commit_at_promotion"] and "git_commit" not in doc["provenance"]
+    assert_commit_recorded(doc["provenance"])
     assert {"tracked_changes_at_generation", "stack", "argv"} <= set(doc["provenance"])
     assert doc["integrity"]["pass"] and doc["integrity"]["n_checked"] == 6
     assert doc["integrity"]["worst_abs_diff"] == 0.0

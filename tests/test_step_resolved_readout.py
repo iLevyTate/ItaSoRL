@@ -12,6 +12,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 pytest.importorskip("sklearn")
 pytest.importorskip("torch")
@@ -87,7 +88,7 @@ def test_smoke_and_void(tmp_path):
     assert sr.main([*argv, "--dry-run"]) == 0 and not out.exists()
     assert sr.main(argv) == 0
     doc = json.loads((out / "balanced_confirmation_touch.json").read_text())
-    assert doc["provenance"]["git_commit_at_promotion"] and "git_commit" not in doc["provenance"]
+    assert_commit_recorded(doc["provenance"])
     assert {"tracked_changes_at_generation", "stack", "argv", "states_dir"} <= set(doc["provenance"])
     assert doc["integrity"]["pass"] and doc["step_check"]["pass"]
     assert set(doc["summary"]) == {"0.00", "0.45"}

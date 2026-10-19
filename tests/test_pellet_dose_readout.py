@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -87,7 +88,7 @@ def test_override_reaches_survival_food_and_is_recorded(run_dir, monkeypatch, tm
     assert all(r["applied_n_pellets"] == r["n_pellets"] for r in doc["rows"])
     assert all(r["note"] == pd.NOTE for r in doc["rows"])
     assert {r["n_pellets"] for r in doc["rows"] if r["kind"] == "reference"} == {6, 24}
-    assert doc["provenance"]["git_commit_at_promotion"]
+    assert_commit_recorded(doc["provenance"])
 
 
 def test_24_pellet_path_returns_run_task_target(run_dir, monkeypatch, tmp_path):

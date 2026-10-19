@@ -15,6 +15,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _git_checkout import assert_commit_recorded
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sklearn")
@@ -88,7 +89,7 @@ def test_smoke_integrity_and_heldout_rows(fakes, tmp_path):
     assert ht.main([*argv, "--workers", "1"]) == 0
     doc = json.loads((out / "heldout_transfer.json").read_text())
     prov = doc["provenance"]
-    assert prov["git_commit_at_promotion"] and "git_commit" not in prov
+    assert_commit_recorded(prov)
     assert {"tracked_changes_at_generation", "stack", "argv", "agents_dir"} <= set(prov)
     assert doc["bases"]["fresh"] == [2_700_000, 2_750_000]
     assert all(v["pass"] and v["n_checked"] == 4 for v in doc["integrity"].values())
