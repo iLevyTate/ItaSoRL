@@ -24,6 +24,24 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Tag matches the version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          # The tag must name the version in pyproject.toml and CITATION.cff, and
+          # CITATION's date-released should be the tagged commit's date.
+          tag="${GITHUB_REF_NAME#v}"
+          py=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)
+          cff=$(sed -n 's/^version: //p' CITATION.cff | tr -d '"')
+          if [ "$tag" != "$py" ] || [ "$tag" != "$cff" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match pyproject $py / CITATION $cff"
+            exit 1
+          fi
+          rel=$(sed -n 's/^date-released: //p' CITATION.cff | tr -d '"')
+          day=$(git log -1 --format=%cs HEAD)   # the checkout is the tagged commit
+          if [ "$rel" != "$day" ]; then
+            echo "::warning::CITATION date-released $rel differs from the tagged commit's date $day"
+          fi
+
       - name: Build package
         run: |
           # One test per file: `ls a b c` exits non-zero when any one name is
