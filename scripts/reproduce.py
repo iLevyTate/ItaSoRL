@@ -2120,14 +2120,16 @@ def supplement(out: str, runs_root: str | None = None,
         elif in_archive and os.path.isfile(os.path.join(ROOT, DIGEST_TABLE_NAME)):
             with open(os.path.join(ROOT, DIGEST_TABLE_NAME), "rb") as fh:
                 put(DIGEST_TABLE_NAME, fh.read())       # an extracted archive rebuilding itself
-        put(README_NAME, hider.sub(_readme(status, anon_name, dropped=dropped,
+        # The README goes through the package rename like every shipped text: its run notes
+        # name the fold switch (ITASORL_FOLDS), which the renamed code reads under the new name.
+        put(README_NAME, hider.sub(rename_pkg(_readme(status, anon_name, dropped=dropped,
                                            films=len(film_slugs()), provenance=no_prov,
                                            profile=profile, left_out=left_out,
                                            commits_hidden=hider.count(),
                                            digests_hidden=hider.digest_count(),
                                            branches_hidden=len(set(branch_rule[0][1].used.values())),
                                            title_checked=bool(titles) or not anon_name,
-                                           histories=len(histories)))
+                                           histories=len(histories))))
             .encode("utf-8"))
         z.writestr("SHA256SUMS", "\n".join(sums) + "\n")
     leaks = leak_scan(path, rules, old_name, titles=titles, branches=branches)

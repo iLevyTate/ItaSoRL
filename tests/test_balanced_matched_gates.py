@@ -128,7 +128,7 @@ def _write_run(tmp_path, alter_cells=None, alter_doc=None, sidecar=True):
         alter_cells(cells)
     for (d, s), c in cells.items():
         (run / "cells" / f"cell_d{d:.2f}_s{s}.json").write_text(json.dumps(
-            {"cell": c, "git_commit": "abc1234", "fingerprint": "0123456789abcdef"}))
+            {"cell": c, "git_commit": "2c170f0", "fingerprint": "0123456789abcdef"}))
     if sidecar:
         doc = {"population": "retained pairs", "seed_base": 910000, "objective": "survival", "mortal": True,
                "rows": [_row(s, a, cells[(0.45, s)]) for s in SEEDS for a in pbc.ARMS]}
@@ -152,7 +152,7 @@ def test_a_valid_synthetic_run_still_reads_met(tmp_path, run_b1):
     doc = pbc.promote("B1")
     assert doc["decision"] == "MET", doc["reason"]
     # provenance is read from the cell files, never written as a literal (H77)
-    assert doc["git_commit_at_run"] == "abc1234"
+    assert doc["git_commit_at_run"] == "2c170f0"
     assert doc["fingerprint"] == "0123456789abcdef"
     assert doc["gates"]["matched_reconstruction"]["status"] == "checked"
     assert doc["gates"]["matched_reconstruction"]["max_abs_diff"] == 0.0

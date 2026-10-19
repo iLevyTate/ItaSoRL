@@ -22,7 +22,7 @@ REP = os.path.join(ROOT, "artifacts", "repro_check")
 def _cell(fp="abcd", **vals):
     base = {"drift": "0.45", "seed": 0, "agents": {"survival": {"target": 0.7, "ok": True, "nan": float("nan")}}}
     base["agents"]["survival"].update(vals)
-    return {"fingerprint": fp, "git_commit": "1234567", "cell": base}
+    return {"fingerprint": fp, "git_commit": "2c170f0", "cell": base}
 
 
 def _write(d, name, doc):
