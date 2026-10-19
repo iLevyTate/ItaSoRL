@@ -649,6 +649,10 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    level on the pooled scale and supports no comparison with it. The B-v3 matched-pair
    leakage audit below was scored the same way: at `820849f` it called the probe with one
    group per episode.)
+   (Note 2026-10-19: the 0.596 is an attained estimate with an interval, not a numerical
+   bound. The manuscript revision of 2026-10-19 calls it a reference for what the pooled
+   readout can express under direct supervision; read "lower-bound positive-control
+   reference" above in that sense. The value and verdict are unchanged.)
    (Per-seed pooled targets for both n = 10 runs are committed
    in `artifacts/expB2/bv3_n10_summary.json` and
    `artifacts/expB2/sysid_ceiling_n10_summary.json`.) The B-v3 gate values,
