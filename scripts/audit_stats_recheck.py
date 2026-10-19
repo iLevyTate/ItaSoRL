@@ -3545,6 +3545,21 @@ def _cl_iv(stored: dict, rec: tuple, tol: float = 1e-9) -> bool:
             and _same(float(stored["t90"][1]), rec[2], tol))
 
 
+def _cl_close(a, b, tol: float = 1e-9) -> bool:
+    """Nested equality with floats compared to within tol (last-digit BLAS noise across platforms)."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        return a.keys() == b.keys() and all(_cl_close(a[k], b[k], tol) for k in a)
+    if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+        return len(a) == len(b) and all(_cl_close(x, y, tol) for x, y in zip(a, b))
+    if isinstance(a, float) or isinstance(b, float):
+        if isinstance(a, bool) or isinstance(b, bool) or a is None or b is None:
+            return a == b
+        if math.isnan(a) or math.isnan(b):
+            return math.isnan(a) and math.isnan(b)
+        return abs(a - b) <= tol
+    return a == b
+
+
 def _cl_label(item: str, got: str, stated: str) -> None:
     check_true(f"6.2 {item}: the label recomputed under the frozen rule is the one the record states "
                f"({stated})", got == stated)
@@ -4440,8 +4455,8 @@ def closing_g03() -> None:
             u1 = float(np.mean(f1["aggregate"]["d=0.45 untrained"]["resid_obs"]["per_seed"]))
             _cl_quote("6.2 G03: first-draw untrained resid_obs, distance from 0.5, margin inside 0.1",
                       (u1, abs(u1 - 0.5), 0.1 - abs(u1 - 0.5)), "0.596 0.096 0.004")
-        if _artifact_present(_cl_path("balanced_confirmation", "B1.json")):
-            raw1 = float(np.mean(_cl_load("balanced_confirmation", "B1.json")["balanced"]["untrained"]["per_seed"]))
+        if _artifact_present(_cl_path("balanced_confirmation", "b1.json")):
+            raw1 = float(np.mean(_cl_load("balanced_confirmation", "b1.json")["balanced"]["untrained"]["per_seed"]))
             _cl_quote("6.2 G03: first-draw raw untrained target", raw1, "0.614")
     if len(docs) == 2:
         check_true("6.2 G03: one floor read twice, untrained and predictor identical in both runs",
@@ -4647,7 +4662,7 @@ def closing_x08() -> None:
         S = st["runs"][r]
         check_true(f"6.2 X08: {r} stored matrices, segments and partial slopes equal the recomputation",
                    S["matrices"] == {"target": T.tolist(), "return": R.tolist(), "trained_len": L.tolist()}
-                   and S["segments"] == seg and S["partial_slopes"] == sl)
+                   and _cl_close(S["segments"], seg) and _cl_close(S["partial_slopes"], sl))
         _cl_quote(f"6.2 X08: {r} partial slope of target on return", (sl["return"]["slope"], *sl["return"]["boot90"]), rq)
         _cl_quote(f"6.2 X08: {r} partial slope of target per 100 updates",
                   (sl["updates_per_100"]["slope"], *sl["updates_per_100"]["boot90"]), uq)
