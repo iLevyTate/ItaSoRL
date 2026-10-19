@@ -140,12 +140,18 @@ GPU_OWNER = "owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126"
 CPU_CLOUD = "cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu"
 CPU_REVISION = "revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu"
 # Readout 8(a) of scripts/run_mechanism_readouts.py before 2026-10-16: one CV group per episode on
-# same-world twin pools (the T-touch and S-immortal agents are not on this machine; no rescore).
+# same-world twin pools. The T-touch and S-immortal agents were preserved from origin run/T-touch and
+# run/S-immortal into the gitignored fullruns/branch_preserve, and all three runs were rescored with
+# twin groups on 2026-10-18 (closing pass B5, artifacts/goal_stakes_grouped_surprise/).
 SURPRISE_SPLIT_TWINS = ("The stored surprise AUROCs (readout 8(a)) put each authentic episode and "
                         "its same-world surrogate twin in separate CV folds, which biases them low, "
                         "so read them as lower bounds. Every run's mean is above the 0.65 bar, the "
                         "only quantity the surprise verdict reads; single seeds can fall below it "
-                        "(docs/CORRECTIONS.md, 2026-10-16; not rescored).")
+                        "(docs/CORRECTIONS.md, 2026-10-16). The stored values stay as recorded. "
+                        "Rescored on 2026-10-18 with one CV group per twin pair "
+                        "(artifacts/goal_stakes_grouped_surprise/), the grouped survival mean is above "
+                        "0.65 on all three runs (label GROUPED ABOVE 0.65), so the stored lower bound "
+                        "and the verdict agree.")
 CLOUD_PINNED = ("Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, "
                 "scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)")
 PINNED_DEPS = "torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1"
@@ -157,6 +163,23 @@ POST_REVIEW_SEEDS = {
     "r33": "2200000 + i for both members of a pair; continuity entry 800000 + i",
     "scripted_policy": "action stream default_rng(600000 + i)",
 }
+# Closing pass 2026-10 (Stage 5 runs, promoted in Stage 6.1): every step ran at main 75ce098 from a
+# clean detached worktree on the owner's workstation, with OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+# ITASORL_FOLDS=explicit exported by the run chain. Raw outputs stay in fullruns/closing_2026-10/.
+CLOSING_COMMIT = "75ce098"
+CLOSING_DEPS = "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3"
+CLOSING_GPU = "owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA"
+CLOSING_SPEC = "docs/specs/2026-10-17-closing-readouts-design.md"
+EXTENSION_SPEC = "docs/specs/2026-10-17-extension-readouts-design.md"
+CLOSING_NOTE = ("Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or "
+                "verdict.")
+
+
+def closing_cpu(workers: int) -> str:
+    """Device string of a closing-pass step on the workstation CPU."""
+    return (f"owner's workstation CPU, {workers} worker{'s' if workers > 1 else ''}; "
+            "torch 2.7.0+cu126 on CPU")
+
 
 RUNS = [
     # ---------------- agent-free and prediction-only arcs (no actor-critic) ----------------
@@ -187,8 +210,11 @@ RUNS = [
         deps="python 3.12.13, torch 2.11.0+cu128 (recorded)", local_run_dir="fullruns/06302026",
         notes="The world model was fed each action one step late: it saw (O_t, A_t), with O_t already "
               "produced by A_t, and was scored against O_{t+1}, so it predicted each step without the action "
-              "that caused it. The prediction-error and open-loop channels are the most exposed; the effect "
-              "was not measured, and the stored numbers stand (docs/CORRECTIONS.md, 2026-10-16)."),
+              "that caused it. The prediction-error and open-loop channels are the most exposed, and the "
+              "stored numbers stand (docs/CORRECTIONS.md, 2026-10-16). Measured on 2026-10-18 on the "
+              "owner's workstation (B-PRED-TIMING-LOCAL): the prediction-only state at drift 0.45 reads "
+              "0.517 with the one-step-late timing and 0.544 with the action aligned, both inside the "
+              "recorded interval [0.429, 0.591] (label RESTORE: the negative stands with correct timing)."),
     # ---------------- B-v2 / B-v3 (L2 surrogates), survival trained ----------------
     run("BV2-L2-AR1", "B-v2 survival coupling, L2 AR(1) drift, canonical replication",
         experiment="B-v2", artifacts=["expB2/expB2_results.json", "expB2/expB2_survival.png"],
@@ -282,13 +308,25 @@ RUNS = [
         eval_seeds={**BV2_EVAL_SEEDS, **HELDOUT_EVAL_SEEDS}, folds="both", device=GPU_OWNER,
         local_run_dir="fullruns/l3_h7_heldout"),
     run("L1-ORGANISM", "L1 organism at the in-band grid (delta 0.023), n = 10",
-        experiment="B-v2 L1", artifacts=["expL1/organism_summary.json", "fold_rescore/l1_heldout.json",
-                                         "expL1/observation_ceiling.json"],
+        experiment="B-v2 L1", artifacts=["expL1/organism_summary.json", "fold_rescore/l1_heldout.json"],
         claims=[35], commit_at_run="8a71593",
         config={**BV2_PROTOCOL, "drift_mode": "l1", "drifts": [0.0, 0.023], "l1_delta": 0.023,
                 "sensor_sigma": 0.01, "save_agents": True},
         agent_seeds=S10, eval_seeds=BV2_EVAL_SEEDS, folds="both",
         device="cpu, 4 workers (run log header)", local_run_dir="fullruns/l1_heldout"),
+    run("L1-OBSERVATION-CEILING", "Agent-accessible ceiling of the L1 rung on the registered scripted "
+        "pools (2026-10-12 audit)", experiment="A", artifacts=["expL1/observation_ceiling.json"],
+        claims=[], trains_survival=False, readout_of=["L1-ORGANISM"], survival_trainer="none",
+        commit_at_run="2c170f0",
+        config={"runner": "scripts/run_l1_observation_ceiling.py", "l1_delta": 0.023,
+                "sensor_sigma": 0.01, "n_eps": 110, "steps": 24, "policy": "scripted"},
+        eval_seeds={"authentic": 800000, "surrogate": 850000}, folds="n/a (probe_auroc's own grouped CV)",
+        notes="Closing pass 2026-10, H13: moved out of L1-ORGANISM, whose commit (8a71593, July 2026) the "
+              "file postdates. File and runner were committed together in 2c170f0 on 2026-10-12; the "
+              "artifact records no commit, stack or runner, so the commit above is curated from git. No "
+              "trained agent is read: the scripted policy runs on the L1 rung's registered pools, and "
+              "readout_only_on names the run whose rung and pools it measures. The file is kept as "
+              "written; this entry re-adjudicates nothing."),
     run("L3-H8-NOWM-CPU", "Architecture baseline: no next-observation decoder, n = 10",
         experiment="B-v2 L3", artifacts=["expB2/arch_baseline_l3_h8_nowm.json",
                                          "reviewer_gaps_runs/l3_h8_nowm"],
@@ -732,7 +770,8 @@ RUNS = [
               "directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on "
               "state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents "
               "and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) "
-              "stay on branch run/T-touch. Mechanism surprise AUROC 0.912. " + SURPRISE_SPLIT_TWINS),
+              "stay on branch run/T-touch. Mechanism surprise AUROC 0.912 (stored); twin-grouped 0.917 "
+              "(2026-10-18, GROUPED-SURPRISE-T-TOUCH). " + SURPRISE_SPLIT_TWINS),
     run("S-IMMORTAL", "Survival objective, death off, registered food, n = 10 (goal-and-stakes)",
         experiment="B-v2 L3", artifacts=["goal_stakes/S-immortal", "expB2/goal_stakes_S-immortal.json"],
         claims=[], survival_trainer="successor_value", status="corrected",
@@ -746,14 +785,15 @@ RUNS = [
               "targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 "
               "[0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable "
               "(S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined "
-              "attempts stay on branch run/S-immortal. Mechanism surprise AUROC 0.848. " + SURPRISE_SPLIT_TWINS),
+              "attempts stay on branch run/S-immortal. Mechanism surprise AUROC 0.848 (stored); "
+              "twin-grouped 0.859 (2026-10-18, GROUPED-SURPRISE-S-IMMORTAL). " + SURPRISE_SPLIT_TWINS),
     run("S-SCARCE", "Survival objective, death on, scarce food (calibrated), n = 10 (goal-and-stakes)",
         experiment="B-v2 L3", artifacts=["goal_stakes/S-scarce", "goal_stakes/calibration.json"],
-        claims=[], survival_trainer="successor_value", status="corrected", commit_at_run="pending",
+        claims=[], survival_trainer="successor_value", status="not run", commit_at_run="c14b533",
         config={**BV2_PROTOCOL, "drift_mode": "l3", "gae_bootstrap": "successor",
                 "n_pellets": "calibrated: 24, the registered density (artifacts/goal_stakes/calibration.json)"},
-        agent_seeds=S10, surrogate=L3_H8, budget={"survival_updates": 300, "predictor_updates": 300},
-        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=CPU_REVISION,
+        agent_seeds=[], surrogate=L3_H8, budget={"survival_updates": 300, "predictor_updates": 300},
+        eval_seeds=BV2_EVAL_SEEDS, folds="explicit", device=None,
         local_run_dir="artifacts/goal_stakes/S-scarce",
         notes="Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. NOT RUN: the frozen "
               "calibration (scripts/calibrate_scarcity.py, artifacts/goal_stakes/calibration.json) "
@@ -764,15 +804,19 @@ RUNS = [
     run("C1-MECHANISM", "Mechanism readouts 6 to 9 and the scripted-walk stream decoder, C1 agents",
         experiment="B-v2 L3", artifacts=["goal_stakes/C1"], trains_survival=False,
         readout_of=["C1", "C1-RERUN"], survival_trainer="successor_value", status="corrected",
-        commit_at_run="run/C1-rerun", folds="explicit",
+        commit_at_run="9d388d5 (run/C1-rerun, the commit that added mechanism.json)", folds="explicit",
         eval_seeds={"mechanism": "1400000 + i, i < 64, shared by the authentic and the surrogate "
                                  "rollouts (the artifact's seed_bases)"},
         device=CLOUD_PINNED,
         notes="scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, "
               "whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: "
               "artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and "
-              "S-immortal mechanism readouts; decide_goal_stakes.py does not read it. Surprise AUROC "
-              "0.846. " + SURPRISE_SPLIT_TWINS),
+              "S-immortal mechanism readouts; decide_goal_stakes.py does not read it. The three stored "
+              "mechanism.json files (C1, T-touch, S-immortal) record no commit or stack; the commit "
+              "above is the run/C1-rerun commit that added this one, and the 2026-10-18 rescores "
+              "(GROUPED-SURPRISE-*) record both. Surprise AUROC 0.846 (stored); twin-grouped 0.856 "
+              "(2026-10-18, GROUPED-SURPRISE-C1, on the workstation stack, with its cross-stack "
+              "note). " + SURPRISE_SPLIT_TWINS),
     run("C1-RERUN", "Rerun of C1 that keeps its saved agents (reproduction)",
         experiment="B-v2 L3", artifacts=["goal_stakes/C1-rerun"], claims=[],
         survival_trainer="successor_value", status="corrected",
@@ -1275,6 +1319,254 @@ RUNS = [
               "direction REORGANIZES on both (cosine of u_300 to u_450 0.40 and 0.42); C1 minus C2 in "
               "resid_obs +0.133 [+0.061, +0.206] at 450, the auxiliary builds the stored component. First "
               "budget above the untrained floor by 0.05: 200 (C1), 450 (C2). FINDINGS 23.4."),
+    # ---------------- closing pass 2026-10 (Stage 5 runs at 75ce098, promoted in Stage 6.1) ----------------
+    run("GATE0-L1-FOLDS", "L1 gate-0 oracle at the in-band grid under both fold partitions (G47)",
+        experiment="A", artifacts=["fold_rescore/gate0_l1_legacy.json", "fold_rescore/gate0_l1_explicit.json"],
+        claims=[], trains_survival=False, survival_trainer="none", commit_at_run=CLOSING_COMMIT,
+        config={"runner": "scripts/run_expA_l1.py --deltas 0.022 0.023 0.024", "sensor_sigma": 0.01},
+        folds="both", device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes=f"scripts/run_expA_l1.py, one file per fold partition (R01, 2026-10-17); {CLOSING_SPEC}, G47. "
+              "Agent free; the commit is recorded as git_commit in each file's provenance block. "
+              + CLOSING_NOTE),
+    run("BUDGET-CURVE-DYNAMICS", "Budget-curve dynamics of the corrected runs (X08)", experiment="B-v2 L3",
+        artifacts=["budget_curve_dynamics/corrected_runs.json"], trains_survival=False,
+        readout_of=["C1", "C2"], survival_trainer="successor_value", status="corrected",
+        commit_at_run=CLOSING_COMMIT, folds="n/a", device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes=f"scripts/read_budget_curve_dynamics.py (X08, 2026-10-17); {EXTENSION_SPEC}, X08. Agent free: "
+              "reads artifacts/budget_curve.json and the C1 and C2 cells; the commit is recorded as "
+              "git_commit. " + CLOSING_NOTE),
+    run("BAYES-FACTORS", "Bayes factors with an interval null on stored readings (X09)",
+        experiment="methods", artifacts=["bayes_factors/interval_null.json"], claims=[],
+        trains_survival=False, survival_trainer="none", commit_at_run=CLOSING_COMMIT, folds="n/a",
+        device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes=f"scripts/build_bayes_factors.py (X09, 2026-10-17); {EXTENSION_SPEC}, X09. Agent free, "
+              "annotation only: it reads committed artifacts and relabels no registered reading; the "
+              "commit is recorded as git_commit. " + CLOSING_NOTE),
+    run("QD-EPS6-ORACLE", "Quadratic-drag comparator oracle at eps 6.0, the setting the trained run used "
+        "(H31)", experiment="methods", artifacts=["agent_free/qd_eps6_oracle.json"], claims=[],
+        trains_survival=False, survival_trainer="none", commit_at_run=CLOSING_COMMIT, folds="explicit",
+        config={"runner": "scripts/run_expA_l3.py --family qd --qd-epss 4.0 6.0 8.0 --device cpu",
+                "sigma_meas": 0.02},
+        device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes=f"R16, 2026-10-17; {CLOSING_SPEC}, H31. Agent free; the untrained floor seeds use the "
+              "corrected trainer's untrained arm (no actor-critic), as in QD-GATE0, whose file is not "
+              "touched. The runner exits 1 by design when no eps passes gate 0; the JSON was written. The "
+              "commit is recorded as git_commit. " + CLOSING_NOTE),
+    run("C1-REGEN-LOCAL", "C1 state dumps regenerated on the workstation stack: per-cell comparison "
+        "report (G57)", experiment="methods", artifacts=["repro_check_c1_regen/c1_regen_local_stack.json"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run=CLOSING_COMMIT, folds="explicit", eval_seeds=BV2_EVAL_SEEDS,
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes=f"scripts/regenerate_state_dumps.py --tolerance 0.002 --report (R10, 2026-10-17); "
+              f"{CLOSING_SPEC}, G57. Report only: the regenerated dumps stay in the gitignored "
+              "fullruns/closing_2026-10/g57/states_local, and every readout of them labels its C1 rows "
+              "cross-stack regenerated. Kept out of artifacts/repro_check/, which REPRO-4B6E1F3 owns. "
+              + CLOSING_NOTE),
+    run("PROBE-SENSITIVITY", "Probe-penalty sensitivity of the registered state probe across six stored "
+        "dump sets (G01)", experiment="methods", artifacts=["probe_sensitivity"],
+        trains_survival=False,
+        readout_of=["L3-H8-HELDOUT", "L1-ORGANISM", "L1-CORRECTED", "B1-BALANCED", "B2-BALANCED", "C1"],
+        survival_trainer="pre_transition_value (L3-H8-HELDOUT, L1-ORGANISM) and successor_value "
+                         "(L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1)",
+        status="historical and corrected", commit_at_run=CLOSING_COMMIT,
+        folds="explicit (explicit-v1, one group per episode)", device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes=f"scripts/run_probe_penalty_sensitivity.py (R11, 2026-10-17); {CLOSING_SPEC}, G01. Methods; "
+              "one file per stored dump set, the C1 file on the dumps C1-REGEN-LOCAL regenerated. The "
+              "integrity gate passed in all six files. No TOST or gate at any C other than 1. "
+              + CLOSING_NOTE),
+    run("STEP-RESOLVED", "Within-episode decoding curve of the registered state probe across six stored "
+        "dump sets (G04)", experiment="methods", artifacts=["step_resolved"], trains_survival=False,
+        readout_of=["L3-H8-HELDOUT", "L1-ORGANISM", "L1-CORRECTED", "B1-BALANCED", "B2-BALANCED", "C1"],
+        survival_trainer="pre_transition_value (L3-H8-HELDOUT, L1-ORGANISM) and successor_value "
+                         "(L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1)",
+        status="historical and corrected", commit_at_run=CLOSING_COMMIT,
+        folds="explicit (explicit-v1, one group per episode)", device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes=f"scripts/run_step_resolved_readout.py (R12, 2026-10-17); {CLOSING_SPEC}, G04. Methods; "
+              "one file per stored dump set, the C1 file on the dumps C1-REGEN-LOCAL regenerated. The "
+              "integrity gate passed in all six files. The curve does not by itself separate coherence "
+              "from an integrated deviation. " + CLOSING_NOTE),
+    run("AR-SWEEP-C-REALIZATION2", "Sweep C end points (rho 0 and 0.99) with a second jitter realization, "
+        "on the C1 agents (B8)", experiment="B-v2 L3", artifacts=["texture/ar_sweep_c_realization2"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run=CLOSING_COMMIT, folds="explicit", eval_seeds={"authentic": 2500000, "G_arc": 2550000},
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes=f"scripts/run_texture_fresh_probe.py --family arc --jitter-key agent (R02, 2026-10-18); "
+              f"{CLOSING_SPEC}, B8. The stored AR-SWEEP-C points are not touched. " + CLOSING_NOTE),
+    run("L1-NONLINEAR-CORRECTED", "Nonlinear state probes on the corrected L1 agents' dumps (H53)",
+        experiment="B-v2 L1", artifacts=["expL1/l1_nonlinear_corrected.json"], trains_survival=False,
+        readout_of=["L1-CORRECTED"], survival_trainer="successor_value", status="corrected",
+        commit_at_run=CLOSING_COMMIT, folds="explicit (explicit-v1, one group per episode)",
+        eval_seeds={"authentic": 800000, "surrogate": 850000}, device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes=f"scripts/run_l1_nonlinear_probe.py on fullruns/corrected_l1_heldout/states (R17, 2026-10-18); "
+              f"{CLOSING_SPEC}, H53. " + CLOSING_NOTE),
+    run("L1-COARSE-GRID", "L1 state readout at the in-band and a supra-band grid (Delta 0.023 and 0.06), "
+        "corrected L1 agents with the historical companion (B1)", experiment="B-v2 L1",
+        artifacts=["expL1/l1_coarse_grid_corrected.json", "expL1/l1_coarse_grid_historical.json"],
+        claims=[], trains_survival=False, readout_of=["L1-CORRECTED", "L1-ORGANISM"],
+        survival_trainer="successor_value (L1-CORRECTED, l1_coarse_grid_corrected.json) and "
+                         "pre_transition_value (L1-ORGANISM, l1_coarse_grid_historical.json)",
+        status="historical and corrected", commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"authentic": "800000 + i at drift 0", "surrogate": "850000 + i under the L1 grid"},
+        device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes="scripts/run_l1_h2_ablations.py --channels a1 --deltas 0.023 0.06 (R06a corrected, R06b "
+              f"historical, 2026-10-18); {CLOSING_SPEC}, B1. Each file joins the out-dir's aggregate, "
+              "provenance and cells (scripts/promote_l1_grid_readouts.py; no value changed). The corrected "
+              "file decides; the historical companion decides nothing. " + CLOSING_NOTE),
+    run("L1-NOISE-PER-EPISODE", "L1 noise knockout with fresh noise per episode, historical L1 agents (B7)",
+        experiment="B-v2 L1", artifacts=["expL1/l1_h2_noise_per_episode.json"], claims=[],
+        trains_survival=False, readout_of=["L1-ORGANISM"], commit_at_run=CLOSING_COMMIT,
+        folds="explicit",
+        eval_seeds={"training_pools": "800000 + seed (drift 0) / 850000 + seed (Delta 0.023)",
+                    "transfer_pools": "960000 + seed / 970000 + seed, one noise stream per episode"},
+        device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes="scripts/run_l1_h2_ablations.py --channels noise --noise-reseed per-episode (R03, 2026-10-18); "
+              f"{CLOSING_SPEC}, B7. Read only because the historical half of B1 bit-matched its saved "
+              "dumps. The file joins the out-dir's aggregate, provenance and cells "
+              "(scripts/promote_l1_grid_readouts.py; no value changed). The stored per-pool reading in "
+              "expL1/h2_ablations.json is not touched. " + CLOSING_NOTE),
+    run("C1-REVERSE-DIRECTION", "Reverse-direction readout on the corrected C1 drift-0 agents (B3)",
+        experiment="L0 audit", artifacts=["l0_audit/reverse_direction_corrected_l3_h8_wm.json"], claims=[51],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"authentic pool": "800000 at drift 0", "surrogate pool": "850000 at drift 0.45"},
+        device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes="scripts/reverse_direction.py --integrity-ref "
+              f"artifacts/fold_rescore/corrected_l3_h8_wm_integrity_ref.json (R04, 2026-10-18); {CLOSING_SPEC}, "
+              "B3, under the rule of docs/specs/2026-10-09-reverse-direction-readout-design.md. Beside "
+              "H8-HELDOUT-REVERSE-DIRECTION, which keeps its label. " + CLOSING_NOTE),
+    run("C1-D045-WORLD-SAMPLES", "Drift-0.45 world-sample sensitivity on the corrected C1 agents (G02)",
+        experiment="L0 audit", artifacts=["l0_audit/d045_world_samples_corrected_l3_h8_wm.json"],
+        claims=[50], trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
+        status="corrected", commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"registered": "800000 / 850000",
+                    "independent": "(1000000 + 100000k) / (1050000 + 100000k), k < 8"},
+        device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes="scripts/run_world_sample_sensitivity.py --arms survival --integrity-ref "
+              f"artifacts/fold_rescore/corrected_l3_h8_wm_integrity_ref.json (R05, 2026-10-18); {CLOSING_SPEC}, "
+              "G02, under the rule of docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md. "
+              "Diagnostic, not a gate. Beside H8-HELDOUT-D045-WORLD-SAMPLES, which keeps its label. "
+              + CLOSING_NOTE),
+    run("B-PRED-TIMING-LOCAL", "Experiment B (L2) prediction-only arc rerun with the stored and the "
+        "corrected action timing (C1)", experiment="B",
+        artifacts=["expB_legacy_local_2026-10-18", "expB_aligned_2026-10-18"], claims=[4, 5, 6, 7],
+        trains_survival=False, survival_trainer="none", commit_at_run=CLOSING_COMMIT,
+        config={"agent": "itasorl/agent.py RecurrentWorldModel, next-step prediction",
+                "runners": "scripts/run_expB_{full,kstep,nonlinear,gap,surprise}.py --align legacy, "
+                           "then --align obs_then_action"},
+        agent_seeds=[0, 1, 2], folds="explicit", device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes=f"R09, 2026-10-18; {CLOSING_SPEC}, C1. expB_legacy_local_2026-10-18 keeps the stored "
+              "one-step-late action timing; expB_aligned_2026-10-18 scores each next observation with the "
+              "action that produces it. JSON only: the run's PNGs are not promoted and docs/figures/expB_*.png stay "
+              "as stored. Trains no actor-critic; the commit is recorded as git_commit. Beside B-PRED, "
+              "whose numbers stand. " + CLOSING_NOTE),
+    run("DEVELOPMENT-HELDOUT-TRANSFER", "Held-out transfer of the 300-update probe across the C1 and C2 "
+        "budget snapshots (B6)", experiment="B-v2 L3", artifacts=["development/heldout_transfer.json"],
+        trains_survival=False, readout_of=["DEVELOPMENT"], survival_trainer="successor_value",
+        status="corrected", commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"registered": "800000 / 850000", "fresh": "2700000 / 2750000"},
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes=f"scripts/run_development_heldout_transfer.py (R14, 2026-10-18); {CLOSING_SPEC}, B6. Reads the "
+              "C1 and C2 snapshot agents that DEVELOPMENT read; its integrity check reproduces "
+              "DEVELOPMENT's stored in-sample transfer_from_300, whose file is not touched. " + CLOSING_NOTE),
+    run("WORLD-FEATURES-OWN-EPISODE", "World-draw features read on each arm's own episodes (G07, post "
+        "hoc)", experiment="B-v2 L3", artifacts=["world_features/own_episode_posthoc"],
+        trains_survival=False, readout_of=["C1", "C2"], survival_trainer="successor_value",
+        status="corrected", commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"readout": "2600000, 1100 episodes, both worlds", "reach_calibration": "2650000, 110 per seed"},
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes="scripts/run_world_features_readout.py --protocol own (R15a wm and R15b nowm, 2026-10-18); "
+              f"{CLOSING_SPEC}, G07(a), the secondary protocol of "
+              "docs/specs/2026-10-15-world-draw-features-design.md. Label-neutral: WORLD-FEATURES keeps "
+              "its label and its files are not touched. These files carry the per-episode feature values. "
+              + CLOSING_NOTE),
+    run("WALK-SPEED", "Walk speed against goal direction on the C1 agents (B2)", experiment="B-v2 L3",
+        artifacts=["walk_speed/corrected_l3_h8_wm.json"], trains_survival=False, readout_of=["C1"],
+        survival_trainer="successor_value", status="corrected", commit_at_run=CLOSING_COMMIT,
+        folds="explicit",
+        eval_seeds={"authentic": 2800000, "surrogate": 2850000, "replay_source": 800000,
+                    "scripted_policy": 600000},
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes="scripts/run_walk_speed_readout.py (R13, 2026-10-18); "
+              "docs/specs/2026-10-17-walk-speed-vs-goal-readout-design.md. " + CLOSING_NOTE),
+    run("GROUPED-SURPRISE-C1", "Mechanism readouts with twin-grouped surprise folds, C1 agents (B5)",
+        experiment="B-v2 L3", artifacts=["goal_stakes_grouped_surprise/C1.json"], trains_survival=False,
+        readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"mechanism": "1400000 + i, i < 64, shared by the authentic and the surrogate rollouts"},
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes="scripts/run_mechanism_readouts.py --also-ungrouped-surprise on fullruns/corrected_l3_h8_wm/agents "
+              f"(R08a, 2026-10-18); {CLOSING_SPEC}, B5. Grouped and ungrouped surprise come from the same "
+              "rollouts. Cross-stack note: the stored C1 mechanism.json (cloud stack, C1-MECHANISM) does not "
+              "reproduce within 0.01 on this stack for the ungrouped surprise AUROC on five survival seeds; "
+              "per the spec this does not void the grouped-versus-ungrouped comparison, which is read "
+              "between two local values. The stored values stay as recorded. " + CLOSING_NOTE),
+    run("GROUPED-SURPRISE-T-TOUCH", "Mechanism readouts with twin-grouped surprise folds, T-touch agents "
+        "(B5)", experiment="B-v2 L3", artifacts=["goal_stakes_grouped_surprise/T-touch.json"],
+        trains_survival=False, readout_of=["T-TOUCH"], survival_trainer="successor_value",
+        status="corrected", commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"mechanism": "1400000 + i, i < 64, shared by the authentic and the surrogate rollouts"},
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes="scripts/run_mechanism_readouts.py --also-ungrouped-surprise on the agents preserved from "
+              f"branch run/T-touch in fullruns/branch_preserve (R08b, 2026-10-18); {CLOSING_SPEC}, B5. Every "
+              "tolerance quantity is within 0.01 of the stored goal_stakes/T-touch/mechanism.json. The "
+              "stored values stay as recorded. " + CLOSING_NOTE),
+    run("GROUPED-SURPRISE-S-IMMORTAL", "Mechanism readouts with twin-grouped surprise folds, S-immortal "
+        "agents (B5)", experiment="B-v2 L3", artifacts=["goal_stakes_grouped_surprise/S-immortal.json"],
+        trains_survival=False, readout_of=["S-IMMORTAL"], survival_trainer="successor_value",
+        status="corrected", commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"mechanism": "1400000 + i, i < 64, shared by the authentic and the surrogate rollouts"},
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes="scripts/run_mechanism_readouts.py --also-ungrouped-surprise on the agents preserved from "
+              f"branch run/S-immortal in fullruns/branch_preserve (R08c, 2026-10-18); {CLOSING_SPEC}, B5. "
+              "Every tolerance quantity is within 0.01 of the stored goal_stakes/S-immortal/mechanism.json. "
+              "Its untrained arm is the same set of agents as T-touch's (both runs immortal), so the two "
+              "untrained floors are one floor. The stored values stay as recorded. " + CLOSING_NOTE),
+    run("SENSORY-ECHO-B1-FRESH", "Balanced sensory-echo control on a second evaluation draw, B1 agents "
+        "(G03)", experiment="B-v2 L3", artifacts=["balanced_confirmation/sensory_echo_b1_fresh.json"],
+        trains_survival=False, readout_of=["B1-BALANCED"], survival_trainer="successor_value",
+        status="corrected", commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"balanced_pairs": "2250000 (G03-fresh), same base for both worlds, 110 episodes",
+                    "integrity": "910000"},
+        device=CLOSING_GPU, deps=CLOSING_DEPS,
+        notes="scripts/audit_sensory_echo.py --balanced-seed-base 2250000 --integrity-seed-base 910000 "
+              f"(G1wm, 2026-10-19); {CLOSING_SPEC}, G03. Beside sensory_echo_b1.json, which is not touched; "
+              "the 910000 decision stands. " + CLOSING_NOTE),
+    run("SENSORY-ECHO-B2-FRESH", "Balanced sensory-echo control on a second evaluation draw, B2 agents "
+        "(G03)", experiment="B-v2 L3", artifacts=["balanced_confirmation/sensory_echo_b2_fresh.json"],
+        trains_survival=False, readout_of=["B2-BALANCED"], survival_trainer="successor_value",
+        status="corrected", commit_at_run=CLOSING_COMMIT, folds="explicit",
+        eval_seeds={"balanced_pairs": "2250000 (G03-fresh), same base for both worlds, 110 episodes",
+                    "integrity": "910000"},
+        config={"objective": "touch", "mortal": False},
+        device=CLOSING_GPU, deps=CLOSING_DEPS,
+        notes="scripts/audit_sensory_echo.py --objective touch --mortal off --balanced-seed-base 2250000 "
+              f"--integrity-seed-base 910000 (G1touch, 2026-10-19); {CLOSING_SPEC}, G03. Beside "
+              "sensory_echo_b2.json, which is not touched; the 910000 decision stands. B1 and B2 share "
+              "their untrained and predictor agents, so this file's floor is SENSORY-ECHO-B1-FRESH's floor "
+              "read again. " + CLOSING_NOTE),
+    run("PELLET-DOSE", "Pellet-density dose curve on the C1 agents (X07)", experiment="B-v2 L3",
+        artifacts=["pellet_dose/corrected_l3_h8_wm.json"], trains_survival=False, readout_of=["C1"],
+        survival_trainer="successor_value", status="corrected", commit_at_run=CLOSING_COMMIT,
+        folds="explicit",
+        eval_seeds={"pools": "800000 / 850000, pellet count overridden in the evaluation worlds"},
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes="scripts/run_pellet_dose_readout.py --n-pellets 2 6 12 24 48 96 (X07, 2026-10-19); "
+              f"{EXTENSION_SPEC}, X07. Label-neutral. " + CLOSING_NOTE),
+    run("C1-POPULATION-WORLD-GROUPED", "C1 pooled population probe regrouped by world seed (B4)",
+        experiment="C", artifacts=["population_readout/corrected_l3_h8_wm_world_grouped.json"],
+        claims=[49], trains_survival=False, readout_of=["C1"], survival_trainer="successor_value",
+        status="corrected", commit_at_run=CLOSING_COMMIT, folds="explicit", eval_seeds=HELDOUT_EVAL_SEEDS,
+        device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes="scripts/validate_population_readout.py --group-by-world-seed (R07, 2026-10-19); "
+              f"{CLOSING_SPEC}, B4. Row-grouped and world-grouped values from one pass, beside "
+              "C1-POPULATION, whose file is not touched. The output records n_world_groups, not the "
+              "number of dead pairs. " + CLOSING_NOTE),
+    run("HEAD-OVERLAP", "Head overlap: the decoded world direction against the actor, critic and "
+        "decoder weights, C1 agents (X03)", experiment="B-v2 L3", artifacts=["head_overlap/corrected_l3_h8_wm.json"],
+        trains_survival=False, readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run=CLOSING_COMMIT, folds="explicit", eval_seeds={"pools": "800000 / 850000"},
+        device=closing_cpu(2), deps=CLOSING_DEPS,
+        notes=f"scripts/run_head_overlap_readout.py (X03, 2026-10-19); {EXTENSION_SPEC}, X03. " + CLOSING_NOTE),
 ]
 
 
@@ -1384,6 +1676,11 @@ def _recorded(path: str) -> dict:
     prov = doc.get("provenance")
     if isinstance(prov, dict) and isinstance(prov.get("git_head"), str):
         out["git_head"] = prov["git_head"]
+    # An agent-free computation that records its provenance block through
+    # agent_free_common.provenance(commit_key="git_commit") keeps the run commit inside that
+    # block (closing pass 2026-10). A readout's git_commit_at_promotion is still not read.
+    if isinstance(prov, dict) and isinstance(prov.get("git_commit"), str) and "git_commit" not in out:
+        out["git_commit"] = prov["git_commit"]
     return out
 
 
@@ -1457,6 +1754,31 @@ def commit_source(curated: str | None, recorded: set[str]) -> str | None:
     return f"curated: the artifacts record {have} instead"
 
 
+def _closing_readout_commits(artifacts: list[str]) -> set[str]:
+    """The closing-pass readouts (rows whose commit_at_run is CLOSING_COMMIT) record the commit
+    they ran at as provenance.git_commit_at_promotion, from a tree with no tracked changes
+    (docs/specs/2026-10-17-closing-readouts-design.md, "Commit key"). For those rows only, that value counts as the run commit when the
+    same block records tracked_changes_at_generation == []. Every other row keeps the rule that
+    a promotion commit is never a run commit."""
+    paths = []
+    for a in artifacts:
+        p = os.path.join(ART, a)
+        paths += sorted(glob.glob(os.path.join(p, "*.json"))) if os.path.isdir(p) else [p]
+    out: set[str] = set()
+    for p in paths:
+        try:
+            with open(p, encoding="utf-8") as fh:
+                doc = json.load(fh)
+        except (OSError, ValueError):
+            continue
+        prov = doc.get("provenance") if isinstance(doc, dict) else None
+        v = prov.get("git_commit_at_promotion") if isinstance(prov, dict) else None
+        if (isinstance(v, str) and _PURE_HASH.match(v)
+                and prov.get("tracked_changes_at_generation") == []):
+            out.add(v)
+    return out
+
+
 def build() -> dict:
     runs = []
     for r in RUNS:
@@ -1468,7 +1790,10 @@ def build() -> dict:
             else:
                 rec[a] = _recorded(p)
         row = {**r, "recorded_provenance": rec}
-        src = commit_source(r["commit_at_run"], _run_commits(rec))
+        recorded = _run_commits(rec)
+        if r["commit_at_run"] == CLOSING_COMMIT:
+            recorded |= _closing_readout_commits(r["artifacts"])
+        src = commit_source(r["commit_at_run"], recorded)
         if src is not None:
             row["commit_at_run_source"] = src
         runs.append(row)
@@ -1593,7 +1918,8 @@ def render_md(m: dict) -> str:
         "`artifacts/expB2/corrected_l3_h8_nowm.json`.",
         "- Original T-touch. Historical pellet run. Recorded MET at 0.796. Current "
         "validity: the leakage gate summed the homeostatic reward, so full-rule validity "
-        "was not established. Agents are not on this machine. "
+        "was not established. Its saved agents are on branch run/T-touch, with a local copy in "
+        "the gitignored fullruns/branch_preserve that the 2026-10-18 twin-grouped surprise rescore read. "
         "`artifacts/expB2/goal_stakes_T-touch.json`.",
         "- B1, `balanced_confirmation_wm`. Corrected trainer, GPU workstation, seeds "
         "10-19, matched pairs at base 910000, survival, mortal. October 12 rule: trained "

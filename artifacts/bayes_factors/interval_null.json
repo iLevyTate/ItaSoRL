@@ -1,0 +1,305 @@
+{
+ "provenance": {
+  "generated_by": "scripts/build_bayes_factors.py",
+  "git_commit": "75ce098",
+  "tracked_changes_at_generation": [],
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "machine": "AMD64",
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "torch_threads": 1
+  },
+  "argv": ["--out", "fullruns/closing_2026-10/x09/interval_null.json"]
+ },
+ "status": "annotation only, post hoc: never relabels a registered reading; kept apart from the bootstrap ROPE check (itasorl/stats.py), which is not a Bayesian analysis; every row is conditional on one evaluation-world draw",
+ "model": {
+  "prior": "JZS: delta ~ Cauchy(0, r), p(sigma) ~ 1/sigma",
+  "scales": [0.5, 0.707, 1.0],
+  "label_scale": 0.707,
+  "rope_half_width": 0.05,
+  "rope_on_delta": "half-width / sample sd (plug-in)",
+  "labels": {
+   "> 3": "evidence for the band",
+   "< 1/3": "evidence against the band",
+   "otherwise": "indeterminate"
+  }
+ },
+ "inputs": {
+  "c1": "artifacts/corrected_verdicts.json",
+  "l0": "artifacts/l0_audit/corrected_l3_h8_wm.json",
+  "sweep_c": "artifacts/texture/ar_sweep_c/summary.json",
+  "sweep_c_rho0": "artifacts/texture/ar_sweep_c/C_rho0.00.json",
+  "sweep_c_followup": "artifacts/texture/ar_sweep_c_followup/summary.json",
+  "l1": "artifacts/expB2/corrected_L1-corrected.json",
+  "balanced": "artifacts/balanced_pooled/registered_pair.json"
+ },
+ "rows": [
+  {
+   "reading": "1 C1 L0 registered pair (survival, drift 0)",
+   "source": "artifacts/corrected_verdicts.json runs.C1.drift_zero.survival.per_seed",
+   "per_seed": [0.572727, 0.550413, 0.56405, 0.573554, 0.538017, 0.53843, 0.594215, 0.560331, 0.552479, 0.55],
+   "n": 10,
+   "mean": 0.5594216,
+   "mu0": 0.5,
+   "rope": [0.45, 0.55],
+   "bf01_interval": {
+    "0.5": 0.09361599847162431,
+    "0.707": 0.1334169098649124,
+    "1": 0.1884709897513012
+   },
+   "bf01_point": {
+    "0.5": 0.00015464757076466562,
+    "0.707": 0.00011310071441699359,
+    "1": 8.497589735994403e-05
+   },
+   "detail_0.707": {
+    "bf01": 0.1334169098649124,
+    "c_delta": 2.8726812231399035,
+    "prior_mass_in": 0.8463737169812623,
+    "posterior_mass_in": 0.4236424717235708,
+    "t": 10.795972581347641,
+    "n": 10
+   },
+   "label_0.707": "evidence against the band",
+   "quoted_as": "BF01 = 0.1334 (annotation, 0.707 scale)"
+  },
+  {
+   "reading": "2 eight independent L0 pairs (signed)",
+   "source": "artifacts/l0_audit/corrected_l3_h8_wm.json l0_summary.independent_pair_means",
+   "per_seed": [0.5566528925619835, 0.5389669421487604, 0.5132644628099173, 0.5044214876033057, 0.4058677685950413, 0.4587603305785124, 0.4581818181818182, 0.504090909090909],
+   "n": 8,
+   "mean": 0.49252582644628096,
+   "mu0": 0.5,
+   "rope": [0.45, 0.55],
+   "bf01_interval": {
+    "0.5": 221.71978355860193,
+    "0.707": 223.52135464994922,
+    "1": 241.45800001888853
+   },
+   "bf01_point": {
+    "0.5": 2.1869819994357207,
+    "0.707": 2.750036692626297,
+    "1": 3.586629039928059
+   },
+   "detail_0.707": {
+    "bf01": 223.52135464994922,
+    "c_delta": 1.020510013787623,
+    "prior_mass_in": 0.6142904117500858,
+    "posterior_mass_in": 0.9971987658647978,
+    "t": -0.4314748017863879,
+    "n": 8
+   },
+   "label_0.707": "evidence for the band",
+   "quoted_as": "BF01 = 223.5 (annotation, 0.707 scale)"
+  },
+  {
+   "reading": "2 eight independent L0 pairs (folded, max(a, 1 - a))",
+   "source": "artifacts/l0_audit/corrected_l3_h8_wm.json l0_summary.independent_pair_means",
+   "per_seed": [0.5566528925619835, 0.5389669421487604, 0.5132644628099173, 0.5044214876033057, 0.5941322314049586, 0.5412396694214876, 0.5418181818181818, 0.504090909090909],
+   "n": 8,
+   "mean": 0.536823347107438,
+   "mu0": 0.5,
+   "rope": [0.45, 0.55],
+   "bf01_interval": {
+    "0.5": 3.017002138060009,
+    "0.707": 3.7261547111582565,
+    "1": 4.586942130925113
+   },
+   "bf01_point": {
+    "0.5": 0.1792043928594068,
+    "0.707": 0.1624293407606443,
+    "1": 0.1573541881648044
+   },
+   "detail_0.707": {
+    "bf01": 3.7261547111582565,
+    "c_delta": 1.6532225850614575,
+    "prior_mass_in": 0.7427338318939172,
+    "posterior_mass_in": 0.9149479158116443,
+    "t": 3.4437338583244848,
+    "n": 8
+   },
+   "label_0.707": "evidence for the band",
+   "quoted_as": "BF01 = 3.726 (annotation, 0.707 scale)"
+  },
+  {
+   "reading": "3 B1 drift-0 survival pooled target",
+   "source": "artifacts/balanced_pooled/registered_pair.json runs.B1.pool_target.0.00.survival.per_seed",
+   "per_seed": [0.5801652892561984, 0.49669421487603305, 0.6276859504132231, 0.5483471074380164, 0.5574380165289257, 0.521900826446281, 0.5454545454545455, 0.4797520661157025, 0.578512396694215, 0.6739669421487603],
+   "n": 10,
+   "mean": 0.5609917355371901,
+   "mu0": 0.5,
+   "rope": [0.45, 0.55],
+   "bf01_interval": {
+    "0.5": 0.6123981950674626,
+    "0.707": 0.7473089992405475,
+    "1": 0.9214640439534542
+   },
+   "bf01_point": {
+    "0.5": 0.16070013910340883,
+    "0.707": 0.1493941483109884,
+    "1": 0.1495611940895751
+   },
+   "detail_0.707": {
+    "bf01": 0.7473089992405475,
+    "c_delta": 0.8580232080688727,
+    "prior_mass_in": 0.5612435535816556,
+    "posterior_mass_in": 0.48873539642704006,
+    "t": 3.3097868191954776,
+    "n": 10
+   },
+   "label_0.707": "indeterminate",
+   "quoted_as": "BF01 = 0.7473 (annotation, 0.707 scale)"
+  },
+  {
+   "reading": "3 B2 drift-0 survival pooled target",
+   "source": "artifacts/balanced_pooled/registered_pair.json runs.B2.pool_target.0.00.survival.per_seed",
+   "per_seed": [0.6037190082644628, 0.521900826446281, 0.5024793388429752, 0.4818181818181818, 0.5483471074380165, 0.5838842975206611, 0.5652892561983471, 0.5181818181818182, 0.5140495867768596, 0.5190082644628099],
+   "n": 10,
+   "mean": 0.5358677685950415,
+   "mu0": 0.5,
+   "rope": [0.45, 0.55],
+   "bf01_interval": {
+    "0.5": 4.12458946732584,
+    "0.707": 4.993343584129206,
+    "1": 6.099968156474775
+   },
+   "bf01_point": {
+    "0.5": 0.2433801536375442,
+    "0.707": 0.23473283328230032,
+    "1": 0.2434280453791663
+   },
+   "detail_0.707": {
+    "bf01": 4.993343584129206,
+    "c_delta": 1.3038537404027173,
+    "prior_mass_in": 0.6836859531583506,
+    "posterior_mass_in": 0.9152016922226083,
+    "t": 2.957762048007753,
+    "n": 10
+   },
+   "label_0.707": "evidence for the band",
+   "quoted_as": "BF01 = 4.993 (annotation, 0.707 scale)"
+  },
+  {
+   "reading": "4 sweep C stored contrast M(0.99) - M(0)",
+   "source": "artifacts/texture/ar_sweep_c/summary.json points[rho 0.99, 0].M.per_seed",
+   "per_seed": [0.08471074380165278, -0.014462809917355324, 0.032231404958677656, -0.1417355371900827, 0.02520661157024784, 0.004545454545454464, 0.05909090909090908, 0.022314049586777074, -0.02231404958677702, 0.04214876033057857],
+   "n": 10,
+   "mean": 0.009173553719008243,
+   "mu0": 0.0,
+   "rope": [-0.05, 0.05],
+   "bf01_interval": {
+    "0.5": 83.96544670537199,
+    "0.707": 89.13199869427865,
+    "1": 102.3171795728262
+   },
+   "bf01_point": {
+    "0.5": 2.320459467309256,
+    "0.707": 2.949199315685442,
+    "1": 3.8817467092207694
+   },
+   "detail_0.707": {
+    "bf01": 89.13199869427865,
+    "c_delta": 0.806504187374809,
+    "prior_mass_in": 0.5417939389961719,
+    "posterior_mass_in": 0.9906007822992071,
+    "t": 0.4679228254165358,
+    "n": 10
+   },
+   "label_0.707": "evidence for the band",
+   "quoted_as": "BF01 = 89.13 (annotation, 0.707 scale)"
+  },
+  {
+   "reading": "4 sweep C follow-up contrast M(0.99, matched) - M(0, stored)",
+   "source": "artifacts/texture/ar_sweep_c_followup/summary.json points[rho 0.99].M.per_seed minus the stored M(0)",
+   "per_seed": [0.05330578512396689, -0.021900826446280997, 0.03388429752066102, -0.15743801652892564, -0.009504132231404894, -0.040495867768595095, 0.0185950413223141, 0.010743801652892682, -0.04545454545454547, -0.016528925619834878],
+   "n": 10,
+   "mean": -0.01747933884297523,
+   "mu0": 0.0,
+   "rope": [-0.05, 0.05],
+   "bf01_interval": {
+    "0.5": 35.70729908561474,
+    "0.707": 38.35269544097783,
+    "1": 44.13063648148755
+   },
+   "bf01_point": {
+    "0.5": 1.8266920692844404,
+    "0.707": 2.2409904521303803,
+    "1": 2.8660615483265808
+   },
+   "detail_0.707": {
+    "bf01": 38.35269544097783,
+    "c_delta": 0.8556560131734787,
+    "prior_mass_in": 0.5603801566851013,
+    "posterior_mass_in": 0.9799550579107253,
+    "t": -0.945919555115356,
+    "n": 10
+   },
+   "label_0.707": "evidence for the band",
+   "quoted_as": "BF01 = 38.35 (annotation, 0.707 scale)"
+  },
+  {
+   "reading": "5 corrected L1 survival minus untrained (drift 0.023)",
+   "source": "artifacts/expB2/corrected_L1-corrected.json arms[\"0.023\"].survival minus .untrained pool_target.per_seed",
+   "per_seed": [0.09421487603305789, -0.02975206611570247, -0.024793388429751984, 0.02603305785123966, 0.05454545454545445, 0.047107438016528946, 0.09834710743801656, 0.08140495867768582, 0.04669421487603309, -0.01983471074380172],
+   "n": 10,
+   "mean": 0.03739669421487603,
+   "mu0": 0.0,
+   "rope": [-0.05, 0.05],
+   "bf01_interval": {
+    "0.5": 3.4978835804420707,
+    "0.707": 4.132064707299678,
+    "1": 5.011456620323676
+   },
+   "bf01_point": {
+    "0.5": 0.44326850503796283,
+    "0.707": 0.45423879106435505,
+    "1": 0.4980962077299895
+   },
+   "detail_0.707": {
+    "bf01": 4.132064707299678,
+    "c_delta": 1.0317643282792799,
+    "prior_mass_in": 0.6175525795771305,
+    "posterior_mass_in": 0.8696593578097366,
+    "t": 2.4403027964611255,
+    "n": 10
+   },
+   "label_0.707": "evidence for the band",
+   "quoted_as": "BF01 = 4.132 (annotation, 0.707 scale)"
+  },
+  {
+   "reading": "5 corrected L1 survival minus predictor (drift 0.023)",
+   "source": "artifacts/expB2/corrected_L1-corrected.json arms[\"0.023\"].survival minus .predictor pool_target.per_seed",
+   "per_seed": [0.07024793388429756, -0.02685950413223137, -0.03884297520661162, 0.02438016528925624, 0.04876033057851237, -0.021900826446280997, 0.049173553719008334, 0.047107438016528835, 0.10041322314049583, 0.004132231404958775],
+   "n": 10,
+   "mean": 0.025661157024793397,
+   "mu0": 0.0,
+   "rope": [-0.05, 0.05],
+   "bf01_interval": {
+    "0.5": 19.214464504780143,
+    "0.707": 21.231767290345182,
+    "1": 24.443984575990598
+   },
+   "bf01_point": {
+    "0.5": 0.9058549947402251,
+    "0.707": 1.0100007797907664,
+    "1": 1.192525239210584
+   },
+   "detail_0.707": {
+    "bf01": 21.231767290345182,
+    "c_delta": 1.0948998324834338,
+    "prior_mass_in": 0.6349868140744083,
+    "posterior_mass_in": 0.9736393675021955,
+    "t": 1.7769721414204567,
+    "n": 10
+   },
+   "label_0.707": "evidence for the band",
+   "quoted_as": "BF01 = 21.23 (annotation, 0.707 scale)"
+  }
+ ]
+}

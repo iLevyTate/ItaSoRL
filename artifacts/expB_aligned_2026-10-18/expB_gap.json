@@ -1,0 +1,69 @@
+{
+ "script": "scripts/run_expB_gap.py",
+ "align": "obs_then_action",
+ "config": {
+  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
+  "steps": 24,
+  "ray_steps": 5,
+  "pool": 150,
+  "sub": 110,
+  "epochs": 20,
+  "hidden": 96,
+  "seeds": [0, 1, 2],
+  "open_horizon": 16,
+  "rollout_context": 8,
+  "drifts": [0.0, 0.45],
+  "fold_scheme": "explicit"
+ },
+ "absolute_open_loop": {
+  "seed": 0,
+  "drift": 0.45,
+  "open_loop_mse": 0.6524057984352112,
+  "mean_predictor_mse": 0.9049637913703918,
+  "persistence_mse": 1.3940074443817139,
+  "engaged": true
+ },
+ "delta_rollout": [
+  {
+   "drift": 0.0,
+   "target_mean": 0.46680440771349857,
+   "target_std": 0.025226549792637585,
+   "engagement_mean": 1.07114615530573,
+   "engagement_std": 0.0026939061287202318,
+   "per_seed": {
+    "target": [0.4491735537190083, 0.44876033057851233, 0.5024793388429752],
+    "engagement": [1.0748663292162601, 1.0699973523317914, 1.068574784369138]
+   }
+  },
+  {
+   "drift": 0.45,
+   "target_mean": 0.4880165289256198,
+   "target_std": 0.058031988396516056,
+   "engagement_mean": 1.069907625718294,
+   "engagement_std": 0.004090092993622102,
+   "per_seed": {
+    "target": [0.4086776859504132, 0.509504132231405, 0.5458677685950413],
+    "engagement": [1.0756905361751694, 1.066907768319513, 1.0671245726601994]
+   }
+  }
+ ],
+ "provenance": {
+  "generated_by": "scripts/run_expB_gap.py",
+  "git_commit": "75ce098",
+  "tracked_changes_at_generation": [],
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "machine": "AMD64",
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "torch_threads": 1,
+   "device": "cpu"
+  },
+  "argv": ["--align", "obs_then_action", "--out-dir", "fullruns/closing_2026-10/expB_obs_then_action_local"]
+ }
+}

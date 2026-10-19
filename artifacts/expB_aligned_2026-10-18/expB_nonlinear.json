@@ -1,0 +1,66 @@
+{
+ "script": "scripts/run_expB_nonlinear.py",
+ "align": "obs_then_action",
+ "config": {
+  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
+  "steps": 24,
+  "ray_steps": 5,
+  "pool": 150,
+  "sub": 110,
+  "epochs": 15,
+  "hidden": 96,
+  "seeds": [0, 1, 2],
+  "drifts": [0.0, 0.45],
+  "probe": "random forest, 200 trees, random_state 0",
+  "fold_scheme": "explicit"
+ },
+ "drift_sweep": [
+  {
+   "drift": 0.0,
+   "target_mean": 0.4738980716253443,
+   "target_std": 0.027863893711939498,
+   "speed_mean": 0.8660817523303338,
+   "speed_std": 0.010614225739915661,
+   "shuffled_mean": 0.5134794994879379,
+   "shuffled_std": 0.06193492442685062,
+   "per_seed": {
+    "target": [0.4927685950413223, 0.43450413223140494, 0.49442148760330573],
+    "speed": [0.8564654854887849, 0.8808717814183114, 0.8609079900839053],
+    "shuffled": [0.4347256893381295, 0.586057012024235, 0.5196557971014493]
+   }
+  },
+  {
+   "drift": 0.45,
+   "target_mean": 0.459159779614325,
+   "target_std": 0.01471284587905315,
+   "speed_mean": 0.8900406612588373,
+   "speed_std": 0.0086275961867667,
+   "shuffled_mean": 0.4525033697298251,
+   "shuffled_std": 0.03271241774846631,
+   "per_seed": {
+    "target": [0.45144628099173556, 0.4462809917355372, 0.4797520661157025],
+    "speed": [0.8957986734938317, 0.8964776143119841, 0.877845695970696],
+    "shuffled": [0.4286958996638141, 0.4300551515546468, 0.4987590579710145]
+   }
+  }
+ ],
+ "provenance": {
+  "generated_by": "scripts/run_expB_nonlinear.py",
+  "git_commit": "75ce098",
+  "tracked_changes_at_generation": [],
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "machine": "AMD64",
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "torch_threads": 1,
+   "device": "cpu"
+  },
+  "argv": ["--align", "obs_then_action", "--out-dir", "fullruns/closing_2026-10/expB_obs_then_action_local"]
+ }
+}

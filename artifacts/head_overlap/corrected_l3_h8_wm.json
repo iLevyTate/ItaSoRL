@@ -1,0 +1,1489 @@
+{
+ "provenance": {
+  "generated_by": "scripts/run_head_overlap_readout.py",
+  "git_commit_at_promotion": "75ce098",
+  "tracked_changes_at_generation": [],
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "machine": "AMD64",
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "torch_threads": 1,
+   "device": "cpu"
+  },
+  "agents_dir": "fullruns/corrected_l3_h8_wm/agents",
+  "argv": ["--agents-dir", "fullruns/corrected_l3_h8_wm/agents", "--arms", "survival", "predictor", "untrained", "--workers", "2", "--ckpt", "fullruns/closing_2026-10/x03/ckpt", "--out", "fullruns/closing_2026-10/x03/corrected_l3_h8_wm.json"]
+ },
+ "status": "post hoc, descriptive; changes no stored value or verdict",
+ "settings": {
+  "drift": 0.45,
+  "pools": [800000, 850000],
+  "pool_n": 110,
+  "pool_steps": 24,
+  "n_random": 1000,
+  "gate_tolerance": 0.002
+ },
+ "integrity": {
+  "gate": "PASS",
+  "n_cells": 30
+ },
+ "summary": {
+  "survival": {
+   "n": 10,
+   "r_actor": {
+    "mean": 0.9052428568045643,
+    "t90": [0.49527513351184993, 1.3152105800972786],
+    "n": 10
+   },
+   "r_actor_block": {
+    "mean": 0.811960115599706,
+    "t90": [0.5579487787723385, 1.0659714524270736],
+    "n": 10
+   },
+   "r_critic": {
+    "mean": 0.6859698893380058,
+    "t90": [0.20167913042759372, 1.170260648248418],
+    "n": 10
+   },
+   "r_critic_block": {
+    "mean": 0.8288247837345939,
+    "t90": [0.3637053566071029, 1.2939442108620849],
+    "n": 10
+   },
+   "r_decoder_state_block": {
+    "mean": 1.0046988311265923,
+    "t90": [0.9444328394548486, 1.0649648227983362],
+    "n": 10
+   },
+   "r_decoder_state_block_block": {
+    "mean": 0.9862319680305642,
+    "t90": [0.9501932330452164, 1.0222707030159122],
+    "n": 10
+   },
+   "action_ratio": {
+    "mean": 1.2420011258633405,
+    "t90": [0.8992804820586843, 1.584721769667997],
+    "n": 10
+   },
+   "recurrence_ratio": {
+    "mean": 1.1162644062721014,
+    "t90": [1.0131064907658647, 1.2194223217783382],
+    "n": 10
+   },
+   "label": "undetermined"
+  },
+  "predictor": {
+   "n": 10,
+   "r_actor": {
+    "mean": 0.7488714965705177,
+    "t90": [0.5002850693112795, 0.9974579238297558],
+    "n": 10
+   },
+   "r_actor_block": {
+    "mean": 0.9734586073184568,
+    "t90": [0.7722382764946638, 1.1746789381422498],
+    "n": 10
+   },
+   "r_critic": {
+    "mean": 0.7831671944292723,
+    "t90": [0.3215770339659634, 1.2447573548925812],
+    "n": 10
+   },
+   "r_critic_block": {
+    "mean": 1.0777722507605527,
+    "t90": [0.7341253057150104, 1.421419195806095],
+    "n": 10
+   },
+   "r_decoder_state_block": {
+    "mean": 0.9344314252392968,
+    "t90": [0.8926195595195695, 0.9762432909590241],
+    "n": 10
+   },
+   "r_decoder_state_block_block": {
+    "mean": 0.9533013366209151,
+    "t90": [0.926421591400761, 0.9801810818410692],
+    "n": 10
+   },
+   "action_ratio": {
+    "mean": 1.1654101808903898,
+    "t90": [0.8267804198675837, 1.504039941913196],
+    "n": 10
+   },
+   "recurrence_ratio": {
+    "mean": 0.7618744327249372,
+    "t90": [0.7017150744389496, 0.8220337910109247],
+    "n": 10
+   }
+  },
+  "untrained": {
+   "n": 10,
+   "r_actor": {
+    "mean": 0.9135291123583823,
+    "t90": [0.6247224980681476, 1.202335726648617],
+    "n": 10
+   },
+   "r_actor_block": {
+    "mean": 0.9650409771703818,
+    "t90": [0.7326425583222912, 1.1974393960184724],
+    "n": 10
+   },
+   "r_critic": {
+    "mean": 1.0434450997015192,
+    "t90": [0.5724682341154947, 1.5144219652875437],
+    "n": 10
+   },
+   "r_critic_block": {
+    "mean": 1.0190219371307985,
+    "t90": [0.6322981674207726, 1.4057457068408243],
+    "n": 10
+   },
+   "r_decoder_state_block": {
+    "mean": 1.0191125486860904,
+    "t90": [0.9539003204553936, 1.084324776916787],
+    "n": 10
+   },
+   "r_decoder_state_block_block": {
+    "mean": 1.0137929632958993,
+    "t90": [0.9585216621329935, 1.069064264458805],
+    "n": 10
+   },
+   "action_ratio": {
+    "mean": 1.3896834558345907,
+    "t90": [0.9226171321533657, 1.8567497795158157],
+    "n": 10
+   },
+   "recurrence_ratio": {
+    "mean": 0.9944553433844581,
+    "t90": [0.9758050543606872, 1.0131056324082288],
+    "n": 10
+   }
+  }
+ },
+ "rows": [
+  {
+   "seed": 0,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.5318181818181819,
+   "s": 0.006602958135229656,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.03699243916421865,
+     "ratio_u": 0.8878185399412476,
+     "share_block": 0.03128289054316477,
+     "ratio_block": 0.7507893730359545
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.0046123242090761315,
+     "ratio_u": 0.44278312407130865,
+     "share_block": 0.004284564095851929,
+     "ratio_block": 0.4113181532017852
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.696627801503902,
+     "ratio_u": 1.0449417022558531,
+     "share_block": 0.6322628366738958,
+     "ratio_block": 0.9483942550108437
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.08436330407857895,
+    "random_median": 0.04608180187642574,
+    "ratio": 1.830729282349027
+   },
+   "recurrence_sensitivity": {
+    "u": 0.19449812173843384,
+    "random_median": 0.285427987575531,
+    "ratio": 0.6814262448140795
+   },
+   "seconds": 34.0
+  },
+  {
+   "seed": 1,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.6140495867768595,
+   "s": 0.008057947024631777,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.03618168441765787,
+     "ratio_u": 0.8683604260237889,
+     "share_block": 0.05988911553986585,
+     "ratio_block": 1.4373387729567806
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.008403449542741841,
+     "ratio_u": 0.8067311561032168,
+     "share_block": 0.017357872125299253,
+     "ratio_block": 1.6663557240287283
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6298861386090182,
+     "ratio_u": 0.9448292079135273,
+     "share_block": 0.5845190803721643,
+     "ratio_block": 0.8767786205582464
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.027234990149736404,
+    "random_median": 0.038970423862338066,
+    "ratio": 0.6988630723120499
+   },
+   "recurrence_sensitivity": {
+    "u": 0.2175501585006714,
+    "random_median": 0.2645106464624405,
+    "ratio": 0.8224627681727839
+   },
+   "seconds": 34.1
+  },
+  {
+   "seed": 2,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.6371900826446282,
+   "s": 0.0089036764959442,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.01612561040672216,
+     "ratio_u": 0.3870146497613319,
+     "share_block": 0.047784856517977196,
+     "ratio_block": 1.1468365564314529
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.0020742628008788636,
+     "ratio_u": 0.1991292288843709,
+     "share_block": 0.007365468708487902,
+     "ratio_block": 0.7070849960148387
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6600633879257761,
+     "ratio_u": 0.9900950818886642,
+     "share_block": 0.6578236476299784,
+     "ratio_block": 0.9867354714449675
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.03347216174006462,
+    "random_median": 0.04484913684427738,
+    "ratio": 0.7463278915775962
+   },
+   "recurrence_sensitivity": {
+    "u": 0.18407537043094635,
+    "random_median": 0.2809244692325592,
+    "ratio": 0.655248618725919
+   },
+   "seconds": 32.6
+  },
+  {
+   "seed": 3,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.587603305785124,
+   "s": 0.0023161886397047872,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.014807977029367144,
+     "ratio_u": 0.3553914487048115,
+     "share_block": 0.03943989103893235,
+     "ratio_block": 0.9465573849343764
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.02518561861331482,
+     "ratio_u": 2.417819386878223,
+     "share_block": 0.025786369685909402,
+     "ratio_block": 2.4754914898473026
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6439379883860146,
+     "ratio_u": 0.9659069825790219,
+     "share_block": 0.674346139312507,
+     "ratio_block": 1.0115192089687606
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.025577032938599586,
+    "random_median": 0.04418027214705944,
+    "ratio": 0.5789242957459226
+   },
+   "recurrence_sensitivity": {
+    "u": 0.23111316561698914,
+    "random_median": 0.30695903301239014,
+    "ratio": 0.7529120852021333
+   },
+   "seconds": 32.5
+  },
+  {
+   "seed": 4,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.6173553719008265,
+   "s": 0.028159924811364992,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.0376335973581532,
+     "ratio_u": 0.9032063365956768,
+     "share_block": 0.047545709707226366,
+     "ratio_block": 1.141097032973433
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.003210426855875911,
+     "ratio_u": 0.3082009781640875,
+     "share_block": 0.0066215232881409476,
+     "ratio_block": 0.635666235661531
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6815811079326836,
+     "ratio_u": 1.0223716618990255,
+     "share_block": 0.6563917634653904,
+     "ratio_block": 0.9845876451980856
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.0814150869846344,
+    "random_median": 0.04457378387451172,
+    "ratio": 1.8265240216949443
+   },
+   "recurrence_sensitivity": {
+    "u": 0.22574597597122192,
+    "random_median": 0.27586551010608673,
+    "ratio": 0.8183189550749173
+   },
+   "seconds": 31.4
+  },
+  {
+   "seed": 5,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.6037190082644628,
+   "s": 0.004271768012924547,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.04431010520894985,
+     "ratio_u": 1.0634425250147965,
+     "share_block": 0.05679372286170874,
+     "ratio_block": 1.3630493486810098
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.008389493225126209,
+     "ratio_u": 0.8053913496121161,
+     "share_block": 0.009159472253405916,
+     "ratio_block": 0.879309336326968
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.5574532120429018,
+     "ratio_u": 0.8361798180643527,
+     "share_block": 0.6137532993439041,
+     "ratio_block": 0.9206299490158562
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.05480791628360748,
+    "random_median": 0.043551813811063766,
+    "ratio": 1.2584531271504529
+   },
+   "recurrence_sensitivity": {
+    "u": 0.24670793116092682,
+    "random_median": 0.253513365983963,
+    "ratio": 0.9731555186582679
+   },
+   "seconds": 31.5
+  },
+  {
+   "seed": 6,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.5599173553719009,
+   "s": 0.007238118517788042,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.0028905970764180424,
+     "ratio_u": 0.06937432983403302,
+     "share_block": 0.011399140671614814,
+     "ratio_block": 0.27357937611875555
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.0030325896502383875,
+     "ratio_u": 0.29112860642288524,
+     "share_block": 0.01012541360770484,
+     "ratio_block": 0.9720397063396646
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.5875104919253082,
+     "ratio_u": 0.8812657378879624,
+     "share_block": 0.6060522021254686,
+     "ratio_block": 0.9090783031882029
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.018110085278749466,
+    "random_median": 0.04206999950110912,
+    "ratio": 0.43047505332801383
+   },
+   "recurrence_sensitivity": {
+    "u": 0.22332507371902466,
+    "random_median": 0.28398504853248596,
+    "ratio": 0.7863972940585208
+   },
+   "seconds": 31.3
+  },
+  {
+   "seed": 7,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.5351239669421487,
+   "s": 0.0142210900291448,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.0638792426699344,
+     "ratio_u": 1.5331018240784258,
+     "share_block": 0.04473858644395355,
+     "ratio_block": 1.0737260746548853
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.003301486943821134,
+     "ratio_u": 0.31694274660682886,
+     "share_block": 0.009295045538645092,
+     "ratio_block": 0.8923243717099288
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.621688516803802,
+     "ratio_u": 0.932532775205703,
+     "share_block": 0.6717869619286589,
+     "ratio_block": 1.0076804428929884
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.09466159343719482,
+    "random_median": 0.04492597281932831,
+    "ratio": 2.1070571764328934
+   },
+   "recurrence_sensitivity": {
+    "u": 0.2039705365896225,
+    "random_median": 0.2983262538909912,
+    "ratio": 0.6837163472181486
+   },
+   "seconds": 31.4
+  },
+  {
+   "seed": 8,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.5743801652892561,
+   "s": 0.007935541535600514,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.040360269006840206,
+     "ratio_u": 0.968646456164165,
+     "share_block": 0.026811218082793367,
+     "ratio_block": 0.6434692339870408
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.021181254275105404,
+     "ratio_u": 2.033400410410119,
+     "share_block": 0.010935838184795727,
+     "ratio_block": 1.04984046574039
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.5733429402137304,
+     "ratio_u": 0.8600144103205957,
+     "share_block": 0.6493422998052105,
+     "ratio_block": 0.9740134497078158
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.05237601324915886,
+    "random_median": 0.04565802402794361,
+    "ratio": 1.1471370994308405
+   },
+   "recurrence_sensitivity": {
+    "u": 0.16412031650543213,
+    "random_median": 0.2611527144908905,
+    "ratio": 0.6284457614211663
+   },
+   "seconds": 31.4
+  },
+  {
+   "seed": 9,
+   "arm": "predictor",
+   "n": [110, 110],
+   "pooled_target": 0.6252066115702479,
+   "s": 0.006191249857538517,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.018848267899454145,
+     "ratio_u": 0.4523584295868995,
+     "share_block": 0.03992262164212004,
+     "ratio_block": 0.958142919410881
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.0021890099702038352,
+     "ratio_u": 0.21014495713956818,
+     "share_block": 0.011336375299316562,
+     "ratio_block": 1.08829202873439
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.5774512495855091,
+     "ratio_u": 0.8661768743782636,
+     "share_block": 0.6090640134822564,
+     "ratio_block": 0.9135960202233846
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.04590653255581856,
+    "random_median": 0.04458629712462425,
+    "ratio": 1.0296107888821555
+   },
+   "recurrence_sensitivity": {
+    "u": 0.1902986615896225,
+    "random_median": 0.23302046209573746,
+    "ratio": 0.816660733903435
+   },
+   "seconds": 31.6
+  },
+  {
+   "seed": 0,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.6330578512396695,
+   "s": 0.08728899112903687,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.09406982135766795,
+     "ratio_u": 2.2576757125840308,
+     "share_block": 0.06077372714748078,
+     "ratio_block": 1.4585694515395387
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.00013396167806698194,
+     "ratio_u": 0.012860321094430267,
+     "share_block": 0.006906737461583846,
+     "ratio_block": 0.6630467963120493
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6984229019833148,
+     "ratio_u": 1.0476343529749723,
+     "share_block": 0.6920008609151544,
+     "ratio_block": 1.0380012913727317
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.09141147136688232,
+    "random_median": 0.04502043314278126,
+    "ratio": 2.0304440669633936
+   },
+   "recurrence_sensitivity": {
+    "u": 0.2920260727405548,
+    "random_median": 0.28354398906230927,
+    "ratio": 1.0299145247490384
+   },
+   "seconds": 36.7
+  },
+  {
+   "seed": 1,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.8049586776859504,
+   "s": 0.12015430613913766,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.006063183593020526,
+     "ratio_u": 0.14551640623249262,
+     "share_block": 0.007847906857916684,
+     "ratio_block": 0.1883497645900004
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.023411105884290975,
+     "ratio_u": 2.2474661648919336,
+     "share_block": 0.014094792132993379,
+     "ratio_block": 1.3531000447673645
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.645525856266777,
+     "ratio_u": 0.9682887844001656,
+     "share_block": 0.6886720474935094,
+     "ratio_block": 1.0330080712402643
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.02508826181292534,
+    "random_median": 0.035145219415426254,
+    "ratio": 0.7138456447340709
+   },
+   "recurrence_sensitivity": {
+    "u": 0.4211118817329407,
+    "random_median": 0.2892307788133621,
+    "ratio": 1.4559718832852162
+   },
+   "seconds": 36.7
+  },
+  {
+   "seed": 2,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.6896694214876034,
+   "s": 0.08507761563122966,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.017551041940557833,
+     "ratio_u": 0.421225006573388,
+     "share_block": 0.023169951010373665,
+     "ratio_block": 0.556078824248968
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 5.394641164171094e-05,
+     "ratio_u": 0.005178855517604251,
+     "share_block": 0.029787174342122184,
+     "ratio_block": 2.85956873684373
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6479640970361102,
+     "ratio_u": 0.9719461455541654,
+     "share_block": 0.6008591797331826,
+     "ratio_block": 0.9012887695997739
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.01897476427257061,
+    "random_median": 0.0383632555603981,
+    "ratio": 0.4946077697367795
+   },
+   "recurrence_sensitivity": {
+    "u": 0.27072373032569885,
+    "random_median": 0.30355119705200195,
+    "ratio": 0.891855255241575
+   },
+   "seconds": 33.5
+  },
+  {
+   "seed": 3,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.7433884297520661,
+   "s": 0.12165204779854981,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.014650496098920529,
+     "ratio_u": 0.35161190637409273,
+     "share_block": 0.019764912314059902,
+     "ratio_block": 0.4743578955374377
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.018083927805129112,
+     "ratio_u": 1.736057069292395,
+     "share_block": 0.009392275433853823,
+     "ratio_block": 0.901658441649967
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.7439695516871467,
+     "ratio_u": 1.1159543275307202,
+     "share_block": 0.6852747404115986,
+     "ratio_block": 1.027912110617398
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.026777714490890503,
+    "random_median": 0.0381794348359108,
+    "ratio": 0.701364873680737
+   },
+   "recurrence_sensitivity": {
+    "u": 0.2722077965736389,
+    "random_median": 0.3122866451740265,
+    "ratio": 0.8716600622544937
+   },
+   "seconds": 33.6
+  },
+  {
+   "seed": 4,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.66198347107438,
+   "s": 0.07334660739245928,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.03427815003406056,
+     "ratio_u": 0.8226756008174535,
+     "share_block": 0.02778745301103121,
+     "ratio_block": 0.6668988722647491
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.0045887534919838895,
+     "ratio_u": 0.4405203352304534,
+     "share_block": 0.0029181257454806916,
+     "ratio_block": 0.2801400715661464
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.8002999202824883,
+     "ratio_u": 1.2004498804237325,
+     "share_block": 0.6878847200282638,
+     "ratio_block": 1.0318270800423959
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.05031319707632065,
+    "random_median": 0.03911939449608326,
+    "ratio": 1.2861445767356685
+   },
+   "recurrence_sensitivity": {
+    "u": 0.34533876180648804,
+    "random_median": 0.30646009743213654,
+    "ratio": 1.1268637081960104
+   },
+   "seconds": 33.1
+  },
+  {
+   "seed": 5,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.5227272727272727,
+   "s": 0.059851707633665464,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.02655530118135595,
+     "ratio_u": 0.6373272283525429,
+     "share_block": 0.046301335437557864,
+     "ratio_block": 1.1112320505013888
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.013153007344913275,
+     "ratio_u": 1.2626887051116744,
+     "share_block": 0.007475985240216141,
+     "ratio_block": 0.7176945830607496
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.5694599157256154,
+     "ratio_u": 0.8541898735884231,
+     "share_block": 0.6209040843822838,
+     "ratio_block": 0.9313561265734258
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.03488878160715103,
+    "random_median": 0.037822283804416656,
+    "ratio": 0.9224398449222395
+   },
+   "recurrence_sensitivity": {
+    "u": 0.38207417726516724,
+    "random_median": 0.30510692298412323,
+    "ratio": 1.252263218180235
+   },
+   "seconds": 33.1
+  },
+  {
+   "seed": 6,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.884297520661157,
+   "s": 0.07062404839678783,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.08474084048984463,
+     "ratio_u": 2.0337801717562716,
+     "share_block": 0.06356801109473872,
+     "ratio_block": 1.5256322662737294
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.0006851229957290932,
+     "ratio_u": 0.06577180758999294,
+     "share_block": 0.001226929004218523,
+     "ratio_block": 0.1177851844049782
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6329131323833433,
+     "ratio_u": 0.9493696985750151,
+     "share_block": 0.6382725264615811,
+     "ratio_block": 0.9574087896923716
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.0787874162197113,
+    "random_median": 0.0366386566311121,
+    "ratio": 2.1503904199590154
+   },
+   "recurrence_sensitivity": {
+    "u": 0.30595728754997253,
+    "random_median": 0.3076656460762024,
+    "ratio": 0.9944473536515457
+   },
+   "seconds": 33.7
+  },
+  {
+   "seed": 7,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.7818181818181819,
+   "s": 0.09841220726150823,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.02954772538243768,
+     "ratio_u": 0.7091454091785043,
+     "share_block": 0.022785914732212833,
+     "ratio_block": 0.5468619535731081
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.01106778738381153,
+     "ratio_u": 1.062507588845907,
+     "share_block": 0.0067259304182961275,
+     "ratio_block": 0.6456893201564283
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.5870861996162637,
+     "ratio_u": 0.8806292994243956,
+     "share_block": 0.5905990858015155,
+     "ratio_block": 0.8858986287022733
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.038636982440948486,
+    "random_median": 0.037341851741075516,
+    "ratio": 1.03468308719271
+   },
+   "recurrence_sensitivity": {
+    "u": 0.34053462743759155,
+    "random_median": 0.27824413776397705,
+    "ratio": 1.223869908542163
+   },
+   "seconds": 33.7
+  },
+  {
+   "seed": 8,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.8677685950413222,
+   "s": 0.06628354704735011,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.046444427918398284,
+     "ratio_u": 1.1146662700415588,
+     "share_block": 0.026509785474041484,
+     "ratio_block": 0.6362348513769956
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.00014640841125634216,
+     "ratio_u": 0.014055207480608848,
+     "share_block": 0.001600610097592885,
+     "ratio_block": 0.15365856936891698
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6838555019828786,
+     "ratio_u": 1.025783252974318,
+     "share_block": 0.6668272341896815,
+     "ratio_block": 1.0002408512845222
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.06562379747629166,
+    "random_median": 0.034719036892056465,
+    "ratio": 1.8901387639386402
+   },
+   "recurrence_sensitivity": {
+    "u": 0.3192393481731415,
+    "random_median": 0.28600068390369415,
+    "ratio": 1.1162188279264391
+   },
+   "seconds": 33.1
+  },
+  {
+   "seed": 9,
+   "arm": "survival",
+   "n": [110, 110],
+   "pooled_target": 0.7371900826446282,
+   "s": 0.09213951172121632,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.023283535672304484,
+     "ratio_u": 0.5588048561353076,
+     "share_block": 0.03980771775379764,
+     "ratio_block": 0.9553852260911434
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.0001311753992193604,
+     "ratio_u": 0.012592838325058598,
+     "share_block": 0.00620735509599592,
+     "ratio_block": 0.5959060892156084
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6884951305466755,
+     "ratio_u": 1.0327426958200134,
+     "share_block": 0.7035853074536573,
+     "ratio_block": 1.055377961180486
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.04697956144809723,
+    "random_median": 0.039282139390707016,
+    "ratio": 1.1959522107701495
+   },
+   "recurrence_sensitivity": {
+    "u": 0.33216139674186707,
+    "random_median": 0.27689823508262634,
+    "ratio": 1.1995793206942984
+   },
+   "seconds": 33.2
+  },
+  {
+   "seed": 0,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.487603305785124,
+   "s": 0.04196342337108085,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.0727741772469981,
+     "ratio_u": 1.7465802539279545,
+     "share_block": 0.07620021504413309,
+     "ratio_block": 1.8288051610591942
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.01567523471987233,
+     "ratio_u": 1.5048225331077438,
+     "share_block": 0.01089021572007509,
+     "ratio_block": 1.0454607091272088
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6022782868512262,
+     "ratio_u": 0.9034174302768393,
+     "share_block": 0.5952446130449565,
+     "ratio_block": 0.8928669195674347
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.12864230573177338,
+    "random_median": 0.050728313624858856,
+    "ratio": 2.535907396470866
+   },
+   "recurrence_sensitivity": {
+    "u": 0.4960625469684601,
+    "random_median": 0.5259661078453064,
+    "ratio": 0.9431454604568525
+   },
+   "seconds": 31.6
+  },
+  {
+   "seed": 1,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.5305785123966942,
+   "s": 0.02710372375964467,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.050028714438443964,
+     "ratio_u": 1.2006891465226552,
+     "share_block": 0.05459780106759163,
+     "ratio_block": 1.310347225622199
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.019327302875040867,
+     "ratio_u": 1.8554210760039234,
+     "share_block": 0.011199933205303755,
+     "ratio_block": 1.0751935877091605
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6488155948664578,
+     "ratio_u": 0.9732233922996867,
+     "share_block": 0.6744804768800412,
+     "ratio_block": 1.0117207153200618
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.06303898990154266,
+    "random_median": 0.04333161190152168,
+    "ratio": 1.4548037133907985
+   },
+   "recurrence_sensitivity": {
+    "u": 0.5111259818077087,
+    "random_median": 0.5174266397953033,
+    "ratio": 0.9878230892980555
+   },
+   "seconds": 31.8
+  },
+  {
+   "seed": 2,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.5847107438016529,
+   "s": 0.03803206355257388,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.022438892514042214,
+     "ratio_u": 0.5385334203370131,
+     "share_block": 0.052538227690298,
+     "ratio_block": 1.2609174645671521
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.0001871977723568789,
+     "ratio_u": 0.017970986146260377,
+     "share_block": 0.004861480171124194,
+     "ratio_block": 0.46670209642792265
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6369250708240499,
+     "ratio_u": 0.9553876062360749,
+     "share_block": 0.6631044214764752,
+     "ratio_block": 0.9946566322147128
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.051069676876068115,
+    "random_median": 0.04676328971982002,
+    "ratio": 1.0920890549413782
+   },
+   "recurrence_sensitivity": {
+    "u": 0.5253114700317383,
+    "random_median": 0.5175052583217621,
+    "ratio": 1.015084313800581
+   },
+   "seconds": 32.1
+  },
+  {
+   "seed": 3,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.5884297520661157,
+   "s": 0.03762298336865037,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.05702557135289053,
+     "ratio_u": 1.368613712469373,
+     "share_block": 0.04222269184838078,
+     "ratio_block": 1.013344604361139
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.004660468088392352,
+     "ratio_u": 0.44740493648566576,
+     "share_block": 0.002634571375978484,
+     "ratio_block": 0.2529188520939345
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6383282324350609,
+     "ratio_u": 0.9574923486525914,
+     "share_block": 0.6546734704717645,
+     "ratio_block": 0.9820102057076467
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.10199660062789917,
+    "random_median": 0.04698970913887024,
+    "ratio": 2.1706157049507424
+   },
+   "recurrence_sensitivity": {
+    "u": 0.5390051007270813,
+    "random_median": 0.5253602266311646,
+    "ratio": 1.0259724155050973
+   },
+   "seconds": 32.1
+  },
+  {
+   "seed": 4,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.5355371900826447,
+   "s": 0.026661196764275325,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.03682234263426195,
+     "ratio_u": 0.8837362232222868,
+     "share_block": 0.023082580857864125,
+     "ratio_block": 0.5539819405887391
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.0004822282757510272,
+     "ratio_u": 0.04629391447209861,
+     "share_block": 0.008304636325409375,
+     "ratio_block": 0.7972450872393001
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.7661669348928588,
+     "ratio_u": 1.1492504023392882,
+     "share_block": 0.7641849744186433,
+     "ratio_block": 1.146277461627965
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.041836339980363846,
+    "random_median": 0.0459099467843771,
+    "ratio": 0.9112696247907768
+   },
+   "recurrence_sensitivity": {
+    "u": 0.5107605457305908,
+    "random_median": 0.5213091671466827,
+    "ratio": 0.9797651334738109
+   },
+   "seconds": 38.4
+  },
+  {
+   "seed": 5,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.48512396694214877,
+   "s": 0.023979209119724208,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.0052914758918516745,
+     "ratio_u": 0.1269954214044402,
+     "share_block": 0.027515492888998745,
+     "ratio_block": 0.6603718293359699
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.003704197480124383,
+     "ratio_u": 0.3556029580919408,
+     "share_block": 0.0023444116479543124,
+     "ratio_block": 0.225063518203614
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.5723585926697952,
+     "ratio_u": 0.8585378890046927,
+     "share_block": 0.5956059422816052,
+     "ratio_block": 0.8934089134224079
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.020506637170910835,
+    "random_median": 0.04631981439888477,
+    "ratio": 0.4427184658884248
+   },
+   "recurrence_sensitivity": {
+    "u": 0.5065767168998718,
+    "random_median": 0.5230343639850616,
+    "ratio": 0.9685342910171388
+   },
+   "seconds": 39.1
+  },
+  {
+   "seed": 6,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.49958677685950403,
+   "s": 0.029103522118289565,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.03230054976088802,
+     "ratio_u": 0.7752131942613124,
+     "share_block": 0.03423111200181248,
+     "ratio_block": 0.8215466880434996
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.022444680182246685,
+     "ratio_u": 2.1546892974956817,
+     "share_block": 0.01122650452050749,
+     "ratio_block": 1.077744433968719
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.7543730385905316,
+     "ratio_u": 1.1315595578857975,
+     "share_block": 0.7157999976684382,
+     "ratio_block": 1.0736999965026572
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.033174432814121246,
+    "random_median": 0.04963753558695316,
+    "ratio": 0.6683335991974768
+   },
+   "recurrence_sensitivity": {
+    "u": 0.5169442296028137,
+    "random_median": 0.5202911794185638,
+    "ratio": 0.9935671601823225
+   },
+   "seconds": 37.4
+  },
+  {
+   "seed": 7,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.5256198347107438,
+   "s": 0.03600507858675037,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.052307676627197215,
+     "ratio_u": 1.2553842390527332,
+     "share_block": 0.029147621697298398,
+     "ratio_block": 0.6995429207351616
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.019907188050335894,
+     "ratio_u": 1.9110900528322459,
+     "share_block": 0.025184314827227963,
+     "ratio_block": 2.4176942234138847
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.7843077358815055,
+     "ratio_u": 1.1764616038222584,
+     "share_block": 0.7627939617432488,
+     "ratio_block": 1.1441909426148733
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.09633877128362656,
+    "random_median": 0.04714670777320862,
+    "ratio": 2.043382790311641
+   },
+   "recurrence_sensitivity": {
+    "u": 0.504359781742096,
+    "random_median": 0.5159973800182343,
+    "ratio": 0.9774464004531824
+   },
+   "seconds": 37.1
+  },
+  {
+   "seed": 8,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.41487603305785126,
+   "s": 0.036402103154172326,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.03838315537937119,
+     "ratio_u": 0.9211957291049085,
+     "share_block": 0.03764568692117867,
+     "ratio_block": 0.9034964861082881
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.00781336221727086,
+     "ratio_u": 0.7500827728580026,
+     "share_block": 0.01184992040322679,
+     "ratio_block": 1.137592358709772
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.7407156604270478,
+     "ratio_u": 1.111073490640572,
+     "share_block": 0.7196456504817954,
+     "ratio_block": 1.079468475722693
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.10938546061515808,
+    "random_median": 0.04928085207939148,
+    "ratio": 2.2196341175054775
+   },
+   "recurrence_sensitivity": {
+    "u": 0.5195066332817078,
+    "random_median": 0.5220220983028412,
+    "ratio": 0.9951813054862783
+   },
+   "seconds": 30.5
+  },
+  {
+   "seed": 9,
+   "arm": "untrained",
+   "n": [110, 110],
+   "pooled_target": 0.5760330578512397,
+   "s": 0.03462002479118366,
+   "overlap": {
+    "actor": {
+     "rank": 4,
+     "expectation": 0.041666666666666664,
+     "share_u": 0.013264574303380999,
+     "ratio_u": 0.318349783281144,
+     "share_block": 0.024918977136769802,
+     "ratio_block": 0.5980554512824753
+    },
+    "critic": {
+     "rank": 1,
+     "expectation": 0.010416666666666666,
+     "share_u": 0.014490338224183632,
+     "ratio_u": 1.3910724695216288,
+     "share_block": 0.017652130254317368,
+     "ratio_block": 1.6946045044144673
+    },
+    "decoder_state_block": {
+     "rank": 64,
+     "expectation": 0.6666666666666666,
+     "share_u": 0.6498145104687358,
+     "ratio_u": 0.9747217657031038,
+     "share_block": 0.6130862468390259,
+     "ratio_block": 0.9196293702585389
+    }
+   },
+   "action_sensitivity": {
+    "u": 0.017614951357245445,
+    "random_median": 0.0491927694529295,
+    "ratio": 0.35808009089832715
+   },
+   "recurrence_sensitivity": {
+    "u": 0.556643009185791,
+    "random_median": 0.5261107683181763,
+    "ratio": 1.0580338641712608
+   },
+   "seconds": 30.4
+  }
+ ]
+}

@@ -1,0 +1,68 @@
+{
+ "script": "scripts/run_expB_surprise.py",
+ "align": "obs_then_action",
+ "config": {
+  "world": "P(k_land=1.5, k_water=1.5, gravity=0.4)",
+  "steps": 28,
+  "ray_steps": 5,
+  "pool": 150,
+  "sub": 110,
+  "epochs": 15,
+  "hidden": 96,
+  "seeds": [0, 1, 2],
+  "drifts": [0.0, 0.2, 0.45],
+  "test_episodes_per_arm": 75,
+  "training": "authentic-only world model",
+  "fold_scheme": "explicit"
+ },
+ "drift_sweep": [
+  {
+   "drift": 0.0,
+   "recurrent_state_target_mean": 0.4984848484848485,
+   "surprise_mean": 0.5102222222222221,
+   "surprise_std": 0.008370042602563252,
+   "per_seed": {
+    "surprise": [0.5004444444444445, 0.5208888888888888, 0.5093333333333333]
+   }
+  },
+  {
+   "drift": 0.2,
+   "recurrent_state_target_mean": 0.5078512396694215,
+   "surprise_mean": 0.4571851851851852,
+   "surprise_std": 0.017026083435328746,
+   "per_seed": {
+    "surprise": [0.4524444444444445, 0.48, 0.4391111111111111]
+   }
+  },
+  {
+   "drift": 0.45,
+   "recurrent_state_target_mean": 0.5443526170798899,
+   "surprise_mean": 0.5985185185185186,
+   "surprise_std": 0.006505036562992637,
+   "per_seed": {
+    "surprise": [0.6026666666666667, 0.5893333333333334, 0.6035555555555556]
+   }
+  }
+ ],
+ "recurrent_state_source": "fullruns/closing_2026-10/expB_obs_then_action_local/expB_full.json",
+ "figure": "fullruns/closing_2026-10/expB_obs_then_action_local/expB_channels.png",
+ "provenance": {
+  "generated_by": "scripts/run_expB_surprise.py",
+  "git_commit": "75ce098",
+  "tracked_changes_at_generation": [],
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "machine": "AMD64",
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "torch_threads": 1,
+   "device": "cpu"
+  },
+  "argv": ["--align", "obs_then_action", "--out-dir", "fullruns/closing_2026-10/expB_obs_then_action_local"]
+ }
+}

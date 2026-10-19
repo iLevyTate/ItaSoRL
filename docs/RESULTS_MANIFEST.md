@@ -26,6 +26,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `L3-H8-HELDOUT` | historical | B-v2 L3 | 23, 24 | pre_transition_value | - | ed88df0 | both | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
 | `L3-H7-REVERSE` | historical | B-v2 L3 | 25 | pre_transition_value | - | 15b1fc7 / 64be5bd (cells span both) | both | owner's GPU machine (RTX 4050 Laptop); torch 2.7.0+cu126 |
 | `L1-ORGANISM` | historical | B-v2 L1 | 35 | pre_transition_value | - | 8a71593 | both | cpu, 4 workers (run log header) |
+| `L1-OBSERVATION-CEILING` | historical | A | - | inherited: none | L1-ORGANISM | 2c170f0 (curated) | n/a (probe_auroc's own grouped CV) | not recorded |
 | `L3-H8-NOWM-CPU` | historical | B-v2 L3 | 29 | pre_transition_value | - | a641ca0 | legacy (= explicit on this stack) | cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu |
 | `L3-H8-WM-CPU` | historical | B-v2 L3 | 30 | pre_transition_value | - | 3f36cc2 | legacy (= explicit on this stack) | cloud CPU sandbox, 4 vCPU, 3 workers; torch 2.14+cpu |
 | `REPRO-4B6E1F3` | historical | B-v2 L3 | - | pre_transition_value | - | 4b6e1f3 (curated) | legacy (= explicit on this stack) | cloud CPU sandbox, 2 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 |
@@ -70,8 +71,8 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `C1-POPULATION` | corrected | C | - | inherited: successor_value | C1 | 34e2c0d (curated) | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
 | `T-TOUCH` | corrected | B-v2 L3 | - | successor_value | - | 067efb2, 6625b05 (run/T-touch; code as main 2f4174b) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `S-IMMORTAL` | corrected | B-v2 L3 | - | successor_value | - | 9c2c864, 443c197 (run/S-immortal; code as main 2f4174b) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
-| `S-SCARCE` | corrected | B-v2 L3 | - | successor_value | - | pending | explicit | revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu |
-| `C1-MECHANISM` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | run/C1-rerun | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
+| `S-SCARCE` | not run | B-v2 L3 | - | successor_value | - | c14b533 (curated) | explicit | not recorded |
+| `C1-MECHANISM` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C1-RERUN | 9d388d5 (run/C1-rerun, the commit that added mechanism.json) (curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `C1-RERUN` | corrected | B-v2 L3 | - | successor_value | - | fb3a393, 2fce6a5, 5580816 (run/C1-rerun; code as main 07e18ef) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `C2-RERUN` | corrected | B-v2 L3 | - | successor_value | - | f363f07, dcb3fda (run/C2-rerun; code as main 3036eb3) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
 | `H7-CORRECTED` | corrected | B-v2 L3 | - | successor_value | - | 0a15071, d2bf9da (run/H7-corrected; code as main 3036eb3) (partly curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit) |
@@ -107,6 +108,31 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `ERASURE-ONLINE-SPLIT-TWINS` | superseded | B-v2 L3 | - | inherited: successor_value | C1 | 9e03469 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `ERASURE-ONLINE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 1dc44e4 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `DEVELOPMENT` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 2cfc08d | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `GATE0-L1-FOLDS` | historical | A | - | none | - | 75ce098 | both | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `BUDGET-CURVE-DYNAMICS` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 75ce098 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `BAYES-FACTORS` | historical | methods | - | none | - | 75ce098 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `QD-EPS6-ORACLE` | historical | methods | - | none | - | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `C1-REGEN-LOCAL` | corrected | methods | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `PROBE-SENSITIVITY` | historical and corrected | methods | - | inherited: pre_transition_value (L3-H8-HELDOUT, L1-ORGANISM) and successor_value (L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1) | L3-H8-HELDOUT, L1-ORGANISM, L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1 | 75ce098 | explicit (explicit-v1, one group per episode) | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `STEP-RESOLVED` | historical and corrected | methods | - | inherited: pre_transition_value (L3-H8-HELDOUT, L1-ORGANISM) and successor_value (L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1) | L3-H8-HELDOUT, L1-ORGANISM, L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1 | 75ce098 | explicit (explicit-v1, one group per episode) | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `AR-SWEEP-C-REALIZATION2` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `L1-NONLINEAR-CORRECTED` | corrected | B-v2 L1 | - | inherited: successor_value | L1-CORRECTED | 75ce098 | explicit (explicit-v1, one group per episode) | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `L1-COARSE-GRID` | historical and corrected | B-v2 L1 | - | inherited: successor_value (L1-CORRECTED, l1_coarse_grid_corrected.json) and pre_transition_value (L1-ORGANISM, l1_coarse_grid_historical.json) | L1-CORRECTED, L1-ORGANISM | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `L1-NOISE-PER-EPISODE` | historical | B-v2 L1 | - | inherited: pre_transition_value | L1-ORGANISM | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `C1-REVERSE-DIRECTION` | corrected | L0 audit | 51 | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `C1-D045-WORLD-SAMPLES` | corrected | L0 audit | 50 | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `B-PRED-TIMING-LOCAL` | historical | B | 4, 5, 6, 7 | none | - | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `DEVELOPMENT-HELDOUT-TRANSFER` | corrected | B-v2 L3 | - | inherited: successor_value | DEVELOPMENT | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `WORLD-FEATURES-OWN-EPISODE` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `WALK-SPEED` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `GROUPED-SURPRISE-C1` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `GROUPED-SURPRISE-T-TOUCH` | corrected | B-v2 L3 | - | inherited: successor_value | T-TOUCH | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `GROUPED-SURPRISE-S-IMMORTAL` | corrected | B-v2 L3 | - | inherited: successor_value | S-IMMORTAL | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `SENSORY-ECHO-B1-FRESH` | corrected | B-v2 L3 | - | inherited: successor_value | B1-BALANCED | 75ce098 | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
+| `SENSORY-ECHO-B2-FRESH` | corrected | B-v2 L3 | - | inherited: successor_value | B2-BALANCED | 75ce098 | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
+| `PELLET-DOSE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `C1-POPULATION-WORLD-GROUPED` | corrected | C | 49 | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `HEAD-OVERLAP` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 
 Commits that artifacts record, or that the record cites, and that are not ancestors of main (most reached main through squash merges); each lives only on the branch named, so keep that branch or tag its head:
 
@@ -216,7 +242,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: Colab Tesla T4
 - Dependencies: python 3.12.13, torch 2.11.0+cu128 (recorded)
 - Local run directory (not in git): fullruns/06302026
-- Notes: The world model was fed each action one step late: it saw (O_t, A_t), with O_t already produced by A_t, and was scored against O_{t+1}, so it predicted each step without the action that caused it. The prediction-error and open-loop channels are the most exposed; the effect was not measured, and the stored numbers stand (docs/CORRECTIONS.md, 2026-10-16).
+- Notes: The world model was fed each action one step late: it saw (O_t, A_t), with O_t already produced by A_t, and was scored against O_{t+1}, so it predicted each step without the action that caused it. The prediction-error and open-loop channels are the most exposed, and the stored numbers stand (docs/CORRECTIONS.md, 2026-10-16). Measured on 2026-10-18 on the owner's workstation (B-PRED-TIMING-LOCAL): the prediction-only state at drift 0.45 reads 0.517 with the one-step-late timing and 0.544 with the action aligned, both inside the recorded interval [0.429, 0.591] (label RESTORE: the negative stands with correct timing).
 - Config (beyond the standard protocol): {"agent": "itasorl/agent.py RecurrentWorldModel, next-step prediction"}
 - Artifacts: `artifacts/expB/summary.json`
 
@@ -360,7 +386,18 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: cpu, 4 workers (run log header)
 - Local run directory (not in git): fullruns/l1_heldout
 - Config (beyond the standard protocol): {"drifts": [0.0, 0.023], "drift_mode": "l1", "l1_delta": 0.023, "sensor_sigma": 0.01, "save_agents": true}
-- Artifacts: `artifacts/expL1/organism_summary.json`, `artifacts/fold_rescore/l1_heldout.json`, `artifacts/expL1/observation_ceiling.json`
+- Artifacts: `artifacts/expL1/organism_summary.json`, `artifacts/fold_rescore/l1_heldout.json`
+
+### `L1-OBSERVATION-CEILING`: Agent-accessible ceiling of the L1 rung on the registered scripted pools (2026-10-12 audit)
+
+- Status: historical
+- Trainer: inherited: none
+- Commit at run: 2c170f0
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: n/a (probe_auroc's own grouped CV)
+- Notes: Closing pass 2026-10, H13: moved out of L1-ORGANISM, whose commit (8a71593, July 2026) the file postdates. File and runner were committed together in 2c170f0 on 2026-10-12; the artifact records no commit, stack or runner, so the commit above is curated from git. No trained agent is read: the scripted policy runs on the L1 rung's registered pools, and readout_only_on names the run whose rung and pools it measures. The file is kept as written; this entry re-adjudicates nothing.
+- Config (beyond the standard protocol): {"runner": "scripts/run_l1_observation_ceiling.py", "l1_delta": 0.023, "sensor_sigma": 0.01, "n_eps": 110, "steps": 24, "policy": "scripted"}
+- Artifacts: `artifacts/expL1/observation_ceiling.json`
 
 ### `L3-H8-NOWM-CPU`: Architecture baseline: no next-observation decoder, n = 10
 
@@ -852,7 +889,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: explicit
 - Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
 - Run directory (in git): artifacts/goal_stakes/T-touch
-- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Recorded: primary rule met with all six gates passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Current validity: the leakage gate summed the homeostatic reward, not pellets consumed, so full-rule validity was not established; 0.796 stays as recorded (docs/CORRECTIONS.md 2026-10-12; the matched-world pellet run is B2, FINDINGS 21). Readouts in the directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) stay on branch run/T-touch. Mechanism surprise AUROC 0.912. The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16; not rescored).
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Recorded: primary rule met with all six gates passing (L0 0.522, equivalent): survival 0.796 [0.762, 0.830]. Current validity: the leakage gate summed the homeostatic reward, not pellets consumed, so full-rule validity was not established; 0.796 stays as recorded (docs/CORRECTIONS.md 2026-10-12; the matched-world pellet run is B2, FINDINGS 21). Readouts in the directory: mechanism, policy_controls, control_diagnostics, and a behavior audit on state dumps rebuilt from the saved agents (60 of 60 pools reproduced). Saved agents and two quarantined attempts (unpinned torch; predictor inheriting --mortal off) stay on branch run/T-touch. Mechanism surprise AUROC 0.912 (stored); twin-grouped 0.917 (2026-10-18, GROUPED-SURPRISE-T-TOUCH). The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16). The stored values stay as recorded. Rescored on 2026-10-18 with one CV group per twin pair (artifacts/goal_stakes_grouped_surprise/), the grouped survival mean is above 0.65 on all three runs (label GROUPED ABOVE 0.65), so the stored lower bound and the verdict agree.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "objective": "touch", "mortal": false}
 - Artifacts: `artifacts/goal_stakes/T-touch`, `artifacts/expB2/goal_stakes_T-touch.json`
 
@@ -868,20 +905,19 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: explicit
 - Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
 - Run directory (in git): artifacts/goal_stakes/S-immortal
-- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 [0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable (S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined attempts stay on branch run/S-immortal. Mechanism surprise AUROC 0.848. The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16; not rescored).
+- Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md; outcome in PREREGISTRATION_L3 2026-10-11 and FINDINGS 18. Integrity: predictor and untrained targets bit-equal to C1 in 20 of 20 cells. Decodability clauses met (survival 0.744 [0.696, 0.793]); L0 gate open (0.537), as in C1. Stakes rule not testable (S-scarce not run). Same readouts as T-TOUCH. Saved agents and two quarantined attempts stay on branch run/S-immortal. Mechanism surprise AUROC 0.848 (stored); twin-grouped 0.859 (2026-10-18, GROUPED-SURPRISE-S-IMMORTAL). The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16). The stored values stay as recorded. Rescored on 2026-10-18 with one CV group per twin pair (artifacts/goal_stakes_grouped_surprise/), the grouped survival mean is above 0.65 on all three runs (label GROUPED ABOVE 0.65), so the stored lower bound and the verdict agree.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "mortal": false}
 - Artifacts: `artifacts/goal_stakes/S-immortal`, `artifacts/expB2/goal_stakes_S-immortal.json`
 
 ### `S-SCARCE`: Survival objective, death on, scarce food (calibrated), n = 10 (goal-and-stakes)
 
-- Status: corrected
+- Status: not run
 - Trainer: successor_value
-- Commit at run: pending
-- Agent seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+- Commit at run: c14b533
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
 - Budget: {"survival_updates": 300, "predictor_updates": 300}
 - Folds: explicit
-- Device: revision container, 4 vCPU, 4 workers; torch 2.14.1+cpu
 - Run directory (in git): artifacts/goal_stakes/S-scarce
 - Notes: Frozen: docs/specs/2026-10-07-goal-and-stakes-design.md. NOT RUN: the frozen calibration (scripts/calibrate_scarcity.py, artifacts/goal_stakes/calibration.json) chose 24 pellets, the registered density C1 already uses (scripted 80-step death rate 0.535 at drift 0, 0.515 at drift 0.45), so the run would repeat C1's configuration and the stakes rule is not testable (PREREGISTRATION_L3, 2026-10-10). The directory keeps its .gitkeep placeholder; no cell exists.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor", "n_pellets": "calibrated: 24, the registered density (artifacts/goal_stakes/calibration.json)"}
@@ -891,10 +927,11 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: corrected
 - Trainer: inherited: successor_value
-- Commit at run: run/C1-rerun
+- Commit at run: 9d388d5 (run/C1-rerun, the commit that added mechanism.json)
+- Commit source: curated: no artifact of this run records the commit it ran at
 - Folds: explicit
 - Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
-- Notes: scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and S-immortal mechanism readouts; decide_goal_stakes.py does not read it. Surprise AUROC 0.846. The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16; not rescored).
+- Notes: scripts/run_mechanism_readouts.py; goal-and-stakes spec. Run on the C1-RERUN agents, whose cells equal C1 to the bit (the C1 agents themselves were never saved). Output: artifacts/goal_stakes/C1/mechanism.json. Descriptive reference for the T-touch and S-immortal mechanism readouts; decide_goal_stakes.py does not read it. The three stored mechanism.json files (C1, T-touch, S-immortal) record no commit or stack; the commit above is the run/C1-rerun commit that added this one, and the 2026-10-18 rescores (GROUPED-SURPRISE-*) record both. Surprise AUROC 0.846 (stored); twin-grouped 0.856 (2026-10-18, GROUPED-SURPRISE-C1, on the workstation stack, with its cross-stack note). The stored surprise AUROCs (readout 8(a)) put each authentic episode and its same-world surrogate twin in separate CV folds, which biases them low, so read them as lower bounds. Every run's mean is above the 0.65 bar, the only quantity the surprise verdict reads; single seeds can fall below it (docs/CORRECTIONS.md, 2026-10-16). The stored values stay as recorded. Rescored on 2026-10-18 with one CV group per twin pair (artifacts/goal_stakes_grouped_surprise/), the grouped survival mean is above 0.65 on all three runs (label GROUPED ABOVE 0.65), so the stored lower bound and the verdict agree.
 - Artifacts: `artifacts/goal_stakes/C1`
 
 ### `C1-RERUN`: Rerun of C1 that keeps its saved agents (reproduction)
@@ -1317,13 +1354,318 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Notes: Frozen spec docs/specs/2026-10-15-what-develops-design.md (58efbed), amended before any code (87247e4: without its two sequence decoders) and after a one-seed setup check (2cfc08d: integrity tolerance 0.005 for the workstation-versus-cloud stack). Diagnostic. Integrity: every snapshot's target reproduces artifacts/budget_curve.json within 0.0025. Own-episode target by budget, C1: 0.523, 0.548, 0.680, 0.733, 0.822; C2: 0.529, 0.529, 0.565, 0.613, 0.686. Reading 1 (named memory grows beyond the senses) reads the increase in resid_obs, the probe after the linear observation control history_basis(lags=1): MET on C1 (+0.224 [+0.173, +0.275]) and NOT MET on C2 (+0.104 [+0.046, +0.162]); reading 2 reads resid_trace, after the physical-trace basis: MET on both (+0.159, +0.148). The two are separate readings after two linear controls, not a memory and trace decomposition; direction REORGANIZES on both (cosine of u_300 to u_450 0.40 and 0.42); C1 minus C2 in resid_obs +0.133 [+0.061, +0.206] at 450, the auxiliary builds the stored component. First budget above the untrained floor by 0.05: 200 (C1), 450 (C2). FINDINGS 23.4.
 - Artifacts: `artifacts/development/corrected_l3_h8_wm.json`, `artifacts/development/corrected_l3_h8_nowm.json`
 
+### `GATE0-L1-FOLDS`: L1 gate-0 oracle at the in-band grid under both fold partitions (G47)
+
+- Status: historical
+- Trainer: none
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: both
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_expA_l1.py, one file per fold partition (R01, 2026-10-17); docs/specs/2026-10-17-closing-readouts-design.md, G47. Agent free; the commit is recorded as git_commit in each file's provenance block. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Config (beyond the standard protocol): {"runner": "scripts/run_expA_l1.py --deltas 0.022 0.023 0.024", "sensor_sigma": 0.01}
+- Artifacts: `artifacts/fold_rescore/gate0_l1_legacy.json`, `artifacts/fold_rescore/gate0_l1_explicit.json`
+
+### `BUDGET-CURVE-DYNAMICS`: Budget-curve dynamics of the corrected runs (X08)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: n/a
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/read_budget_curve_dynamics.py (X08, 2026-10-17); docs/specs/2026-10-17-extension-readouts-design.md, X08. Agent free: reads artifacts/budget_curve.json and the C1 and C2 cells; the commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/budget_curve_dynamics/corrected_runs.json`
+
+### `BAYES-FACTORS`: Bayes factors with an interval null on stored readings (X09)
+
+- Status: historical
+- Trainer: none
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: n/a
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/build_bayes_factors.py (X09, 2026-10-17); docs/specs/2026-10-17-extension-readouts-design.md, X09. Agent free, annotation only: it reads committed artifacts and relabels no registered reading; the commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/bayes_factors/interval_null.json`
+
+### `QD-EPS6-ORACLE`: Quadratic-drag comparator oracle at eps 6.0, the setting the trained run used (H31)
+
+- Status: historical
+- Trainer: none
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: R16, 2026-10-17; docs/specs/2026-10-17-closing-readouts-design.md, H31. Agent free; the untrained floor seeds use the corrected trainer's untrained arm (no actor-critic), as in QD-GATE0, whose file is not touched. The runner exits 1 by design when no eps passes gate 0; the JSON was written. The commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Config (beyond the standard protocol): {"runner": "scripts/run_expA_l3.py --family qd --qd-epss 4.0 6.0 8.0 --device cpu", "sigma_meas": 0.02}
+- Artifacts: `artifacts/agent_free/qd_eps6_oracle.json`
+
+### `C1-REGEN-LOCAL`: C1 state dumps regenerated on the workstation stack: per-cell comparison report (G57)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/regenerate_state_dumps.py --tolerance 0.002 --report (R10, 2026-10-17); docs/specs/2026-10-17-closing-readouts-design.md, G57. Report only: the regenerated dumps stay in the gitignored fullruns/closing_2026-10/g57/states_local, and every readout of them labels its C1 rows cross-stack regenerated. Kept out of artifacts/repro_check/, which REPRO-4B6E1F3 owns. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/repro_check_c1_regen/c1_regen_local_stack.json`
+
+### `PROBE-SENSITIVITY`: Probe-penalty sensitivity of the registered state probe across six stored dump sets (G01)
+
+- Status: historical and corrected
+- Trainer: inherited: pre_transition_value (L3-H8-HELDOUT, L1-ORGANISM) and successor_value (L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1)
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit (explicit-v1, one group per episode)
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_probe_penalty_sensitivity.py (R11, 2026-10-17); docs/specs/2026-10-17-closing-readouts-design.md, G01. Methods; one file per stored dump set, the C1 file on the dumps C1-REGEN-LOCAL regenerated. The integrity gate passed in all six files. No TOST or gate at any C other than 1. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/probe_sensitivity`
+
+### `STEP-RESOLVED`: Within-episode decoding curve of the registered state probe across six stored dump sets (G04)
+
+- Status: historical and corrected
+- Trainer: inherited: pre_transition_value (L3-H8-HELDOUT, L1-ORGANISM) and successor_value (L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1)
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit (explicit-v1, one group per episode)
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_step_resolved_readout.py (R12, 2026-10-17); docs/specs/2026-10-17-closing-readouts-design.md, G04. Methods; one file per stored dump set, the C1 file on the dumps C1-REGEN-LOCAL regenerated. The integrity gate passed in all six files. The curve does not by itself separate coherence from an integrated deviation. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/step_resolved`
+
+### `AR-SWEEP-C-REALIZATION2`: Sweep C end points (rho 0 and 0.99) with a second jitter realization, on the C1 agents (B8)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_texture_fresh_probe.py --family arc --jitter-key agent (R02, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, B8. The stored AR-SWEEP-C points are not touched. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/texture/ar_sweep_c_realization2`
+
+### `L1-NONLINEAR-CORRECTED`: Nonlinear state probes on the corrected L1 agents' dumps (H53)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit (explicit-v1, one group per episode)
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_l1_nonlinear_probe.py on fullruns/corrected_l1_heldout/states (R17, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, H53. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/expL1/l1_nonlinear_corrected.json`
+
+### `L1-COARSE-GRID`: L1 state readout at the in-band and a supra-band grid (Delta 0.023 and 0.06), corrected L1 agents with the historical companion (B1)
+
+- Status: historical and corrected
+- Trainer: inherited: successor_value (L1-CORRECTED, l1_coarse_grid_corrected.json) and pre_transition_value (L1-ORGANISM, l1_coarse_grid_historical.json)
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_l1_h2_ablations.py --channels a1 --deltas 0.023 0.06 (R06a corrected, R06b historical, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, B1. Each file joins the out-dir's aggregate, provenance and cells (scripts/promote_l1_grid_readouts.py; no value changed). The corrected file decides; the historical companion decides nothing. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/expL1/l1_coarse_grid_corrected.json`, `artifacts/expL1/l1_coarse_grid_historical.json`
+
+### `L1-NOISE-PER-EPISODE`: L1 noise knockout with fresh noise per episode, historical L1 agents (B7)
+
+- Status: historical
+- Trainer: inherited: pre_transition_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_l1_h2_ablations.py --channels noise --noise-reseed per-episode (R03, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, B7. Read only because the historical half of B1 bit-matched its saved dumps. The file joins the out-dir's aggregate, provenance and cells (scripts/promote_l1_grid_readouts.py; no value changed). The stored per-pool reading in expL1/h2_ablations.json is not touched. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/expL1/l1_h2_noise_per_episode.json`
+
+### `C1-REVERSE-DIRECTION`: Reverse-direction readout on the corrected C1 drift-0 agents (B3)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/reverse_direction.py --integrity-ref artifacts/fold_rescore/corrected_l3_h8_wm_integrity_ref.json (R04, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, B3, under the rule of docs/specs/2026-10-09-reverse-direction-readout-design.md. Beside H8-HELDOUT-REVERSE-DIRECTION, which keeps its label. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/l0_audit/reverse_direction_corrected_l3_h8_wm.json`
+
+### `C1-D045-WORLD-SAMPLES`: Drift-0.45 world-sample sensitivity on the corrected C1 agents (G02)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_world_sample_sensitivity.py --arms survival --integrity-ref artifacts/fold_rescore/corrected_l3_h8_wm_integrity_ref.json (R05, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, G02, under the rule of docs/specs/2026-10-08-drift-045-world-sample-sensitivity-design.md. Diagnostic, not a gate. Beside H8-HELDOUT-D045-WORLD-SAMPLES, which keeps its label. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/l0_audit/d045_world_samples_corrected_l3_h8_wm.json`
+
+### `B-PRED-TIMING-LOCAL`: Experiment B (L2) prediction-only arc rerun with the stored and the corrected action timing (C1)
+
+- Status: historical
+- Trainer: none
+- Commit at run: 75ce098
+- Commit source: recorded
+- Agent seeds: [0, 1, 2]
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: R09, 2026-10-18; docs/specs/2026-10-17-closing-readouts-design.md, C1. expB_legacy_local_2026-10-18 keeps the stored one-step-late action timing; expB_aligned_2026-10-18 scores each next observation with the action that produces it. JSON only: the run's PNGs are not promoted and docs/figures/expB_*.png stay as stored. Trains no actor-critic; the commit is recorded as git_commit. Beside B-PRED, whose numbers stand. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Config (beyond the standard protocol): {"agent": "itasorl/agent.py RecurrentWorldModel, next-step prediction", "runners": "scripts/run_expB_{full,kstep,nonlinear,gap,surprise}.py --align legacy, then --align obs_then_action"}
+- Artifacts: `artifacts/expB_legacy_local_2026-10-18`, `artifacts/expB_aligned_2026-10-18`
+
+### `DEVELOPMENT-HELDOUT-TRANSFER`: Held-out transfer of the 300-update probe across the C1 and C2 budget snapshots (B6)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_development_heldout_transfer.py (R14, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, B6. Reads the C1 and C2 snapshot agents that DEVELOPMENT read; its integrity check reproduces DEVELOPMENT's stored in-sample transfer_from_300, whose file is not touched. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/development/heldout_transfer.json`
+
+### `WORLD-FEATURES-OWN-EPISODE`: World-draw features read on each arm's own episodes (G07, post hoc)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_world_features_readout.py --protocol own (R15a wm and R15b nowm, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, G07(a), the secondary protocol of docs/specs/2026-10-15-world-draw-features-design.md. Label-neutral: WORLD-FEATURES keeps its label and its files are not touched. These files carry the per-episode feature values. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/world_features/own_episode_posthoc`
+
+### `WALK-SPEED`: Walk speed against goal direction on the C1 agents (B2)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_walk_speed_readout.py (R13, 2026-10-18); docs/specs/2026-10-17-walk-speed-vs-goal-readout-design.md. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/walk_speed/corrected_l3_h8_wm.json`
+
+### `GROUPED-SURPRISE-C1`: Mechanism readouts with twin-grouped surprise folds, C1 agents (B5)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_mechanism_readouts.py --also-ungrouped-surprise on fullruns/corrected_l3_h8_wm/agents (R08a, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, B5. Grouped and ungrouped surprise come from the same rollouts. Cross-stack note: the stored C1 mechanism.json (cloud stack, C1-MECHANISM) does not reproduce within 0.01 on this stack for the ungrouped surprise AUROC on five survival seeds; per the spec this does not void the grouped-versus-ungrouped comparison, which is read between two local values. The stored values stay as recorded. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/goal_stakes_grouped_surprise/C1.json`
+
+### `GROUPED-SURPRISE-T-TOUCH`: Mechanism readouts with twin-grouped surprise folds, T-touch agents (B5)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_mechanism_readouts.py --also-ungrouped-surprise on the agents preserved from branch run/T-touch in fullruns/branch_preserve (R08b, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, B5. Every tolerance quantity is within 0.01 of the stored goal_stakes/T-touch/mechanism.json. The stored values stay as recorded. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/goal_stakes_grouped_surprise/T-touch.json`
+
+### `GROUPED-SURPRISE-S-IMMORTAL`: Mechanism readouts with twin-grouped surprise folds, S-immortal agents (B5)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_mechanism_readouts.py --also-ungrouped-surprise on the agents preserved from branch run/S-immortal in fullruns/branch_preserve (R08c, 2026-10-18); docs/specs/2026-10-17-closing-readouts-design.md, B5. Every tolerance quantity is within 0.01 of the stored goal_stakes/S-immortal/mechanism.json. Its untrained arm is the same set of agents as T-touch's (both runs immortal), so the two untrained floors are one floor. The stored values stay as recorded. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/goal_stakes_grouped_surprise/S-immortal.json`
+
+### `SENSORY-ECHO-B1-FRESH`: Balanced sensory-echo control on a second evaluation draw, B1 agents (G03)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/audit_sensory_echo.py --balanced-seed-base 2250000 --integrity-seed-base 910000 (G1wm, 2026-10-19); docs/specs/2026-10-17-closing-readouts-design.md, G03. Beside sensory_echo_b1.json, which is not touched; the 910000 decision stands. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/balanced_confirmation/sensory_echo_b1_fresh.json`
+
+### `SENSORY-ECHO-B2-FRESH`: Balanced sensory-echo control on a second evaluation draw, B2 agents (G03)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/audit_sensory_echo.py --objective touch --mortal off --balanced-seed-base 2250000 --integrity-seed-base 910000 (G1touch, 2026-10-19); docs/specs/2026-10-17-closing-readouts-design.md, G03. Beside sensory_echo_b2.json, which is not touched; the 910000 decision stands. B1 and B2 share their untrained and predictor agents, so this file's floor is SENSORY-ECHO-B1-FRESH's floor read again. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Config (beyond the standard protocol): {"objective": "touch", "mortal": false}
+- Artifacts: `artifacts/balanced_confirmation/sensory_echo_b2_fresh.json`
+
+### `PELLET-DOSE`: Pellet-density dose curve on the C1 agents (X07)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_pellet_dose_readout.py --n-pellets 2 6 12 24 48 96 (X07, 2026-10-19); docs/specs/2026-10-17-extension-readouts-design.md, X07. Label-neutral. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/pellet_dose/corrected_l3_h8_wm.json`
+
+### `C1-POPULATION-WORLD-GROUPED`: C1 pooled population probe regrouped by world seed (B4)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/validate_population_readout.py --group-by-world-seed (R07, 2026-10-19); docs/specs/2026-10-17-closing-readouts-design.md, B4. Row-grouped and world-grouped values from one pass, beside C1-POPULATION, whose file is not touched. The output records n_world_groups, not the number of dead pairs. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/population_readout/corrected_l3_h8_wm_world_grouped.json`
+
+### `HEAD-OVERLAP`: Head overlap: the decoded world direction against the actor, critic and decoder weights, C1 agents (X03)
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 75ce098
+- Commit source: recorded
+- Folds: explicit
+- Device: owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/run_head_overlap_readout.py (X03, 2026-10-19); docs/specs/2026-10-17-extension-readouts-design.md, X03. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/head_overlap/corrected_l3_h8_wm.json`
+
 ## Headline register
 
 Each headline number below is one run, one estimand, and one rule. A recorded MET is the historical label. It is not a currently validated full-rule pass unless the current-validity line says so. The October 12 raw balanced rule and the October 13 sensory rule are different rules.
 
 - C1, `corrected_l3_h8_wm`. Corrected trainer, CPU container (Python 3.11.17, NumPy 2.4.6). Pooled estimand, bases 800000 and 850000, seeds 0-9. Bar on the t90 lower bound, margins 0.05 on the paired t90 lower bound. Recorded: decodability clauses met, L0 open, full rule not met. `artifacts/expB2/corrected_l3_h8_wm.json`.
 - C2, `corrected_l3_h8_nowm`. Same stack and pooled estimand, no auxiliary. Recorded: decodability clauses not met (0.613, lower bound 0.552). `artifacts/expB2/corrected_l3_h8_nowm.json`.
-- Original T-touch. Historical pellet run. Recorded MET at 0.796. Current validity: the leakage gate summed the homeostatic reward, so full-rule validity was not established. Agents are not on this machine. `artifacts/expB2/goal_stakes_T-touch.json`.
+- Original T-touch. Historical pellet run. Recorded MET at 0.796. Current validity: the leakage gate summed the homeostatic reward, so full-rule validity was not established. Its saved agents are on branch run/T-touch, with a local copy in the gitignored fullruns/branch_preserve that the 2026-10-18 twin-grouped surprise rescore read. `artifacts/expB2/goal_stakes_T-touch.json`.
 - B1, `balanced_confirmation_wm`. Corrected trainer, GPU workstation, seeds 10-19, matched pairs at base 910000, survival, mortal. October 12 rule: trained t90 lower bound at least 0.65, both margin lower bounds at least 0.05, untrained mean within 0.1 of 0.5. Recorded UNINFORMATIVE (untrained 0.614). The speed and leakage numbers on the cells are the pooled worlds, not these pairs. `artifacts/balanced_confirmation/b1.json`.
 - B2, `balanced_confirmation_touch`. Same seeds and base, pellet objective, death off. Same October 12 rule. Recorded UNINFORMATIVE. `artifacts/balanced_confirmation/b2.json`.
 - B1 sensory and B2 sensory. Readouts on those saved agents. October 13 rule: trained residual mean at least 0.65, mean more than 0.05 above the untrained residual, trained t90 lower bound above the untrained mean, untrained mean within 0.1 of 0.5. Recorded passes at 0.761 and 0.780. The untrained residual 0.596 meets the point tolerance; its interval crosses 0.60. `artifacts/balanced_confirmation/sensory_echo_b1.json` and `sensory_echo_b2.json`.
