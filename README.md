@@ -91,12 +91,15 @@ without the prediction task reads 0.61, under the bar. The signal rides on the
 paths the foraging creature takes, and a brain trained to predict holds on to
 it; why those paths carry more of the difference than scripted ones has not
 been measured. A hand-written fake gets read too: a drag that depends on how
-fast the body is moving, as the learned law does. Random jitter in the velocity,
+fast the body is moving, as the learned law does, though an untrained brain already
+reads it outside the tolerance around chance, so only the margin over that brain
+counts. Random jitter in the velocity,
 read from brains raised under the learned law, reaches the bar at no setting tried,
 even jitter that stays correlated over time.
 Rerun with its 24-step drift matched exactly at the two most correlated settings and
 within 1.1 percent at the uncorrelated one (a larger drift than the drag's), correlation
-did not raise the reading, so these tests do not say why (FINDINGS §22.3).
+did not raise the reading on the tested worlds and jitter draws, so these tests do not
+say why (FINDINGS §22.3).
 
 ### Hasn't this been done before?
 
@@ -160,7 +163,7 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 ### Hypotheses
 
 - **H1 (detectability)**: a privileged detector distinguishes the surrogate from the authentic world. **Supported** at L1, L2, and L3; at one shared detector noise the L2 flaws read weaker than L3 (FINDINGS §15).
-- **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference (FINDINGS §14). A hand-authored drag that, like the learned law, depends on the agent's own velocity is read as well (§17.9), so nothing here is specific to learned dynamics. Random velocity jitter, read from agents raised under the learned law, reaches the bar at no setting tried, including strongly autocorrelated jitter matched on its 24-step deviation, so the comparison names no mechanism (§22.3). At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
+- **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference (FINDINGS §14). A hand-authored drag that, like the learned law, depends on the agent's own velocity is read as well, measured as a margin over an untrained arm whose floor (0.612) sits outside tolerance (§17.9), so nothing here is specific to learned dynamics. Random velocity jitter, read from agents raised under the learned law, reaches the bar at no setting tried, including strongly autocorrelated jitter matched on its 24-step deviation, so the comparison names no mechanism (§22.3); these jitter readings hold for the tested agents, worlds and jitter draws. At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
 - **H3 (emergence under selection)**: selection raises world decodability. **Flat contrast, registered verdict uninformative.** Over 3 lineages and 30 generations the contrast is flat under both the pooled and the per-individual readout, but the speed control (gate 5) fails, and the preregistration interprets no contrast unless every gate passes, so neither readout yields a verdict. The payoff for knowing the world (gate 1) is weak and falls short only of a draft margin that was never ratified (FINDINGS §13.F; the earlier record is §13.D, §13.E).
 - **H4 (incidental encoding)**: the condition is decodable from a from-scratch agent's state without reward. At L3 the registered rule is **not met**, because the L0 (authentic-versus-authentic) gate does not pass on the registered world pair, 0.559; its three **decodability clauses are met** for survival with the next-observation auxiliary at 300 updates, corrected trainer: 0.733 (FINDINGS §17). Not met at L1 or L2.
 
@@ -220,7 +223,8 @@ raise it (FINDINGS §22.1; `artifacts/expL1/l1_coarse_grid_corrected.json`).
 next-observation auxiliary, 300 updates, ten seeds, on CPU: the survival state
 reads **0.733** (t-based 90% CI **[0.669, 0.797]**, 8 of 10 seeds at the 0.65
 bar), the predictor arm 0.589 and the untrained arm 0.523, with paired margins
-of +0.144 and +0.210 whose intervals clear the registered 0.05. The L0 gate
+of +0.144 and +0.210 whose intervals clear the registered 0.05. These
+readings are on the one evaluation-world draw all seeds share. The L0 gate
 (both pools authentic) is open on the registered pair of evaluation worlds
 (0.559, the largest of nine draws on record). On that same pair a second set of
 survival agents, the drift-zero agents of the matched-world confirmation on seeds 10
@@ -235,8 +239,10 @@ draws clear the bar (0.728 to 0.860; the registered draw's 0.774 ranks 5 of 9),
 SECURE under a rule frozen before the run. The registered verdict is therefore
 not met (L0 gate open), while the decodability clauses are met. Without the
 auxiliary the same protocol reads **0.613** [0.552, 0.675], not met; the
-decoder adds **+0.120** [+0.065, +0.174]. The bootstrap fix moved these two
-readings by +0.003 and +0.012.
+decoder adds **+0.120** [+0.065, +0.174]. That compares the tested regimes at the
+registered budget: the registered auxiliary rule is not met, because C1 does not meet
+its primary rule, and general necessity of the auxiliary is not established. The
+bootstrap fix moved these two readings by +0.003 and +0.012.
 
 **Matched worlds (FINDINGS §21).** A confirmation frozen before it ran trains the
 same corrected recipe on new seeds 10-19 and pairs authentic and surrogate

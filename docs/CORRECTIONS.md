@@ -1669,3 +1669,42 @@ manifest's surprise note drops the word. The 2026-10-16 entries
 above keep their wording.
 
 **What this does not change.** No stored value or label. The partial-erasure label stands.
+
+## 2026-10-19: record wording stronger than the manuscript after the full-review pass
+
+**What was wrong.** After the manuscript revision of 2026-10-19 (full-review pass), several
+record passages stated a result more strongly than the manuscript does. FINDINGS 21 called the
+`B1` and `B2` rows "sensory-independent under matched worlds" on both evaluation draws without
+saying that the sensory-echo procedure was frozen after the raw outcomes and the untrained
+diagnostics, and that the second draw was read under that already fixed procedure. FINDINGS
+18.7 said survival is not required and that the walk carries the signal, with replay giving it
+to untrained trunks, and 18.4 said an untrained trunk reads most of the signal. FINDINGS 3.1, 3.3
+and 3.4 said the L2 prediction-only target sits at chance and that the agent did not encode
+world identity, with no equivalence test at three seeds. FINDINGS 23.3 recorded **not used under
+removal** without stating the limits of the use test in the same place. The README read the
+hand-authored drag with no word on its untrained floor in the hypotheses and the overview, and
+gave 0.733 and the auxiliary contrast without the evaluation-draw and tested-regime qualifiers.
+`docs/PREREGISTRATION_L3.md` section 12 headed the 2026-10-06 surrogate entry as a description
+correction, although the registered configuration is not the one executed. The 2026-10-19
+follow-up-lines entry above quotes the sensory-control label without the conditional reading.
+
+**Change.** FINDINGS 3.1, 3.3, 3.4, 18.4, 18.7 (items 1 and 4), 21 (twice) and 23.3 gain dated
+notes of 2026-10-19: the L2 target reads near 0.5, below the criterion; the walk and the trained
+trunk both carry the L3 reading; `B2`'s 0.780 is a conditional result under the later procedure,
+neither a confirmation under the original complete rule nor independence from nonlinear or
+longer-history sensory information, and the second draw is not a prospective test of it; the
+erasure and nudge use tests are limited by partial erasure, by scoring only common survivors
+(470 of 640 attempted episodes kept in the erasure readout) and by a fixed five-measure behavior
+endpoint, so absence of use is not shown. `docs/PREREGISTRATION_L3.md` section 12 gains two
+entries: one reclassifies the 2026-10-06 surrogate entry as a deviation, and one reads the
+sensory-control label and the frozen stakes wording as conditional results. The README states
+the drag as a margin over an untrained floor (0.612) outside tolerance, holds the jitter readings
+to the tested agents, worlds and jitter draws, places 0.733 on the one evaluation-world draw all
+seeds share, and reads the auxiliary contrast as a comparison of the tested regimes with the
+auxiliary rule unmet and general necessity not established. `docs/LEARNING.md` gives the 0.780
+reading with the same conditional status, and the site template qualifies its jitter sentence
+as the README does.
+
+**What this does not change.** No number, label, rule or verdict. The frozen labels
+("sensory-independent under matched worlds", **not used under removal**, the frozen stakes
+wording) and the registered texts stay as written.

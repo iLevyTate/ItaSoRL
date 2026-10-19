@@ -770,7 +770,11 @@ itself reorganizes (23.4).
   excludes chance, so this is a reading under the bar, not a demonstrated absence.
 - Survival is not required for a decodable walk: the pellet job with death off reads 0.796,
   though its full rule was never established, and the matched-world confirmation is
-  uninformative because an untrained network already reads 0.614 there (Act 11).
+  uninformative because an untrained network already reads 0.614 there (Act 11). Under a
+  sensory control written after those results were known, the pellet creatures keep 0.780.
+  That is a conditional result under the later control, not a confirmation under the
+  original rule, and it does not show the reading is free of nonlinear or longer-history
+  sensory input.
 - Pushing the state along the decoded direction, or removing that direction while the
   creature acts, moves its behavior no more than a sham does, and its own surprise does not
   show that it detects the fake (Acts 11 and 12). Neither test proves the direction is unused.

@@ -1945,6 +1945,30 @@ Rigor carried from the B-v3 audit (2026-07-10):
   ungrouped, -0.0002 [-0.008, +0.007], includes zero. The stored values and the GROUPED ABOVE
   0.65 label are unchanged. `docs/CORRECTIONS.md`, 2026-10-19.
 
+- **2026-10-19 - THE 2026-10-06 SURROGATE ENTRY IS A DEVIATION, NOT A DESCRIPTION CORRECTION (a
+  record; the entries above stay as written and no rule, number or verdict changes).** The
+  2026-10-06 entry headed "DESCRIPTION CORRECTION: THE SURROGATE AS IMPLEMENTED" is reclassified
+  as a deviation from this registration. Section 9 registered a recurrent predictor trained with
+  held-out early stopping; every L3 result used the feed-forward MLP `train_g_motion` trained for
+  a fixed 300 epochs, first committed after this registration (2026-10-19 timing entry above).
+  The registered configuration is therefore not the one executed, and no L3 rule was read on the
+  registered surrogate. The heading stays as written. The manuscript revision of 2026-10-19
+  (full-review pass) calls it a deviation; `docs/CORRECTIONS.md`, 2026-10-19.
+
+- **2026-10-19 - THE MATCHED-WORLD SENSORY-CONTROL LABEL AND THE STAKES WORDING, READ AS
+  CONDITIONAL RESULTS (a record; the entries above stay as written and no rule, number or verdict
+  changes).** The 2026-10-13 result entry and the 2026-10-19 G03 result entry record `B1` and
+  `B2` as "sensory-independent under matched worlds", the frozen label of
+  `docs/specs/2026-10-13-balanced-sensory-echo-design.md`. That procedure was frozen after the
+  raw `B1` and `B2` outcomes and the untrained diagnostics were known, so the label names a
+  conditional result under it: not a confirmation under the original complete rule, on which
+  both runs stay UNINFORMATIVE, and not independence from nonlinear or longer-history sensory
+  information. The second draw at base 2250000 was read under that already fixed procedure and
+  is not a prospective test of it. The frozen wording "survival is not required", quoted in the
+  2026-10-07 and 2026-10-11 entries, stands only in the narrower form the 2026-10-16 entry gives
+  it, with this conditional status. The manuscript revision of 2026-10-19 (full-review pass)
+  words both so; `docs/CORRECTIONS.md`, 2026-10-19.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
