@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are: 84 pinned of 3231 on 2026-10-17 (PIN_COUNT and CHECK_FLOOR below). The count
+many there are: 105 pinned of 3874 on 2026-10-19 (PIN_COUNT and CHECK_FLOOR below). The count
 is of check() calls; composite check_true gates that also compare a stored reading with a
 literal are not counted. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
@@ -78,10 +78,10 @@ BAR = 0.65
 # (tests/test_audit_selftest.py). A run that records fewer has lost checks without failing one.
 # Change it deliberately when checks are added or removed, from the count the run prints, never
 # by hand; the manuscript sentences that quote it are checked against it by
-# scripts/build_paper_tables.py --manuscript. The count on 2026-10-17 is 3231.
-CHECK_FLOOR = 3231
+# scripts/build_paper_tables.py --manuscript. The count on 2026-10-19 is 3874.
+CHECK_FLOOR = 3874
 # How many of those checks are pins (labels start "pinned:"), as printed in "pins: P of N".
-PIN_COUNT = 84
+PIN_COUNT = 105
 
 failures: list[str] = []
 n_checks = 0
@@ -2250,6 +2250,8 @@ def main() -> int:
                    f"treatment populations {_three('indiv_final_treat')}" in _s13)
         check_true("13.F quotes the final control per-individual means",
                    f"control populations\n{_three('indiv_final_ctrl')}" in _s13)
+    # H76 (runbook 6.2): the committed payoff-steepness sweep and its section-13 note.
+    _h76_steepness(_load_art("expC", "gate1_steepness_sweep.json"), _s13)
     _xevp = os.path.join(ARTROOT, "corrected_runs", "corrected_l3_h8_wm", "cells")
     if _artifact_present(_xevp):
         _xv = {}
@@ -3462,6 +3464,8 @@ def main() -> int:
     check_true("FINDINGS 21 names the sensory-echo decision",
                "sensory-independent under matched worlds" in _f21)
 
+    closing_checks()
+
     print()
     if n_skipped:
         print(f"skipped: {n_skipped} check(s) whose file the anonymized supplement leaves out.")
@@ -3475,6 +3479,1266 @@ def main() -> int:
         return 1
     print(f"RESULT: all {n_checks} checks passed.")
     return 0
+
+
+# ---- Closing pass, Stage 6.2 (2026-10-19): one block per promoted result -------------------------
+# Each block reads its promoted artifact (guarded by _artifact_present on its 6.1 path), compares the
+# stored summaries with a recomputation from the per-seed or per-cell values the artifact keeps,
+# ties every number the readings sheet lets a record quote to that recomputation character for
+# character (a stored rounded value is never rounded again), and derives the label once more under
+# the frozen rule of docs/specs/2026-10-17-closing-readouts-design.md (B2: the walk-speed spec; X03
+# to X09: the extension spec), which must be the label the record states. Every label starts
+# "6.2 <item>:" (or "pinned: 6.2 <item>:") so a failure names its block; the mutation tests in
+# tests/test_audit_mutation_closing.py flip one per-seed value per block and expect a failure.
+# The agent-free X08 and X09 blocks recompute their statistics from the committed inputs.
+
+
+def _cl_path(*parts: str) -> str:
+    return os.path.join(ARTROOT, *parts)
+
+
+def _cl_load(*parts: str) -> dict:
+    with open(_cl_path(*parts), encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _cl_t90(vals) -> tuple:
+    """Mean and t-based 90 percent interval of the finite per-seed values."""
+    x = np.asarray(vals, float)
+    x = x[np.isfinite(x)]
+    if x.size < 2:
+        return float("nan"), float("nan"), float("nan")
+    lo, hi = t_ci90(x)
+    return float(x.mean()), float(lo), float(hi)
+
+
+def _cl_pt90(a, b=None) -> tuple:
+    """Seed-paired a - b as itasorl.novel_readouts.paired_t90 computes it (finite differences)."""
+    x = np.asarray(a, float) if b is None else np.asarray(a, float) - np.asarray(b, float)
+    return _cl_t90(x)
+
+
+def _cl_fmt(x: float, token: str) -> str:
+    """x printed the way the quoted token is printed: same decimals, a sign if the token has one."""
+    d = len(token.split(".")[1]) if "." in token else 0
+    return f"{x:+.{d}f}" if token[0] == "+" else f"{x:.{d}f}"
+
+
+def _cl_quote(label: str, values, text: str) -> None:
+    """The quoted text, number for number and character for character, from the recomputed values."""
+    vals = [values] if np.isscalar(values) else list(values)
+    toks = re.findall(r"[+-]?\d+(?:\.\d+)?", text)
+    ok = len(toks) == len(vals) and all(
+        math.isfinite(float(v)) and _cl_fmt(float(v), t) == t for v, t in zip(vals, toks))
+    check_true(f"{label} reads {text}", ok)
+
+
+def _cl_sig3(x: float) -> str:
+    """Three significant digits, trailing zeros kept (the X09 quote form)."""
+    s = f"{x:#.3g}"
+    return s[:-1] if s.endswith(".") else s
+
+
+def _cl_iv(stored: dict, rec: tuple, tol: float = 1e-9) -> bool:
+    """A stored {mean, t90} block equals a recomputed (mean, lo, hi)."""
+    return (_same(float(stored["mean"]), rec[0], tol) and _same(float(stored["t90"][0]), rec[1], tol)
+            and _same(float(stored["t90"][1]), rec[2], tol))
+
+
+def _cl_label(item: str, got: str, stated: str) -> None:
+    check_true(f"6.2 {item}: the label recomputed under the frozen rule is the one the record states "
+               f"({stated})", got == stated)
+
+
+def _cl_committed_cells(run: str) -> dict:
+    """{(drift, seed, arm): pool target} of a committed corrected run's cells."""
+    out = {}
+    for p in sorted(glob.glob(_cl_path("corrected_runs", run, "cells", "cell_d*_s*.json"))):
+        with open(p, encoding="utf-8") as fh:
+            c = json.load(fh)["cell"]
+        for arm, a in c["agents"].items():
+            out[(round(float(c["drift"]), 4), int(c["seed"]), arm)] = float(a["pool"]["target"])
+    return out
+
+
+def closing_g47() -> None:
+    """G47: the L1 gate-0 oracle under both fold partitions (agent-free)."""
+    docs = {}
+    for part in ("legacy", "explicit"):
+        if _artifact_present(_cl_path("fold_rescore", f"gate0_l1_{part}.json")):
+            docs[part] = {r["delta"]: r for r in _cl_load("fold_rescore", f"gate0_l1_{part}.json")["deltas_sweep"]}
+    if len(docs) < 2 or not _artifact_present(_cl_path("expA", "l1_calib.json")):
+        return
+    calib = _cl_load("expA", "l1_calib.json")
+    leg, exp = docs["legacy"], docs["explicit"]
+    check_true("6.2 G47: legacy oracle at 0.023 is bit-equal to artifacts/expA/l1_calib.json",
+               leg[0.023]["oracle_auroc"] == calib["chosen_auroc"] and calib["chosen_delta"] == 0.023)
+    check("pinned: 6.2 G47: explicit oracle at 0.023 (0.871125)", exp[0.023]["oracle_auroc"], 0.871125, tol=1e-9)
+    for part, d, vals in (("legacy", leg, (0.821, 0.873, 0.937)), ("explicit", exp, (0.820, 0.871, 0.937))):
+        for delta, q in zip((0.022, 0.023, 0.024), vals):
+            check(f"pinned: 6.2 G47: {part} oracle at {delta} ({q:.3f})", d[delta]["oracle_auroc"], q)
+        check_true(f"6.2 G47: {part} sensor noise 0.01 at every grid", all(r["sigma"] == 0.01 for r in d.values()))
+    _cl_label("G47", "REPRODUCED" if leg[0.023]["oracle_auroc"] == calib["chosen_auroc"]
+              and abs(exp[0.023]["oracle_auroc"] - 0.871125) < 1e-9 else "none", "REPRODUCED")
+
+
+def closing_b8() -> None:
+    """B8: sweep C, a second jitter realization (rho 0 and rho 0.99)."""
+    fs = {}
+    for rho in ("0.0", "0.99"):
+        if _artifact_present(_cl_path("texture", "ar_sweep_c_realization2", f"C_rho{rho}.json")):
+            fs[rho] = _cl_load("texture", "ar_sweep_c_realization2", f"C_rho{rho}.json")
+    if len(fs) < 2 or not _artifact_present(_cl_path("texture", "ar_sweep_c_followup", "summary.json")):
+        return
+    fu = _cl_load("texture", "ar_sweep_c_followup", "summary.json")
+    fresh, M = {}, {}
+    for rho, d in fs.items():
+        for arm in ("survival", "untrained", "predictor"):
+            v = [c["fresh"] for c in sorted(d["cells"], key=lambda c: c["seed"]) if c["arm"] == arm]
+            agg = d["aggregate"][f"{arm} fresh"]
+            fresh[rho, arm] = v
+            check_true(f"6.2 B8: rho {rho} {arm} fresh: ten finite seeds, per_seed, mean and t90 recompute "
+                       "from the cells",
+                       len(v) == 10 and all(math.isfinite(x) for x in v) and agg["per_seed"] == v
+                       and _cl_iv(agg, _cl_t90(v)))
+        M[rho] = np.asarray(fresh[rho, "survival"]) - np.asarray(fresh[rho, "untrained"])
+    sig0 = next(p["sigma"] for p in fu["stored_points_exact_gaps"] if p["rho"] == 0.0)
+    sig99 = next(p["sigma"] for p in fu["points"] if p["rho"] == 0.99)
+    check_true("6.2 B8: the two points use the stored rho 0 sigma and the follow-up's matched rho 0.99 sigma",
+               fs["0.0"]["param"] == sig0 and fs["0.99"]["param"] == sig99 and fs["0.0"]["rho"] == 0.0
+               and fs["0.99"]["rho"] == 0.99)
+    con = _cl_pt90(M["0.99"], M["0.0"])
+    _cl_quote("6.2 B8: second-realization contrast M(0.99) - M(0)", con, "-0.0002 [-0.027, +0.027]")
+    _cl_quote("6.2 B8: M(0)", _cl_t90(M["0.0"]), "+0.053 [+0.005, +0.101]")
+    _cl_quote("6.2 B8: M(0.99)", _cl_t90(M["0.99"]), "+0.053 [+0.011, +0.096]")
+    for rho, arm, txt in (("0.0", "survival", "0.583 [0.553, 0.613]"), ("0.0", "untrained", "0.530 [0.492, 0.567]"),
+                          ("0.0", "predictor", "0.547 [0.517, 0.577]"), ("0.99", "survival", "0.568 [0.527, 0.608]"),
+                          ("0.99", "untrained", "0.514 [0.486, 0.543]"), ("0.99", "predictor", "0.538 [0.510, 0.566]")):
+        _cl_quote(f"6.2 B8: rho {rho} {arm} fresh probe", _cl_t90(fresh[rho, arm]), txt)
+    stored = next(iter(fu["contrast"].values()))
+    frozen = next(iter(fu["frozen_result"]["contrast"].values()))
+    _cl_quote("6.2 B8: stored follow-up contrast beside it", (stored["mean"], *stored["t90"]), "-0.017 [-0.051, +0.016]")
+    _cl_quote("6.2 B8: frozen sweep C contrast beside it", (frozen["mean"], *frozen["t90"]), "+0.009 [-0.027, +0.045]")
+    reading = ("(1) coherence raises the reading" if con[1] > 0 else
+               "(2) within the margin unit" if -0.05 <= con[1] and con[2] <= 0.05 else "(3) neither")
+    _cl_label("B8", reading, "(2) within the margin unit")
+    _cl_label("B8", "CONSISTENT" if stored["t90"][0] <= con[0] <= stored["t90"][1] else "SHIFTED", "CONSISTENT")
+
+
+def closing_b7() -> None:
+    """B7: the L1 noise knockout with fresh noise per episode (historical L1 agents)."""
+    if not _artifact_present(_cl_path("expL1", "l1_h2_noise_per_episode.json")):
+        return
+    d = _cl_load("expL1", "l1_h2_noise_per_episode.json")
+    check_true("6.2 B7: the noise is redrawn per episode", d["noise_reseed"] == "per-episode"
+               and d["provenance"]["noise_reseed"] == "per-episode")
+    if _artifact_present(_cl_path("expL1", "l1_coarse_grid_historical.json")):
+        integ = _cl_load("expL1", "l1_coarse_grid_historical.json")["integrity"]
+        check_true("6.2 B7: integrity, the same agents' pools bit-match their dumps (B1 historical)",
+                   integ["checked"] is True and integ["pools_bit_match"] is True)
+    ps = {}
+    for arm in ("survival", "untrained", "predictor"):
+        cells = [c["target"] for c in sorted(d["cells"], key=lambda c: c["seed"]) if c["arm"] == arm]
+        m, lo, hi = _cl_t90(cells)
+        check_true(f"6.2 B7: {arm}: ten finite seeds; per_seed, mean, tci90 and n_ge_065 recompute from the cells",
+                   len(cells) == 10 and all(math.isfinite(v) for v in cells)
+                   and d[f"{arm}_per_seed"] == [round(v, 4) for v in cells]
+                   and abs(d[f"{arm}_mean"] - m) <= 5e-5 and abs(d[f"{arm}_tci90"][0] - lo) <= 5e-5
+                   and abs(d[f"{arm}_tci90"][1] - hi) <= 5e-5 and d[f"{arm}_n_ge_065"] == sum(v >= BAR for v in cells))
+        ps[arm] = d[f"{arm}_per_seed"]
+    for arm, txt in (("survival", "0.508 [0.485, 0.531]"), ("untrained", "0.513 [0.488, 0.538]"),
+                     ("predictor", "0.513 [0.488, 0.537]")):
+        _cl_quote(f"6.2 B7: {arm} per episode", _cl_t90(ps[arm]), txt)
+    sm, um = float(np.mean(ps["survival"])), float(np.mean(ps["untrained"]))
+    _cl_quote("6.2 B7: margin, survival minus untrained means", sm - um, "-0.005")
+    check_true("6.2 B7: stored gn_rule_margin equals the recomputed means' difference",
+               d["gn_rule_margin"] == round(d["survival_mean"] - d["untrained_mean"], 4)
+               and abs(d["gn_rule_margin"] - (sm - um)) <= 1e-4)
+    if _artifact_present(_cl_path("expL1", "h2_ablations.json")):
+        a2 = _cl_load("expL1", "h2_ablations.json")["a2_noise_knockout"]
+        for arm, txt, st in (("survival", "-0.017 [-0.031, -0.004]", "0.525"),
+                             ("untrained", "+0.004 [-0.020, +0.029]", "0.509"),
+                             ("predictor", "-0.004 [-0.012, +0.005]", "0.516")):
+            _cl_quote(f"6.2 B7: {arm} per episode minus the stored per-pool reading",
+                      _cl_pt90(ps[arm], a2[f"{arm}_per_seed"]), txt)
+            _cl_quote(f"6.2 B7: stored per-pool {arm} it sits beside", float(np.mean(a2[f"{arm}_per_seed"])), st)
+    clears_bar, clears_floor = sm >= BAR, sm > um + 0.05
+    call = ("H2_SUPPORTED" if not clears_bar and not clears_floor else "PARTIAL" if not clears_bar
+            else "H2_NEGATIVE" if um < 0.60 else "UNINFORMATIVE")
+    check_true("6.2 B7: the stored call is the recomputed one", call == d["gn_verdict"] and d["gn_rule_pass"] is False)
+    _cl_label("B7", "SAME CALL" if call == "H2_SUPPORTED" else "CALL CHANGES", "SAME CALL")
+
+
+def closing_b3() -> None:
+    """B3: the registered authentic-raised readout on the corrected C1 drift-0 agents."""
+    if not _artifact_present(_cl_path("l0_audit", "reverse_direction_corrected_l3_h8_wm.json")):
+        return
+    from scripts.reverse_direction import adjudicate as _radj
+    d = _cl_load("l0_audit", "reverse_direction_corrected_l3_h8_wm.json")
+    integ, cells = d["integrity"], sorted(d["cells"], key=lambda c: (c["arm"], c["seed"]))
+    resc = {(c["arm"], c["seed"]): c["drift0_target"] for c in cells}
+    worst = max(abs(p["rescored"] - p["recorded"]) for p in integ["per_cell"])
+    check_true("6.2 B3: integrity, 30 cells rescored at drift 0 within 0.01 of the recorded targets",
+               integ["pass"] is True and integ["n_checked"] == 30 == len(integ["per_cell"])
+               and all(resc[(p["arm"], p["seed"])] == p["rescored"] for p in integ["per_cell"])
+               and worst <= 0.01 and _same(worst, integ["worst_abs_dev"]))
+    _cl_quote("6.2 B3: integrity worst deviation", worst, "0.0008")
+    check_true("6.2 B3: agents raised at drift 0 and read at 0.45", d["agent_drift"] == 0.0 and d["readout_drift"] == 0.45)
+    per = {}
+    for kind, key in (("standard", "target"), ("balanced", "balanced_target")):
+        for arm in ("survival", "predictor", "untrained"):
+            v = [c[key] for c in cells if c["arm"] == arm]
+            blk = d["summary"][kind][arm]
+            per[kind, arm] = v
+            check_true(f"6.2 B3: {kind} {arm}: per_seed, mean and t90 recompute from the cells",
+                       len(v) == 10 and blk["per_seed"] == v and _cl_iv(blk, _cl_t90(v)))
+    for arm, txt in (("survival", "0.754 [0.721, 0.787]"), ("untrained", "0.523 [0.491, 0.555]"),
+                     ("predictor", "0.572 [0.545, 0.599]")):
+        _cl_quote(f"6.2 B3: {arm}", _cl_t90(per["standard", arm]), txt)
+    m, u = float(np.mean(per["standard", "survival"])), float(np.mean(per["standard", "untrained"]))
+    _cl_quote("6.2 B3: margin m - u", m - u, "+0.231")
+    _cl_quote("6.2 B3: seed-paired survival minus untrained",
+              _cl_pt90(per["standard", "survival"], per["standard", "untrained"]), "+0.231 [+0.183, +0.278]")
+    _cl_quote("6.2 B3: balanced survival from the same run", _cl_t90(per["balanced", "survival"]), "0.788 [0.761, 0.814]")
+    _cl_quote("6.2 B3: balanced predictor and untrained from the same run",
+              (np.mean(per["balanced", "predictor"]), np.mean(per["balanced", "untrained"])), "0.617 0.540")
+    if _artifact_present(_cl_path("post_review", "C1-rerun.json")):
+        r33 = _cl_load("post_review", "C1-rerun.json")["summary"]["r33"]["d0.00/registered"]["arms"]
+        check("pinned: 6.2 B3: stored balanced survival kept beside (0.787)", r33["survival"]["mean"], 0.787)
+        _cl_quote("6.2 B3: stored balanced survival interval kept beside", tuple(r33["survival"]["t90"]), "[0.761, 0.814]")
+        check("pinned: 6.2 B3: stored balanced predictor kept beside (0.616)", r33["predictor"]["mean"], 0.616)
+        check("pinned: 6.2 B3: stored balanced untrained kept beside (0.540)", r33["untrained"]["mean"], 0.540)
+    check("pinned: 6.2 B3: the artifact carries the registered bar", d["bar"], BAR)
+    check("pinned: 6.2 B3: the artifact carries the registered margin", d["margin"], 0.05)
+    v = _radj(survival=m, untrained=u, bar=BAR, margin=0.05)["verdict"]
+    check_true("6.2 B3: the stored verdict is the recomputed one", v == d["summary"]["verdict"])
+    _cl_label("B3", {"CARRIED": "R1 CARRIED", "NOT CARRIED": "R2 NOT CARRIED", "AMBIGUOUS": "R3 AMBIGUOUS"}[v],
+              "R1 CARRIED")
+
+
+def closing_g02() -> None:
+    """G02: the drift-0.45 world-sample readout on the saved C1 agents (post hoc)."""
+    if not _artifact_present(_cl_path("l0_audit", "d045_world_samples_corrected_l3_h8_wm.json")):
+        return
+    from itasorl.l0_audit import world_sample_summary as _wss
+    d = _cl_load("l0_audit", "d045_world_samples_corrected_l3_h8_wm.json")
+    s, cells, integ = d["summary"]["survival"], sorted(d["cells"], key=lambda c: c["seed"]), d["integrity"]
+    reg = {c["seed"]: c["rows"][0]["target"] for c in cells}
+    check_true("6.2 G02: integrity, the registered draw reproduces the recorded targets within 0.01 on 10 seeds",
+               integ["pass"] is True and integ["n_checked"] == 10 == len(integ["per_seed"])
+               and d["bases"][0] == d["registered_bases"] == [800000, 850000]
+               and all(reg[p["seed"]] == p["rescored"] and abs(p["rescored"] - p["recorded"]) <= 0.01
+                       for p in integ["per_seed"])
+               and _same(max(abs(p["rescored"] - p["recorded"]) for p in integ["per_seed"]), integ["worst_abs_dev"]))
+    wm = [float(np.mean([c["rows"][k]["target"] for c in cells])) for k in range(len(d["bases"]))]
+    re_ = _wss(wm[1:], wm[0], bar=BAR)
+    check_true("6.2 G02: the stored summary recomputes from the cells (per draw, rank, sd, t90, count, verdict)",
+               len(cells) == 10 and all(_same(a, b) for a, b in zip(wm[1:], s["per_draw"]))
+               and _same(wm[0], s["registered"]) and re_["registered_rank"] == s["registered_rank"]
+               and _same(re_["between_draw_sd"], s["between_draw_sd"]) and re_["verdict"] == s["verdict"]
+               and _same(re_["t90_over_draws"][0], s["t90_over_draws"][0])
+               and _same(re_["t90_over_draws"][1], s["t90_over_draws"][1])
+               and re_["n_at_or_above_bar"] == s["n_at_or_above_bar"])
+    _cl_quote("6.2 G02: eight independent draws", (min(wm[1:]), max(wm[1:])), "0.685 to 0.829")
+    check_int("6.2 G02: independent draws at or above 0.65", sum(x >= BAR for x in wm[1:]), 8)
+    sd = float(np.std(wm[1:], ddof=1))
+    _cl_quote("6.2 G02: C1's own between-draw sd", sd, "0.052")
+    _cl_quote("6.2 G02: registered draw", wm[0], "0.733")
+    check_int("6.2 G02: registered draw rank of 9", re_["registered_rank"], 6)
+    _cl_quote("6.2 G02: mean over the eight draws", _cl_t90(wm[1:]), "0.751 [0.716, 0.786]")
+    _cl_quote("6.2 G02: per-draw values", wm[1:], "0.829, 0.698, 0.813, 0.771, 0.685, 0.759, 0.717, 0.737")
+    rec = [p["recorded"] for p in sorted(integ["per_seed"], key=lambda p: p["seed"])]
+    pm, plo, phi = _cl_t90(rec)
+    _cl_quote("6.2 G02: stored corrected primary", (pm, plo, phi), "0.733 [0.669, 0.797]")
+    se = float(np.std(rec, ddof=1)) / math.sqrt(len(rec))
+    from scipy.stats import t as _student_t
+    q = float(_student_t.ppf(0.95, len(rec) - 1))
+    half = q * math.sqrt(se ** 2 + sd ** 2)
+    _cl_quote("6.2 G02: propagated interval with C1's own sd", (pm, pm - half, pm + half), "0.733 [0.618, 0.848]")
+    if _artifact_present(_cl_path("l0_audit", "d045_world_samples_l3_h8_heldout.json")):
+        hsd = _cl_load("l0_audit", "d045_world_samples_l3_h8_heldout.json")["summary"]["survival"]["between_draw_sd"]
+        _cl_quote("6.2 G02: historical sd beside", hsd, "0.042")
+        hh = q * math.sqrt(se ** 2 + hsd ** 2)
+        _cl_quote("6.2 G02: the same recipe with the historical sd", (pm - hh, pm + hh), "[0.633, 0.833]")
+    lab = ("R2 DRAW-DEPENDENT" if min(wm[1:]) < BAR else
+           "R1 SECURE" if re_["registered_rank"] >= 5 else "R3 INDETERMINATE")
+    _cl_label("G02", lab, "R1 SECURE")
+
+
+def closing_b1() -> None:
+    """B1: the L1 state at a supra-band grid (corrected run decides; historical companion beside)."""
+    docs = {}
+    for run in ("corrected", "historical"):
+        if _artifact_present(_cl_path("expL1", f"l1_coarse_grid_{run}.json")):
+            docs[run] = _cl_load("expL1", f"l1_coarse_grid_{run}.json")
+    for run, d in docs.items():
+        check_true(f"6.2 B1: {run} integrity, every regenerated pool bit-equal at 0.023",
+                   d["integrity"]["checked"] is True and d["integrity"]["pools_bit_match"] is True)
+        for arm in ("survival", "untrained", "predictor"):
+            for delta in (0.023, 0.06):
+                k = f"{arm}_d{delta:.4f}"
+                v = [c["target"] for c in sorted(d["cells"], key=lambda c: c["seed"])
+                     if c["arm"] == arm and c["delta"] == delta]
+                m, lo, hi = _cl_t90(v)
+                check_true(f"6.2 B1: {run} {arm} at {delta}: per_seed, mean, tci90 and n_ge_065 recompute from "
+                           "the cells",
+                           len(v) == 10 and all(math.isfinite(x) for x in v)
+                           and d[k + "_per_seed"] == [round(x, 4) for x in v]
+                           and abs(d[k + "_mean"] - m) <= 5e-5 and abs(d[k + "_tci90"][0] - lo) <= 5e-5
+                           and abs(d[k + "_tci90"][1] - hi) <= 5e-5 and d[k + "_n_ge_065"] == sum(x >= BAR for x in v))
+    if "corrected" in docs:
+        c = docs["corrected"]
+        ps = {(a, dl): c[f"{a}_d{dl:.4f}_per_seed"] for a in ("survival", "untrained", "predictor") for dl in (0.023, 0.06)}
+        for arm, dl, txt in (("untrained", 0.06, "0.672 [0.640, 0.704]"), ("survival", 0.06, "0.643 [0.619, 0.667]"),
+                             ("predictor", 0.06, "0.611 [0.595, 0.628]"), ("survival", 0.023, "0.551 [0.531, 0.570]"),
+                             ("untrained", 0.023, "0.513 [0.494, 0.533]"), ("predictor", 0.023, "0.525 [0.505, 0.545]")):
+            _cl_quote(f"6.2 B1: corrected {arm} at {dl}", _cl_t90(ps[arm, dl]), txt)
+        check_int("6.2 B1: corrected untrained seeds at or above 0.65 at 0.06", sum(x >= BAR for x in ps["untrained", 0.06]), 6)
+        check_int("6.2 B1: corrected survival seeds at or above 0.65 at 0.06", sum(x >= BAR for x in ps["survival", 0.06]), 5)
+        _cl_quote("6.2 B1: corrected survival minus untrained at 0.06",
+                  _cl_pt90(ps["survival", 0.06], ps["untrained", 0.06]), "-0.029 [-0.062, +0.005]")
+        _cl_quote("6.2 B1: corrected survival minus predictor at 0.06",
+                  _cl_pt90(ps["survival", 0.06], ps["predictor", 0.06]), "+0.032 [-0.005, +0.069]")
+        _cl_quote("6.2 B1: corrected survival minus untrained at 0.023",
+                  _cl_pt90(ps["survival", 0.023], ps["untrained", 0.023]), "+0.037 [+0.009, +0.065]")
+        u, s = _cl_t90(ps["untrained", 0.06]), _cl_t90(ps["survival", 0.06])
+        lab = ("(a) SENSITIVE" if u[0] > 0.5 and u[1] > 0.5 else
+               "(b) BOTH AT CHANCE" if s[1] <= 0.5 <= s[2] and u[1] <= 0.5 <= u[2] else "(c) OTHER")
+        _cl_label("B1", lab, "(a) SENSITIVE")
+    if "historical" in docs:
+        h = docs["historical"]
+        _cl_quote("6.2 B1: historical survival at 0.06 (from per_seed, not the rounded key)",
+                  float(np.mean(h["survival_d0.0600_per_seed"])), "0.638")
+        _cl_quote("6.2 B1: historical survival at 0.023", _cl_t90(h["survival_d0.0230_per_seed"]), "0.552 [0.530, 0.574]")
+        _cl_quote("6.2 B1: historical survival minus untrained at 0.06",
+                  _cl_pt90(h["survival_d0.0600_per_seed"], h["untrained_d0.0600_per_seed"]), "-0.034 [-0.071, +0.002]")
+    if len(docs) == 2:
+        check_true("6.2 B1: one floor read twice, untrained and predictor per-seed values identical in both runs",
+                   all(docs["corrected"][f"{a}_d{dl}_per_seed"] == docs["historical"][f"{a}_d{dl}_per_seed"]
+                       for a in ("untrained", "predictor") for dl in ("0.0000", "0.0230", "0.0600")))
+
+
+def closing_b4() -> None:
+    """B4: the C1 pooled population probe, regrouped by world seed."""
+    if not _artifact_present(_cl_path("population_readout", "corrected_l3_h8_wm_world_grouped.json")):
+        return
+    d = _cl_load("population_readout", "corrected_l3_h8_wm_world_grouped.json")
+    P = d["panels"]
+    check_true("6.2 B4: the readout groups by world seed", d["group_by_world_seed"] is True)
+    for arm in ("survival", "untrained"):
+        check_true(f"6.2 B4: {arm} per-individual mean and t90 recompute from per_individual",
+                   len(P[arm]["per_individual"]) == 10 and _cl_iv(P[arm], _cl_t90(P[arm]["per_individual"])))
+    _cl_quote("6.2 B4: per-individual survival mean the claim is read against",
+              float(np.mean(P["survival"]["per_individual"])), "0.649")
+    rows = (("survival", 0.609, 0.617, "+0.008", "+0.0079", 110, "[0.592, 0.642]"),
+            ("untrained", 0.536, 0.537, "+0.001", "+0.0013", 108, "[0.516, 0.560]"))
+    for arm, rg, wg, d3, d4, ng, ci in rows:
+        p = P[arm]
+        check(f"pinned: 6.2 B4: {arm} row-grouped pooled probe ({rg:.3f})", p["pooled_probe"], rg)
+        check(f"pinned: 6.2 B4: {arm} world-grouped pooled probe ({wg:.3f})", p["pooled_probe_world_grouped"], wg)
+        diff = p["pooled_probe_world_grouped"] - p["pooled_probe"]
+        _cl_quote(f"6.2 B4: {arm} world-grouped minus row-grouped", diff, d3)
+        _cl_quote(f"6.2 B4: {arm} world-grouped minus row-grouped, 4 dp", diff, d4)
+        check_int(f"6.2 B4: {arm} world groups", p["n_world_groups"], ng)
+        _cl_quote(f"6.2 B4: {arm} 95 percent cluster bootstrap beside the world-grouped value",
+                  tuple(p["pooled_probe_world_grouped_ci"]), ci)
+    if _artifact_present(_cl_path("population_readout", "corrected_l3_h8_wm.json")):
+        st = _cl_load("population_readout", "corrected_l3_h8_wm.json")["panels"]
+        check("pinned: 6.2 B4: stored survival pooled value beside (0.609)", st["survival"]["pooled_probe"], 0.609)
+        check("pinned: 6.2 B4: stored untrained pooled value beside (0.536)", st["untrained"]["pooled_probe"], 0.536)
+    same = all(abs(P[a]["pooled_probe_world_grouped"] - P[a]["pooled_probe"]) < 1e-12 for a in ("survival", "untrained"))
+    _cl_label("B4", "EQUAL" if same else "DIFFERS", "DIFFERS")
+    ws, wu = P["survival"]["pooled_probe_world_grouped"], P["untrained"]["pooled_probe_world_grouped"]
+    check_true("6.2 B4: claim row 49 holds on the world-grouped values (above untrained, below 0.649)",
+               wu < ws < 0.649)
+
+
+def closing_b5() -> None:
+    """B5: surprise AUROC with twin groups for C1, T-touch and S-immortal."""
+    quotes = {"C1": ("0.856 [0.791, 0.922]", "0.856", "-0.0002 [-0.008, +0.007]", "0.846"),
+              "T-touch": ("0.917 [0.897, 0.937]", None, "+0.005 [-0.001, +0.010]", "0.912"),
+              "S-immortal": ("0.859 [0.814, 0.904]", None, "+0.011 [+0.007, +0.015]", "0.848")}
+    floors = {}
+    for run, (gq, uq, eq, sq) in quotes.items():
+        if not _artifact_present(_cl_path("goal_stakes_grouped_surprise", f"{run}.json")):
+            continue
+        d = _cl_load("goal_stakes_grouped_surprise", f"{run}.json")
+        ps = sorted(d["per_seed"], key=lambda p: p["seed"])
+        g = [p["surprise"]["auroc"] for p in ps]
+        u = [p["surprise"]["auroc_ungrouped"] for p in ps]
+        st = d["summary"]["surprise_auroc"]
+        rec = _cl_t90(g)
+        check_true(f"6.2 B5: {run} grouped surprise mean and interval recompute from per_seed",
+                   len(g) == 10 == st["n"] and all(math.isfinite(x) for x in g)
+                   and _same(st["mean"], rec[0]) and _same(st["ci90"][0], rec[1]) and _same(st["ci90"][1], rec[2]))
+        _cl_quote(f"6.2 B5: {run} grouped survival surprise", rec, gq)
+        if uq:
+            _cl_quote(f"6.2 B5: {run} ungrouped survival surprise (local)", float(np.mean(u)), uq)
+        _cl_quote(f"6.2 B5: {run} grouping effect, grouped minus ungrouped", _cl_pt90(g, u), eq)
+        ug = [p["untrained_arm"]["surprise"]["auroc"] for p in ps]
+        uu = [p["untrained_arm"]["surprise"]["auroc_ungrouped"] for p in ps]
+        floors[run] = (ug, uu)
+        if _artifact_present(_cl_path("goal_stakes", run, "mechanism.json")):
+            sd = sorted(_cl_load("goal_stakes", run, "mechanism.json")["per_seed"], key=lambda p: p["seed"])
+            sv = [p["surprise"]["auroc"] for p in sd]
+            _cl_quote(f"6.2 B5: {run} stored ungrouped value (the lower bound)", float(np.nanmean(sv)), sq)
+            if run == "C1":
+                _cl_quote("6.2 B5: C1 local ungrouped minus stored ungrouped mean",
+                          float(np.mean(u)) - float(np.nanmean(sv)), "+0.010")
+
+            def _one_sided(loc, sto):
+                return any(math.isnan(a) != math.isnan(b) for a, b in zip(loc, sto))
+            bad = (len(sd) != 10
+                   or _one_sided(u, sv)
+                   or _one_sided(uu, [p["untrained_arm"]["surprise"]["auroc"] for p in sd])
+                   or _one_sided([p["intervention"]["score_real"] for p in ps], [p["intervention"]["score_real"] for p in sd])
+                   or _one_sided([p["untrained_arm"]["intervention"]["score_real"] for p in ps],
+                                 [p["untrained_arm"]["intervention"]["score_real"] for p in sd]))
+            check_true(f"6.2 B5: {run} NaN rule, no seed NaN on one side and finite on the other", not bad)
+        _cl_label(f"B5 {run}", "GROUPED ABOVE 0.65" if rec[0] >= BAR else "GROUPED BELOW 0.65", "GROUPED ABOVE 0.65")
+    if "C1" in floors:
+        ug, uu = floors["C1"]
+        check_int("6.2 B5: C1 untrained surprise seed basis (finite seeds)", sum(math.isfinite(x) for x in ug), 6)
+        _cl_quote("6.2 B5: C1 untrained grouped surprise", _cl_t90(ug), "0.718 [0.674, 0.762]")
+        _cl_quote("6.2 B5: C1 untrained ungrouped surprise", float(np.nanmean(uu)), "0.682")
+        _cl_quote("6.2 B5: C1 untrained grouping effect", _cl_pt90(ug, uu), "+0.036 [+0.006, +0.066]")
+        d = _cl_load("goal_stakes_grouped_surprise", "C1.json")
+        check_int("6.2 B5: C1 untrained intervention seed basis (finite seeds)",
+                  sum(math.isfinite(p["untrained_arm"]["intervention"]["score_real"]) for p in d["per_seed"]), 7)
+    for run in ("T-touch", "S-immortal"):
+        if run in floors:
+            ug, uu = floors[run]
+            check_int(f"6.2 B5: {run} untrained seed basis", sum(math.isfinite(x) for x in ug), 10)
+            _cl_quote(f"6.2 B5: {run} untrained grouped surprise", _cl_t90(ug), "0.675 [0.650, 0.699]")
+            _cl_quote(f"6.2 B5: {run} untrained ungrouped surprise", float(np.mean(uu)), "0.637")
+            _cl_quote(f"6.2 B5: {run} untrained grouping effect", _cl_pt90(ug, uu), "+0.038 [+0.028, +0.047]")
+    if "T-touch" in floors and "S-immortal" in floors:
+        check_true("6.2 B5: one untrained floor, identical in T-touch and S-immortal",
+                   floors["T-touch"] == floors["S-immortal"])
+
+
+def closing_c1() -> None:
+    """C1: Experiment B, the L2 prediction-only arm with correct action timing (three seeds)."""
+    tags = {"legacy": "expB_legacy_local_2026-10-18", "aligned": "expB_aligned_2026-10-18"}
+    names = ("full", "surprise", "kstep", "nonlinear", "gap")
+    docs = {}
+    for t, dirn in tags.items():
+        if not _artifact_present(_cl_path(dirn)):
+            continue
+        for n in names:
+            if _artifact_present(_cl_path(dirn, f"expB_{n}.json")):
+                docs[t, n] = _cl_load(dirn, f"expB_{n}.json")
+    if len(docs) < 10 or not _artifact_present(_cl_path("expB", "summary.json")):
+        return
+    want = {"legacy": "legacy", "aligned": "obs_then_action"}
+    check_true("6.2 C1: every output records its alignment and the explicit partition",
+               all(docs[t, n]["align"] == want[t] and docs[t, n]["config"]["fold_scheme"] == "explicit"
+                   for t in tags for n in names))
+    V = {}
+    for t in tags:
+        ok = True
+        for r in docs[t, "full"]["drift_sweep"] + docs[t, "nonlinear"]["drift_sweep"]:
+            v = r["per_seed"]["target"]
+            ok &= _same(r["target_mean"], float(np.mean(v))) and _same(r["target_std"], float(np.std(v)))
+        for r in docs[t, "gap"]["delta_rollout"]:
+            v = r["per_seed"]["target"]
+            ok &= _same(r["target_mean"], float(np.mean(v))) and _same(r["target_std"], float(np.std(v)))
+        for r in docs[t, "surprise"]["drift_sweep"]:
+            v = r["per_seed"]["surprise"]
+            ok &= _same(r["surprise_mean"], float(np.mean(v))) and _same(r["surprise_std"], float(np.std(v)))
+        for r in docs[t, "kstep"]["rows"]:
+            ok &= _same(r["target_mean"], float(np.mean(r["per_seed"]["target"])))
+        check_true(f"6.2 C1: {t} means and population SDs recompute from the three seeds", bool(ok))
+        V[t, "full"] = {r["drift"]: r["per_seed"]["target"] for r in docs[t, "full"]["drift_sweep"]}
+        V[t, "surprise"] = {r["drift"]: r["per_seed"]["surprise"] for r in docs[t, "surprise"]["drift_sweep"]}
+        V[t, "nonlinear"] = {r["drift"]: r["per_seed"]["target"] for r in docs[t, "nonlinear"]["drift_sweep"]}
+        V[t, "gap"] = {r["drift"]: r["per_seed"]["target"] for r in docs[t, "gap"]["delta_rollout"]}
+        V[t, "kstep"] = {(r["open_horizon"], r["drift"]): r["per_seed"]["target"] for r in docs[t, "kstep"]["rows"]}
+    ms = lambda v: (float(np.mean(v)), float(np.std(v)))  # noqa: E731
+    for t, txt in (("legacy", "0.517 ± 0.056"), ("aligned", "0.544 ± 0.037")):
+        _cl_quote(f"6.2 C1: row 4 {t} at 0.45", ms(V[t, "full"][0.45]), txt)
+    for t, txt in (("legacy", "0.596 ± 0.004"), ("aligned", "0.599 ± 0.007")):
+        _cl_quote(f"6.2 C1: row 5 {t} surprise at 0.45", ms(V[t, "surprise"][0.45]), txt)
+    for t, txt, rng in (("legacy", "0.506 / 0.465 / 0.476", "0.47 to 0.51"),
+                        ("aligned", "0.496 / 0.460 / 0.449", "0.45 to 0.50")):
+        hv = [float(np.mean(V[t, "kstep"][(h, 0.45)])) for h in (0, 8, 16)]
+        _cl_quote(f"6.2 C1: row 6 {t} horizons 0/8/16 at 0.45", hv, txt)
+        _cl_quote(f"6.2 C1: row 6 {t} range", (min(hv), max(hv)), rng)
+    for t, txt in (("legacy", "0.486 ± 0.034"), ("aligned", "0.459 ± 0.015")):
+        _cl_quote(f"6.2 C1: row 7 {t} nonlinear at 0.45", ms(V[t, "nonlinear"][0.45]), txt)
+    for t, txt in (("legacy", "0.489 ± 0.015"), ("aligned", "0.488 ± 0.058")):
+        _cl_quote(f"6.2 C1: gap readout {t} at 0.45", ms(V[t, "gap"][0.45]), txt)
+    for t, txt in (("legacy", "0.475 ± 0.023"), ("aligned", "0.498 ± 0.046")):
+        _cl_quote(f"6.2 C1: full {t} at drift 0", ms(V[t, "full"][0.0]), txt)
+    for n, txt in (("full", "+0.027 [-0.074, +0.129]"), ("surprise", "+0.003 [-0.003, +0.009]"),
+                   ("nonlinear", "-0.027 [-0.069, +0.015]"), ("gap", "-0.001")):
+        c = _cl_pt90(V["aligned", n][0.45], V["legacy", n][0.45])
+        _cl_quote(f"6.2 C1: aligned minus legacy, {n}, three seeds", c if "[" in txt else c[0], txt)
+    for h, txt in ((0, "-0.010"), (8, "-0.005"), (16, "-0.028")):
+        _cl_quote(f"6.2 C1: aligned minus legacy, kstep h{h}",
+                  _cl_pt90(V["aligned", "kstep"][(h, 0.45)], V["legacy", "kstep"][(h, 0.45)])[0], txt)
+    eb = {r["drift"]: r for r in _cl_load("expB", "summary.json")["expB_full"]["drift_sweep"]}[0.45]
+    from scipy.stats import t as _student_t
+    half = float(_student_t.ppf(0.95, 2)) * eb["target_std"] * math.sqrt(3 / 2) / math.sqrt(3)
+    lo, hi = eb["target_mean"] - half, eb["target_mean"] + half
+    _cl_quote("6.2 C1: recorded row-4 interval from artifacts/expB/summary.json", (lo, hi), "[0.429, 0.591]")
+    leg, ali = float(np.mean(V["legacy", "full"][0.45])), float(np.mean(V["aligned", "full"][0.45]))
+    reproduces = lo <= leg <= hi
+    lab = ("RESTORE" if reproduces and lo <= ali <= hi else
+           "NARROW" if reproduces and ali >= BAR else "DISCLOSURE STANDS")
+    _cl_label("C1", lab, "RESTORE")
+
+
+def closing_g57() -> None:
+    """G57: the C1 state dumps regenerated on this machine."""
+    if not _artifact_present(_cl_path("repro_check_c1_regen", "c1_regen_local_stack.json")):
+        return
+    d = _cl_load("repro_check_c1_regen", "c1_regen_local_stack.json")
+    cells = d["cells"]
+    diffs = [abs(c["target"] - c["recorded_target"]) for c in cells]
+    check_true("6.2 G57: the stored counts and maximum recompute from the cells",
+               d["n"] == len(cells) == 60 and d["reproduced"] == sum(c["target"] == c["recorded_target"] for c in cells)
+               and d["within_tolerance"] == sum(x <= d["tolerance"] for x in diffs)
+               and _same(d["max_abs_diff"], max(diffs)) and d["all_within_tolerance"] is (max(diffs) <= 0.002))
+    if _artifact_present(_cl_path("corrected_runs", "corrected_l3_h8_wm", "cells")):
+        rec = _cl_committed_cells("corrected_l3_h8_wm")
+        check_true("6.2 G57: every recorded target is the committed cell's pool target",
+                   all(rec.get((round(float(c["drift"]), 4), c["seed"], c["arm"])) == c["recorded_target"] for c in cells))
+    check_int("6.2 G57: cells equal to the bit", sum(c["target"] == c["recorded_target"] for c in cells), 22)
+    check_int("6.2 G57: cells within 0.002", sum(x <= 0.002 for x in diffs), 60)
+    _cl_quote("6.2 G57: maximum absolute target delta", max(diffs), "0.00165")
+    check_true("6.2 G57: the downstream label string",
+               f"cross-stack regenerated, max abs target delta = {max(diffs):.5f}"
+               == "cross-stack regenerated, max abs target delta = 0.00165")
+    _cl_label("G57", "WITHIN TOLERANCE" if max(diffs) <= 0.002 else "TOLERANCE EXCEEDED", "WITHIN TOLERANCE")
+
+
+_CL_DIRS = ("l3_h8_heldout", "l1_heldout", "corrected_l1_heldout", "balanced_confirmation_wm",
+            "balanced_confirmation_touch", "corrected_l3_h8_wm_regenerated")
+_CL_C = ("0.001", "0.01", "0.1", "1", "10")
+_CL_STEPS = ("1", "2", "4", "8", "12", "16", "24")
+
+# The G01 and G04 tables of the Stage 6 readings sheet, verbatim (3 dp from full precision).
+_G01_TABLE = """\
+| l3_h8_heldout | 0.00 | survival | 0.473 | 0.479 | 0.523 | 0.539 | 0.539 | 0.473 to 0.539 | -0.067 (C 0.001) | no | 0.515 [0.485, 0.546] |
+| l3_h8_heldout | 0.00 | predictor | 0.509 | 0.519 | 0.514 | 0.507 | 0.505 | 0.505 to 0.519 | +0.012 (C 0.01) | yes | 0.504 [0.478, 0.529] |
+| l3_h8_heldout | 0.00 | untrained | 0.491 | 0.492 | 0.488 | 0.480 | 0.488 | 0.480 to 0.492 | +0.012 (C 0.01) | yes | 0.484 [0.470, 0.498] |
+| l3_h8_heldout | 0.45 | survival | 0.698 | 0.738 | 0.779 | 0.774 | 0.757 | 0.698 to 0.779 | -0.076 (C 0.001) | no | 0.764 [0.711, 0.817] |
+| l3_h8_heldout | 0.45 | predictor | 0.601 | 0.618 | 0.609 | 0.588 | 0.575 | 0.575 to 0.618 | +0.030 (C 0.01) | no | 0.604 [0.586, 0.623] |
+| l3_h8_heldout | 0.45 | untrained | 0.548 | 0.537 | 0.521 | 0.513 | 0.512 | 0.512 to 0.548 | +0.035 (C 0.001) | no | 0.525 [0.508, 0.543] |
+| l1_heldout | 0.00 | survival | 0.495 | 0.501 | 0.533 | 0.546 | 0.549 | 0.495 to 0.549 | -0.052 (C 0.001) | no | 0.527 [0.502, 0.553] |
+| l1_heldout | 0.00 | predictor | 0.512 | 0.520 | 0.529 | 0.526 | 0.527 | 0.512 to 0.529 | -0.014 (C 0.001) | yes | 0.517 [0.501, 0.534] |
+| l1_heldout | 0.00 | untrained | 0.499 | 0.495 | 0.483 | 0.483 | 0.485 | 0.483 to 0.499 | +0.016 (C 0.001) | yes | 0.481 [0.449, 0.513] |
+| l1_heldout | 0.0230 | survival | 0.498 | 0.499 | 0.535 | 0.552 | 0.555 | 0.498 to 0.555 | -0.054 (C 0.001) | no | 0.533 [0.508, 0.557] |
+| l1_heldout | 0.0230 | predictor | 0.511 | 0.519 | 0.531 | 0.525 | 0.524 | 0.511 to 0.531 | -0.014 (C 0.001) | yes | 0.513 [0.489, 0.537] |
+| l1_heldout | 0.0230 | untrained | 0.520 | 0.520 | 0.513 | 0.513 | 0.516 | 0.513 to 0.520 | +0.007 (C 0.001) | yes | 0.508 [0.489, 0.526] |
+| corrected_l1_heldout | 0.00 | survival | 0.499 | 0.504 | 0.531 | 0.548 | 0.553 | 0.499 to 0.553 | -0.050 (C 0.001) | no | 0.530 [0.502, 0.557] |
+| corrected_l1_heldout | 0.00 | predictor | 0.512 | 0.520 | 0.529 | 0.526 | 0.527 | 0.512 to 0.529 | -0.014 (C 0.001) | yes | 0.517 [0.501, 0.534] |
+| corrected_l1_heldout | 0.00 | untrained | 0.499 | 0.495 | 0.483 | 0.483 | 0.485 | 0.483 to 0.499 | +0.016 (C 0.001) | yes | 0.481 [0.449, 0.513] |
+| corrected_l1_heldout | 0.0230 | survival | 0.514 | 0.518 | 0.544 | 0.551 | 0.538 | 0.514 to 0.551 | -0.037 (C 0.001) | no | 0.530 [0.508, 0.552] |
+| corrected_l1_heldout | 0.0230 | predictor | 0.511 | 0.519 | 0.531 | 0.525 | 0.524 | 0.511 to 0.531 | -0.014 (C 0.001) | yes | 0.513 [0.489, 0.537] |
+| corrected_l1_heldout | 0.0230 | untrained | 0.520 | 0.520 | 0.513 | 0.513 | 0.516 | 0.513 to 0.520 | +0.007 (C 0.001) | yes | 0.508 [0.489, 0.526] |
+| balanced_confirmation_wm | 0.00 | survival | 0.515 | 0.519 | 0.552 | 0.561 | 0.553 | 0.515 to 0.561 | -0.045 (C 0.001) | no | 0.535 [0.489, 0.581] |
+| balanced_confirmation_wm | 0.00 | predictor | 0.510 | 0.518 | 0.509 | 0.498 | 0.498 | 0.498 to 0.518 | +0.020 (C 0.01) | yes | 0.507 [0.485, 0.528] |
+| balanced_confirmation_wm | 0.00 | untrained | 0.510 | 0.512 | 0.506 | 0.503 | 0.503 | 0.503 to 0.512 | +0.009 (C 0.01) | yes | 0.497 [0.484, 0.510] |
+| balanced_confirmation_wm | 0.45 | survival | 0.689 | 0.726 | 0.760 | 0.758 | 0.738 | 0.689 to 0.760 | -0.070 (C 0.001) | no | 0.740 [0.681, 0.799] |
+| balanced_confirmation_wm | 0.45 | predictor | 0.585 | 0.596 | 0.597 | 0.586 | 0.576 | 0.576 to 0.597 | +0.011 (C 0.1) | yes | 0.583 [0.568, 0.599] |
+| balanced_confirmation_wm | 0.45 | untrained | 0.555 | 0.553 | 0.533 | 0.516 | 0.507 | 0.507 to 0.555 | +0.039 (C 0.001) | no | 0.545 [0.524, 0.567] |
+| balanced_confirmation_touch | 0.00 | survival | 0.510 | 0.526 | 0.541 | 0.536 | 0.537 | 0.510 to 0.541 | -0.026 (C 0.001) | no | 0.517 [0.506, 0.528] |
+| balanced_confirmation_touch | 0.00 | predictor | 0.510 | 0.518 | 0.509 | 0.498 | 0.498 | 0.498 to 0.518 | +0.020 (C 0.01) | yes | 0.507 [0.485, 0.528] |
+| balanced_confirmation_touch | 0.00 | untrained | 0.510 | 0.512 | 0.506 | 0.503 | 0.503 | 0.503 to 0.512 | +0.009 (C 0.01) | yes | 0.497 [0.484, 0.510] |
+| balanced_confirmation_touch | 0.45 | survival | 0.755 | 0.810 | 0.837 | 0.835 | 0.821 | 0.755 to 0.837 | -0.080 (C 0.001) | no | 0.825 [0.802, 0.848] |
+| balanced_confirmation_touch | 0.45 | predictor | 0.585 | 0.596 | 0.597 | 0.586 | 0.576 | 0.576 to 0.597 | +0.011 (C 0.1) | yes | 0.583 [0.568, 0.599] |
+| balanced_confirmation_touch | 0.45 | untrained | 0.555 | 0.553 | 0.533 | 0.516 | 0.507 | 0.507 to 0.555 | +0.039 (C 0.001) | no | 0.545 [0.524, 0.567] |
+| corrected_l3_h8_wm_regenerated | 0.00 | survival | 0.507 | 0.523 | 0.554 | 0.559 | 0.552 | 0.507 to 0.559 | -0.052 (C 0.001) | no | 0.519 [0.498, 0.540] |
+| corrected_l3_h8_wm_regenerated | 0.00 | predictor | 0.508 | 0.519 | 0.513 | 0.508 | 0.506 | 0.506 to 0.519 | +0.011 (C 0.01) | yes | 0.505 [0.481, 0.529] |
+| corrected_l3_h8_wm_regenerated | 0.00 | untrained | 0.500 | 0.497 | 0.488 | 0.490 | 0.498 | 0.488 to 0.500 | +0.010 (C 0.001) | yes | 0.493 [0.475, 0.511] |
+| corrected_l3_h8_wm_regenerated | 0.45 | survival | 0.669 | 0.711 | 0.735 | 0.733 | 0.723 | 0.669 to 0.735 | -0.063 (C 0.001) | no | 0.727 [0.666, 0.787] |
+| corrected_l3_h8_wm_regenerated | 0.45 | predictor | 0.601 | 0.618 | 0.610 | 0.589 | 0.577 | 0.577 to 0.618 | +0.030 (C 0.01) | no | 0.602 [0.586, 0.619] |
+| corrected_l3_h8_wm_regenerated | 0.45 | untrained | 0.548 | 0.540 | 0.527 | 0.523 | 0.523 | 0.523 to 0.548 | +0.026 (C 0.001) | no | 0.528 [0.508, 0.549] |
+"""
+_G04_TABLE = """\
+| l3_h8_heldout | 0.00 | survival | 0.451 | 0.479 | 0.518 | 0.554 | 0.558 | 0.556 | 0.514 | +0.063 [+0.035, +0.090] | (drift 0: not labeled) | none |
+| l3_h8_heldout | 0.00 | predictor | 0.465 | 0.482 | 0.480 | 0.498 | 0.533 | 0.501 | 0.515 | +0.050 [+0.020, +0.079] | (drift 0: not labeled) | none |
+| l3_h8_heldout | 0.00 | untrained | 0.472 | 0.480 | 0.517 | 0.500 | 0.538 | 0.490 | 0.500 | +0.027 [-0.019, +0.073] | (drift 0: not labeled) | none |
+| l3_h8_heldout | 0.45 | survival | 0.454 | 0.567 | 0.612 | 0.600 | 0.612 | 0.679 | 0.767 | +0.313 [+0.271, +0.354] | BUILDS WITHIN THE EPISODE | 16 |
+| l3_h8_heldout | 0.45 | predictor | 0.447 | 0.489 | 0.558 | 0.541 | 0.545 | 0.573 | 0.615 | +0.168 [+0.127, +0.209] | BUILDS WITHIN THE EPISODE | none |
+| l3_h8_heldout | 0.45 | untrained | 0.475 | 0.487 | 0.544 | 0.536 | 0.526 | 0.494 | 0.523 | +0.048 [+0.003, +0.092] | UNRESOLVED | none |
+| l1_heldout | 0.00 | survival | 0.484 | 0.478 | 0.505 | 0.558 | 0.550 | 0.560 | 0.520 | +0.036 [+0.007, +0.065] | (drift 0: not labeled) | none |
+| l1_heldout | 0.00 | predictor | 0.457 | 0.475 | 0.500 | 0.508 | 0.550 | 0.524 | 0.533 | +0.075 [+0.037, +0.114] | (drift 0: not labeled) | none |
+| l1_heldout | 0.00 | untrained | 0.483 | 0.500 | 0.505 | 0.483 | 0.531 | 0.501 | 0.494 | +0.011 [-0.024, +0.047] | (drift 0: not labeled) | none |
+| l1_heldout | 0.0230 | survival | 0.474 | 0.489 | 0.519 | 0.567 | 0.573 | 0.591 | 0.503 | +0.029 [-0.004, +0.062] | UNRESOLVED | none |
+| l1_heldout | 0.0230 | predictor | 0.487 | 0.472 | 0.504 | 0.522 | 0.589 | 0.516 | 0.526 | +0.039 [-0.002, +0.079] | UNRESOLVED | none |
+| l1_heldout | 0.0230 | untrained | 0.509 | 0.521 | 0.521 | 0.500 | 0.553 | 0.518 | 0.512 | +0.004 [-0.042, +0.049] | FLAT | none |
+| corrected_l1_heldout | 0.00 | survival | 0.490 | 0.481 | 0.502 | 0.557 | 0.549 | 0.556 | 0.520 | +0.031 [-0.011, +0.072] | (drift 0: not labeled) | none |
+| corrected_l1_heldout | 0.00 | predictor | 0.457 | 0.475 | 0.500 | 0.508 | 0.550 | 0.524 | 0.533 | +0.075 [+0.037, +0.114] | (drift 0: not labeled) | none |
+| corrected_l1_heldout | 0.00 | untrained | 0.483 | 0.500 | 0.505 | 0.483 | 0.531 | 0.501 | 0.494 | +0.011 [-0.024, +0.047] | (drift 0: not labeled) | none |
+| corrected_l1_heldout | 0.0230 | survival | 0.483 | 0.495 | 0.506 | 0.558 | 0.561 | 0.592 | 0.514 | +0.031 [-0.005, +0.067] | UNRESOLVED | none |
+| corrected_l1_heldout | 0.0230 | predictor | 0.487 | 0.472 | 0.504 | 0.522 | 0.589 | 0.516 | 0.526 | +0.039 [-0.002, +0.079] | UNRESOLVED | none |
+| corrected_l1_heldout | 0.0230 | untrained | 0.509 | 0.521 | 0.521 | 0.500 | 0.553 | 0.518 | 0.512 | +0.004 [-0.042, +0.049] | FLAT | none |
+| balanced_confirmation_wm | 0.00 | survival | 0.465 | 0.510 | 0.501 | 0.531 | 0.565 | 0.561 | 0.535 | +0.070 [+0.037, +0.103] | (drift 0: not labeled) | none |
+| balanced_confirmation_wm | 0.00 | predictor | 0.472 | 0.516 | 0.522 | 0.493 | 0.552 | 0.521 | 0.507 | +0.035 [+0.004, +0.066] | (drift 0: not labeled) | none |
+| balanced_confirmation_wm | 0.00 | untrained | 0.505 | 0.509 | 0.527 | 0.504 | 0.535 | 0.507 | 0.497 | -0.008 [-0.038, +0.023] | (drift 0: not labeled) | none |
+| balanced_confirmation_wm | 0.45 | survival | 0.448 | 0.564 | 0.605 | 0.586 | 0.598 | 0.651 | 0.753 | +0.305 [+0.253, +0.357] | BUILDS WITHIN THE EPISODE | 16 |
+| balanced_confirmation_wm | 0.45 | predictor | 0.480 | 0.530 | 0.558 | 0.523 | 0.557 | 0.577 | 0.581 | +0.101 [+0.052, +0.151] | BUILDS WITHIN THE EPISODE | none |
+| balanced_confirmation_wm | 0.45 | untrained | 0.503 | 0.503 | 0.545 | 0.539 | 0.555 | 0.529 | 0.511 | +0.008 [-0.018, +0.034] | FLAT | none |
+| balanced_confirmation_touch | 0.00 | survival | 0.429 | 0.479 | 0.503 | 0.523 | 0.568 | 0.557 | 0.522 | +0.093 [+0.059, +0.126] | (drift 0: not labeled) | none |
+| balanced_confirmation_touch | 0.00 | predictor | 0.472 | 0.516 | 0.522 | 0.493 | 0.552 | 0.521 | 0.507 | +0.035 [+0.004, +0.066] | (drift 0: not labeled) | none |
+| balanced_confirmation_touch | 0.00 | untrained | 0.505 | 0.509 | 0.527 | 0.504 | 0.535 | 0.507 | 0.497 | -0.008 [-0.038, +0.023] | (drift 0: not labeled) | none |
+| balanced_confirmation_touch | 0.45 | survival | 0.437 | 0.585 | 0.601 | 0.571 | 0.634 | 0.707 | 0.830 | +0.393 [+0.351, +0.435] | BUILDS WITHIN THE EPISODE | 16 |
+| balanced_confirmation_touch | 0.45 | predictor | 0.480 | 0.530 | 0.558 | 0.523 | 0.557 | 0.577 | 0.581 | +0.101 [+0.052, +0.151] | BUILDS WITHIN THE EPISODE | none |
+| balanced_confirmation_touch | 0.45 | untrained | 0.503 | 0.503 | 0.545 | 0.539 | 0.555 | 0.529 | 0.511 | +0.008 [-0.018, +0.034] | FLAT | none |
+| corrected_l3_h8_wm_regenerated | 0.00 | survival | 0.460 | 0.479 | 0.516 | 0.524 | 0.544 | 0.576 | 0.518 | +0.058 [+0.025, +0.092] | (drift 0: not labeled) | none |
+| corrected_l3_h8_wm_regenerated | 0.00 | predictor | 0.465 | 0.483 | 0.480 | 0.497 | 0.532 | 0.496 | 0.515 | +0.051 [+0.023, +0.079] | (drift 0: not labeled) | none |
+| corrected_l3_h8_wm_regenerated | 0.00 | untrained | 0.473 | 0.487 | 0.522 | 0.498 | 0.534 | 0.487 | 0.491 | +0.019 [-0.022, +0.059] | (drift 0: not labeled) | none |
+| corrected_l3_h8_wm_regenerated | 0.45 | survival | 0.444 | 0.532 | 0.590 | 0.573 | 0.586 | 0.662 | 0.716 | +0.272 [+0.204, +0.339] | BUILDS WITHIN THE EPISODE | 16 |
+| corrected_l3_h8_wm_regenerated | 0.45 | predictor | 0.447 | 0.490 | 0.559 | 0.546 | 0.548 | 0.567 | 0.618 | +0.172 [+0.133, +0.210] | BUILDS WITHIN THE EPISODE | none |
+| corrected_l3_h8_wm_regenerated | 0.45 | untrained | 0.478 | 0.490 | 0.541 | 0.536 | 0.513 | 0.495 | 0.536 | +0.058 [+0.017, +0.099] | UNRESOLVED | none |
+"""
+
+
+def _cl_table(text: str) -> dict:
+    return {tuple(x.strip() for x in ln.split("|")[1:4]): ln.strip() for ln in text.strip().splitlines()}
+
+
+def closing_g01() -> None:
+    """G01: probe-penalty sensitivity, six states dirs (descriptive)."""
+    table = _cl_table(_G01_TABLE)
+    regen = None
+    if _artifact_present(_cl_path("repro_check_c1_regen", "c1_regen_local_stack.json")):
+        regen = _cl_load("repro_check_c1_regen", "c1_regen_local_stack.json")["max_abs_diff"]
+    rowsets = {}
+    for name in _CL_DIRS:
+        if not _artifact_present(_cl_path("probe_sensitivity", f"{name}.json")):
+            continue
+        d = _cl_load("probe_sensitivity", f"{name}.json")
+        integ = d["integrity"]
+        check_true(f"6.2 G01: {name} integrity, C = 1 reproduces the registered target on 60 cells within 1e-9",
+                   integ["pass"] is True and integ["n_checked"] == 60 == len(integ["cells"])
+                   and max(abs(c["c1"] - c["reference"]) for c in integ["cells"]) <= 1e-9
+                   and all(any(abs(c2["grid"]["1"]["target"] - c["c1"]) <= 1e-12 for c2 in d["cells"]
+                               if c2["drift"] == c["drift"] and c2["seed"] == c["seed"] and c2["arm"] == c["arm"])
+                           for c in integ["cells"]))
+        if name.endswith("_regenerated"):
+            check_true(f"6.2 G01: {name} rows carry the G57 label",
+                       regen is not None and d["reference"]["tolerance_label"]
+                       == f"cross-stack regenerated, max abs target delta = {regen:.5f}"
+                       and all(c["label"] == d["reference"]["tolerance_label"] for c in d["cells"]))
+        ok, sens, mine = True, False, {}
+        for key, blk in d["summary"].items():
+            drift, arm = key[2:].split(" ")
+            cs = sorted((c for c in d["cells"] if c["drift"] == drift and c["arm"] == arm), key=lambda c: c["seed"])
+            means = []
+            for C in _CL_C:
+                rec = _cl_t90([c["grid"][C]["target"] for c in cs])
+                ok &= len(cs) == 10 and _cl_iv(blk["by_C"][C]["target"], rec)
+                means.append(rec[0])
+            nest = _cl_t90([c["nested"]["target"] for c in cs])
+            ok &= _cl_iv(blk["nested"]["target"], nest)
+            v1 = means[3]
+            devs = [(abs(m - v1), m - v1, C) for m, C in zip(means, _CL_C) if C != "1"]
+            _, dev, at = max(devs)
+            within = all(a <= 0.02 for a, _, _ in devs)
+            if arm == "survival" and not within:
+                sens = True
+            mine[drift, arm] = (means, nest)
+            row = (f"| {name} | {drift} | {arm} | " + " | ".join(f"{m:.3f}" for m in means)
+                   + f" | {min(means):.3f} to {max(means):.3f} | {dev:+.3f} (C {at}) | {'yes' if within else 'no'} | "
+                   f"{nest[0]:.3f} [{nest[1]:.3f}, {nest[2]:.3f}] |")
+            check_true(f"6.2 G01: table row {name} {drift} {arm} recomputes from the cells", table.get((name, drift, arm)) == row)
+        check_true(f"6.2 G01: {name} stored summary (every C and the nested fit) recomputes from the cells", bool(ok))
+        sv = [mine[k][0] for k in mine if k[1] == "survival"]
+        check_true(f"6.2 G01: {name} the survival extreme is at C = 0.001, below the C = 1 value",
+                   all(min(m) == m[0] and m[0] < m[3] for m in sv))
+        _cl_label(f"G01 {name}", "PENALTY-SENSITIVE" if sens else "PENALTY-STABLE", "PENALTY-SENSITIVE")
+        rowsets[name] = {k: v for k, v in mine.items() if k[1] != "survival"}
+    for a, b in (("balanced_confirmation_wm", "balanced_confirmation_touch"), ("l1_heldout", "corrected_l1_heldout")):
+        if a in rowsets and b in rowsets:
+            check_true(f"6.2 G01: shared floor, {a} and {b} give identical predictor and untrained rows",
+                       rowsets[a] == rowsets[b])
+
+
+def closing_g04() -> None:
+    """G04: the within-episode decoding curve, six states dirs (post hoc)."""
+    table = _cl_table(_G04_TABLE)
+    for name in _CL_DIRS:
+        if not _artifact_present(_cl_path("step_resolved", f"{name}.json")):
+            continue
+        d = _cl_load("step_resolved", f"{name}.json")
+        integ = d["integrity"]
+        check_true(f"6.2 G04: {name} integrity, the registered pooled target reproduces on 60 cells within 1e-9",
+                   integ["pass"] is True and integ["n_checked"] == 60 == len(integ["cells"])
+                   and max(abs(c["c1"] - c["reference"]) for c in integ["cells"]) <= 1e-9)
+        check_true(f"6.2 G04: {name} step 24 equals the R205 final reading to the bit in every cell",
+                   d["step_check"]["pass"] is True and d["step_check"]["n_checked"] == 60 == len(d["cells"])
+                   and all(c["steps"]["24"]["target"] == c["r205_final"] and c["step_final_bit_equal"] for c in d["cells"]))
+        drifts = sorted(d["summary"], key=float)
+        ok = True
+        for drift in drifts:
+            for arm in ("survival", "predictor", "untrained"):
+                cs = sorted((c for c in d["cells"] if c["drift"] == drift and c["arm"] == arm), key=lambda c: c["seed"])
+                means = []
+                for t in _CL_STEPS:
+                    rec = _cl_t90([c["steps"][t]["target"] for c in cs])
+                    ok &= len(cs) == 10 and _cl_iv(d["summary"][drift]["arms"][arm][t]["target"], rec)
+                    means.append(rec[0])
+                c = _cl_pt90([x["steps"]["24"]["target"] for x in cs], [x["steps"]["1"]["target"] for x in cs])
+                if drift != drifts[-1]:
+                    lab = "(drift 0: not labeled)"
+                else:
+                    lab = ("BUILDS WITHIN THE EPISODE" if c[1] > 0.05 else
+                           "FLAT" if -0.05 <= c[1] and c[2] <= 0.05 else "UNRESOLVED")
+                first = next((t for t, m in zip(_CL_STEPS, means) if m >= BAR), "none")
+                row = (f"| {name} | {drift} | {arm} | " + " | ".join(f"{m:.3f}" for m in means)
+                       + f" | {c[0]:+.3f} [{c[1]:+.3f}, {c[2]:+.3f}] | {lab} | {first} |")
+                check_true(f"6.2 G04: table row {name} {drift} {arm} (with its label) recomputes from the cells",
+                           table.get((name, drift, arm)) == row)
+        check_true(f"6.2 G04: {name} stored per-step summary recomputes from the cells", bool(ok))
+
+
+def closing_b2() -> None:
+    """B2: walk speed against goal direction (docs/specs/2026-10-17-walk-speed-vs-goal-readout-design.md)."""
+    if not _artifact_present(_cl_path("walk_speed", "corrected_l3_h8_wm.json")):
+        return
+    d = _cl_load("walk_speed", "corrected_l3_h8_wm.json")
+    rows, S = sorted(d["rows"], key=lambda r: r["seed"]), d["summary"]
+    walks = ("own", "scripted", "speed_matched", "replay")
+    T = {(a, w): [r["arms"][a][w]["target"] for r in rows] for a in ("survival", "predictor", "untrained") for w in walks}
+    check_true("6.2 B2: integrity, every target finite", d["all_finite"] is True and len(rows) == 10
+               and all(math.isfinite(x) for v in T.values() for x in v))
+    for a in ("survival", "predictor", "untrained"):
+        ok = all(_cl_iv(S["arms"][a][w], _cl_t90(T[a, w])) for w in walks)
+        for key, blk in S["contrasts"][a].items():
+            x, y = key.split(" - ")
+            diff = list(np.asarray(T[a, x]) - np.asarray(T[a, y]))
+            ok &= _cl_iv(blk, _cl_pt90(T[a, x], T[a, y])) and all(_same(p, q) for p, q in zip(blk["per_seed"], diff))
+        check_true(f"6.2 B2: {a} targets and contrasts recompute from the rows", bool(ok))
+    sp = {k: [r["speed"][k] for r in rows] for k in S["speed"]}
+    check_true("6.2 B2: walk speeds and thrust scale recompute from the rows",
+               all(_cl_iv(S["speed"][k], _cl_t90(v)) for k, v in sp.items())
+               and _same(S["thrust_scale"]["mean"], float(np.mean([r["thrust_scale"] for r in rows]))))
+    tol = d["settings"]["speed_tolerance"]
+    gaps = [abs(r["speed"]["speed_matched"] - r["speed"]["survival_own"]) for r in rows]
+    matched = [r["seed"] for r, g in zip(rows, gaps) if g <= tol]
+    check_true("6.2 B2: matched and unmatched seeds recompute from the per-seed speeds",
+               tol == 0.001 and matched == S["speed_match"]["matched_seeds"]
+               and [r["seed"] for r, g in zip(rows, gaps) if g > tol] == S["speed_match"]["unmatched_seeds"]
+               and _same(max(gaps), S["speed_match"]["max_abs_speed_gap"]))
+    check_true("6.2 B2: matched seeds as quoted ([5], 1 of 10)", matched == [5])
+    _cl_quote("6.2 B2: max speed gap", max(gaps), "0.035")
+    _cl_quote("6.2 B2: thrust scale mean", float(np.mean([r["thrust_scale"] for r in rows])), "1.659")
+    r1 = _cl_pt90(T["survival", "own"], T["survival", "speed_matched"])
+    r2 = _cl_pt90(T["survival", "own"], T["survival", "replay"])
+    _cl_quote("6.2 B2: survival reading 1, own - speed_matched", r1, "+0.104 [+0.050, +0.159]")
+    _cl_quote("6.2 B2: survival reading 1 lower bound, 4 dp", r1[1], "0.0497")
+    _cl_quote("6.2 B2: survival reading 2, own - replay", r2, "+0.073 [+0.051, +0.095]")
+    _cl_quote("6.2 B2: survival reading 2 lower bound, 4 dp", r2[1], "0.0512")
+    for w, txt in (("own", "0.751 [0.703, 0.800]"), ("scripted", "0.567 [0.555, 0.579]"),
+                   ("speed_matched", "0.647 [0.632, 0.663]"), ("replay", "0.678 [0.633, 0.724]")):
+        _cl_quote(f"6.2 B2: survival {w} target", _cl_t90(T["survival", w]), txt)
+    for a, x, y, txt in (("survival", "speed_matched", "scripted", "+0.080 [+0.061, +0.100]"),
+                         ("survival", "replay", "speed_matched", "+0.031 [-0.023, +0.085]"),
+                         ("untrained", "own", "replay", "-0.078 [-0.118, -0.038]"),
+                         ("untrained", "own", "speed_matched", "-0.033 [-0.060, -0.006]"),
+                         ("predictor", "own", "replay", "+0.002 [-0.040, +0.044]"),
+                         ("predictor", "own", "speed_matched", "+0.040 [+0.010, +0.070]")):
+        _cl_quote(f"6.2 B2: {a} {x} - {y}", _cl_pt90(T[a, x], T[a, y]), txt)
+    _cl_quote("6.2 B2: untrained targets own / scripted / speed_matched / replay",
+              [float(np.mean(T["untrained", w])) for w in walks], "0.561 0.556 0.594 0.639")
+    _cl_quote("6.2 B2: predictor own target", float(np.mean(T["predictor", "own"])), "0.679")
+    _cl_quote("6.2 B2: speeds survival own, replay, predictor own, speed_matched, untrained own, scripted",
+              [float(np.mean(sp[k])) for k in ("survival_own", "replay", "predictor_own", "speed_matched",
+                                                "untrained_own", "scripted")],
+              "0.185 0.174 0.171 0.168 0.168 0.159")
+    if len(matched) < 7:
+        read1 = "UNRESOLVED"
+    else:
+        read1 = ("SPEED SUFFICES" if -0.05 <= r1[1] and r1[2] <= 0.05 else
+                 "SPEED DOES NOT SUFFICE" if r1[1] > 0.05 else "UNRESOLVED")
+    read2 = ("CLOSED LOOP NOT NEEDED" if -0.05 <= r2[1] and r2[2] <= 0.05 else
+             "CLOSED LOOP ADDS" if r2[1] > 0.05 else "UNRESOLVED")
+    _cl_label("B2 reading 1", read1, "UNRESOLVED")
+    _cl_label("B2 reading 2", read2, "CLOSED LOOP ADDS")
+    lab = ("GOAL DIRECTION" if read1 == "SPEED DOES NOT SUFFICE" and read2 == "CLOSED LOOP ADDS" else
+           "SPEED" if read1 == "SPEED SUFFICES" else
+           "ACTION STATISTICS" if read1 == "SPEED DOES NOT SUFFICE" and read2 == "CLOSED LOOP NOT NEEDED" else
+           "NOT SEPARATED")
+    _cl_label("B2", lab, "NOT SEPARATED")
+
+
+def closing_b6() -> None:
+    """B6: development, held-out transfer of the 300-update probe (C1 = wm, C2 = nowm)."""
+    if not _artifact_present(_cl_path("development", "heldout_transfer.json")):
+        return
+    d = _cl_load("development", "heldout_transfer.json")
+    Q = ("heldout_transfer_from_300", "insample_transfer_from_300", "fresh_cv_target")
+    quotes = {"wm": ("0.736 [0.680, 0.791]", "0.785 [0.736, 0.834]", "-0.049 [-0.068, -0.030]",
+                     "0.770 [0.713, 0.826]", "0.971", "0.733", "0.537 0.638 0.770 0.736", "0.628 0.684 0.759 0.833"),
+              "nowm": ("0.632 [0.594, 0.670]", "0.689 [0.641, 0.736]", "-0.057 [-0.084, -0.029]",
+                       "0.657 [0.610, 0.704]", "0.949", "0.613", "0.560 0.587 0.657 0.632", "0.584 0.625 0.665 0.699")}
+    for r, (h450, i450, d450, h300, i300, cv300, hrow, frow) in quotes.items():
+        S = {b: v for b, v in d["runs"][r]["summary"].items() if b != "seeds"}
+        ok = all(len(S[b][q]["per_seed"]) == 10 and all(math.isfinite(x) for x in S[b][q]["per_seed"])
+                 and _cl_iv(S[b][q], _cl_t90(S[b][q]["per_seed"])) for b in S for q in Q)
+        for b in S:
+            hm = S[b]["heldout_minus_insample"]
+            diff = np.asarray(S[b][Q[0]]["per_seed"]) - np.asarray(S[b][Q[1]]["per_seed"])
+            ok &= _cl_iv(hm, _cl_pt90(S[b][Q[0]]["per_seed"], S[b][Q[1]]["per_seed"])) and all(
+                _same(p, q) for p, q in zip(hm["per_seed"], diff))
+        check_true(f"6.2 B6: {r} every budget's summary recomputes from per_seed", bool(ok))
+        integ = d["integrity"][r]
+        rel = f"corrected_l3_h8_{r}.json"
+        if _artifact_present(_cl_path("development", rel)):
+            agg = _cl_load("development", rel)["summary"]["aggregate"]
+            check_true(f"6.2 B6: {r} integrity, the in-sample column equals artifacts/development/{rel} on 40 values",
+                       integ["pass"] is True and integ["n_checked"] == 40
+                       and all(S[b][Q[1]]["per_seed"] == agg[f"{b} transfer_from_300"]["per_seed"] for b in S))
+            _cl_quote(f"6.2 B6: {r} stored cross-validated target at 300 beside",
+                      float(np.mean(agg["300 target"]["per_seed"])), cv300)
+        _cl_quote(f"6.2 B6: {r} held-out transfer at 450", _cl_t90(S["450"][Q[0]]["per_seed"]), h450)
+        _cl_quote(f"6.2 B6: {r} stored in-sample transfer at 450", _cl_t90(S["450"][Q[1]]["per_seed"]), i450)
+        _cl_quote(f"6.2 B6: {r} held-out minus in-sample at 450",
+                  _cl_pt90(S["450"][Q[0]]["per_seed"], S["450"][Q[1]]["per_seed"]), d450)
+        _cl_quote(f"6.2 B6: {r} held-out self-transfer at 300", _cl_t90(S["300"][Q[0]]["per_seed"]), h300)
+        _cl_quote(f"6.2 B6: {r} stored in-sample self-transfer at 300", float(np.mean(S["300"][Q[1]]["per_seed"])), i300)
+        _cl_quote(f"6.2 B6: {r} held-out row 100/200/300/450",
+                  [float(np.mean(S[b][Q[0]]["per_seed"])) for b in ("100", "200", "300", "450")], hrow)
+        _cl_quote(f"6.2 B6: {r} fresh-pool cross-validated row 100/200/300/450",
+                  [float(np.mean(S[b][Q[2]]["per_seed"])) for b in ("100", "200", "300", "450")], frow)
+    _cl_label("B6", "REPORTED" if all(d["integrity"][r]["pass"] for r in ("wm", "nowm")) else "none", "REPORTED")
+
+
+def closing_g07() -> None:
+    """G07(a): world features on each arm's own episodes (post hoc, descriptive)."""
+    INSTR = ("I1_nearest_pellet", "I2_pellets_in_reach", "I3_water_near")
+    INCID = ("N1_water_far", "N2_roughness_far", "N3_pellet_dispersion_far")
+    H, U = "survival_d0.45", "untrained_d0.45"
+    quotes = {
+        "wm": ("-0.0053 to +0.0009",
+               ("+0.0009 [-0.0013, +0.0030]", "-0.0053 [-0.0054, -0.0053]", "-0.0006 [-0.0022, +0.0010]"),
+               "-0.0011 +0.0005 +0.0003", "-0.0016 [-0.0037, +0.0005]",
+               ("+0.042 [-0.007, +0.091]", "+0.139 [+0.107, +0.171]", "+0.098 [+0.085, +0.112]"),
+               "-0.099 / +0.090 / +0.069", "0.0042"),
+        "nowm": ("-0.0030 to +0.0018",
+                 ("+0.0007 [-0.0008, +0.0022]", "-0.0030 [-0.0040, -0.0020]", "-0.0012 [-0.0026, +0.0002]"),
+                 "+0.0014 +0.0018 +0.0002", "-0.0023 [-0.0038, -0.0008]",
+                 ("+0.083 [+0.031, +0.134]", "+0.166 [+0.133, +0.199]", "+0.061 [+0.050, +0.072]"),
+                 "-0.050 / +0.091 / +0.047", "0.0065")}
+    allres = []
+    for r, (rng, iq, nq, ladq, smq, repq, moveq) in quotes.items():
+        if not _artifact_present(_cl_path("world_features", "own_episode_posthoc", f"corrected_l3_h8_{r}.json")):
+            continue
+        d = _cl_load("world_features", "own_episode_posthoc", f"corrected_l3_h8_{r}.json")
+        rows = sorted(d["rows"], key=lambda x: x["seed"])
+        g = lambda arm, k, q: [x["arms"][arm][k][q] for x in rows]  # noqa: E731
+        check_true(f"6.2 G07: {r} integrity, every per-seed value finite, own-episode protocol",
+                   len(rows) == 10 and all(x["protocol"] == "own" for x in rows)
+                   and all(math.isfinite(v) for x in rows for a in x["arms"].values() for f in a.values()
+                           for v in f.values()))
+        agg = d["aggregate"]
+        check_true(f"6.2 G07: {r} stored aggregate recomputes from the rows",
+                   all(agg[f"{a} {k} {q}"]["per_seed"] == g(a, k, q) and _cl_iv(agg[f"{a} {k} {q}"], _cl_t90(g(a, k, q)))
+                       for a in rows[0]["arms"] for k in INSTR + INCID for q in ("r2_state", "r2_resid", "auroc_median_split")))
+        res = {k: _cl_t90(g(H, k, "r2_resid")) for k in INSTR + INCID}
+        allres += [v[0] for v in res.values()]
+        r1 = {k: (_cl_pt90(g(H, k, "r2_state"), g(U, k, "r2_state")), res[k]) for k in INSTR}
+        met1 = {k: c[1] > 0 and rr[1] > 0.05 for k, (c, rr) in r1.items()}
+        met2 = {k: res[k][2] < 0.05 for k in INCID}
+        lad = _cl_pt90([np.mean([x["arms"][H][k]["r2_resid"] for k in INSTR]) for x in rows],
+                       [np.mean([x["arms"][H][k]["r2_resid"] for k in INCID]) for x in rows])
+        perm_ok = all(_cl_t90(g(H, k, "r2_permuted"))[0] <= 0.02 for k in INSTR + INCID)
+        rd = d["readings"]
+        check_true(f"6.2 G07: {r} stored readings 1 to 3 and the sanity check recompute from the rows",
+                   all(rd["1 instrumental kept"][k]["met"] is met1[k]
+                       and _cl_iv(rd["1 instrumental kept"][k]["surv_minus_untr_r2_state"], r1[k][0]) for k in INSTR)
+                   and all(rd["2 incidental not kept"][k]["met"] is met2[k] for k in INCID)
+                   and _cl_iv(rd["3 ladder (mean resid I minus mean resid N)"], lad)
+                   and rd["sanity: permuted R2 <= 0.02"] is perm_ok is True)
+        _cl_quote(f"6.2 G07: {r} own-episode survival residual R squared range",
+                  (min(v[0] for v in res.values()), max(v[0] for v in res.values())), rng)
+        for k, txt in zip(INSTR, iq):
+            _cl_quote(f"6.2 G07: {r} residual {k}", res[k], txt)
+        _cl_quote(f"6.2 G07: {r} residuals N1 N2 N3", [res[k][0] for k in INCID], nq)
+        _cl_quote(f"6.2 G07: {r} ladder", lad, ladq)
+        for k, txt in zip(INSTR, smq):
+            _cl_quote(f"6.2 G07: {r} own-episode survival minus untrained r2_state {k}", r1[k][0], txt)
+        all1, none1, n2fail = all(met1.values()), not any(met1.values()), sum(not v for v in met2.values())
+        lab = ("follows usefulness" if all1 and n2fail == 0 else "keeps everything" if all1 and n2fail >= 2
+               else "keeps nothing beyond the senses" if none1 else "mixed")
+        check_true(f"6.2 G07: {r} stored label is the recomputed one", rd["label"] == lab)
+        _cl_label(f"G07 {r}", lab, "keeps nothing beyond the senses")
+        if r == "wm":
+            _cl_quote("6.2 G07: wm reach radius", d["reach"]["r"], "0.318")
+            _cl_quote("6.2 G07: wm readout exceedance", d["reach"]["readout_exceedance_rate"], "0.026")
+        if _artifact_present(_cl_path("world_features", f"corrected_l3_h8_{r}.json")):
+            st = _cl_load("world_features", f"corrected_l3_h8_{r}.json")
+            srows = sorted(st["rows"], key=lambda x: x["seed"])
+            sg = lambda arm, k, q: [x["arms"][arm][k][q] for x in srows]  # noqa: E731
+            _cl_quote(f"6.2 G07: {r} stored replay survival minus untrained r2_state I1 / I2 / I3",
+                      [_cl_pt90(sg(H, k, "r2_state"), sg(U, k, "r2_state"))[0] for k in INSTR], repq)
+            move = max(abs(float(np.mean(g(a, k, "r2_resid"))) - float(np.mean(sg(a, k, "r2_resid"))))
+                       for a in ("predictor_d0.45", U) for k in INSTR + INCID)
+            _cl_quote(f"6.2 G07: {r} largest predictor or untrained residual move between protocols", move, moveq)
+            check_true(f"6.2 G07: {r} the drift-0.45 survival residuals equal the stored replay values",
+                       all(g(H, k, "r2_resid") == sg(H, k, "r2_resid") for k in INSTR + INCID))
+    if len(allres) == 12:
+        _cl_quote("6.2 G07: both runs' residual R squared range", (min(allres), max(allres)), "-0.0053 to +0.0018")
+
+
+def closing_g03() -> None:
+    """G03: the balanced sensory-echo control on a second evaluation draw (B1 wm, B2 touch)."""
+    MET = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh")
+    docs = {}
+    for rid in ("b1", "b2"):
+        if _artifact_present(_cl_path("balanced_confirmation", f"sensory_echo_{rid}_fresh.json")):
+            docs[rid] = _cl_load("balanced_confirmation", f"sensory_echo_{rid}_fresh.json")
+    quotes = {"b1": ("0.724 [0.689, 0.759]", 9, "0.782 [0.743, 0.820]"),
+              "b2": ("0.761 [0.746, 0.777]", 10, "0.829 [0.815, 0.842]")}
+    for rid, d in docs.items():
+        integ = d["integrity"]
+        check_true(f"6.2 G03: {rid} integrity at 910000, all cells match, nothing blocks adjudication",
+                   integ["checked"] is True and integ["all_match"] is True and integ["mismatches"] == []
+                   and integ["adjudication_blockers"] == [] and d["integrity_seed_base"] == 910000
+                   and d["read_seed_base"] == d["balanced_seed_base"] == 2250000)
+        ok = True
+        for arm in ("survival", "predictor", "untrained"):
+            for met in MET:
+                b = d[f"d=0.45 {arm}"][met]
+                ok &= (len(b["per_seed"]) == 10 and _cl_iv(b, _cl_t90(b["per_seed"]))
+                       and b["n_ge_065"] == sum(x >= BAR for x in b["per_seed"]))
+        check_true(f"6.2 G03: {rid} every arm and metric recomputes from per_seed", bool(ok))
+        u = _cl_t90(d["d=0.45 untrained"]["resid_obs"]["per_seed"])
+        s = _cl_t90(d["d=0.45 survival"]["resid_obs"]["per_seed"])
+        floor = abs(u[0] - 0.5) <= 0.1
+        zone = ("FLOOR NOT EXPLAINED: trained clause not read" if not floor else
+                "SENSORY-INDEPENDENT under matched worlds (rule passes)" if s[0] >= BAR and s[0] > u[0] + 0.05
+                and s[1] > u[0] else "ATTENUATED: below-bar trace survives the sensory control" if s[0] >= 0.60
+                else "LARGELY SENSORY-MEDIATED")
+        dec = d["decision_balanced"]
+        check_true(f"6.2 G03: {rid} stored decision recomputes from per_seed",
+                   _same(dec["untrained_resid_obs"], u[0]) and _same(dec["trained_resid_obs"], s[0])
+                   and dec["floor_explained"] is floor and dec["zone"] == zone)
+        _cl_label(f"G03 {rid} floor", "Floor explained" if floor else "Floor not explained", "Floor explained")
+        _cl_label(f"G03 {rid}", zone.split(" (")[0].split(":")[0], "SENSORY-INDEPENDENT under matched worlds")
+        rq, n65, tq = quotes[rid]
+        _cl_quote(f"6.2 G03: {rid} trained resid_obs", s, rq)
+        check_int(f"6.2 G03: {rid} trained resid_obs seeds at or above 0.65",
+                  sum(x >= BAR for x in d["d=0.45 survival"]["resid_obs"]["per_seed"]), n65)
+        _cl_quote(f"6.2 G03: {rid} raw survival target", _cl_t90(d["d=0.45 survival"]["target"]["per_seed"]), tq)
+    if "b1" in docs:
+        d = docs["b1"]
+        u = float(np.mean(d["d=0.45 untrained"]["resid_obs"]["per_seed"]))
+        _cl_quote("6.2 G03: second-draw untrained resid_obs, distance from 0.5, margin inside 0.1",
+                  (u, abs(u - 0.5), 0.1 - abs(u - 0.5)), "0.577 0.077 0.023")
+        _cl_quote("6.2 G03: second-draw raw untrained target", _cl_t90(d["d=0.45 untrained"]["target"]["per_seed"]),
+                  "0.558 [0.543, 0.573]")
+        _cl_quote("6.2 G03: predictor resid_obs", _cl_t90(d["d=0.45 predictor"]["resid_obs"]["per_seed"]),
+                  "0.600 [0.581, 0.619]")
+        _cl_quote("6.2 G03: predictor raw target", float(np.mean(d["d=0.45 predictor"]["target"]["per_seed"])), "0.624")
+        if _artifact_present(_cl_path("balanced_confirmation", "sensory_echo_b1.json")):
+            f1 = _cl_load("balanced_confirmation", "sensory_echo_b1.json")
+            u1 = float(np.mean(f1["aggregate"]["d=0.45 untrained"]["resid_obs"]["per_seed"]))
+            _cl_quote("6.2 G03: first-draw untrained resid_obs, distance from 0.5, margin inside 0.1",
+                      (u1, abs(u1 - 0.5), 0.1 - abs(u1 - 0.5)), "0.596 0.096 0.004")
+        if _artifact_present(_cl_path("balanced_confirmation", "B1.json")):
+            raw1 = float(np.mean(_cl_load("balanced_confirmation", "B1.json")["balanced"]["untrained"]["per_seed"]))
+            _cl_quote("6.2 G03: first-draw raw untrained target", raw1, "0.614")
+    if len(docs) == 2:
+        check_true("6.2 G03: one floor read twice, untrained and predictor identical in both runs",
+                   all(docs["b1"][f"d=0.45 {a}"] == docs["b2"][f"d=0.45 {a}"] for a in ("untrained", "predictor")))
+
+
+def closing_h31() -> None:
+    """H31: the drag comparator's oracle at eps 6.0 (agent-free, descriptive)."""
+    if not _artifact_present(_cl_path("agent_free", "qd_eps6_oracle.json")):
+        return
+    d = _cl_load("agent_free", "qd_eps6_oracle.json")
+    rows = {r["eps"]: r for r in d["rows"]}
+    if _artifact_present(_cl_path("texture", "gate0_qd.json")):
+        st = {r["eps"]: r for r in _cl_load("texture", "gate0_qd.json")["rows"]}
+        check_true("6.2 H31: integrity, the eps 4 and eps 8 oracles are bit-equal to gate0_qd.json",
+                   all(rows[e]["oracle_auroc"] == st[e]["oracle_auroc"] for e in (4.0, 8.0)))
+        check_true("6.2 H31: eps 4 and eps 8 floors within 0.01 of the stored floors (no cross-stack note)",
+                   all(abs(rows[e]["floor"] - st[e]["floor"]) <= 0.01 for e in (4.0, 8.0)))
+        check_true("6.2 H31: the band and the measurement sigma are the stored ones",
+                   d["band"] == _cl_load("texture", "gate0_qd.json")["band"] == [0.85, 0.95] and d["sigma_meas"] == 0.02)
+    ok = all(_same(r["floor"], float(np.mean(r["floor_per_seed"]))) and len(r["floor_per_seed"]) == 3
+             and r["floor_ok"] is (abs(float(np.mean(r["floor_per_seed"])) - 0.5) <= d["floor_tol"]) for r in d["rows"])
+    check_true("6.2 H31: every floor and floor_ok recompute from the three floor seeds", ok and d["floor_seeds"] == [0, 1, 2])
+    e6 = rows[6.0]
+    check("pinned: 6.2 H31: eps 6 oracle (0.671)", e6["oracle_auroc"], 0.671)
+    check("pinned: 6.2 H31: eps 4 oracle (0.656)", rows[4.0]["oracle_auroc"], 0.656)
+    check("pinned: 6.2 H31: eps 8 oracle (0.697)", rows[8.0]["oracle_auroc"], 0.697)
+    _cl_quote("6.2 H31: the gate-0 floor at eps 6", float(np.mean(e6["floor_per_seed"])), "0.610")
+    _cl_quote("6.2 H31: the gate-0 floor at eps 6 per seed", e6["floor_per_seed"], "0.506, 0.606, 0.717")
+    check_true("6.2 H31: the eps 6 floor is not ok", e6["floor_ok"] is False)
+    lo, hi = d["band"]
+    _cl_label("H31", "(a) IN BAND" if lo <= e6["oracle_auroc"] <= hi else "(b) OUTSIDE", "(b) OUTSIDE")
+
+
+def closing_h53() -> None:
+    """H53: a nonlinear state probe on the corrected L1 agents."""
+    if not _artifact_present(_cl_path("expL1", "l1_nonlinear_corrected.json")):
+        return
+    d = _cl_load("expL1", "l1_nonlinear_corrected.json")
+    gate = d["gate"]
+    lin = sorted((c for c in d["cells"] if c["drift"] == "0.0230" and c["arm"] == "survival"), key=lambda c: c["seed"])
+    lm = float(np.mean([c["classes"]["linear"]["target"] for c in lin]))
+    check_true("6.2 H53: integrity, the linear C = 1 survival target at 0.023 reproduces 0.5506 within 1e-9",
+               gate["pass"] is True and gate["unreproduced_cells"] == [] and len(lin) == 10
+               and abs(lm - gate["recorded_mean"]) <= 1e-9 and gate["reproduced_mean"] == gate["recorded_mean"])
+    if _artifact_present(_cl_path("expL1", "l1_coarse_grid_corrected.json")):
+        b1 = _cl_load("expL1", "l1_coarse_grid_corrected.json")
+        b1m = float(np.mean([c["target"] for c in b1["cells"] if c["arm"] == "survival" and c["delta"] == 0.023]))
+        check_true("6.2 H53: the recorded mean is the corrected L1 cells' survival mean at 0.023 (B1)",
+                   abs(b1m - gate["recorded_mean"]) <= 1e-12)
+    ok, M = True, {}
+    for drift, blk in d["summary"].items():
+        for arm, classes in blk["arms"].items():
+            cs = [c for c in d["cells"] if c["drift"] == drift and c["arm"] == arm]
+            for cls, q in classes.items():
+                rec = _cl_t90([c["classes"][cls]["target"] for c in sorted(cs, key=lambda c: c["seed"])])
+                ok &= len(cs) == 10 and _cl_iv(q["target"], rec)
+                M[drift, arm, cls] = rec
+    check_true("6.2 H53: every class target summary recomputes from the cells", bool(ok))
+    for cls, txt in (("rf", "0.529 [0.516, 0.543]"), ("mlp", "0.534 [0.512, 0.557]"), ("linear", "0.551 [0.531, 0.570]")):
+        _cl_quote(f"6.2 H53: survival {cls} at 0.023", M["0.0230", "survival", cls], txt)
+    _cl_quote("6.2 H53: predictor rf, mlp at 0.023", [M["0.0230", "predictor", c][0] for c in ("rf", "mlp")], "0.528 0.525")
+    _cl_quote("6.2 H53: untrained rf, mlp at 0.023", [M["0.0230", "untrained", c][0] for c in ("rf", "mlp")], "0.535 0.508")
+    _cl_quote("6.2 H53: drift 0 survival rf, mlp, linear",
+              [M["0.00", "survival", c][0] for c in ("rf", "mlp", "linear")], "0.535 0.540 0.548")
+    nl = [M["0.0230", "survival", c][0] for c in ("rf", "mlp")]
+    _cl_label("H53", "(a)" if max(nl) >= BAR else "(b)", "(b)")
+
+
+def closing_x03() -> None:
+    """X03: head overlap (extension spec)."""
+    if not _artifact_present(_cl_path("head_overlap", "corrected_l3_h8_wm.json")):
+        return
+    d = _cl_load("head_overlap", "corrected_l3_h8_wm.json")
+    rows = sorted(d["rows"], key=lambda r: (r["arm"], r["seed"]))
+    if _artifact_present(_cl_path("corrected_runs", "corrected_l3_h8_wm", "cells")):
+        rec = _cl_committed_cells("corrected_l3_h8_wm")
+        n = sum(abs(r["pooled_target"] - rec[(0.45, r["seed"], r["arm"])]) <= 0.002 for r in rows)
+        check_true("6.2 X03: integrity, the fitted probe's pooled target is within 0.002 of the cell target, 30 of 30",
+                   n == 30 == len(rows) and d["integrity"]["gate"] == "PASS" and d["integrity"]["n_cells"] == 30)
+    get = {"r_actor": lambda r: r["overlap"]["actor"]["ratio_u"],
+           "r_actor_block": lambda r: r["overlap"]["actor"]["ratio_block"],
+           "r_critic": lambda r: r["overlap"]["critic"]["ratio_u"],
+           "r_critic_block": lambda r: r["overlap"]["critic"]["ratio_block"],
+           "r_decoder_state_block": lambda r: r["overlap"]["decoder_state_block"]["ratio_u"],
+           "r_decoder_state_block_block": lambda r: r["overlap"]["decoder_state_block"]["ratio_block"],
+           "action_ratio": lambda r: r["action_sensitivity"]["ratio"],
+           "recurrence_ratio": lambda r: r["recurrence_sensitivity"]["ratio"]}
+    R = {}
+    for arm in ("survival", "predictor", "untrained"):
+        rs = [r for r in rows if r["arm"] == arm]
+        for k, f in get.items():
+            R[arm, k] = _cl_t90([f(r) for r in rs])
+        check_true(f"6.2 X03: {arm} summary recomputes from the rows",
+                   len(rs) == 10 and all(_cl_iv(d["summary"][arm][k], R[arm, k]) for k in get))
+    for k, txt in (("r_actor", "0.905 [0.495, 1.315]"), ("action_ratio", "1.242 [0.899, 1.585]"),
+                   ("recurrence_ratio", "1.116 [1.013, 1.219]"), ("r_critic", "0.686 [0.202, 1.170]"),
+                   ("r_decoder_state_block", "1.005 [0.944, 1.065]"), ("r_actor_block", "0.812 [0.558, 1.066]"),
+                   ("r_critic_block", "0.829 [0.364, 1.294]"), ("r_decoder_state_block_block", "0.986 [0.950, 1.022]")):
+        _cl_quote(f"6.2 X03: survival {k}", R["survival", k], txt)
+    for arm, txt in (("untrained", "0.914 1.390 0.994"), ("predictor", "0.749 1.165 0.762")):
+        _cl_quote(f"6.2 X03: {arm} r_actor, action ratio, recurrence ratio",
+                  [R[arm, k][0] for k in ("r_actor", "action_ratio", "recurrence_ratio")], txt)
+    a, u = R["survival", "r_actor"], R["survival", "action_ratio"]
+    lab = ("policy-blind" if a[2] < 0.5 and u[2] < 0.5 else "policy-read" if a[1] > 2 and u[1] > 2
+           else "undetermined")
+    check_true("6.2 X03: the stored label is the recomputed one", d["summary"]["survival"]["label"] == lab)
+    _cl_label("X03", lab, "undetermined")
+
+
+def closing_x07() -> None:
+    """X07: pellet-density dose (extension spec)."""
+    if not _artifact_present(_cl_path("pellet_dose", "corrected_l3_h8_wm.json")):
+        return
+    d = _cl_load("pellet_dose", "corrected_l3_h8_wm.json")
+    rows = d["rows"]
+    note = "gate-0 oracle not recalibrated at this density"
+    dens = sorted({r["n_pellets"] for r in rows})
+    V = {}
+    for n in dens:
+        for arm in ("survival", "predictor", "untrained"):
+            V[n, arm] = [r["target"] for r in sorted(rows, key=lambda r: r["seed"])
+                         if r["kind"] == "arm" and r["arm"] == arm and r["n_pellets"] == n]
+        V[n, "input_reference"] = [r["target"] for r in sorted(rows, key=lambda r: r["seed"])
+                                   if r["kind"] == "reference" and r["n_pellets"] == n]
+    a24 = [r for r in rows if r["kind"] == "arm" and r["n_pellets"] == 24]
+    check_true("6.2 X07: integrity, the 24-pellet row reproduces every cell's stored target within 0.002, 30 of 30",
+               len(a24) == 30 and all(abs(r["target"] - r["recorded_target"]) <= 0.002 for r in a24)
+               and d["integrity"]["gate"] == "PASS" and d["integrity"]["n_checked"] == 30)
+    if _artifact_present(_cl_path("corrected_runs", "corrected_l3_h8_wm", "cells")):
+        rec = _cl_committed_cells("corrected_l3_h8_wm")
+        check_true("6.2 X07: every recorded target is the committed cell's pool target",
+                   all(rec[(0.45, r["seed"], r["arm"])] == r["recorded_target"] for r in a24))
+    if _artifact_present(_cl_path("repro_check_c1_regen", "c1_regen_local_stack.json")):
+        g57 = _cl_load("repro_check_c1_regen", "c1_regen_local_stack.json")["cells"]
+        check_true("6.2 X07: the 24-pellet survival mean equals the G57 regenerated mean",
+                   _same(float(np.mean(V[24, "survival"])),
+                         float(np.mean([c["target"] for c in g57 if c["arm"] == "survival" and float(c["drift"]) == 0.45])),
+                         1e-12))
+    dc = d["summary"]["dose_curve"]
+    check_true("6.2 X07: the dose curve recomputes from the rows, every row noted",
+               dens == [2, 6, 12, 24, 48, 96] and all(r["note"] == note for r in rows)
+               and all(len(V[n, k]) == 10 and _cl_iv(dc[str(n)][k], _cl_t90(V[n, k])) and dc[str(n)]["note"] == note
+                       for n in dens for k in ("survival", "predictor", "untrained", "input_reference")))
+    s2 = _cl_t90(V[2, "survival"])
+    marg = _cl_pt90(V[2, "survival"], V[2, "untrained"])
+    c242 = _cl_pt90(V[24, "survival"], V[2, "survival"])
+    udev = {n: abs(float(np.mean(V[n, "untrained"])) - 0.5) for n in dens}
+    within = all(x <= 0.1 for x in udev.values())
+    rd = d["summary"]["readings"]
+    check_true("6.2 X07: the stored readings recompute from the rows",
+               _cl_iv(rd["survival minus untrained at 2"], marg) and _cl_iv(rd["survival 24 minus 2"], c242)
+               and rd["untrained within 0.1 of 0.5 at every density"] is within)
+    _cl_quote("6.2 X07: survival at 2 pellets", s2, "0.726 [0.655, 0.796]")
+    _cl_quote("6.2 X07: survival minus untrained at 2 pellets", marg, "+0.197 [+0.117, +0.278]")
+    _cl_quote("6.2 X07: survival 24 minus 2", c242, "+0.007 [-0.008, +0.022]")
+    worst = max(udev, key=udev.get)
+    check_true("6.2 X07: the largest untrained deviation is at 48 pellets", worst == 48 and within)
+    _cl_quote("6.2 X07: largest untrained deviation from 0.5", udev[worst], "0.070")
+    for n, txt, ptxt in ((2, "0.726 / 0.528 / 0.660", "0.574"), (6, "0.729 / 0.527 / 0.647", "0.574"),
+                         (12, "0.722 / 0.544 / 0.649", "0.584"), (24, "0.733 / 0.523 / 0.636", "0.589"),
+                         (48, "0.727 / 0.570 / 0.635", "0.608"), (96, "0.722 / 0.546 / 0.620", "0.619")):
+        _cl_quote(f"6.2 X07: dose curve at {n}, survival / untrained / input reference",
+                  [float(np.mean(V[n, k])) for k in ("survival", "untrained", "input_reference")], txt)
+        _cl_quote(f"6.2 X07: dose curve at {n}, predictor", float(np.mean(V[n, "predictor"])), ptxt)
+    lab = ("pellet-directed" if s2[0] < BAR and c242[0] >= 0.05 and c242[1] > 0 and within else
+           "locomotion-carried" if s2[0] >= BAR and marg[0] >= 0.05 and (marg[1] > 0 or marg[2] < 0) else
+           "not separated")
+    check_true("6.2 X07: the stored label is the recomputed one", rd["label"] == lab)
+    _cl_label("X07", lab, "locomotion-carried")
+
+
+def closing_x08() -> None:
+    """X08: budget-curve dynamics, recomputed from the committed inputs (agent-free)."""
+    if not (_artifact_present(_cl_path("budget_curve_dynamics", "corrected_runs.json"))
+            and _artifact_present(_cl_path("budget_curve.json"))):
+        return
+    import read_budget_curve_dynamics as _rb
+    st = _cl_load("budget_curve_dynamics", "corrected_runs.json")
+    curve = _cl_load("budget_curve.json")
+    quotes = {"wm": ("+0.090 [-0.026, +0.195]", "+0.064 [+0.047, +0.080]",
+                     {"100->200": "+0.132 [+0.100, +0.164]", "200->300": "+0.053 [+0.005, +0.100]",
+                      "300->450": "+0.088 [+0.054, +0.122]"}, "tracks budget"),
+              "nowm": ("+0.177 [+0.001, +0.316]", "+0.021 [+0.002, +0.049]",
+                       {"100->200": "+0.037 [-0.006, +0.079]", "200->300": "+0.048 [-0.003, +0.100]",
+                        "300->450": "+0.072 [+0.012, +0.132]"}, "both")}
+    for r, (rq, uq, segq, labq) in quotes.items():
+        run = _cl_path("corrected_runs", f"corrected_l3_h8_{r}")
+        if not _artifact_present(os.path.join(run, "cells")):
+            continue
+        try:
+            lab_ = _rb.series_label(curve, run)
+            _, by_u = _rb.load_cells(run)
+            m = _rb.matrices(curve, lab_, by_u)
+        except SystemExit as exc:
+            check_true(f"6.2 X08: {r} input gate, the committed target and return arrays equal the cells ({exc})", False)
+            continue
+        check_true(f"6.2 X08: {r} input gate, the committed target and return arrays equal the cells bit for bit", True)
+        T, R, L = m["target"], m["return"], m["trained_len"]
+        U = np.tile(np.asarray(_rb.BUDGETS, float), (T.shape[0], 1))
+        sl = _rb.slopes_with_interval(T, R, U)
+        seg = {k: _rb.segments(M) for k, M in (("target", T), ("return", R), ("trained_len", L))}
+        S = st["runs"][r]
+        check_true(f"6.2 X08: {r} stored matrices, segments and partial slopes equal the recomputation",
+                   S["matrices"] == {"target": T.tolist(), "return": R.tolist(), "trained_len": L.tolist()}
+                   and S["segments"] == seg and S["partial_slopes"] == sl)
+        _cl_quote(f"6.2 X08: {r} partial slope of target on return", (sl["return"]["slope"], *sl["return"]["boot90"]), rq)
+        _cl_quote(f"6.2 X08: {r} partial slope of target per 100 updates",
+                  (sl["updates_per_100"]["slope"], *sl["updates_per_100"]["boot90"]), uq)
+        for k, txt in segq.items():
+            _cl_quote(f"6.2 X08: {r} target segment {k}", (seg["target"][k]["mean"], *seg["target"][k]["t90"]), txt)
+        lab = _rb.label(sl)
+        check_true(f"6.2 X08: {r} stored label is the recomputed one", S["label"] == lab)
+        _cl_label(f"X08 {r}", lab, labq)
+        if r == "nowm":
+            _cl_quote("6.2 X08: nowm return-slope lower bound, 4 dp", sl["return"]["boot90"][0], "+0.0005")
+            f = "100->200"
+            for k, txt in (("return", "-0.012 [-0.121, +0.096]"), ("trained_len", "+0.053 [-0.827, +0.933]")):
+                _cl_quote(f"6.2 X08: nowm {k} segment {f}", (seg[k][f]["mean"], *seg[k][f]["t90"]), txt)
+            inc = lambda iv: iv[0] <= 0.0 <= iv[1]  # noqa: E731
+            moves = (not inc(seg["target"][f]["t90"]) and inc(seg["return"][f]["t90"])
+                     and inc(seg["trained_len"][f]["t90"]))
+            check_true("6.2 X08: the stored C2 segment reading is the recomputed one",
+                       S[f"decodability moves without return ({f})"] is moves)
+            _cl_label("X08 C2 100-to-200 segment", "met" if moves else "NOT met", "NOT met")
+
+
+_CL_X09 = (  # reading, BF01 at 0.707 / 0.5 / 1.0 (3 significant digits), label at 0.707
+    ("1 C1 L0 registered pair", "0.133", "0.0936", "0.188", "evidence against the band"),
+    ("2 eight independent L0 pairs (signed)", "224", "222", "241", "evidence for the band"),
+    ("2 eight independent L0 pairs (folded", "3.73", "3.02", "4.59", "evidence for the band"),
+    ("3 B1 drift-0", "0.747", "0.612", "0.921", "indeterminate"),
+    ("3 B2 drift-0", "4.99", "4.12", "6.10", "evidence for the band"),
+    ("4 sweep C stored contrast", "89.1", "84.0", "102", "evidence for the band"),
+    ("4 sweep C follow-up contrast", "38.4", "35.7", "44.1", "evidence for the band"),
+    ("5 corrected L1 survival minus untrained", "4.13", "3.50", "5.01", "evidence for the band"),
+    ("5 corrected L1 survival minus predictor", "21.2", "19.2", "24.4", "evidence for the band"))
+
+
+def closing_x09() -> None:
+    """X09: Bayes factors with an interval null, recomputed from the committed inputs (agent-free)."""
+    if not _artifact_present(_cl_path("bayes_factors", "interval_null.json")):
+        return
+    import build_bayes_factors as _bb
+    docs = {}
+    for key, rel in _bb.INPUTS.items():
+        parts = rel.split("/")[1:]
+        if _artifact_present(_cl_path(*parts)):
+            docs[key] = _cl_load(*parts)
+    if len(docs) < len(_bb.INPUTS):
+        return
+    st = _cl_load("bayes_factors", "interval_null.json")["rows"]
+    try:
+        rows, fails = _bb.readings(docs)
+    except (ValueError, KeyError, StopIteration) as exc:
+        check_true(f"6.2 X09: the readings rebuild from the committed inputs ({exc})", False)
+        return
+    check_true("6.2 X09: every derived input array reproduces its artifact's stored summary", fails == [])
+    check_true("6.2 X09: nine rows, in the stored order",
+               len(rows) == len(st) == len(_CL_X09) and [r["reading"] for r in rows] == [r["reading"] for r in st])
+    for (name, b707, b05, b10, lab), r, s in zip(_CL_X09, rows, st):
+        check_true(f"6.2 X09: {name}: stored per-seed input, mean and every BF01 equal the recomputation",
+                   r["reading"].startswith(name) and r["per_seed"] == s["per_seed"] and _same(r["mean"], s["mean"])
+                   and all(_same(r["bf01_interval"][k], s["bf01_interval"][k], 1e-9 * max(1.0, abs(s["bf01_interval"][k])))
+                           for k in ("0.5", "0.707", "1")))
+        got = (_cl_sig3(r["bf01_interval"]["0.707"]), _cl_sig3(r["bf01_interval"]["0.5"]), _cl_sig3(r["bf01_interval"]["1"]))
+        check_true(f"6.2 X09: {name}: BF01 to 3 significant digits reads {b707} (0.707), {b05} / {b10} (0.5 / 1.0)",
+                   got == (b707, b05, b10))
+        bf = r["bf01_interval"]["0.707"]
+        rec = "evidence for the band" if bf > 3 else "evidence against the band" if bf < 1 / 3 else "indeterminate"
+        check_true(f"6.2 X09: {name}: stored label is the recomputed one", s["label_0.707"] == rec)
+        _cl_label(f"X09 {name}", rec, lab)
+    _cl_quote("6.2 X09: reading means", [r["mean"] for r in rows],
+              "0.559 0.493 0.537 0.561 0.536 +0.009 -0.017 +0.037 +0.026")
+
+
+def _h76_steepness(_sw: dict, _s13: str) -> None:
+    """H76 (runbook 6.2): the committed gate-1 steepness sweep and the FINDINGS section-13 note."""
+    check_true("13 sweep: no cell reaches the 0.005 margin", max(c["gap"] for c in _sw["cells"]) < 0.005)
+    check_true("13 sweep note quotes the best raw gap", f"{_sw['best_by_gap']['gap']:.5f}" in _s13 and f"{_sw['best_by_gap']['ratio_to_baseline']:.1f} times" in _s13)
+    check_true("13 sweep note quotes the best normalized cell", f"{_sw['best_by_norm_gap']['norm_gap']:.4f}" in _s13)
+    _pc = next(c for c in _sw["cells"] if c["name"] == "r0.25_h30")
+    check_true("13 sweep note quotes the pilot cell's normalized gap", f"{_pc['norm_gap']:.4f}" in _s13)
+    check_true("13 sweep note names the committed grid and its seeds", "artifacts/expC/gate1_steepness_sweep.json" in _s13 and "7100-7105" in _s13)
+
+
+CLOSING_BLOCKS = (closing_g47, closing_b8, closing_b7, closing_b3, closing_g02, closing_b1, closing_b4,
+                  closing_b5, closing_c1, closing_g57, closing_g01, closing_g04, closing_b2, closing_b6,
+                  closing_g07, closing_g03, closing_h31, closing_h53, closing_x03, closing_x07, closing_x08,
+                  closing_x09)
+
+
+def closing_checks() -> None:
+    """Every Stage 6.2 block, in the readings sheet's order (H01 has its own block in main)."""
+    print("\n[6.2] closing-pass results promoted on 2026-10-19")
+    for block in CLOSING_BLOCKS:
+        block()
 
 
 # ---- The per-value rerun at 4b6e1f3 (CORRECTIONS 2026-10-11) -------------------------------
