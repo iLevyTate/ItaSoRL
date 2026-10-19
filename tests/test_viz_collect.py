@@ -1,7 +1,8 @@
 """Tests for viz/collect.py pure helpers (no agent bundle, no surrogate training).
 
-The anonymized supplement ships viz/collect.py but not viz/player/beats.json, so outside a git
-checkout the check on the committed beats skips; in a checkout a missing file still fails.
+The anonymized supplement ships viz/collect.py but not viz/player/beats.json or viz/data/scene.json,
+so outside a git checkout the checks on the committed beats and scene skip; in a checkout a missing
+file still fails.
 """
 import importlib.util
 import json
@@ -122,3 +123,26 @@ def test_build_scene_rejects_short_traj():
     r = {"pts": [[0.5, 0.5, 0.0, 0.8]] * 100, "pellets_t": [[[0.1, 0.2]]] * 100}
     with pytest.raises(AssertionError):
         vc.build_scene({"source": "collect.py"}, 8, np.zeros(64), np.zeros(64), r, r)
+
+
+def test_build_scene_adds_the_untrained_walk():
+    r = {"pts": [[0.5, 0.5, 0.0, 0.8]] * 900, "pellets_t": [[[0.1, 0.2]]] * 900}
+    ru = {"pts": [[0.5, 0.5, 0.0, 0.8]] * 47, "pellets_t": [[[0.1, 0.2]]] * 47, "n": 47}
+    scene = vc.build_scene({"source": "collect.py"}, 8, np.zeros(64), np.zeros(64), r, r, ru=ru)
+    assert len(scene["trajs"]["untr"]) == 47 and scene["meta"]["n_untr"] == 47
+    assert len(scene["pellets_t"]["untr"]) == 47
+
+
+def test_committed_scene_carries_the_untrained_walk_the_52_beat_draws():
+    scene_path = ROOT / "viz" / "data" / "scene.json"
+    beats_path = ROOT / "viz" / "player" / "beats.json"
+    if not (scene_path.exists() and beats_path.exists()) and not _in_git_checkout():
+        pytest.skip("viz/data/scene.json and viz/player/beats.json are not shipped in the anonymized supplement")
+    scene = json.loads(scene_path.read_text(encoding="utf-8"))
+    beats = json.loads(beats_path.read_text(encoding="utf-8"))
+    nocare = next(b for b in beats["beats"] if b["id"] == "nocare")
+    w = nocare["world"]
+    assert w["traj"] == "untr" and "untr" in scene["trajs"]
+    # the slowed window must end before the untrained walk does (no death on screen)
+    span = w["worldT0"] + (nocare["t1"] - nocare["t0"]) * w["clock"]
+    assert span < len(scene["trajs"]["untr"]) * scene["step_ms"]

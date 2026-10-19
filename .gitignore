@@ -232,6 +232,8 @@ viz/out/
 !/assets/film/detectable-all-along-poster.jpg
 !/assets/film/two-minds-web.mp4
 !/assets/film/two-minds-poster.jpg
+# Captions for the voiced film's web encode.
+!/assets/film/detectable-all-along-web.vtt
 # The four July demo loops (loop-*.mp4) were retired from the site on 2026-10-10 and are
 # no longer allowlisted; assets/film/README.md says why.
 
