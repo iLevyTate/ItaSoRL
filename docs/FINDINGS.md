@@ -102,6 +102,9 @@ reads **0.613** [0.552, 0.675], not met; the decoder adds **+0.120** [+0.065, +0
 registered auxiliary rule asks `C1` to meet its primary rule, so it is NOT MET as registered; the
 lead holds on the decodability clauses (added 2026-10-10, 17.4). The correction itself moved the
 two drift-0.45 readings by +0.003 and +0.012.
+*(Note 2026-10-19: the bar clause conditions on the one evaluation-world draw all seeds share;
+carried through C1's own between-draw spread its lower bound would be 0.618 (17.5.1, note of
+2026-10-19).)*
 
 What the corrected agents show about that result:
 
@@ -524,6 +527,8 @@ indistinguishable.
   baselines), and a nonlinear probe also finds world identity at chance while
   still reading the positive control. The null is robust to objective horizon,
   objective engagement, and probe nonlinearity.
+  *(Note 2026-10-19: "at chance" is read as "near 0.5, below the criterion", with no
+  equivalence test at three seeds; 3.1, the note of the same date.)*
 
 A null from small runs does not prove incidental detection is impossible; it shows
 it does not happen *for free* under natural self-supervised objectives, and that
@@ -827,6 +832,8 @@ the initial run.
   oracle reads the same artifact at ≈ 0.99). Drag-ceiling probes read ≈ 0.75 while
   identity-target probes read ≈ 0.52: the state tracks *dynamics*, while the
   identity target does not meet the encoding criterion.
+  *(Note 2026-10-19: "at chance" is read as "near 0.5, below the criterion", with no
+  equivalence test at three seeds; 3.1, the note of the same date.)*
 - **Verdict (pre-registered decision matrix): the strong hypothesis is not
   supported.** *Detectability ≫ incidental encoding* survives the move to survival
   pressure and an independent 4-hour full-scale replication. Treat the initial 0.595
@@ -4524,6 +4531,9 @@ populations.
    0.001 (wording corrected 2026-10-19), so coherence is not shown to be the property read. The
    drag and the learned law share a deviation that depends on the agent's own velocity; no
    mechanism is claimed.)*
+   *(Note 2026-10-19: the drag is read as a margin over an untrained arm whose floor (0.612)
+   sits outside tolerance (17.9), and the jitter readings hold for the tested agents, worlds
+   and jitter draws (22.3).)*
 7. **The evolutionary result is uninformative, not a null** (revised 2026-10-10). Both
    readouts are flat, the speed positive control fails, and the preregistration interprets
    no contrast unless every gate passes (13.F; gate 1 fails only against an unratified draft
@@ -4792,7 +4802,8 @@ limitation that no comparator-trained run supports it stays.
    longer-history sensory information. Read the item as "survival is not required for the
    controlled decodability reading of the pellet-seeking, death-off agents" in that sense. The
    manuscript revision of 2026-10-19 (full-review pass) words it so; `docs/CORRECTIONS.md`,
-   2026-10-19.)*2. **Removing death changes nothing measurable** in the survival run (18.2). The stakes question
+   2026-10-19.)*
+2. **Removing death changes nothing measurable** in the survival run (18.2). The stakes question
    itself stays open, with no scarce rung.
 3. **The decoded direction is not used under the tested nudge** (18.3), in both runs and in `C1`.
    *(Note 2026-10-14: read this as the registered nudge not showing an above-sham behavioral
@@ -4806,7 +4817,7 @@ limitation that no comparator-trained run supports it stays.
    episodes read above the scripted sequence and below the trained arm" (18.4, the note of the
    same date). The reading depends on the stream the trained policy generates, and on identical
    streams a trained trunk still reads more, so the walk and the trained trunk both carry it.
-   The manuscript revision of 2026-10-19 (full-review pass); `docs/CORRECTIONS.md`,
+   The manuscript revision of 2026-10-19 (full-review pass) words it so; `docs/CORRECTIONS.md`,
    2026-10-19.)*
 5. **The white-jitter question stays open** (18.6). The run reads low, but its L0 gate fails, so it
    is not evidence.
@@ -6030,7 +6041,7 @@ carries the reading of the first draw's label, a conditional result under the la
 The second draw adds readings on new worlds, but the procedure it applies was fixed after the
 first draw's raw outcomes and untrained diagnostics, so it is not a prospective test of that
 rule and does not make the rule independent of them. The manuscript revision of 2026-10-19
-(full-review pass); `docs/CORRECTIONS.md`, 2026-10-19.)*
+(full-review pass) words it so; `docs/CORRECTIONS.md`, 2026-10-19.)*
 
 *(Note 2026-10-19: Bayes factors with an interval null annotate the drift-0 pooled readings of
 the first note above (`docs/specs/2026-10-17-extension-readouts-design.md`, section "X09. Bayes

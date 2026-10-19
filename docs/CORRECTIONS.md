@@ -1693,9 +1693,10 @@ notes of 2026-10-19: the L2 target reads near 0.5, below the criterion; the walk
 trunk both carry the L3 reading; `B2`'s 0.780 is a conditional result under the later procedure,
 neither a confirmation under the original complete rule nor independence from nonlinear or
 longer-history sensory information, and the second draw is not a prospective test of it; the
-erasure and nudge use tests are limited by partial erasure, by scoring only common survivors
-(470 of 640 attempted episodes kept in the erasure readout) and by a fixed five-measure behavior
-endpoint, so absence of use is not shown. `docs/PREREGISTRATION_L3.md` section 12 gains two
+erasure and nudge use tests are limited by partial erasure, by scoring the behavior gap on common
+survivors only (470 of 640 attempted episodes kept in the erasure readout, whose
+every-attempted-episode return contrast was added after its first run) and by a fixed
+five-measure behavior endpoint, so absence of use is not shown. `docs/PREREGISTRATION_L3.md` section 12 gains two
 entries: one reclassifies the 2026-10-06 surrogate entry as a deviation, and one reads the
 sensory-control label and the frozen stakes wording as conditional results. The README states
 the drag as a margin over an untrained floor (0.612) outside tolerance, holds the jitter readings
@@ -1703,7 +1704,22 @@ to the tested agents, worlds and jitter draws, places 0.733 on the one evaluatio
 seeds share, and reads the auxiliary contrast as a comparison of the tested regimes with the
 auxiliary rule unmet and general necessity not established. `docs/LEARNING.md` gives the 0.780
 reading with the same conditional status, and the site template qualifies its jitter sentence
-as the README does.
+as the README does. A second pass of the same date (full-review audit) carries the remaining
+qualifiers to the other live copies. The README opening places 73% and 61% on the one pair of
+evaluation worlds all seeds share, and its results table adds the draw and the tested-regime
+reading of the auxiliary lead. The site template adds the shared draw to the hero caption, the
+Experiment B card and the film caveat, reads the auxiliary lead on that card as a comparison of
+the tested regimes that does not establish general necessity, and retitles its boundary-check
+entry "the predictor leads at 300 updates". `docs/LEARNING.md` places the Act 10 readings on the
+shared pair, reads the 300-update auxiliary result as a comparison of the setups tested with its
+registered rule unmet, holds the jitter sentence to the tested worlds and jitter draws, scopes
+the erasure sentence to the 470 of 640 episodes that survive every rollout, and narrows the
+survival caveat to the controlled reading of the pellet creatures with death off.
+`docs/PAPER_OUTLINE.md` gives the shared draw in contribution (c) and section 4.3 (with the
+0.618 lower bound under the between-draw spread), the auxiliary qualifiers in section 4.4 and a
+Known-gaps entry. FINDINGS gains notes of the same date on the TL;DR headline (shared draw),
+on two L2 "at chance" copies (sections 5 and 9) and on 17.12 item 6 (the drag's floor and the
+jitter scope), and 18.7 item 2 is restored as its own list item.
 
 **What this does not change.** No number, label, rule or verdict. The frozen labels
 ("sensory-independent under matched worlds", **not used under removal**, the frozen stakes

@@ -646,7 +646,8 @@ to the bit. One honesty check did move. With both worlds real, the fixed creatur
 evaluation worlds every seed shares. Rescored on eight other pairs of real worlds, the
 same creatures average 0.493. The gate is still reported as open, as the registered
 procedure requires, so the rule set in advance is not met as a whole. Its other parts, the 0.65 bar
-with its interval and both 0.05 margins, are met.
+with its interval and both 0.05 margins, are met. The 0.733 and the 0.613, like the 0.559, are
+readings on the one pair of evaluation worlds every seed shares.
 
 Then the fixed creatures went through four new tests, and each one narrowed the story.
 
@@ -732,9 +733,9 @@ Surprise tracks how predictable a stream is, not which law the creature grew up 
 
 Is it the consistency of the error? Velocity jitter that stays correlated over time was matched
 to the plain jitter three ways: same one-step size, same long-run offset, and same drift over 24
-steps. No setting reaches the bar, and correlation did not raise the reading; with the 24-step
-drift matched exactly at the two most correlated settings and within 1.1 percent at the
-uncorrelated one, the contrast also misses the equivalence band by 0.001. The drag of Act
+steps. No setting reaches the bar, and on the tested worlds and jitter draws correlation did not
+raise the reading; with the 24-step drift matched exactly at the two most correlated settings
+and within 1.1 percent at the uncorrelated one, the contrast also misses the equivalence band by 0.001. The drag of Act
 10 and the forger still share one thing the jitter lacks: how hard each pushes depends on how
 fast the body already moves. That stays a lead, not a measured mechanism (FINDINGS 22.3).
 
@@ -742,8 +743,8 @@ Four readouts on the saved creatures of Act 10 close the month (FINDINGS 23). Th
 direction is faint in the state's own geometry, in trained and untrained brains alike (23.1).
 No named nearby feature of the creature's own world is kept beyond what a summary of its
 senses explains (23.2). Removing the decoded direction while the creature acts changes its
-behavior no more than a sham removal, but a probe refit on the erased states still reads
-0.747, so the removal speaks to what that one direction carries, not to what the state
+behavior no more than a sham removal on the episodes that survive every rollout (470 of 640),
+but a probe refit on the erased states still reads 0.747, so the removal speaks to what that one direction carries, not to what the state
 carries (23.3). And across training snapshots, the signal left after a linear control on the
 senses grows, by +0.224 with the imagination job and +0.104 without it, while the probe direction
 itself reorganizes (23.4).
@@ -753,10 +754,12 @@ itself reorganizes (23.4).
 - At L3 the registered rule is not met as a whole: the honesty check with both
   worlds real stays open on the registered pair of evaluation worlds (0.559). The
   0.65 bar and both 0.05 margins are met (Act 10).
-- At 300 updates the positive needs both jobs: with the fixed trainer, survival alone
-  reads 0.613 and both together 0.733 (Act 10). A replay across the two runs puts part
-  of the imagination job's effect in the brain and part in where the creature goes, in
-  shares that depend on the order of the exchange.
+- At 300 updates only the arm with both jobs met the decodability clauses, a comparison
+  of the setups tested, not proof that the imagination job is needed in general; the
+  registered rule for it is not met because the main run's rule is not met: with the
+  fixed trainer, survival alone reads 0.613 and both together 0.733 (Act 10). A replay
+  across the two runs puts part of the imagination job's effect in the brain and part
+  in where the creature goes, in shares that depend on the order of the exchange.
   With more practice, survival alone reaches 0.685.
 - The survival creature's lead over the prediction-only creature disappears when both
   read the same senses (Act 10), so the project no longer calls the signal
@@ -768,7 +771,8 @@ itself reorganizes (23.4).
 - At L1 the creature's state stays under the bar: 0.551 on the fixed trainer, beside
   0.533 as first recorded on the historical one (Act 12; Act 1 correction). The interval
   excludes chance, so this is a reading under the bar, not a demonstrated absence.
-- Survival is not required for a decodable walk: the pellet job with death off reads 0.796,
+- Survival is not required for the controlled reading of the pellet creatures with death
+  off: the pellet job with death off reads 0.796,
   though its full rule was never established, and the matched-world confirmation is
   uninformative because an untrained network already reads 0.614 there (Act 11). Under a
   sensory control written after those results were known, the pellet creatures keep 0.780.
