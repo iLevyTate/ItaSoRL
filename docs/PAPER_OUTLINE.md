@@ -225,6 +225,16 @@ is the standard deviation over seeds.
 
 ## Known gaps
 
+- 2026-10-19 (review response 1): the manuscript's section 4.3 gains a registration timeline
+  (the tuning run before the first registration, the engagement margin set after the first
+  confirmatory run had been read, the executed MLP surrogate first committed after the L3
+  registration that describes a recurrent one, the gate-0 handicap sigma_d frozen at 0.05 and
+  re-frozen at 0.02 after a retracted organism run had been read, the historical sensory
+  control's rule committed with its result); its Appendix D.1 writes the survival reward, the
+  normalizations, the nudge score and the erasure score as equations; L2 wording is "below the
+  criterion"; the trajectory attribution is dependence plus a trained-trunk advantage with an
+  order-dependent split; in-sample and biased estimates are no longer called bounds. No row's
+  number or status changes. `docs/CORRECTIONS.md`, 2026-10-19.
 - 2026-10-19: rows 4 to 7 gain the Experiment B rerun with correct action timing (RESTORE) beside
   the stored values, and section 4.2's 2026-10-16 note no longer says the effect is unmeasured;
   row 49 and section 4.7 gain the world-grouped pooled readings (DIFFERS; the claim holds); row 51

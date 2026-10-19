@@ -170,6 +170,10 @@ a different fingerprint, with its own gate 0 and its own provenance.
 *(2026-10-10: the held-out sample in this entry overlapped G's training episodes; see the
 2026-10-10 entry on the surrogate diagnostics below.)*
 
+*(Follow-up 2026-10-19: the MLP `train_g_motion` was first committed in `489a772` (2026-07-10,
+14:00 UTC), after the L3 registration `0217263` (10:23 UTC the same day) and before the first L3
+organism run (`ced27f4`, 21:23 UTC). See the 2026-10-19 entry on registration timing below.)*
+
 ## 2026-10-06: what the bootstrap correction did to the primary comparisons
 
 **Runs.** `C1` and `C2` (`docs/specs/2026-10-06-corrected-trainer-confirmation-design.md`)
@@ -1607,3 +1611,57 @@ names the artifact and the label, and section 12 carries the result entry.
 
 **What this does not change.** No stored value, label or verdict. X01 stopped at its integrity
 gate and reported nothing, so it has no line here.
+
+## 2026-10-19: the manuscript said the rule was registered before any survival-trained run
+
+**What was wrong.** The manuscript's abstract, its section 4.2 and its bar-and-margin
+sensitivity paragraph said the 0.65 bar and the 0.05 margins were fixed before any
+survival-trained run. A drift-0.45 survival de-risk run of B-v2, whose outputs were never
+committed, tuned the trainer before the first registration, `51e086e` (2026-06-28, 18:48 UTC),
+and the bar and margins first appear in that commit (`git grep 0.65 51e086e^` finds nothing).
+The engagement margin (`ENGAGE_MARGIN = 0.15`, `LIFE_TOL = 2.0`) was set at `5c3aca1` (22:13
+UTC) after the first confirmatory B-v2 result, `07ef113` (21:18 UTC), had been read and the GAE
+fix `679fee6` had landed, and before the rerun `83e9297` (2026-06-29, 00:44 UTC); the
+manuscript's appendix said it was fixed in the pilot and never swept. The L3 registration,
+`0217263` (2026-07-10, 10:23 UTC), describes a recurrent surrogate trained with held-out early
+stopping, and the MLP `train_g_motion` that every L3 result used was first committed in
+`489a772` (14:00 UTC the same day), before the first L3 organism run. Gate 0 was frozen at a
+detector handicap of sigma_d = 0.05 in `9e64ffa` (16:32 UTC); the first L3 organism run was
+recorded in `ced27f4` (21:23 UTC), traced to a world-parameter defect and retracted, and sigma_d
+was re-frozen at 0.02 in `6150a15` (22:42 UTC). The manuscript said sigma_d was frozen before the
+next organism run and did not say that an organism result had been read first. It also called
+the historical sensory-echo control a pre-registered rule in two places, although its rule was
+first committed with its result (2026-10-10 entry above).
+
+**Change.** The manuscript revision of 2026-10-19 carries a dated registration timeline in its
+section 4.3, built from these commits, and says the bar and margins were registered after a
+survival tuning run and before the first confirmatory run. It says the engagement margin was
+set after the first confirmatory run had been read, that the executed MLP was first committed
+after the L3 registration, and that sigma_d was re-frozen after the retracted organism run. The
+historical sensory control's rule is called a rule committed with its result. FINDINGS 11 note
+2, `docs/PREREGISTRATION.md` section 12 and `docs/PREREGISTRATION_L3.md` section 12 carry dated
+notes of 2026-10-19.
+
+**What this does not change.** No number, rule, gate or verdict. The registered texts stay as
+written.
+
+## 2026-10-19: in-sample and biased estimates were called bounds
+
+**What was wrong.** The development readout's frozen-300 transfer at 450 updates (0.785 on
+`C1`, 0.689 on `C2`) was called an upper bound, and the ungrouped surprise AUROCs (0.846 for
+`C1`, 0.912 for `T-touch`, 0.848 for `S-immortal`) lower bounds. An in-sample estimate is
+optimistic, and an estimator that splits same-world twins across folds is biased low in
+expectation; neither makes a stored value a numerical bound. On `C1` the grouped minus
+ungrouped surprise contrast is -0.0002 [-0.008, +0.007], slightly negative with an interval
+that includes zero. The erasure readout was said to bound what the decoded direction carries,
+which a removal and a refit do not establish.
+
+**Change.** The manuscript revision of 2026-10-19 calls the transfer values in-sample,
+optimistic estimates and the surprise values values from a biased estimator, and lets the
+held-out transfer (FINDINGS 23.4, 2026-10-19 note) and the twin-grouped rescores (FINDINGS
+18.3, 2026-10-19 note) carry the inference. The erasure sentence says the removal speaks to
+what the direction carries, not to what the state carries. FINDINGS 18.3, 23.3 and 23.4 gain
+dated notes, and the results manifest's surprise note drops the word. The 2026-10-16 entries
+above keep their wording.
+
+**What this does not change.** No stored value or label. The partial-erasure label stands.

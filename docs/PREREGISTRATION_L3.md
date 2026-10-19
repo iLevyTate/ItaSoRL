@@ -1921,6 +1921,22 @@ Rigor carried from the B-v3 audit (2026-07-10):
   prediction (gate E passes with k between 4 and 10) was not borne out. The stored rank-two reading
   stands as recorded.
 
+- **2026-10-19 - TIMING OF THE EXECUTED SURROGATE AND OF THE GATE-0 HANDICAP, STATED IN ONE PLACE
+  (a record; the entries above stay as written and no rule, number or verdict changes).** This
+  registration was committed at `0217263` (2026-07-10, 10:23 UTC). The MLP
+  `itasorl.surrogate_l3.train_g_motion` that every L3 result used, in place of the section 9
+  recurrent predictor (2026-10-06 entry above), was first committed in `489a772` (14:00 UTC the
+  same day), after this registration and before the first organism run. Section 9 names hidden
+  size as the only free knob and no detector-side handicap. Gate 0 was frozen at sigma_d = 0.05,
+  hidden 8, oracle 0.890 in `9e64ffa` (16:32 UTC). The first organism run (n = 3) was recorded in
+  `ced27f4` (21:23 UTC), then traced to the world-parameters bug and retracted, and gate 0 was
+  re-frozen at sigma_d = 0.02, oracle 0.928, in `6150a15` (22:42 UTC), before the corrected
+  organism run. The sigma_d that every later L3 result uses was therefore frozen after an
+  organism result had been read. Separately, the X07 result entry above says "the walk's input
+  carries much of the reading"; it is read as "the reading depends on the walk's input", since
+  the input reference is a separate reading and not a share. The manuscript's section 4.3
+  tabulates these dates; `docs/CORRECTIONS.md`, 2026-10-19.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

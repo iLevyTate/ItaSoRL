@@ -190,6 +190,17 @@ sysid-aux CEILING (PR #14) as the capacity reference.
   `75c49a2` (2026-07-20) changed one spec path from `docs/superpowers/specs/` to `docs/specs/`
   in that entry. Neither changed a number, a rule, a gate or a verdict.
 
+- **2026-10-19 - THE IDENTIFIABILITY PREMISE OF SECTION 1, READ AGAINST THE ORACLE (a record;
+  section 1 stays as frozen and no rule, number or verdict changes).** Section 1 item 1 says an
+  AR(1) wander "is not a persistent per-episode quantity, so a single trajectory does not
+  identify a stable 'world'". That holds for the drag value, which under `ar1` changes within an
+  episode. The generative condition, authentic or surrogate, is fixed per episode, and the
+  privileged residual oracle, which scores one row per branch, classifies the `ar1` condition at
+  drift 0.45 from single trajectories at 1.000 at detector noise 0.001 and below (FINDINGS 15).
+  What the wander lacks is a constant drag value, and `regime` supplies one. The B-v2 reading is
+  below the criterion; equivalence to chance was not shown. FINDINGS 7.1 item 1 carries the same
+  note.
+
 ## 13. How to run
 
     # confirmatory (3 seeds), regime mode, dumping states for offline re-probing:
