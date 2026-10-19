@@ -112,7 +112,8 @@ What the corrected agents show about that result:
   0.55 to 0.58 (17.6). The survival-over-predictor margin is a difference between training regimes, not of
   objective at matched input; "survival-specific" is withdrawn.
 - **Budget.** Decodability rises with training. Without the decoder the arm reaches 0.685
-  at 450 updates; at that budget the decoder arm reads 0.821 at about equal return (17.10).
+  at 450 updates; at that budget the decoder arm reads 0.821, and the return interval is too
+  wide to show the two arms forage equally (17.10).
 - **Controls.** After the per-timestep behavior control 0.723 remains; the nonlinear control
   over observations, actions, and behavior, which fits best in the fixed-penalty battery,
   leaves 0.620, under the bar.
@@ -181,7 +182,7 @@ substrate). Detection is measured against a **surrogate ladder**:
 | L0 | Identical re-implementation (control, must be at chance) | tested |
 | L1 | Observation discretization (a lattice / quantization tell) | tested (survival did not meet the encoding criterion registered for L2 (H_B2), applied unchanged, at in-band Δ=0.023: 0.551 [0.531, 0.570] on the corrected trainer, 0 of 10 seeds at 0.65 (section 22.1); 0.533 as first recorded on the historical trainer (section 14.7)) |
 | L2 | Rollout drift (a slowly drifting dynamics coefficient) | tested |
-| L3 | Learned world-model surrogate (a generative fingerprint) | tested. Corrected trainer (section 17): `C1` **0.733** [0.669, 0.797] met the decodability clauses, and the L0 authentic-versus-authentic gate is **open** on the registered world pair (0.559, TOST p 0.939) while equivalent to chance on the pooled test across eight independent pairs (TOST over pairs p 0.022; signed pair means; folded about 0.5 the same eight draws give p = 0.129, not equivalent), with the gate accepting on two of the eight draws individually (17.5); the behavior and sensory control that fits best in the fixed-penalty battery leaves **0.620**, under the bar (17.8 and its 2026-10-16 note); at matched input a prediction-trained trunk reads the same streams within about 0.01 of the survival trunk (17.6); the common-garden tail is carried mostly by the prefix's physical footprint, and retention under identical input is not shown (17.7). Historical trainer, as recorded: (positive at the registered 300-update budget with the next-observation auxiliary, n=10; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
+| L3 | Learned world-model surrogate (a generative fingerprint) | tested. Corrected trainer (section 17): `C1` **0.733** [0.669, 0.797] met the decodability clauses, and the L0 authentic-versus-authentic gate is **open** on the registered world pair (0.559, TOST p 0.939), while across eight independent pairs a test on the signed pair means accepts equivalence to chance (TOST over pairs p 0.022; folded about 0.5 the same eight draws give p = 0.129, not equivalent), with the gate accepting on two of the eight draws individually (17.5); the behavior and sensory control that fits best in the fixed-penalty battery leaves **0.620**, under the bar (17.8 and its 2026-10-16 note); at matched input a prediction-trained trunk reads the same streams within about 0.01 of the survival trunk (17.6); the common-garden tail is carried mostly by the prefix's physical footprint, and retention under identical input is not shown (17.7). Historical trainer, as recorded: (positive at the registered 300-update budget with the next-observation auxiliary, n=10; reward/survivorship-controlled; 0.726 remains after the four-channel behavior control; held-out probe: capacity-variant transfer positive (0.773; same recipe and data, see the 10.6 scope note); cross-recipe probe carries the generalization claim (different surrogate family, 0.684, rule passes); the re-scored common-garden control passes the frozen rule on both directions (forward 0.666, reverse 0.684), so prefix condition remains decodable after restoring authentic dynamics (section 10.6.1); section 10) |
 | L4 | Adversarially-hardened surrogate | not started |
 
 Three experiments were planned. This cycle completed Experiment A for L1 and L2
@@ -3623,6 +3624,12 @@ claim that the drift-0.45 reading reflects the dynamics rather than the evaluati
 sample rests on the L0 gate, which is open; what the agent-based L0 audit shows about it is
 in section 17.5.
 
+*(Note 2026-10-19: read post hoc as a one-sided t test of a mean above 0.65 at 0.05, the bar
+clause gives p = 0.021 and fails Holm's step-down procedure, adjusted 0.167 among the 12 bar
+clauses of the corrected and successor trainers and 0.334 among all 23
+(`scripts/build_paper_tables.py`, from `docs/rule_ledger.json`); no reading or verdict
+changes.)*
+
 ### 17.2.1 Which world each arm is raised in, and what the policies are worth across worlds
 
 Recorded here because the manuscript's methods now state it and a reviewer asked for it. Every
@@ -3711,6 +3718,11 @@ both HOLDS under the spec's labels (interval above 0.05), beside the +0.120 [+0.
 recorded above on the registered draw. The decoder's lead does not rest on that one
 evaluation-world draw. The auxiliary rule stays NOT MET as registered, because `C1` does not meet
 its primary rule.)*
+
+*(Note 2026-10-19: the +0.120 [+0.065, +0.174] above is paired by seed index; read unpaired, the
+t-based 90% interval of the same difference has lower bound 0.035 (per-seed survival targets of
+`artifacts/expB2/corrected_l3_h8_wm.json` and `artifacts/expB2/corrected_l3_h8_nowm.json`), and
+the reading above stays as recorded.)*
 
 ### 17.5 The L0 gate across world samples (revision step 5)
 
@@ -4004,6 +4016,10 @@ where the own-normalizer replay margin of the survival trunk over the untrained 
 +0.118] on a normalizer refit to the replayed streams (1.22 of it; +0.091 with the refit inside
 each fold). Pre-stated reading: **TRUNK**, the replay margin over the untrained arm comes from
 training of the trunk. The predictor's margin is near zero on every normalizer.)*
+
+*(Note 2026-10-19: both replay intervals of the survival arm lie inside ±0.05, and a post hoc
+TOST at ±0.05, paired by seed (n = 10), accepts: p = 0.0004 against the predictor, 0.0164
+against `predictor_logged`. The readings above stay as recorded.)*
 
 The survival-over-predictor margin of the primary readout (+0.144) is therefore a
 difference between training regimes, and at matched evaluation input it is not a difference
@@ -4312,12 +4328,16 @@ Decoder on minus decoder off, paired by seed:
 decoder the survival agent reaches 0.685 at 450 updates, above the bar in the mean with the
 lower bound under it (0.632); the historical GPU run at 450 updates read 0.717 (10.8.1). So
 "without the auxiliary the criterion is not met" holds at 300 updates and is not a statement
-about what the arm can reach with more training. At 450 updates the two arms forage about
-equally well (return difference -0.054 [-0.198, +0.090]) and the decoder arm still reads
-higher by 0.136 [0.058, 0.214]. The decoder-off arm at 450 out-forages the decoder-on arm at
+about what the arm can reach with more training. At 450 updates the paired return difference
+between the arms is -0.054 [-0.198, +0.090]; the interval contains differences as large as the
+0.15 engagement margin and is far wider than the ±0.05 equivalence band, so the arms are not
+shown to forage equally, and the decoder arm still reads higher by 0.136 [0.058, 0.214]. The
+decoder-off arm at 450 out-forages the decoder-on arm at
 300 (return +0.208 [+0.063, +0.353], paired by seed) and does not out-read it (target -0.048
 [-0.126, +0.030]). Return is a coarse measure of where a policy takes the body, so none of
 this is a skill match, and no mediation verdict follows from it (10.8.1 stays a failed match).
+(Wording changed 2026-10-19 from "the two arms forage about equally well", which read an
+interval of this width as equal foraging; the numbers are unchanged.)
 
 **Exploratory: trunk or trajectories (post hoc).** Written after `C1` and `C2` were read and
 labeled exploratory: `scripts/run_cross_replay.py` recorded each survival agent's own
@@ -4438,7 +4458,8 @@ populations.
    registered auxiliary rule is NOT MET as registered, because `C1` does not meet its primary
    rule; the lead holds on the decodability clauses (added 2026-10-10, 17.4). With
    more training the arm without the decoder rises to 0.685 at 450 updates, and at that
-   budget the decoder arm still reads higher at about equal return.
+   budget the decoder arm still reads higher, with a return interval too wide to show equal
+   foraging.
 3. **"Survival-specific" is withdrawn.** On the survival agent's own streams, a trunk trained
    only to predict reads the world within about 0.01 of the survival trunk (0.721 and, at
    matched training data, 0.738, against 0.733). The survival policy's trajectories carry the
@@ -6015,6 +6036,11 @@ input array bit-equal to its committed artifact). JZS prior at Cauchy scale 0.70
 (annotation, 0.707 scale). Survival minus predictor (mean +0.026): BF01 = 21.2 (annotation, 0.707
 scale). The factors annotate and relabel nothing and are conditional on one evaluation-world draw;
 17.5's note of the same date gives the scratch-read disclosure. Neither prediction was borne out.)*
+
+*(Note 2026-10-19: the corrected run's drift-zero survival reading in the table above is 0.548
+[0.532, 0.565], and seam minus drift zero, paired by seed, is +0.002 [-0.011, +0.016]
+(`artifacts/expB2/corrected_L1-corrected.json`); the reading is descriptive and decides
+nothing.)*
 
 ### 22.2 The agent's prediction error, read on identical input
 

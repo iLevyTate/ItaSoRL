@@ -1599,5 +1599,11 @@ names the artifact and the label, and section 12 carries the result entry.
   labels only in the manuscript's appendix table; the C1 L0 registered pair reads BF01 = 0.133
   (annotation, 0.707 scale), and one of the five predictions was borne out.
 
+- H34, budget comparison at 450 updates (FINDINGS 17.10, the manuscript's budget paragraph):
+  "forage about equally well" is withdrawn as an equivalence reading. The paired return
+  difference -0.054 [-0.198, +0.090] is unchanged; its interval contains the 0.15 engagement
+  margin and does not meet the ±0.05 equivalence band, so the arms are not shown equal. Wording
+  only.
+
 **What this does not change.** No stored value, label or verdict. X01 stopped at its integrity
 gate and reported nothing, so it has no line here.
