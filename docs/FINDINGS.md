@@ -649,6 +649,10 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    level on the pooled scale and supports no comparison with it. The B-v3 matched-pair
    leakage audit below was scored the same way: at `820849f` it called the probe with one
    group per episode.)
+   (Note 2026-10-19: the 0.596 is an attained estimate with an interval, not a numerical
+   bound. The manuscript revision of 2026-10-19 calls it a reference for what the pooled
+   readout can express under direct supervision; read "lower-bound positive-control
+   reference" above in that sense. The value and verdict are unchanged.)
    (Per-seed pooled targets for both n = 10 runs are committed
    in `artifacts/expB2/bv3_n10_summary.json` and
    `artifacts/expB2/sysid_ceiling_n10_summary.json`.) The B-v3 gate values,
@@ -665,6 +669,16 @@ detectability-vs-encoding gap has survived every lever pulled so far.
    deaths per world, a survivorship asymmetry the matched-pair channel is designed to
    avoid; the volatility readouts are secondary/exploratory, not part of the 0.65
    decision.)
+   (Note 2026-10-19: the B-v3 registration's identifiability premise
+   (`docs/PREREGISTRATION_Bv3.md` section 1, "a single trajectory does not identify a stable
+   'world'") concerns the drag value, which under `ar1` wanders within an episode. The
+   generative condition, authentic or surrogate, is fixed per episode, and the privileged
+   residual oracle, which scores one row per branch, classifies the `ar1` condition at drift
+   0.45 from single trajectories at 1.000 at detector noise 0.001 and below (section 15). What
+   the wander lacks is a constant drag value; under `regime` the drag value is constant within
+   an episode. The L2 reading is below the criterion, and equivalence to chance was not shown.
+   The registration text stays as frozen; `docs/PREREGISTRATION_Bv3.md` section 12,
+   2026-10-19.)
 2. **A stronger multi-step objective.** The open-loop, longer-horizon objective was
    confirmed to engage the world model yet still did not induce encoding (§3.4).
 3. **Probe class and sampling power.** A nonlinear probe finds nothing (§3.4) and the
@@ -1936,7 +1950,18 @@ Stated once, plainly, with pointers into the code.
    frozen at `5c3aca1` before the confirmatory rerun (`docs/PREREGISTRATION.md`, 2026-06-28
    deviation entry; `git log 51e086e^..5c3aca1`). The B-v3 and L3 pre-registrations freeze the
    same trainer values (`docs/PREREGISTRATION_Bv3.md`, `docs/PREREGISTRATION_L3.md` section 9),
-   and the L1 runs use them unchanged.)* **Swept 2026-09-28 on the
+   and the L1 runs use them unchanged.)*
+   *(Timing, added 2026-10-19: the 0.65 bar and the 0.05 margins first appear in `51e086e`
+   (`git grep 0.65 51e086e^` is empty), after the drift-0.45 de-risk and before the first
+   confirmatory run `07ef113`. The engagement margin first appears in `5c3aca1`, after
+   `07ef113` had been read and before the rerun `83e9297`. It was calibrated on a de-risk run
+   under the fixed trainer (the `5c3aca1` message: "The fixed-GAE de-risk showed"), with the
+   non-learner reference (+0.04) named "the v2 pilot" in the code comment of that commit.
+   Where the tuning-provenance note above says "the same de-risk data", read "a de-risk rerun
+   under the fixed trainer", which is not the pre-registration de-risk.
+   "Frozen from the pilot" in this note's heading means set on de-risk data after the first
+   confirmatory result was read. The manuscript's section 4.3 tabulates this with the later
+   registrations; `docs/CORRECTIONS.md`, 2026-10-19.)* **Swept 2026-09-28 on the
    committed cells** (`scripts/audit_engagement_margin.py`; the B-v3 n = 10 gate
    values in `artifacts/expB2/bv3_n10_gates.json` and the three cloud runs of 10.8
    and 10.9 in `artifacts/expB2/engagement_margin_cloud_runs.json`, 80 cells): every
@@ -4357,6 +4382,13 @@ what the trunk keeps from a given stream and about half in where the policy goes
 0.721: the prediction objective shapes a trunk that keeps the dynamics difference, and a
 foraging policy produces streams in which there is a difference to keep.
 
+*(Note 2026-10-19: "about half ... about half" depends on the order of the exchange. The
+trunk contrast is +0.056 on one policy's streams and +0.080 on the other's, and the stream
+contrast is +0.039 under one trunk and +0.064 under the other, so trunk and stream interact,
+AUROC does not add over sources, and the +0.120 has no unique division. Read this as
+dependence on the policy-generated streams plus a trained-trunk advantage on identical streams.
+The manuscript revision of 2026-10-19 says each carries part of it. No number changes.)*
+
 *(Note 2026-10-19: read per seed on the curves above, with inputs bit-equal to
 `artifacts/budget_curve.json` and the cells (`docs/specs/2026-10-17-extension-readouts-design.md`,
 section "X08. Budget-curve dynamics"; commit `75ce098`;
@@ -4598,6 +4630,12 @@ the comparison, which is read between the two local values. Untrained floors: `C
 objective. The stored 0.912, 0.848 and 0.846 stay as recorded. The rescore ran with two workers
 where the sealed command says four; the values are unaffected.)*
 
+*(Note 2026-10-19: "read as lower bounds" in the 2026-10-16 note and "the stored lower bounds" in
+the note above should read "stored values from a biased estimator". A bias in expectation does
+not make each stored value a numerical bound, and `C1`'s local grouped minus ungrouped, -0.0002
+[-0.008, +0.007], includes zero. The twin-grouped rescores carry the inference.
+`docs/CORRECTIONS.md`, 2026-10-19.)*
+
 *(Note 2026-10-19: the nudge dose-response readout (`docs/specs/2026-10-17-extension-readouts-design.md`,
 section "X01. Nudge dose-response"; commit `75ce098`) was STOPPED at gate (I), and nothing was read
 or promoted. Gate (I) asks the 1 s real and sham scores to reproduce the local twin-grouped `C1`
@@ -4662,6 +4700,10 @@ survival reading falls toward 0.57 to 0.64 at low density was not borne out: it 
 so the survival walk's input carries much of the reading. Every row carries the note that the
 gate-0 oracle was not recalibrated at its density. No verdict. The readout ran with two workers
 where the sealed command says four; the 24-pellet check shows the values are unaffected.)*
+
+*(Note 2026-10-19: "the survival walk's input carries much of the reading" is read as "the
+reading depends on the survival walk's input". The input reference is a separate reading, not a
+share of the survival value; 17.10, the 2026-10-19 note on the cross replay.)*
 
 Control diagnostics on the trained arm (`control_diagnostics.json`; `C1` from 17.8):
 
@@ -6440,6 +6482,11 @@ output, `fullruns/closing_2026-10/x10/corrected_l3_h8_wm.json`, not in a committ
 rank-two reading above stands as recorded. The prediction (gate E passes with k between 4 and 10)
 was not borne out.)*
 
+*(Note 2026-10-19: "the test bounds what the decoded direction carries" is read as "the test
+speaks to what the decoded direction carries, not to what the state carries"; the removal and the
+refit give no numerical bound. The partial-erasure label is unchanged. `docs/CORRECTIONS.md`,
+2026-10-19.)*
+
 ### 23.4 What develops across the training snapshots
 
 `docs/specs/2026-10-15-what-develops-design.md`; `artifacts/development/`. The control battery
@@ -6508,6 +6555,11 @@ readings 1 and 2 use, were not computed on replayed input, so their growth is re
 walks only. The budget-0 value on `C1`, 0.636, is the untrained trunk on the survival agent's
 replayed episodes of 17.6. No reading or label changes. `docs/CORRECTIONS.md`, 2026-10-16.
 
+*(Note 2026-10-19: "most of the own-episode growth goes with the change in where each snapshot's
+policy walks" is read as dependence on the walk with a remaining trunk rise on `C1` (+0.083
+[+0.059, +0.107] on the fixed walk). The split is read on one fixed walk, the 300-update agent's,
+and is not a unique division of the growth. No number changes.)*
+
 *(Note 2026-10-16, after the critical review: the frozen-300 transfer column is in-sample by
 world seed. Every budget is read on the same registered pools (world bases 800000 and 850000), so
 the 300-update probe is scored on the same 220 world seeds it was fit on (each snapshot drives
@@ -6530,3 +6582,8 @@ the in-sample 0.785 and 0.689, so held-out minus in-sample is -0.049 [-0.068, -0
 [-0.084, -0.029]. At 300 updates the held-out self-transfer reads 0.770 [0.713, 0.826] and 0.657
 [0.610, 0.704], beside the in-sample 0.971 and 0.949 and the cross-validated 0.733 and 0.613. No
 threshold reads these values, and the reorganizes label rests on the cosine.)*
+
+*(Note 2026-10-19: "upper bounds" in the 2026-10-16 note above should read "in-sample,
+optimistic estimates". An in-sample estimate is optimistic in expectation and is not a numerical
+bound on each stored value; the held-out transfer of the note above carries the inference. The
+stored 0.785 and 0.689 stay as recorded. `docs/CORRECTIONS.md`, 2026-10-19.)*

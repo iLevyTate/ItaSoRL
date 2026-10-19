@@ -1,7 +1,8 @@
 """Engagement-gate margin sensitivity, offline (no compute).
 
-FINDINGS methods note 2: ENGAGE_MARGIN = 0.15 and LIFE_TOL = 2.0 were frozen from the
-B-v2 de-risk and never swept. Every run's cell files persist the engagement inputs
+FINDINGS methods note 2: ENGAGE_MARGIN = 0.15 and LIFE_TOL = 2.0 were set on B-v2 de-risk data
+after the first confirmatory result had been read (5c3aca1) and were not swept before this
+script. Every run's cell files persist the engagement inputs
 (trained / random / scripted true returns and lifetimes), so the gate can be
 re-adjudicated at other margins without rerunning anything. This prints, per run and
 per margin, how many (drift, seed) cells pass, and writes a JSON summary.

@@ -3896,7 +3896,7 @@ def closing_b5() -> None:
         if _artifact_present(_cl_path("goal_stakes", run, "mechanism.json")):
             sd = sorted(_cl_load("goal_stakes", run, "mechanism.json")["per_seed"], key=lambda p: p["seed"])
             sv = [p["surprise"]["auroc"] for p in sd]
-            _cl_quote(f"6.2 B5: {run} stored ungrouped value (the lower bound)", float(np.nanmean(sv)), sq)
+            _cl_quote(f"6.2 B5: {run} stored ungrouped value (biased estimator)", float(np.nanmean(sv)), sq)
             if run == "C1":
                 _cl_quote("6.2 B5: C1 local ungrouped minus stored ungrouped mean",
                           float(np.mean(u)) - float(np.nanmean(sv)), "+0.010")

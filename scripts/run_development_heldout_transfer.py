@@ -3,7 +3,7 @@
 The development readout (scripts/run_development_readout.py, spec
 docs/specs/2026-10-15-what-develops-design.md) scored the frozen 300-update probe on each
 snapshot's states in the SAME world seeds it was fit on (AUTH_BASE 800000 and SURR_BASE 850000),
-so its stored transfer_from_300 is in-sample: an upper bound, not held-out transfer
+so its stored transfer_from_300 is in-sample, an optimistic estimate and not held-out transfer
 (CORRECTIONS 2026-10-16). This readout keeps the fit exactly as stored and moves the scoring to
 fresh worlds:
 
