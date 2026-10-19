@@ -128,7 +128,7 @@
           { "label": "predict-only mind, same senses", "pct": "72%" }
         ],
         "url": "ilevytate.github.io/ItaSoRL",
-        "foot": "Real runs, 10 each, corrected trainer (October 2026). 50% = coin flip, 100% = always right. The mind is read out, never rewarded for it. Fed the same senses, a mind trained only to predict reads 72%, so what it lived through matters, not which goal it was trained on. One check came out uneven: two identical real worlds read 56% instead of 50%, so the preregistered test is not passed. docs/CORRECTIONS.md."
+        "foot": "Real runs, 10 each, corrected trainer (October 2026). 50% = coin flip, 100% = always right. The mind is read out, never rewarded for it. Fed the same senses, a mind trained only to predict reads 72%, so what it lived through matters, not which goal it was trained on. One check came out uneven: two identical real worlds read 56% instead of 50%, so the preregistered test is not passed. Scored on these corrected minds, eight independent draws of evaluation worlds all clear the bar (0.685 to 0.829, FINDINGS 17.5.1). docs/CORRECTIONS.md."
       }
     }
   ]

@@ -6,10 +6,11 @@ music. The second is Two Minds, the labeled brain film.
 
 ## What is in git and what is not
 
-This directory is gitignored by default. Only the five files the site actually
+This directory is gitignored by default. Only the six files the site actually
 serves are allowlisted by name in `.gitignore`: the two 720p web encodes, their
-two poster frames, and this README. The four companion loop mp4s that used to
-be allowlisted were retired on 2026-10-10 (last section). Everything
+two poster frames, the captions of the voiced film, and this README. The four
+companion loop mp4s that used to be allowlisted were retired on 2026-10-10 (last
+section). Everything
 else here is a local build output and stays on local disk, including all of
 `clips/`, every 1080p and 9:16 master, the textless passes, the loop gifs, and
 the voiced `.mov` masters. That is about 930 MB kept out of the repo across
@@ -25,6 +26,7 @@ here, add an explicit `!/assets/film/<name>` line; without one it is ignored.
 |------|------------|--------|
 | `detectable-all-along-web.mp4` | 1280x720, 24 fps, H.264 CRF 23, AAC 128 kb/s stereo, 89.8 s, 12.5 MB. The cut the site plays. | Web encode of the released master (below). |
 | `detectable-all-along-poster.jpg` | Poster frame at 1.5 s. | Same master. |
+| `detectable-all-along-web.vtt` | WebVTT captions of the voiceover, 27 cues timed to the speech in the web encode (the last ends at 1:20.8). Added 2026-10-19. | The recorded script in `docs/specs/2026-07-22-outreach-video-vo-music.md`, checked against the encode's audio. |
 
 The master is `ItasorlOverview.mov`: 1920x1080, 24 fps, H.264 at 21 Mb/s with
 a 320 kb/s AAC track, 239.8 MB, exported from DaVinci Resolve and released on
@@ -127,11 +129,15 @@ as a whole not met, because the authentic-versus-authentic gate is open on the r
 pair of evaluation worlds (0.559, the largest of nine draws on record), and the level is not
 a product of that draw: on the agents of the historical hidden-8 run, every one of eight
 independent draws at drift 0.45 clears the bar (0.728 to 0.860, SECURE under a rule frozen
-before the run; FINDINGS 17.5.1). The corrected agents are not in the repository, so the
-draws were not scored on them; the live player's footer says so since 2026-10-10. The
-film-one mp4 is unchanged, and its caveats sit beside it. The Two Minds mp4 was
-re-rendered on the corrected record on 2026-10-11 and carries its caveats on its
-end card.
+before the run; FINDINGS 17.5.1). The corrected agents are saved on the origin branch
+`run/C1-rerun`, and on 2026-10-18 the same readout scored the draws on them: the eight
+independent draws read 0.685 to 0.829, 8 of 8 at or above 0.65, and the registered draw, 0.733,
+ranks 6 of 9 (R1 SECURE, post hoc; the 2026-10-19 note in FINDINGS 17.5.1). Propagated with
+C1's own between-draw SD of 0.052, the corrected primary reads 0.733 [0.618, 0.848], a lower
+bound under the 0.65 bar; the record's propagation with the historical 0.042 stays. The live
+player's end-card footer gives the C1 range since 2026-10-19. The film-one mp4 is unchanged,
+and its caveats sit beside it. The Two Minds mp4 was re-rendered on the corrected record on
+2026-10-11 and carries its caveats on its end card.
 
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
 the same way as film one and replace `two-minds-web.mp4` in place so the site
@@ -219,10 +225,13 @@ against 0.5756. The data records both readings and the tolerance used
 
 ### Rebuild
 
-The C1 agents were not kept by the original run. A cloud rerun of C1 saved them,
-and its cells match the committed C1 cells bit for bit. Only the seed-9 drift-0.45
-survival and untrained agents are needed. From the repo root, in PowerShell, one
-step at a time:
+The C1 agents were not kept by the original run. A cloud rerun of C1 saved them
+(`C1-RERUN` in docs/RESULTS_MANIFEST.md). Its pool targets equal the committed C1 cells to
+the bit in 60 of 60 arm-cells, and every numeric field of its 20 cell files equals the
+committed file. The files themselves are not byte-identical: each rerun cell records its own
+commit (fb3a393, 5580816 or 2fce6a5 rather than f676b95) and carries extra knob and objective
+keys that the committed cells lack. Only the seed-9 drift-0.45 survival and untrained agents
+are needed. From the repo root, in PowerShell, one step at a time:
 
 ```powershell
 $run = '<C1 rerun dir, holding agents\ and cells\>'
