@@ -91,7 +91,9 @@ and the test's `assert paths` fails. A rebuilt archive needs that test guarded o
 shipped, and a full test run in a fresh extraction, before the suite can be said to pass there.
 Decided after the third review pass: the archive ships `docs/optional/` (its README and the
 readout files), the test reads them there as it does in a git checkout, and the audit
-recomputes them. A full test run in a fresh extraction of a build with that change is still owed.
+recomputes them. A full test run in a fresh extraction of a build with that change was made on
+2026-10-17 (UTC) on the critical-review build `57c17a71...3822`: every checksum verified, 1214
+passed, 28 skipped, 0 failed. The v1.5.0 build's run is in section 2c.
 
 This file is not in the archive: `INCLUDE_FILES` in `scripts/reproduce.py` does not list it, so
 no copy of it, current or earlier, ships to reviewers.
@@ -128,6 +130,57 @@ not hide that the archive matches a public repository. The owner decides, before
 whether the repository and the site stay public during review, or whether the submission relies
 on the venue's policy on prior public posting. Nothing in this record makes that decision.
 
+Decided 2026-10-17 (D1, option c, owner): the repository and the site stay public during review,
+and saved agent weights stay on the nine run and upload branches of the public remote that
+already carry them (`AGENTS.md`). The owner confirms this in writing before the upload.
+
+Superseded 2026-10-19: this archive (`e9302409...`) and the critical-review build
+`dist/critical-review-2026-10-16/supplement-review.zip` (39,787,045 bytes, SHA-256
+`57c17a7179b04fd57845dfe02d8f29679be685d1a12852b0f9d6ba435f2e3822`) are replaced by the v1.5.0
+build in section 2c. Neither is to be uploaded.
+
+Owner decisions of the 2026-10-17 closing pass, as chosen: runs launched on an explicit yes and
+later narrowed in writing (four extension readouts not run: X02, X04, X05, X06); the corrected C1
+and C2 agents and rerun cells ship in the review archive; the manuscript was retitled by the
+owner's written override of the keep-title default, and the repository keeps its name; version
+1.5.0 with the release date set to the tag date; no GitHub Release object; no training proposals
+run; each push made with the owner's approval.
+
+## 2c. Review archive for v1.5.0, 2026-10-19
+
+`python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.0/supplement-review.zip`,
+built from the release commit `fc363fb` (tag `v1.5.0`) with the key in `dist/supplement-commit-key.txt`.
+
+- `dist/review-1.5.0/supplement-review.zip`: 1406 files, 1405 listed in `SHA256SUMS`;
+  94,236,313 bytes, under the 100,000,000 bytes the build enforces.
+- SHA-256 `cfb851a47fe1662eb6dd3f6df702b38aedaba2d104eb4b4a0d8030ac784aa2f2`, equal to the
+  `archive_sha256` of its commit map.
+- Run bundles: `l3_h8_heldout/agents` (60 files), `l3_h8_gseed2_gpu/agents` (60), and the saved
+  agents and rerun cells of the corrected C1 and C2 runs: `corrected_l3_h8_wm/agents` (90),
+  `corrected_l3_h8_nowm/agents` (90), `corrected_l3_h8_wm/cells` (20) and
+  `corrected_l3_h8_nowm/cells` (20). `README_SUPPLEMENT.md` names each folder and points to
+  `SHA256SUMS` for the per-file digests.
+- 373 commit IDs (394 spellings) and 163 recorded digests (164 spellings) replaced by keyed
+  pseudonyms; 0 unresolved commit-field spellings. The map stays local in
+  `dist/review-1.5.0/supplement-review.commit-map.json`. The identity scan found no identity
+  string, and every image is on the reviewed list.
+- In a fresh extraction: every line of `SHA256SUMS` verifies (1405 of 1405);
+  `python -E scripts/reproduce.py tables --check` and `python -E scripts/audit_stats_recheck.py`
+  pass 3873 checks with 1 skipped, against 3874 in a git checkout (one check reads a file the
+  archive leaves out); `python -E -m pytest -q -rs` gives 1537 passed, 41 skipped, 0 failed in
+  13:53 on Python 3.13.2 with NumPy 1.26.4. Against the critical-review reference run (28 skips
+  on 22 lines) the skips differ only by additions: tests that need git history or a git
+  checkout, a film-data test whose files the archive leaves out, and one more social-card file
+  not shipped. No skip reason disappeared or fell in count.
+- A first fresh-extraction run on a trial build from `ab68d05` failed 14 tests. Each asserted
+  that a readout's provenance names a commit, which is empty by design where there is no git;
+  the tests now check the field's name everywhere and its value only in a git checkout
+  (PR #165). The trial build was deleted and never uploaded.
+- The non-anonymous archives moved out of `dist/` before this build
+  (`supplement-review.zip`, SHA-256 `117f70b4...1151`, 501 MB;
+  `supplement-review-2026-10-15-pre-t21.zip`; `supplement-v1.3.0.zip`) carry real commit IDs
+  and must never be uploaded.
+
 ## 3. Clean extraction
 
 Extracted into an empty directory outside the repository. Every checksum in `SHA256SUMS`
@@ -144,7 +197,7 @@ resolves torch 2.14.1+cpu and NumPy 2.4.6.
 | command, run inside the extraction | result |
 |---|---|
 | `python scripts/reproduce.py tables` | pass, all 2932 audit checks (inside an archive the one check on a left-out film spec is skipped, by design) |
-| `python scripts/run_l0_audit.py --agents-dir fullruns/corrected_l3_h8_wm/agents --out <dir>/l0.json` | not completed: stopped after 3 of 10 seeds when the session reclaimed memory; the 27 L0 values it printed equal, to the last printed digit, a replay of the same command from the repository on the same stack that morning |
+| `python scripts/run_l0_audit.py --agents-dir fullruns/corrected_l3_h8_wm/agents --out <dir>/l0.json` | completed 2026-10-16 on the second attempt (the first stopped after 3 of 10 seeds when the session reclaimed memory): integrity gate PASS, worst deviation 0.0008 against 0.01; all 1488 numeric fields of the output equal the repository replay of the same command on the same stack, wall time aside; the extraction's `l0.json` was not kept |
 
 The `tables` pass in this table rebuilt any stale page before its audit, as in section 1, so it
 does not show by itself that the shipped pages were current.
@@ -153,6 +206,11 @@ does not show by itself that the shipped pages were current.
 directory, so they must not be run with `python -I`; `reproduce.py` does not need it.
 
 ## 4. Source package
+
+*Final, 2026-10-19:* paper commit `55e741b`, 91 pages, `docs/paper/dist/source.zip` (21 files),
+SHA-256 `b900ad35f51da66111e50b58697514b60e509ba3c6707eb8bd37ccf85a16b982`, the same bytes on two
+builds. The builder compiled it standalone and passed; the packaged `main.tex` carries
+"Anonymous authors" and no author name or e-mail. The entries below record earlier packages.
 
 *Rebuilt 2026-10-16 after the critical review:* paper commit `eb79ca2`, 74 pages,
 `docs/paper/dist/source.zip` SHA-256
@@ -177,10 +235,7 @@ built at `v1.4.1`, before that fix; the fix changes no artifact and no number.
 ## Remaining limitations
 
 - The review archive is not anonymous to a search while the repository and the site are public
-  (section 2b). Whether they stay public during review is the owner's decision before upload.
-- The saved-agent replay from the clean extraction ran 3 of 10 seeds before it was stopped for
-  memory; a full run from the extraction is still owed. The same command from the repository on
-  the same stack completed and is compared with the committed artifact in `docs/REPRODUCE.md`.
+  (section 2b). The owner decided on 2026-10-17 that they stay public during review (2b).
 - The full supplement is 501 MB, and TMLR accepts at most 100 MB. The review profile
   (`--profile review`, about 40 MB) carries only the held-out and seed-2 agents; the saved
   agents and state dumps of C1, C2, B1, B2 and L1-CORRECTED would need separate anonymous
