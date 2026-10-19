@@ -5937,6 +5937,36 @@
       "affected_by_gae_correction": false,
       "agent_seeds": null,
       "artifacts": [
+        "threshold_sensitivity/bar_margin.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "48af14a",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3",
+      "device": "owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU",
+      "eval_seeds": null,
+      "experiment": "methods",
+      "folds": "n/a",
+      "id": "THRESHOLD-SENSITIVITY",
+      "local_run_dir": null,
+      "notes": "scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), run on the clean Stage 6 tree; docs/specs/2026-10-17-closing-readouts-design.md. Agent free: it re-reads every adjudicated row of docs/rule_ledger.json with its bar and margin clauses moved over {0.60, 0.65, 0.70} x {0.03, 0.05, 0.10} and changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split, 22 hold and 18 fail. The commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.",
+      "readout_only_on": null,
+      "recorded_provenance": {
+        "threshold_sensitivity/bar_margin.json": {
+          "git_commit": "48af14a"
+        }
+      },
+      "status": "historical",
+      "surrogate": null,
+      "survival_trainer": "none",
+      "title": "Bar and margin sensitivity of the rule ledger (G06)"
+    },
+    {
+      "affected_by_gae_correction": false,
+      "agent_seeds": null,
+      "artifacts": [
         "agent_free/qd_eps6_oracle.json"
       ],
       "budget": null,

@@ -111,6 +111,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `GATE0-L1-FOLDS` | historical | A | - | none | - | 75ce098 | both | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `BUDGET-CURVE-DYNAMICS` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 75ce098 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `BAYES-FACTORS` | historical | methods | - | none | - | 75ce098 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `THRESHOLD-SENSITIVITY` | historical | methods | - | none | - | 48af14a | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `QD-EPS6-ORACLE` | historical | methods | - | none | - | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `C1-REGEN-LOCAL` | corrected | methods | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `PROBE-SENSITIVITY` | historical and corrected | methods | - | inherited: pre_transition_value (L3-H8-HELDOUT, L1-ORGANISM) and successor_value (L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1) | L3-H8-HELDOUT, L1-ORGANISM, L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1 | 75ce098 | explicit (explicit-v1, one group per episode) | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
@@ -1390,6 +1391,18 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
 - Notes: scripts/build_bayes_factors.py (X09, 2026-10-17); docs/specs/2026-10-17-extension-readouts-design.md, X09. Agent free, annotation only: it reads committed artifacts and relabels no registered reading; the commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
 - Artifacts: `artifacts/bayes_factors/interval_null.json`
+
+### `THRESHOLD-SENSITIVITY`: Bar and margin sensitivity of the rule ledger (G06)
+
+- Status: historical
+- Trainer: none
+- Commit at run: 48af14a
+- Commit source: recorded
+- Folds: n/a
+- Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
+- Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), run on the clean Stage 6 tree; docs/specs/2026-10-17-closing-readouts-design.md. Agent free: it re-reads every adjudicated row of docs/rule_ledger.json with its bar and margin clauses moved over {0.60, 0.65, 0.70} x {0.03, 0.05, 0.10} and changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split, 22 hold and 18 fail. The commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Artifacts: `artifacts/threshold_sensitivity/bar_margin.json`
 
 ### `QD-EPS6-ORACLE`: Quadratic-drag comparator oracle at eps 6.0, the setting the trained run used (H31)
 

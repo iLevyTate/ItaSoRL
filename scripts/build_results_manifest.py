@@ -1342,6 +1342,15 @@ RUNS = [
         notes=f"scripts/build_bayes_factors.py (X09, 2026-10-17); {EXTENSION_SPEC}, X09. Agent free, "
               "annotation only: it reads committed artifacts and relabels no registered reading; the "
               "commit is recorded as git_commit. " + CLOSING_NOTE),
+    run("THRESHOLD-SENSITIVITY", "Bar and margin sensitivity of the rule ledger (G06)",
+        experiment="methods", artifacts=["threshold_sensitivity/bar_margin.json"], claims=[],
+        trains_survival=False, survival_trainer="none", commit_at_run="48af14a", folds="n/a",
+        device=closing_cpu(1), deps=CLOSING_DEPS,
+        notes=f"scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), run on the clean Stage 6 tree; "
+              f"{CLOSING_SPEC}. Agent free: it re-reads every adjudicated row of docs/rule_ledger.json "
+              "with its bar and margin clauses moved over {0.60, 0.65, 0.70} x {0.03, 0.05, 0.10} and "
+              "changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split, 22 hold "
+              "and 18 fail. The commit is recorded as git_commit. " + CLOSING_NOTE),
     run("QD-EPS6-ORACLE", "Quadratic-drag comparator oracle at eps 6.0, the setting the trained run used "
         "(H31)", experiment="methods", artifacts=["agent_free/qd_eps6_oracle.json"], claims=[],
         trains_survival=False, survival_trainer="none", commit_at_run=CLOSING_COMMIT, folds="explicit",

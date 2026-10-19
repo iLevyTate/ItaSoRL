@@ -1,0 +1,437 @@
+{
+ "label": "sensitivity only",
+ "about": "Each adjudicated rule-and-run row of docs/rule_ledger.json re-read with its bar clauses at each bar and its margin clauses at each margin; gate clauses and the excluded rule clauses keep their frozen thresholds. Descriptive: no ledger reading, outcome or verdict changes.",
+ "ledger": "docs/rule_ledger.json",
+ "grid": {
+  "bar": [0.6, 0.65, 0.7],
+  "margin": [0.03, 0.05, 0.1],
+  "reference": [0.65, 0.05]
+ },
+ "excluded_rule_clauses": "TOST|gate 0|speed|leak|C1 minus C2|\\blead\\b",
+ "clauses_moved": {
+  "bar": 73,
+  "margin": 65
+ },
+ "ledger_tally": {
+  "threshold met": 19,
+  "threshold not met": 21,
+  "uninformative": 7,
+  "no verdict": 2
+ },
+ "n_rows": 49,
+ "n_adjudicated": 40,
+ "reference": {
+  "recorded": {
+   "holds": 22,
+   "fails": 18
+  },
+  "recomputed": {
+   "holds": 22,
+   "fails": 18
+  },
+  "clauses_hold_mismatches": [],
+  "reproduces": true
+ },
+ "points": [
+  {
+   "bar": 0.6,
+   "margin": 0.03,
+   "holds": 26,
+   "fails": 14,
+   "flips": [
+    {
+     "id": "BV3-PRIMARY",
+     "rule": "B-v3 primary rule, L2 per-episode drag regime",
+     "run": "BV3-REGIME-N10",
+     "holds_at_reference": false,
+     "holds_here": true
+    },
+    {
+     "id": "TRANSFER-REVERSE",
+     "rule": "Held-out fingerprint transfer, trained hidden 7 to unseen hidden 8",
+     "run": "L3-H7-REVERSE",
+     "holds_at_reference": false,
+     "holds_here": true
+    },
+    {
+     "id": "SECOND-INSTANCE-CPU",
+     "rule": "Second surrogate instance (seed 1, hidden 10): replication",
+     "run": "L3-H10-GS1-CPU",
+     "holds_at_reference": false,
+     "holds_here": true
+    },
+    {
+     "id": "HIDDEN8-SEED2",
+     "rule": "Hidden 8 at a new surrogate seed (seed 2): replication",
+     "run": "L3-H8-GS2-GPU",
+     "holds_at_reference": false,
+     "holds_here": true
+    }
+   ]
+  },
+  {
+   "bar": 0.6,
+   "margin": 0.05,
+   "holds": 25,
+   "fails": 15,
+   "flips": [
+    {
+     "id": "BV3-PRIMARY",
+     "rule": "B-v3 primary rule, L2 per-episode drag regime",
+     "run": "BV3-REGIME-N10",
+     "holds_at_reference": false,
+     "holds_here": true
+    },
+    {
+     "id": "TRANSFER-REVERSE",
+     "rule": "Held-out fingerprint transfer, trained hidden 7 to unseen hidden 8",
+     "run": "L3-H7-REVERSE",
+     "holds_at_reference": false,
+     "holds_here": true
+    },
+    {
+     "id": "SECOND-INSTANCE-CPU",
+     "rule": "Second surrogate instance (seed 1, hidden 10): replication",
+     "run": "L3-H10-GS1-CPU",
+     "holds_at_reference": false,
+     "holds_here": true
+    }
+   ]
+  },
+  {
+   "bar": 0.6,
+   "margin": 0.1,
+   "holds": 23,
+   "fails": 17,
+   "flips": [
+    {
+     "id": "COMMON-GARDEN-FORWARD",
+     "rule": "Common garden, prefix in the hidden-8 surrogate",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "TRANSFER-REVERSE",
+     "rule": "Held-out fingerprint transfer, trained hidden 7 to unseen hidden 8",
+     "run": "L3-H7-REVERSE",
+     "holds_at_reference": false,
+     "holds_here": true
+    },
+    {
+     "id": "SECOND-INSTANCE-CPU",
+     "rule": "Second surrogate instance (seed 1, hidden 10): replication",
+     "run": "L3-H10-GS1-CPU",
+     "holds_at_reference": false,
+     "holds_here": true
+    }
+   ]
+  },
+  {
+   "bar": 0.65,
+   "margin": 0.03,
+   "holds": 22,
+   "fails": 18,
+   "flips": []
+  },
+  {
+   "bar": 0.65,
+   "margin": 0.05,
+   "holds": 22,
+   "fails": 18,
+   "flips": []
+  },
+  {
+   "bar": 0.65,
+   "margin": 0.1,
+   "holds": 21,
+   "fails": 19,
+   "flips": [
+    {
+     "id": "COMMON-GARDEN-FORWARD",
+     "rule": "Common garden, prefix in the hidden-8 surrogate",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    }
+   ]
+  },
+  {
+   "bar": 0.7,
+   "margin": 0.03,
+   "holds": 13,
+   "fails": 27,
+   "flips": [
+    {
+     "id": "L3-PRIMARY-H8",
+     "rule": "L3 primary rule, historical headline at hidden 8",
+     "run": "L3-H8-N10",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "COMMON-GARDEN-FORWARD",
+     "rule": "Common garden, prefix in the hidden-8 surrogate",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "COMMON-GARDEN-REVERSE",
+     "rule": "Common garden, prefix in the hidden-7 surrogate",
+     "run": "L3-H7-REVERSE",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "CROSS-RECIPE",
+     "rule": "Cross-recipe transfer to the random-Fourier-features family",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "SENSORY-ECHO-H7",
+     "rule": "Sensory-echo control, hidden 7",
+     "run": "L3-H7-REVERSE",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "NONLINEAR-JOINT-CONTROL",
+     "rule": "Nonlinear joint input-plus-behavior control, hidden 8",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "DEVICE-CONTROL",
+     "rule": "Device control: the hidden-8 protocol with the auxiliary on the CPU",
+     "run": "L3-H8-WM-CPU",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "C1-PRIMARY",
+     "rule": "Corrected primary rule, with the auxiliary",
+     "run": "C1",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "GOAL-STAKES-IMMORTAL",
+     "rule": "Goal and stakes: survival objective without death, the primary rule",
+     "run": "S-IMMORTAL",
+     "holds_at_reference": true,
+     "holds_here": false
+    }
+   ]
+  },
+  {
+   "bar": 0.7,
+   "margin": 0.05,
+   "holds": 13,
+   "fails": 27,
+   "flips": [
+    {
+     "id": "L3-PRIMARY-H8",
+     "rule": "L3 primary rule, historical headline at hidden 8",
+     "run": "L3-H8-N10",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "COMMON-GARDEN-FORWARD",
+     "rule": "Common garden, prefix in the hidden-8 surrogate",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "COMMON-GARDEN-REVERSE",
+     "rule": "Common garden, prefix in the hidden-7 surrogate",
+     "run": "L3-H7-REVERSE",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "CROSS-RECIPE",
+     "rule": "Cross-recipe transfer to the random-Fourier-features family",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "SENSORY-ECHO-H7",
+     "rule": "Sensory-echo control, hidden 7",
+     "run": "L3-H7-REVERSE",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "NONLINEAR-JOINT-CONTROL",
+     "rule": "Nonlinear joint input-plus-behavior control, hidden 8",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "DEVICE-CONTROL",
+     "rule": "Device control: the hidden-8 protocol with the auxiliary on the CPU",
+     "run": "L3-H8-WM-CPU",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "C1-PRIMARY",
+     "rule": "Corrected primary rule, with the auxiliary",
+     "run": "C1",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "GOAL-STAKES-IMMORTAL",
+     "rule": "Goal and stakes: survival objective without death, the primary rule",
+     "run": "S-IMMORTAL",
+     "holds_at_reference": true,
+     "holds_here": false
+    }
+   ]
+  },
+  {
+   "bar": 0.7,
+   "margin": 0.1,
+   "holds": 13,
+   "fails": 27,
+   "flips": [
+    {
+     "id": "L3-PRIMARY-H8",
+     "rule": "L3 primary rule, historical headline at hidden 8",
+     "run": "L3-H8-N10",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "COMMON-GARDEN-FORWARD",
+     "rule": "Common garden, prefix in the hidden-8 surrogate",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "COMMON-GARDEN-REVERSE",
+     "rule": "Common garden, prefix in the hidden-7 surrogate",
+     "run": "L3-H7-REVERSE",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "CROSS-RECIPE",
+     "rule": "Cross-recipe transfer to the random-Fourier-features family",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "SENSORY-ECHO-H7",
+     "rule": "Sensory-echo control, hidden 7",
+     "run": "L3-H7-REVERSE",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "NONLINEAR-JOINT-CONTROL",
+     "rule": "Nonlinear joint input-plus-behavior control, hidden 8",
+     "run": "L3-H8-HELDOUT",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "DEVICE-CONTROL",
+     "rule": "Device control: the hidden-8 protocol with the auxiliary on the CPU",
+     "run": "L3-H8-WM-CPU",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "C1-PRIMARY",
+     "rule": "Corrected primary rule, with the auxiliary",
+     "run": "C1",
+     "holds_at_reference": true,
+     "holds_here": false
+    },
+    {
+     "id": "GOAL-STAKES-IMMORTAL",
+     "rule": "Goal and stakes: survival objective without death, the primary rule",
+     "run": "S-IMMORTAL",
+     "holds_at_reference": true,
+     "holds_here": false
+    }
+   ]
+  }
+ ],
+ "not_adjudicated": [
+  {
+   "id": "SKILL-MATCHED",
+   "outcome_class": "no verdict",
+   "holds_at_reference": true
+  },
+  {
+   "id": "WHITE-JITTER-TRAINED",
+   "outcome_class": "uninformative",
+   "holds_at_reference": false
+  },
+  {
+   "id": "EXPC-EMERGENCE",
+   "outcome_class": "uninformative",
+   "holds_at_reference": false
+  },
+  {
+   "id": "GOAL-STAKES-STAKES",
+   "outcome_class": "no verdict",
+   "holds_at_reference": false
+  },
+  {
+   "id": "WHITE-JITTER-H96",
+   "outcome_class": "uninformative",
+   "holds_at_reference": false
+  },
+  {
+   "id": "H7-CORRECTED",
+   "outcome_class": "uninformative",
+   "holds_at_reference": false
+  },
+  {
+   "id": "H8GS2-CORRECTED",
+   "outcome_class": "uninformative",
+   "holds_at_reference": false
+  },
+  {
+   "id": "B1-BALANCED",
+   "outcome_class": "uninformative",
+   "holds_at_reference": true
+  },
+  {
+   "id": "B2-BALANCED",
+   "outcome_class": "uninformative",
+   "holds_at_reference": true
+  }
+ ],
+ "provenance": {
+  "generated_by": "scripts/audit_threshold_sensitivity.py",
+  "git_commit": "48af14a",
+  "tracked_changes_at_generation": [],
+  "stack": {
+   "python": "3.13.2",
+   "numpy": "1.26.4",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "machine": "AMD64",
+   "OMP_NUM_THREADS": null,
+   "MKL_NUM_THREADS": null,
+   "scipy": "1.15.3",
+   "sklearn": "1.5.2",
+   "torch": "2.7.0+cu126",
+   "torch_threads": 10
+  }
+ }
+}
