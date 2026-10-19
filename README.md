@@ -91,8 +91,9 @@ without the prediction task reads 0.61, under the bar. The signal rides on the
 paths the foraging creature takes, and a brain trained to predict holds on to
 it; why those paths carry more of the difference than scripted ones has not
 been measured. A hand-written fake gets read too: a drag that depends on how
-fast the body is moving, as the learned law does. Random jitter in the velocity
-reaches the bar at no setting tried, even jitter that stays correlated over time.
+fast the body is moving, as the learned law does. Random jitter in the velocity,
+read from brains raised under the learned law, reaches the bar at no setting tried,
+even jitter that stays correlated over time.
 Rerun with its 24-step drift matched exactly at the two most correlated settings and
 within 1.1 percent at the uncorrelated one (a larger drift than the drag's), correlation
 did not raise the reading, so these tests do not say why (FINDINGS §22.3).
@@ -159,7 +160,7 @@ unasked. Axis-by-axis comparison: [`docs/ITASORL.md`](docs/ITASORL.md).
 ### Hypotheses
 
 - **H1 (detectability)**: a privileged detector distinguishes the surrogate from the authentic world. **Supported** at L1, L2, and L3; at one shared detector noise the L2 flaws read weaker than L3 (FINDINGS §15).
-- **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference (FINDINGS §14). A hand-authored drag that, like the learned law, depends on the agent's own velocity is read as well (§17.9), so nothing here is specific to learned dynamics. Random velocity jitter reaches the bar at no setting tried, including strongly autocorrelated jitter matched on its 24-step deviation, so the comparison names no mechanism (§22.3). At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
+- **H2 (substrate-grounding)**: the signal depends on the substrate artifact, tested by ablation. At L3 decoding falls with the dynamics difference (FINDINGS §14). A hand-authored drag that, like the learned law, depends on the agent's own velocity is read as well (§17.9), so nothing here is specific to learned dynamics. Random velocity jitter, read from agents raised under the learned law, reaches the bar at no setting tried, including strongly autocorrelated jitter matched on its 24-step deviation, so the comparison names no mechanism (§22.3). At L1 the survival agent did not meet the encoding criterion at the in-band grid (§14.7).
 - **H3 (emergence under selection)**: selection raises world decodability. **Flat contrast, registered verdict uninformative.** Over 3 lineages and 30 generations the contrast is flat under both the pooled and the per-individual readout, but the speed control (gate 5) fails, and the preregistration interprets no contrast unless every gate passes, so neither readout yields a verdict. The payoff for knowing the world (gate 1) is weak and falls short only of a draft margin that was never ratified (FINDINGS §13.F; the earlier record is §13.D, §13.E).
 - **H4 (incidental encoding)**: the condition is decodable from a from-scratch agent's state without reward. At L3 the registered rule is **not met**, because the L0 (authentic-versus-authentic) gate does not pass on the registered world pair, 0.559; its three **decodability clauses are met** for survival with the next-observation auxiliary at 300 updates, corrected trainer: 0.733 (FINDINGS §17). Not met at L1 or L2.
 
@@ -267,7 +268,8 @@ corrected runs puts about half of the decoder's +0.120 in the trunk and half in
 the paths the decoder-carrying policy takes (exploratory, FINDINGS §17.10).
 
 **Bounded by budget.** Trained to 450 updates, the arm without the decoder
-reaches 0.685 and the arm with it 0.821, at about equal return. The best-fitting
+reaches 0.685 and the arm with it 0.821; the return interval is too wide to
+say the two forage equally. The best-fitting
 nonlinear control over observations, actions, and behavior leaves 0.620, under
 the bar. Under identical input the prefix condition fades within a few steps,
 and with the recurrent state zeroed the body's footprint still reads 0.662. A
