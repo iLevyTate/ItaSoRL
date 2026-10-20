@@ -1743,10 +1743,11 @@ state. The interval-null Bayes factors of X09 were presented without saying that
 plug-in calculations. The corrected hidden-7 survival interval prints as [0.650, 0.756] although
 its lower bound, 0.6496, is under the 0.65 bar.
 
-**Change.** The README, `docs/LEARNING.md` and the site template say the signal survives the
+**Change.** The README and `docs/LEARNING.md` say the signal survives the
 tested position-and-heading residualization with nonlinear or history-dependent position
-information not excluded, and that the tested contrasts did not demonstrate an increase from
-coherence, with equivalence not established either. FINDINGS 6, 10.4.1, 10.7, 15, 17.5, 17.9,
+information not excluded. The README, `docs/LEARNING.md` and the site template say that the
+tested contrasts did not demonstrate an increase from coherence, and the README and
+`docs/LEARNING.md` add that equivalence is not established either. FINDINGS 6, 10.4.1, 10.7, 15, 17.5, 17.9,
 17.12 item 6, 20.2, 21, 22.1, 22.3 and the TL;DR gain dated notes: the position control in its
 tested scope; coherence as a nondetection; "the tested untrained trunks" for "any recurrent
 state" and a calibration unsuccessful under the tested settings, with no general claim about
@@ -1762,4 +1763,7 @@ bar or the margin with the further digits that show its side, so the generated 9
 contrast table and Holm table read 0.6496 for hidden 7 (`tests/test_paper_tables.py`).
 
 **What this does not change.** No number, label, rule or verdict. The registered texts, the
-frozen specs and the 2026-10-16 entries above keep their wording.
+frozen specs and the 2026-10-16 entries above keep their wording. The untrained row of
+`docs/PREREGISTRATION.md` section 3 ("any recurrent code separates the worlds somewhat") is a
+frozen design expectation and stays as written; read it as "even an untrained recurrent code
+can separate the worlds somewhat".

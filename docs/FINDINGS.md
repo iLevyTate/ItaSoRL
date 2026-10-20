@@ -1112,7 +1112,7 @@ position and heading now inside the control basis (revised figure resid_trace
 *(Note 2026-10-20: the control residualizes on the seven-channel trace basis, the four behavior
 channels with absolute position and heading, linearly and, in the variant, quadratically. The
 signal survives that tested position-and-heading residualization. Position information outside
-the basis, nonlinear beyond the quadratic terms or dependent on history, is not excluded, so the
+the basis, nonlinear beyond the quadratic terms or dependent on history beyond the previous step and the running mean, is not excluded, so the
 sentence above that a masquerading position code would have collapsed `resid_trace` claims more
 than the control tests, and the covariate gap is closed only for the terms the basis holds. The
 numbers stay as recorded; `docs/CORRECTIONS.md`, 2026-10-20.)*
@@ -4378,7 +4378,7 @@ depends on the agent's own velocity; that is a lead and not a measured contrast,
 mechanism is claimed. The readings of this section stay as recorded.)*
 
 *(Note 2026-10-20: "felt by any recurrent state" above reads "felt by the tested untrained
-trunks", whose floor on `qd` is 0.612; no other recurrent state was tested.)*
+trunks", whose floor on `qd` is 0.612; it is not a claim about recurrent states in general.)*
 
 ### 17.10 The auxiliary result against the training budget (revision step 11)
 
