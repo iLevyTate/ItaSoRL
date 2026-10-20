@@ -21,7 +21,8 @@ docs/paper/, so generating them cannot overwrite the author's own files. The sca
 renders them in memory from the committed artifacts, so CI needs no paper files.
 
 The rule ledger is committed. docs/rule_ledger.json holds one row per frozen rule and run,
-with the outcome as recorded and, for every clause, the artifact value it reads; this script
+with the outcome as recorded, its timing class (prospective, simultaneous or retrospective) and,
+for every clause, the artifact value it reads; this script
 recomputes each value, compares it with the recorded reading and the recorded outcome, and
 renders docs/RULE_LEDGER.md from it. --check runs that comparison and fails on any
 difference, with or without a local manuscript.
@@ -449,6 +450,12 @@ def corrected_table() -> str | None:
 
 # ------------------------------------------------------------------ the rule ledger
 OUTCOME_CLASSES = ("threshold met", "threshold not met", "uninformative", "no verdict")
+# When the rule text was first committed, against the first committed result of the run it
+# decides, both read from committer times (UTC) in the history of the frozen files, the
+# deviation logs and the artifacts (third blind review, 2026-10-20): before it (prospective), in
+# the same commit or minutes apart with the result already on disk (simultaneous), or after it
+# (retrospective). An optional timing_note qualifies the class.
+TIMING_CLASSES = ("prospective", "simultaneous", "retrospective")
 _OPS = {">=": operator.ge, ">": operator.gt, "<=": operator.le, "<": operator.lt}
 BOUNDARY = 0.01      # a clause this close to its threshold is listed as a boundary case
 
@@ -535,6 +542,8 @@ def evaluate_ledger(ledger: dict) -> tuple[list[dict], list[str]]:
             problems.append(f"{rid}: frozen date {row['frozen']} does not appear in {row['source']}")
         if row.get("outcome_class") not in OUTCOME_CLASSES:
             problems.append(f"{rid}: outcome_class {row.get('outcome_class')!r} is not one of {OUTCOME_CLASSES}")
+        if row.get("timing") not in TIMING_CLASSES:
+            problems.append(f"{rid}: timing {row.get('timing')!r} is not one of {TIMING_CLASSES}")
         out = []
         for c in row["clauses"]:
             if c["value"] is None:
@@ -647,6 +656,14 @@ def _tally_sentence(rows: list[dict]) -> str:
             f"and {n('no verdict', 'gives', 'give')} no verdict.")
 
 
+def _timing_sentence(rows: list[dict]) -> str:
+    t = {k: sum(r.get("timing") == k for r in rows) for k in TIMING_CLASSES}
+    return ("Timing (committer times, UTC): the rule, or its use on a run it was not written for, "
+            f"was first committed before (prospective, {t['prospective']} rows), with or minutes "
+            f"from (simultaneous, {t['simultaneous']}), or after (retrospective, "
+            f"{t['retrospective']}) the first result it reads.")
+
+
 _SHORT_BASIS = {"mean": "mean", "t90 lower bound": "LB", "minimum over eight draws": "min",
                 "rank of nine, 1 = largest": "rank"}
 _SHORT_CLAUSE = {"margin over predictor": "vs predictor", "margin over untrained": "vs untrained",
@@ -715,7 +732,7 @@ def rule_ledger_md(rows: list[dict], ledger: dict) -> str:
          "`python scripts/build_paper_tables.py --check` fails if a value, a recorded "
          "outcome or this page disagrees with it.*", "",
          ledger["about"], "",
-         _tally_sentence(rows) + " \"Holds\" means the clauses at the bar and the margin are "
+         _tally_sentence(rows) + " " + _timing_sentence(rows) + " \"Holds\" means the clauses at the bar and the margin are "
          "satisfied as frozen; for a knockout or a control whose positive rule is the reading it "
          "looked for, the outcome column says what that means.", "",
          "Each clause is listed with its basis (the mean, the t-based 90% lower bound, a minimum "
@@ -737,18 +754,21 @@ def rule_ledger_md(rows: list[dict], ledger: dict) -> str:
     if not hits:
         L += ["None.", ""]
     L += ["## Rules", "",
-          "| # | Rule | Frozen in | Run | Clauses | Outcome as recorded | Recorded in |",
-          "|---|---|---|---|---|---|---|"]
+          "| # | Rule | Frozen in | Run | Timing | Clauses | Outcome as recorded | Recorded in |",
+          "|---|---|---|---|---|---|---|---|"]
     for i, r in enumerate(rows, 1):
         src = f"`{r['source']}` ({r['source_part']}), {r['frozen']}"
         clauses = "<br>".join(_clause_text(c) for c in r["clauses"])
-        L.append(f"| {i} | {r['rule']} | {src} | `{r['run']}` ({r['trainer']}, n = {r['n']}) | {clauses} | "
-                 f"{r['outcome']} ({r['outcome_class']}) | {r['recorded_in']} |")
-    notes = [(i, r) for i, r in enumerate(rows, 1) if r.get("freeze_note") or r.get("note")]
+        L.append(f"| {i} | {r['rule']} | {src} | `{r['run']}` ({r['trainer']}, n = {r['n']}) | "
+                 f"{r.get('timing', '?')} | {clauses} | {r['outcome']} ({r['outcome_class']}) | {r['recorded_in']} |")
+    notes = [(i, r) for i, r in enumerate(rows, 1)
+             if r.get("freeze_note") or r.get("note") or r.get("timing_note")]
     if notes:
         L += ["", "## Notes", ""]
         for i, r in notes:
             parts = [x for x in (r.get("freeze_note"), r.get("note")) if x]
+            if r.get("timing_note"):
+                parts.append(f"Timing, {r.get('timing', '?')}: {r['timing_note']}")
             L.append(f"- Row {i}, {r['rule']}: " + " ".join(parts))
     return "\n".join(L) + "\n"
 
@@ -760,9 +780,11 @@ def rule_ledger_table() -> str | None:
     rows, _ = evaluate_ledger(ledger)
     L = [r"% generated by scripts/build_paper_tables.py from docs/rule_ledger.json and the artifacts "
          r"it names; do not edit",
-         r"\begin{tabular}{p{0.24\textwidth}p{0.085\textwidth}p{0.16\textwidth}p{0.07\textwidth}"
-         r"p{0.11\textwidth}p{0.16\textwidth}}",
-         r"\toprule", r"Rule & Frozen & Run & Bar on & Outcome & Deciding clause \\", r"\midrule"]
+         # seven p{} widths that sum to 0.825 of the text width, the sum of the six before the
+         # timing column (third blind review, 2026-10-20)
+         r"\begin{tabular}{p{0.195\textwidth}p{0.075\textwidth}p{0.15\textwidth}p{0.09\textwidth}"
+         r"p{0.07\textwidth}p{0.10\textwidth}p{0.145\textwidth}}",
+         r"\toprule", r"Rule & Frozen & Run & Timing & Bar on & Outcome & Deciding clause \\", r"\midrule"]
     # A row whose recorded outcome was later qualified reads "recorded as" with a marked note
     # under the table (outcome_footnote in the ledger).
     marked = [r for r in rows if r.get("outcome_footnote")]
@@ -771,11 +793,13 @@ def rule_ledger_table() -> str | None:
         if r.get("outcome_footnote"):
             outcome = f"recorded as {outcome}$^{{{chr(ord('a') + marked.index(r))}}}$"
         L.append(f"{_tex_escape(r.get('short', r['rule']))} & {r['frozen']} & {_tex_escape(r['run'])} & "
-                 f"{_bar_basis(r)} & {outcome} & "
+                 f"{r.get('timing', '?')} & {_bar_basis(r)} & {outcome} & "
                  f"{_tex_escape(_deciding(r))} \\\\")
     L += [r"\midrule",
-          rf"\multicolumn{{6}}{{p{{0.9\textwidth}}}}{{{_tex_escape(_tally_sentence(rows))} Outcome "
-          r"says whether the threshold condition was met as frozen. Bar on: the bar is read on the "
+          rf"\multicolumn{{7}}{{p{{0.9\textwidth}}}}{{{_tex_escape(_tally_sentence(rows))} Outcome "
+          r"says whether the threshold condition was met as frozen. "
+          + _tex_escape(_timing_sentence(rows))
+          + r" Bar on: the bar is read on the "
           r"mean, the t-based 90\% lower bound (LB), a minimum over draws, or a rank. Deciding "
           r"clause: a failing gate, else the failing clause nearest its threshold, else the clause "
           r"nearest its threshold; distances are signed, positive on the passing side."

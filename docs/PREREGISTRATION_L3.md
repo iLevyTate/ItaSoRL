@@ -1988,6 +1988,22 @@ Rigor carried from the B-v3 audit (2026-07-10):
   its lower bound as 0.6496, under the bar; generated tables now print that digit. The manuscript
   revision for the second blind review words these so; `docs/CORRECTIONS.md`, 2026-10-20.
 
+- **2026-10-20 - THE BEHAVIOR CONTROL'S UNTRAINED CHECK AND THE PELLET-DENSITY CURVE, READ AS
+  OBSERVED (third blind review; a record; the entries above stay as written and no rule, number
+  or verdict changes).** The 2026-07-13 per-timestep-control entry says the untrained agent's
+  resid_trace is 0.498 "(exact chance)" and that "the control neither manufactures nor spares
+  signal"; the 2026-07-14 hidden-7 entry repeats "0.498 = exact chance". Read 0.498 as near
+  chance, and the second phrase as "under this control an untrained trunk keeps little residual
+  signal": a diagnostic relative to the basis and the regressor the control uses, which does not
+  show that the control removes every behavior-related contribution in the trained agents. The
+  2026-10-19 X07 result entry says "the survival curve is flat at 0.72 to 0.73 from 2 to 96
+  pellets". Read it as the observed means, not as invariance: paired by seed, the survival
+  reading at 2 pellets minus 24 pellets is -0.007 [-0.022, +0.008] (t-based 90%, n = 10), and
+  every other density's paired 90% interval against 24 lies within plus or minus 0.05, recomputed from
+  the per-seed rows of `artifacts/pellet_dose/corrected_l3_h8_wm.json`; the reading changes
+  little across the tested evaluation densities. The manuscript revision for the third blind
+  review words these so; `docs/CORRECTIONS.md`, 2026-10-20, third blind review.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
