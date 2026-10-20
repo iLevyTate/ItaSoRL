@@ -77,8 +77,9 @@ encoding criterion. At the supra-band grid Δ = 0.06 the survival arm also misse
 0.643 [0.619, 0.667] is under the 0.65 bar (5 of 10 seeds at 0.65), survival minus untrained is
 -0.029 [-0.062, +0.005] and survival minus predictor +0.032 [-0.005, +0.069], both under the 0.05
 margin (recomputed from the per-seed rows of `artifacts/expL1/l1_coarse_grid_corrected.json`). The
-criterion is therefore not met at either grid; what is specific to the in-band grid is that the
-readout does not register the seam above chance. No number, label or verdict changes.)*
+criterion is therefore not met at either grid; what is specific to the in-band grid is the readout's sensitivity as label (a) reads it: the
+untrained arm, at 0.672 [0.640, 0.704] at Δ = 0.06, reads 0.513 [0.494, 0.533] at Δ = 0.023,
+an interval that contains 0.5. No number, label or verdict changes.)*
 *(Note 2026-10-16: for L1 the criterion is H_B2, frozen on 2026-06-28 for the L2 run and
 applied unchanged to the historical L1 run after it ran. No L1 rule was registered before that
 run, and its code was first committed together with its result. `docs/CORRECTIONS.md`,
@@ -3422,8 +3423,9 @@ encoding criterion. At the supra-band grid Δ = 0.06 the survival arm also misse
 0.643 [0.619, 0.667] is under the 0.65 bar (5 of 10 seeds at 0.65), survival minus untrained is
 -0.029 [-0.062, +0.005] and survival minus predictor +0.032 [-0.005, +0.069], both under the 0.05
 margin (recomputed from the per-seed rows of `artifacts/expL1/l1_coarse_grid_corrected.json`). The
-criterion is therefore not met at either grid; what is specific to the in-band grid is that the
-readout does not register the seam above chance. No number, label or verdict changes.)*
+criterion is therefore not met at either grid; what is specific to the in-band grid is the readout's sensitivity as label (a) reads it: the
+untrained arm, at 0.672 [0.640, 0.704] at Δ = 0.06, reads 0.513 [0.494, 0.533] at Δ = 0.023,
+an interval that contains 0.5. No number, label or verdict changes.)*
 
 ## 15. Matched-handicap oracle ceilings across rungs (2026-09-27)
 
@@ -6221,6 +6223,15 @@ readout on an untrained trunk, and the survival-specific encoding contrast is no
 The historical companion reads survival 0.638 at 0.06 (0.552 [0.530, 0.574] at 0.023), with
 survival minus untrained -0.034 [-0.071, +0.002] at 0.06. Its untrained and predictor values equal
 the corrected run's seed for seed at every grid, so the two runs share one floor read twice.)*
+
+*(Note 2026-10-20: "a negative at the in-band grid" names the readout's sensitivity, not the
+encoding criterion. At the supra-band grid Δ = 0.06 the survival arm also misses the criterion:
+0.643 [0.619, 0.667] is under the 0.65 bar (5 of 10 seeds at 0.65), survival minus untrained is
+-0.029 [-0.062, +0.005] and survival minus predictor +0.032 [-0.005, +0.069], both under the 0.05
+margin (recomputed from the per-seed rows of `artifacts/expL1/l1_coarse_grid_corrected.json`). The
+criterion is therefore not met at either grid; what is specific to the in-band grid is the readout's sensitivity as label (a) reads it: the
+untrained arm, at 0.672 [0.640, 0.704] at Δ = 0.06, reads 0.513 [0.494, 0.533] at Δ = 0.023,
+an interval that contains 0.5. No number, label or verdict changes.)*
 
 *(Note 2026-10-19: a nonlinear state probe on these corrected L1 agents
 (`docs/specs/2026-10-17-closing-readouts-design.md`, section "H53. A nonlinear state probe on the

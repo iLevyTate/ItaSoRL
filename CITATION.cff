@@ -26,7 +26,7 @@ abstract: >-
   0.50 averaged over eight, so the matched contrast is L1 against L3. Rerun on the corrected trainer, the L1 state reads
   0.551, as before the correction; the same readout registers the seam at a
   coarser, supra-band grid (0.06), where an untrained trunk already reads 0.672,
-  so the L1 negative is specific to the in-band grid. Against a learned-dynamics fingerprint (L3),
+  so the readout is not blind to the seam, though the survival arm (0.643) misses the criterion there too. Against a learned-dynamics fingerprint (L3),
   survival-trained agents carrying a next-observation auxiliary at the
   registered 300-update budget, with the trainer corrected in October 2026,
   read 0.733 against 0.589 for a prediction-only arm, each arm on the episodes
