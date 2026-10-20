@@ -658,10 +658,10 @@ def _tally_sentence(rows: list[dict]) -> str:
 
 def _timing_sentence(rows: list[dict]) -> str:
     t = {k: sum(r.get("timing") == k for r in rows) for k in TIMING_CLASSES}
-    return (f"Timing (committer times, UTC): the rule, or its use on a run it was not written for, "
+    return ("Timing (committer times, UTC): the rule, or its use on a run it was not written for, "
             f"was first committed before (prospective, {t['prospective']} rows), with or minutes "
             f"from (simultaneous, {t['simultaneous']}), or after (retrospective, "
-            f"{t['retrospective']}) the first result of the run it decides.")
+            f"{t['retrospective']}) the first result it reads.")
 
 
 _SHORT_BASIS = {"mean": "mean", "t90 lower bound": "LB", "minimum over eight draws": "min",
@@ -760,7 +760,7 @@ def rule_ledger_md(rows: list[dict], ledger: dict) -> str:
         src = f"`{r['source']}` ({r['source_part']}), {r['frozen']}"
         clauses = "<br>".join(_clause_text(c) for c in r["clauses"])
         L.append(f"| {i} | {r['rule']} | {src} | `{r['run']}` ({r['trainer']}, n = {r['n']}) | "
-                 f"{r['timing']} | {clauses} | {r['outcome']} ({r['outcome_class']}) | {r['recorded_in']} |")
+                 f"{r.get('timing', '?')} | {clauses} | {r['outcome']} ({r['outcome_class']}) | {r['recorded_in']} |")
     notes = [(i, r) for i, r in enumerate(rows, 1)
              if r.get("freeze_note") or r.get("note") or r.get("timing_note")]
     if notes:
@@ -768,7 +768,7 @@ def rule_ledger_md(rows: list[dict], ledger: dict) -> str:
         for i, r in notes:
             parts = [x for x in (r.get("freeze_note"), r.get("note")) if x]
             if r.get("timing_note"):
-                parts.append(f"Timing, {r['timing']}: {r['timing_note']}")
+                parts.append(f"Timing, {r.get('timing', '?')}: {r['timing_note']}")
             L.append(f"- Row {i}, {r['rule']}: " + " ".join(parts))
     return "\n".join(L) + "\n"
 
@@ -793,7 +793,7 @@ def rule_ledger_table() -> str | None:
         if r.get("outcome_footnote"):
             outcome = f"recorded as {outcome}$^{{{chr(ord('a') + marked.index(r))}}}$"
         L.append(f"{_tex_escape(r.get('short', r['rule']))} & {r['frozen']} & {_tex_escape(r['run'])} & "
-                 f"{r['timing']} & {_bar_basis(r)} & {outcome} & "
+                 f"{r.get('timing', '?')} & {_bar_basis(r)} & {outcome} & "
                  f"{_tex_escape(_deciding(r))} \\\\")
     L += [r"\midrule",
           rf"\multicolumn{{7}}{{p{{0.9\textwidth}}}}{{{_tex_escape(_tally_sentence(rows))} Outcome "

@@ -1779,8 +1779,8 @@ n = 10 return, which is what is quoted and adjudicated above.
 *(Note 2026-10-20, third blind review: limitation (2) compares the overshoot, 0.0131, with two
 uncertainties, the stage-2 arm's own standard error of 0.096 and the standard error near 0.046
 that the reference's spread gives. "The arm did not meaningfully exceed the target; it landed
-on it" reads "the estimated overshoot is small relative to both uncertainties". That
-uncertainty establishes neither a successful match nor a negligible overshoot, so whether the
+on it" reads "the estimated overshoot is small relative to both uncertainties". Those
+uncertainties establish neither a successful match nor a negligible overshoot, so whether the
 arm matched the reference's skill remains unresolved. The frozen table's row 4, no
 skill-mediation verdict, is the reading, as adjudicated above. The numbers stay as recorded;
 `docs/CORRECTIONS.md`, 2026-10-20, third blind review.)*
@@ -4795,7 +4795,7 @@ share of the survival value; 17.10, the 2026-10-19 note on the cross replay.)*
 *(Note 2026-10-20, third blind review: "it stays at 0.72 to 0.73 from 2 to 96 pellets" gives
 the observed means and is not an invariance claim. Paired by seed against 24 pellets, the
 survival reading at 2 pellets changes by -0.007 [-0.022, +0.008] (t-based 90%, n = 10, the
-sign-reversed "survival 24 minus 2" of the artifact), and every density's paired 90% interval
+sign-reversed "survival 24 minus 2" of the artifact), and every other density's paired 90% interval
 against 24 lies within plus or minus 0.05, recomputed from the per-seed rows of
 `artifacts/pellet_dose/corrected_l3_h8_wm.json`. The reading changes little across the tested
 evaluation densities. The numbers stay as recorded; `docs/CORRECTIONS.md`, 2026-10-20, third

@@ -1103,7 +1103,7 @@
    "gates_hold": null,
    "outcome": "positive rule fails both clauses; vacuous, since the L1 primary reading is null",
    "outcome_class": "threshold not met",
-   "timing": "retrospective",
+   "timing": "simultaneous",
    "timing_note": "The 2026-07-22 rule predates the run but names no L1 comparator; the noise comparator, its calibration and the rule's use at L1 were first committed with the result (2026-07-25 04:14 UTC; CORRECTIONS 2026-10-16, the historical L1 run had no rule registered before it ran).",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-25; FINDINGS 14.7"
   },
@@ -1194,7 +1194,7 @@
    "gates_hold": true,
    "outcome": "NOT MET",
    "outcome_class": "threshold not met",
-   "timing": "retrospective",
+   "timing": "simultaneous",
    "timing_note": "H_B2 was written for L2 on 2026-06-28; its application to L1, the gate-0 grid selection (delta 0.023) and the L1 code were first committed with the result (2026-07-25 04:14 UTC; CORRECTIONS 2026-10-16, the historical L1 run had no rule registered before it ran).",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-25; FINDINGS 14.7"
   },
@@ -1455,7 +1455,7 @@
    "outcome": "passes at the mean",
    "outcome_class": "threshold met",
    "timing": "simultaneous",
-   "timing_note": "The spec was first committed (2026-09-27 23:23 UTC) about three minutes after the run's first cell file and before its first survival cell.",
+   "timing_note": "The spec was first committed (2026-09-27 23:23 UTC) about three minutes after the run's first cell result was written and before its first survival cell.",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-28; FINDINGS 10.4.2",
    "note": "Superseded by the corrected-agent control of FINDINGS 17.8 (0.620, no frozen margin)."
   },
@@ -1537,6 +1537,7 @@
    "outcome": "the positive is auxiliary-conditional (survival under the bar)",
    "outcome_class": "threshold not met",
    "timing": "prospective",
+   "timing_note": "A local GPU trial of the no-auxiliary configuration wrote two drift-zero cells from 21:00 to 21:28 UTC on 2026-09-26, before this spec was first committed (21:45 UTC); it is not this run, which is the later cloud CPU run, its cells record a commit that predates the configuration, and it has no drift-0.45 reading.",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-27; FINDINGS 10.8"
   },
   {

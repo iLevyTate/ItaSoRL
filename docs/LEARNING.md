@@ -530,7 +530,7 @@ A second objection arrived later and is worth its own line. Controlling for beha
 does not automatically control for input: a notebook that passively mirrors
 what the creature sees would survive the behavior control, because the view under a
 different motion law is itself different. A readout-only control, whose specification
-the log records as fixed before launch but which was first committed together with its
+says it was fixed before launch but which was first committed together with its
 result, subtracts the observation stream too. The signal holds at 0.731 (90% CI
 [0.690, 0.772], 8 of 10 seeds). Subtract the senses and the behavior together, with
 a nonlinear reader, and it falls to 0.654, right at the bar with the interval

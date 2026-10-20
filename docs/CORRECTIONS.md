@@ -1790,7 +1790,7 @@ historical sensory-echo control was frozen before it ran, while FINDINGS 10.4.2 
 0.498 as near chance with the basis-relative reading; the overshoot as small relative to its
 uncertainty, with matching unresolved and the frozen no-verdict reading unchanged; the density
 readings as changing little, with the seed-paired 2-minus-24 contrast -0.007 [-0.022, +0.008]
-(t-based 90%, n = 10) and every density's paired interval against 24 within plus or minus 0.05,
+(t-based 90%, n = 10) and every other density's paired 90% interval against 24 within plus or minus 0.05,
 recomputed from the per-seed rows of `artifacts/pellet_dose/corrected_l3_h8_wm.json`. FINDINGS
 11 item 4 and the limitations of `docs/PAPER_OUTLINE.md` say that one instance of the learned
 surrogate (hidden 8, G seed 0) serves C1, C2 and every other corrected run against it, the
@@ -1805,13 +1805,18 @@ optional `timing_note`): prospective when the rule text was first committed befo
 of the run it decides, simultaneous when it was first committed with that result or minutes
 from it with the result already on disk, and retrospective when it was first committed after
 results of that run existed; a rule written for another rung is dated by its first use on the
-run. Of the 49 rows, 41 are prospective, 4 simultaneous (the hidden-7 selection, the
-historical sensory echo at hidden 8 and its later use at hidden 7, and the nonlinear joint
-control) and 4 retrospective (the historical L1 run and its noise knockout, read under rules
-written for other rungs, and the two matched-world sensory-echo rows). `scripts/build_paper_tables.py` renders the class as
+run. Of the 49 rows, 41 are prospective, 6 simultaneous (the hidden-7 selection, the
+historical L1 run and its noise knockout, whose rules, written for other rungs, were first
+applied to L1 in the commit that recorded its result, the historical sensory echo at hidden 8
+and its later use at hidden 7, and the nonlinear joint control) and 2 retrospective (the two
+matched-world sensory-echo rows, frozen after the raw outcomes and untrained-only diagnostics
+on the same agents, though before their own readout ran). `scripts/build_paper_tables.py` renders the class as
 a column of the manuscript's rule-ledger table, with p{} widths that sum to the same 0.825 of
 the text width, and as a column of `docs/RULE_LEDGER.md`, with each qualifier under Notes; a
 row without a class from that set fails `--check` (`tests/test_rule_ledger.py`).
+The architecture baseline's row records a local GPU trial of the no-auxiliary configuration
+(fullruns/l3_h8_nowm, two drift-zero cells, 21:00 to 21:28 UTC on 2026-09-26) written before
+that spec's first commit; it is not the recorded run and enters no reading.
 
 **What this does not change.** No number, label, rule or verdict. The registered texts, the
 frozen specs, `docs/STATUS_2026-09-27.md` (a dated snapshot, which keeps "did not meaningfully

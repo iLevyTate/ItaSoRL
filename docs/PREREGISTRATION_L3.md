@@ -1999,7 +1999,7 @@ Rigor carried from the B-v3 audit (2026-07-10):
   2026-10-19 X07 result entry says "the survival curve is flat at 0.72 to 0.73 from 2 to 96
   pellets". Read it as the observed means, not as invariance: paired by seed, the survival
   reading at 2 pellets minus 24 pellets is -0.007 [-0.022, +0.008] (t-based 90%, n = 10), and
-  every density's paired 90% interval against 24 lies within plus or minus 0.05, recomputed from
+  every other density's paired 90% interval against 24 lies within plus or minus 0.05, recomputed from
   the per-seed rows of `artifacts/pellet_dose/corrected_l3_h8_wm.json`; the reading changes
   little across the tested evaluation densities. The manuscript revision for the third blind
   review words these so; `docs/CORRECTIONS.md`, 2026-10-20, third blind review.
