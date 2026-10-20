@@ -1821,3 +1821,26 @@ that spec's first commit; it is not the recorded run and enters no reading.
 **What this does not change.** No number, label, rule or verdict. The registered texts, the
 frozen specs, `docs/STATUS_2026-09-27.md` (a dated snapshot, which keeps "did not meaningfully
 exceed its target") and the entries above keep their wording.
+
+## 2026-10-20: the L1 negative read as specific to the in-band grid (final manuscript audit)
+
+**What was wrong.** A final audit of the manuscript found that the claim "the L1 negative is
+specific to the in-band grid" says more than its evidence. The pre-stated text map of the
+2026-10-17 closing-readouts specification turns label (a) SENSITIVE, which reads only the
+untrained arm, into that sentence, and `docs/PAPER_OUTLINE.md` claims row 35b, the README, the `CITATION.cff` abstract and the site
+entry (`index.template.html`, rendered `index.html`) repeated it. At the supra-band grid Δ = 0.06 the survival state also fails the encoding
+criterion on all three clauses: 0.643 [0.619, 0.667] is under the 0.65 bar, survival minus
+untrained is -0.029 [-0.062, +0.005] and survival minus predictor +0.032 [-0.005, +0.069], both
+under the 0.05 margin (`artifacts/expL1/l1_coarse_grid_corrected.json`, recomputed from the
+per-seed rows). What is specific to the in-band grid is only the readout's sensitivity as label (a) reads it:
+the untrained arm, at 0.672 [0.640, 0.704] at Δ = 0.06, reads 0.513 [0.494, 0.533] at
+Δ = 0.023, an interval that contains 0.5.
+
+**Change.** Claims row 35b, the README, the `CITATION.cff` abstract and the site entry say that the readout is not blind to the seam class,
+that an untrained trunk registers it as much as the survival one, and that the criterion is not
+met at either grid. The FINDINGS TL;DR, section 14.7.1 and section 22.1 gain dated notes with the three clauses,
+and the section 12 result entry of `docs/PREREGISTRATION_L3.md` a dated line. The manuscript's introduction, Contribution 2 and claims inventory say that the criterion is not
+met at the coarse grid, and its abstract that the readout is not blind to the seam.
+
+**What this does not change.** No number, label, rule or verdict. The specification and its
+text map stay as frozen, and the 2026-10-19 notes keep their wording.

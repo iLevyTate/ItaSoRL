@@ -1428,6 +1428,11 @@ Rigor carried from the B-v3 audit (2026-07-10):
   historical companion decides nothing; its survival arm reads 0.638 at 0.06, and its untrained and
   predictor values equal the corrected run's (one floor read twice). No prediction was stated. The
   title stays. Changes no stored value or verdict.
+  *(Note 2026-10-20: label (a) reads the readout's sensitivity only. At grid 0.06 the survival arm
+  also misses the encoding criterion: under the 0.65 bar, survival minus untrained -0.029
+  [-0.062, +0.005] and survival minus predictor +0.032 [-0.005, +0.069], both under the 0.05
+  margin, so the criterion is not met at either grid (`docs/CORRECTIONS.md`, entry of
+  2026-10-20). Changes no stored value or verdict.)*
 
 - **2026-10-17 - WALK SPEED AGAINST GOAL DIRECTION (B2), ANNOUNCED BEFORE THE RUN (spec
   `docs/specs/2026-10-17-walk-speed-vs-goal-readout-design.md`, the whole spec).** Whether the C1
