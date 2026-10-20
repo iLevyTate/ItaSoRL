@@ -141,6 +141,9 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 5. **Limitations** (FINDINGS 11; `docs/CORRECTIONS.md`)
    - One surrogate per run and one set of evaluation worlds: intervals over agent
      seeds condition on both. L0 depends on the world sample (`artifacts/l0_audit/`).
+     One instance of the learned surrogate (hidden 8, G seed 0) serves C1, C2 and every
+     other corrected run against it, the matched-world and death-off runs included; the
+     three corrected instance reruns (FINDINGS 20.2) are the exception.
    - The arms differ in objective, training policy, and data at once.
    - Controls remove what their basis and model can express.
 6. **Related work** (ITASORL.md Part I literature sections, incl. the 2026-07
@@ -180,7 +183,7 @@ implementation produced each number is in `docs/RESULTS_MANIFEST.md`.*
 | 16 | No survivorship asymmetry | historical; primary, replaced by C1 | 0 early deaths, 110/110 all pools | FINDINGS 10.3 | PREREGISTRATION_L3.md sec. 12; artifacts/expB2/heldout_l3_h8_summary.json (standard pools) | - |
 | 17 | Behavior alone decodes world | historical; secondary | trace 0.803, seed bootstrap [0.763, 0.840] (t 90% CI [0.758, 0.848]) | FINDINGS 10.4 | artifacts/expB2/behavior_audit_l3_h8_traces.json | - |
 | 18 | Remains after per-timestep linear behavior control (four-channel; position/heading added in 10.4.1) | historical; secondary | 0.726, seed bootstrap [0.685, 0.765] (t 90% CI [0.679, 0.772]), 9/10; quad 0.721; position/heading-controlled 0.723, seed bootstrap [0.682, 0.760] (t 90% CI [0.676, 0.769]), 8/10, quad 0.700 | FINDINGS 10.4, 10.4.1 | artifacts/expB2/behavior_audit_l3_h8_traces.json; artifacts/expB2/behavior_audit_l3_covar_n10.json | - |
-| 19 | Control neither manufactures nor spares signal | historical; secondary | untrained resid 0.498; predictor 0.574 | FINDINGS 10.4 | artifacts/expB2/behavior_audit_l3_h8_traces.json | - |
+| 19 | Control leaves little untrained residual (diagnostic, basis-relative) | historical; secondary | untrained resid 0.498; predictor 0.574 | FINDINGS 10.4 | artifacts/expB2/behavior_audit_l3_h8_traces.json | - |
 | 20 | Second capacity: the residual after the behavior control replicates | historical; secondary | 0.722, seed bootstrap [0.678, 0.763] (t 90% CI [0.672, 0.773]), 8/10; quad 0.704 | FINDINGS 10.5 | artifacts/expB2/behavior_audit_l3_h7_traces.json | - |
 | 21 | Second capacity: dissociation NOT met (artifact-conditional) | historical; secondary | survival 0.737, seed bootstrap [0.688, 0.780] (t 90% CI [0.682, 0.791]) vs predictor 0.714, seed bootstrap [0.687, 0.740] (t 90% CI [0.683, 0.745]); lead +0.023 < +0.05 | FINDINGS 10.5 | artifacts/expB2/behavior_audit_l3_h7_traces.json | - |
 | 22 | Gate 0 re-validated per capacity; hidden=7 frozen | agent-free gate; secondary | oracle 0.922, floor 0.566; hidden=8 regression within its tolerances (oracle 0.928; floor 0.482, the three-seed mean, against the frozen seed-0 0.483); hidden=4 uninformative | FINDINGS 10.5 | PREREGISTRATION_L3.md sec. 12 + scripts/run_expA_l3.py; artifacts/fold_rescore/gate0_h8h7_legacy.json | - |

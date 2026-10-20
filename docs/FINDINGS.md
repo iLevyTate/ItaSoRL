@@ -1050,6 +1050,14 @@ mediates only ≈ 0.03 of the 0.752 headline. Caveat: the residualization basis 
 linear/quadratic in a short behavior window; a full-history or nonlinear control
 could in principle remove more.
 
+*(Note 2026-10-20, third blind review: "exact chance" above reads "near chance", and "the
+control neither manufactures nor spares signal" reads "under this control an untrained trunk
+keeps little residual signal". The untrained agent's controlled state, 0.498, is a diagnostic
+relative to the basis and the regressor the control uses; it does not show that the control
+removes every behavior-related contribution in the trained agents, whose residual is what
+this basis and this model could not explain (10.4.1, 17.8). The numbers stay as recorded;
+`docs/CORRECTIONS.md`, 2026-10-20, third blind review.)*
+
 > **COVARIATE-GAP NOTE (2026-07-18, methodology audit).** The behavior channels
 > residualized out are speed/energy/food-distance/drag only; absolute position
 > and heading are not in the dump and are not controlled. Because the two
@@ -1310,6 +1318,9 @@ qualitatively coarser: mechanically leakier and far more behaviorally salient (t
 behavior trace alone decodes the world at 0.762-0.796 in ALL arms, including
 untrained, vs 0.645 for the untrained arm at hidden = 8), so at this capacity
 every trained agent picks the fingerprint up.
+
+*(Note 2026-10-20, third blind review: "0.498, exact chance" above reads "0.498, near chance";
+10.4's note of the same date gives the narrower reading of that diagnostic.)*
 
 **Reading, per the pre-registered two-capacity clause:** the cross-capacity claim
 that survives both runs is a reward-clean, survivorship-clean world-signal of
@@ -1765,6 +1776,15 @@ window is narrower than the noise. (3) Stage 1's three seeds are the first three
 2's ten, so stage 1 is not an independent pre-test of the budget. The rule reads the
 n = 10 return, which is what is quoted and adjudicated above.
 
+*(Note 2026-10-20, third blind review: limitation (2) compares the overshoot, 0.0131, with two
+uncertainties, the stage-2 arm's own standard error of 0.096 and the standard error near 0.046
+that the reference's spread gives. "The arm did not meaningfully exceed the target; it landed
+on it" reads "the estimated overshoot is small relative to both uncertainties". That
+uncertainty establishes neither a successful match nor a negligible overshoot, so whether the
+arm matched the reference's skill remains unresolved. The frozen table's row 4, no
+skill-mediation verdict, is the reading, as adjudicated above. The numbers stay as recorded;
+`docs/CORRECTIONS.md`, 2026-10-20, third blind review.)*
+
 *(2026-10-10: the gates paragraph above quotes the speed control at 0.837, the lowest arm mean; the lowest pool reads 0.790. See the note "the speed positive control, read in every pool" at the end of 10.9.)*
 
 ### 10.9 Second fingerprint instance: a training-regime dissociation, below the bar (2026-09-27, historical trainer; objective reading withdrawn per 17.6)
@@ -2057,6 +2077,12 @@ Stated once, plainly, with pointers into the code.
    reruns (section 20). Hidden 7 is off-design on its own fingerprint, hidden 8 at G seed 2 is
    uninformative, and hidden 10 at G seed 1 does not meet its replication rule; in all three
    the survival arm leads the untrained arm by about 0.11.)*
+   *(Note 2026-10-20, third blind review: on the corrected trainer the single-instance
+   condition applies to the primary comparison and the runs built on it. One instance of the
+   learned surrogate, hidden 8 at G seed 0, serves `C1`, `C2` and every other corrected run
+   against the learned surrogate, the matched-world runs (`B1`, `B2`) and the death-off runs
+   (`S-immortal`, `T-touch`) included; the three corrected instance reruns of section 20 are
+   the exception.)*
 5. **CI methodology at the decision boundary.** The percentile bootstrap of a seed
    mean under-covers near the bar at n ≤ 10, so "clears / misses 0.65"
    adjudications use the t-based interval, with both reported
@@ -4765,6 +4791,15 @@ where the sealed command says four; the 24-pellet check shows the values are una
 *(Note 2026-10-19: "the survival walk's input carries much of the reading" is read as "the
 reading depends on the survival walk's input". The input reference is a separate reading, not a
 share of the survival value; 17.10, the 2026-10-19 note on the cross replay.)*
+
+*(Note 2026-10-20, third blind review: "it stays at 0.72 to 0.73 from 2 to 96 pellets" gives
+the observed means and is not an invariance claim. Paired by seed against 24 pellets, the
+survival reading at 2 pellets changes by -0.007 [-0.022, +0.008] (t-based 90%, n = 10, the
+sign-reversed "survival 24 minus 2" of the artifact), and every density's paired 90% interval
+against 24 lies within plus or minus 0.05, recomputed from the per-seed rows of
+`artifacts/pellet_dose/corrected_l3_h8_wm.json`. The reading changes little across the tested
+evaluation densities. The numbers stay as recorded; `docs/CORRECTIONS.md`, 2026-10-20, third
+blind review.)*
 
 *(Note 2026-10-19: "a trunk that never trained on the objective reads most of the signal", in
 the sentence under the table, is read as "an untrained trunk replaying the trained arm's

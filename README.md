@@ -323,8 +323,11 @@ probes what is left. What is left is **0.726** (t-based 90% CI **[0.679,
 0.772]**, excludes the 0.65 bar; seed-level bootstrap [0.685, 0.765]; 9 of 10
 seeds; quadratic variant 0.721). Adding absolute position and heading barely
 moves it, to **0.723** (t-based 90% CI [0.676, 0.769]; 8 of 10 seeds). FINDINGS
-§10.4.1. Untrained state under the same control is chance (0.498) even though
-untrained *behavior* decodes 0.645. Prediction-only stays near chance (0.574).
+§10.4.1. Untrained state under the same control is near chance (0.498) even though
+untrained *behavior* decodes 0.645: under this control an untrained trunk keeps little
+residual signal, a diagnostic relative to the basis and regressor used, not a showing that
+every behavior-related contribution is removed in the trained agents. Prediction-only stays
+near chance (0.574).
 The control removes what its channels and model can express; behavior and
 position information outside that basis, nonlinear or dependent on history, are
 not excluded. An earlier per-episode-mean control had

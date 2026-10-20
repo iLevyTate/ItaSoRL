@@ -519,15 +519,19 @@ the quadratic version is 0.721). A later audit widened that subtraction to also
 remove the creature's absolute position and heading, a covariate the two worlds'
 different motion laws could smuggle in; the signal barely moved, to 0.723, so it
 survives that position-and-heading subtraction. Position information the subtraction
-cannot express, nonlinear or built up over the episode's history, is not ruled out. And the control is honest on its own
-tests: the untrained creature's residual reads exact chance (0.498) even though its
-raw behavior reveals the world at 0.645.
+cannot express, nonlinear or built up over the episode's history, is not ruled out. The
+control also passes a check on its own tests: the untrained creature's residual reads near
+chance (0.498) even though its raw behavior reveals the world at 0.645. That says an
+untrained brain keeps little left over under this control. It is a check relative to the
+subtraction used, and it does not show that every behavior-related part of a trained
+brain's signal was removed.
 
 A second objection arrived later and is worth its own line. Controlling for behavior
 does not automatically control for input: a notebook that passively mirrors
 what the creature sees would survive the behavior control, because the view under a
-different motion law is itself different. A readout-only control, frozen before it
-ran, subtracts the observation stream too. The signal holds at 0.731 (90% CI
+different motion law is itself different. A readout-only control, whose specification
+the log records as fixed before launch but which was first committed together with its
+result, subtracts the observation stream too. The signal holds at 0.731 (90% CI
 [0.690, 0.772], 8 of 10 seeds). Subtract the senses and the behavior together, with
 a nonlinear reader, and it falls to 0.654, right at the bar with the interval
 straddling it. The honest summary is that roughly two thirds of the above-chance
@@ -584,9 +588,12 @@ creature longer until its foraging return matches, then probe it. The probe came
 back at **0.717**, above the bar. But the match missed. The arm's return landed
 0.0131 past the top of its frozen window, so by the rule fixed in advance the run
 yields **no verdict** on the confound, because you cannot credit encoding to
-matched skill that was in fact exceeded. Worth knowing how small that miss is:
+matched skill that was in fact exceeded. Worth knowing the size of that miss:
 0.0131 against a standard error of 0.096 on the same quantity, about one seventh of
-one standard error. The window was narrower than the noise it was gating. The
+one standard error. That is small against its uncertainty, which is not the same as a
+match: the uncertainty establishes neither a successful match nor a negligible
+overshoot, so whether skill was matched stays unresolved. The window was narrower than
+the noise it was gating. The
 result is reported as attempted and inconclusive rather than reinterpreted after
 the fact, which is what pre-registration costs when it bites.
 
