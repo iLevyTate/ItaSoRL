@@ -219,7 +219,11 @@ that would round onto the bar with the digit that shows its side (hidden 7 reads
   the version, the package built, `dist` uploaded). It warns that `date-released` (2026-10-20, the
   tag date in UTC) differs from the release commit's own date, written in Eastern time (2026-10-19).
 
-## 2e. Review archive for v1.5.2, 2026-10-20 (the upload candidate)
+## 2e. Review archive for v1.5.2, 2026-10-20
+
+*Superseded 2026-10-20 by the v1.5.3 archive (section 2f), which carries the records revised after
+the final manuscript audit. The v1.5.2 tag and this archive stay as built; no archive below 2f is
+to be uploaded.*
 
 `python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.2/supplement-review.zip`,
 built from the release commit `0fd8b79` (tag `v1.5.2`) with the key in `dist/supplement-commit-key.txt`.
@@ -253,6 +257,41 @@ prints.
   the package built, `dist` uploaded), with the same `date-released` warning as v1.5.1 (2026-10-20
   in UTC against the release commit's Eastern-time date, 2026-10-19).
 
+## 2f. Review archive for v1.5.3, 2026-10-20 (the upload candidate)
+
+`python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.3/supplement-review.zip`,
+built from the release commit `c5d582c` (tag `v1.5.3`) with the key in `dist/supplement-commit-key.txt`.
+Between v1.5.2 and this build, a final audit of the manuscript found that "the L1 negative is
+specific to the in-band grid" said more than its evidence: at the supra-band grid the survival arm
+also misses the bar and both margins, so the encoding criterion is not met at either grid. PR #173
+brought claims row 35b, the README, the `CITATION.cff` abstract and the site entry in line, added
+dated notes to FINDINGS (TL;DR, 14.7.1, 22.1) and `docs/PREREGISTRATION_L3.md` section 12, and one
+CORRECTIONS entry; no recorded number, label, rule or verdict changed.
+
+- `dist/review-1.5.3/supplement-review.zip`: 1406 files, 1405 listed in `SHA256SUMS`;
+  94,258,853 bytes, under the 95,000,000-byte working cap and the 100,000,000 bytes the build
+  enforces.
+- SHA-256 `ceb4d5d6693ac63cd70b5112db8603bfa2594a5dc63d5bbb31ac07721740688b`, equal to the
+  `archive_sha256` of its commit map.
+- Run bundles as in 2c to 2e: `l3_h8_heldout/agents` (60 files), `l3_h8_gseed2_gpu/agents` (60),
+  `corrected_l3_h8_wm/agents` (90), `corrected_l3_h8_nowm/agents` (90),
+  `corrected_l3_h8_wm/cells` (20) and `corrected_l3_h8_nowm/cells` (20), each named in
+  `README_SUPPLEMENT.md` with digests in `SHA256SUMS`. No B1 or B2 agents ship.
+- 385 commit IDs (406 spellings) and 163 recorded digests (164 spellings) replaced by keyed
+  pseudonyms; 0 unresolved commit-field spellings; map local in
+  `dist/review-1.5.3/supplement-review.commit-map.json`. The identity scan found no identity
+  string, and every image is on the reviewed list. The shipped `CITATION.cff`, README and
+  `docs/PAPER_OUTLINE.md` no longer carry the in-band-specific sentence.
+- Before the build: the release workflow, dispatched on `c5d582c`, built the package and uploaded
+  `dist`, and a fresh clone's reachability gate printed `[]` and `None`.
+- In a fresh extraction: 1405 of 1405 `SHA256SUMS` lines verify;
+  `python -E scripts/reproduce.py tables --check` and `python -E scripts/audit_stats_recheck.py`
+  pass 3873 checks, against 3874 in a git checkout; `python -E -m pytest -q -rs` gives 1542
+  passed, 41 skipped, 0 failed on Python 3.13.2 with NumPy 1.26.4, run in seven foreground parts
+  over the same 154 test files. The skips match the v1.5.2 run line for line.
+- Tag `v1.5.3` pushed 2026-10-20 on `c5d582c`; its release run passed (the tag names the version,
+  the package built, `dist` uploaded).
+
 ## 3. Clean extraction
 
 Extracted into an empty directory outside the repository. Every checksum in `SHA256SUMS`
@@ -279,7 +318,19 @@ directory, so they must not be run with `python -I`; `reproduce.py` does not nee
 
 ## 4. Source package
 
-*Final, 2026-10-20 (after review 3):* paper commit `2e9ee73`, 92 pages, `docs/paper/dist/source.zip`
+*Final, 2026-10-20 (after the final audits):* paper commit `a5cf793`, 92 pages with the main text
+ending on page 33, `docs/paper/dist/source.zip` (21 files, 307,242 bytes), SHA-256
+`ca0191e2f43f0c2c052f69cc84e64922d0ab636822f53596a1e62004fa97f26c`, the same bytes on two builds,
+whose standalone compile gave 92 pages with no undefined reference or overfull box and page-by-page
+text identical to `docs/paper/main.pdf`. After review 4 the owner asked for one more analysis: a
+claims audit and a reader-style audit found one major wording error (the L1 negative read as
+specific to the in-band grid) and presentation items; the owner chose to restructure the front
+matter as well. "What we find" leads with C1 and its open L0 gate, Table 1 gains the L0 row,
+Figure 2 a rule-status strip and the C1 L0 column, Experiment C and several details move to the
+appendix, and a repetition pass cuts duplicate statements. Each wave was audited independently
+(edits, repetition) and every finding applied. The packaged `main.tex` carries "Anonymous authors".
+
+*Superseded, 2026-10-20:* paper commit `2e9ee73`, 92 pages, `docs/paper/dist/source.zip`
 (21 files, 301,490 bytes), SHA-256 `6c0c6017d9dd0d17f8539add93bb99a4b736d6e7a8db79905d54c3745d46376f`,
 the same bytes with and without the standalone compile, which gave 92 pages with no undefined
 reference or overfull box and page-by-page text identical to `docs/paper/main.pdf`. It answers the
