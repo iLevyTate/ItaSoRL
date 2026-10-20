@@ -148,6 +148,10 @@ run; each push made with the owner's approval.
 
 ## 2c. Review archive for v1.5.0, 2026-10-19
 
+*Superseded 2026-10-20 by the v1.5.1 archive (section 2d), which carries the records revised for
+the owner's two blind reviews. The v1.5.0 tag and this archive stay as built; neither archive
+below 2d is to be uploaded.*
+
 `python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.0/supplement-review.zip`,
 built from the release commit `fc363fb` (tag `v1.5.0`) with the key in `dist/supplement-commit-key.txt`.
 
@@ -181,6 +185,36 @@ built from the release commit `fc363fb` (tag `v1.5.0`) with the key in `dist/sup
   `supplement-review-2026-10-15-pre-t21.zip`; `supplement-v1.3.0.zip`) carry real commit IDs
   and must never be uploaded.
 
+## 2d. Review archive for v1.5.1, 2026-10-20 (the upload candidate)
+
+`python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.1/supplement-review.zip`,
+built from the release commit `196afed` (tag `v1.5.1`) with the key in `dist/supplement-commit-key.txt`.
+Between v1.5.0 and this build, the records were brought in line with the manuscript after two
+owner-run blind reviews (PRs #168 and #169: dated notes, one CORRECTIONS entry per review, no
+recorded number, label or verdict changed), and the paper-table generator prints a lower bound
+that would round onto the bar with the digit that shows its side (hidden 7 reads 0.6496).
+
+- `dist/review-1.5.1/supplement-review.zip`: 1406 files, 1405 listed in `SHA256SUMS`;
+  94,247,959 bytes, under the 100,000,000 bytes the build enforces.
+- SHA-256 `2e6bf9ffff8390a8e1494f81c988e1b602ac7d873dbd095ab3ca098af750bea2`, equal to the
+  `archive_sha256` of its commit map.
+- Run bundles as in 2c: `l3_h8_heldout/agents` (60 files), `l3_h8_gseed2_gpu/agents` (60),
+  `corrected_l3_h8_wm/agents` (90), `corrected_l3_h8_nowm/agents` (90),
+  `corrected_l3_h8_wm/cells` (20) and `corrected_l3_h8_nowm/cells` (20), each named in
+  `README_SUPPLEMENT.md` with digests in `SHA256SUMS`.
+- 378 commit IDs (399 spellings) and 163 recorded digests (164 spellings) replaced by keyed
+  pseudonyms; 0 unresolved commit-field spellings; map local in
+  `dist/review-1.5.1/supplement-review.commit-map.json`. The identity scan found no identity
+  string, and every image is on the reviewed list.
+- In a fresh extraction: 1405 of 1405 `SHA256SUMS` lines verify;
+  `python -E scripts/reproduce.py tables --check` and `python -E scripts/audit_stats_recheck.py`
+  pass 3873 checks with 1 skipped, against 3874 in a git checkout; `python -E -m pytest -q -rs`
+  gives 1538 passed, 41 skipped, 0 failed in 15:51 on Python 3.13.2 with NumPy 1.26.4 (one more
+  pass than 2c: the new table-generator test). The skips match the v1.5.0 run line for line.
+- Tag `v1.5.1` pushed 2026-10-20 01:29 UTC on `196afed`; its release run passed (the tag names
+  the version, the package built, `dist` uploaded). It warns that `date-released` (2026-10-20, the
+  tag date in UTC) differs from the release commit's own date, written in Eastern time (2026-10-19).
+
 ## 3. Clean extraction
 
 Extracted into an empty directory outside the repository. Every checksum in `SHA256SUMS`
@@ -207,7 +241,12 @@ directory, so they must not be run with `python -I`; `reproduce.py` does not nee
 
 ## 4. Source package
 
-*Final, 2026-10-19:* paper commit `55e741b`, 91 pages, `docs/paper/dist/source.zip` (21 files),
+*Final, 2026-10-20:* paper commit `4667176`, 92 pages, `docs/paper/dist/source.zip` (21 files),
+SHA-256 `78ae2255cfdbff09022cd5135bbfdb135c443cf87027314dc36bf11961940189`, rebuilt from the
+committed FINAL with the same bytes as the pre-push builds. It answers the owner's two blind
+reviews (the second: leaning accept). The packaged `main.tex` carries "Anonymous authors".
+
+*Superseded, 2026-10-19:* paper commit `55e741b`, 91 pages, `docs/paper/dist/source.zip` (21 files),
 SHA-256 `b900ad35f51da66111e50b58697514b60e509ba3c6707eb8bd37ccf85a16b982`, the same bytes on two
 builds. The builder compiled it standalone and passed; the packaged `main.tex` carries
 "Anonymous authors" and no author name or e-mail. The entries below record earlier packages.
