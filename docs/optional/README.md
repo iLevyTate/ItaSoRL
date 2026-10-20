@@ -11,7 +11,11 @@ date, the manuscript and FINDINGS 17.8 cite O2 as a sensitivity readout beside t
 control battery: it shows that the long-history linear bases, with the penalty chosen in
 fold, fit held-out states better than the MLP control the paper had called the best fit.
 O2 still replaces no row of the battery and enters no rule. O1 is not cited.
-(`docs/CORRECTIONS.md`, 2026-10-16.)
+(`docs/CORRECTIONS.md`, 2026-10-16.) Since 2026-10-20 the manuscript also cites O1, in one
+sentence of its readouts paragraph beside the speed positive control: on the matched pools the
+fold-local median changes one call, the untrained seed-19 pool that B1 and B2 share (0.749 to
+0.761), and no verdict, since both runs' untrained floor fails on its own. O1 replaces no
+recorded gate. (`docs/CORRECTIONS.md`, 2026-10-20, review 5.)
 
 ## O1. Fold-local speed median
 
@@ -44,7 +48,8 @@ python scripts/run_optional_o1.py --matched --device cuda --out docs/optional/o1
 
 Inputs: `fullruns/balanced_confirmation_wm` and `fullruns/balanced_confirmation_touch`
 (cells, state dumps, saved agents, and `matched_gates.json`). These bundles are local
-and in the supplement, not in git.
+and not in git, and the review supplement does not carry them, so O1 does not replay
+from it. (Corrected 2026-10-20: this line said the bundles were in the supplement.)
 
 ## O2. Long-history ridge penalty chosen inside each outer training fold
 

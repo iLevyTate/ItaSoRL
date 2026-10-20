@@ -1844,3 +1844,27 @@ met at the coarse grid, and its abstract that the readout is not blind to the se
 
 **What this does not change.** No number, label, rule or verdict. The specification and its
 text map stay as frozen, and the 2026-10-19 notes keep their wording.
+
+## 2026-10-20: masked smell channels and the optional-readouts note on B1 and B2 (review 5)
+
+**What was wrong.** Two independent reviews of the final manuscript (review 5, kept in the
+closing handoff) found two statements that say more than the code and the archive. First, the
+manuscript said the 12 masked smell dimensions stay zero-filled in every reported
+configuration. `PatchOfEarthV0._observe` assembles them as zeros and then, at the L1 rung only
+(`sensor_sigma` 0.01), adds Gaussian noise to the whole 146-dimensional vector, smell
+included, in both worlds. The L1 bullet of the manuscript already said every dimension
+receives that noise; the world paragraph contradicted it. Second, `docs/optional/README.md`,
+shipped in the v1.5.3 review archive, said the B1 and B2 bundles O1 reads are "in the
+supplement". The review supplement does not carry them, as its own `README_SUPPLEMENT.md`
+says.
+
+**Change.** The manuscript says the smell dimensions are zero-filled before any sensor noise
+and, at L1, carry that noise like every other dimension. The optional-readouts note says the
+B1 and B2 bundles are not in the review supplement, and that the manuscript now cites O1 in one
+sentence: on the matched pools the fold-local speed median changes one call (the untrained
+seed-19 pool B1 and B2 share, 0.749 to 0.761) and no verdict. The v1.5.4 review archive
+carries the corrected note.
+
+**What this does not change.** No number, label, rule or verdict. No code changes: the noise
+on the masked channels is what every recorded L1 run received, and restoring zeros after the
+noise would be a new intervention. The recorded speed gate keeps its whole-pool median.
