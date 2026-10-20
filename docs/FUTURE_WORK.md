@@ -145,6 +145,9 @@ detail.
   "tracks budget" for C1 and "both" for C2; the C2 100-to-200 segment label is not met.
 - X09, Bayes factors with an interval null (E19): `artifacts/bayes_factors/interval_null.json`,
   an annotation that relabels nothing; its labels appear only in the manuscript's appendix table.
+  The factors are approximate plug-in sensitivity calculations: the raw half-width goes to the
+  standardized scale with the observed standard deviation, so they are not exact Bayes factors
+  for the fixed raw-scale band.
 - X10, full-rank erasure (E20, with E21 folded in): VOID (gate E). Gate E failed, so no use
   reading was made: the in-fold refit reached the 0.55 stop by rank 16 in 1 of 10 seeds (seed 5,
   at rank 2; the rule needs 8); in the other 9 it stayed above 0.55 up to the rank cap of 16. No

@@ -1724,3 +1724,42 @@ jitter scope), and 18.7 item 2 is restored as its own list item.
 **What this does not change.** No number, label, rule or verdict. The frozen labels
 ("sensory-independent under matched worlds", **not used under removal**, the frozen stakes
 wording) and the registered texts stay as written.
+
+## 2026-10-20: record wording stronger than the manuscript after the second blind review
+
+**What was wrong.** The second blind review of the manuscript named four passages that state
+more than their test supports, and the record carried the same wording. The position-and-heading
+control was said to show that no position code was masquerading as world identity and that one
+would have collapsed `resid_trace` (FINDINGS 10.4.1); a linear or quadratic residualization
+removes only what its basis holds, and position information that is nonlinear or depends on
+history could remain. Coherence was said not to raise the margin (README, the site,
+`docs/LEARNING.md`, FINDINGS TL;DR, 6, 17.12 and 22.3, the 2026-10-16 entry above and the B8
+closing spec), although the frozen contrast is +0.009 [-0.027, +0.045] and the follow-up
+interval [-0.051, +0.016] admits a small increase. The constant-drag entry said any recurrent
+state separates the worlds and that coefficient-bias artifacts cannot be made subtle but
+detectable (FINDINGS 10.7 and 15, `docs/PREREGISTRATION_L3.md` 2026-07-16), from untrained
+trunks and one calibration sweep; FINDINGS 17.9 said the `qd` floor is felt by any recurrent
+state. The interval-null Bayes factors of X09 were presented without saying that they are
+plug-in calculations. The corrected hidden-7 survival interval prints as [0.650, 0.756] although
+its lower bound, 0.6496, is under the 0.65 bar.
+
+**Change.** The README, `docs/LEARNING.md` and the site template say the signal survives the
+tested position-and-heading residualization with nonlinear or history-dependent position
+information not excluded, and that the tested contrasts did not demonstrate an increase from
+coherence, with equivalence not established either. FINDINGS 6, 10.4.1, 10.7, 15, 17.5, 17.9,
+17.12 item 6, 20.2, 21, 22.1, 22.3 and the TL;DR gain dated notes: the position control in its
+tested scope; coherence as a nondetection; "the tested untrained trunks" for "any recurrent
+state" and a calibration unsuccessful under the tested settings, with no general claim about
+coefficient-bias artifacts; the factors as approximate plug-in sensitivity calculations (c = h /
+s with the observed standard deviation); the hidden-7 lower bound as 0.6496.
+`docs/PREREGISTRATION_L3.md` section 12 gains one entry covering the 2026-07-16 entry, the B8
+spec, the X09 result entry and the hidden-7 bound. The results manifest note of `H7-CORRECTED`
+gives the bound as 0.6496, and the note of `BAYES-FACTORS`, `docs/FUTURE_WORK.md`, the README
+tree line and the docstrings of `scripts/build_bayes_factors.py` and the audit's X09 block call
+the factors plug-in sensitivity calculations.
+`scripts/build_paper_tables.py` prints a lower bound that three decimals would round onto the
+bar or the margin with the further digits that show its side, so the generated 95% table,
+contrast table and Holm table read 0.6496 for hidden 7 (`tests/test_paper_tables.py`).
+
+**What this does not change.** No number, label, rule or verdict. The registered texts, the
+frozen specs and the 2026-10-16 entries above keep their wording.

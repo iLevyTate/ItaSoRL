@@ -4697,7 +4697,8 @@ _CL_X09 = (  # reading, BF01 at 0.707 / 0.5 / 1.0 (3 significant digits), label 
 
 
 def closing_x09() -> None:
-    """X09: Bayes factors with an interval null, recomputed from the committed inputs (agent-free)."""
+    """X09: Bayes factors with an interval null, recomputed from the committed inputs (agent-free).
+    They are approximate plug-in sensitivity calculations (c = h / sd with the observed sd)."""
     if not _artifact_present(_cl_path("bayes_factors", "interval_null.json")):
         return
     import build_bayes_factors as _bb

@@ -981,7 +981,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Device: Claude Code cloud CPU container, 4 vCPU, 4 workers; torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1 (the C1 stack; reproduces C1 cells to the bit)
 - Dependencies: torch 2.14.1+cpu, numpy 2.4.6, scikit-learn 1.9.1
 - Local run directory (not in git): artifacts/goal_stakes/H7-corrected on branch run/H7-corrected
-- Notes: Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; read under PREREGISTRATION_L3 sections 7 and 8 as the 2026-07-14 entry applied them; FINDINGS 20.2. Config hash ce2a6fe1ba30cae7. OFF-DESIGN under section 8: gate 0 measured after the run on its own CPU fit (gate0_cpu.json, one thread) fails on the untrained floor, 0.601, so the run adjudicates nothing; the L0 gate (C1's drift-0 cells) and the reward-leak gate (2 of 60 pools) are also open. Descriptive: survival 0.703 [0.650, 0.756], predictor 0.703, untrained 0.593, survival resid_trace 0.717. Rebuilt dumps reproduced 60 of 60 pools. Reported beside L3-H7-N10, which keeps its label.
+- Notes: Frozen: docs/specs/2026-10-11-corrected-generality-reruns-design.md; read under PREREGISTRATION_L3 sections 7 and 8 as the 2026-07-14 entry applied them; FINDINGS 20.2. Config hash ce2a6fe1ba30cae7. OFF-DESIGN under section 8: gate 0 measured after the run on its own CPU fit (gate0_cpu.json, one thread) fails on the untrained floor, 0.601, so the run adjudicates nothing; the L0 gate (C1's drift-0 cells) and the reward-leak gate (2 of 60 pools) are also open. Descriptive: survival 0.703 [0.650, 0.756] (t lower bound 0.6496, under the 0.65 bar), predictor 0.703, untrained 0.593, survival resid_trace 0.717. Rebuilt dumps reproduced 60 of 60 pools. Reported beside L3-H7-N10, which keeps its label.
 - Config (beyond the standard protocol): {"drift_mode": "l3", "gae_bootstrap": "successor"}
 - Artifacts: `artifacts/expB2/corrected_H7-corrected.json`, `artifacts/corrected_runs/h7-corrected`
 
@@ -1389,7 +1389,7 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Folds: n/a
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
-- Notes: scripts/build_bayes_factors.py (X09, 2026-10-17); docs/specs/2026-10-17-extension-readouts-design.md, X09. Agent free, annotation only: it reads committed artifacts and relabels no registered reading; the commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Notes: scripts/build_bayes_factors.py (X09, 2026-10-17); docs/specs/2026-10-17-extension-readouts-design.md, X09. Agent free, annotation only: it reads committed artifacts and relabels no registered reading; the commit is recorded as git_commit. The factors are approximate plug-in sensitivity calculations (the raw half-width h goes to the standardized scale as c = h / sd with the observed sd), not exact Bayes factors for the fixed raw-scale band. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
 - Artifacts: `artifacts/bayes_factors/interval_null.json`
 
 ### `THRESHOLD-SENSITIVITY`: Bar and margin sensitivity of the rule ledger (G06)

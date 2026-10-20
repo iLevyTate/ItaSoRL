@@ -1969,6 +1969,25 @@ Rigor carried from the B-v3 audit (2026-07-10):
   it, with this conditional status. The manuscript revision of 2026-10-19 (full-review pass)
   words both so; `docs/CORRECTIONS.md`, 2026-10-19.
 
+- **2026-10-20 - THE CONSTANT-DRAG DROP, THE COHERENCE CONTRAST, THE INTERVAL-NULL FACTORS AND
+  THE HIDDEN-7 LOWER BOUND, READ IN THEIR TESTED SCOPE (a record; the entries above and the frozen
+  specs stay as written and no rule, number or verdict changes).** The 2026-07-16 cross-recipe
+  entry says a detectable drag-coefficient bias is felt so grossly "that any recurrent state
+  separates the worlds" and that "coefficient-bias artifacts cannot be made subtle-but-detectable
+  in world P". Read the first as holding for the tested untrained trunks (floors 0.859 and 0.913)
+  and the second as a calibration that was unsuccessful under the tested settings (the `G_cd`
+  family, its eps grid, the detector handicap of gate 0 and the 0.1 floor rule); neither is a
+  general claim about coefficient-bias artifacts. The B8 text of
+  `docs/specs/2026-10-17-closing-readouts-design.md` says the claim that coherence did not raise
+  the margin stands under readings (2) and (3); read that claim as "the tested contrasts did not
+  demonstrate an increase". The frozen sweep C contrast is +0.009 [-0.027, +0.045] and the
+  follow-up -0.017 [-0.051, +0.016], and the follow-up does not establish equivalence. The X09
+  result entry's factors are approximate plug-in sensitivity calculations: the raw-scale null
+  region goes to the standardized scale as c = h / s with the observed standard deviation, so they
+  are not exact Bayes factors for the fixed raw-scale band. The 2026-10-11 hidden-7 entry gives
+  its lower bound as 0.6496, under the bar; generated tables now print that digit. The manuscript
+  revision for the second blind review words these so; `docs/CORRECTIONS.md`, 2026-10-20.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

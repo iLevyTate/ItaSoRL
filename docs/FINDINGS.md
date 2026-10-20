@@ -133,6 +133,9 @@ What the corrected agents show about that result:
   exactly the contrast misses the 0.05 equivalence band by 0.001). What the
   drag shares with the learned law is that its deviation depends on the agent's own velocity; no
   mechanism is claimed.)*
+  *(Note 2026-10-20: read "coherence did not raise the margin" as "the tested contrasts did not
+  demonstrate an increase"; the follow-up interval admits a small increase and does not
+  establish equivalence (22.3, note of this date).)*
 
 The historical record of the same arc (pre-correction trainer, kept as recorded): survival
 **0.752** [0.698, 0.807] on GPU and 0.730 on CPU; 0.726 after the behavior control (10.4),
@@ -601,7 +604,8 @@ inducing it (if possible) requires something more deliberate.
   coherence, not learnedness. *(Note 2026-10-16: 22.3 does not support coherence as the property
   read. At a matched 24-step deviation coherence did not raise the margin; the drag and
   the learned law share a deviation that depends on the agent's own velocity, and no mechanism is
-  claimed.)* The survival-specificity reading is withdrawn
+  claimed.)* *(Note 2026-10-20: read "did not raise the margin" as "the tested contrasts did not
+  demonstrate an increase" (22.3, note of this date).)* The survival-specificity reading is withdrawn
   (17.6). The same
   H2 battery on the L1 discretization rung (section 14.7) finds that survival does
   **not meet the encoding criterion registered for L2 (H_B2)**, applied unchanged at the
@@ -1105,6 +1109,14 @@ control) stands with
 position and heading now inside the control basis (revised figure resid_trace
 0.723). This resolves the covariate-gap note above.
 
+*(Note 2026-10-20: the control residualizes on the seven-channel trace basis, the four behavior
+channels with absolute position and heading, linearly and, in the variant, quadratically. The
+signal survives that tested position-and-heading residualization. Position information outside
+the basis, nonlinear beyond the quadratic terms or dependent on history, is not excluded, so the
+sentence above that a masquerading position code would have collapsed `resid_trace` claims more
+than the control tests, and the covariate gap is closed only for the terms the basis holds. The
+numbers stay as recorded; `docs/CORRECTIONS.md`, 2026-10-20.)*
+
 ### 10.4.2 Sensory-echo control (2026-09-26)
 
 Methods note 7 (section 11) left one scope limit on the behavior-mediation
@@ -1521,6 +1533,14 @@ construction of the L3 rung.
 Its pair 95% interval is [0.824, 0.945], 0.102 of its pair-bootstrap draws fall below 0.85,
 and it reads 0.897 on the explicit partition. The in-band call is the registered rule applied
 to the point (19.1).)*
+
+*(Note 2026-10-20: "any recurrent state separates the worlds" holds for the tested untrained
+trunks, whose floors were measured (0.859 and 0.913); no other recurrent state was tested. The
+empty window means the calibration was unsuccessful under the tested settings, the `G_cd`
+family, its eps grid, the detector handicap of gate 0 and the 0.1 floor rule. It does not show
+that coefficient-bias artifacts in general cannot be made subtle but detectable. 7.2 item 3
+("proved uncalibratable") and section 15 are read the same way; `docs/CORRECTIONS.md`,
+2026-10-20.)*
 
 **Integrity gate (fourth determinism check).** All 60 saved agents regenerated
 their standard pools bit-identically against the saved dumps, and the drift-0.45
@@ -3444,6 +3464,9 @@ changes. The B-v3 constant-drag family's uncalibratable window (section 10.7)
 is consistent with the curve: a coefficient artifact strong enough to reach the
 band at sigma = 0.02 is felt grossly by any recurrent state.
 
+*(Note 2026-10-20: felt grossly by the tested untrained trunks, under the tested calibration
+settings; 10.7's note of this date.)*
+
 ## 16. Fold-split sensitivity: the hidden 7 gate (2026-09-29)
 
 **Status: MEASURED; two pre-registered gate clauses flip under the explicit
@@ -3849,6 +3872,14 @@ apart from the bootstrap ROPE check of methods note 9, which is not a Bayesian a
 first computed on the committed arrays in a scratch read on 2026-10-17, before the spec was
 written; the spec keeps their band labels to one appendix table. The spec's prediction for the
 registered pair was borne out; for the eight independent pairs, signed and folded, it was not.)*
+
+*(Note 2026-10-20: these factors, and those annotating 21, 22.1 and 22.3, are approximate
+plug-in sensitivity calculations. The null region is fixed on the raw scale (half-width h =
+0.05) and is carried to the standardized effect as c = h / s with each array's observed standard
+deviation s. A fixed raw-scale region is |delta| sigma <= h, and the plug-in does not integrate
+the uncertainty in sigma, so the factors are not exact Bayes factors for the fixed raw-scale
+band. They bear on the annotations only, never on a registered frequentist reading;
+`docs/CORRECTIONS.md`, 2026-10-20.)*
 
 ### 17.5.1 Drift-0.45 world-sample sensitivity (2026-10-08, historical hidden-8 held-out agents)
 
@@ -4346,6 +4377,9 @@ mechanism. What `qd` and the learned law share, and white jitter lacks, is a dev
 depends on the agent's own velocity; that is a lead and not a measured contrast, and no
 mechanism is claimed. The readings of this section stay as recorded.)*
 
+*(Note 2026-10-20: "felt by any recurrent state" above reads "felt by the tested untrained
+trunks", whose floor on `qd` is 0.612; no other recurrent state was tested.)*
+
 ### 17.10 The auxiliary result against the training budget (revision step 11)
 
 Each corrected survival agent was trained to 450 updates, and frozen copies after 100, 200,
@@ -4534,6 +4568,8 @@ populations.
    *(Note 2026-10-19: the drag is read as a margin over an untrained arm whose floor (0.612)
    sits outside tolerance (17.9), and the jitter readings hold for the tested agents, worlds
    and jitter draws (22.3).)*
+   *(Note 2026-10-20: read "coherence did not raise the margin" as "the tested contrasts did not
+   demonstrate an increase"; equivalence is not established either (22.3, note of this date).)*
 7. **The evolutionary result is uninformative, not a null** (revised 2026-10-10). Both
    readouts are flat, the speed positive control fails, and the preregistration interprets
    no contrast unless every gate passes (13.F; gate 1 fails only against an unratified draft
@@ -5226,6 +5262,12 @@ The predictor reads the same 0.703, and the untrained arm 0.593, which survival 
 for the predictor and 0.585 for the untrained arm. That is the pattern of 10.5 (a
 behavior-controlled survival signal near 0.72 with no lead over the predictor), on a run whose
 gate 0 fails, so it bears on no rule.
+
+*(Note 2026-10-20: the survival interval [0.650, 0.756] in the table above, in 10.5's note of
+2026-10-11 and in the R210 table of 20.13 has a lower bound of 0.6496, which three decimals
+round onto the bar. It is under the bar, as the paragraph above says.
+`scripts/build_paper_tables.py` prints it with the fourth digit; `docs/CORRECTIONS.md`,
+2026-10-20.)*
 
 **Hidden 10 at G seed 1: replication not claimed.** Gate 0 passes on the run's own fit: the oracle
 reads 0.893, equal to the recorded 0.893056, and the floor 0.485. The rule of the 2026-09-26 spec
@@ -6053,6 +6095,9 @@ drift-0 survival (mean 0.536): BF01 = 4.99 (annotation, 0.707 scale). The factor
 relabel nothing and are conditional on one evaluation-world draw; 17.5's note of the same date
 gives the scratch-read disclosure. Neither prediction was borne out.)*
 
+*(Note 2026-10-20: these factors are approximate plug-in sensitivity calculations; 17.5's note
+of this date.)*
+
 ## 22. The L1 rerun on the corrected trainer, and the agent's prediction error on matched input (2026-10-15)
 
 **Status: MEASURED; no recorded verdict changes.** Two readouts asked whether the paper's
@@ -6144,6 +6189,9 @@ input array bit-equal to its committed artifact). JZS prior at Cauchy scale 0.70
 (annotation, 0.707 scale). Survival minus predictor (mean +0.026): BF01 = 21.2 (annotation, 0.707
 scale). The factors annotate and relabel nothing and are conditional on one evaluation-world draw;
 17.5's note of the same date gives the scratch-read disclosure. Neither prediction was borne out.)*
+
+*(Note 2026-10-20: these factors are approximate plug-in sensitivity calculations; 17.5's note
+of this date.)*
 
 *(Note 2026-10-19: the corrected run's drift-zero survival reading in the table above is 0.548
 [0.532, 0.565], and seam minus drift zero, paired by seed, is +0.002 [-0.011, +0.016]
@@ -6317,6 +6365,15 @@ scale). The follow-up contrast (mean -0.017): BF01 = 38.4 (annotation, 0.707 sca
 annotate and relabel nothing and are conditional on one evaluation-world draw and on one jitter
 realization; 17.5's note of the same date gives the scratch-read disclosure. Neither prediction
 was borne out.)*
+
+*(Note 2026-10-20: "coherence did not raise the margin", in this section, its notes, the TL;DR,
+section 6 and 17.12 item 6, reads "the tested contrasts did not demonstrate an increase". The
+frozen contrast is +0.009 [-0.027, +0.045] and the follow-up -0.017 [-0.051, +0.016]; both
+intervals include zero and admit a small increase, and the follow-up does not establish
+equivalence within 0.05, as stated above. On the second realization, -0.0002 [-0.027, +0.027]
+lies within the margin unit and did not demonstrate an increase either. The factors of the note
+above are approximate plug-in sensitivity calculations (17.5's note of this date);
+`docs/CORRECTIONS.md`, 2026-10-20.)*
 
 ## 23. Four readouts on the saved C1 and C2 agents: how loud the world is, what of its own world the state keeps, whether the decoded direction is used, and what develops (2026-10-15)
 

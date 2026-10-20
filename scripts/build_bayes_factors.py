@@ -17,6 +17,9 @@ below is a one-dimensional integral over delta (scipy.integrate.quad).
 - H1: the effect lies outside it. BF01 = (posterior odds of H0) / (prior odds of H0) under
   the encompassing JZS model, with prior mass P(|delta| <= c) = (2 / pi) atan(c / r).
 - The point-null JZS BF01 (H0: delta = 0) is reported beside it.
+Because c uses the observed sd, the interval-null factors are approximate plug-in sensitivity
+calculations, not exact Bayes factors for the fixed raw-scale band: that band is
+|delta| sigma <= h, and the plug-in does not integrate the uncertainty in sigma.
 Scales: r = 0.707 is read; 0.5 and 1.0 are reported beside it. Labels (r = 0.707 only):
 BF01 above 3 "evidence for the band", below 1/3 "evidence against the band", otherwise
 "indeterminate". Outside the one appendix table that holds them, a row is quoted as

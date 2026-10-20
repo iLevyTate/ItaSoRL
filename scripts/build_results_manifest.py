@@ -864,7 +864,8 @@ RUNS = [
               "Config hash ce2a6fe1ba30cae7. OFF-DESIGN under section 8: gate 0 measured after the run "
               "on its own CPU fit (gate0_cpu.json, one thread) fails on the untrained floor, 0.601, so "
               "the run adjudicates nothing; the L0 gate (C1's drift-0 cells) and the reward-leak gate "
-              "(2 of 60 pools) are also open. Descriptive: survival 0.703 [0.650, 0.756], predictor "
+              "(2 of 60 pools) are also open. Descriptive: survival 0.703 [0.650, 0.756] (t lower bound "
+              "0.6496, under the 0.65 bar), predictor "
               "0.703, untrained 0.593, survival resid_trace 0.717. Rebuilt dumps reproduced 60 of 60 "
               "pools. Reported beside L3-H7-N10, which keeps its label."),
     run("H10GS1-CORRECTED", "Second fingerprint instance (G seed 1, hidden 10) on the corrected "
@@ -1342,7 +1343,9 @@ RUNS = [
         device=closing_cpu(1), deps=CLOSING_DEPS,
         notes=f"scripts/build_bayes_factors.py (X09, 2026-10-17); {EXTENSION_SPEC}, X09. Agent free, "
               "annotation only: it reads committed artifacts and relabels no registered reading; the "
-              "commit is recorded as git_commit. " + CLOSING_NOTE),
+              "commit is recorded as git_commit. The factors are approximate plug-in sensitivity "
+              "calculations (the raw half-width h goes to the standardized scale as c = h / sd with "
+              "the observed sd), not exact Bayes factors for the fixed raw-scale band. " + CLOSING_NOTE),
     run("THRESHOLD-SENSITIVITY", "Bar and margin sensitivity of the rule ledger (G06)",
         experiment="methods", artifacts=["threshold_sensitivity/bar_margin.json"], claims=[],
         trains_survival=False, survival_trainer="none", commit_at_run="48af14a", folds="n/a",

@@ -98,9 +98,10 @@ counts. Random jitter in the velocity,
 read from brains raised under the learned law, reaches the bar at no setting tried,
 even jitter that stays correlated over time.
 Rerun with its 24-step drift matched exactly at the two most correlated settings and
-within 1.1 percent at the uncorrelated one (a larger drift than the drag's), correlation
-did not raise the reading on the tested worlds and jitter draws, so these tests do not
-say why (FINDINGS §22.3).
+within 1.1 percent at the uncorrelated one (a larger drift than the drag's), the tested
+contrasts did not demonstrate that correlation raises the reading on the tested worlds and
+jitter draws, and they leave room for a small rise, so these tests do not say why
+(FINDINGS §22.3).
 
 ### Hasn't this been done before?
 
@@ -288,8 +289,10 @@ already reads the drag at 0.612, outside the 0.1 tolerance, so the margins over 
 and +0.142) are the comparison that carries meaning (FINDINGS §17.9). Correlated jitter does not reach the bar either.
 With the 24-step deviation matched exactly at rho 0.95 and 0.99 and within 1.1 percent
 at rho 0, the most correlated setting minus the uncorrelated one reads -0.017
-[-0.051, +0.016]: coherence did not raise the margin, and the contrast misses the 0.05
-equivalence band by 0.001, so it names no mechanism (FINDINGS §22.3).
+[-0.051, +0.016], and the original sweep's contrast read +0.009 [-0.027, +0.045]. The
+tested contrasts did not demonstrate an increase from coherence, and the corrected interval
+still admits a small one. It also misses the 0.05 equivalence band by 0.001, so equivalence
+is not established either, and the comparison names no mechanism (FINDINGS §22.3).
 
 **The historical record (pre-correction trainer).** The surrogate is a
 **learned-dynamics fingerprint**: a small net replacing the velocity law, not a
@@ -322,8 +325,9 @@ seeds; quadratic variant 0.721). Adding absolute position and heading barely
 moves it, to **0.723** (t-based 90% CI [0.676, 0.769]; 8 of 10 seeds). FINDINGS
 §10.4.1. Untrained state under the same control is chance (0.498) even though
 untrained *behavior* decodes 0.645. Prediction-only stays near chance (0.574).
-The control removes what its channels and model can express; behavior outside
-that basis is not excluded. An earlier per-episode-mean control had
+The control removes what its channels and model can express; behavior and
+position information outside that basis, nonlinear or dependent on history, are
+not excluded. An earlier per-episode-mean control had
 under-estimated the signal at ~0.66 by over-removing, the attenuation the
 synthetic tests predicted. Code: `scripts/audit_behavior_mediation.py`.
 Artifacts: `artifacts/expB2/`. On the corrected agents the best-fitting behavior and
@@ -493,7 +497,7 @@ the same data; independent data were not tested. Details:
 |   |-- salience/  world_features/  mechanism/  development/  the four readouts of FINDINGS 23
 |   |-- probe_sensitivity/  step_resolved/  probe-penalty sensitivity; within-episode decoding curve
 |   |-- walk_speed/  pellet_dose/  head_overlap/  walk speed against goal direction; pellet density; head overlap
-|   `-- bayes_factors/  budget_curve_dynamics/  interval-null Bayes factors; budget-curve slopes (agent-free)
+|   `-- bayes_factors/  budget_curve_dynamics/  interval-null Bayes factors (plug-in sensitivity); budget-curve slopes (agent-free)
 |-- fullruns/                   e2e run bundles (gitignored; default output)
 |-- results/LATEST_RUN.txt      pointer to the latest fullruns folder (gitignored; written by itasorl/results_io.py)
 |-- notebooks/colab_gpu.ipynb   Colab end-to-end runner
