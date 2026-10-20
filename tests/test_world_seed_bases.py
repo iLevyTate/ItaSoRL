@@ -21,7 +21,9 @@ LATER = {name: (base, n) for name, base, n in pr.REGISTERED_LATER}
 def test_registered_later_names_the_closing_bases():
     assert LATER == {"B2-auth": (2_800_000, pr.POOL_N), "B2-surr": (2_850_000, pr.POOL_N),
                      "B6-auth": (2_700_000, pr.POOL_N), "B6-surr": (2_750_000, pr.POOL_N),
-                     "G03-fresh": (2_250_000, pr.POOL_N)}
+                     "G03-fresh": (2_250_000, pr.POOL_N),
+                     # prospective balanced confirmation, spec 2026-10-20
+                     "PB-primary": (3_000_000, pr.POOL_N), "PB-draw2": (3_100_000, pr.POOL_N)}
     for name in LATER:
         assert pr.registered_later(name) == (name, *LATER[name])
     with pytest.raises(KeyError):
