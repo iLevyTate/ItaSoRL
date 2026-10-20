@@ -185,7 +185,11 @@ built from the release commit `fc363fb` (tag `v1.5.0`) with the key in `dist/sup
   `supplement-review-2026-10-15-pre-t21.zip`; `supplement-v1.3.0.zip`) carry real commit IDs
   and must never be uploaded.
 
-## 2d. Review archive for v1.5.1, 2026-10-20 (the upload candidate)
+## 2d. Review archive for v1.5.1, 2026-10-20
+
+*Superseded 2026-10-20 by the v1.5.2 archive (section 2e), which carries the records revised for
+the owner's third blind review. The v1.5.1 tag and this archive stay as built; neither archive
+below 2e is to be uploaded.*
 
 `python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.1/supplement-review.zip`,
 built from the release commit `196afed` (tag `v1.5.1`) with the key in `dist/supplement-commit-key.txt`.
@@ -215,6 +219,40 @@ that would round onto the bar with the digit that shows its side (hidden 7 reads
   the version, the package built, `dist` uploaded). It warns that `date-released` (2026-10-20, the
   tag date in UTC) differs from the release commit's own date, written in Eastern time (2026-10-19).
 
+## 2e. Review archive for v1.5.2, 2026-10-20 (the upload candidate)
+
+`python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.2/supplement-review.zip`,
+built from the release commit `0fd8b79` (tag `v1.5.2`) with the key in `dist/supplement-commit-key.txt`.
+Between v1.5.1 and this build, the records were brought in line with the manuscript after the
+owner's third blind review (accept, 3/5) and its code-check follow-up (PR #171: dated notes, one
+CORRECTIONS entry, no recorded number, label or verdict changed), and the rule ledger gained a
+timing column (41 prospective, 6 simultaneous, 2 retrospective) that the manuscript's Table 10
+prints.
+
+- `dist/review-1.5.2/supplement-review.zip`: 1406 files, 1405 listed in `SHA256SUMS`;
+  94,256,134 bytes, under the 95,000,000-byte working cap and the 100,000,000 bytes the build
+  enforces.
+- SHA-256 `7864e5c7adfefa23883245881d6cbb333d7addafeff3c981037f86f892075049`, equal to the
+  `archive_sha256` of its commit map.
+- Run bundles as in 2c and 2d: `l3_h8_heldout/agents` (60 files), `l3_h8_gseed2_gpu/agents` (60),
+  `corrected_l3_h8_wm/agents` (90), `corrected_l3_h8_nowm/agents` (90),
+  `corrected_l3_h8_wm/cells` (20) and `corrected_l3_h8_nowm/cells` (20), each named in
+  `README_SUPPLEMENT.md` with digests in `SHA256SUMS`. No B1 or B2 agents ship.
+- 382 commit IDs (403 spellings) and 163 recorded digests (164 spellings) replaced by keyed
+  pseudonyms; 0 unresolved commit-field spellings; map local in
+  `dist/review-1.5.2/supplement-review.commit-map.json`. The identity scan found no identity
+  string, and every image is on the reviewed list.
+- In a fresh extraction: 1405 of 1405 `SHA256SUMS` lines verify;
+  `python -E scripts/reproduce.py tables --check` and `python -E scripts/audit_stats_recheck.py`
+  pass 3873 checks, against 3874 in a git checkout; `python -E -m pytest -q -rs` gives 1542
+  passed, 41 skipped, 0 failed on Python 3.13.2 with NumPy 1.26.4 (four more passes than 2d: the
+  new rule-ledger tests). A single background run was stopped by a low-memory reap about halfway,
+  with no failure, so the suite ran in three foreground parts over the same 154 test files
+  (4:39, 6:59 and 2:32). The skips match the v1.5.1 run line for line.
+- Tag `v1.5.2` pushed 2026-10-20 on `0fd8b79`; its release run passed (the tag names the version,
+  the package built, `dist` uploaded), with the same `date-released` warning as v1.5.1 (2026-10-20
+  in UTC against the release commit's Eastern-time date, 2026-10-19).
+
 ## 3. Clean extraction
 
 Extracted into an empty directory outside the repository. Every checksum in `SHA256SUMS`
@@ -241,7 +279,14 @@ directory, so they must not be run with `python -I`; `reproduce.py` does not nee
 
 ## 4. Source package
 
-*Final, 2026-10-20:* paper commit `4667176`, 92 pages, `docs/paper/dist/source.zip` (21 files),
+*Final, 2026-10-20 (after review 3):* paper commit `2e9ee73`, 92 pages, `docs/paper/dist/source.zip`
+(21 files, 301,490 bytes), SHA-256 `6c0c6017d9dd0d17f8539add93bb99a4b736d6e7a8db79905d54c3745d46376f`,
+the same bytes with and without the standalone compile, which gave 92 pages with no undefined
+reference or overfull box and page-by-page text identical to `docs/paper/main.pdf`. It answers the
+owner's three blind reviews (the third: accept, 3/5); the abstract now fits on one page and
+Table 10 prints the ledger's timing column. The packaged `main.tex` carries "Anonymous authors".
+
+*Superseded, 2026-10-20:* paper commit `4667176`, 92 pages, `docs/paper/dist/source.zip` (21 files),
 SHA-256 `78ae2255cfdbff09022cd5135bbfdb135c443cf87027314dc36bf11961940189`, rebuilt from the
 committed FINAL with the same bytes as the pre-push builds. It answers the owner's two blind
 reviews (the second: leaning accept). The packaged `main.tex` carries "Anonymous authors".
