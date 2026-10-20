@@ -250,11 +250,28 @@ def _sg(x: float) -> str:
     return f"{0.0 if round(x, 3) == 0 else x:+.3f}"
 
 
+# The registered bar and the margin. A lower bound that three decimals would round onto one of
+# them hides which side it falls on: the corrected hidden-7 bound 0.6496 prints 0.650 and reads
+# as meeting a bar it misses. Such a bound gets the further digits that show its side.
+BAR, MARGIN = 0.65, 0.05
+
+
+def _lb(x: float, bar: float = BAR, signed: bool = False) -> str:
+    """A lower bound to three decimals, or to as many more as show its side of `bar` when three
+    would print it on the bar (0.6496, never 0.650)."""
+    if x != bar and round(x, 3) == round(bar, 3):
+        d = 4
+        while d < 8 and round(x, d) == round(bar, d):
+            d += 1
+        return f"{x:+.{d}f}" if signed else f"{x:.{d}f}"
+    return _sg(x) if signed else f"{0.0 if round(x, 3) == 0 else x:.3f}"
+
+
 def _iv(t90, signed: bool = False) -> str:
     if signed:
-        return f"[{_sg(t90[0])}, {_sg(t90[1])}]"
-    lo, hi = (0.0 if round(x, 3) == 0 else x for x in t90)
-    return f"[{lo:.3f}, {hi:.3f}]"
+        return f"[{_lb(t90[0], MARGIN, signed=True)}, {_sg(t90[1])}]"
+    hi = 0.0 if round(t90[1], 3) == 0 else t90[1]
+    return f"[{_lb(t90[0])}, {hi:.3f}]"
 
 
 # Plain names for the run identifiers the gate and contrast tables use (the manifest IDs).
@@ -939,8 +956,8 @@ def ci95_table() -> str:
         if prev is not None and r["block"] != prev:
             L.append(r"\midrule")
         prev = r["block"]
-        L.append(f"{r['label']} & {r['mean']:.3f} & \\ci{{{r['t90'][0]:.3f}}}{{{r['t90'][1]:.3f}}} & "
-                 f"\\ci{{{r['t95'][0]:.3f}}}{{{r['t95'][1]:.3f}}} \\\\")
+        L.append(f"{r['label']} & {r['mean']:.3f} & \\ci{{{_lb(r['t90'][0])}}}{{{r['t90'][1]:.3f}}} & "
+                 f"\\ci{{{_lb(r['t95'][0])}}}{{{r['t95'][1]:.3f}}} \\\\")
     L += [r"\bottomrule", r"\end{tabular}", ""]
     return "\n".join(L)
 
@@ -1046,7 +1063,7 @@ def holm_table() -> str | None:
         return f"{h['p_adjusted']:.3f} ({'holds' if h['holds'] else 'fails'})"
     for r in rows:
         L.append(f"{_tex_escape(r['rule'])} & {_tex_escape(r['clause'])} & {r['n']} & {r['mean']:.3f} & "
-                 f"{r['t90_lower']:.3f} & {r['p_one_sided']:.3f} & "
+                 f"{_lb(r['t90_lower'])} & {r['p_one_sided']:.3f} & "
                  + " & ".join(cell(r["holm"][f]) for f in fams) + r" \\")
     n_f = {f: next(r["holm"][f]["m"] for r in rows if r["holm"][f] is not None) for f in fams}
     L += [r"\midrule",

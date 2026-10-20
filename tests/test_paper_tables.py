@@ -416,6 +416,20 @@ def test_an_interval_bound_that_rounds_to_zero_prints_without_a_sign():
     assert bpt._iv([-0.026, -0.0002]) == "[-0.026, 0.000]"
 
 
+def test_a_lower_bound_within_rounding_of_the_bar_shows_its_side():
+    """The corrected hidden-7 t90 lower bound is 0.6496, under the 0.65 bar; three decimals
+    would print 0.650 and read as meeting it (second blind review, minor item)."""
+    assert bpt._lb(0.6496393) == "0.6496" and bpt._lb(0.65042) == "0.6504"
+    assert bpt._lb(0.64999) == "0.64999" and bpt._lb(0.65) == "0.650" and bpt._lb(0.651) == "0.651"
+    assert bpt._iv([0.6496393, 0.7559]) == "[0.6496, 0.756]"
+    assert bpt._iv([0.04962, 0.12], signed=True) == "[+0.0496, +0.120]"
+    tables = bpt.tables()
+    for name, label in (("ci95.tex", "Corrected hidden 7,"), ("contrast_intervals.tex", "CORRECTED-H7-CORRECTED"),
+                        ("holm.tex", "hidden 7, corrected")):
+        row = next(ln for ln in tables[name].splitlines() if label in ln.replace(r"\_", "_"))
+        assert "0.6496" in row and "0.650" not in row, (name, row)
+
+
 def test_a_qualified_outcome_reads_recorded_as_with_its_note():
     """The T-touch row was recorded as met before its leakage audit was found to read the wrong
     reward; the ledger table says "recorded as" and carries the note under the table."""

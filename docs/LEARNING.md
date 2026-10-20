@@ -516,9 +516,10 @@ pre-registered per-timestep control answers it: after surgically subtracting the
 behavior trace, 0.726 remains (seed-bootstrap 90% interval [0.685, 0.765], t-based [0.679, 0.772];
 9 of 10 seeds clear the bar;
 the quadratic version is 0.721). A later audit widened that subtraction to also
-remove the creature's absolute position and heading, the one covariate the two
-worlds' different motion laws could smuggle in; the signal barely moved, to 0.723,
-so it is not position wearing a disguise. And the control is honest on its own
+remove the creature's absolute position and heading, a covariate the two worlds'
+different motion laws could smuggle in; the signal barely moved, to 0.723, so it
+survives that position-and-heading subtraction. Position information the subtraction
+cannot express, nonlinear or built up over the episode's history, is not ruled out. And the control is honest on its own
 tests: the untrained creature's residual reads exact chance (0.498) even though its
 raw behavior reveals the world at 0.645.
 
@@ -733,9 +734,11 @@ Surprise tracks how predictable a stream is, not which law the creature grew up 
 
 Is it the consistency of the error? Velocity jitter that stays correlated over time was matched
 to the plain jitter three ways: same one-step size, same long-run offset, and same drift over 24
-steps. No setting reaches the bar, and on the tested worlds and jitter draws correlation did not
-raise the reading; with the 24-step drift matched exactly at the two most correlated settings
-and within 1.1 percent at the uncorrelated one, the contrast also misses the equivalence band by 0.001. The drag of Act
+steps. No setting reaches the bar, and on the tested worlds and jitter draws the contrasts did
+not demonstrate that correlation raises the reading, though they leave room for a small rise;
+with the 24-step drift matched exactly at the two most correlated settings and within 1.1
+percent at the uncorrelated one, the contrast also misses the equivalence band by 0.001, so the
+two are not shown equal either. The drag of Act
 10 and the forger still share one thing the jitter lacks: how hard each pushes depends on how
 fast the body already moves. That stays a lead, not a measured mechanism (FINDINGS 22.3).
 
