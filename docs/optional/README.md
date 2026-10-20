@@ -10,12 +10,13 @@ Until 2026-10-16 none of them entered the manuscript. Since the critical review 
 date, the manuscript and FINDINGS 17.8 cite O2 as a sensitivity readout beside the
 control battery: it shows that the long-history linear bases, with the penalty chosen in
 fold, fit held-out states better than the MLP control the paper had called the best fit.
-O2 still replaces no row of the battery and enters no rule. O1 is not cited.
-(`docs/CORRECTIONS.md`, 2026-10-16.) Since 2026-10-20 the manuscript also cites O1, in one
-sentence of its readouts paragraph beside the speed positive control: on the matched pools the
-fold-local median changes one call, the untrained seed-19 pool that B1 and B2 share (0.749 to
-0.761), and no verdict, since both runs' untrained floor fails on its own. O1 replaces no
-recorded gate. (`docs/CORRECTIONS.md`, 2026-10-20, review 5.)
+O2 still replaces no row of the battery and enters no rule. O1 was not cited then
+(`docs/CORRECTIONS.md`, 2026-10-16). Since 2026-10-20 the manuscript also cites O1, in one
+sentence of its readouts paragraph beside the speed positive control: on the matched pairs the
+fold-local median changes the call on one pool, the untrained seed-19 pool that B1 and B2
+share (two rows of the O1 table, 0.749 to 0.761), and changes no verdict, since both runs'
+untrained floor fails on its own. O1 replaces no recorded gate and enters no rule
+(`docs/CORRECTIONS.md`, 2026-10-20, review 5).
 
 ## O1. Fold-local speed median
 
@@ -29,7 +30,7 @@ episodes. Pair groups stay in one fold when the data are paired. Code:
 | File | Population | Cells | Result |
 |---|---|---|---|
 | `o1_fold_local_speed.json` | pooled worlds, bases 800000 and 850000, both drifts, three arms, B1 and B2 | 120 | recomputed global median equals the recorded `pool.speed` exactly; zero calls change; fold-local minus global +0.00162, t90 over seeds [-0.00021, 0.00345] |
-| `o1_fold_local_speed_matched.json` | retained pairs at base 910000, drift 0.45, three arms, B1 and B2 | 60 | two calls change, both untrained seed 19: recorded 0.7493, fold-local 0.7609; mean shift near zero, t90 over seeds [-0.00271, 0.00264]; the recomputed global median differs from the recorded matched speed in one of 60 cells (B1 seed 13 survival, recorded 0.9459, recomputed 0.9463, max 0.00043), with no call affected; the matched pairs are re-rolled on CUDA, the pooled rows are read from the stored dumps |
+| `o1_fold_local_speed_matched.json` | retained pairs at base 910000, drift 0.45, three arms, B1 and B2 | 60 | two calls change, one per run, on the untrained seed-19 pool the runs share (one agent file): recorded 0.7493, fold-local 0.7609; mean shift near zero, t90 over seeds [-0.00271, 0.00264]; the recomputed global median differs from the recorded matched speed in one of 60 cells (B1 seed 13 survival, recorded 0.9459, recomputed 0.9463, max 0.00043), with no call affected; the matched pairs are re-rolled on CUDA, the pooled rows are read from the stored dumps |
 
 The matched change does not make B1 or B2 informative. The untrained floor fails on
 its own.
