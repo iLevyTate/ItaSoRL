@@ -214,12 +214,13 @@ the matched case is L1: an in-band quantization grid (detector AUROC 0.873; 0.87
 the stack-independent partition) leaves the survival state at **0.551** [0.531, 0.570]
 on the corrected trainer (n = 10, 0 of 10 seeds at the bar; FINDINGS §22.1). The
 original trainer scored the same way reads 0.552, and 0.533 as first recorded (§14.7).
-The negative belongs to that in-band grid, not to a readout blind to this kind of seam:
+The readout is not blind to this kind of seam:
 at a coarser grid outside the band, Δ = 0.06, the same readout registers the seam, with
 the untrained arm at 0.672 [0.640, 0.704] (6 of 10 seeds at 0.65) and the survival arm
 at 0.643 [0.619, 0.667]. Survival minus untrained there is -0.029 [-0.062, +0.005]:
 the readout registers the seam on an untrained trunk, and survival training does not
-raise it (FINDINGS §22.1; `artifacts/expL1/l1_coarse_grid_corrected.json`).
+raise it. The survival arm's 0.643 is under the bar, so the criterion is not met at
+either grid (FINDINGS §22.1; `artifacts/expL1/l1_coarse_grid_corrected.json`).
 
 **Corrected L3 result (FINDINGS §17).** Survival training with the
 next-observation auxiliary, 300 updates, ten seeds, on CPU: the survival state

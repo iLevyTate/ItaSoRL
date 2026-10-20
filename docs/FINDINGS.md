@@ -72,6 +72,13 @@ negative is a negative at the in-band grid and not an insensitivity of the reado
 of seam. Survival minus untrained at Δ = 0.06 is -0.029 [-0.062, +0.005], so what registers the
 seam there is the readout on an untrained trunk, not a survival-specific encoding (22.1, note of
 2026-10-19).)*
+*(Note 2026-10-20: "a negative at the in-band grid" names the readout's sensitivity, not the
+encoding criterion. At the supra-band grid Δ = 0.06 the survival arm also misses the criterion:
+0.643 [0.619, 0.667] is under the 0.65 bar (5 of 10 seeds at 0.65), survival minus untrained is
+-0.029 [-0.062, +0.005] and survival minus predictor +0.032 [-0.005, +0.069], both under the 0.05
+margin (recomputed from the per-seed rows of `artifacts/expL1/l1_coarse_grid_corrected.json`). The
+criterion is therefore not met at either grid; what is specific to the in-band grid is that the
+readout does not register the seam above chance. No number, label or verdict changes.)*
 *(Note 2026-10-16: for L1 the criterion is H_B2, frozen on 2026-06-28 for the L2 run and
 applied unchanged to the historical L1 run after it ran. No L1 rule was registered before that
 run, and its code was first committed together with its result. `docs/CORRECTIONS.md`,
@@ -3409,6 +3416,14 @@ readout on the corrected L1 agents reads the untrained arm at 0.672 [0.640, 0.70
 at Δ = 0.023, not an insensitivity of the readout to the class. Survival minus untrained at
 Δ = 0.06 is -0.029 [-0.062, +0.005]: the readout registers the seam on an untrained trunk, and the
 survival-specific contrast is not positive there. Section 22.1, note of 2026-10-19.)*
+
+*(Note 2026-10-20: "a negative at the in-band grid" names the readout's sensitivity, not the
+encoding criterion. At the supra-band grid Δ = 0.06 the survival arm also misses the criterion:
+0.643 [0.619, 0.667] is under the 0.65 bar (5 of 10 seeds at 0.65), survival minus untrained is
+-0.029 [-0.062, +0.005] and survival minus predictor +0.032 [-0.005, +0.069], both under the 0.05
+margin (recomputed from the per-seed rows of `artifacts/expL1/l1_coarse_grid_corrected.json`). The
+criterion is therefore not met at either grid; what is specific to the in-band grid is that the
+readout does not register the seam above chance. No number, label or verdict changes.)*
 
 ## 15. Matched-handicap oracle ceilings across rungs (2026-09-27)
 
