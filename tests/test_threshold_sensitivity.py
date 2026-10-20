@@ -62,7 +62,7 @@ def _row(rid, clauses, outcome="threshold met", holds=True):
     return {"id": rid, "rule": rid, "short": rid, "source": "docs/rule_ledger.json", "source_part": "x",
             "frozen": "", "run": "R", "trainer": "corrected", "n": 10, "clauses": clauses,
             "clauses_hold": holds, "gates_hold": True, "outcome": "", "outcome_class": outcome,
-            "recorded_in": ""}
+            "recorded_in": "", "timing": "prospective"}
 
 
 def _cl(name, basis, op, thr, val, role="rule"):

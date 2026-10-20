@@ -87,6 +87,8 @@
    "gates_hold": false,
    "outcome": "NOT MET",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
+   "timing_note": "The bar and margins were written after the survival pilot and de-risk runs that tuned the trainer. The engagement gate was changed on 2026-06-28 at 22:13 UTC, after the first confirmatory sweep (21:18) and before the rerun and this replication.",
    "recorded_in": "FINDINGS 9; PREREGISTRATION sec. 12",
    "note": "n = 3 seeds; the run predates the t-interval adjudication of the later rungs."
   },
@@ -176,6 +178,7 @@
    "gates_hold": null,
    "outcome": "NOT MET: both margins pass and the bar is missed",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "FINDINGS 7.1; PREREGISTRATION_Bv3 sec. 12",
    "note": "The t-interval adjudication came with the B-v3 audit of 2026-07-10, after this freeze; the interval misses the bar as well."
   },
@@ -313,6 +316,7 @@
    "gates_hold": true,
    "outcome": "MET (encoding induced, conditional on this fingerprint)",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-12; FINDINGS 10.2",
    "note": "Legacy partition, the one the verdict used. The explicit-partition re-score of the same agents (2026-09-29) reads 0.774 [0.727, 0.821] with the L0 gate open (0.539, TOST p 0.207); no verdict was re-adjudicated."
   },
@@ -451,6 +455,8 @@
    "gates_hold": true,
    "outcome": "NOT MET: the predictor margin fails (dissociation not replicated)",
    "outcome_class": "threshold not met",
+   "timing": "simultaneous",
+   "timing_note": "The bar, the margins and the fallback order are in the 2026-07-10 text; the selection of hidden 7 was first committed together with the hidden-7 result (2026-07-14 06:25 UTC).",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-14; FINDINGS 10.5",
    "note": "Misses the margin by 0.027, so it is not a boundary case."
   },
@@ -524,6 +530,7 @@
    "gates_hold": true,
    "outcome": "at or above 0.65: the behavior-independent claim strengthens",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-13; FINDINGS 10.4"
   },
   {
@@ -596,6 +603,7 @@
    "gates_hold": true,
    "outcome": "at or above 0.65: the behavior-independent claim strengthens",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-14; FINDINGS 10.5"
   },
   {
@@ -664,6 +672,7 @@
    "gates_hold": null,
    "outcome": "passes: generalizes to an unseen same-recipe fingerprint",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-14; FINDINGS 10.6"
   },
   {
@@ -727,6 +736,7 @@
    "gates_hold": null,
    "outcome": "passes on the re-score under the fixed estimator (the first scoring, 0.557, used the biased estimator and failed)",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-18 correction; FINDINGS 10.6.1",
    "note": "Passes on its mean basis while the t90 lower bound sits under the bar. Reads the prefix's physical footprint, not retention (FINDINGS 17.7)."
   },
@@ -796,6 +806,7 @@
    "gates_hold": null,
    "outcome": "fails on the bar (informative negative)",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-16; FINDINGS 10.6"
   },
   {
@@ -859,6 +870,7 @@
    "gates_hold": null,
    "outcome": "passes on the re-score under the fixed estimator",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-18 correction; FINDINGS 10.6.1",
    "note": "Passes on its mean basis while the t90 lower bound sits under the bar."
   },
@@ -926,6 +938,7 @@
    "gates_hold": null,
    "outcome": "passes",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-16; FINDINGS 10.7",
    "note": "Readout-only on the saved held-out agents. The t90 lower bound clears the bar by 0.004."
   },
@@ -980,6 +993,7 @@
    "gates_hold": null,
    "outcome": "positive rule fails both clauses (recorded as texture-specific; reworded 2026-10-06)",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-23 and 2026-10-06; FINDINGS 14.5",
    "note": "A failed positive rule is the reading the knockout looked for; it establishes no learned-texture mechanism (2026-10-06 wording amendment)."
   },
@@ -1034,6 +1048,7 @@
    "gates_hold": null,
    "outcome": "positive rule fails both clauses (recorded as texture-specific; reworded 2026-10-06)",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-23 and 2026-10-06; FINDINGS 14.5",
    "note": "A failed positive rule is the reading the knockout looked for; it establishes no learned-texture mechanism (2026-10-06 wording amendment)."
   },
@@ -1088,6 +1103,8 @@
    "gates_hold": null,
    "outcome": "positive rule fails both clauses; vacuous, since the L1 primary reading is null",
    "outcome_class": "threshold not met",
+   "timing": "retrospective",
+   "timing_note": "The 2026-07-22 rule predates the run but names no L1 comparator; the noise comparator, its calibration and the rule's use at L1 were first committed with the result (2026-07-25 04:14 UTC; CORRECTIONS 2026-10-16, the historical L1 run had no rule registered before it ran).",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-25; FINDINGS 14.7"
   },
   {
@@ -1177,6 +1194,8 @@
    "gates_hold": true,
    "outcome": "NOT MET",
    "outcome_class": "threshold not met",
+   "timing": "retrospective",
+   "timing_note": "H_B2 was written for L2 on 2026-06-28; its application to L1, the gate-0 grid selection (delta 0.023) and the L1 code were first committed with the result (2026-07-25 04:14 UTC; CORRECTIONS 2026-10-16, the historical L1 run had no rule registered before it ran).",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-07-25; FINDINGS 14.7"
   },
   {
@@ -1266,6 +1285,8 @@
    "gates_hold": true,
    "outcome": "passes: sensory-independent",
    "outcome_class": "threshold met",
+   "timing": "simultaneous",
+   "timing_note": "Spec, rule and result were first committed together (2026-09-26 21:45 UTC), about an hour after the run wrote its output.",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-26; FINDINGS 10.4.2"
   },
   {
@@ -1366,6 +1387,8 @@
    "gates_hold": true,
    "outcome": "passes",
    "outcome_class": "threshold met",
+   "timing": "simultaneous",
+   "timing_note": "The 2026-09-26 spec lists hidden 7 as out of scope; the log entry that applies its rule to hidden 7 was first committed with the result (2026-09-29 13:46 UTC), three minutes after the output was written.",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29; FINDINGS 10.4.2",
    "note": "Passes on its mean basis while the t90 lower bound sits under the bar.",
    "freeze_note": "Noted 2026-10-10: the spec's \"Out of scope\" section lists hidden = 7. The rule was frozen for the hidden-8 agents; the 2026-09-29 entry applied it to the hidden-7 agents after that, so this row's rule was not registered for this run before it ran."
@@ -1431,6 +1454,8 @@
    "gates_hold": null,
    "outcome": "passes at the mean",
    "outcome_class": "threshold met",
+   "timing": "simultaneous",
+   "timing_note": "The spec was first committed (2026-09-27 23:23 UTC) about three minutes after the run's first cell file and before its first survival cell.",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-28; FINDINGS 10.4.2",
    "note": "Superseded by the corrected-agent control of FINDINGS 17.8 (0.620, no frozen margin)."
   },
@@ -1511,6 +1536,7 @@
    "gates_hold": true,
    "outcome": "the positive is auxiliary-conditional (survival under the bar)",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-27; FINDINGS 10.8"
   },
   {
@@ -1578,6 +1604,8 @@
    "gates_hold": true,
    "outcome": "device is not the cause; the auxiliary-conditional verdict stands",
    "outcome_class": "threshold met",
+   "timing": "prospective",
+   "timing_note": "The addendum (2026-09-27 17:01 UTC) predates this run and follows the no-auxiliary run's result, which its lead clause compares against.",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-28; FINDINGS 10.8"
   },
   {
@@ -1681,6 +1709,7 @@
    "gates_hold": true,
    "outcome": "NOT MET: replication not claimed; both margins pass",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-27; FINDINGS 10.9"
   },
   {
@@ -1796,6 +1825,7 @@
    "gates_hold": false,
    "outcome": "NOT MET: replication not claimed; both margins pass",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29 and 2026-10-10 (speed control); FINDINGS 10.9 addendum",
    "note": "Gate added 2026-10-10. Read over every drift, arm and seed, the speed positive control is short in one pool of 60 (untrained arm, drift 0.45, seed index 6: 0.748 against 0.75); the figure first recorded, 0.833, was the lowest arm mean. By the rule applied to the white-jitter run, the readings of this run are descriptive. The replication rule was not met in any case, so the outcome does not move."
   },
@@ -1901,6 +1931,7 @@
    "gates_hold": false,
    "outcome": "NOT MET: replication not claimed; the predictor margin misses by 0.0009",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-29; FINDINGS 10.9",
    "note": "The spec header records the freeze on 2026-09-29, the day after the design date."
   },
@@ -1993,6 +2024,8 @@
    "gates_hold": false,
    "outcome": "no skill-mediation verdict: the probe reads at or above the bar, and the return overshoots the match window by 0.0131",
    "outcome_class": "no verdict",
+   "timing": "prospective",
+   "timing_note": "The 2026-09-30 amendment (03:17 UTC) fixed how the match clause is read after stage 1's returns were known and before any stage-2 cell; stage 1's three seeds are stage 2's first three.",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-09-30; FINDINGS 10.8.1"
   },
   {
@@ -2071,6 +2104,7 @@
    "gates_hold": false,
    "outcome": "NOT MET: the L0 gate is open; the decodability clauses are met",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-06; FINDINGS 17.2; artifacts/corrected_verdicts.json"
   },
   {
@@ -2149,6 +2183,7 @@
    "gates_hold": true,
    "outcome": "NOT MET",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-06; FINDINGS 17.4; artifacts/corrected_verdicts.json"
   },
   {
@@ -2191,6 +2226,7 @@
    "gates_hold": false,
    "outcome": "NOT MET as registered: C1 does not meet its primary rule; the lead holds on the decodability clauses",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-06 and 2026-10-10; FINDINGS 17.4; artifacts/corrected_verdicts.json",
    "note": "Outcome restated 2026-10-10 with the registered result first (PREREGISTRATION_L3 sec. 12, 2026-10-10 entry; artifacts/corrected_verdicts.json, holds false, holds_on_decodability_clauses true). Until then this row read \"does not hold; holds on the decodability clauses, conditional on the C1 gates\". The lead is +0.120 [+0.065, +0.174] at the 300-update budget; no reading moved."
   },
@@ -2242,6 +2278,7 @@
    "gates_hold": null,
    "outcome": "the original direction does not transfer",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "FINDINGS 17.9",
    "note": null
   },
@@ -2293,6 +2330,7 @@
    "gates_hold": null,
    "outcome": "a fresh probe did not meet the registered criterion",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "FINDINGS 17.9",
    "note": null
   },
@@ -2344,6 +2382,7 @@
    "gates_hold": null,
    "outcome": "the L3 direction reads the comparator",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "FINDINGS 17.9",
    "note": "qd failed its gate 0; its untrained floor is outside tolerance, so the spec's amendment makes the survival-minus-untrained margin the comparison that carries meaning."
   },
@@ -2395,6 +2434,7 @@
    "gates_hold": null,
    "outcome": "the state separates the comparator when a probe is fit to it",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "FINDINGS 17.9",
    "note": "qd failed its gate 0; its untrained floor is outside tolerance, so the spec's amendment makes the survival-minus-untrained margin the comparison that carries meaning."
   },
@@ -2458,6 +2498,7 @@
    "gates_hold": null,
    "outcome": "not shown",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "FINDINGS 17.7"
   },
   {
@@ -2500,6 +2541,7 @@
    "gates_hold": null,
    "outcome": "SECURE (R1)",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-08; FINDINGS 17.5.1",
    "note": "The registered draw ranks exactly at the bound the rule requires."
   },
@@ -2543,6 +2585,7 @@
    "gates_hold": null,
    "outcome": "CARRIED (R1)",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-09; FINDINGS 17.5.2"
   },
   {
@@ -2638,6 +2681,7 @@
    "gates_hold": false,
    "outcome": "UNINFORMATIVE: the speed positive control fails, and the agent trunk was 8 units wide, not the registered 96",
    "outcome_class": "uninformative",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-09 (three entries); FINDINGS 14.5.1",
    "note": "The survival, predictor and untrained readings are descriptive only and are not a reading of the jitter, because the trunk width differs from every other run."
   },
@@ -2677,6 +2721,7 @@
    "gates_hold": null,
    "outcome": "S1: the stream carries it",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-09; FINDINGS 14.7.1",
    "note": "The state probe on the same agents reads 0.552 under the explicit partition."
   },
@@ -2757,6 +2802,7 @@
    "gates_hold": false,
    "outcome": "UNINFORMATIVE: the speed control (gate 5) fails and section 7 interprets no contrast unless every gate passes; gate 1 fails only against the unratified section-14 margin",
    "outcome_class": "uninformative",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_C sec. 7 and 2026-10-10 amendment; FINDINGS 13.F",
    "note": "The pooled re-run of 2026-07-18 (FINDINGS 13.D) fails every clause as well. The gate-1 clause reads the runner's verdict, which applies the 0.005 margin of the unratified section-14 draft; frozen section 7 gives gate 1 no number, and against its wording the treatment gap (0.00228, 90% CI [0.00109, 0.00377], control gap 0) is a weak positive. The routing rests on gate 5 (2026-10-10)."
   },
@@ -2849,6 +2895,7 @@
    "gates_hold": true,
    "outcome": "MET with every gate passing: \"a pellet-directed goal without survival stakes produces walks from which the condition is decodable; survival is not required\"",
    "outcome_class": "threshold met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11; FINDINGS 18.2; artifacts/goal_stakes/decision.json",
    "outcome_footnote": "the leakage gate summed the homeostatic reward, not pellets consumed, so the wrong-reward leakage audit did not establish full-rule validity (Appendix~\\ref{app:corrections}, item~\\ref{corr:touchleak}).",
    "note": "Touch engagement is the spec's ratio rule: the trained touch return at least 1.5 times the better baseline (1.30 pellets per episode against 0.52)."
@@ -2930,6 +2977,7 @@
    "gates_hold": false,
    "outcome": "NOT MET as registered: the L0 gate is open; the decodability clauses are met",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11; FINDINGS 18.2"
   },
   {
@@ -2970,6 +3018,7 @@
    "gates_hold": false,
    "outcome": "not testable: the frozen calibration chose the registered density, so no scarcer rung exists",
    "outcome_class": "no verdict",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-10 (calibration) and 2026-10-11; FINDINGS 18.2; artifacts/goal_stakes/decision.json",
    "note": "The calibration (scripts/calibrate_scarcity.py, artifacts/goal_stakes/calibration.json) chose 24 pellets, the density C1 already uses, so S-scarce would have repeated C1 and was not run. The record gives the survival means descriptively: S-immortal 0.744, C1 0.733."
   },
@@ -3054,6 +3103,7 @@
    "gates_hold": false,
    "outcome": "UNINFORMATIVE: the L0 gate fails, and either verdict needs every gate",
    "outcome_class": "uninformative",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11; FINDINGS 18.6",
    "note": "The readings are descriptive. Engagement passes in 20 of 20 cells and the speed positive control in 60 of 60 pools."
   },
@@ -3205,6 +3255,7 @@
    "gates_hold": false,
    "outcome": "OFF-DESIGN (uninformative under section 8): gate 0 fails on the untrained floor of the run's own fit; the L0 and reward-leak gates are open as well",
    "outcome_class": "uninformative",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11 (results); FINDINGS 20.2",
    "note": "Reported beside L3-H7-N10, which keeps its record. The readings are descriptive; the survival arm does not lead the predictor (-0.0001)."
   },
@@ -3368,6 +3419,7 @@
    "gates_hold": false,
    "outcome": "NOT MET: replication not claimed; both margins pass; the L0 gate is open",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11 (results); FINDINGS 20.2",
    "note": "The drift-0 cells are C1's agents, so the L0 reading is C1's. Reported beside L3-H10-GS1-CPU, which keeps its record; its predictor and untrained targets are bit-equal to this run's."
   },
@@ -3543,6 +3595,7 @@
    "gates_hold": false,
    "outcome": "UNINFORMATIVE under the spec's outcome table: the speed positive control fails in one pool and the L0 gate is open",
    "outcome_class": "uninformative",
+   "timing": "prospective",
    "recorded_in": "PREREGISTRATION_L3 sec. 12, 2026-10-11 (results); FINDINGS 20.2",
    "note": "The short pool is the untrained arm at drift 0.45, seed index 0. Descriptively the predictor margin fails (+0.031). Reported beside L3-H8-GS2-GPU, which keeps its record."
   },
@@ -3560,6 +3613,7 @@
    "gates_hold": false,
    "outcome": "UNINFORMATIVE: gates not held: matched speed (min 0.749 under 0.75); untrained floor (0.114 from 0.5, outside the 0.1 floor)",
    "outcome_class": "uninformative",
+   "timing": "prospective",
    "recorded_in": "FINDINGS 21",
    "note": "The interval clauses hold descriptively. The runner MET line is the pooled readout and is not this decision. Matched-pair speed and leakage were collected 2026-10-14 (CORRECTIONS); the speed gate reads 0.749 at its minimum (untrained arm, seed 19; seed 13 is also under 0.75 at 0.7499) in both runs.",
    "clauses": [
@@ -3636,6 +3690,7 @@
    "gates_hold": false,
    "outcome": "UNINFORMATIVE: gates not held: matched speed (min 0.749 under 0.75); untrained floor (0.114 from 0.5, outside the 0.1 floor)",
    "outcome_class": "uninformative",
+   "timing": "prospective",
    "recorded_in": "FINDINGS 21",
    "note": "The interval clauses hold descriptively. The runner MET line is the pooled readout and is not this decision. Matched-pair speed and leakage were collected 2026-10-14 (CORRECTIONS); the speed gate reads 0.749 at its minimum (untrained arm, seed 19; seed 13 is also under 0.75 at 0.7499) in both runs.",
    "clauses": [
@@ -3712,6 +3767,8 @@
    "gates_hold": true,
    "outcome": "passes: sensory-independent under matched worlds",
    "outcome_class": "threshold met",
+   "timing": "retrospective",
+   "timing_note": "Frozen (2026-10-13 20:09 UTC) after the raw B1 and B2 outcomes (16:18) and the untrained-only diagnostics were known, and before any trained arm was scored under it.",
    "recorded_in": "FINDINGS 21",
    "note": "The 2026-10-12 balanced confirmation stays UNINFORMATIVE. This row is the sensory control on the same pairs.",
    "clauses": [
@@ -3806,6 +3863,8 @@
    "gates_hold": true,
    "outcome": "passes: sensory-independent under matched worlds",
    "outcome_class": "threshold met",
+   "timing": "retrospective",
+   "timing_note": "Frozen (2026-10-13 20:09 UTC) after the raw B1 and B2 outcomes (16:18) and the untrained-only diagnostics were known, and before any trained arm was scored under it.",
    "recorded_in": "FINDINGS 21",
    "note": "The untrained resid_obs scores match B1-BALANCED-ECHO. The joint sensory-plus-behavior control is reported and is not this rule.",
    "clauses": [
@@ -3952,6 +4011,8 @@
    "gates_hold": false,
    "outcome": "NOT MET",
    "outcome_class": "threshold not met",
+   "timing": "prospective",
+   "timing_note": "Launched at 09:44 UTC on 2026-10-15, ten minutes before its spec was committed and before any cell was written; the rule is H_B2 as the record had applied it to the historical L1 run.",
    "recorded_in": "FINDINGS 22.1"
   }
  ]

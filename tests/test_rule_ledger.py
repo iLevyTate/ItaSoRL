@@ -184,3 +184,44 @@ def test_the_balanced_rows_carry_the_promoted_reason_and_the_echo_rows_are_uncha
     for rid in ("B1-BALANCED-ECHO", "B2-BALANCED-ECHO"):
         assert rows[rid]["outcome_class"] == "threshold met"
         assert rows[rid]["outcome"] == "passes: sensory-independent under matched worlds"
+
+
+def test_every_row_has_a_timing_class_from_the_allowed_set(ledger):
+    """Third blind review (2026-10-20): every row states whether its rule text was committed
+    before (prospective), with (simultaneous) or after (retrospective) the first result of the
+    run it decides."""
+    assert bpt.TIMING_CLASSES == ("prospective", "simultaneous", "retrospective")
+    for row in ledger["rows"]:
+        assert row.get("timing") in bpt.TIMING_CLASSES, row["id"]
+        assert isinstance(row.get("timing_note", ""), str), row["id"]
+
+
+def test_the_timing_anchors_the_registration_timeline_dates(ledger):
+    """Rows whose timing the manuscript's registration timeline states outright: the corrected
+    confirmation frozen before any cell, the historical sensory echo first committed with its
+    result, and the matched-world sensory-echo rule frozen after the raw outcomes."""
+    rows = {r["id"]: r for r in ledger["rows"]}
+    assert rows["C1-PRIMARY"]["timing"] == rows["C2-PRIMARY"]["timing"] == "prospective"
+    assert rows["SENSORY-ECHO-H8"]["timing"] == "simultaneous"
+    assert rows["B1-BALANCED-ECHO"]["timing"] == rows["B2-BALANCED-ECHO"]["timing"] == "retrospective"
+
+
+def test_a_missing_or_unknown_timing_is_reported(ledger):
+    for bad in ("pre-registered", None):
+        led = _ledger_with(ledger, "CROSS-RECIPE", lambda r: r.update(timing=bad))
+        _, problems = bpt.evaluate_ledger(led)
+        assert any("CROSS-RECIPE" in p and "timing" in p for p in problems)
+
+
+def test_the_ledger_table_has_a_timing_column_within_the_old_width(ledger, evaluated):
+    """The timing column is the fourth of seven, and the p{} widths still sum to 0.825 of the
+    text width, so the table keeps its one float page; the timing tally is under the table."""
+    tex = bpt.rule_ledger_table()
+    spec = next(ln for ln in tex.splitlines() if ln.startswith(r"\begin{tabular}"))
+    widths = [float(w) for w in re.findall(r"p\{([0-9.]+)\\textwidth\}", spec)]
+    assert len(widths) == 7 and sum(widths) == pytest.approx(0.825, abs=1e-9)
+    assert r"Rule & Frozen & Run & Timing & Bar on & Outcome & Deciding clause \\" in tex
+    assert r"\multicolumn{7}" in tex and bpt._timing_sentence(evaluated[0]) in tex
+    body = [ln for ln in tex.splitlines() if ln.endswith(r"\\") and " & " in ln][1:]
+    assert len(body) == len(ledger["rows"])
+    assert all(ln.split(" & ")[3] in bpt.TIMING_CLASSES for ln in body)
