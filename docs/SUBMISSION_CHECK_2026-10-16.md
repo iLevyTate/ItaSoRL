@@ -211,6 +211,9 @@ that would round onto the bar with the digit that shows its side (hidden 7 reads
   pass 3873 checks with 1 skipped, against 3874 in a git checkout; `python -E -m pytest -q -rs`
   gives 1538 passed, 41 skipped, 0 failed in 15:51 on Python 3.13.2 with NumPy 1.26.4 (one more
   pass than 2c: the new table-generator test). The skips match the v1.5.0 run line for line.
+- Tag `v1.5.1` pushed 2026-10-20 01:29 UTC on `196afed`; its release run passed (the tag names
+  the version, the package built, `dist` uploaded). It warns that `date-released` (2026-10-20, the
+  tag date in UTC) differs from the release commit's own date, written in Eastern time (2026-10-19).
 
 ## 3. Clean extraction
 
