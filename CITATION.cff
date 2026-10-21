@@ -9,7 +9,7 @@ authors:
 repository-code: "https://github.com/iLevyTate/ItaSoRL"
 license: MIT
 version: 1.5.4
-date-released: "2026-10-20"
+date-released: "2026-10-21"
 abstract: >-
   ITASORL measures whether a recurrent agent trained from scratch, with no
   imported semantic knowledge and no reward for detection, comes to carry in its
