@@ -1,0 +1,87 @@
+{
+ "generated_by": "scripts/promote_prospective_balanced.py",
+ "spec": "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md",
+ "decisions": {
+  "PB1": "MET",
+  "PB2": "MET"
+ },
+ "untrained_identical_across_runs": true,
+ "B_nonlinear_descriptive": {
+  "B1": {
+   "resid_obs_mlp": {
+    "trained": 0.7089462809917355,
+    "untrained": 0.5637603305785125,
+    "trained_t90": [
+     0.6835902080208229,
+     0.7343023539626481
+    ],
+    "label": "SURVIVES"
+   },
+   "resid_obs_int": {
+    "trained": 0.7181404958677685,
+    "untrained": 0.6055578512396694,
+    "trained_t90": [
+     0.6994669833553028,
+     0.7368140083802343
+    ],
+    "label": "SURVIVES"
+   },
+   "resid_obs_int_mlp": {
+    "trained": 0.7004545454545454,
+    "untrained": 0.5738223140495868,
+    "trained_t90": [
+     0.6697697248919068,
+     0.7311393660171841
+    ],
+    "label": "SURVIVES"
+   },
+   "resid_obs_beh_mlp": {
+    "trained": 0.6966322314049587,
+    "untrained": 0.5875206611570247,
+    "trained_t90": [
+     0.6721713495077941,
+     0.7210931133021232
+    ],
+    "label": "SURVIVES"
+   }
+  },
+  "B2": {
+   "resid_obs_mlp": {
+    "trained": 0.7078099173553719,
+    "untrained": 0.5637603305785125,
+    "trained_t90": [
+     0.69694532875187,
+     0.7186745059588738
+    ],
+    "label": "SURVIVES"
+   },
+   "resid_obs_int": {
+    "trained": 0.7479132231404959,
+    "untrained": 0.6055578512396694,
+    "trained_t90": [
+     0.7315419470023683,
+     0.7642844992786235
+    ],
+    "label": "SURVIVES"
+   },
+   "resid_obs_int_mlp": {
+    "trained": 0.7150000000000001,
+    "untrained": 0.5738223140495868,
+    "trained_t90": [
+     0.6971155707889517,
+     0.7328844292110485
+    ],
+    "label": "SURVIVES"
+   },
+   "resid_obs_beh_mlp": {
+    "trained": 0.6981818181818181,
+    "untrained": 0.5875206611570247,
+    "trained_t90": [
+     0.6809198814218582,
+     0.715443754941778
+    ],
+    "label": "SURVIVES"
+   }
+  }
+ }
+}

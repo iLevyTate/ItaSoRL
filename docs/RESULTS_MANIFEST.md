@@ -111,7 +111,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `GATE0-L1-FOLDS` | historical | A | - | none | - | 75ce098 | both | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `BUDGET-CURVE-DYNAMICS` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 75ce098 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `BAYES-FACTORS` | historical | methods | - | none | - | 75ce098 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `THRESHOLD-SENSITIVITY` | historical | methods | - | none | - | 48af14a | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `THRESHOLD-SENSITIVITY` | historical | methods | - | none | - | 4d5e611 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `QD-EPS6-ORACLE` | historical | methods | - | none | - | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `C1-REGEN-LOCAL` | corrected | methods | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `PROBE-SENSITIVITY` | historical and corrected | methods | - | inherited: pre_transition_value (L3-H8-HELDOUT, L1-ORGANISM) and successor_value (L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1) | L3-H8-HELDOUT, L1-ORGANISM, L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1 | 75ce098 | explicit (explicit-v1, one group per episode) | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
@@ -131,6 +131,12 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `GROUPED-SURPRISE-S-IMMORTAL` | corrected | B-v2 L3 | - | inherited: successor_value | S-IMMORTAL | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `SENSORY-ECHO-B1-FRESH` | corrected | B-v2 L3 | - | inherited: successor_value | B1-BALANCED | 75ce098 | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
 | `SENSORY-ECHO-B2-FRESH` | corrected | B-v2 L3 | - | inherited: successor_value | B2-BALANCED | 75ce098 | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
+| `PB1` | corrected | B-v2 L3 | - | successor_value | - | 7d08686 | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
+| `PB2` | corrected | B-v2 L3 | - | successor_value | - | e792adb | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
+| `PB1-DRAW2` | corrected | B-v2 L3 | - | inherited: successor_value | PB1 | e792adb (curated) | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
+| `PB2-DRAW2` | corrected | B-v2 L3 | - | inherited: successor_value | PB2 | e792adb (curated) | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
+| `SENSORY-ECHO-B1-NONLINEAR` | corrected | B-v2 L3 | - | inherited: successor_value | B1-BALANCED | e792adb (curated) | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
+| `SENSORY-ECHO-B2-NONLINEAR` | corrected | B-v2 L3 | - | inherited: successor_value | B2-BALANCED | e792adb (curated) | explicit | owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA |
 | `PELLET-DOSE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `C1-POPULATION-WORLD-GROUPED` | corrected | C | 49 | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `HEAD-OVERLAP` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
@@ -1396,12 +1402,12 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: historical
 - Trainer: none
-- Commit at run: 48af14a
+- Commit at run: 4d5e611
 - Commit source: recorded
 - Folds: n/a
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
-- Notes: scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), run on the clean Stage 6 tree; docs/specs/2026-10-17-closing-readouts-design.md. Agent free: it re-reads every adjudicated row of docs/rule_ledger.json with its bar and margin clauses moved over {0.60, 0.65, 0.70} x {0.03, 0.05, 0.10} and changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split, 22 hold and 18 fail. The commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
+- Notes: scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), regenerated 2026-10-21 on a clean tree after the two prospective balanced ledger rows were committed; docs/specs/2026-10-17-closing-readouts-design.md. Agent free: it re-reads every adjudicated row of docs/rule_ledger.json with its bar and margin clauses moved over {0.60, 0.65, 0.70} x {0.03, 0.05, 0.10} and changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split over 42 adjudicated rows, 24 hold and 18 fail. The commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
 - Artifacts: `artifacts/threshold_sensitivity/bar_margin.json`
 
 ### `QD-EPS6-ORACLE`: Quadratic-drag comparator oracle at eps 6.0, the setting the trained run used (H31)
@@ -1636,6 +1642,88 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Config (beyond the standard protocol): {"objective": "touch", "mortal": false}
 - Artifacts: `artifacts/balanced_confirmation/sensory_echo_b2_fresh.json`
 
+### `PB1`: Prospective balanced confirmation, survival objective, fresh seeds 20-29
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: 7d08686
+- Commit source: recorded
+- Agent seeds: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA
+- Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Local run directory (not in git): fullruns/prospective_balanced_wm
+- Notes: docs/specs/2026-10-20-prospective-balanced-confirmation-design.md, frozen before training and amended once before any cell existed; the amendment moved gate 2 to the trained arm and the untrained mean, and under the first text untrained seed 25 (0.724) would leave both runs UNINFORMATIVE. Decision MET: gates 1 to 7, the floor clause (untrained resid_obs 0.598) and the trained clause (resid_obs 0.709) hold. The strict interval reading S1 is not met. FINDINGS 24.
+- Config (beyond the standard protocol): {"objective": "survival", "mortal": true, "adv_norm": "historical"}
+- Artifacts: `artifacts/prospective_balanced/pb1.json`, `artifacts/prospective_balanced/sensory_echo_pb1.json`, `artifacts/prospective_balanced/matched_gates_pb1.json`, `artifacts/prospective_balanced/summary.json`
+
+### `PB2`: Prospective balanced confirmation, pellet objective, death off, fresh seeds 20-29
+
+- Status: corrected
+- Trainer: successor_value
+- Commit at run: e792adb
+- Commit source: recorded
+- Agent seeds: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+- Surrogate: {"family": "GMotion (itasorl/surrogate_l3.py)", "hidden": 8, "g_seed": 0, "training": "fixed-epoch Adam fit on authentic transitions (train_g_motion defaults)"}
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA
+- Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Local run directory (not in git): fullruns/prospective_balanced_touch
+- Notes: docs/specs/2026-10-20-prospective-balanced-confirmation-design.md. Decision MET: gates 1 to 7, the floor clause (untrained resid_obs 0.598, the same untrained scores as PB1) and the trained clause (resid_obs 0.743) hold. The strict interval reading S1 is not met. Training started from e792adb. Between PB1's 7d08686 and e792adb only the spec amendment, the readout and promotion code, their tests and the registered seed bases in itasorl/post_review.py changed; the training command imports none of them. FINDINGS 24.
+- Config (beyond the standard protocol): {"objective": "touch", "mortal": false, "adv_norm": "historical"}
+- Artifacts: `artifacts/prospective_balanced/pb2.json`, `artifacts/prospective_balanced/sensory_echo_pb2.json`, `artifacts/prospective_balanced/matched_gates_pb2.json`
+
+### `PB1-DRAW2`: Prospective balanced sensory-echo readout on a second evaluation draw, PB1 agents
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: e792adb
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA
+- Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: docs/specs/2026-10-20-prospective-balanced-confirmation-design.md, S4; descriptive, and it re-adjudicates no route. FINDINGS 24.
+- Artifacts: `artifacts/prospective_balanced/sensory_echo_pb1_draw2.json`
+
+### `PB2-DRAW2`: Prospective balanced sensory-echo readout on a second evaluation draw, PB2 agents
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: e792adb
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA
+- Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: docs/specs/2026-10-20-prospective-balanced-confirmation-design.md, S4; descriptive, and it re-adjudicates no route. FINDINGS 24.
+- Config (beyond the standard protocol): {"objective": "touch", "mortal": false}
+- Artifacts: `artifacts/prospective_balanced/sensory_echo_pb2_draw2.json`
+
+### `SENSORY-ECHO-B1-NONLINEAR`: Balanced sensory-echo nonlinear and longer-history controls, B1 agents
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: e792adb
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA
+- Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/audit_sensory_echo.py --nonlinear on the saved B1 agents; docs/specs/2026-10-20-prospective-balanced-confirmation-design.md, S2 (descriptive). Beside sensory_echo_b1.json, which is not touched. FINDINGS 24.
+- Artifacts: `artifacts/balanced_confirmation/sensory_echo_b1_nonlinear.json`
+
+### `SENSORY-ECHO-B2-NONLINEAR`: Balanced sensory-echo nonlinear and longer-history controls, B2 agents
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: e792adb
+- Commit source: curated: no artifact of this run records the commit it ran at
+- Folds: explicit
+- Device: owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA
+- Dependencies: Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
+- Notes: scripts/audit_sensory_echo.py --nonlinear --objective touch --mortal off on the saved B2 agents; docs/specs/2026-10-20-prospective-balanced-confirmation-design.md, S2 (descriptive). Beside sensory_echo_b2.json, which is not touched. FINDINGS 24.
+- Config (beyond the standard protocol): {"objective": "touch", "mortal": false}
+- Artifacts: `artifacts/balanced_confirmation/sensory_echo_b2_nonlinear.json`
+
 ### `PELLET-DOSE`: Pellet-density dose curve on the C1 agents (X07)
 
 - Status: corrected
@@ -1682,4 +1770,5 @@ Each headline number below is one run, one estimand, and one rule. A recorded ME
 - B1, `balanced_confirmation_wm`. Corrected trainer, GPU workstation, seeds 10-19, matched pairs at base 910000, survival, mortal. October 12 rule: trained t90 lower bound at least 0.65, both margin lower bounds at least 0.05, untrained mean within 0.1 of 0.5. Recorded UNINFORMATIVE (untrained 0.614). The speed and leakage numbers on the cells are the pooled worlds, not these pairs. `artifacts/balanced_confirmation/b1.json`.
 - B2, `balanced_confirmation_touch`. Same seeds and base, pellet objective, death off. Same October 12 rule. Recorded UNINFORMATIVE. `artifacts/balanced_confirmation/b2.json`.
 - B1 sensory and B2 sensory. Readouts on those saved agents. October 13 rule: trained residual mean at least 0.65, mean more than 0.05 above the untrained residual, trained t90 lower bound above the untrained mean, untrained mean within 0.1 of 0.5. Recorded passes at 0.761 and 0.780. The untrained residual 0.596 meets the point tolerance; its interval crosses 0.60. `artifacts/balanced_confirmation/sensory_echo_b1.json` and `sensory_echo_b2.json`.
+- PB1 and PB2, `prospective_balanced_{wm,touch}`. Fresh agent seeds 20-29 and fresh matched worlds at base 3000000, survival and pellets with death off, under the October 13 rule with the October 12 gates the matched design can pass, frozen October 20 before training and amended once before any result (gate 2 moved to the trained arm and the untrained mean, without which untrained seed 25 at 0.724 fails it). Recorded MET on both (resid_obs 0.709 and 0.743; untrained 0.598, inside the floor by 0.002). The strict interval reading is not met on either. `artifacts/prospective_balanced/`.
 - Selection pilot. Uninformative. No emergence conclusion in either direction. `artifacts/expC/`.

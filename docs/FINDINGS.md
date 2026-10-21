@@ -169,7 +169,10 @@ The follow-ups, read narrowly:
   death off; seeds 10 to 19, corrected trainer) reads 0.800 and 0.843 on matched world pairs,
   and both runs are UNINFORMATIVE: the untrained arm reads 0.614, outside the 0.1 floor. A
   sensory-echo control frozen after those raw outcomes leaves 0.761 and 0.780, with the untrained
-  arm at 0.596 [0.577, 0.615] (section 21). The original pellet run's 0.796 was recorded with a
+  arm at 0.596 [0.577, 0.615] (section 21). Tested prospectively on fresh seeds 20 to 29 and fresh
+  matched worlds, under a spec frozen before training and amended once before any result, that
+  rule is met for both objectives (0.709 and 0.743, untrained 0.598, inside the floor by 0.002;
+  strict interval reading not met; section 24). The original pellet run's 0.796 was recorded with a
   leakage gate on the homeostatic reward, so its full-rule validity was not established (18.7).
 - **Experiment C.** The contrast is flat and the registered verdict is uninformative
   (13.F). Selection over 30 generations did not raise world decodability under the pooled
@@ -4894,6 +4897,9 @@ limitation that no comparator-trained run supports it stays.
    *(Note 2026-10-20: after review 5 the manuscript words this as "the controlled reading was
    also obtained without survival" on these agents, with the untrained floor met by 0.004 at the
    mean and its interval crossing 0.60; `docs/CORRECTIONS.md`, 2026-10-20, review 5.)*
+   *(Note 2026-10-21: the controlled reading was then tested prospectively on fresh seeds and
+   fresh matched worlds and is met for the pellet objective with death off, 0.743 [0.714,
+   0.771] (section 24), under the same linear control.)*
 2. **Removing death changes nothing measurable** in the survival run (18.2). The stakes question
    itself stays open, with no scarce rung.
 3. **The decoded direction is not used under the tested nudge** (18.3), in both runs and in `C1`.
@@ -6153,6 +6159,12 @@ gives the scratch-read disclosure. Neither prediction was borne out.)*
 *(Note 2026-10-20: these factors are approximate plug-in sensitivity calculations; 17.5's note
 of this date.)*
 
+*(Note 2026-10-21: the controlled reading above was tested prospectively on fresh agent seeds
+20 to 29 and fresh matched worlds, under the 2026-10-13 rule with the 2026-10-12 gates the
+matched design can pass, frozen before those agents existed and amended once before any
+result. Both objectives meet it (survival 0.709, pellets 0.743, untrained 0.598). Section 24.
+The rows of this section are not re-adjudicated.)*
+
 ## 22. The L1 rerun on the corrected trainer, and the agent's prediction error on matched input (2026-10-15)
 
 **Status: MEASURED; no recorded verdict changes.** Two readouts asked whether the paper's
@@ -6784,3 +6796,92 @@ threshold reads these values, and the reorganizes label rests on the cosine.)*
 optimistic estimates". An in-sample estimate is optimistic in expectation and is not a numerical
 bound on each stored value; the held-out transfer of the note above carries the inference. The
 stored 0.785 and 0.689 stay as recorded. `docs/CORRECTIONS.md`, 2026-10-19.)*
+
+## 24. Prospective balanced confirmation (2026-10-21)
+
+Spec `docs/specs/2026-10-20-prospective-balanced-confirmation-design.md`, frozen at `7d08686`
+(2026-10-20 19:40 UTC) before training began (19:40:30) and amended once at `ea8ceea` (19:54),
+while training ran and before any cell file existed (first cell 19:57:06); the promotion code
+was committed at `e792adb` (19:57:05), before any drift-0.45 cell. The rule is the 2026-10-13
+sensory-echo rule with the 2026-10-12 gates the matched design can pass, applied to agents and
+worlds that did not exist when it was written: fresh agent seeds 20 to 29, matched worlds at
+base 3000000 (`PB-primary`), one GPU, the corrected trainer, historical advantage
+normalization. `PB1` is survival with death on and `PB2` the pellet objective with death off.
+`PB1` trained from `7d08686` and `PB2` from `e792adb`; between them only the spec amendment,
+the readout and promotion code, their tests and the registered seed bases in
+`itasorl/post_review.py` changed, and the training command imports none of them. The training
+world spans overlap earlier runs' training worlds and each other, as the spec records; no
+readout draws from a training span.
+Artifacts: `artifacts/prospective_balanced/` (`pb1.json`, `pb2.json`, `summary.json`, the
+promoted sensory-echo readings and the matched gates), and
+`artifacts/balanced_confirmation/sensory_echo_b{1,2}_nonlinear.json`.
+
+**Decision: MET on both runs.** Every gate, the floor clause and the trained clause hold.
+
+| | PB1 survival | PB2 pellets |
+|---|---|---|
+| Gate 1, engagement | 20 of 20 cells | 20 of 20 cells |
+| Gate 2, matched speed, trained arm | at least 0.923 on every seed (minimum 0.9236) | at least 0.908 on every seed |
+| Gate 2, untrained mean (10 seeds) | 0.811 | 0.811 |
+| Gate 3, largest leakage deviation from 0.5 | 0.042 | 0.031 |
+| Gate 4, largest shuffled deviation from 0.5 | 0.059 | 0.082 |
+| Gates 5 to 7 | hold | hold |
+| Floor: untrained `resid_obs` | 0.598 [0.572, 0.624] | 0.598 [0.572, 0.624] |
+| Trained `resid_obs` | 0.709 [0.675, 0.743], 8 of 10 at the bar | 0.743 [0.714, 0.771], 9 of 10 |
+| Trained minus untrained (means) | 0.111 | 0.145 |
+| Route | MET | MET |
+
+The floor holds by 0.002 (0.098 from 0.5). The two runs share their untrained agents and no
+warmup or readout episode died, so their untrained scores are identical (`summary.json`,
+`untrained_identical_across_runs`) and this is one floor read once. One untrained seed (25)
+reads 0.724 on the matched speed probe; the spec reads the untrained arm on its mean (0.811),
+and every untrained and predictor value is in the artifact. **The amendment decides the
+route.** The first text (`7d08686`) read this gate on every pool of every arm, as the
+2026-10-12 spec does; under it seed 25 fails and both runs are UNINFORMATIVE. The amendment
+(`ea8ceea`, 19:54 UTC), made before any agent file (19:55:19) or cell existed, moved the gate
+to the trained arm with the untrained mean. It followed an audit of the first text, which had
+put the chance that ten fresh untrained seeds all reach 0.75 at about 0.34 from `B1`'s own
+values (`fullruns/closing_2026-10/handoff/reviews/audit_pb_spec.md`, kept locally, not in the
+repository). Reconstruction of the matched gates
+from `matched_gates.json` agrees with every training cell (largest difference 0.0).
+
+**Pre-stated secondary readings (their own labels, not the decision).**
+
+- S1, strict interval reading: **not met on either run.** The trained t90 lower bounds (0.675,
+  0.714) clear 0.65 and the seed-paired trained-minus-untrained lower bounds (0.078, 0.112)
+  clear 0.05, but the untrained t90 interval [0.572, 0.624] is not inside [0.40, 0.60].
+- S2, nonlinear and longer-history controls on the primary draw. PB1: `resid_obs_mlp` 0.644
+  [0.605, 0.683], ATTENUATED; `resid_obs_int` 0.715, `resid_obs_int_mlp` 0.663 [0.635, 0.692],
+  `resid_obs_beh_mlp` 0.659, SURVIVES. PB2: all four SURVIVE (0.693, 0.725, 0.681, 0.680).
+  Untrained under the same controls: 0.564, 0.598, 0.572, 0.567. A SURVIVES under
+  `resid_obs_int_mlp` is a reading surviving that control (a nonlinear regression on the
+  current, previous and running-mean observation), not independence from all sensory history.
+- S3, raw matched target (descriptive): survival 0.778 [0.735, 0.821], pellets 0.785 [0.728,
+  0.842], predictor 0.619, untrained 0.587 [0.566, 0.608], 0.087 from 0.5. Seed-paired margins
+  over the predictor 0.159 [0.115, 0.204] and 0.167 [0.115, 0.218], over the untrained arm 0.191
+  [0.151, 0.230] and 0.198 [0.151, 0.245]. Under the 2026-10-12 table this raw readout is
+  UNINFORMATIVE on both runs: its interval clauses and its raw floor hold, but its speed gate
+  reads every pool of every arm and the untrained seed 25 reads 0.724. The raw untrained floor
+  is not a gate in this spec.
+- S4, second draw at base 3100000 (`PB-draw2`; the matched gates are not rerun there):
+  untrained `resid_obs` 0.583; trained 0.747 [0.713, 0.781] and 0.768 [0.740, 0.795]; the
+  floor and trained clauses hold on both. S2 there: every control SURVIVES on both runs (PB1
+  0.666, 0.714, 0.684, 0.677; PB2 0.695, 0.731, 0.690, 0.678). The per-seed mean over the two
+  draws reads 0.728 [0.696, 0.760] for survival and 0.755 [0.730, 0.781] for pellets, against
+  an untrained 0.591 [0.571, 0.610], whose interval still crosses 0.60.
+- S5, predictor `resid_obs`: 0.607 [0.582, 0.632], 2 of 10 seeds at the bar (0.639 on the
+  second draw).
+
+**The same nonlinear controls on the saved B1 and B2 agents** (base 910000, descriptive):
+every one SURVIVES. B1: `resid_obs_mlp` 0.709, `resid_obs_int` 0.718, `resid_obs_int_mlp`
+0.700, `resid_obs_beh_mlp` 0.697; B2: 0.708, 0.748, 0.715, 0.698; untrained 0.564, 0.606,
+0.574, 0.588.
+
+**What this changes.** Under the spec's text map, the controlled reading of section 21 is
+confirmed on fresh seeds and a fresh draw for both objectives, under the later rule, frozen
+before those agents existed and amended once before any result. Every other qualifier stays: the linear control is the primary,
+one surrogate, one trunk, one algorithm, one world family. The B1 and B2 rows of section 21
+are not re-adjudicated: the raw 2026-10-12 confirmation stays UNINFORMATIVE and the 2026-10-13
+rows stay retrospective. What is not shown: independence from every sensory transformation
+(the S2 labels are per control), an untrained floor resolved at chance (S1), persistence, or
+use.

@@ -1,0 +1,915 @@
+{
+ "population": "retained pairs",
+ "seed_base": 3000000,
+ "objective": "survival",
+ "mortal": true,
+ "config": {
+  "drift": 0.45,
+  "n_eps": 110,
+  "steps": 24,
+  "ray_steps": 5,
+  "device": "cuda"
+ },
+ "rows": [
+  {
+   "seed": 20,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6710743801652892,
+   "reconstruction": {
+    "balanced_target": 0.6710743801652892,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "e1b6190b0773f9aa",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9584589693365269,
+    "leakage": {
+     "reward_sum": 0.5057851239669422,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.521900826446281,
+     "max_abs_dev": 0.021900826446280997,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 20,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6227272727272728,
+   "reconstruction": {
+    "balanced_target": 0.6227272727272728,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "e44ac18e9661f33c",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9152624495750944,
+    "leakage": {
+     "reward_sum": 0.5128099173553718,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5173553719008265,
+     "max_abs_dev": 0.017355371900826477,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 20,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.5793388429752065,
+   "reconstruction": {
+    "balanced_target": 0.5793388429752065,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "4ce85af4570a16a6",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.8197811921107115,
+    "leakage": {
+     "reward_sum": 0.5119834710743802,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5268595041322314,
+     "max_abs_dev": 0.02685950413223137,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 21,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.8475206611570247,
+   "reconstruction": {
+    "balanced_target": 0.8475206611570247,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "79f7d67366d15be6",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9565469379971668,
+    "leakage": {
+     "reward_sum": 0.5417355371900826,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.4828512396694215,
+     "max_abs_dev": 0.041735537190082606,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 21,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6929752066115702,
+   "reconstruction": {
+    "balanced_target": 0.6929752066115702,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "99a7c85a2962320f",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9092045484117095,
+    "leakage": {
+     "reward_sum": 0.4632231404958678,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5,
+     "max_abs_dev": 0.036776859504132176,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 21,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6111570247933884,
+   "reconstruction": {
+    "balanced_target": 0.6111570247933884,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "003e8395ad59d6c8",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.8075135626976173,
+    "leakage": {
+     "reward_sum": 0.4867768595041323,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5,
+     "max_abs_dev": 0.013223140495867702,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 22,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.8177685950413224,
+   "reconstruction": {
+    "balanced_target": 0.8177685950413224,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "4f6ed860290df726",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9577771075983701,
+    "leakage": {
+     "reward_sum": 0.528099173553719,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.46921487603305784,
+     "max_abs_dev": 0.030785123966942163,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 22,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.5896694214876034,
+   "reconstruction": {
+    "balanced_target": 0.5896694214876034,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "baafc938e04b7209",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9149382451631327,
+    "leakage": {
+     "reward_sum": 0.5103305785123966,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5231404958677686,
+     "max_abs_dev": 0.023140495867768562,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 22,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6433884297520661,
+   "reconstruction": {
+    "balanced_target": 0.6433884297520661,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "bae12ae91333b450",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.7830366078407682,
+    "leakage": {
+     "reward_sum": 0.4888429752066116,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.531198347107438,
+     "max_abs_dev": 0.031198347107437963,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 23,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.7458677685950412,
+   "reconstruction": {
+    "balanced_target": 0.7458677685950412,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "c775f15bb7e1ea2b",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9419286731786732,
+    "leakage": {
+     "reward_sum": 0.521900826446281,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.512396694214876,
+     "max_abs_dev": 0.021900826446280997,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 23,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.5652892561983471,
+   "reconstruction": {
+    "balanced_target": 0.5652892561983471,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "400cb8fa94cf1d5f",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.899270573630085,
+    "leakage": {
+     "reward_sum": 0.5152892561983471,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.49008264462809914,
+     "max_abs_dev": 0.01528925619834709,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 23,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.512396694214876,
+   "reconstruction": {
+    "balanced_target": 0.512396694214876,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "5ff5a571edcaffee",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.8241196237782138,
+    "leakage": {
+     "reward_sum": 0.49049586776859505,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5086776859504132,
+     "max_abs_dev": 0.00950413223140495,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 24,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.8235537190082646,
+   "reconstruction": {
+    "balanced_target": 0.8235537190082646,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "8089ecc1e9c1839c",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9566583668856395,
+    "leakage": {
+     "reward_sum": 0.5276859504132232,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.503099173553719,
+     "max_abs_dev": 0.027685950413223193,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 24,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.5772727272727272,
+   "reconstruction": {
+    "balanced_target": 0.5772727272727272,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "5bbe75c74ca97db7",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.8946004931400828,
+    "leakage": {
+     "reward_sum": 0.5016528925619835,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5283057851239669,
+     "max_abs_dev": 0.028305785123966865,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 24,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.5838842975206611,
+   "reconstruction": {
+    "balanced_target": 0.5838842975206611,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "3b80d6ee196b9866",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.8277298873457044,
+    "leakage": {
+     "reward_sum": 0.47396694214876034,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5266528925619834,
+     "max_abs_dev": 0.026652892561983443,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 25,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6847107438016529,
+   "reconstruction": {
+    "balanced_target": 0.6847107438016529,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "047bf5e718b3324c",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.936866705239251,
+    "leakage": {
+     "reward_sum": 0.5235537190082644,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5092975206611572,
+     "max_abs_dev": 0.023553719008264418,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 25,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6586776859504132,
+   "reconstruction": {
+    "balanced_target": 0.6586776859504132,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "a1554299a9653335",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9240566919496238,
+    "leakage": {
+     "reward_sum": 0.5,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.521694214876033,
+     "max_abs_dev": 0.021694214876032958,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 25,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.5727272727272726,
+   "reconstruction": {
+    "balanced_target": 0.5727272727272726,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "85b0c5607e853617",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.723602469598534,
+    "leakage": {
+     "reward_sum": 0.5115702479338842,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5266528925619834,
+     "max_abs_dev": 0.026652892561983443,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 26,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.8830578512396695,
+   "reconstruction": {
+    "balanced_target": 0.8830578512396695,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "6e973768227ee761",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9431785463109575,
+    "leakage": {
+     "reward_sum": 0.5028925619834711,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5159090909090909,
+     "max_abs_dev": 0.015909090909090873,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 26,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6330578512396693,
+   "reconstruction": {
+    "balanced_target": 0.6330578512396693,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "0eb58e2ff1d6acf0",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9200165593855966,
+    "leakage": {
+     "reward_sum": 0.48719008264462815,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5076446280991735,
+     "max_abs_dev": 0.012809917355371847,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 26,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.5768595041322314,
+   "reconstruction": {
+    "balanced_target": 0.5768595041322314,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "9b6bf2fcec29372d",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.8421410509209759,
+    "leakage": {
+     "reward_sum": 0.5066115702479339,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5,
+     "max_abs_dev": 0.006611570247933907,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 27,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.75,
+   "reconstruction": {
+    "balanced_target": 0.75,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "2ccd63695d947872",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9665331070444706,
+    "leakage": {
+     "reward_sum": 0.5165289256198348,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5233471074380165,
+     "max_abs_dev": 0.02334710743801649,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 27,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6148760330578512,
+   "reconstruction": {
+    "balanced_target": 0.6148760330578512,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "3fea686cb5d04e2c",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9137719650789377,
+    "leakage": {
+     "reward_sum": 0.5140495867768594,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5,
+     "max_abs_dev": 0.014049586776859413,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 27,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6148760330578512,
+   "reconstruction": {
+    "balanced_target": 0.6148760330578512,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "cdd59761bfe4cd88",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.7651448943568508,
+    "leakage": {
+     "reward_sum": 0.5111570247933884,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5,
+     "max_abs_dev": 0.011157024793388426,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 28,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.8384297520661157,
+   "reconstruction": {
+    "balanced_target": 0.8384297520661157,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "c42e12bf80ea3d7b",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.923621662154271,
+    "leakage": {
+     "reward_sum": 0.5210743801652893,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5316115702479338,
+     "max_abs_dev": 0.03161157024793382,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 28,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6566115702479338,
+   "reconstruction": {
+    "balanced_target": 0.6566115702479338,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "443ca5d522850ab0",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9449194432835721,
+    "leakage": {
+     "reward_sum": 0.5198347107438017,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5,
+     "max_abs_dev": 0.01983471074380172,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 28,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.6136363636363636,
+   "reconstruction": {
+    "balanced_target": 0.6136363636363636,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "58de9d1b663c75bd",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.8586075491389643,
+    "leakage": {
+     "reward_sum": 0.49752066115702476,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.4909090909090909,
+     "max_abs_dev": 0.009090909090909094,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 29,
+   "arm": "survival",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.7181818181818183,
+   "reconstruction": {
+    "balanced_target": 0.7181818181818183,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "5d2d2d157ceee526",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.9680343356581396,
+    "leakage": {
+     "reward_sum": 0.48801652892561986,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5190082644628099,
+     "max_abs_dev": 0.0190082644628099,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 29,
+   "arm": "predictor",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.5764462809917356,
+   "reconstruction": {
+    "balanced_target": 0.5764462809917356,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "0b34e4c009d275a6",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.93387455815372,
+    "leakage": {
+     "reward_sum": 0.5140495867768596,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5235537190082644,
+     "max_abs_dev": 0.023553719008264418,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  },
+  {
+   "seed": 29,
+   "arm": "untrained",
+   "drift": 0.45,
+   "seed_base": 3000000,
+   "n_pairs": 110,
+   "dropped_pairs": 0,
+   "target": 0.5652892561983471,
+   "reconstruction": {
+    "balanced_target": 0.5652892561983471,
+    "abs_diff": 0.0,
+    "tolerance": 0.005,
+    "agent_sha16": "503e7e93770ad956",
+    "surrogate": "registered L3 surrogate, hidden 8, seed 0"
+   },
+   "matched_gates": {
+    "population": "matched pairs",
+    "n_pairs": 110,
+    "speed": 0.8579931894954779,
+    "leakage": {
+     "reward_sum": 0.49421487603305786,
+     "length": 0.5,
+     "lifetime": 0.5,
+     "pellets_consumed": 0.5142561983471073,
+     "max_abs_dev": 0.01425619834710734,
+     "margin": 0.1,
+     "clean": true
+    }
+   }
+  }
+ ]
+}

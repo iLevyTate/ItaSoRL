@@ -138,6 +138,10 @@ REGISTERED_LATER: tuple = (
     ("B6-auth", 2_700_000, POOL_N),
     ("B6-surr", 2_750_000, POOL_N),
     ("G03-fresh", 2_250_000, POOL_N),
+    # Prospective balanced confirmation, spec 2026-10-20: PB1 and PB2 matched pairs, and the
+    # descriptive second draw of their sensory-echo readout.
+    ("PB-primary", 3_000_000, POOL_N),
+    ("PB-draw2", 3_100_000, POOL_N),
 )
 
 

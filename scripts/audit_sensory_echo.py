@@ -80,7 +80,7 @@ FLOOR_DEV = 0.1          # balanced floor clause: untrained resid_obs within 0.1
 TARGET_TOL = 5e-4        # balanced integrity: regenerated target reproduces the recorded one
 AGENT_RE = re.compile(r"agent_d(\d+\.\d+)_s(\d+)_(untrained|predictor|survival)\.pt$")
 METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh",
-           "resid_obs_mlp", "resid_obs_beh_mlp")
+           "resid_obs_mlp", "resid_obs_beh_mlp", "resid_obs_int_mlp")
 # Decision metrics. A partial or non-finite value here is not a smaller sample.
 REQUIRED_METRICS = ("target", "resid_obs")
 # Frozen balanced-control population: drift 0.45, seeds 10-19, three arms, 110 pairs per
@@ -92,6 +92,14 @@ BALANCED_SPEC_KEYS = {
     for seed in range(10, 20)
     for arm in ("survival", "predictor", "untrained")
 }
+
+
+def balanced_spec_keys(seeds) -> set:
+    """The balanced population for `seeds`: drift 0.45, three arms. Seeds 10 to 19 give
+    BALANCED_SPEC_KEYS (spec 2026-10-13); seeds 20 to 29 the prospective population of
+    spec 2026-10-20."""
+    return {("0.45", int(seed), arm) for seed in seeds
+            for arm in ("survival", "predictor", "untrained")}
 
 
 def stack_record(device: str) -> dict:
@@ -136,6 +144,9 @@ def cfg():
     ap.add_argument("--g-seed", type=int, default=0)
     ap.add_argument("--arms", nargs="+", default=["survival", "untrained", "predictor"])
     ap.add_argument("--drifts", type=float, nargs="+", default=[0.45, 0.0])
+    ap.add_argument("--seeds", type=int, nargs="+", default=list(range(10, 20)),
+                    help="balanced population (default 10 to 19, spec 2026-10-13; 20 to 29 is "
+                         "the prospective confirmation of spec 2026-10-20)")
     ap.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     ap.add_argument("--n-eps", type=int, default=110)
     ap.add_argument("--steps", type=int, default=24)
@@ -612,6 +623,9 @@ def main() -> int:
             cell["resid_obs_mlp"] = sensory_residual_probe_auroc(H, Ot, y, groups=groups, nonlinear=True)
             cell["resid_obs_beh_mlp"] = sensory_residual_probe_auroc(H, Ot, y, Bt=Bt, groups=groups,
                                                                      nonlinear=True)
+            # Integrated basis through the MLP regressor (spec 2026-10-20, S2).
+            cell["resid_obs_int_mlp"] = sensory_residual_probe_auroc(H, Ot, y, groups=groups,
+                                                                     integrated=True, nonlinear=True)
         if a.save_traces:
             k = len(Ha)
             np.savez_compressed(os.path.join(a.out_dir, f"traces_d{fmt_drift(drift)}_s{seed}_{arm}.npz"),
@@ -626,7 +640,7 @@ def main() -> int:
             json.dump(cells, fh, indent=1)
 
     if balanced and not a.quick:
-        expected = set(BALANCED_SPEC_KEYS)
+        expected = balanced_spec_keys(a.seeds)
     else:
         expected = declared_cell_keys(a.agents_dir, a.drifts, a.arms, a.quick)
     agg = aggregate(cells, a.drifts, a.arms, hidden=a.hidden, g_seed=a.g_seed, n_eps=n_eps,

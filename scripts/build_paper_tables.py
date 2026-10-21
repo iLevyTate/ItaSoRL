@@ -1211,7 +1211,7 @@ def _primary_paragraph_issues(rel: str, text: str, v: dict) -> list[str]:
 
 
 # Counts the prose states about two generated tables, in digits or words: the rule ledger's
-# tally ("49 rule-and-run pairs ...: the threshold condition holds on 19 and fails on 21, 7 are
+# tally ("51 rule-and-run pairs ...: the threshold condition holds on 21 and fails on 21, 7 are
 # uninformative and 2 give no verdict") and the gate table's size ("the twenty-seven rows hold
 # eleven distinct sets of per-seed values"). Both went stale on 2026-10-15, when a row joined
 # each generated table and the prose that counts them was not updated.
@@ -1326,9 +1326,12 @@ def _ivs(t, signed: bool = False) -> str:
     return f"\\ci{{{_num(t[0], signed)}}}{{{_num(t[1], signed)}}}"
 
 
-def _b2_floor_slack() -> float:
-    d = _art("artifacts/balanced_confirmation/sensory_echo_b2.json")
-    return 0.1 - abs(float(d["aggregate"]["d=0.45 untrained"]["resid_obs"]["mean"]) - 0.5)
+def _pb(run: str) -> dict:
+    return _art(f"artifacts/prospective_balanced/{run.lower()}.json")
+
+
+def _pb_s2() -> list[float]:
+    return [float(v["trained"]) for r in ("PB1", "PB2") for v in _pb(r)["S2_controls"].values()]
 
 
 def _ar_followup() -> dict:
@@ -1350,7 +1353,6 @@ def headline_needles() -> list[tuple[str, str, str, str, str]]:
               for p in _art(f"artifacts/texture/{s}/summary.json")["points"]]
     fu = _ar_followup()
     o2 = _art("docs/optional/o2_long_history_ridge.json")["summary"]
-    b2 = _art("artifacts/balanced_confirmation/sensory_echo_b2.json")["decision_balanced"]
     cv = "artifacts/corrected_verdicts.json"
     return [
         ("abstract", "L1 oracle", "artifacts/expL1/organism_summary.json", "gate0.delta.chosen_auroc",
@@ -1382,10 +1384,15 @@ def headline_needles() -> list[tuple[str, str, str, str, str]]:
         ("abstract", "C1 L0 mean", cv, "runs.C1.gates.l0.mean", _num(v["gates"]["l0"]["mean"])),
         ("abstract", "T-touch survival", "artifacts/expB2/goal_stakes_T-touch.json", "decision.survival",
          _num(_art("artifacts/expB2/goal_stakes_T-touch.json")["decision"]["survival"])),
-        ("contributions", "B2 sensory-echo survival", "artifacts/balanced_confirmation/sensory_echo_b2.json",
-         "decision_balanced.trained_resid_obs", _num(b2["trained_resid_obs"])),
-        ("contributions", "B2 untrained floor slack", "artifacts/balanced_confirmation/sensory_echo_b2.json",
-         '0.1 - |aggregate["d=0.45 untrained"].resid_obs.mean - 0.5|', _num(_b2_floor_slack())),
+        *[(block, f"{run} sensory-echo trained", f"artifacts/prospective_balanced/{run.lower()}.json",
+           "trained_clause.trained_resid_obs", _num(_pb(run)["trained_clause"]["trained_resid_obs"]))
+          for block in ("abstract", "contributions") for run in ("PB1", "PB2")],
+        *[(block, "PB untrained floor slack", "artifacts/prospective_balanced/pb1.json",
+           "0.1 - floor_clause.untrained_dev", _num(0.1 - _pb("PB1")["floor_clause"]["untrained_dev"]))
+          for block in ("abstract", "contributions")],
+        *[(block, f"PB nonlinear and longer-history controls, {which}", "artifacts/prospective_balanced/pb1.json and artifacts/prospective_balanced/pb2.json",
+           f"{which} of S2_controls[*].trained over PB1 and PB2", _num(fn(_pb_s2())))
+          for block in ("abstract", "contributions") for which, fn in (("min", min), ("max", max))],
         ("contributions", "O2 long-history ridge", "docs/optional/o2_long_history_ridge.json",
          "summary.resid_obs_hist.auroc.mean", _num(o2["resid_obs_hist"]["auroc"]["mean"])),
         ("contributions", "O2 long-history ridge with behavior", "docs/optional/o2_long_history_ridge.json",

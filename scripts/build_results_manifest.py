@@ -171,6 +171,8 @@ CLOSING_COMMIT = "75ce098"
 CLOSING_DEPS = "Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3"
 CLOSING_GPU = "owner's laptop GPU, 1 worker, RTX 4050; torch 2.7.0+cu126 on CUDA"
 CLOSING_SPEC = "docs/specs/2026-10-17-closing-readouts-design.md"
+PB_SPEC = "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md"
+PB_DEPS = "Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3"
 EXTENSION_SPEC = "docs/specs/2026-10-17-extension-readouts-design.md"
 CLOSING_NOTE = ("Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or "
                 "verdict.")
@@ -1348,13 +1350,14 @@ RUNS = [
               "the observed sd), not exact Bayes factors for the fixed raw-scale band. " + CLOSING_NOTE),
     run("THRESHOLD-SENSITIVITY", "Bar and margin sensitivity of the rule ledger (G06)",
         experiment="methods", artifacts=["threshold_sensitivity/bar_margin.json"], claims=[],
-        trains_survival=False, survival_trainer="none", commit_at_run="48af14a", folds="n/a",
+        trains_survival=False, survival_trainer="none", commit_at_run="4d5e611", folds="n/a",
         device=closing_cpu(1), deps=CLOSING_DEPS,
-        notes=f"scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), run on the clean Stage 6 tree; "
+        notes=f"scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), regenerated 2026-10-21 on a clean "
+              "tree after the two prospective balanced ledger rows were committed; "
               f"{CLOSING_SPEC}. Agent free: it re-reads every adjudicated row of docs/rule_ledger.json "
               "with its bar and margin clauses moved over {0.60, 0.65, 0.70} x {0.03, 0.05, 0.10} and "
-              "changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split, 22 hold "
-              "and 18 fail. The commit is recorded as git_commit. " + CLOSING_NOTE),
+              "changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split over 42 "
+              "adjudicated rows, 24 hold and 18 fail. The commit is recorded as git_commit. " + CLOSING_NOTE),
     run("QD-EPS6-ORACLE", "Quadratic-drag comparator oracle at eps 6.0, the setting the trained run used "
         "(H31)", experiment="methods", artifacts=["agent_free/qd_eps6_oracle.json"], claims=[],
         trains_survival=False, survival_trainer="none", commit_at_run=CLOSING_COMMIT, folds="explicit",
@@ -1557,6 +1560,75 @@ RUNS = [
               "sensory_echo_b2.json, which is not touched; the 910000 decision stands. B1 and B2 share "
               "their untrained and predictor agents, so this file's floor is SENSORY-ECHO-B1-FRESH's floor "
               "read again. " + CLOSING_NOTE),
+    run("PB1", "Prospective balanced confirmation, survival objective, fresh seeds 20-29",
+        experiment="B-v2 L3", artifacts=["prospective_balanced/pb1.json",
+                                         "prospective_balanced/sensory_echo_pb1.json",
+                                         "prospective_balanced/matched_gates_pb1.json",
+                                         "prospective_balanced/summary.json"],
+        trains_survival=True, survival_trainer="successor_value", status="corrected",
+        commit_at_run="7d08686", agent_seeds=list(range(20, 30)), surrogate=L3_H8,
+        folds="explicit", device=CLOSING_GPU, deps=PB_DEPS,
+        local_run_dir="fullruns/prospective_balanced_wm",
+        eval_seeds={"balanced_pairs": "3000000 (PB-primary), same base for both worlds, 110 episodes",
+                    "pooled_secondary": "800000 / 850000"},
+        config={"objective": "survival", "mortal": True, "adv_norm": "historical"},
+        notes=f"{PB_SPEC}, frozen before training and amended once before any cell existed; the amendment "
+              "moved gate 2 to the trained arm and the untrained mean, and under the first text untrained "
+              "seed 25 (0.724) would leave both runs UNINFORMATIVE. Decision MET: "
+              "gates 1 to 7, the floor clause (untrained resid_obs 0.598) and the trained clause "
+              "(resid_obs 0.709) hold. The strict interval reading S1 is not met. FINDINGS 24."),
+    run("PB2", "Prospective balanced confirmation, pellet objective, death off, fresh seeds 20-29",
+        experiment="B-v2 L3", artifacts=["prospective_balanced/pb2.json",
+                                         "prospective_balanced/sensory_echo_pb2.json",
+                                         "prospective_balanced/matched_gates_pb2.json"],
+        trains_survival=True, survival_trainer="successor_value", status="corrected",
+        commit_at_run="e792adb", agent_seeds=list(range(20, 30)), surrogate=L3_H8,
+        folds="explicit", device=CLOSING_GPU, deps=PB_DEPS,
+        local_run_dir="fullruns/prospective_balanced_touch",
+        eval_seeds={"balanced_pairs": "3000000 (PB-primary), same base for both worlds, 110 episodes",
+                    "pooled_secondary": "800000 / 850000"},
+        config={"objective": "touch", "mortal": False, "adv_norm": "historical"},
+        notes=f"{PB_SPEC}. Decision MET: gates 1 to 7, the floor clause (untrained resid_obs 0.598, "
+              "the same untrained scores as PB1) and the trained clause (resid_obs 0.743) hold. The strict "
+              "interval reading S1 is not met. Training started from e792adb. Between PB1's 7d08686 and "
+              "e792adb only the spec amendment, the readout and promotion code, their tests and the "
+              "registered seed bases in itasorl/post_review.py changed; the training command imports "
+              "none of them. FINDINGS 24."),
+    run("PB1-DRAW2", "Prospective balanced sensory-echo readout on a second evaluation draw, PB1 agents",
+        experiment="B-v2 L3", artifacts=["prospective_balanced/sensory_echo_pb1_draw2.json"],
+        trains_survival=False, readout_of=["PB1"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="e792adb", folds="explicit",
+        eval_seeds={"balanced_pairs": "3100000 (PB-draw2), same base for both worlds, 110 episodes",
+                    "integrity": "3000000"},
+        device=CLOSING_GPU, deps=PB_DEPS,
+        notes=f"{PB_SPEC}, S4; descriptive, and it re-adjudicates no route. FINDINGS 24."),
+    run("PB2-DRAW2", "Prospective balanced sensory-echo readout on a second evaluation draw, PB2 agents",
+        experiment="B-v2 L3", artifacts=["prospective_balanced/sensory_echo_pb2_draw2.json"],
+        trains_survival=False, readout_of=["PB2"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="e792adb", folds="explicit",
+        eval_seeds={"balanced_pairs": "3100000 (PB-draw2), same base for both worlds, 110 episodes",
+                    "integrity": "3000000"},
+        config={"objective": "touch", "mortal": False},
+        device=CLOSING_GPU, deps=PB_DEPS,
+        notes=f"{PB_SPEC}, S4; descriptive, and it re-adjudicates no route. FINDINGS 24."),
+    run("SENSORY-ECHO-B1-NONLINEAR", "Balanced sensory-echo nonlinear and longer-history controls, B1 agents",
+        experiment="B-v2 L3", artifacts=["balanced_confirmation/sensory_echo_b1_nonlinear.json"],
+        trains_survival=False, readout_of=["B1-BALANCED"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="e792adb", folds="explicit",
+        eval_seeds={"balanced_pairs": "910000, same base for both worlds, 110 episodes"},
+        device=CLOSING_GPU, deps=PB_DEPS,
+        notes=f"scripts/audit_sensory_echo.py --nonlinear on the saved B1 agents; {PB_SPEC}, S2 "
+              "(descriptive). Beside sensory_echo_b1.json, which is not touched. FINDINGS 24."),
+    run("SENSORY-ECHO-B2-NONLINEAR", "Balanced sensory-echo nonlinear and longer-history controls, B2 agents",
+        experiment="B-v2 L3", artifacts=["balanced_confirmation/sensory_echo_b2_nonlinear.json"],
+        trains_survival=False, readout_of=["B2-BALANCED"], survival_trainer="successor_value",
+        status="corrected", commit_at_run="e792adb", folds="explicit",
+        eval_seeds={"balanced_pairs": "910000, same base for both worlds, 110 episodes"},
+        config={"objective": "touch", "mortal": False},
+        device=CLOSING_GPU, deps=PB_DEPS,
+        notes=f"scripts/audit_sensory_echo.py --nonlinear --objective touch --mortal off on the saved B2 "
+              f"agents; {PB_SPEC}, S2 (descriptive). Beside sensory_echo_b2.json, which is not touched. "
+              "FINDINGS 24."),
     run("PELLET-DOSE", "Pellet-density dose curve on the C1 agents (X07)", experiment="B-v2 L3",
         artifacts=["pellet_dose/corrected_l3_h8_wm.json"], trains_survival=False, readout_of=["C1"],
         survival_trainer="successor_value", status="corrected", commit_at_run=CLOSING_COMMIT,
@@ -1949,6 +2021,14 @@ def render_md(m: dict) -> str:
         "within 0.1 of 0.5. Recorded passes at 0.761 and 0.780. The untrained residual "
         "0.596 meets the point tolerance; its interval crosses 0.60. "
         "`artifacts/balanced_confirmation/sensory_echo_b1.json` and `sensory_echo_b2.json`.",
+        "- PB1 and PB2, `prospective_balanced_{wm,touch}`. Fresh agent seeds 20-29 and fresh "
+        "matched worlds at base 3000000, survival and pellets with death off, under the October 13 "
+        "rule with the October 12 gates the matched design can pass, frozen October 20 before "
+        "training and amended once before any result (gate 2 moved to the trained arm and the "
+        "untrained mean, without which untrained seed 25 at 0.724 fails it). Recorded MET on both "
+        "(resid_obs 0.709 and 0.743; untrained 0.598, inside the "
+        "floor by 0.002). The strict interval reading is not met on either. "
+        "`artifacts/prospective_balanced/`.",
         "- Selection pilot. Uninformative. No emergence conclusion in either direction. "
         "`artifacts/expC/`.",
         "",

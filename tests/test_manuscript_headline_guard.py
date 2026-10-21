@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.join(ROOT, "scripts"))
 import build_paper_tables as bpt  # noqa: E402
 
 # What each needle renders to on the committed artifacts, as the abstract and Contributions
-# quote them in the manuscript revision of 2026-10-16. A refit that moves one of these must move the manuscript too.
+# quote them in the manuscript revision of 2026-10-21. A refit that moves one of these must move the manuscript too.
 EXPECTED = {
     "L1 oracle": "0.873", "L1 stream reader": "0.788", "corrected L1 survival": "0.551",
     "corrected L1 survival interval": r"\ci{0.531}{0.570}", "C1 survival": "0.733",
@@ -24,7 +24,9 @@ EXPECTED = {
     "drag fresh probe": "0.754", "drag margin over the untrained arm": "+0.142",
     "drag untrained floor": "0.612", "jitter maximum": "0.627", "sweep C follow-up contrast": "-0.017",
     "sweep C follow-up interval": r"\ci{-0.051}{+0.016}", "C1 L0 mean": "0.559",
-    "T-touch survival": "0.796", "B2 sensory-echo survival": "0.780", "B2 untrained floor slack": "0.004",
+    "T-touch survival": "0.796", "PB1 sensory-echo trained": "0.709", "PB2 sensory-echo trained": "0.743",
+    "PB untrained floor slack": "0.002", "PB nonlinear and longer-history controls, min": "0.644",
+    "PB nonlinear and longer-history controls, max": "0.725",
     "O2 long-history ridge": "0.737", "O2 long-history ridge with behavior": "0.691",
 }
 
@@ -64,7 +66,7 @@ def test_a_fixture_built_from_the_artifacts_passes():
     (("$0.788$", "$0.798$"), "L1 stream reader"),
     (("\\ci{-0.051}{+0.016}", "\\ci{-0.052}{+0.016}"), "sweep C follow-up interval"),
     (("$+0.142$", "$+0.143$"), "drag margin over the untrained arm"),
-    (("reads 0.780.", "reads 0.790."), "B2 sensory-echo survival"),
+    (("reads 0.743.", "reads 0.753."), "PB2 sensory-echo trained"),
 ])
 def test_one_moved_number_is_reported_by_name(swap, label):
     issues = bpt._headline_block_issues("main.tex", _fixture(bpt.headline_needles(), swap))

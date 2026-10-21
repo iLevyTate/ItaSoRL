@@ -1307,7 +1307,11 @@ _NOT_COMMIT_KEY = r'(?![A-Za-z_]*(?:fingerprint|hash|sha\d|digest))'
 _COMMIT_FIELD = re.compile(r'(?i)"' + _NOT_COMMIT_KEY + r'[A-Za-z_]*(?:commit|head)[A-Za-z_]*"'
                            r'\s*:\s*(\[[^\]]*\]|"[^"]*")'
                            r'|"' + _NOT_COMMIT_KEY + r'[A-Za-z_]*_fix"\s*:\s*(\[[^\]]*\]|"[^"]*")')
-_COMMIT_PROSE = re.compile(r"(?i)\bcommits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
+# "paper commit X" names a commit of the manuscript's own repository, which this object store
+# does not hold, so it is not read as one of this repository's commits; paper_commit_tokens
+# collects those IDs so they are still given pseudonyms.
+_COMMIT_PROSE = re.compile(r"(?i)(?<!paper )\bcommits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
+_PAPER_COMMIT_PROSE = re.compile(r"(?i)\bpaper commits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
 
 
 def commit_map_path(archive: str) -> str:
@@ -1333,6 +1337,11 @@ def commit_field_tokens(text: str) -> set[str]:
         out |= {t.lower() for t in re.findall(r'"([0-9A-Fa-f]{7,40})"', m.group(1) or m.group(2))}
     out |= {m.group(1).lower() for m in _COMMIT_PROSE.finditer(text)}
     return out
+
+
+def paper_commit_tokens(text: str) -> set[str]:
+    """The hex tokens (lowercase) that `text` names as commits of the manuscript's repository."""
+    return {m.group(1).lower() for m in _PAPER_COMMIT_PROSE.finditer(text)}
 
 
 def _ls_remote(remote: str) -> str | None:
@@ -1613,13 +1622,15 @@ def _leaves(obj):
 
 
 _INTEGER = re.compile(r"(?<![0-9A-Za-z])\d{7,}(?![0-9A-Za-z])")
-_COMMIT_BEFORE = re.compile(r"(?i)commits?[\s`(:]*$")
+# The word for a commit before the token, or a branch head written after the branch name in a
+# code span (the 2026-10-20 spec names ITASORL's `main` head that way, an all-digit commit ID).
+_COMMIT_BEFORE = re.compile(r"(?i)(?:commits?[\s`(:]*|`main`\s+)$")
 
 
 def _marked_commit(text: str, start: int, end: int, known) -> bool:
     """Whether the token text[start:end] reads as a commit ID: one that `known` holds (the
-    tokens some shipped file names in a commit field), one right after the word "commit", or
-    one alone in a Markdown code span."""
+    tokens some shipped file names in a commit field), one right after the word "commit" or
+    after the branch name `main`, or one alone in a Markdown code span."""
     tok = text[start:end]
     if tok.lower() in known or _COMMIT_BEFORE.search(text[max(0, start - 16):start]):
         return True
@@ -1863,6 +1874,37 @@ def paper_source(path: str | None = None) -> str | None:
     return next((c for c in cands if os.path.isfile(c)), None)
 
 
+_HEX_WORD = re.compile(r"(?<![0-9A-Za-z])[0-9a-fA-F]{7,40}(?![0-9A-Za-z])")
+
+
+def manuscript_commit_ids(path: str | None = None) -> list[str]:
+    """Every commit ID of the manuscript's own git repository (the folder of
+    paper_source(path)), sorted; [] when there is none. The archive may name these IDs in any
+    form ("paper commit X", "paper repo at X"), and they are given pseudonyms like this
+    repository's own."""
+    src = paper_source(path)
+    if not src:
+        return []
+    folder = os.path.dirname(os.path.abspath(src))
+    try:
+        top = subprocess.run(["git", "-C", folder, "rev-parse", "--show-toplevel"],
+                             capture_output=True, text=True, check=True, timeout=60).stdout.strip()
+        if os.path.normcase(os.path.realpath(top)) == os.path.normcase(os.path.realpath(ROOT)):
+            return []        # no repository of its own: git walked up into this checkout
+        res = subprocess.run(["git", "-C", folder, "rev-list", "--all"],
+                             capture_output=True, text=True, check=True, timeout=60)
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return []
+    return sorted(ln.strip().lower() for ln in res.stdout.splitlines() if ln.strip())
+
+
+def manuscript_tokens(text: str, manuscript: list[str], commits: list[str]) -> set[str]:
+    """The hex words of `text` (lowercase) that abbreviate a manuscript commit and no commit of
+    this repository."""
+    return {t for t in (m.group(0).lower() for m in _HEX_WORD.finditer(text))
+            if _resolves(manuscript, t) and not _resolves(commits, t)}
+
+
 def paper_titles(path: str | None = None) -> list[str]:
     """The manuscript's main title and subtitle (the parts before and after the first colon,
     each of 8 or more characters), read at build time from paper_source(path), so no tracked
@@ -2018,13 +2060,20 @@ def supplement(out: str, runs_root: str | None = None,
     pairs, status = _sources(runs_root, dropped, run_dirs)
     # The commit IDs that commit fields name, and the digests to replace, from every text member.
     named: set = set()
+    paper_ids: set = set()
+    manuscript: list = []
     digests: set = set()
     if anon_name and not in_archive:
+        manuscript = manuscript_commit_ids(paper)
+        if not manuscript:
+            print("  WARNING: the manuscript repository's commit IDs could not be listed; only "
+                  "'paper commit X' spellings of them will get pseudonyms", flush=True)
         for rel, src in pairs:
             if is_text(rel):
                 with open(src, "rb") as fh:
                     text = fh.read().decode("utf-8", errors="replace")
                 named |= commit_field_tokens(text)
+                paper_ids |= paper_commit_tokens(text) | manuscript_tokens(text, manuscript, commits)
                 digests |= digest_tokens(text)
     gap = history_gap(commits, named) if anon_name and require_history else None
     if gap:
@@ -2042,8 +2091,10 @@ def supplement(out: str, runs_root: str | None = None,
             histories[rel] = patch
             if anon_name and not in_archive:
                 digests |= digest_tokens(patch)
+                paper_ids |= paper_commit_tokens(patch) | manuscript_tokens(patch, manuscript, commits)
     key_path = key_path or COMMIT_KEY
-    forced = sorted(t for t in named if not _resolves(commits, t))
+    # Manuscript-repository IDs get pseudonyms too; the history check above does not read them.
+    forced = sorted(t for t in named | paper_ids if not _resolves(commits, t))
     hide = bool(commits or forced or digests)
     hider = CommitPseudonyms(commits, commit_key(key_path) if hide else b"", digests=digests,
                              forced=forced)

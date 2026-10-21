@@ -475,7 +475,34 @@ def test_c6_the_number_guard_catches_a_changed_number_or_broken_json():
     for before in ("at `1234567`.", f"{word} 1234567", f"git_{word} 1234567", f"{word} (`1234567`,",
                    '{"git_' + word + '": "1234567"}'):
         assert g("a.md", before, before.replace("1234567", "abcdef1")) is None, before
+    # A branch head written after the branch name in a code span (the 2026-10-20 spec).
+    assert g("a.md", "ITASORL `main` 1234567 plus", "ITASORL `main` abcdef1 plus") is None
+    assert "integer" in g("a.md", "the `seed` 1234567 base", "the `seed` abcdef1 base")
+    # A commit of the manuscript's own repository is not one of this repository's commits.
+    assert reproduce.commit_field_tokens(f"up to paper {word} abcdef1 and {word} 1234abc") == {"1234abc"}
+    assert reproduce.paper_commit_tokens(f"up to paper {word} abcdef1 and {word} 1234abc") == {"abcdef1"}
     assert "length" in g("a.md", "x 1234567", "x 1234567 y")
+
+
+def test_manuscript_commit_ids_in_any_form_get_pseudonyms():
+    """A manuscript-repository ID is collected wherever the text writes it, unless it also
+    abbreviates a commit of this repository, and the forced path replaces it."""
+    manuscript = sorted(["abcdef1" + "0" * 33, "fedcba9" + "1" * 33])
+    commits = sorted(["1234abc" + "2" * 33, "fedcba9" + "3" * 33])
+    text = "paper repo at `abcdef1`, docs/paper/.git fedcba9 and (abcdef1, by 1234abc"
+    assert reproduce.manuscript_tokens(text, manuscript, commits) == {"abcdef1"}
+    hider = reproduce.CommitPseudonyms(commits, b"k" * 32, forced=["abcdef1"])
+    out = hider.sub(text)
+    assert "abcdef1" not in out and len(out) == len(text)
+
+
+def test_a_manuscript_folder_without_its_own_repository_lists_no_ids(tmp_path):
+    """A source inside this checkout with no .git of its own would make git walk up and list
+    this repository's commits as the manuscript's; it lists none, and one outside any
+    repository lists none either."""
+    assert reproduce.manuscript_commit_ids(os.path.join(reproduce.ROOT, "README.md")) == []
+    (tmp_path / "main.tex").write_text("x", encoding="utf-8")
+    assert reproduce.manuscript_commit_ids(str(tmp_path)) == []
 
 
 def test_c6_a_build_whose_pseudonyms_change_a_number_leaves_no_archive(tmp_path, monkeypatch):
