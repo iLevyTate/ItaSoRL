@@ -46,6 +46,10 @@ reads 0.551 [0.531, 0.570], 0 of 10 seeds at 0.65, against 0.552 for the histori
 same partition, so the L1 negative below does not depend on the trainer defect. The matched-world
 confirmation, `B1` and `B2`, ran on the corrected trainer and is UNINFORMATIVE, because the
 untrained arm reads 0.614 (section 21).)*
+*(Note 2026-10-21: the prospective confirmation of the matched-world sensory control, `PB1` and
+`PB2` on seeds 20 to 29, also ran on the corrected trainer and is MET on both (section 24); the
+goal-and-stakes runs and the white-jitter run at the registered trunk (section 18) are
+corrected-trainer runs as well, labeled in `docs/RESULTS_MANIFEST.md`.)*
 
 **Hand-authored flaws (L1, L2) did not meet the encoding criterion** (H_B2, registered for L2
 and applied to L1 after its run; `docs/CORRECTIONS.md`, 2026-10-16). A

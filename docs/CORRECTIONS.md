@@ -1873,3 +1873,44 @@ the same effect, and the world spec says the smell zeros precede the L1 sensor n
 **What this does not change.** No number, label, rule or verdict. No code changes: the noise
 on the masked channels is what every recorded L1 run received, and restoring zeros after the
 noise would be a new intervention. The recorded speed gate keeps its whole-pool median.
+
+## 2026-10-21: records that stopped at the retrospective control after its prospective confirmation, and the companion's dropped phrase
+
+**What was wrong.** After the prospective balanced confirmation (`PB1`, `PB2`; FINDINGS 24;
+`docs/specs/2026-10-20-prospective-balanced-confirmation-design.md`) was written into the
+manuscript, FINDINGS 24, the rule ledger and the manifest, a systematic sweep of the public
+surface (two independent audits, kept in the closing handoff) found statements that still ended
+the matched-world story at the 2026-10-13 control: the site's results paragraph, Act 11 and the
+summary bullet of `docs/LEARNING.md`, the dated notes of `docs/PREREGISTRATION_L3.md`, the
+"Status of the numbers" note of the FINDINGS TL;DR, the forward pointers of the 2026-10-12 and
+2026-10-13 specs, and the 2026-10-20 spec itself, which promised a result section it did not have.
+The plain-language companion of the manuscript still attributed the phrase "survival is not
+required" to a manuscript that dropped it on 2026-10-20. `docs/REPRODUCE.md` said no full test run
+in a fresh extraction was on record, while the submission check records five. The README's
+corrected-trainer note named only the matched-world confirmation; the `CITATION.cff` abstract was
+the one live copy of 0.733 without the shared-draw qualifier. In the manuscript, the future-work
+sentence said "the one confirmation registered on" the balanced readout failed, after a second
+had been registered and had passed its floor; the packager knew nothing of the `PB1` and `PB2`
+run folders, so "prints the retraining recipe for each run" did not cover them and the review
+archive's README did not name them among the bundles it leaves out; three optional review 5
+wording items were still open; and the compute paragraph had no wall time for `B1`, `B2`, `PB1`,
+`PB2` or the corrected L1 rerun.
+
+**Change.** Each record now points to the prospective confirmation with its qualifiers (frozen
+before training, amended once before any result; untrained floor met by 0.002; strict interval
+reading not met; linear control, nonlinear and longer-history variants 0.644 to 0.725). The
+2026-10-20 spec has its result section; the 2026-10-12 and 2026-10-13 specs each gain a dated
+note; the companion uses the manuscript's wording; REPRODUCE names the five extraction runs;
+the README names the goal-and-stakes runs and the prospective confirmation as corrected-trainer
+runs; the CITATION abstract carries the draw qualifier; the manuscript's future work says "the raw
+confirmation"; `scripts/reproduce.py` carries the `PB1` and `PB2` training commands, run folders
+and left-out notes, with their fingerprints pinned in `tests/test_expb2_trunk_guard.py`; the
+compute paragraph gives the four wall times, read from file times and the run log. The published
+numbers audit also guards the matched gates from the sidecar rows, the raw margins, the two-draw
+means, the second-draw files and the `B1` and `B2` nonlinear controls (4159 checks), and an
+end-to-end test shows that manuscript-repository commit IDs leave the review archive
+pseudonymized in both spellings. The version moves to 1.5.5; the v1.5.4 archive carries the
+stale lines and is not to be uploaded.
+
+**What this does not change.** No number, label, rule or verdict. The `B1` and `B2` routes of
+2026-10-12 and 2026-10-13 stay as recorded; the frozen spec bodies are untouched.

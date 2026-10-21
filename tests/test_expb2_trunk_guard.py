@@ -146,13 +146,16 @@ RECORDED = {
     "L1-CORRECTED": ("cells", _ART / "corrected_runs" / "l1-corrected" / "cells"),
     "B1-BALANCED": ("artifact", _ART / "balanced_confirmation" / "b1.json"),
     "B2-BALANCED": ("artifact", _ART / "balanced_confirmation" / "b2.json"),
+    "PB1": ("artifact", _ART / "prospective_balanced" / "pb1.json"),
+    "PB2": ("artifact", _ART / "prospective_balanced" / "pb2.json"),
     "L3-H8-WM-CPU": ("cells", _ART / "reviewer_gaps_runs" / "l3_h8_wm_cpu" / "cells"),
     "L3-H8-NOWM-CPU": ("cells", _ART / "reviewer_gaps_runs" / "l3_h8_nowm" / "cells"),
     "L3-H10-GS1-CPU": ("cells", _ART / "reviewer_gaps_runs" / "l3_h10_gseed1" / "cells"),
 }
 # A second, literal pin, so a later re-promotion or cell rewrite cannot move the value silently.
 LITERAL = {"C1": "98dfbde61e361984", "L1-CORRECTED": "d8bb95f746f95e4b",
-           "B1-BALANCED": "cd7f35c28a343bc2", "B2-BALANCED": "f5e46b22c0c31ecf"}
+           "B1-BALANCED": "cd7f35c28a343bc2", "B2-BALANCED": "f5e46b22c0c31ecf",
+           "PB1": "b76d85f3ca258848", "PB2": "f7b20363d310ff32"}
 # The GPU traces run's cells are not committed, so its recipe has no fingerprint to meet.
 NO_RECORD = {"L3-H8-N10"}
 

@@ -146,3 +146,9 @@ trained clauses above are computed on the second draw and reported as descriptio
 changes the result section above. Pair drops at the fresh base are reported as they come out
 (`n_pairs`, or a WITHHELD zone). Outputs go to `fullruns/closing_2026-10/g03/{wm,touch}/`, never
 to the shipped run folders. Commands and text map: `docs/specs/2026-10-17-closing-readouts-design.md`, section G03.
+
+2026-10-21 note: the rule above was tested prospectively on fresh agent seeds 20 to 29 and fresh
+matched worlds under `docs/specs/2026-10-20-prospective-balanced-confirmation-design.md` (frozen
+before training, amended once before any result) and is MET on both objectives (0.709 and 0.743,
+untrained 0.598, inside the floor by 0.002; strict interval reading not met). The result section
+above and the 2026-10-12 routes stay as recorded. FINDINGS 24.
