@@ -482,10 +482,8 @@ def test_c6_the_number_guard_catches_a_changed_number_or_broken_json():
     assert reproduce.commit_field_tokens(f"up to paper {word} abcdef1 and {word} 1234abc") == {"1234abc"}
     assert reproduce.paper_commit_tokens(f"up to paper {word} abcdef1 and {word} 1234abc") == {"abcdef1"}
     # The same across a line break, as a wrapped Markdown paragraph writes it.
-    assert reproduce.commit_field_tokens(f"paper
-{word} abcdef1") == set()
-    assert reproduce.paper_commit_tokens(f"paper
-{word} abcdef1") == {"abcdef1"}
+    assert reproduce.commit_field_tokens("paper" + chr(10) + word + " abcdef1") == set()
+    assert reproduce.paper_commit_tokens("paper" + chr(10) + word + " abcdef1") == {"abcdef1"}
     assert "length" in g("a.md", "x 1234567", "x 1234567 y")
 
 
