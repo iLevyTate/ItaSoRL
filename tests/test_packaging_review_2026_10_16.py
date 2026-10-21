@@ -497,7 +497,7 @@ def test_manuscript_commit_ids_in_any_form_get_pseudonyms():
 
 
 def test_the_review_archive_pseudonymizes_manuscript_commit_ids_end_to_end(tmp_path, monkeypatch):
-    """Two shipped documents name commits of the manuscript's own repository, one as "paper
+    """Two tracked documents name commits of the manuscript's own repository, one as "paper
     commit X" (the frozen 2026-10-20 spec) and one as "paper repo at `X`" (the submission
     check). Neither spelling survives the review build, and the map records both."""
     spec = "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md"

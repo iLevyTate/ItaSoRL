@@ -860,6 +860,15 @@ RUN_INCLUDED_NOTES = {
         "`fullruns/l3_h8_gseed2_gpu/agents` holds the saved agents of the historical hidden-8, "
         "G seed 2 run on GPU (pre-correction trainer). They back no committed readout and have "
         "no integrity reference of their own; their 30 drift-0 files equal the held-out run's."),
+    "fullruns/prospective_balanced_wm": (
+        "`fullruns/prospective_balanced_wm` holds the 20 cells, 60 saved agents, state dumps, "
+        "matched-gate sidecar (`matched_gates.json`) and sensory-echo readouts of PB1, the "
+        "prospective matched-world survival confirmation (docs/FINDINGS.md 24). Its route and "
+        "promoted readings are under artifacts/prospective_balanced/."),
+    "fullruns/prospective_balanced_touch": (
+        "`fullruns/prospective_balanced_touch` holds the same for PB2, the prospective "
+        "matched-world confirmation of the pellet objective with death off (docs/FINDINGS.md 24). "
+        "Its route and promoted readings are under artifacts/prospective_balanced/."),
     "fullruns/balanced_confirmation_wm": (
         "`fullruns/balanced_confirmation_wm` holds the B1 cells, saved agents, frozen "
         "normalizers and matched-world sensory-control output. Seed base 910000. "
@@ -1182,11 +1191,13 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
               for r in left_out]
         L += ["", "Their per-seed readouts are committed under artifacts/ (the cells of C1, C2 "
               "and L1-CORRECTED under artifacts/corrected_runs/, the B1 and B2 readouts under "
-              "artifacts/balanced_confirmation/), so every table and gate rebuilds from this "
-              "archive without them. Replaying a readout from the saved agents or state dumps "
-              "of B1, B2 and L1-CORRECTED, including the matched-gate replay of B1 and B2 and "
-              "the stream and surprise readouts of L1-CORRECTED, needs a retrain from the "
-              "recorded recipe (docs/REPRODUCE.md section 2).", ""]
+              "artifacts/balanced_confirmation/, the PB1 and PB2 routes, matched gates and "
+              "sensory-echo readouts under artifacts/prospective_balanced/), so every table and "
+              "gate rebuilds from this archive without them. Replaying a readout from the saved "
+              "agents or state dumps of B1, B2, PB1, PB2 and L1-CORRECTED, including the "
+              "matched-gate and sensory-echo replays of B1, B2, PB1 and PB2 and the stream and "
+              "surprise readouts of L1-CORRECTED, needs a retrain from the recorded recipe "
+              "(docs/REPRODUCE.md section 2).", ""]
     if gone:
         both = " and ".join(gone)
         L += [f"The saved agents and state dumps of the corrected run{'s' if len(gone) > 1 else ''} "

@@ -1900,12 +1900,14 @@ wording items were still open; and the compute paragraph had no wall time for `B
 before training, amended once before any result; untrained floor met by 0.002; strict interval
 reading not met; linear control, nonlinear and longer-history variants 0.644 to 0.725). The
 2026-10-20 spec has its result section; the 2026-10-12 and 2026-10-13 specs each gain a dated
-note; the companion uses the manuscript's wording; REPRODUCE names the five extraction runs;
+note; the companion no longer attributes the dropped phrase to the manuscript (its own summary
+bullet keeps the sense of the manuscript's Limitations), and the four optional review 5 wording
+items are applied; REPRODUCE names the five extraction runs;
 the README names the goal-and-stakes runs and the prospective confirmation as corrected-trainer
 runs; the CITATION abstract carries the draw qualifier; the manuscript's future work says "the raw
 confirmation"; `scripts/reproduce.py` carries the `PB1` and `PB2` training commands, run folders
 and left-out notes, with their fingerprints pinned in `tests/test_expb2_trunk_guard.py`; the
-compute paragraph gives the four wall times, read from file times and the run log. The published
+compute paragraph gives the five wall times, read from file times and the run log. The published
 numbers audit also guards the matched gates from the sidecar rows, the raw margins, the two-draw
 means, the second-draw files and the `B1` and `B2` nonlinear controls (4159 checks), and an
 end-to-end test shows that manuscript-repository commit IDs leave the review archive
