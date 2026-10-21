@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are: 105 pinned of 4004 on 2026-10-21 (PIN_COUNT and CHECK_FLOOR below). The count
+many there are: 105 pinned of 4017 on 2026-10-21 (PIN_COUNT and CHECK_FLOOR below). The count
 is of check() calls; composite check_true gates that also compare a stored reading with a
 literal are not counted. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
@@ -78,8 +78,8 @@ BAR = 0.65
 # (tests/test_audit_selftest.py). A run that records fewer has lost checks without failing one.
 # Change it deliberately when checks are added or removed, from the count the run prints, never
 # by hand; the manuscript sentences that quote it are checked against it by
-# scripts/build_paper_tables.py --manuscript. The count on 2026-10-21 is 4004.
-CHECK_FLOOR = 4004
+# scripts/build_paper_tables.py --manuscript. The count on 2026-10-21 is 4017.
+CHECK_FLOOR = 4017
 # How many of those checks are pins (labels start "pinned:"), as printed in "pins: P of N".
 PIN_COUNT = 105
 
@@ -3465,7 +3465,8 @@ def main() -> int:
                "sensory-independent under matched worlds" in _f21)
     # FINDINGS 24: the prospective balanced confirmation (spec 2026-10-20). Each promoted
     # sensory-echo reading is recomputed from its per-seed lists; the route file's clauses are
-    # tied to those recomputations, and the quoted values to the FINDINGS text.
+    # tied to those recomputations, and the quoted values to the text of section 24 itself.
+    _f24 = " ".join(_read("docs/FINDINGS.md").split("\n## 24.", 1)[1].split())
     for _rid, _mean, _lo, _hi in (("pb1", 0.709, 0.675, 0.743), ("pb2", 0.743, 0.714, 0.771)):
         _ed = _load_art("prospective_balanced", f"sensory_echo_{_rid}.json")
         _route = _load_art("prospective_balanced", f"{_rid}.json")
@@ -3495,9 +3496,24 @@ def main() -> int:
         check_true(f"24 {_rid} every gate recorded as holding",
                    all(_route["gates"][k] is True for k in _route["gates"] if k.endswith("_ok")))
         check_true(f"24 {_rid} route MET", _route["decision"] == "MET")
-        check_true(f"FINDINGS 24 quotes {_rid} resid_obs", f"{_mean:.3f} [{_lo:.3f}, {_hi:.3f}]" in _f21)
+        check_true(f"FINDINGS 24 quotes {_rid} resid_obs", f"{_mean:.3f} [{_lo:.3f}, {_hi:.3f}]" in _f24)
+        # Gate 2 as amended (ea8ceea): every trained seed at 0.75, and the untrained mean. The
+        # first text read every arm; the record says that one untrained seed fails it.
+        _spd = _route["gates"]["matched"]["speed"]
+        _tr = [float(v) for k, v in _spd.items() if k.endswith(" survival")]
+        _ut = [float(v) for k, v in _spd.items() if k.endswith(" untrained")]
+        check_true(f"24 {_rid} gate 2 recomputed from the per-seed speeds",
+                   len(_tr) == 10 and len(_ut) == 10 and min(_tr) >= 0.75 and float(np.mean(_ut)) >= 0.75)
+        check_true(f"24 {_rid} under the first text gate 2 fails on one untrained seed",
+                   sum(v < 0.75 for v in _ut) == 1 and min(_ut) < 0.75 <= min(_tr))
+        for _m, _s2 in sorted(_route["S2_controls"].items()):
+            _t = float(_ed["aggregate"]["d=0.45 survival"][_m]["mean"])
+            _u = float(_ed["aggregate"]["d=0.45 untrained"][_m]["mean"])
+            _lab = "SURVIVES" if _t >= 0.65 and _t > _u + 0.05 else "ATTENUATED" if _t >= 0.60 else "EXPLAINED"
+            check_true(f"24 {_rid} S2 {_m} label recomputed", _s2["label"] == _lab)
     check("24 untrained floor slack", 0.1 - abs(_un - 0.5), 0.002, tol=0.0005)
-    check_true("FINDINGS 24 names the decision", "**Decision: MET on both runs.**" in _read("docs/FINDINGS.md"))
+    check_true("FINDINGS 24 names the decision", "**Decision: MET on both runs.**" in _f24)
+    check_true("FINDINGS 24 says the amendment decides the route", "The amendment decides the route." in _f24)
 
     closing_checks()
 

@@ -5951,7 +5951,7 @@
       "folds": "n/a",
       "id": "THRESHOLD-SENSITIVITY",
       "local_run_dir": null,
-      "notes": "scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), run on the clean Stage 6 tree; docs/specs/2026-10-17-closing-readouts-design.md. Agent free: it re-reads every adjudicated row of docs/rule_ledger.json with its bar and margin clauses moved over {0.60, 0.65, 0.70} x {0.03, 0.05, 0.10} and changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split, 22 hold and 18 fail. The commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.",
+      "notes": "scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), regenerated 2026-10-21 on a clean tree after the two prospective balanced ledger rows were committed; docs/specs/2026-10-17-closing-readouts-design.md. Agent free: it re-reads every adjudicated row of docs/rule_ledger.json with its bar and margin clauses moved over {0.60, 0.65, 0.70} x {0.03, 0.05, 0.10} and changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split over 42 adjudicated rows, 24 hold and 18 fail. The commit is recorded as git_commit. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.",
       "readout_only_on": null,
       "recorded_provenance": {
         "threshold_sensitivity/bar_margin.json": {
@@ -6739,7 +6739,7 @@
       "folds": "explicit",
       "id": "PB1",
       "local_run_dir": "fullruns/prospective_balanced_wm",
-      "notes": "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md, frozen before training and amended once before any cell existed. Decision MET: gates 1 to 7, the floor clause (untrained resid_obs 0.598) and the trained clause (resid_obs 0.709) hold. The strict interval reading S1 is not met. FINDINGS 24.",
+      "notes": "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md, frozen before training and amended once before any cell existed; the amendment moved gate 2 to the trained arm and the untrained mean, and under the first text untrained seed 25 (0.724) would leave both runs UNINFORMATIVE. Decision MET: gates 1 to 7, the floor clause (untrained resid_obs 0.598) and the trained clause (resid_obs 0.709) hold. The strict interval reading S1 is not met. FINDINGS 24.",
       "readout_only_on": null,
       "recorded_provenance": {
         "prospective_balanced/matched_gates_pb1.json": {},
@@ -6824,7 +6824,7 @@
       "folds": "explicit",
       "id": "PB2",
       "local_run_dir": "fullruns/prospective_balanced_touch",
-      "notes": "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md. Decision MET: gates 1 to 7, the floor clause (untrained resid_obs 0.598, the same untrained scores as PB1) and the trained clause (resid_obs 0.743) hold. The strict interval reading S1 is not met. Training started from e792adb, which differs from PB1's 7d08686 only by the registered seed bases in itasorl/post_review.py. FINDINGS 24.",
+      "notes": "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md. Decision MET: gates 1 to 7, the floor clause (untrained resid_obs 0.598, the same untrained scores as PB1) and the trained clause (resid_obs 0.743) hold. The strict interval reading S1 is not met. Training started from e792adb. Between PB1's 7d08686 and e792adb only the spec amendment, the readout and promotion code, their tests and the registered seed bases in itasorl/post_review.py changed; the training command imports none of them. FINDINGS 24.",
       "readout_only_on": null,
       "recorded_provenance": {
         "prospective_balanced/matched_gates_pb2.json": {},

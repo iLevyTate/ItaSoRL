@@ -1211,7 +1211,7 @@ def _primary_paragraph_issues(rel: str, text: str, v: dict) -> list[str]:
 
 
 # Counts the prose states about two generated tables, in digits or words: the rule ledger's
-# tally ("49 rule-and-run pairs ...: the threshold condition holds on 19 and fails on 21, 7 are
+# tally ("51 rule-and-run pairs ...: the threshold condition holds on 21 and fails on 21, 7 are
 # uninformative and 2 give no verdict") and the gate table's size ("the twenty-seven rows hold
 # eleven distinct sets of per-seed values"). Both went stale on 2026-10-15, when a row joined
 # each generated table and the prose that counts them was not updated.

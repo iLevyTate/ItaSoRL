@@ -484,6 +484,18 @@ def test_c6_the_number_guard_catches_a_changed_number_or_broken_json():
     assert "length" in g("a.md", "x 1234567", "x 1234567 y")
 
 
+def test_manuscript_commit_ids_in_any_form_get_pseudonyms():
+    """A manuscript-repository ID is collected wherever the text writes it, unless it also
+    abbreviates a commit of this repository, and the forced path replaces it."""
+    manuscript = sorted(["abcdef1" + "0" * 33, "fedcba9" + "1" * 33])
+    commits = sorted(["1234abc" + "2" * 33, "fedcba9" + "3" * 33])
+    text = "paper repo at `abcdef1`, docs/paper/.git fedcba9 and (abcdef1, by 1234abc"
+    assert reproduce.manuscript_tokens(text, manuscript, commits) == {"abcdef1"}
+    hider = reproduce.CommitPseudonyms(commits, b"k" * 32, forced=["abcdef1"])
+    out = hider.sub(text)
+    assert "abcdef1" not in out and len(out) == len(text)
+
+
 def test_c6_a_build_whose_pseudonyms_change_a_number_leaves_no_archive(tmp_path, monkeypatch):
     if not reproduce.commit_ids():
         pytest.skip("needs a git checkout")

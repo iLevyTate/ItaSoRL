@@ -1352,11 +1352,12 @@ RUNS = [
         experiment="methods", artifacts=["threshold_sensitivity/bar_margin.json"], claims=[],
         trains_survival=False, survival_trainer="none", commit_at_run="48af14a", folds="n/a",
         device=closing_cpu(1), deps=CLOSING_DEPS,
-        notes=f"scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), run on the clean Stage 6 tree; "
+        notes=f"scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), regenerated 2026-10-21 on a clean "
+              "tree after the two prospective balanced ledger rows were committed; "
               f"{CLOSING_SPEC}. Agent free: it re-reads every adjudicated row of docs/rule_ledger.json "
               "with its bar and margin clauses moved over {0.60, 0.65, 0.70} x {0.03, 0.05, 0.10} and "
-              "changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split, 22 hold "
-              "and 18 fail. The commit is recorded as git_commit. " + CLOSING_NOTE),
+              "changes no row's outcome; at (0.65, 0.05) it reproduces the ledger's own split over 42 "
+              "adjudicated rows, 24 hold and 18 fail. The commit is recorded as git_commit. " + CLOSING_NOTE),
     run("QD-EPS6-ORACLE", "Quadratic-drag comparator oracle at eps 6.0, the setting the trained run used "
         "(H31)", experiment="methods", artifacts=["agent_free/qd_eps6_oracle.json"], claims=[],
         trains_survival=False, survival_trainer="none", commit_at_run=CLOSING_COMMIT, folds="explicit",
@@ -1571,7 +1572,9 @@ RUNS = [
         eval_seeds={"balanced_pairs": "3000000 (PB-primary), same base for both worlds, 110 episodes",
                     "pooled_secondary": "800000 / 850000"},
         config={"objective": "survival", "mortal": True, "adv_norm": "historical"},
-        notes=f"{PB_SPEC}, frozen before training and amended once before any cell existed. Decision MET: "
+        notes=f"{PB_SPEC}, frozen before training and amended once before any cell existed; the amendment "
+              "moved gate 2 to the trained arm and the untrained mean, and under the first text untrained "
+              "seed 25 (0.724) would leave both runs UNINFORMATIVE. Decision MET: "
               "gates 1 to 7, the floor clause (untrained resid_obs 0.598) and the trained clause "
               "(resid_obs 0.709) hold. The strict interval reading S1 is not met. FINDINGS 24."),
     run("PB2", "Prospective balanced confirmation, pellet objective, death off, fresh seeds 20-29",
@@ -1587,8 +1590,10 @@ RUNS = [
         config={"objective": "touch", "mortal": False, "adv_norm": "historical"},
         notes=f"{PB_SPEC}. Decision MET: gates 1 to 7, the floor clause (untrained resid_obs 0.598, "
               "the same untrained scores as PB1) and the trained clause (resid_obs 0.743) hold. The strict "
-              "interval reading S1 is not met. Training started from e792adb, which differs from PB1's "
-              "7d08686 only by the registered seed bases in itasorl/post_review.py. FINDINGS 24."),
+              "interval reading S1 is not met. Training started from e792adb. Between PB1's 7d08686 and "
+              "e792adb only the spec amendment, the readout and promotion code, their tests and the "
+              "registered seed bases in itasorl/post_review.py changed; the training command imports "
+              "none of them. FINDINGS 24."),
     run("PB1-DRAW2", "Prospective balanced sensory-echo readout on a second evaluation draw, PB1 agents",
         experiment="B-v2 L3", artifacts=["prospective_balanced/sensory_echo_pb1_draw2.json"],
         trains_survival=False, readout_of=["PB1"], survival_trainer="successor_value",
@@ -2019,7 +2024,9 @@ def render_md(m: dict) -> str:
         "- PB1 and PB2, `prospective_balanced_{wm,touch}`. Fresh agent seeds 20-29 and fresh "
         "matched worlds at base 3000000, survival and pellets with death off, under the October 13 "
         "rule with the October 12 gates the matched design can pass, frozen October 20 before "
-        "training. Recorded MET on both (resid_obs 0.709 and 0.743; untrained 0.598, inside the "
+        "training and amended once before any result (gate 2 moved to the trained arm and the "
+        "untrained mean, without which untrained seed 25 at 0.724 fails it). Recorded MET on both "
+        "(resid_obs 0.709 and 0.743; untrained 0.598, inside the "
         "floor by 0.002). The strict interval reading is not met on either. "
         "`artifacts/prospective_balanced/`.",
         "- Selection pilot. Uninformative. No emergence conclusion in either direction. "

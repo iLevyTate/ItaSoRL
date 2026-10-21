@@ -53,7 +53,8 @@ abstract: >-
   untrained diagnostics were known, leaves 0.761 and 0.780 with the untrained arm
   at 0.596, inside its tolerance by 0.004 at the mean though its interval crosses
   0.60 (FINDINGS section 21). A confirmation of that control frozen before any
-  of its agents existed, on fresh agent seeds and fresh matched worlds, is met
+  of its agents existed and amended once before any result, on fresh agent
+  seeds and fresh matched worlds, is met
   for both objectives: survival 0.709 and pellets with death off 0.743, with the
   untrained arm at 0.598, inside its tolerance by 0.002 with its interval
   crossing 0.60 (FINDINGS section 24). The controlled reading without survival

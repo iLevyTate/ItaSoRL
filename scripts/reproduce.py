@@ -1874,6 +1874,32 @@ def paper_source(path: str | None = None) -> str | None:
     return next((c for c in cands if os.path.isfile(c)), None)
 
 
+_HEX_WORD = re.compile(r"(?<![0-9A-Za-z])[0-9a-fA-F]{7,40}(?![0-9A-Za-z])")
+
+
+def manuscript_commit_ids(path: str | None = None) -> list[str]:
+    """Every commit ID of the manuscript's own git repository (the folder of
+    paper_source(path)), sorted; [] when there is none. The archive may name these IDs in any
+    form ("paper commit X", "paper repo at X"), and they are given pseudonyms like this
+    repository's own."""
+    src = paper_source(path)
+    if not src:
+        return []
+    try:
+        res = subprocess.run(["git", "-C", os.path.dirname(src), "rev-list", "--all"],
+                             capture_output=True, text=True, check=True, timeout=60)
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return []
+    return sorted(ln.strip().lower() for ln in res.stdout.splitlines() if ln.strip())
+
+
+def manuscript_tokens(text: str, manuscript: list[str], commits: list[str]) -> set[str]:
+    """The hex words of `text` (lowercase) that abbreviate a manuscript commit and no commit of
+    this repository."""
+    return {t for t in (m.group(0).lower() for m in _HEX_WORD.finditer(text))
+            if _resolves(manuscript, t) and not _resolves(commits, t)}
+
+
 def paper_titles(path: str | None = None) -> list[str]:
     """The manuscript's main title and subtitle (the parts before and after the first colon,
     each of 8 or more characters), read at build time from paper_source(path), so no tracked
@@ -2029,15 +2055,16 @@ def supplement(out: str, runs_root: str | None = None,
     pairs, status = _sources(runs_root, dropped, run_dirs)
     # The commit IDs that commit fields name, and the digests to replace, from every text member.
     named: set = set()
-    paper: set = set()
+    paper_ids: set = set()
     digests: set = set()
     if anon_name and not in_archive:
+        manuscript = manuscript_commit_ids(paper)
         for rel, src in pairs:
             if is_text(rel):
                 with open(src, "rb") as fh:
                     text = fh.read().decode("utf-8", errors="replace")
                 named |= commit_field_tokens(text)
-                paper |= paper_commit_tokens(text)
+                paper_ids |= paper_commit_tokens(text) | manuscript_tokens(text, manuscript, commits)
                 digests |= digest_tokens(text)
     gap = history_gap(commits, named) if anon_name and require_history else None
     if gap:
@@ -2057,7 +2084,7 @@ def supplement(out: str, runs_root: str | None = None,
                 digests |= digest_tokens(patch)
     key_path = key_path or COMMIT_KEY
     # Manuscript-repository IDs get pseudonyms too; the history check above does not read them.
-    forced = sorted(t for t in named | paper if not _resolves(commits, t))
+    forced = sorted(t for t in named | paper_ids if not _resolves(commits, t))
     hide = bool(commits or forced or digests)
     hider = CommitPseudonyms(commits, commit_key(key_path) if hide else b"", digests=digests,
                              forced=forced)
