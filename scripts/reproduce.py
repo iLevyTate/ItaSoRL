@@ -1353,8 +1353,8 @@ _COMMIT_FIELD = re.compile(r'(?i)"' + _NOT_COMMIT_KEY + r'[A-Za-z_]*(?:commit|he
 # "paper commit X" names a commit of the manuscript's own repository, which this object store
 # does not hold, so it is not read as one of this repository's commits; paper_commit_tokens
 # collects those IDs so they are still given pseudonyms.
-_COMMIT_PROSE = re.compile(r"(?i)(?<!paper )\bcommits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
-_PAPER_COMMIT_PROSE = re.compile(r"(?i)\bpaper commits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
+_COMMIT_PROSE = re.compile(r"(?i)(?<!paper )(?<!paper\n)\bcommits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
+_PAPER_COMMIT_PROSE = re.compile(r"(?i)\bpaper\s+commits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
 
 
 def commit_map_path(archive: str) -> str:
@@ -1397,10 +1397,12 @@ def _ls_remote(remote: str) -> str | None:
     return res.stdout
 
 
-def history_gap(commits: list[str], named=()) -> str | None:
+def history_gap(commits: list[str], named=(), manuscript=()) -> str | None:
     """Why the commit scan cannot see every commit ID the archive may carry, or None. `named`
     holds the tokens shipped files name as commits (commit_field_tokens); one that resolves to
-    no local commit shows the object store is incomplete. A remote whose branches cannot be
+    no local commit shows the object store is incomplete, unless it resolves in the manuscript's
+    own repository (`manuscript`, from manuscript_commit_ids), whose commits this store never
+    holds and which the pseudonyms cover through the forced path. A remote whose branches cannot be
     listed counts as a gap, since a branch tip the store lacks would then go unseen. An
     extracted archive (README_SUPPLEMENT.md at the root) has no history and no real commit IDs
     left, so rebuilding from one is allowed."""
@@ -1431,7 +1433,8 @@ def history_gap(commits: list[str], named=()) -> str | None:
         if missing:
             return (f"{len(missing)} branch tip(s) of remote {remote} are not in the object store "
                     f"(run `git fetch {remote}`), for example {missing[0]}")
-    absent = sorted(t for t in named if not _resolves(commits, t))
+    absent = sorted(t for t in named if not _resolves(commits, t)
+                    and not (manuscript and _resolves(sorted(manuscript), t)))
     if absent:
         return (f"{len(absent)} commit ID(s) that shipped files name in commit fields resolve to "
                 f"no local commit, for example {absent[0]}, so the object store lacks commits "
@@ -2118,7 +2121,7 @@ def supplement(out: str, runs_root: str | None = None,
                 named |= commit_field_tokens(text)
                 paper_ids |= paper_commit_tokens(text) | manuscript_tokens(text, manuscript, commits)
                 digests |= digest_tokens(text)
-    gap = history_gap(commits, named) if anon_name and require_history else None
+    gap = history_gap(commits, named, manuscript) if anon_name and require_history else None
     if gap:
         print(f"no archive written: the commit scan cannot see every commit ID, because {gap}. "
               "Build from a full checkout.")

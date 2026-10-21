@@ -481,6 +481,11 @@ def test_c6_the_number_guard_catches_a_changed_number_or_broken_json():
     # A commit of the manuscript's own repository is not one of this repository's commits.
     assert reproduce.commit_field_tokens(f"up to paper {word} abcdef1 and {word} 1234abc") == {"1234abc"}
     assert reproduce.paper_commit_tokens(f"up to paper {word} abcdef1 and {word} 1234abc") == {"abcdef1"}
+    # The same across a line break, as a wrapped Markdown paragraph writes it.
+    assert reproduce.commit_field_tokens(f"paper
+{word} abcdef1") == set()
+    assert reproduce.paper_commit_tokens(f"paper
+{word} abcdef1") == {"abcdef1"}
     assert "length" in g("a.md", "x 1234567", "x 1234567 y")
 
 
@@ -522,6 +527,22 @@ def test_the_review_archive_pseudonymizes_manuscript_commit_ids_end_to_end(tmp_p
             assert tok not in after[rel].lower(), (rel, tok)
     m = json.loads((tmp_path / "review.commit-map.json").read_text(encoding="utf-8"))
     assert set(m["unresolved_commit_fields"].values()) >= named[spec] | named[check]
+
+
+def test_history_gap_does_not_count_a_manuscript_commit_as_a_missing_one():
+    """A record may write a manuscript-repository ID after the word "commit" ("resolves to no
+    local commit: `X`"); that ID is never in this object store and is not a history gap."""
+    commits = reproduce.commit_ids()
+    manuscript = reproduce.manuscript_commit_ids(os.path.join(reproduce.ROOT, "docs", "paper", "main.tex"))
+    if not commits or not manuscript:
+        pytest.skip("needs a git checkout beside the manuscript repository")
+    tok = manuscript[0][:7]
+    if reproduce._resolves(commits, tok):
+        pytest.skip("the manuscript ID abbreviates a local commit too")
+    if reproduce.history_gap(commits):
+        _skip_or_fail_on_gap(reproduce.history_gap(commits))
+    assert "resolve to no local commit" in reproduce.history_gap(commits, {tok})
+    assert reproduce.history_gap(commits, {tok}, manuscript) is None
 
 
 def test_a_manuscript_folder_without_its_own_repository_lists_no_ids(tmp_path):
