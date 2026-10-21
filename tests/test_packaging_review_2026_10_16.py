@@ -496,6 +496,34 @@ def test_manuscript_commit_ids_in_any_form_get_pseudonyms():
     assert "abcdef1" not in out and len(out) == len(text)
 
 
+def test_the_review_archive_pseudonymizes_manuscript_commit_ids_end_to_end(tmp_path, monkeypatch):
+    """Two shipped documents name commits of the manuscript's own repository, one as "paper
+    commit X" (the frozen 2026-10-20 spec) and one as "paper repo at `X`" (the submission
+    check). Neither spelling survives the review build, and the map records both."""
+    spec = "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md"
+    check = "docs/SUBMISSION_CHECK_2026-10-16.md"
+    paper = os.path.join(reproduce.ROOT, "docs", "paper", "main.tex")
+    manuscript = reproduce.manuscript_commit_ids(paper)
+    if not manuscript or not reproduce.commit_ids():
+        pytest.skip("needs the manuscript repository beside a git checkout")
+    before = {rel: open(os.path.join(reproduce.ROOT, rel), encoding="utf-8").read() for rel in (spec, check)}
+    named = {rel: (reproduce.paper_commit_tokens(t)
+                   | reproduce.manuscript_tokens(t, manuscript, reproduce.commit_ids()))
+             for rel, t in before.items()}
+    assert named[spec] and named[check], named
+    rc, out, commits = _review_build(tmp_path, monkeypatch, reproduce.REVIEW_LIMIT, paper=paper,
+                                     files=("pyproject.toml", spec, check))
+    _review_needs_history(rc, out, commits)
+    assert rc == 0
+    with zipfile.ZipFile(out) as z:
+        after = {rel: z.read(rel).decode("utf-8") for rel in (spec, check)}
+    for rel in (spec, check):
+        for tok in named[rel]:
+            assert tok not in after[rel].lower(), (rel, tok)
+    m = json.loads((tmp_path / "review.commit-map.json").read_text(encoding="utf-8"))
+    assert set(m["unresolved_commit_fields"].values()) >= named[spec] | named[check]
+
+
 def test_a_manuscript_folder_without_its_own_repository_lists_no_ids(tmp_path):
     """A source inside this checkout with no .git of its own would make git walk up and list
     this repository's commits as the manuscript's; it lists none, and one outside any

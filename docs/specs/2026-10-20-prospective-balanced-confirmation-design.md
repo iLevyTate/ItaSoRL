@@ -235,3 +235,31 @@ No prediction about the outcome is stated.
 
 Retraining `B1`, `B2` or `C1`; a different surrogate, trunk or algorithm; any change to the
 2026-10-12 or 2026-10-13 rules or to their recorded results.
+
+## Result (2026-10-21)
+
+Both runs finished on CUDA (`PB1` trained from `7d08686`, `PB2` from `e792adb`; the training
+command imports nothing that changed between them). Readouts and promotion ran from `e792adb`;
+the promoted artifacts are committed in `d3b7577` under `artifacts/prospective_balanced/`.
+Integrity held on all 60 cells of both sensory-echo readouts: every regenerated balanced target
+matched the recorded value, no pair was dropped, and the first states matched. Gates 1 to 7 hold
+on both runs: engagement 20 of 20 cells; trained matched speed at least 0.923 (`PB1`) and 0.908
+(`PB2`) on every seed, untrained mean 0.811 with seed 25 at 0.724; largest leakage deviation 0.042
+and 0.031; largest shuffled deviation 0.059 and 0.082; reconstruction of the sidecar against the
+cells exact (largest difference 0.0). The floor clause holds: untrained `resid_obs` 0.598
+[0.572, 0.624], 0.098 from 0.5, identical in both runs. The trained clause holds on both: `PB1`
+survival `resid_obs` 0.709 [0.675, 0.743], 8 of 10 seeds at or above 0.65; `PB2` 0.743
+[0.714, 0.771], 9 of 10. **Route: MET on both.** Under the first text (`7d08686`), whose gate 2
+read every arm, seed 25 would have failed it and both runs would be UNINFORMATIVE; the amendment
+above, made before any agent file or result existed, is what the route turns on.
+
+Secondary readings, each with its own label: S1 STRICT NOT MET on both (the untrained t90 upper
+bound 0.624 is outside [0.40, 0.60]; the trained lower bounds and the seed-paired margins clear
+their bars). S2 on the primary draw: `PB1` `resid_obs_mlp` 0.644 ATTENUATED, `resid_obs_int`
+0.715, `resid_obs_int_mlp` 0.663 and `resid_obs_beh_mlp` 0.659 SURVIVES; `PB2` 0.693, 0.725,
+0.681, 0.680, all SURVIVES. S3 raw matched target 0.778 and 0.785, predictor 0.619, untrained
+0.587; under the 2026-10-12 table that raw readout is UNINFORMATIVE on both runs (speed gate on
+every arm, seed 25). S4 at base 3100000: untrained 0.583, trained 0.747 and 0.768, every S2
+control SURVIVES; two-draw means 0.728 and 0.755 against an untrained 0.591. S5 predictor
+0.607. The nonlinear controls on the saved `B1` and `B2` agents all SURVIVE (0.697 to 0.748).
+The 2026-10-12 and 2026-10-13 routes of `B1` and `B2` stay as recorded. FINDINGS 24.
