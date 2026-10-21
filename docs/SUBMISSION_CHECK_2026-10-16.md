@@ -319,9 +319,9 @@ label, rule or verdict changed.
   `corrected_l3_h8_wm/cells` (20) and `corrected_l3_h8_nowm/cells` (20). No B1, B2, PB1 or PB2
   agents ship; their promoted readings are in `artifacts/`.
 - 392 commit IDs (414 spellings) and 163 recorded digests (164 spellings) replaced by keyed
-  pseudonyms. One commit-field spelling resolves to no local commit: `6ad9577`, a commit of the
-  manuscript repository that the frozen 2026-10-20 spec names as "paper commit", given a
-  pseudonym through the forced path. A scan of every text member of the archive against the
+  pseudonyms. One commit-field spelling, `6ad9577`, resolves to no local commit: it belongs to
+  the manuscript repository, which the frozen 2026-10-20 spec names as "paper commit", and it
+  was given a pseudonym through the forced path. A scan of every text member of the archive against the
   manuscript repository's 75 commit IDs finds none left raw. Map local in
   `dist/review-1.5.4/supplement-review.commit-map.json`. The identity scan found no identity
   string, and every image is on the reviewed list.
