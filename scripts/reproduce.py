@@ -1307,7 +1307,11 @@ _NOT_COMMIT_KEY = r'(?![A-Za-z_]*(?:fingerprint|hash|sha\d|digest))'
 _COMMIT_FIELD = re.compile(r'(?i)"' + _NOT_COMMIT_KEY + r'[A-Za-z_]*(?:commit|head)[A-Za-z_]*"'
                            r'\s*:\s*(\[[^\]]*\]|"[^"]*")'
                            r'|"' + _NOT_COMMIT_KEY + r'[A-Za-z_]*_fix"\s*:\s*(\[[^\]]*\]|"[^"]*")')
-_COMMIT_PROSE = re.compile(r"(?i)\bcommits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
+# "paper commit X" names a commit of the manuscript's own repository, which this object store
+# does not hold, so it is not read as one of this repository's commits; paper_commit_tokens
+# collects those IDs so they are still given pseudonyms.
+_COMMIT_PROSE = re.compile(r"(?i)(?<!paper )\bcommits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
+_PAPER_COMMIT_PROSE = re.compile(r"(?i)\bpaper commits?\b[\s`(:]*([0-9a-f]{7,40})(?![0-9A-Za-z])")
 
 
 def commit_map_path(archive: str) -> str:
@@ -1333,6 +1337,11 @@ def commit_field_tokens(text: str) -> set[str]:
         out |= {t.lower() for t in re.findall(r'"([0-9A-Fa-f]{7,40})"', m.group(1) or m.group(2))}
     out |= {m.group(1).lower() for m in _COMMIT_PROSE.finditer(text)}
     return out
+
+
+def paper_commit_tokens(text: str) -> set[str]:
+    """The hex tokens (lowercase) that `text` names as commits of the manuscript's repository."""
+    return {m.group(1).lower() for m in _PAPER_COMMIT_PROSE.finditer(text)}
 
 
 def _ls_remote(remote: str) -> str | None:
@@ -1613,13 +1622,15 @@ def _leaves(obj):
 
 
 _INTEGER = re.compile(r"(?<![0-9A-Za-z])\d{7,}(?![0-9A-Za-z])")
-_COMMIT_BEFORE = re.compile(r"(?i)commits?[\s`(:]*$")
+# The word for a commit before the token, or a branch head written after the branch name in a
+# code span (the 2026-10-20 spec names ITASORL's `main` head that way, an all-digit commit ID).
+_COMMIT_BEFORE = re.compile(r"(?i)(?:commits?[\s`(:]*|`main`\s+)$")
 
 
 def _marked_commit(text: str, start: int, end: int, known) -> bool:
     """Whether the token text[start:end] reads as a commit ID: one that `known` holds (the
-    tokens some shipped file names in a commit field), one right after the word "commit", or
-    one alone in a Markdown code span."""
+    tokens some shipped file names in a commit field), one right after the word "commit" or
+    after the branch name `main`, or one alone in a Markdown code span."""
     tok = text[start:end]
     if tok.lower() in known or _COMMIT_BEFORE.search(text[max(0, start - 16):start]):
         return True
@@ -2018,6 +2029,7 @@ def supplement(out: str, runs_root: str | None = None,
     pairs, status = _sources(runs_root, dropped, run_dirs)
     # The commit IDs that commit fields name, and the digests to replace, from every text member.
     named: set = set()
+    paper: set = set()
     digests: set = set()
     if anon_name and not in_archive:
         for rel, src in pairs:
@@ -2025,6 +2037,7 @@ def supplement(out: str, runs_root: str | None = None,
                 with open(src, "rb") as fh:
                     text = fh.read().decode("utf-8", errors="replace")
                 named |= commit_field_tokens(text)
+                paper |= paper_commit_tokens(text)
                 digests |= digest_tokens(text)
     gap = history_gap(commits, named) if anon_name and require_history else None
     if gap:
@@ -2043,7 +2056,8 @@ def supplement(out: str, runs_root: str | None = None,
             if anon_name and not in_archive:
                 digests |= digest_tokens(patch)
     key_path = key_path or COMMIT_KEY
-    forced = sorted(t for t in named if not _resolves(commits, t))
+    # Manuscript-repository IDs get pseudonyms too; the history check above does not read them.
+    forced = sorted(t for t in named | paper if not _resolves(commits, t))
     hide = bool(commits or forced or digests)
     hider = CommitPseudonyms(commits, commit_key(key_path) if hide else b"", digests=digests,
                              forced=forced)

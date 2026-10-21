@@ -6153,6 +6153,12 @@ gives the scratch-read disclosure. Neither prediction was borne out.)*
 *(Note 2026-10-20: these factors are approximate plug-in sensitivity calculations; 17.5's note
 of this date.)*
 
+*(Note 2026-10-21: the controlled reading above was tested prospectively on fresh agent seeds
+20 to 29 and fresh matched worlds, under the 2026-10-13 rule with the 2026-10-12 gates the
+matched design can pass, frozen before those agents existed. Both objectives meet it (survival
+0.709, pellets 0.743, untrained 0.598). Section 24. The rows of this section are not
+re-adjudicated.)*
+
 ## 22. The L1 rerun on the corrected trainer, and the agent's prediction error on matched input (2026-10-15)
 
 **Status: MEASURED; no recorded verdict changes.** Two readouts asked whether the paper's
@@ -6784,3 +6790,74 @@ threshold reads these values, and the reorganizes label rests on the cosine.)*
 optimistic estimates". An in-sample estimate is optimistic in expectation and is not a numerical
 bound on each stored value; the held-out transfer of the note above carries the inference. The
 stored 0.785 and 0.689 stay as recorded. `docs/CORRECTIONS.md`, 2026-10-19.)*
+
+## 24. Prospective balanced confirmation (2026-10-21)
+
+Spec `docs/specs/2026-10-20-prospective-balanced-confirmation-design.md`, frozen at `7d08686`
+(2026-10-20 19:40 UTC) before training began (19:40:30) and amended once at `ea8ceea` (19:54),
+while training ran and before any cell file existed (first cell 19:57:06); the promotion code
+was committed at `e792adb` (19:57:05), before any drift-0.45 cell. The rule is the 2026-10-13
+sensory-echo rule with the 2026-10-12 gates the matched design can pass, applied to agents and
+worlds that did not exist when it was written: fresh agent seeds 20 to 29, matched worlds at
+base 3000000 (`PB-primary`), one GPU, the corrected trainer, historical advantage
+normalization. `PB1` is survival with death on and `PB2` the pellet objective with death off.
+Artifacts: `artifacts/prospective_balanced/` (`pb1.json`, `pb2.json`, `summary.json`, the
+promoted sensory-echo readings and the matched gates), and
+`artifacts/balanced_confirmation/sensory_echo_b{1,2}_nonlinear.json`.
+
+**Decision: MET on both runs.** Every gate, the floor clause and the trained clause hold.
+
+| | PB1 survival | PB2 pellets |
+|---|---|---|
+| Gate 1, engagement | 20 of 20 cells | 20 of 20 cells |
+| Gate 2, matched speed, trained arm | at least 0.924 on every seed | at least 0.908 on every seed |
+| Gate 2, untrained mean (10 seeds) | 0.811 | 0.811 |
+| Gate 3, largest leakage deviation from 0.5 | 0.042 | 0.031 |
+| Gate 4, largest shuffled deviation from 0.5 | 0.059 | 0.082 |
+| Gates 5 to 7 | hold | hold |
+| Floor: untrained `resid_obs` | 0.598 [0.572, 0.624] | 0.598 [0.572, 0.624] |
+| Trained `resid_obs` | 0.709 [0.675, 0.743], 8 of 10 at the bar | 0.743 [0.714, 0.771], 9 of 10 |
+| Trained minus untrained (means) | 0.111 | 0.145 |
+| Route | MET | MET |
+
+The floor holds by 0.002 (0.098 from 0.5). The two runs share their untrained agents and no
+warmup or readout episode died, so their untrained scores are identical (`summary.json`,
+`untrained_identical_across_runs`) and this is one floor read once. One untrained seed (25)
+reads 0.724 on the matched speed probe; the spec reads the untrained arm on its mean (0.811),
+and every untrained and predictor value is in the artifact. Reconstruction of the matched gates
+from `matched_gates.json` agrees with every training cell (largest difference 0.0).
+
+**Pre-stated secondary readings (their own labels, not the decision).**
+
+- S1, strict interval reading: **not met on either run.** The trained t90 lower bounds (0.675,
+  0.714) clear 0.65 and the seed-paired trained-minus-untrained lower bounds (0.078, 0.112)
+  clear 0.05, but the untrained t90 interval [0.572, 0.624] is not inside [0.40, 0.60].
+- S2, nonlinear and longer-history controls on the primary draw. PB1: `resid_obs_mlp` 0.644
+  [0.605, 0.683], ATTENUATED; `resid_obs_int` 0.715, `resid_obs_int_mlp` 0.663 [0.635, 0.692],
+  `resid_obs_beh_mlp` 0.659, SURVIVES. PB2: all four SURVIVE (0.693, 0.725, 0.681, 0.680).
+  Untrained under the same controls: 0.564, 0.598, 0.572, 0.567. A SURVIVES under
+  `resid_obs_int_mlp` is a reading surviving that control (a nonlinear regression on the
+  current, previous and running-mean observation), not independence from all sensory history.
+- S3, raw matched target (descriptive): survival 0.778 [0.735, 0.821], pellets 0.785 [0.728,
+  0.842], predictor 0.619, untrained 0.587 [0.566, 0.608], 0.087 from 0.5. The raw untrained
+  floor is not a gate in this spec.
+- S4, second draw at base 3100000 (`PB-draw2`; the matched gates are not rerun there):
+  untrained `resid_obs` 0.583; trained 0.747 [0.713, 0.781] and 0.768 [0.740, 0.795]; the
+  floor and trained clauses hold on both. S2 there: every control SURVIVES on both runs (PB1
+  0.666, 0.714, 0.684, 0.677; PB2 0.695, 0.731, 0.690, 0.678).
+- S5, predictor `resid_obs`: 0.607 [0.582, 0.632], 2 of 10 seeds at the bar (0.639 on the
+  second draw).
+
+**The same nonlinear controls on the saved B1 and B2 agents** (base 910000, descriptive):
+every one SURVIVES. B1: `resid_obs_mlp` 0.709, `resid_obs_int` 0.718, `resid_obs_int_mlp`
+0.700, `resid_obs_beh_mlp` 0.697; B2: 0.708, 0.748, 0.715, 0.698; untrained 0.564, 0.606,
+0.574, 0.588.
+
+**What this changes.** Under the spec's text map, the controlled reading of section 21 is
+confirmed on fresh seeds and a fresh draw for both objectives, under the later rule, frozen
+before those agents existed. Every other qualifier stays: the linear control is the primary,
+one surrogate, one trunk, one algorithm, one world family. The B1 and B2 rows of section 21
+are not re-adjudicated: the raw 2026-10-12 confirmation stays UNINFORMATIVE and the 2026-10-13
+rows stay retrospective. What is not shown: independence from every sensory transformation
+(the S2 labels are per control), an untrained floor resolved at chance (S1), persistence, or
+use.

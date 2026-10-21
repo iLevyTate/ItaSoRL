@@ -475,6 +475,12 @@ def test_c6_the_number_guard_catches_a_changed_number_or_broken_json():
     for before in ("at `1234567`.", f"{word} 1234567", f"git_{word} 1234567", f"{word} (`1234567`,",
                    '{"git_' + word + '": "1234567"}'):
         assert g("a.md", before, before.replace("1234567", "abcdef1")) is None, before
+    # A branch head written after the branch name in a code span (the 2026-10-20 spec).
+    assert g("a.md", "ITASORL `main` 1234567 plus", "ITASORL `main` abcdef1 plus") is None
+    assert "integer" in g("a.md", "the `seed` 1234567 base", "the `seed` abcdef1 base")
+    # A commit of the manuscript's own repository is not one of this repository's commits.
+    assert reproduce.commit_field_tokens(f"up to paper {word} abcdef1 and {word} 1234abc") == {"1234abc"}
+    assert reproduce.paper_commit_tokens(f"up to paper {word} abcdef1 and {word} 1234abc") == {"abcdef1"}
     assert "length" in g("a.md", "x 1234567", "x 1234567 y")
 
 

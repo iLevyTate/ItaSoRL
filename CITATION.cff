@@ -52,10 +52,14 @@ abstract: >-
   later in-fold linear sensory control, frozen after those raw outcomes and the
   untrained diagnostics were known, leaves 0.761 and 0.780 with the untrained arm
   at 0.596, inside its tolerance by 0.004 at the mean though its interval crosses
-  0.60 (FINDINGS section 21). That controlled reading was also obtained without
-  survival, on the pellet-seeking agents with death off; it is a conditional
-  result under the later control, not an independent confirmation under the
-  original rule. A hand-authored drag that, like the learned
+  0.60 (FINDINGS section 21). A confirmation of that control frozen before any
+  of its agents existed, on fresh agent seeds and fresh matched worlds, is met
+  for both objectives: survival 0.709 and pellets with death off 0.743, with the
+  untrained arm at 0.598, inside its tolerance by 0.002 with its interval
+  crossing 0.60 (FINDINGS section 24). The controlled reading without survival
+  is thereby confirmed on fresh seeds and a fresh draw under the later rule; the
+  control is linear, and nonlinear and longer-history variants leave 0.644 to
+  0.725. A hand-authored drag that, like the learned
   law, depends on the agent's own velocity is read through the same direction,
   so nothing here is specific to learned dynamics. Random velocity jitter,
   read from agents raised under the learned law, reaches the 0.65 bar at no setting tried, including strongly autocorrelated jitter matched

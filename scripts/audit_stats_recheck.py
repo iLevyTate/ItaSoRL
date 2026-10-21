@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are: 105 pinned of 3874 on 2026-10-19 (PIN_COUNT and CHECK_FLOOR below). The count
+many there are: 105 pinned of 4004 on 2026-10-21 (PIN_COUNT and CHECK_FLOOR below). The count
 is of check() calls; composite check_true gates that also compare a stored reading with a
 literal are not counted. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
@@ -78,8 +78,8 @@ BAR = 0.65
 # (tests/test_audit_selftest.py). A run that records fewer has lost checks without failing one.
 # Change it deliberately when checks are added or removed, from the count the run prints, never
 # by hand; the manuscript sentences that quote it are checked against it by
-# scripts/build_paper_tables.py --manuscript. The count on 2026-10-19 is 3874.
-CHECK_FLOOR = 3874
+# scripts/build_paper_tables.py --manuscript. The count on 2026-10-21 is 4004.
+CHECK_FLOOR = 4004
 # How many of those checks are pins (labels start "pinned:"), as printed in "pins: P of N".
 PIN_COUNT = 105
 
@@ -3463,6 +3463,41 @@ def main() -> int:
                    f"{_mean:.3f} [{_lo:.3f}, {_hi:.3f}]" in _f21)
     check_true("FINDINGS 21 names the sensory-echo decision",
                "sensory-independent under matched worlds" in _f21)
+    # FINDINGS 24: the prospective balanced confirmation (spec 2026-10-20). Each promoted
+    # sensory-echo reading is recomputed from its per-seed lists; the route file's clauses are
+    # tied to those recomputations, and the quoted values to the FINDINGS text.
+    for _rid, _mean, _lo, _hi in (("pb1", 0.709, 0.675, 0.743), ("pb2", 0.743, 0.714, 0.771)):
+        _ed = _load_art("prospective_balanced", f"sensory_echo_{_rid}.json")
+        _route = _load_art("prospective_balanced", f"{_rid}.json")
+        check_true(f"24 {_rid} integrity", _ed["integrity"]["all_match"] is True
+                   and _ed["integrity"]["mismatches"] == [] and _ed["integrity"]["adjudication_blockers"] == [])
+        check_int(f"24 {_rid} cells", len(_ed["cells"]), 30)
+        check_true(f"24 {_rid} seeds 20 to 29", sorted({int(c["seed"]) for c in _ed["cells"]}) == list(range(20, 30)))
+        check_true(f"24 {_rid} pairs kept and first states shared",
+                   all(c["dropped_pairs"] == 0 and c["identical_first_state"] for c in _ed["cells"]))
+        for _arm in ("survival", "predictor", "untrained"):
+            for _met in ("target", "resid_obs", "resid_obs_int", "resid_obs_mlp", "resid_obs_int_mlp",
+                         "resid_obs_beh_mlp"):
+                _blk = _ed["aggregate"][f"d=0.45 {_arm}"][_met]
+                _ps = np.asarray(_blk["per_seed"], float)
+                check(f"24 {_rid} {_arm} {_met} mean", float(_ps.mean()), float(_blk["mean"]))
+                _tlo, _thi = t_ci90(_ps)
+                check(f"24 {_rid} {_arm} {_met} t90 lo", float(_tlo), float(_blk["t90"][0]))
+                check(f"24 {_rid} {_arm} {_met} t90 hi", float(_thi), float(_blk["t90"][1]))
+        _sv = np.asarray(_ed["aggregate"]["d=0.45 survival"]["resid_obs"]["per_seed"], float)
+        _un = float(np.mean(_ed["aggregate"]["d=0.45 untrained"]["resid_obs"]["per_seed"]))
+        _svlo = float(t_ci90(_sv)[0])
+        check(f"24 {_rid} route trained resid_obs", float(_route["trained_clause"]["trained_resid_obs"]), float(_sv.mean()))
+        check(f"24 {_rid} route untrained resid_obs", float(_route["floor_clause"]["untrained_resid_obs"]), _un)
+        check_true(f"24 {_rid} floor and trained clauses recomputed",
+                   abs(_un - 0.5) <= 0.1 and float(_sv.mean()) >= 0.65 and float(_sv.mean()) > _un + 0.05
+                   and _svlo > _un)
+        check_true(f"24 {_rid} every gate recorded as holding",
+                   all(_route["gates"][k] is True for k in _route["gates"] if k.endswith("_ok")))
+        check_true(f"24 {_rid} route MET", _route["decision"] == "MET")
+        check_true(f"FINDINGS 24 quotes {_rid} resid_obs", f"{_mean:.3f} [{_lo:.3f}, {_hi:.3f}]" in _f21)
+    check("24 untrained floor slack", 0.1 - abs(_un - 0.5), 0.002, tol=0.0005)
+    check_true("FINDINGS 24 names the decision", "**Decision: MET on both runs.**" in _read("docs/FINDINGS.md"))
 
     closing_checks()
 
