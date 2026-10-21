@@ -257,7 +257,11 @@ prints.
   the package built, `dist` uploaded), with the same `date-released` warning as v1.5.1 (2026-10-20
   in UTC against the release commit's Eastern-time date, 2026-10-19).
 
-## 2f. Review archive for v1.5.3, 2026-10-20 (the upload candidate)
+## 2f. Review archive for v1.5.3, 2026-10-20
+
+*Superseded 2026-10-21 by the v1.5.4 archive (section 2g), which carries the review 5 records and
+the prospective balanced confirmation. The v1.5.3 tag and this archive stay as built and are not
+to be uploaded.*
 
 `python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.3/supplement-review.zip`,
 built from the release commit `c5d582c` (tag `v1.5.3`) with the key in `dist/supplement-commit-key.txt`.
@@ -292,6 +296,46 @@ CORRECTIONS entry; no recorded number, label, rule or verdict changed.
 - Tag `v1.5.3` pushed 2026-10-20 on `c5d582c`; its release run passed (the tag names the version,
   the package built, `dist` uploaded).
 
+## 2g. Review archive for v1.5.4, 2026-10-21 (the upload candidate)
+
+`python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.4/supplement-review.zip`,
+built from the release commit `22b351c` (tag `v1.5.4`, the merge of PR #176) with the key in
+`dist/supplement-commit-key.txt`, from a clean checkout of `main` at that commit. Between v1.5.3
+and this build: PR #175 (review 5 records: the L1 smell-channel noise wording, the optional
+bundles README, the CITATION abstract, version 1.5.4) and PR #176 (the prospective balanced
+confirmation, spec `docs/specs/2026-10-20-prospective-balanced-confirmation-design.md`: PB1 and
+PB2 both MET under that spec, frozen before training and amended once before any result; FINDINGS
+24; two prospective rule-ledger rows, 51 rows in all; 4017 audit checks; the packager now gives
+the manuscript repository's commit IDs pseudonyms in any form). No earlier recorded number,
+label, rule or verdict changed.
+
+- `dist/review-1.5.4/supplement-review.zip`: 1422 files, 1421 listed in `SHA256SUMS`;
+  94,335,379 bytes, under the 95,000,000-byte working cap and the 100,000,000 bytes the build
+  enforces.
+- SHA-256 `5cdc5d2841dbfbdd7acc788128fc39aeb3f715d725dd7ea56fc60d8d3855b1a4`, equal to the
+  `archive_sha256` of its commit map.
+- Run bundles as in 2c to 2f: `l3_h8_heldout/agents` (60 files), `l3_h8_gseed2_gpu/agents` (60),
+  `corrected_l3_h8_wm/agents` (90), `corrected_l3_h8_nowm/agents` (90),
+  `corrected_l3_h8_wm/cells` (20) and `corrected_l3_h8_nowm/cells` (20). No B1, B2, PB1 or PB2
+  agents ship; their promoted readings are in `artifacts/`.
+- 392 commit IDs (414 spellings) and 163 recorded digests (164 spellings) replaced by keyed
+  pseudonyms. One commit-field spelling resolves to no local commit: `6ad9577`, a commit of the
+  manuscript repository that the frozen 2026-10-20 spec names as "paper commit", given a
+  pseudonym through the forced path. A scan of every text member of the archive against the
+  manuscript repository's 75 commit IDs finds none left raw. Map local in
+  `dist/review-1.5.4/supplement-review.commit-map.json`. The identity scan found no identity
+  string, and every image is on the reviewed list.
+- Before the build: the release workflow, dispatched on `22b351c`, passed, and a fresh clone's
+  reachability gate printed `[]` and `None`.
+- In a fresh extraction: 1421 of 1421 `SHA256SUMS` lines verify;
+  `python -E scripts/reproduce.py tables --check` passes, with the audit at 4016 checks and one
+  skipped (4017 in a git checkout); `python -E -m pytest -q -rs` gives 1566 passed, 41 skipped,
+  0 failed on Python 3.13.2 with NumPy 1.26.4, run in seven foreground parts over the 156 test
+  files. The skips match the v1.5.3 run reason for reason and count for count (41 skips on 29
+  lines); the only textual difference is the pseudonym of one commit ID inside eight skip
+  reasons, since pseudonyms are reassigned when the commit set grows.
+- Tag `v1.5.4` pushed 2026-10-21 on `22b351c`; its release run passed.
+
 ## 3. Clean extraction
 
 Extracted into an empty directory outside the repository. Every checksum in `SHA256SUMS`
@@ -318,7 +362,17 @@ directory, so they must not be run with `python -I`; `reproduce.py` does not nee
 
 ## 4. Source package
 
-*Final, 2026-10-20 (after the final audits):* paper commit `a5cf793`, 92 pages with the main text
+*Final, 2026-10-21 (v1.5.4, after the review 5 waves and the prospective confirmation):* paper
+commit `7af8919`, 95 pages with the main text ending on page 35, `docs/paper/dist/source.zip`
+(21 files, 311,136 bytes), SHA-256
+`df5a86a2ebdf86ea678f60cf2a57b938f36e83f923e0261b57eb8b8169072cfc`, the same bytes on two builds,
+whose standalone compile gave 95 pages with no undefined reference or overfull box and page-by-page
+text identical to `docs/paper/main.pdf`; `pdfinfo` gives an empty Author field. The two review 5
+referee reports were triaged and answered in waves (paper fixes, prose reframing, the prospective
+confirmation and its write-up), each audited independently with every blocking and should-fix
+finding applied. The packaged `main.tex` carries "Anonymous authors".
+
+*Superseded, 2026-10-21:* paper commit `a5cf793`, 92 pages with the main text
 ending on page 33, `docs/paper/dist/source.zip` (21 files, 307,242 bytes), SHA-256
 `ca0191e2f43f0c2c052f69cc84e64922d0ab636822f53596a1e62004fa97f26c`, the same bytes on two builds,
 whose standalone compile gave 92 pages with no undefined reference or overfull box and page-by-page
