@@ -111,7 +111,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `GATE0-L1-FOLDS` | historical | A | - | none | - | 75ce098 | both | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `BUDGET-CURVE-DYNAMICS` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 75ce098 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `BAYES-FACTORS` | historical | methods | - | none | - | 75ce098 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
-| `THRESHOLD-SENSITIVITY` | historical | methods | - | none | - | 48af14a (curated) | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
+| `THRESHOLD-SENSITIVITY` | historical | methods | - | none | - | 4d5e611 | n/a | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `QD-EPS6-ORACLE` | historical | methods | - | none | - | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `C1-REGEN-LOCAL` | corrected | methods | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `PROBE-SENSITIVITY` | historical and corrected | methods | - | inherited: pre_transition_value (L3-H8-HELDOUT, L1-ORGANISM) and successor_value (L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1) | L3-H8-HELDOUT, L1-ORGANISM, L1-CORRECTED, B1-BALANCED, B2-BALANCED, C1 | 75ce098 | explicit (explicit-v1, one group per episode) | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
@@ -1402,8 +1402,8 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 
 - Status: historical
 - Trainer: none
-- Commit at run: 48af14a
-- Commit source: curated: the artifacts record e792adb instead
+- Commit at run: 4d5e611
+- Commit source: recorded
 - Folds: n/a
 - Device: owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3

@@ -1350,7 +1350,7 @@ RUNS = [
               "the observed sd), not exact Bayes factors for the fixed raw-scale band. " + CLOSING_NOTE),
     run("THRESHOLD-SENSITIVITY", "Bar and margin sensitivity of the rule ledger (G06)",
         experiment="methods", artifacts=["threshold_sensitivity/bar_margin.json"], claims=[],
-        trains_survival=False, survival_trainer="none", commit_at_run="48af14a", folds="n/a",
+        trains_survival=False, survival_trainer="none", commit_at_run="4d5e611", folds="n/a",
         device=closing_cpu(1), deps=CLOSING_DEPS,
         notes=f"scripts/audit_threshold_sensitivity.py (G06, 2026-10-19), regenerated 2026-10-21 on a clean "
               "tree after the two prospective balanced ledger rows were committed; "

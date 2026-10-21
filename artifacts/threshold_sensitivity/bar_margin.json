@@ -419,8 +419,8 @@
  ],
  "provenance": {
   "generated_by": "scripts/audit_threshold_sensitivity.py",
-  "git_commit": "e792adb",
-  "tracked_changes_at_generation": ["docs/RULE_LEDGER.md", "docs/rule_ledger.json", "scripts/promote_sensory_echo.py", "tests/test_promote_sensory_echo.py"],
+  "git_commit": "4d5e611",
+  "tracked_changes_at_generation": [],
   "stack": {
    "python": "3.13.2",
    "numpy": "1.26.4",
