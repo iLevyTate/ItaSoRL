@@ -8,7 +8,8 @@
 > - **No weather and no dynamic fields.** The weather seed stream is drawn and never used;
 >   `_update_fields` does nothing, so there is no scent diffusion, no field decay, and no
 >   Ornstein-Uhlenbeck weather. Ambient temperature is a closed-form function of a day and
->   season light cycle and terrain height. Smell is masked to zeros.
+>   season light cycle and terrain height. Smell is masked to zeros before sensor noise; at L1
+>   the sensor noise reaches them like every other channel.
 > - **A closed unit square, not a torus.** A wall clips position to [0, 1] and sets the outward
 >   velocity component to zero (an inelastic stop, not a reflection).
 > - **One creature** with energy, hydration, and body temperature; food pellets (12 by default, 24

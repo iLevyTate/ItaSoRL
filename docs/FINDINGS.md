@@ -4891,6 +4891,9 @@ limitation that no comparator-trained run supports it stays.
    controlled decodability reading of the pellet-seeking, death-off agents" in that sense. The
    manuscript revision of 2026-10-19 (full-review pass) words it so; `docs/CORRECTIONS.md`,
    2026-10-19.)*
+   *(Note 2026-10-20: after review 5 the manuscript words this as "the controlled reading was
+   also obtained without survival" on these agents, with the untrained floor met by 0.004 at the
+   mean and its interval crossing 0.60; `docs/CORRECTIONS.md`, 2026-10-20, review 5.)*
 2. **Removing death changes nothing measurable** in the survival run (18.2). The stakes question
    itself stays open, with no scarce rung.
 3. **The decoded direction is not used under the tested nudge** (18.3), in both runs and in `C1`.
