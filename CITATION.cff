@@ -8,7 +8,7 @@ authors:
     orcid: "https://orcid.org/0009-0009-1337-0709"
 repository-code: "https://github.com/iLevyTate/ItaSoRL"
 license: MIT
-version: 1.5.3
+version: 1.5.4
 date-released: "2026-10-20"
 abstract: >-
   ITASORL measures whether a recurrent agent trained from scratch, with no
@@ -49,10 +49,13 @@ abstract: >-
   confirmation frozen before it ran scores the same trainer on matched world
   seeds: survival reads 0.800 and the pellet objective 0.843, and both runs are
   uninformative because the untrained arm reads 0.614, outside the 0.1 floor. A
-  later in-fold linear sensory control, frozen after those raw outcomes were
-  known, leaves 0.761 and 0.780 with the untrained arm at 0.596, whose interval
-  crosses 0.60 (FINDINGS section 21); survival is not required for that
-  controlled decodability reading. A hand-authored drag that, like the learned
+  later in-fold linear sensory control, frozen after those raw outcomes and the
+  untrained diagnostics were known, leaves 0.761 and 0.780 with the untrained arm
+  at 0.596, inside its tolerance by 0.004 at the mean though its interval crosses
+  0.60 (FINDINGS section 21). That controlled reading was also obtained without
+  survival, on the pellet-seeking agents with death off; it is a conditional
+  result under the later control, not an independent confirmation under the
+  original rule. A hand-authored drag that, like the learned
   law, depends on the agent's own velocity is read through the same direction,
   so nothing here is specific to learned dynamics. Random velocity jitter,
   read from agents raised under the learned law, reaches the 0.65 bar at no setting tried, including strongly autocorrelated jitter matched
