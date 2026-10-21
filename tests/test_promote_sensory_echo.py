@@ -67,9 +67,9 @@ def test_balanced_run_promotes_pair_bookkeeping_and_balanced_decision(tmp_path):
     assert cell["recorded_target"] == 0.5938 and cell["n_pairs"] == 110 and "extra" not in cell
 
 
-def _balanced_cells(resid_obs=0.76, untrained=0.52):
+def _balanced_cells(resid_obs=0.76, untrained=0.52, seeds=range(10, 20)):
     cells = []
-    for seed in range(10, 20):
+    for seed in seeds:
         for arm, level in (("survival", resid_obs), ("predictor", 0.60), ("untrained", untrained)):
             cells.append({
                 "drift": "0.45", "seed": seed, "agent": arm, "n_auth": 110, "n_surr": 110,
@@ -168,3 +168,25 @@ def test_pooled_promotion_requires_a_declared_cell_set(tmp_path):
     out = pse.promote(str(run), str(tmp_path / "o.json"), head="abc")
     assert out["decision"]["zone"].startswith("WITHHELD")
     assert "declared cell set missing" in " ".join(out["integrity"]["adjudication_blockers"])
+
+
+def test_declared_prospective_population_promotes_with_its_own_spec(tmp_path):
+    """A bundle that declares seeds 20 to 29 (spec 2026-10-20) is recomputed against that
+    population, not seeds 10 to 19, and records the spec it is promoted under."""
+    run = tmp_path / "fullruns" / "prospective_balanced_wm" / "sensory_echo"
+    run.mkdir(parents=True)
+    seeds = range(20, 30)
+    cells = _balanced_cells(seeds=seeds)
+    agg = {"hidden": 8, "g_seed": 0, "n_eps": 110, "steps": 24, "quick": False, "device": "cuda",
+           "bar": 0.65, "margin": 0.05, "mode": "balanced", "balanced_seed_base": 3000000,
+           "objective": "survival", "mortal": True, "stack": {"torch": "2.7.0+cu126"},
+           "declared_keys": [["0.45", s, a] for s in seeds for a in ("predictor", "survival", "untrained")],
+           "integrity": {"checked": True, "mismatches": [], "all_match": True}}
+    (run / "cells.json").write_text(json.dumps(cells), encoding="utf-8")
+    (run / "aggregate.json").write_text(json.dumps(agg), encoding="utf-8")
+    spec = "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md"
+    out = pse.promote(str(run), str(tmp_path / "o.json"), head="abc", spec=spec)
+    assert out["spec"] == spec
+    assert out["decision_balanced"]["zone"].startswith("SENSORY-INDEPENDENT")
+    assert out["integrity"]["adjudication_blockers"] == []
+    assert "resid_obs_int_mlp" in out["cells"][0]

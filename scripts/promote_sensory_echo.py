@@ -29,7 +29,7 @@ import audit_sensory_echo as ase
 from promote_bv3_gates import repo_rel
 
 METRICS = ("target", "obs_trace_only", "resid_trace", "resid_obs", "resid_obs_int", "resid_obs_beh",
-           "resid_obs_mlp", "resid_obs_beh_mlp")   # the last two only in --nonlinear runs
+           "resid_obs_mlp", "resid_obs_beh_mlp", "resid_obs_int_mlp")   # the last three only in --nonlinear runs
 BALANCED_CELL_KEYS = ("n_pairs", "dropped_pairs", "identical_first_state", "recorded_target",
                       "target_abs_diff")
 
@@ -42,7 +42,7 @@ def git_head() -> str:
         return "unknown"
 
 
-def promote(run_dir: str, out_path: str, head: str | None = None) -> dict:
+def promote(run_dir: str, out_path: str, head: str | None = None, spec: str | None = None) -> dict:
     with open(os.path.join(run_dir, "aggregate.json"), encoding="utf-8") as fh:
         agg = json.load(fh)
     with open(os.path.join(run_dir, "cells.json"), encoding="utf-8") as fh:
@@ -55,8 +55,8 @@ def promote(run_dir: str, out_path: str, head: str | None = None) -> dict:
         cell_keys = cell_keys + BALANCED_CELL_KEYS
     out = {
         "source_run": repo_rel(run_dir),
-        "spec": ("docs/specs/2026-10-13-balanced-sensory-echo-design.md" if balanced
-                 else "docs/specs/2026-09-26-l3-sensory-echo-control-design.md"),
+        "spec": spec or ("docs/specs/2026-10-13-balanced-sensory-echo-design.md" if balanced
+                         else "docs/specs/2026-09-26-l3-sensory-echo-control-design.md"),
         "world": "WorldParams(k_land=1.5, k_water=1.5, gravity=0.4) [P]",
         "surrogate": f"L3 GMotion hidden={agg['hidden']} seed={agg['g_seed']} trained on P",
         "agents": (f"saved fullruns/{agents_dir}/agents bundles (readout-only, no training)" if balanced
@@ -80,6 +80,11 @@ def promote(run_dir: str, out_path: str, head: str | None = None) -> dict:
         out["objective"] = agg["objective"]
         out["mortal"] = agg["mortal"]
         out["stack"] = agg.get("stack")
+        # The population the run declared (seeds 20 to 29 for spec 2026-10-20); a bundle
+        # written before the runner recorded it is the 2026-10-13 population.
+        declared = agg.get("declared_keys")
+        expected = ({(str(drift), int(seed), str(arm)) for drift, seed, arm in declared}
+                    if declared else set(ase.BALANCED_SPEC_KEYS))
         recomputed = ase.aggregate(
             cells, [0.45], ["survival", "predictor", "untrained"],
             hidden=int(agg["hidden"]), g_seed=int(agg["g_seed"]),
@@ -89,7 +94,7 @@ def promote(run_dir: str, out_path: str, head: str | None = None) -> dict:
             balanced_seed_base=int(agg.get("balanced_seed_base") or 0),
             objective=str(agg.get("objective") or "survival"),
             mortal=bool(agg.get("mortal", True)),
-            expected_keys=set(ase.BALANCED_SPEC_KEYS))
+            expected_keys=expected)
         out["decision_balanced"] = recomputed.get("decision_balanced")
         out["aggregate"] = {key: value for key, value in recomputed.items() if key.startswith("d=")}
         out["integrity"]["adjudication_blockers"] = recomputed["integrity"]["adjudication_blockers"]
@@ -130,8 +135,9 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", default="fullruns/l3_h8_sensory_echo")
     ap.add_argument("--out", default="artifacts/expB2/sensory_echo_l3_h8.json")
+    ap.add_argument("--spec", default=None, help="spec path recorded in the artifact (default by mode)")
     a = ap.parse_args()
-    out = promote(a.run, a.out)
+    out = promote(a.run, a.out, spec=a.spec)
     if out.get("mode") == "balanced":
         dec = out["decision_balanced"] or {}
         print(f"wrote {a.out}: trained resid_obs {dec.get('trained_resid_obs', float('nan')):.3f} "

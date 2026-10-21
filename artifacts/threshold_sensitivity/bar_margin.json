@@ -9,24 +9,24 @@
  },
  "excluded_rule_clauses": "TOST|gate 0|speed|leak|C1 minus C2|\\blead\\b",
  "clauses_moved": {
-  "bar": 73,
-  "margin": 65
+  "bar": 75,
+  "margin": 67
  },
  "ledger_tally": {
-  "threshold met": 19,
+  "threshold met": 21,
   "threshold not met": 21,
   "uninformative": 7,
   "no verdict": 2
  },
- "n_rows": 49,
- "n_adjudicated": 40,
+ "n_rows": 51,
+ "n_adjudicated": 42,
  "reference": {
   "recorded": {
-   "holds": 22,
+   "holds": 24,
    "fails": 18
   },
   "recomputed": {
-   "holds": 22,
+   "holds": 24,
    "fails": 18
   },
   "clauses_hold_mismatches": [],
@@ -36,7 +36,7 @@
   {
    "bar": 0.6,
    "margin": 0.03,
-   "holds": 26,
+   "holds": 28,
    "fails": 14,
    "flips": [
     {
@@ -72,7 +72,7 @@
   {
    "bar": 0.6,
    "margin": 0.05,
-   "holds": 25,
+   "holds": 27,
    "fails": 15,
    "flips": [
     {
@@ -101,7 +101,7 @@
   {
    "bar": 0.6,
    "margin": 0.1,
-   "holds": 23,
+   "holds": 25,
    "fails": 17,
    "flips": [
     {
@@ -130,21 +130,21 @@
   {
    "bar": 0.65,
    "margin": 0.03,
-   "holds": 22,
+   "holds": 24,
    "fails": 18,
    "flips": []
   },
   {
    "bar": 0.65,
    "margin": 0.05,
-   "holds": 22,
+   "holds": 24,
    "fails": 18,
    "flips": []
   },
   {
    "bar": 0.65,
    "margin": 0.1,
-   "holds": 21,
+   "holds": 23,
    "fails": 19,
    "flips": [
     {
@@ -159,7 +159,7 @@
   {
    "bar": 0.7,
    "margin": 0.03,
-   "holds": 13,
+   "holds": 15,
    "fails": 27,
    "flips": [
     {
@@ -230,7 +230,7 @@
   {
    "bar": 0.7,
    "margin": 0.05,
-   "holds": 13,
+   "holds": 15,
    "fails": 27,
    "flips": [
     {
@@ -301,7 +301,7 @@
   {
    "bar": 0.7,
    "margin": 0.1,
-   "holds": 13,
+   "holds": 15,
    "fails": 27,
    "flips": [
     {
@@ -419,8 +419,8 @@
  ],
  "provenance": {
   "generated_by": "scripts/audit_threshold_sensitivity.py",
-  "git_commit": "48af14a",
-  "tracked_changes_at_generation": [],
+  "git_commit": "e792adb",
+  "tracked_changes_at_generation": ["docs/RULE_LEDGER.md", "docs/rule_ledger.json", "scripts/promote_sensory_echo.py", "tests/test_promote_sensory_echo.py"],
   "stack": {
    "python": "3.13.2",
    "numpy": "1.26.4",

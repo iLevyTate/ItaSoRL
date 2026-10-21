@@ -3947,6 +3947,202 @@
    ]
   },
   {
+   "id": "PB1-ECHO",
+   "rule": "Prospective balanced confirmation (2026-10-20 spec): gates 1 to 7, floor, then bar, margin, and t90 lower bound",
+   "short": "Prospective balanced, survival",
+   "source": "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md",
+   "source_part": "Primary decision (per run, `PB1` and `PB2` separately)",
+   "frozen": "2026-10-20",
+   "run": "PB1",
+   "trainer": "successor",
+   "n": 10,
+   "clauses_hold": true,
+   "gates_hold": true,
+   "outcome": "MET: every gate, the floor clause and the trained clause hold",
+   "outcome_class": "threshold met",
+   "timing": "prospective",
+   "timing_note": "Frozen 2026-10-20 19:40 UTC (7d08686) before training began (19:40:30); amended once at 19:54 UTC (ea8ceea), while training ran and before any cell file existed (first cell 19:57:06); the promotion code was committed at 19:57:05 (e792adb), before any drift-0.45 cell. Fresh agent seeds 20 to 29 and fresh matched worlds at base 3000000.",
+   "recorded_in": "FINDINGS 24",
+   "note": "Route from artifacts/prospective_balanced/pb1.json; gates 1 to 7 are recorded there. The strict interval reading S1 is not met (the untrained t90 upper bound exceeds 0.60). The untrained resid_obs scores match the other PB run.",
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "prospective_balanced/sensory_echo_pb1.json",
+      "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+      "stat": "mean"
+     },
+     "reading": "0.709",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb1.json",
+        "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+        "stat": "mean"
+       },
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb1.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.111",
+     "role": "rule"
+    },
+    {
+     "clause": "t90 lower bound minus the untrained mean",
+     "basis": "difference",
+     "op": ">",
+     "threshold": 0.0,
+     "value": {
+      "minus": [
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb1.json",
+        "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+        "stat": "t90_lower"
+       },
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb1.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.077",
+     "role": "rule"
+    },
+    {
+     "clause": "untrained floor",
+     "basis": "absolute deviation of the untrained resid_obs mean from 0.5",
+     "op": "<=",
+     "threshold": 0.1,
+     "value": {
+      "minus": [
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb1.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       },
+       {
+        "const": 0.5
+       }
+      ]
+     },
+     "reading": "0.098",
+     "role": "gate"
+    }
+   ]
+  },
+  {
+   "id": "PB2-ECHO",
+   "rule": "Prospective balanced confirmation (2026-10-20 spec): gates 1 to 7, floor, then bar, margin, and t90 lower bound",
+   "short": "Prospective balanced, pellets",
+   "source": "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md",
+   "source_part": "Primary decision (per run, `PB1` and `PB2` separately)",
+   "frozen": "2026-10-20",
+   "run": "PB2",
+   "trainer": "successor",
+   "n": 10,
+   "clauses_hold": true,
+   "gates_hold": true,
+   "outcome": "MET: every gate, the floor clause and the trained clause hold",
+   "outcome_class": "threshold met",
+   "timing": "prospective",
+   "timing_note": "Frozen 2026-10-20 19:40 UTC (7d08686) before training began (19:40:30); amended once at 19:54 UTC (ea8ceea), while training ran and before any cell file existed (first cell 19:57:06); the promotion code was committed at 19:57:05 (e792adb), before any drift-0.45 cell. Fresh agent seeds 20 to 29 and fresh matched worlds at base 3000000.",
+   "recorded_in": "FINDINGS 24",
+   "note": "Route from artifacts/prospective_balanced/pb2.json; gates 1 to 7 are recorded there. The strict interval reading S1 is not met (the untrained t90 upper bound exceeds 0.60). The untrained resid_obs scores match the other PB run.",
+   "clauses": [
+    {
+     "clause": "bar",
+     "basis": "mean",
+     "op": ">=",
+     "threshold": 0.65,
+     "value": {
+      "artifact": "prospective_balanced/sensory_echo_pb2.json",
+      "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+      "stat": "mean"
+     },
+     "reading": "0.743",
+     "role": "rule"
+    },
+    {
+     "clause": "margin over untrained",
+     "basis": "difference of means",
+     "op": ">",
+     "threshold": 0.05,
+     "value": {
+      "minus": [
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb2.json",
+        "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+        "stat": "mean"
+       },
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb2.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.145",
+     "role": "rule"
+    },
+    {
+     "clause": "t90 lower bound minus the untrained mean",
+     "basis": "difference",
+     "op": ">",
+     "threshold": 0.0,
+     "value": {
+      "minus": [
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb2.json",
+        "path": "aggregate/d=0.45 survival/resid_obs/per_seed",
+        "stat": "t90_lower"
+       },
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb2.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       }
+      ]
+     },
+     "reading": "0.116",
+     "role": "rule"
+    },
+    {
+     "clause": "untrained floor",
+     "basis": "absolute deviation of the untrained resid_obs mean from 0.5",
+     "op": "<=",
+     "threshold": 0.1,
+     "value": {
+      "minus": [
+       {
+        "artifact": "prospective_balanced/sensory_echo_pb2.json",
+        "path": "aggregate/d=0.45 untrained/resid_obs/per_seed",
+        "stat": "mean"
+       },
+       {
+        "const": 0.5
+       }
+      ]
+     },
+     "reading": "0.098",
+     "role": "gate"
+    }
+   ]
+  },
+  {
    "id": "L1-CORRECTED",
    "rule": "Primary rule (H_B2) at L1, observation quantization, corrected trainer",
    "short": "L1 primary (H_B2), corrected",
