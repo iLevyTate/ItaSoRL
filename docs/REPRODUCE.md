@@ -407,6 +407,19 @@ in the full build and are otherwise kept by the authors; the C1 and C2 agents an
 also on the public branches `run/C1-rerun` and `run/C2-rerun`. A DOI archive record for them
 comes only after the review decision.
 
+What replays from the review archive, result by result. From saved agents inside the archive:
+the corrected runs `C1` and `C2` (rerun agents and cells; state dumps rebuild from the agents)
+and the historical hidden-8 held-out run's direction-of-rearing and world-sample readouts. From
+committed scalar artifacts only, with no agents in the archive: `B1` and `B2`
+(`artifacts/balanced_confirmation/`), `PB1` and `PB2` (`artifacts/prospective_balanced/`) and
+`L1-CORRECTED` (`artifacts/corrected_runs/l1-corrected/`); their means, intervals, margins and
+gate outcomes can be recomputed from the per-seed records, and their hidden-state probes cannot
+be rerun from the archive. From saved agents on public branches of this repository rather than
+in the archive: `run/C1-rerun`, `run/C2-rerun`, `run/H7-corrected`, `run/H8GS2-corrected`,
+`run/H10GS1-corrected`, `run/T-touch`, `run/S-immortal`, `run/T-gn-h96` and
+`upload/l1-heldout-agents` (section 1 gives the fetch route). The `B1`, `B2`, `PB1` and `PB2`
+agents are on no branch and are kept by the authors.
+
 Author names, handles, e-mail addresses, ORCID identifiers, and local paths (Windows, Git Bash,
 WSL, macOS and Linux forms) are scrubbed from text files; the identity terms are read at build
 time from `CITATION.cff` and the git remote, so the builder names no one. The build fails if
