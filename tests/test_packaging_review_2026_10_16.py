@@ -496,6 +496,15 @@ def test_manuscript_commit_ids_in_any_form_get_pseudonyms():
     assert "abcdef1" not in out and len(out) == len(text)
 
 
+def test_a_manuscript_folder_without_its_own_repository_lists_no_ids(tmp_path):
+    """A source inside this checkout with no .git of its own would make git walk up and list
+    this repository's commits as the manuscript's; it lists none, and one outside any
+    repository lists none either."""
+    assert reproduce.manuscript_commit_ids(os.path.join(reproduce.ROOT, "README.md")) == []
+    (tmp_path / "main.tex").write_text("x", encoding="utf-8")
+    assert reproduce.manuscript_commit_ids(str(tmp_path)) == []
+
+
 def test_c6_a_build_whose_pseudonyms_change_a_number_leaves_no_archive(tmp_path, monkeypatch):
     if not reproduce.commit_ids():
         pytest.skip("needs a git checkout")

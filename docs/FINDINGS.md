@@ -6838,10 +6838,11 @@ reads 0.724 on the matched speed probe; the spec reads the untrained arm on its 
 and every untrained and predictor value is in the artifact. **The amendment decides the
 route.** The first text (`7d08686`) read this gate on every pool of every arm, as the
 2026-10-12 spec does; under it seed 25 fails and both runs are UNINFORMATIVE. The amendment
-(`ea8ceea`, 19:54 UTC), made after an independent audit of the first text
-(`fullruns/closing_2026-10/handoff/reviews/audit_pb_spec.md`, local) put the chance that ten fresh untrained seeds all reach 0.75 at about
-0.34 from `B1`'s own values, and before any agent file (19:55:19) or cell existed, moved the
-gate to the trained arm with the untrained mean. Reconstruction of the matched gates
+(`ea8ceea`, 19:54 UTC), made before any agent file (19:55:19) or cell existed, moved the gate
+to the trained arm with the untrained mean. It followed an audit of the first text, which had
+put the chance that ten fresh untrained seeds all reach 0.75 at about 0.34 from `B1`'s own
+values (`fullruns/closing_2026-10/handoff/reviews/audit_pb_spec.md`, kept locally, not in the
+repository). Reconstruction of the matched gates
 from `matched_gates.json` agrees with every training cell (largest difference 0.0).
 
 **Pre-stated secondary readings (their own labels, not the decision).**

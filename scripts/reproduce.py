@@ -1885,8 +1885,13 @@ def manuscript_commit_ids(path: str | None = None) -> list[str]:
     src = paper_source(path)
     if not src:
         return []
+    folder = os.path.dirname(os.path.abspath(src))
     try:
-        res = subprocess.run(["git", "-C", os.path.dirname(src), "rev-list", "--all"],
+        top = subprocess.run(["git", "-C", folder, "rev-parse", "--show-toplevel"],
+                             capture_output=True, text=True, check=True, timeout=60).stdout.strip()
+        if os.path.normcase(os.path.realpath(top)) == os.path.normcase(os.path.realpath(ROOT)):
+            return []        # no repository of its own: git walked up into this checkout
+        res = subprocess.run(["git", "-C", folder, "rev-list", "--all"],
                              capture_output=True, text=True, check=True, timeout=60)
     except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
         return []
@@ -2056,9 +2061,13 @@ def supplement(out: str, runs_root: str | None = None,
     # The commit IDs that commit fields name, and the digests to replace, from every text member.
     named: set = set()
     paper_ids: set = set()
+    manuscript: list = []
     digests: set = set()
     if anon_name and not in_archive:
         manuscript = manuscript_commit_ids(paper)
+        if not manuscript:
+            print("  WARNING: the manuscript repository's commit IDs could not be listed; only "
+                  "'paper commit X' spellings of them will get pseudonyms", flush=True)
         for rel, src in pairs:
             if is_text(rel):
                 with open(src, "rb") as fh:
@@ -2082,6 +2091,7 @@ def supplement(out: str, runs_root: str | None = None,
             histories[rel] = patch
             if anon_name and not in_archive:
                 digests |= digest_tokens(patch)
+                paper_ids |= paper_commit_tokens(patch) | manuscript_tokens(patch, manuscript, commits)
     key_path = key_path or COMMIT_KEY
     # Manuscript-repository IDs get pseudonyms too; the history check above does not read them.
     forced = sorted(t for t in named | paper_ids if not _resolves(commits, t))
