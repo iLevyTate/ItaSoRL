@@ -127,3 +127,9 @@ the Experiment C panel range (320000 + 10000 s + p, from 320000). The overlap is
 training schedules and not a new draw: no `B1` or `B2` readout draws from those panels, and the
 balanced run's own bases (910000) are unaffected. `BASES_IN_USE` in `itasorl/post_review.py`
 now lists the predictor span. No reading changes.
+
+2026-10-21 note: the sensory-echo rule of 2026-10-13 that followed this confirmation was tested
+prospectively on fresh seeds 20 to 29 and fresh matched worlds, with gates 1 to 7 of this design as
+the matched design can pass them, and is MET on both objectives
+(`docs/specs/2026-10-20-prospective-balanced-confirmation-design.md`, FINDINGS 24). The routes
+above stay UNINFORMATIVE as recorded.

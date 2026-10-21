@@ -231,6 +231,12 @@ is the standard deviation over seeds.
 
 ## Known gaps
 
+- 2026-10-21: the manuscript's claims appendix carries rows 59 to 64 for the matched-world
+  confirmation (B1, B2, uninformative), its later sensory control (later rule met) and the
+  prospective confirmation of that control (PB1, PB2, MET under the 2026-10-13 rule with the
+  matched gates, frozen before training and amended once before any result), with the nonlinear
+  and longer-history controls as row 64; those rows stay with the appendix, as its preamble
+  says. No row here changes. FINDINGS 21 and 24; `docs/rule_ledger.json` rows 45 to 50.
 - 2026-10-19 (full review 1): the manuscript attaches the shared evaluation-world draw to 0.733,
   the tested-regime and general-necessity qualifiers to the auxiliary lead, the drag's
   untrained floor and the jitter-draw qualifier to the texture readings, the later-procedure

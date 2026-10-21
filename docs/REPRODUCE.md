@@ -51,8 +51,8 @@ The rebuild writes, from the committed per-seed artifacts under `artifacts/`:
   They stay local like the manuscript: `docs/paper_tables/` and `docs/paper/` are both
   gitignored, nothing in them is committed, and the audit renders the tables in memory.
 
-It then runs `scripts/audit_stats_recheck.py`. The script prints the count (4017 on 2026-10-21,
-after the prospective balanced checks). Inside the extracted archive the count reads one lower (4016
+It then runs `scripts/audit_stats_recheck.py`. The script prints the count (4159 on 2026-10-21,
+after the prospective balanced checks). Inside the extracted archive the count reads one lower (4158
 checks plus one skipped), because one check reads the film VO and music spec, which the archive
 leaves out; the script names that file on a `[skip]` line and prints the count on a `skipped:`
 line. **What the audit checks:** it recomputes each summary statistic it guards from the
@@ -303,7 +303,8 @@ If either bundle is missing from the supplement, README_SUPPLEMENT.md says so. A
 
 Recipes are recorded for the corrected runs `C1` and `C2`, for the corrected L1 rerun
 `L1-CORRECTED` (the README's second headline, 0.551), for the matched-world confirmations
-`B1-BALANCED` and `B2-BALANCED` (one CUDA worker each, as their spec ran them), for the
+`B1-BALANCED` and `B2-BALANCED` and their prospective confirmation `PB1` and `PB2` (one CUDA
+worker each, as their specs ran them), for the
 historical CPU runs (with `--gae-bootstrap pre_transition`, the historical trainer, kept for
 exact reproduction), and for the published GPU headline. `tests/test_expb2_trunk_guard.py`
 checks that every recorded `run_expB2.py` recipe hashes to the configuration fingerprint its
@@ -390,6 +391,10 @@ The full build (the default profile) also holds the run folders listed in `RUN_D
 - `fullruns/balanced_confirmation_wm` and `fullruns/balanced_confirmation_touch`, the run folders
   of the matched-world confirmations `B1` and `B2` (cells, saved agents, frozen normalizers and
   the matched-world sensory-control output), from which the matched gates replay (section 2).
+- `fullruns/prospective_balanced_wm` and `fullruns/prospective_balanced_touch`, the run folders
+  of the prospective confirmation `PB1` and `PB2` (cells, saved agents, state dumps,
+  `matched_gates.json` and the sensory-echo readouts), from which the matched gates and the
+  sensory-echo readings replay.
 - `fullruns/corrected_l1_heldout`, the run folder of `L1-CORRECTED` (20 cells, 60 saved agents
   and 60 state dumps), from which the stream and surprise readouts replay.
 
@@ -507,8 +512,10 @@ passed, 24 skipped and 1 failed there; the failure was `tests/test_optional_read
 found no optional-readout files to read. The archive now carries `docs/optional/` (its README
 and the readout files), so that test runs inside it as it does in a git checkout. The tests of
 the social-preview card and of the web player's beat and brain data skip inside an archive,
-because it leaves those files out, and still fail in a git checkout when a file is missing. No
-full test run in a fresh extraction of an archive built with these changes is on record yet. The
+because it leaves those files out, and still fail in a git checkout when a file is missing. Fresh
+extractions of the review archives of 2026-10-19 to 2026-10-21 (v1.5.0 to v1.5.4) have since run
+the full suite: 1537, 1538, 1542, 1542 and 1566 passed with 41 skipped and none failed, every
+`SHA256SUMS` line verifying and the audit passing one check short of the checkout count. The
 record of these runs is the repository's submission check, which the archive does not carry.
 
 ## Corrections and provenance

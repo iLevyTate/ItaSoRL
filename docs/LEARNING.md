@@ -4,8 +4,9 @@ This is the explainer. Every term, experiment, and process in ordinary English,
 then the research it sits on (APA 7 at the end). Written for an adult, not a
 child. Acts 1 to 9 of section 8 keep their numbers as first recorded, and every
 survival creature in them was trained with the historical trainer. Section 8 was
-updated 2026-10-06 with the corrected-trainer results (Act 10) and 2026-10-19 with
-Acts 11 and 12, which cover October 11 to 16. Living sources:
+updated 2026-10-06 with the corrected-trainer results (Act 10), 2026-10-19 with
+Acts 11 and 12, which cover October 11 to 16, and 2026-10-21 with the test set up in
+advance that closes Act 11. Living sources:
 `docs/FINDINGS.md` and `docs/PREREGISTRATION_L3.md`.
 
 Each idea gets a comparison first, then a precise sentence. If you can walk from
@@ -447,7 +448,7 @@ Precisely (`itasorl/behavior_audit.py`, `scripts/audit_behavior_mediation.py`):
 
 ---
 
-## 8. What We Found So Far (updated 2026-10-19)
+## 8. What We Found So Far (updated 2026-10-21)
 
 The story in twelve acts, with real numbers. Remember: 0.5 is blind guessing, 1.0
 is perfect, and 0.65 is the pre-registered bar. Acts 1 to 5 are the original arc.
@@ -721,7 +722,17 @@ reads 0.614 there, outside the 0.1 tolerance around chance. A random brain's own
 separates the matched worlds, so the run cannot say what training added. A sensory control
 written after those results were known, and before any trained creature was scored under it,
 subtracts what the last two observations predict. It leaves 0.761 and 0.780, with the
-untrained network at 0.596 and an interval (0.577 to 0.615) that crosses 0.60 (FINDINGS 21). On
+untrained network at 0.596 and an interval (0.577 to 0.615) that crosses 0.60 (FINDINGS 21).
+Because that control was written after its own results were known, a test set up in advance
+came next (2026-10-20 to 21): the same control and pass mark, with the gates of the matched
+design, fixed before any creature was trained, then applied to ten brand-new creatures (seeds
+20 to 29) on new matched worlds, once for the survival job and once for the pellet job with
+death off. The rule was amended once, 14 minutes into training and before any result existed,
+moving the speed check to the trained network and the untrained networks' average; under the
+first wording one untrained seed (0.724) would have left both runs uninformative. Both pass:
+survival 0.709 (0.675 to 0.743) and pellets 0.743 (0.714 to 0.771), with the untrained
+network at 0.598, inside the limit by only 0.002, and the stricter reading on intervals not met.
+Nonlinear and longer-history versions of the control keep 0.644 to 0.725 (FINDINGS 24). On
 the one pair of real worlds where the honesty check of Act 10 stays open, these new survival
 creatures read 0.561 (interval 0.527 to 0.595), so that open check repeats on a second set of
 creatures.
@@ -785,10 +796,11 @@ itself reorganizes (23.4).
   off: the pellet job with death off reads 0.796,
   though its full rule was never established, and the matched-world confirmation is
   uninformative because an untrained network already reads 0.614 there (Act 11). Under a
-  sensory control written after those results were known, the pellet creatures keep 0.780.
-  That is a conditional result under the later control, not a confirmation under the
-  original rule, and it does not show the reading is free of nonlinear or longer-history
-  sensory input.
+  sensory control written after those results were known, the pellet creatures keep 0.780,
+  and under the same control tested in advance on brand-new pellet creatures (2026-10-21) they
+  keep 0.743, so the controlled reading is confirmed on fresh seeds and worlds. The control
+  is linear, the untrained floor clears its limit by 0.002, and nonlinear or longer-history
+  versions of it leave 0.644 to 0.725 (FINDINGS 24).
 - Pushing the state along the decoded direction, or removing that direction while the
   creature acts, moves its behavior no more than a sham does, and its own surprise does not
   show that it detects the fake (Acts 11 and 12). Neither test proves the direction is unused.

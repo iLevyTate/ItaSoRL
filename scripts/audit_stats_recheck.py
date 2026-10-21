@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are: 105 pinned of 4017 on 2026-10-21 (PIN_COUNT and CHECK_FLOOR below). The count
+many there are: 105 pinned of 4159 on 2026-10-21 (PIN_COUNT and CHECK_FLOOR below). The count
 is of check() calls; composite check_true gates that also compare a stored reading with a
 literal are not counted. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
@@ -78,8 +78,8 @@ BAR = 0.65
 # (tests/test_audit_selftest.py). A run that records fewer has lost checks without failing one.
 # Change it deliberately when checks are added or removed, from the count the run prints, never
 # by hand; the manuscript sentences that quote it are checked against it by
-# scripts/build_paper_tables.py --manuscript. The count on 2026-10-21 is 4017.
-CHECK_FLOOR = 4017
+# scripts/build_paper_tables.py --manuscript. The count on 2026-10-21 is 4159.
+CHECK_FLOOR = 4159
 # How many of those checks are pins (labels start "pinned:"), as printed in "pins: P of N".
 PIN_COUNT = 105
 
@@ -3467,6 +3467,7 @@ def main() -> int:
     # sensory-echo reading is recomputed from its per-seed lists; the route file's clauses are
     # tied to those recomputations, and the quoted values to the text of section 24 itself.
     _f24 = " ".join(_read("docs/FINDINGS.md").split("\n## 24.", 1)[1].split())
+    _un_lists: dict = {}
     for _rid, _mean, _lo, _hi in (("pb1", 0.709, 0.675, 0.743), ("pb2", 0.743, 0.714, 0.771)):
         _ed = _load_art("prospective_balanced", f"sensory_echo_{_rid}.json")
         _route = _load_art("prospective_balanced", f"{_rid}.json")
@@ -3511,6 +3512,88 @@ def main() -> int:
             _u = float(_ed["aggregate"]["d=0.45 untrained"][_m]["mean"])
             _lab = "SURVIVES" if _t >= 0.65 and _t > _u + 0.05 else "ATTENUATED" if _t >= 0.60 else "EXPLAINED"
             check_true(f"24 {_rid} S2 {_m} label recomputed", _s2["label"] == _lab)
+        _un_lists[_rid] = list(_ed["aggregate"]["d=0.45 untrained"]["resid_obs"]["per_seed"])
+        # Gates 2 and 3 from the sidecar rows (`matched_gates_pb*.json`): the route's speeds and
+        # leakage are those rows, the reconstruction against the cells is exact, and FINDINGS 24
+        # quotes the gate figures.
+        _mg = _load_art("prospective_balanced", f"matched_gates_{_rid}.json")["rows"]
+        _gm = _route["gates"]["matched"]
+        check_int(f"24 {_rid} sidecar rows", len(_mg), 30)
+        check(f"24 {_rid} sidecar reconstruction exact", max(float(r["reconstruction"]["abs_diff"]) for r in _mg), 0.0)
+        check(f"24 {_rid} route reconstruction max", float(_gm["reconstruction_max_abs_diff"]), 0.0)
+        _side = {f'{r["seed"]} {r["arm"]}': float(r["matched_gates"]["speed"]) for r in _mg}
+        check_true(f"24 {_rid} route speeds equal the sidecar",
+                   len(_side) == len(_spd) and all(abs(_side[k] - float(v)) < 1e-12 for k, v in _spd.items()))
+        _leak = max(float(r["matched_gates"]["leakage"]["max_abs_dev"]) for r in _mg)
+        check(f"24 {_rid} leakage max deviation", _leak, float(_gm["leak_max_abs_dev"]))
+        check_true(f"24 {_rid} in-cell copies agree", _gm["in_cell_agrees_speed"] is True and _gm["in_cell_agrees_leak"] is True)
+        check_true(f"FINDINGS 24 quotes {_rid} gate figures",
+                   f"{_leak:.3f}" in _f24 and f"{float(_route['gates']['shuffled_max_abs_dev']):.3f}" in _f24
+                   and f"{float(np.mean(_ut)):.3f}" in _f24 and f"{min(_ut):.3f}" in _f24)
+        # S3 and the two-draw mean, recomputed from their per-seed lists and quoted.
+        for _k in ("survival", "predictor", "untrained", "margin_predictor", "margin_untrained"):
+            _blk = _route["S3_raw_matched"][_k]
+            _ps = np.asarray(_blk["per_seed"], float)
+            _tlo, _thi = t_ci90(_ps)
+            check(f"24 {_rid} S3 {_k} mean", float(_ps.mean()), float(_blk["mean"]))
+            check(f"24 {_rid} S3 {_k} t90 lo", float(_tlo), float(_blk["t90"][0]))
+            check(f"24 {_rid} S3 {_k} t90 hi", float(_thi), float(_blk["t90"][1]))
+            if _k.startswith("margin"):
+                check_true(f"FINDINGS 24 quotes {_rid} S3 {_k}",
+                           f"{_blk['mean']:.3f} [{_blk['t90'][0]:.3f}, {_blk['t90'][1]:.3f}]" in _f24)
+        for _k in ("survival", "untrained"):
+            _blk = _route["S4_draw2"]["two_draw_mean_resid_obs"][_k]
+            _ps = np.asarray(_blk["per_seed"], float)
+            _tlo, _thi = t_ci90(_ps)
+            check(f"24 {_rid} two-draw {_k} mean", float(_ps.mean()), float(_blk["mean"]))
+            check(f"24 {_rid} two-draw {_k} t90 lo", float(_tlo), float(_blk["t90"][0]))
+            check(f"24 {_rid} two-draw {_k} t90 hi", float(_thi), float(_blk["t90"][1]))
+            check_true(f"FINDINGS 24 quotes {_rid} two-draw {_k}",
+                       f"{_blk['mean']:.3f} [{_blk['t90'][0]:.3f}, {_blk['t90'][1]:.3f}]" in _f24)
+        # S4, the second draw: its own file, recomputed, tied to the route and quoted.
+        _d2 = _load_art("prospective_balanced", f"sensory_echo_{_rid}_draw2.json")
+        check_int(f"24 {_rid} draw2 read base", int(_d2["read_seed_base"]), 3100000)
+        check_int(f"24 {_rid} draw2 integrity base", int(_d2["integrity_seed_base"]), 3000000)
+        check_true(f"24 {_rid} draw2 integrity", _d2["integrity"]["all_match"] is True and _d2["integrity"]["mismatches"] == [])
+        for _arm in ("survival", "predictor", "untrained"):
+            _blk = _d2[f"d=0.45 {_arm}"]["resid_obs"]
+            _ps = np.asarray(_blk["per_seed"], float)
+            _tlo, _thi = t_ci90(_ps)
+            check(f"24 {_rid} draw2 {_arm} resid_obs mean", float(_ps.mean()), float(_blk["mean"]))
+            check(f"24 {_rid} draw2 {_arm} resid_obs t90 lo", float(_tlo), float(_blk["t90"][0]))
+            check(f"24 {_rid} draw2 {_arm} resid_obs t90 hi", float(_thi), float(_blk["t90"][1]))
+        _d2u = float(np.mean(_d2["d=0.45 untrained"]["resid_obs"]["per_seed"]))
+        _d2s = np.asarray(_d2["d=0.45 survival"]["resid_obs"]["per_seed"], float)
+        _db = _route["S4_draw2"]["decision_balanced"]
+        check(f"24 {_rid} draw2 route untrained", float(_db["untrained_resid_obs"]), _d2u)
+        check(f"24 {_rid} draw2 route trained", float(_db["trained_resid_obs"]), float(_d2s.mean()))
+        check_true(f"24 {_rid} draw2 clauses recomputed",
+                   abs(_d2u - 0.5) <= 0.1 and float(_d2s.mean()) >= 0.65 and float(_d2s.mean()) > _d2u + 0.05
+                   and float(t_ci90(_d2s)[0]) > _d2u)
+        check_true(f"FINDINGS 24 quotes {_rid} draw2", f"{_d2u:.3f}" in _f24 and f"{float(_d2s.mean()):.3f}" in _f24)
+        for _m, _s2 in sorted(_route["S4_draw2"]["S2_controls"].items()):
+            _t = float(_d2["d=0.45 survival"][_m]["mean"])
+            _u = float(_d2["d=0.45 untrained"][_m]["mean"])
+            _lab = "SURVIVES" if _t >= 0.65 and _t > _u + 0.05 else "ATTENUATED" if _t >= 0.60 else "EXPLAINED"
+            check_true(f"24 {_rid} draw2 S2 {_m} label recomputed", _s2["label"] == _lab)
+    _summ = _load_art("prospective_balanced", "summary.json")
+    check_true("24 untrained resid_obs identical across runs",
+               _un_lists["pb1"] == _un_lists["pb2"] and _summ["untrained_identical_across_runs"] is True)
+    check_true("24 summary routes", _summ["decisions"] == {"PB1": "MET", "PB2": "MET"})
+    # The same nonlinear controls on the saved B1 and B2 agents (descriptive): means and labels
+    # recomputed from the per-seed lists, tied to summary.json, and quoted in FINDINGS 24.
+    for _b, _fn in (("B1", "sensory_echo_b1_nonlinear.json"), ("B2", "sensory_echo_b2_nonlinear.json")):
+        _bn = _load_art("balanced_confirmation", _fn)
+        check_int(f"24 {_b} nonlinear read base", int(_bn["balanced_seed_base"]), 910000)
+        check_true(f"24 {_b} nonlinear integrity", _bn["integrity"]["all_match"] is True and _bn["integrity"]["mismatches"] == [])
+        for _m, _rec in sorted(_summ["B_nonlinear_descriptive"][_b].items()):
+            _ps = np.asarray(_bn["d=0.45 survival"][_m]["per_seed"], float)
+            _u = float(np.mean(_bn["d=0.45 untrained"][_m]["per_seed"]))
+            check(f"24 {_b} nonlinear {_m} mean", float(_ps.mean()), float(_rec["trained"]))
+            check(f"24 {_b} nonlinear {_m} untrained mean", _u, float(_rec["untrained"]))
+            _lab = "SURVIVES" if _ps.mean() >= 0.65 and _ps.mean() > _u + 0.05 else "ATTENUATED" if _ps.mean() >= 0.60 else "EXPLAINED"
+            check_true(f"24 {_b} nonlinear {_m} label recomputed", _rec["label"] == _lab)
+            check_true(f"FINDINGS 24 quotes {_b} nonlinear {_m}", f"{float(_ps.mean()):.3f}" in _f24)
     check("24 untrained floor slack", 0.1 - abs(_un - 0.5), 0.002, tol=0.0005)
     check_true("FINDINGS 24 names the decision", "**Decision: MET on both runs.**" in _f24)
     check_true("FINDINGS 24 says the amendment decides the route", "The amendment decides the route." in _f24)

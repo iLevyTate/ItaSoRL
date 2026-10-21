@@ -123,6 +123,21 @@ RETRAIN = {
                     "--adv-norm historical --balanced-seed-base 910000 --save-agents "
                     "--dump-states {dest}/fullruns/balanced_confirmation_touch/states "
                     "--out-dir {dest}/fullruns/balanced_confirmation_touch --device cuda --workers 1"],
+    "PB1": ["# The prospective confirmation of the matched-world sensory control (spec 2026-10-20): "
+            "fresh seeds 20 to 29, matched worlds at base 3000000, one worker on CUDA. "
+            "ITASORL_FOLDS=explicit, the default.",
+            "python scripts/run_expB2.py --drift-mode l3 --l3-hidden 8 --l3-seed 0 --seeds 20 21 22 "
+            "23 24 25 26 27 28 29 --gae-bootstrap successor --adv-norm historical "
+            "--balanced-seed-base 3000000 --save-agents --device cuda --workers 1 "
+            "--dump-states {dest}/fullruns/prospective_balanced_wm/states "
+            "--out-dir {dest}/fullruns/prospective_balanced_wm"],
+    "PB2": ["# As PB1, with the pellet objective and death off (the spec's second command).",
+            "python scripts/run_expB2.py --drift-mode l3 --l3-hidden 8 --l3-seed 0 --seeds 20 21 22 "
+            "23 24 25 26 27 28 29 --gae-bootstrap successor --adv-norm historical "
+            "--balanced-seed-base 3000000 --save-agents --device cuda --workers 1 "
+            "--objective touch --mortal off "
+            "--dump-states {dest}/fullruns/prospective_balanced_touch/states "
+            "--out-dir {dest}/fullruns/prospective_balanced_touch"],
 }
 # Run-specific flags of the follow-ups that retrain the survival arm: C2 has no decoder.
 RUN_FLAGS = {"C1": "", "C2": " --no-world-model"}
@@ -785,7 +800,8 @@ INCLUDE_FILES = ["requirements.txt", "requirements-dev.txt", "pyproject.toml", "
 RUN_DIRS = ["fullruns/corrected_l3_h8_wm", "fullruns/corrected_l3_h8_nowm",
             "fullruns/l3_h8_heldout/agents", "fullruns/l3_h8_gseed2_gpu/agents",
             "fullruns/balanced_confirmation_wm", "fullruns/balanced_confirmation_touch",
-            "fullruns/corrected_l1_heldout"]
+            "fullruns/corrected_l1_heldout",
+            "fullruns/prospective_balanced_wm", "fullruns/prospective_balanced_touch"]
 # What the README says about a RUN_DIRS bundle that is absent, beyond "not included".
 RUN_NOTES = {
     "fullruns/corrected_l3_h8_wm": "C1",
@@ -799,6 +815,16 @@ RUN_NOTES = {
         "B2 is absent. The matched-world pellet confirmation and its sensory "
         "control cannot be replayed from this archive. The committed summaries are "
         "in artifacts/balanced_confirmation/."
+    ),
+    "fullruns/prospective_balanced_wm": (
+        "PB1 is absent. The prospective survival confirmation, its matched gates and its "
+        "sensory-echo readouts cannot be replayed from this archive. The committed summaries are "
+        "in artifacts/prospective_balanced/."
+    ),
+    "fullruns/prospective_balanced_touch": (
+        "PB2 is absent. The prospective pellet confirmation, its matched gates and its "
+        "sensory-echo readouts cannot be replayed from this archive. The committed summaries are "
+        "in artifacts/prospective_balanced/."
     ),
     "fullruns/corrected_l1_heldout": (
         "L1-CORRECTED is absent. Its stream and surprise readouts cannot be replayed from "
@@ -834,6 +860,15 @@ RUN_INCLUDED_NOTES = {
         "`fullruns/l3_h8_gseed2_gpu/agents` holds the saved agents of the historical hidden-8, "
         "G seed 2 run on GPU (pre-correction trainer). They back no committed readout and have "
         "no integrity reference of their own; their 30 drift-0 files equal the held-out run's."),
+    "fullruns/prospective_balanced_wm": (
+        "`fullruns/prospective_balanced_wm` holds the 20 cells, 60 saved agents, state dumps, "
+        "matched-gate sidecar (`matched_gates.json`) and sensory-echo readouts of PB1, the "
+        "prospective matched-world survival confirmation (docs/FINDINGS.md 24). Its route and "
+        "promoted readings are under artifacts/prospective_balanced/."),
+    "fullruns/prospective_balanced_touch": (
+        "`fullruns/prospective_balanced_touch` holds the same for PB2, the prospective "
+        "matched-world confirmation of the pellet objective with death off (docs/FINDINGS.md 24). "
+        "Its route and promoted readings are under artifacts/prospective_balanced/."),
     "fullruns/balanced_confirmation_wm": (
         "`fullruns/balanced_confirmation_wm` holds the B1 cells, saved agents, frozen "
         "normalizers and matched-world sensory-control output. Seed base 910000. "
@@ -906,6 +941,12 @@ REVIEW_LEFT_OUT = {
     "fullruns/balanced_confirmation_touch": "B2, the matched-world pellet confirmation (cells, saved "
                                             "agents, state dumps)",
     "fullruns/corrected_l1_heldout": "L1-CORRECTED (cells, saved agents, state dumps)",
+    "fullruns/prospective_balanced_wm": "PB1, the prospective matched-world survival confirmation "
+                                        "(cells, saved agents, state dumps, matched gates, "
+                                        "sensory-echo readouts)",
+    "fullruns/prospective_balanced_touch": "PB2, the prospective matched-world pellet confirmation "
+                                           "(cells, saved agents, state dumps, matched gates, "
+                                           "sensory-echo readouts)",
 }
 
 
@@ -1150,11 +1191,13 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
               for r in left_out]
         L += ["", "Their per-seed readouts are committed under artifacts/ (the cells of C1, C2 "
               "and L1-CORRECTED under artifacts/corrected_runs/, the B1 and B2 readouts under "
-              "artifacts/balanced_confirmation/), so every table and gate rebuilds from this "
-              "archive without them. Replaying a readout from the saved agents or state dumps "
-              "of B1, B2 and L1-CORRECTED, including the matched-gate replay of B1 and B2 and "
-              "the stream and surprise readouts of L1-CORRECTED, needs a retrain from the "
-              "recorded recipe (docs/REPRODUCE.md section 2).", ""]
+              "artifacts/balanced_confirmation/, the PB1 and PB2 routes, matched gates and "
+              "sensory-echo readouts under artifacts/prospective_balanced/), so every table and "
+              "gate rebuilds from this archive without them. Replaying a readout from the saved "
+              "agents or state dumps of B1, B2, PB1, PB2 and L1-CORRECTED, including the "
+              "matched-gate and sensory-echo replays of B1, B2, PB1 and PB2 and the stream and "
+              "surprise readouts of L1-CORRECTED, needs a retrain from the recorded recipe "
+              "(docs/REPRODUCE.md section 2).", ""]
     if gone:
         both = " and ".join(gone)
         L += [f"The saved agents and state dumps of the corrected run{'s' if len(gone) > 1 else ''} "

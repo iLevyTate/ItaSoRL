@@ -2009,6 +2009,20 @@ Rigor carried from the B-v3 audit (2026-07-10):
   little across the tested evaluation densities. The manuscript revision for the third blind
   review words these so; `docs/CORRECTIONS.md`, 2026-10-20, third blind review.
 
+- **2026-10-21 - THE MATCHED-WORLD SENSORY-CONTROL LABEL, CONFIRMED PROSPECTIVELY (a record; the
+  entries above stay as written and no rule, number or verdict changes).** The 2026-10-19 entry
+  above reads the 2026-10-13 label as a conditional result because its procedure was frozen after
+  the raw `B1` and `B2` outcomes. That procedure has since been tested in advance:
+  `docs/specs/2026-10-20-prospective-balanced-confirmation-design.md`, frozen before training
+  and amended once before any agent file or result existed, applied the 2026-10-13 rule with the
+  matched design's gates to fresh agent seeds 20 to 29 and fresh matched worlds (base 3000000),
+  for survival (`PB1`) and for pellets with death off (`PB2`). Both are MET: `resid_obs` 0.709
+  [0.675, 0.743] and 0.743 [0.714, 0.771], untrained 0.598 [0.572, 0.624], 0.098 from 0.5. The
+  amendment moved the speed gate to the trained arm and the untrained mean; under the first text
+  one untrained seed (0.724) leaves both runs UNINFORMATIVE. The strict interval reading is not
+  met, and nonlinear and longer-history variants of the control leave 0.644 to 0.725. The `B1`
+  and `B2` routes of 2026-10-12 and 2026-10-13 stay as recorded. FINDINGS 24.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

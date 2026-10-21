@@ -8,7 +8,7 @@ authors:
     orcid: "https://orcid.org/0009-0009-1337-0709"
 repository-code: "https://github.com/iLevyTate/ItaSoRL"
 license: MIT
-version: 1.5.4
+version: 1.5.5
 date-released: "2026-10-21"
 abstract: >-
   ITASORL measures whether a recurrent agent trained from scratch, with no
@@ -30,8 +30,8 @@ abstract: >-
   survival-trained agents carrying a next-observation auxiliary at the
   registered 300-update budget, with the trainer corrected in October 2026,
   read 0.733 against 0.589 for a prediction-only arm, each arm on the episodes
-  its own policy drives; a decoder that sees only the observations and actions
-  reads 0.724. The registered rule is
+  its own policy drives, on the one evaluation-world draw all ten seeds share; a
+  decoder that sees only the observations and actions reads 0.724. The registered rule is
   not met, because the L0 gate is open on the registered evaluation-world pair
   (0.559); the decodability clauses are met. On the same pair, survival agents
   of a second seed set read 0.561 [0.527, 0.595]. Across eight independent pairs a
