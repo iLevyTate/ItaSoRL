@@ -1345,8 +1345,11 @@ def _qd(arm: str) -> float:
 
 
 # The numbers the abstract and the body quote, each with the artifact and key it comes from. The
-# Contributions list carries no pinned number since the manuscript revision of 2026-10-25. A needle is (block, label, artifact path, key, text). The text is what the block
-# must contain: a three-decimal value, a signed one, or an interval as \ci{lo}{hi}.
+# abstract needles are the C1 headline numbers; the L1 oracle, the corrected L1 survival and the PB
+# sensory-echo scores are body needles since the second manuscript revision of 2026-10-25, and the
+# Contributions list carries no pinned number since the first. A needle is (block, label, artifact
+# path, key, text). The text is what the block must contain: a three-decimal value, a signed one,
+# or an interval as \ci{lo}{hi}.
 def headline_needles() -> list[tuple[str, str, str, str, str]]:
     v = _verdicts()["runs"]["C1"]
     l1 = _art("artifacts/expB2/corrected_L1-corrected.json")["decision"]
@@ -1356,15 +1359,15 @@ def headline_needles() -> list[tuple[str, str, str, str, str]]:
     o2 = _art("docs/optional/o2_long_history_ridge.json")["summary"]
     cv = "artifacts/corrected_verdicts.json"
     return [
-        ("abstract", "L1 oracle", "artifacts/expL1/organism_summary.json", "gate0.delta.chosen_auroc",
+        ("body", "L1 oracle", "artifacts/expL1/organism_summary.json", "gate0.delta.chosen_auroc",
          _num(_art("artifacts/expL1/organism_summary.json")["gate0"]["delta"]["chosen_auroc"])),
         ("body", "L1 stream reader", "artifacts/control_diagnostics/l1_stream_readout_corrected.json",
          'aggregate["d=0.02 survival obs_summary_only"].mean',
          _num(_art("artifacts/control_diagnostics/l1_stream_readout_corrected.json")
               ["aggregate"]["d=0.02 survival obs_summary_only"]["mean"])),
-        ("abstract", "corrected L1 survival", "artifacts/expB2/corrected_L1-corrected.json", "decision.survival",
+        ("body", "corrected L1 survival", "artifacts/expB2/corrected_L1-corrected.json", "decision.survival",
          _num(l1["survival"])),
-        ("abstract", "corrected L1 survival interval", "artifacts/expB2/corrected_L1-corrected.json",
+        ("body", "corrected L1 survival interval", "artifacts/expB2/corrected_L1-corrected.json",
          "decision.survival_t90", _ivs(l1["survival_t90"])),
         ("abstract", "C1 survival", cv, "runs.C1.primary.survival.mean", _num(v["primary"]["survival"]["mean"])),
         ("abstract", "C1 survival interval", cv, "runs.C1.primary.survival.t90", _ivs(v["primary"]["survival"]["t90"])),
@@ -1385,7 +1388,7 @@ def headline_needles() -> list[tuple[str, str, str, str, str]]:
         ("abstract", "C1 L0 mean", cv, "runs.C1.gates.l0.mean", _num(v["gates"]["l0"]["mean"])),
         ("body", "T-touch survival", "artifacts/expB2/goal_stakes_T-touch.json", "decision.survival",
          _num(_art("artifacts/expB2/goal_stakes_T-touch.json")["decision"]["survival"])),
-        *[("abstract", f"{run} sensory-echo trained", f"artifacts/prospective_balanced/{run.lower()}.json",
+        *[("body", f"{run} sensory-echo trained", f"artifacts/prospective_balanced/{run.lower()}.json",
            "trained_clause.trained_resid_obs", _num(_pb(run)["trained_clause"]["trained_resid_obs"]))
           for run in ("PB1", "PB2")],
         ("body", "PB untrained floor slack", "artifacts/prospective_balanced/pb1.json",
@@ -1410,8 +1413,8 @@ def _flat_tex(s: str) -> str:
 
 def _headline_block_issues(rel: str, text: str, needles=None) -> list[str]:
     """Every abstract and body number must be the artifact's value. Only a file that has an
-    abstract is read; the abstract needles are the headline numbers, and the body needles are
-    the secondary readings and may sit anywhere in that file. The Contributions list is not a
+    abstract is read; the abstract needles are the C1 headline numbers, and the body needles are
+    the other headline and secondary readings and may sit anywhere in that file. The Contributions list is not a
     block of its own since the manuscript revision of 2026-10-25, which keeps its numbers in the
     Results."""
     a = _ABSTRACT.search(text)
