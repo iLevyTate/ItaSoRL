@@ -41,9 +41,9 @@ uninformative, no verdict), and a sentence that counts the gate table's rows and
 of per-seed values must give the counts of artifacts/gate_table.json. The sentences that give
 the verification script's check count, pin count and their ratio must give CHECK_FLOOR,
 PIN_COUNT and round(CHECK_FLOOR / PIN_COUNT) of scripts/audit_stats_recheck.py. In a file with an
-abstract, every number headline_needles() lists for the abstract (the headline numbers), the
-Contributions list and the body (the secondary readings, anywhere in that file) must appear
-there as its artifact gives it. Other numbers are not compared with an artifact;
+abstract, every number headline_needles() lists for the abstract (the headline numbers) and
+for the body (the secondary readings, anywhere in that file) must appear there as its
+artifact gives it. Other numbers are not compared with an artifact;
 Appendix app:claims traces those by hand. It flags wording
 the 2026-10 revision retired (the claim table in docs/REVISION_2026-10.md; matched after LaTeX
 markup is stripped) and any pre-correction headline that appears without a historical label in
@@ -1313,7 +1313,7 @@ def _audit_count_issues(rel: str, text: str, n: int | None = None, p: int | None
     return issues
 
 
-# ------------------------------------------------------------------ abstract and contributions (H41)
+# ------------------------------------------------------------------ abstract and body needles (H41)
 def _art(rel: str) -> dict:
     with open(os.path.join(ROOT, rel), encoding="utf-8") as fh:
         return json.load(fh)
@@ -1344,8 +1344,8 @@ def _qd(arm: str) -> float:
     return float(_art("artifacts/texture/corrected_l3_h8_wm_qd.json")["aggregate"][f"{arm} fresh"]["mean"])
 
 
-# The numbers the abstract, the Contributions list and the body quote, each with the artifact and key it
-# comes from. A needle is (block, label, artifact path, key, text). The text is what the block
+# The numbers the abstract and the body quote, each with the artifact and key it comes from. The
+# Contributions list carries no pinned number since the manuscript revision of 2026-10-25. A needle is (block, label, artifact path, key, text). The text is what the block
 # must contain: a three-decimal value, a signed one, or an interval as \ci{lo}{hi}.
 def headline_needles() -> list[tuple[str, str, str, str, str]]:
     v = _verdicts()["runs"]["C1"]
@@ -1385,24 +1385,22 @@ def headline_needles() -> list[tuple[str, str, str, str, str]]:
         ("abstract", "C1 L0 mean", cv, "runs.C1.gates.l0.mean", _num(v["gates"]["l0"]["mean"])),
         ("body", "T-touch survival", "artifacts/expB2/goal_stakes_T-touch.json", "decision.survival",
          _num(_art("artifacts/expB2/goal_stakes_T-touch.json")["decision"]["survival"])),
-        *[(block, f"{run} sensory-echo trained", f"artifacts/prospective_balanced/{run.lower()}.json",
+        *[("abstract", f"{run} sensory-echo trained", f"artifacts/prospective_balanced/{run.lower()}.json",
            "trained_clause.trained_resid_obs", _num(_pb(run)["trained_clause"]["trained_resid_obs"]))
-          for block in ("abstract", "contributions") for run in ("PB1", "PB2")],
-        *[(block, "PB untrained floor slack", "artifacts/prospective_balanced/pb1.json",
-           "0.1 - floor_clause.untrained_dev", _num(0.1 - _pb("PB1")["floor_clause"]["untrained_dev"]))
-          for block in ("body", "contributions")],
-        *[(block, f"PB nonlinear and longer-history controls, {which}", "artifacts/prospective_balanced/pb1.json and artifacts/prospective_balanced/pb2.json",
+          for run in ("PB1", "PB2")],
+        ("body", "PB untrained floor slack", "artifacts/prospective_balanced/pb1.json",
+         "0.1 - floor_clause.untrained_dev", _num(0.1 - _pb("PB1")["floor_clause"]["untrained_dev"])),
+        *[("body", f"PB nonlinear and longer-history controls, {which}", "artifacts/prospective_balanced/pb1.json and artifacts/prospective_balanced/pb2.json",
            f"{which} of S2_controls[*].trained over PB1 and PB2", _num(fn(_pb_s2())))
-          for block in ("body", "contributions") for which, fn in (("min", min), ("max", max))],
-        ("contributions", "O2 long-history ridge", "docs/optional/o2_long_history_ridge.json",
+          for which, fn in (("min", min), ("max", max))],
+        ("body", "O2 long-history ridge", "docs/optional/o2_long_history_ridge.json",
          "summary.resid_obs_hist.auroc.mean", _num(o2["resid_obs_hist"]["auroc"]["mean"])),
-        ("contributions", "O2 long-history ridge with behavior", "docs/optional/o2_long_history_ridge.json",
+        ("body", "O2 long-history ridge with behavior", "docs/optional/o2_long_history_ridge.json",
          "summary.resid_obs_hist_beh.auroc.mean", _num(o2["resid_obs_hist_beh"]["auroc"]["mean"])),
     ]
 
 
 _ABSTRACT = re.compile(r"\\begin\{abstract\}(.*?)\\end\{abstract\}", re.S)
-_CONTRIB = re.compile(r"\\paragraph\{Contributions\.?\}(.*?)\\end\{enumerate\}", re.S)
 
 
 def _flat_tex(s: str) -> str:
@@ -1411,18 +1409,16 @@ def _flat_tex(s: str) -> str:
 
 
 def _headline_block_issues(rel: str, text: str, needles=None) -> list[str]:
-    """Every abstract, Contributions and body number must be the artifact's value. Only a file
-    that has an abstract is read; the abstract needles are the headline numbers, the body needles
-    are the secondary readings and may sit anywhere in that file, and the Contributions needles
-    apply when that paragraph exists."""
+    """Every abstract and body number must be the artifact's value. Only a file that has an
+    abstract is read; the abstract needles are the headline numbers, and the body needles are
+    the secondary readings and may sit anywhere in that file. The Contributions list is not a
+    block of its own since the manuscript revision of 2026-10-25, which keeps its numbers in the
+    Results."""
     a = _ABSTRACT.search(text)
     if not a:
         return []
-    c = _CONTRIB.search(text)
     blocks = {"abstract": (_flat_tex(a.group(1)), text[: a.start()].count("\n") + 1),
               "body": (_flat_tex(text), 1)}
-    if c:
-        blocks["contributions"] = (_flat_tex(c.group(1)), text[: c.start()].count("\n") + 1)
     issues = []
     for block, label, art, key, want in (needles if needles is not None else headline_needles()):
         if block not in blocks:
@@ -1441,7 +1437,7 @@ def check_manuscript(d: str) -> int:
     the corrected primary-run paragraph; must state the rule-ledger tally and the gate table's
     row and set counts as the ledger and artifacts/gate_table.json give them; must state the
     audit's check count, pin count and one-check-in-K ratio as audit_stats_recheck.py pins them;
-    must quote, in a file with an abstract, every abstract, Contributions and body number of
+    must quote, in a file with an abstract, every abstract and body number of
     headline_needles() as its artifact gives it, the body numbers anywhere in that file; and must not use retired wording (matched after
     LaTeX markup is stripped) or quote a pre-correction headline without a historical label."""
     texs = sorted(glob.glob(os.path.join(d, "**", "*.tex"), recursive=True))
