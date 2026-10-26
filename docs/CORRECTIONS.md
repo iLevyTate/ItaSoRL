@@ -11,6 +11,9 @@ padding fix (`679fee6`, `docs/PREREGISTRATION.md` 2026-06-28), the L3 world-para
 (`docs/FINDINGS.md` 13.C), the matched-pair fold-safety fix (`docs/PREREGISTRATION_L3.md`
 2026-07-22), and the explicit fold partition (`docs/FINDINGS.md` methods note 8 and section 16).
 
+The blind reviews named in this record are the authors' own pre-submission reviews of the
+manuscript. None of them is a journal review, and no score in them is a venue decision.
+
 ## 2026-10-06: results manifest
 
 **What.** No single record said which code, configuration, seeds, fold partition, and device

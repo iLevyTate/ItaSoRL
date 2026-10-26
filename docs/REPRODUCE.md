@@ -534,4 +534,6 @@ record of these runs is the repository's submission check, which the archive doe
 ## Corrections and provenance
 
 `docs/CORRECTIONS.md` is the dated record of what was wrong, what changed, and what each
-change does not establish. `docs/REVISION_2026-10.md` holds the claim decisions and status.
+change does not establish. The blind reviews it names are the authors' own pre-submission
+reviews of the manuscript. None of them is a journal review, and no score in them is a venue
+decision. `docs/REVISION_2026-10.md` holds the claim decisions and status.

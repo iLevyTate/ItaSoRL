@@ -159,6 +159,26 @@ def test_supplement_scrubs_every_text_member_including_cff_html_js_and_license(b
         assert "gitignored" not in readme
 
 
+def test_the_supplement_carries_the_rewritten_public_pages(built_supplement):
+    """README.md, index.html and index.template.html ship as reproduce.review_page gives them
+    (tests/test_review_pages.py), after the scrub and the package rename."""
+    import re
+    import zipfile
+    import reproduce
+    with zipfile.ZipFile(built_supplement) as z:
+        readme = z.read("README.md").decode("utf-8")
+        pages = [z.read(n).decode("utf-8") for n in ("index.html", "index.template.html")]
+    head = readme[:re.search(r"^## ", readme, re.M).start()]
+    assert reproduce.FILM_NOTE in head
+    assert [p for p in re.split(r"\n[ \t]*\n", head) if re.search(r"film", p, re.I)] == [
+        reproduce.FILM_NOTE]
+    assert not reproduce._FIRST_PERSON.search(reproduce._FENCE.sub("", readme))
+    for page in pages:
+        titles = re.findall(r"<title>[^<]*</title>|<meta\s+(?:property|name)=\"(?:og|twitter)"
+                            r":title\"\s+content=\"[^\"]*\"", page)
+        assert len(titles) == 3 and not any("·" in t for t in titles), titles
+
+
 def test_the_extracted_supplement_passes_its_audit_and_site_tests(built_supplement, tmp_path):
     """The archive must pass its own checks (docs/REPRODUCE.md says so). Twice it did not: a
     file the scalar audit or the site tests read was not packaged, and the audit stopped with
