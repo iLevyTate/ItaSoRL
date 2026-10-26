@@ -1201,7 +1201,7 @@
   {
    "id": "SENSORY-ECHO-H8",
    "rule": "Sensory-echo control, hidden 8",
-   "short": "Sensory echo, hidden 8",
+   "short": "Sensory-echo control, hidden 8",
    "source": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md",
    "source_part": "Decision rules",
    "frozen": "2026-09-26",
@@ -1292,7 +1292,7 @@
   {
    "id": "SENSORY-ECHO-H7",
    "rule": "Sensory-echo control, hidden 7",
-   "short": "Sensory echo, hidden 7",
+   "short": "Sensory-echo control, hidden 7",
    "source": "docs/specs/2026-09-26-l3-sensory-echo-control-design.md",
    "source_part": "Decision rules",
    "frozen": "2026-09-26",
@@ -3757,7 +3757,7 @@
   {
    "id": "B1-BALANCED-ECHO",
    "rule": "Balanced sensory-echo control (2026-10-13 spec): floor, then bar, margin, and t90 lower bound",
-   "short": "Balanced sensory echo, survival",
+   "short": "Balanced sensory-echo control, survival",
    "source": "docs/specs/2026-10-13-balanced-sensory-echo-design.md",
    "source_part": "Decision rules",
    "frozen": "2026-10-13",
@@ -3853,7 +3853,7 @@
   {
    "id": "B2-BALANCED-ECHO",
    "rule": "Balanced sensory-echo control (2026-10-13 spec): floor, then bar, margin, and t90 lower bound",
-   "short": "Balanced sensory echo, pellets",
+   "short": "Balanced sensory-echo control, pellets",
    "source": "docs/specs/2026-10-13-balanced-sensory-echo-design.md",
    "source_part": "Decision rules",
    "frozen": "2026-10-13",

@@ -57,8 +57,8 @@ B-v3 regime, pooled target & 0.610 & \ci{0.581}{0.639} & \ci{0.575}{0.646}
 L2 supervised reference & 0.596 & \ci{0.573}{0.619} & \ci{0.567}{0.625}
 L1 organism, pooled target (historical) & 0.533 & \ci{0.506}{0.561} & \ci{0.500}{0.567}
 Graded seam, $\alpha = 0$ & 0.506 & \ci{0.482}{0.531} & \ci{0.476}{0.536}
-B1 matched survival (sensitivity) & 0.800 & \ci{0.772}{0.829} & \ci{0.765}{0.836}
-B2 matched pellets (sensitivity) & 0.843 & \ci{0.825}{0.860} & \ci{0.821}{0.864}
+B1 balanced survival (sensitivity) & 0.800 & \ci{0.772}{0.829} & \ci{0.765}{0.836}
+B2 balanced pellets (sensitivity) & 0.843 & \ci{0.825}{0.860} & \ci{0.821}{0.864}
 B1 sensory residual (sensitivity) & 0.761 & \ci{0.727}{0.795} & \ci{0.719}{0.802}
 B2 sensory residual (sensitivity) & 0.780 & \ci{0.757}{0.804} & \ci{0.752}{0.809}
 """.strip().splitlines()

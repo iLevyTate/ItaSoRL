@@ -33,7 +33,9 @@
                name is replaced by a neutral one in text and in file names (--anon-name,
                default anonpkg; --keep-name turns this off), and so are the titles of the
                publicly released films, read at build time from the served film files.
-               Outreach and film-production specs and run-script figures are left out
+               The README speaks in the first person plural, its opening's film
+               paragraphs give way to one line, and the site pages' titles lose the site's
+               tagline (review_page). Outreach and film-production specs and run-script figures are left out
                (SUPPLEMENT_EXCLUDE), and Markdown links into material the archive does not
                carry become plain text. Every shipped file, binaries included, is checked for
                identity strings (the manuscript's title among them; --paper names its source,
@@ -535,6 +537,89 @@ def film_rules(slugs: list[str] | None = None) -> list:
         rules.append((re.compile(r"\b(released(?:\s+on)?)\s+(?:\d{1,2}\s+(?:" + months
                                  + r")\s+\d{4}|\d{4}-\d\d-\d\d)"), r"\1 <date>"))
     return rules
+
+
+# The public pages the archive carries as audit and site-test inputs (README.md, index.html,
+# index.template.html) were written for the public repository, and three things in them point
+# at it without naming it: the README speaks in the first person singular, its opening's film
+# paragraphs describe the public site and the films the archive does not carry, and the page
+# titles carry the site's tagline after the project name. The anonymized build rewrites the
+# three by structure, never by quoting the text, since this file ships (2026-10-26). Each
+# rewrite is idempotent, so an extracted archive rebuilding itself gives the same text, and a
+# page checked out with CRLF line ends keeps them.
+FILM_NOTE = "The project's films are not part of this archive."
+# A capital I after one of these words is a numeral (Type I error, Phase I), not the pronoun.
+_NUMERAL_NOUNS = ("Type", "Phase", "Part", "Experiment", "Table", "Figure", "Stage", "Level",
+                  "Class", "Section", "Chapter", "Appendix", "Study", "Round", "Act", "War")
+_FIRST_PERSON = re.compile(r"(?<![\w`'/.\-])" + "".join(rf"(?<!\b{w} )" for w in _NUMERAL_NOUNS)
+                           + r"(?:(I)(\s+)(am|was)\b|(I)'(m|ve|d|ll)\b|(I)(?=\s+[a-z])"
+                           r"|(my|My|me|Me|myself|Myself)(?![\w'\-]|\.\w))")
+_PLURAL = {"am": "are", "was": "were", "m": "'re", "ve": "'ve", "d": "'d", "ll": "'ll",
+           "my": "our", "me": "us", "myself": "ourselves"}
+# What may stand between the start of a sentence and its first word: a paragraph break, the
+# end of a sentence, a heading line, or a list, quote or heading marker at the start of a line.
+_SENTENCE_START = re.compile(r"(?:\A|\n[ \t]*\n|[.!?][*_\"')\]]*\s+|(?:\A|\n)[ \t]*#[^\n]*\n"
+                             r"|(?:\A|\n)[ \t]*(?:[-*+>#]+|\d+\.)[ \t]+)[*_]*\Z")
+# Code the rewrite leaves alone: fenced blocks (backticks or tildes, indented or not) and
+# inline code spans.
+_CODE = re.compile(r"^[ \t]*(`{3,}|~{3,})[^\n]*\n.*?^[ \t]*\1[^\n]*$|`[^`\n]+`", re.M | re.S)
+_TITLE_TAGLINE = (re.compile(r"(<title>[^<]*?)\s*·[^<]*(</title>)"),
+                  re.compile(r"(<meta\s+(?:property|name)=\"(?:og|twitter):title\"\s+"
+                             r"content=\"[^\"]*?)\s*·[^\"]*(\")"))
+
+
+def _plural_voice(prose: str) -> str:
+    """The first person singular as the first person plural, outside code."""
+    def sub(m):
+        if m.group(1) or m.group(4) or m.group(6):
+            start = _SENTENCE_START.search(m.string, 0, m.start())
+            we = "We" if start else "we"
+            if m.group(1):
+                return we + m.group(2) + _PLURAL[m.group(3)]
+            return we + _PLURAL[m.group(5)] if m.group(4) else we
+        word = m.group(7)
+        out = _PLURAL[word.lower()]
+        return out.capitalize() if word[0].isupper() else out
+
+    parts, at = [], 0
+    for c in _CODE.finditer(prose):
+        parts += [_FIRST_PERSON.sub(sub, prose[at:c.start()]), c.group(0)]
+        at = c.end()
+    return "".join(parts) + _FIRST_PERSON.sub(sub, prose[at:])
+
+
+def _drop_film_paragraphs(text: str) -> str:
+    """The paragraphs before the README's first second-level heading that mention a film give
+    way to one line, FILM_NOTE, where the first of them stood."""
+    head = re.search(r"^## ", text, re.M)
+    end = head.start() if head else len(text)
+    parts = re.split(r"(\n[ \t]*\n)", text[:end])
+    out, noted = [], False
+    for k in range(0, len(parts), 2):
+        sep = parts[k + 1] if k + 1 < len(parts) else ""
+        if re.search(r"film", parts[k], re.I):
+            if not noted:
+                # The paragraph's own line end stays, so a heading right after it keeps its line.
+                out.append(FILM_NOTE + parts[k][len(parts[k].rstrip()):] + sep)
+                noted = True
+            continue
+        out.append(parts[k] + sep)
+    return "".join(out) + text[end:]
+
+
+def review_page(rel: str, text: str) -> str:
+    """The anonymized build's rewrite of a public page, keyed by its path; any other file comes
+    back unchanged."""
+    if rel not in ("README.md", "index.html", "index.template.html"):
+        return text
+    crlf = "\r\n" in text
+    text = text.replace("\r\n", "\n")
+    if rel == "README.md":
+        text = _plural_voice(_drop_film_paragraphs(text))
+    else:
+        for pat in _TITLE_TAGLINE:
+            text = pat.sub(r"\1\2", text)
+    return text.replace("\n", "\r\n") if crlf else text
 
 
 # Branch names. A pull request keeps the name of the branch it came from, and GitHub's search
@@ -1143,8 +1228,9 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
     if digests_hidden:
         L.append(f"- SHA-256 digests ({digests_hidden} distinct) in the documents and artifacts "
                  "are replaced by keyed pseudonyms of the same length. `SHA256SUMS` lists the "
-                 "real digest of every file. A check that hashes a shipped file and compares the "
-                 "result with a recorded digest looks the result up in "
+                 "real digest of every file in the archive except itself. A check that hashes a "
+                 "shipped file and compares the result with a recorded digest looks the result "
+                 "up in "
                  f"`{DIGEST_TABLE_NAME}`, which is keyed by the SHA-256 of each real digest and "
                  "so spells none of them.")
     if branches_hidden:
@@ -1168,7 +1254,9 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
               "which the direction-of-rearing and world-sample readouts replay, those of the "
               "hidden-8 seed-2 run, which back no committed readout, and the saved agents and "
               "cells of the C1 and C2 reruns, from which their state dumps rebuild. It carries "
-              "no state dumps.", ""]
+              "no state dumps. The list below says what this archive actually carries. Where it "
+              "differs from this paragraph, the list holds: a bundle ships only if it was present "
+              "where the archive was built.", ""]
     absent = []
     for r, n in status:
         if n is not None:
@@ -2184,7 +2272,10 @@ def supplement(out: str, runs_root: str | None = None,
                 data = fh.read()
             arc = rename(rel)
             if is_text(rel):
-                before = rename_pkg(scrub(data.decode("utf-8", errors="replace"), rules))
+                text = data.decode("utf-8", errors="replace")
+                if anon_name:
+                    text = review_page(rel, text)
+                before = rename_pkg(scrub(text, rules))
                 text = hider.sub(before)
                 why = number_guard(arc, before, text, known=named)
                 if why:
