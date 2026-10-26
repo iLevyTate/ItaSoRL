@@ -1255,8 +1255,8 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
               "hidden-8 seed-2 run, which back no committed readout, and the saved agents and "
               "cells of the C1 and C2 reruns, from which their state dumps rebuild. It carries "
               "no state dumps. The list below says what this archive actually carries. Where it "
-              "differs from this paragraph, the list holds: a bundle marked not included was "
-              "absent where the archive was built.", ""]
+              "differs from this paragraph, the list holds: a bundle ships only if it was present "
+              "where the archive was built.", ""]
     absent = []
     for r, n in status:
         if n is not None:
