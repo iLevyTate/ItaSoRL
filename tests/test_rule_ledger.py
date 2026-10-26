@@ -214,12 +214,14 @@ def test_a_missing_or_unknown_timing_is_reported(ledger):
 
 
 def test_the_ledger_table_has_a_timing_column_within_the_old_width(ledger, evaluated):
-    """The timing column is the fourth of seven, and the p{} widths still sum to 0.825 of the
-    text width, so the table keeps its one float page; the timing tally is under the table."""
+    """The timing column is the fourth of seven, and the p{} widths sum to 0.84 of the text
+    width, so the table keeps its one float page; the timing tally is under the table. (0.825
+    until 2026-10-26, when the first column widened from 0.195 to 0.21 for the longer
+    sensory-echo-control names.)"""
     tex = bpt.rule_ledger_table()
     spec = next(ln for ln in tex.splitlines() if ln.startswith(r"\begin{tabular}"))
     widths = [float(w) for w in re.findall(r"p\{([0-9.]+)\\textwidth\}", spec)]
-    assert len(widths) == 7 and sum(widths) == pytest.approx(0.825, abs=1e-9)
+    assert len(widths) == 7 and sum(widths) == pytest.approx(0.84, abs=1e-9)
     assert r"Rule & Frozen & Run & Timing & Bar on & Outcome & Deciding clause \\" in tex
     assert r"\multicolumn{7}" in tex and bpt._timing_sentence(evaluated[0]) in tex
     body = [ln for ln in tex.splitlines() if ln.endswith(r"\\") and " & " in ln][1:]

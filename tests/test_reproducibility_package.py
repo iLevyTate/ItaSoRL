@@ -172,7 +172,8 @@ def test_the_supplement_carries_the_rewritten_public_pages(built_supplement):
     assert reproduce.FILM_NOTE in head
     assert [p for p in re.split(r"\n[ \t]*\n", head) if re.search(r"film", p, re.I)] == [
         reproduce.FILM_NOTE]
-    assert not reproduce._FIRST_PERSON.search(reproduce._FENCE.sub("", readme))
+    from test_review_pages import singular_left
+    assert singular_left(readme) == []
     for page in pages:
         titles = re.findall(r"<title>[^<]*</title>|<meta\s+(?:property|name)=\"(?:og|twitter)"
                             r":title\"\s+content=\"[^\"]*\"", page)

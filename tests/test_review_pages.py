@@ -27,26 +27,52 @@ def _intro_paragraphs(text: str) -> list[str]:
     return re.split(r"\n[ \t]*\n", text[:head.start() if head else len(text)])
 
 
-def _prose(text: str) -> str:
-    return reproduce._FENCE.sub("", text)
+# A check of its own, wider than the rewrite: any first person singular left in prose, contracted
+# or before punctuation included, once code and numerals (Type I, Phase I) are set aside.
+CODE = re.compile(r"^[ \t]*(`{3,}|~{3,})[^\n]*\n.*?^[ \t]*\1[^\n]*$|`[^`\n]+`", re.M | re.S)
+NUMERAL = re.compile(r"\b(?:Type|Phase|Part|Experiment|Table|Figure|Stage|Level|Class|Section|"
+                     r"Chapter|Appendix|Study|Round|Act|War) I\b")
+SINGULAR = re.compile(r"(?<![\w`/.\-])I(?=['’](?:m|ve|d|ll)\b|\s+[a-z]|[,.;:)*])"
+                      r"|\b[Mm](?:y|e|yself)\b(?!-|\.\w)")
+
+
+def singular_left(text: str) -> list[str]:
+    prose = NUMERAL.sub("", CODE.sub("", text))
+    return [prose[max(0, m.start() - 30):m.end() + 30] for m in SINGULAR.finditer(prose)]
 
 
 def test_the_first_person_singular_becomes_plural():
     text = ("# Title\n\nI built a thing and asked whether it worked. The bar, which I set\n"
             "earlier, held. Then I checked. I was sure, and I am sure.\n\n"
-            "- I kept my notes; they are mine, and they let me see it myself.\n\n"
+            "- I kept my notes, and they let me see it myself.\n\n"
             "My plan held.\n")
     assert reproduce.review_page("README.md", text) == (
         "# Title\n\nWe built a thing and asked whether it worked. The bar, which we set\n"
         "earlier, held. Then we checked. We were sure, and we are sure.\n\n"
-        "- We kept our notes; they are ours, and they let us see it ourselves.\n\n"
+        "- We kept our notes, and they let us see it ourselves.\n\n"
         "Our plan held.\n")
 
 
-def test_code_and_other_words_are_left_alone():
-    text = ("Run it.\n\n```\nI x = my_dir / me\n```\n\nSee `I` and II, I/O, I-beam, "
-            "README, mynah, meme, Phase IV.\n")
+def test_contractions_and_a_heading_line():
+    text = "# Title\nI'm here, I've been, I'd go and I'll see.\n"
+    assert reproduce.review_page("README.md", text) == (
+        "# Title\nWe're here, we've been, we'd go and we'll see.\n")
+
+
+def test_code_numerals_and_other_words_are_left_alone():
+    text = ("Run it.\n\n```\nI x = my_dir / me\n```\n\n~~~\nI ran\n~~~\n\n- item\n\n"
+            "  ```\n  I ran\n  ```\n\nSee `I` and `cd my dir`, II, I/O, I-beam, README, mynah, "
+            "meme, Phase IV, my.yaml. A Type I error, Phase I was short, Experiment I ran.\n")
     assert reproduce.review_page("README.md", text) == text
+    assert singular_left(text) == []
+
+
+def test_crlf_line_ends_are_kept():
+    text = ("# Title\n\nI set it.\n\nThe film plays.\n\n## Next\n\nI kept it.\n")
+    want = reproduce.review_page("README.md", text)
+    out = reproduce.review_page("README.md", text.replace("\n", "\r\n"))
+    assert out == want.replace("\n", "\r\n")
+    assert reproduce.review_page("README.md", out) == out
 
 
 def test_film_paragraphs_give_way_to_one_line():
@@ -58,11 +84,18 @@ def test_film_paragraphs_give_way_to_one_line():
     assert reproduce.review_page("README.md", out) == out
 
 
+def test_a_film_paragraph_right_above_the_heading_keeps_the_heading():
+    text = "# Title\n\nOpening.\n\nThe film plays.\n## Next\n"
+    out = reproduce.review_page("README.md", text)
+    assert out == "# Title\n\nOpening.\n\n" + reproduce.FILM_NOTE + "\n## Next\n"
+    assert reproduce.review_page("README.md", out) == out
+
+
 def test_the_title_tagline_goes_and_nothing_else_moves():
     page = ('<meta property="og:title" content="Proj · A Tag, Line">\n'
             '<meta name="twitter:title" content="Proj · A Tag, Line">\n'
             '<meta property="og:description" content="Proj · kept">\n'
-            "<title>Proj · A Tag, Line</title>\n<p>Proj · kept</p>\n")
+            "<title>Proj · A \"Tag\", Line</title>\n<p>Proj · kept</p>\n")
     want = ('<meta property="og:title" content="Proj">\n'
             '<meta name="twitter:title" content="Proj">\n'
             '<meta property="og:description" content="Proj · kept">\n'
@@ -83,7 +116,7 @@ def test_the_real_readme():
     text = (ROOT / "README.md").read_text(encoding="utf-8")
     out = reproduce.review_page("README.md", text)
     assert reproduce.review_page("README.md", out) == out
-    assert not reproduce._FIRST_PERSON.search(_prose(out))
+    assert singular_left(out) == []
     intro = _intro_paragraphs(out)
     assert [p for p in intro if re.search(r"film", p, re.I)] == [reproduce.FILM_NOTE]
     # Everything from the first second-level heading on is the same text, voice aside.
