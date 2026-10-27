@@ -82,6 +82,9 @@ its memory and that the creature never acts on it. The 52% beat used to walk the
 creature; it now walks the untrained agent the 52% was read from, on the same seed
 (`trajs.untr`, added by `viz/collect.py --untrained-only`). That agent starves at step 47, so
 the beat plays its world clock at 0.7x (`"clock"` in `beats.json`) rather than show a death.
+On 2026-10-27 the end-card headline lost its "only after a life there", which after the
+73% beat reads as a life in the copy: brains raised only in the real world, then shown the
+fake, read 75% too (FINDINGS 17.5.2). It now reads "It showed only in a mind that had lived".
 `viz/collect.py` checks every number on screen against the committed artifacts,
 and `tests/test_viz_collect.py` runs that check in CI. The silent 4:5 and 9:16
 masters of this cut are local build outputs. A voiced corrected cut needs a new
