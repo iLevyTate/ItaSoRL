@@ -41,13 +41,16 @@ changes its behavior no more than a sham removal (FINDINGS 23.3). "It learned
 because its life depended on it" is withdrawn: at matched input a mind trained
 only to predict reads 72% against the forager's 73% (FINDINGS 17.6). "Fifty
 percent" is now 52% on the corrected trainer. The live captions-only cut carries
-the corrected wording; a re-voiced master would use these lines over that picture.
+the corrected wording; a re-voiced master would use these lines over that picture. (Note
+2026-10-27: the close line and the end card read "only after a life there" until today. Brains
+raised only in the real world, then shown the fake, read 75% too (FINDINGS 17.5.2), so the fake
+does not show only after a life in the copy; both now read "only in a mind that had lived".)
 
 | Time | Beat | Line |
 |---|---|---|
 | 0:45-1:00 | nocare | "But here's the strange part. Read the creature's own memory, that violet ring, and ask which world it is in. (pause 1.5s while needle wobbles) Fifty-two percent. A coin flip. Nothing there to read." |
 | 1:00-1:20 | survival | "Now let it grow up in the copy. It forages there day after day, and nobody rewards it for the fake. (let gauge climb) Seventy-three percent. The fake shows up in its memory anyway. A mind trained only to predict what it senses, fed the same senses, reads seventy-two." |
-| 1:20-1:30 | close | "(pause 1s) The fake was detectable all along. It showed in a mind only after a life there... and it never changed what the creature did. (silence to end)" |
+| 1:20-1:30 | close | "(pause 1s) The fake was detectable all along. It showed only in a mind that had lived... and it never changed what the creature did. (silence to end)" |
 
 Delivery notes:
 - "ninety-nine percent" lands AS the gauge hits 99% (~0:40), not before.

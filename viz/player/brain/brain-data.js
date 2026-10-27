@@ -5,12 +5,12 @@ window.BRAIN_DATA = {
  "trainer": "corrected",
  "record_mean": 0.733,
  "seed": 9,
- "seed_pooled_target": 0.7372,
- "untrained_pooled_target": 0.576,
+ "seed_pooled_target": 0.7384,
+ "untrained_pooled_target": 0.5756,
  "committed_seed_pooled_target": 0.7384,
  "committed_untrained_pooled_target": 0.5756,
- "rebuild_atol": 0.005,
- "rebuild_note": "the state pools were regenerated on a different software stack from the run's, so the pooled readings agree with the committed cells within 0.005, not to the bit; the on-screen numbers come from the committed artifacts, not from these pools",
+ "rebuild_atol": 1e-09,
+ "rebuild_note": "the rebuilt pools reproduce the committed cells exactly",
  "hidden": 96,
  "display_units": [
   6,
@@ -50,7 +50,7 @@ window.BRAIN_DATA = {
   0.5585,
   0.423,
   0.5665,
-  0.4374,
+  0.4375,
   0.4492,
   0.4379
  ],
@@ -60,26 +60,26 @@ window.BRAIN_DATA = {
   1.0,
   0.6018,
   0.8099,
-  0.673,
+  0.6729,
   0.7071,
-  0.9314,
+  0.9315,
   0.8045,
   0.7565,
   0.6149,
-  0.7506
+  0.7508
  ],
  "untrained_unit_auroc": [
-  0.4702,
+  0.4704,
   0.5243,
   0.5335,
   0.4821,
-  0.5051,
+  0.5052,
   0.5142,
-  0.5014,
+  0.5013,
   0.5003,
-  0.4985,
+  0.4986,
   0.4832,
-  0.4935,
+  0.4934,
   0.5277
  ],
  "ring_units": [
@@ -97,6 +97,7 @@ window.BRAIN_DATA = {
   "noAux300": 0.6135,
   "noAux450": 0.6854,
   "l0": 0.5594,
+  "raisedReal": 0.7537,
   "bar": 0.65
  }
 };

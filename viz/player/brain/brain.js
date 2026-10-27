@@ -1274,6 +1274,7 @@ const FILM = {
   noAux300: { value: 0.613, display: "61%" }, // runs.C2.primary.survival.mean: no prediction job, 300 updates
   noAux450: { value: 0.685, display: "69%" }, // budget_curve.json series["decoder off"], 450 updates, target.mean
   l0: { value: 0.559, display: "56%" }, // runs.C1.gates.l0.mean: two authentic world samples, gate open
+  raisedReal: { value: 0.754, display: "75%" }, // l0_audit/reverse_direction_corrected_l3_h8_wm.json summary.standard.survival.mean: C1 brains raised in the real world, shown the fake
   bar: { value: 0.65, display: "65%" }, // rules.bar, registered before the run
 };
 const SCALE_TEXT = `50% = coin flip   ·   ${FILM.bar.display} = the bar, set in advance`;
@@ -1709,6 +1710,10 @@ function drawTitleCard(t) {
 //    300 updates (61%, 17.4), 69% at 450 (17.10).
 //  - The open L0 gate is stated: two identical real worlds read 56%, so the
 //    registered rule is not met (17.2).
+//  - Two lines added on 2026-10-27 to match the paper: brains raised only in the
+//    real world, then shown the fake, read 75% too (the reverse-direction readout on
+//    C1's drift-zero agents), and what is not shown, retention once the input is
+//    identical (17.7) and use (23.3). The tour holds the card 9 s instead of 6 s.
 // Still NOT "trained only to survive" (FINDINGS 10.8): the headline names both
 // jobs, and scripts/audit_stats_recheck.py pins that wording and the
 // second-job line.
@@ -1739,21 +1744,23 @@ function drawEndCard() {
   // measured against Segoe UI (wide: headline 2 lines, widest 1230px; both notes
   // one line, widest 1394px. Vertical: headline 3 lines, notes 2 lines each,
   // widest 924px), and every block keeps at least a 26px gap to the next.
+  // Four notes since 2026-10-27: the block moved up so the url and footer keep their
+  // gaps with two more lines below the tiles.
   const L = vert
-    ? { mark: 300, markSize: 32, head: 452, headSize: 54, headLH: 66, headMax: 960,
-        tileY: [664, 774, 884], tileH: 96, tileX: 110, tileW: 860, pctX: 250, labX: 360,
+    ? { mark: 214, markSize: 32, head: 402, headSize: 54, headLH: 66, headMax: 960,
+        tileY: [614, 724, 834], tileH: 96, tileX: 110, tileW: 860, pctX: 250, labX: 360,
         pctSize: 76, labSize: 34, labLH: 40,
-        scale: 1010, seeds: 1056, small: 30,
-        note1: 1150, note2: 1262, noteSize: 30, noteLH: 40, noteMax: 960,
-        url: 1400, urlSize: 50, colab: 1462, colabSize: 30,
-        foot: 1580, footSize: 26, footLH: 36 }
-    : { mark: 150, markSize: 28, head: 250, headSize: 48, headLH: 58, headMax: 1360,
-        tileCX: [W / 2 - 520, W / 2, W / 2 + 520], tileTop: 336, tileH: 172, tileW: 440,
-        pct: 392, lab: 468, pctSize: 72, labSize: 28, labLH: 32,
-        scale: 556, seeds: 598, small: 28,
-        note1: 672, note2: 714, noteSize: 28, noteLH: 38, noteMax: 1680,
-        url: 806, urlSize: 46, colab: 856, colabSize: 28,
-        foot: 948, footSize: 24, footLH: 34 };
+        scale: 960, seeds: 1006, small: 30,
+        notes: [1100, 1212, 1324, 1436], noteSize: 30, noteLH: 40, noteMax: 960,
+        url: 1566, urlSize: 50, colab: 1628, colabSize: 30,
+        foot: 1746, footSize: 26, footLH: 36 }
+    : { mark: 132, markSize: 28, head: 232, headSize: 48, headLH: 58, headMax: 1360,
+        tileCX: [W / 2 - 520, W / 2, W / 2 + 520], tileTop: 318, tileH: 172, tileW: 440,
+        pct: 374, lab: 450, pctSize: 72, labSize: 28, labLH: 32,
+        scale: 538, seeds: 580, small: 28,
+        notes: [652, 694, 736, 778], noteSize: 28, noteLH: 38, noteMax: 1680,
+        url: 866, urlSize: 46, colab: 916, colabSize: 28,
+        foot: 1004, footSize: 24, footLH: 34 };
 
   textShadowOn();
   ctx.save();
@@ -1819,19 +1826,18 @@ function drawEndCard() {
   ctx.fillText(SCALE_TEXT, W / 2, L.scale);
   ctx.fillText("10 brains of each kind   ·   read out, never rewarded", W / 2, L.seeds);
 
-  // The two bounds, one sentence each. The first keeps the wording CI pins and
-  // adds the budget it holds at; the second is the gate that keeps the
-  // registered rule from being met.
+  // Four notes, one sentence each. The first keeps the wording CI pins and adds the
+  // budget it holds at; the second is the gate that keeps the registered rule from
+  // being met; the third is the reading on brains raised in the real world; the
+  // fourth names what the record does not show.
   ctx.font = `500 ${L.noteSize}px 'Segoe UI', sans-serif`;
   ctx.fillStyle = "rgba(214,209,232,0.94)";
-  fillBlock(
-    balancedLines(`At 300 training updates, drop the second job and the reading falls below the bar (${FILM.noAux300.display}). Train to 450 without it: ${FILM.noAux450.display}.`, L.noteMax),
-    L.note1, L.noteLH,
-  );
-  fillBlock(
-    balancedLines(`Two identical real worlds read ${FILM.l0.display}, not 50%, so the preregistered test is not passed.`, L.noteMax),
-    L.note2, L.noteLH,
-  );
+  [
+    `At 300 training updates, drop the second job and the reading falls below the bar (${FILM.noAux300.display}). Train to 450 without it: ${FILM.noAux450.display}.`,
+    `Two identical real worlds read ${FILM.l0.display}, not 50%, so the preregistered test is not passed.`,
+    `Brains raised only in the real world, then shown the fake, read ${FILM.raisedReal.display} too.`,
+    "Not shown: that it keeps the sign once both worlds look alike, or that it ever acts on it.",
+  ].forEach((note, i) => fillBlock(balancedLines(note, L.noteMax), L.notes[i], L.noteLH));
 
   ctx.font = `700 ${L.urlSize}px 'Segoe UI', sans-serif`;
   ctx.fillStyle = INK;
