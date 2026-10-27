@@ -88,7 +88,7 @@ masters of this cut are local build outputs. A voiced corrected cut needs a new
 voice track over the new picture; until one exists, the web encode above stays the
 historical cut.
 
-## Film two: Two Minds (66 s, seven chapters)
+## Film two: Two Minds (69 s, seven chapters)
 
 Only `two-minds-web.mp4` and `two-minds-poster.jpg` are tracked. Everything
 else, `clips/` included, is a local build output, gitignored, rebuilt on demand
@@ -96,20 +96,21 @@ with `viz/player/capture/build-two-minds.ps1`; the site links the web encode.
 
 | File | What it is | Source |
 |------|------------|--------|
-| `two-minds-web.mp4` | 1280x720, 30 fps, H.264 CRF 25, no audio track, 65.9 s. The cut the site plays, intro and outro included. | Web encode of `clips/two-minds-tour.mp4`. |
+| `two-minds-web.mp4` | 1280x720, 30 fps, H.264 CRF 25, no audio track, 68.9 s. The cut the site plays, intro and outro included. | Web encode of `clips/two-minds-tour.mp4`. |
 | `two-minds-poster.jpg` | Poster frame at 2 s (the title card). | Same. |
-| `clips/two-minds-tour.mp4` (local only) | 1920x1080 tour: intro title card (9.5 s), the five sections (overview 12, senses 9, process 9, memory 12, actions 12), outro end card (6 s), joined with 0.6 s fade-to-black. Trims sum to 69.5 s; the six 0.6 s crossfades overlap away 3.6 s, so the film runs 65.9 s. | `viz/player/capture/build-two-minds.ps1` |
+| `clips/two-minds-tour.mp4` (local only) | 1920x1080 tour: intro title card (9.5 s), the five sections (overview 12, senses 9, process 9, memory 12, actions 12), outro end card (9 s), joined with 0.6 s fade-to-black. Trims sum to 72.5 s; the six 0.6 s crossfades overlap away 3.6 s, so the film runs 68.9 s. | `viz/player/capture/build-two-minds.ps1` |
 | `clips/two-minds-tour-vertical.mp4` (local only) | 1080x1920 tour. | Same. |
 | `clips/two-minds-tour-loop.gif` (local only) | 420 px wide, 7 fps loop GIF of the tour. | Same. |
-| `clips/two-minds-<section>.mp4` (local only) | 12 s seamless loop per section: overview, senses, process, memory, actions. The intro and outro are captured the same way as full 12 s chapters, `clips/two-minds-title.mp4` and `clips/two-minds-end.mp4`, but only feed the tour, where they are trimmed to 9.5 s and 6 s. | Same. |
+| `clips/two-minds-<section>.mp4` (local only) | 12 s seamless loop per section: overview, senses, process, memory, actions. The intro and outro are captured the same way as full 12 s chapters, `clips/two-minds-title.mp4` and `clips/two-minds-end.mp4`, but only feed the tour, where they are trimmed to 9.5 s and 9 s. | Same. |
 | `clips/two-minds-<section>-vertical.mp4` (local only) | 9:16 of each section. | Same. |
 | `clips/two-minds-<section>-loop.gif` (local only) | 560 px wide, 10 fps loop GIF of each section. | Same. |
 
-The tracked web encode is the October 2026 cut, rebuilt on 2026-10-11 from the
+The tracked web encode is the October 2026 cut, rebuilt on 2026-10-27 from the
 corrected renderer and the corrected C1 brain (seed 9) by the rebuild at the end
-of this section. It replaced the September cut, whose numbers and brain data were
-pre-correction, in place. All 22 build outputs were decode-checked: 14 section
-clips at 12.0 s, two tours at 65.9 s (1977 frames), six loop GIFs.
+of this section, with the end card's two added notes (below). It replaced the
+2026-10-11 cut in place, which had replaced the September cut, whose numbers and
+brain data were pre-correction. All 22 build outputs were decode-checked: 14
+section clips at 12.0 s, two tours at 68.9 s (2067 frames), six loop GIFs.
 
 ### Labels on the published cuts
 
@@ -137,7 +138,7 @@ C1's own between-draw SD of 0.052, the corrected primary reads 0.733 [0.618, 0.8
 bound under the 0.65 bar; the record's propagation with the historical 0.042 stays. The live
 player's end-card footer gives the C1 range since 2026-10-19. The film-one mp4 is unchanged,
 and its caveats sit beside it. The Two Minds mp4 was re-rendered on the corrected record on
-2026-10-11 and carries its caveats on its end card.
+2026-10-11 and again on 2026-10-27, and carries its caveats on its end card.
 
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
 the same way as film one and replace `two-minds-web.mp4` in place so the site
@@ -165,12 +166,13 @@ drawn on screen is one of the ten trained ones:
 | without the prediction job at 300 updates, 61% | 0.613, under the bar | `runs.C2.primary.survival` |
 | without it at 450 updates, 69% | 0.685 | `artifacts/budget_curve.json` `series["decoder off"]` |
 | two different samples of real worlds, 56% | 0.559, so the registered rule is not met | `runs.C1.gates.l0` |
+| brains raised only in the real world, then shown the fake, 75% | 0.754 [0.721, 0.787], R1 CARRIED, descriptive | `artifacts/l0_audit/reverse_direction_corrected_l3_h8_wm.json` `summary.standard.survival.mean` (the C1 drift-0 agents read at drift 0.45) |
 
 `python scripts/dump_brain_film_data.py --check-only` compares each display with
 those artifacts and stops on any mismatch. It also checks the sentences built on
 them: the untrained interval includes 0.5, the trained arm clears the bar, the arm
-without the prediction job is under it at 300 updates, and the L0 gate did not
-pass. `tests/test_brain_film.py` runs the same check in CI, along with checks that
+without the prediction job is under it at 300 updates, the L0 gate did not
+pass, and the brains raised in the real world clear the bar too. `tests/test_brain_film.py` runs the same check in CI, along with checks that
 no withdrawn wording, historical figure or stack name renders.
 
 What changed from the September cut, and why:
@@ -191,6 +193,13 @@ What changed from the September cut, and why:
 - The card's second-job line now carries its budget: under the bar at 300 updates
   (61%), 69% at 450 (17.4, 17.10). A new line states the open gate: two identical
   real worlds read 56%, so the preregistered test is not passed (17.2).
+- On 2026-10-27 the card gained two notes to match the paper. Brains raised only
+  in the real world, then shown the fake, read 75% too (17.5.2, its note of
+  2026-10-19), so rearing in the fake is not needed for the reading. And what is
+  not shown: that the brain keeps the sign once both worlds look alike (17.7), or
+  that it ever acts on it (removing the decoded direction while the brain acts
+  changes its behavior no more than a sham removal, 23.3). The card holds 9 s
+  rather than 6 s, 1.5 s for each added note.
 - Labeled builds carry no on-screen narration. Narration renders only with
   `caption=1`, and the voice is recorded over the labeled cut. The labeled panels
   took the freed band: wide panels grew from 624 to 700 px tall, 9:16 panels from
@@ -200,9 +209,10 @@ What changed from the September cut, and why:
   counterpart), "the miss leaves a mark in memory", "that is what memory picks
   up", and the stack name in the caption subline.
 
-Chapter lengths are unchanged (title 9.5 s, overview 12, senses 9, process 9,
-memory 12, actions 12, end 6), so a music bed cut to the 65.9 s September picture
-still fits.
+Chapter lengths before the end card are unchanged (title 9.5 s, overview 12,
+senses 9, process 9, memory 12, actions 12). The end card holds 9 s since
+2026-10-27 (6 s before), so a music bed cut to the 65.9 s September picture needs
+3 s more under the card.
 
 ### Brain data
 
@@ -216,12 +226,12 @@ survival and untrained pools reproduce the committed C1 cells' pooled targets
 within `--atol` (default 1e-9, which only a rebuild on the stack that ran C1 can
 meet).
 
-The committed `brain-data.js` was rebuilt on the owner's Windows stack, not the
-cloud stack that ran C1, so its pools agree with the committed targets to within
-0.002 rather than to the bit: survival 0.7372 against 0.7384, untrained 0.5760
-against 0.5756. The data records both readings and the tolerance used
-(`rebuild_atol` 0.005), and `tests/test_brain_film.py` refuses a tolerance above
-0.005.
+The committed `brain-data.js` was rebuilt on 2026-10-27 on the stack that ran C1
+(Python 3.11.17, torch 2.14.1+cpu, NumPy 2.4.6, SciPy 1.17.1, scikit-learn 1.9.1)
+and reproduces the committed targets to the bit: survival 0.7384, untrained
+0.5756, `rebuild_atol` 1e-9. The rebuild it replaced ran on the owner's Windows
+stack and agreed to within 0.002 (survival 0.7372, untrained 0.5760, tolerance
+0.005); `tests/test_brain_film.py` still refuses a tolerance above 0.005.
 
 ### Rebuild
 
@@ -246,7 +256,7 @@ python scripts/dump_brain_film_data.py --states "$sub\states" --report "$sub\sta
 
 Then serve the renderer on port 8877 from `viz/player/brain/` and run
 `viz/player/capture/build-two-minds.ps1`. It decode-checks every clip and the
-tour stitch; check the tours with `ffprobe` (65.9 s) before encoding the web cut
+tour stitch; check the tours with `ffprobe` (68.9 s) before encoding the web cut
 below.
 
 Web encode:

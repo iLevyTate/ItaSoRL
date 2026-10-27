@@ -31,7 +31,7 @@ def _features(H):
 def _film(**over):
     film = {"untrained": (0.523, "52%"), "trained": (0.733, "73%"), "replay": (0.721, "72%"),
             "noAux300": (0.613, "61%"), "noAux450": (0.685, "69%"), "l0": (0.559, "56%"),
-            "bar": (0.65, "65%")}
+            "raisedReal": (0.754, "75%"), "bar": (0.65, "65%")}
     film.update(over)
     return film
 
@@ -39,7 +39,7 @@ def _film(**over):
 def _record(**over):
     rec = {"untrained": 0.522603, "untrained_t90": [0.4914, 0.553806], "trained": 0.733017,
            "replay": 0.720992, "noAux300": 0.613471, "noAux450": 0.685372, "l0": 0.559421,
-           "l0_pass": False, "c1_met": False, "bar": 0.65}
+           "raisedReal": 0.753678, "l0_pass": False, "c1_met": False, "bar": 0.65}
     rec.update(over)
     return rec
 
@@ -61,6 +61,7 @@ def test_verify_passes_on_published_values():
     ("untrained", (0.488, "49%")),   # the pre-correction floor
     ("replay", (0.721, "73%")),
     ("noAux450", (0.717, "72%")),    # the pre-correction 450-update reading
+    ("raisedReal", (0.760, "76%")),  # the historical agents' reverse-direction reading
 ])
 def test_verify_fails_on_a_drifted_number(key, bad):
     with pytest.raises(SystemExit):
@@ -88,6 +89,12 @@ def test_verify_fails_when_the_preregistered_test_passes():
 def test_verify_fails_when_the_arm_without_prediction_clears_the_bar_at_300():
     with pytest.raises(SystemExit):
         dbf.verify_film_numbers(_film(noAux300=(0.66, "66%")), _record(noAux300=0.66))
+
+
+def test_verify_fails_when_brains_raised_in_the_real_world_are_under_the_bar():
+    """The end card says brains raised only in the real world read the fake too."""
+    with pytest.raises(SystemExit):
+        dbf.verify_film_numbers(_film(raisedReal=(0.62, "62%")), _record(raisedReal=0.62))
 
 
 def test_renderer_numbers_refuse_a_reshaped_line(tmp_path):
@@ -223,7 +230,11 @@ def _rendered(src: str) -> str:
 
 
 def test_the_film_renders_no_withdrawn_claim_or_stack_name():
-    code = _rendered(BRAIN_JS.read_text(encoding="utf-8"))
+    # The FILM block is checked number by number against the artifacts
+    # (verify_film_numbers), so a historical figure is banned everywhere else. Since
+    # 2026-10-27 the block holds a 75% of its own (0.754, corrected brains raised in the
+    # real world), which is not the pre-correction 75% (0.752) the ban is for.
+    code = dbf._FILM_BLOCK.sub("", _rendered(BRAIN_JS.read_text(encoding="utf-8")))
     for banned in ("AUROC", "A2C", "0.726", "0.752", "0.488", "49%", "75%",
                    "hold the clue", "holds the clue", "kept a trace", "leaves a mark",
                    "memory picks up", "survival pressure", "survival-specific",

@@ -58,7 +58,7 @@ DRIFT_TAG = "0.45"
 HIDDEN = 96              # the registered trunk
 N_DISPLAY = 12           # memory cells shown in the film
 N_RING = 6               # teal-ringed clue cells
-FILM_KEYS = ("untrained", "trained", "replay", "noAux300", "noAux450", "l0", "bar")
+FILM_KEYS = ("untrained", "trained", "replay", "noAux300", "noAux450", "l0", "raisedReal", "bar")
 
 _FILM_BLOCK = re.compile(r"^const FILM = \{\n(.*?)\n\};", re.S | re.M)
 _FILM_ROW = re.compile(r'^\s*(\w+): \{ value: ([0-9.]+), display: "(\d+%)" \},', re.M)
@@ -85,6 +85,13 @@ def load_record(root: Path = ROOT) -> dict:
     c1, c2 = v["runs"]["C1"], v["runs"]["C2"]
     pol = json.loads((art / "policy_controls" / "corrected_l3_h8_wm.json").read_text(encoding="utf-8"))
     bud = json.loads((art / "budget_curve.json").read_text(encoding="utf-8"))
+    # Brains raised in the real world, then scored against the fake: the reverse-direction
+    # readout on C1's drift-zero survival agents (the paper's 0.754).
+    rev = json.loads((art / "l0_audit" / "reverse_direction_corrected_l3_h8_wm.json")
+                     .read_text(encoding="utf-8"))
+    need(rev.get("agent_drift") == 0.0 and rev.get("readout_drift") == 0.45
+         and str(rev.get("agents_dir", "")).endswith("corrected_l3_h8_wm/agents"),
+         "reverse_direction_corrected_l3_h8_wm.json is not the C1 drift-zero agents read at 0.45")
 
     def budget(series: str, updates: int) -> float:
         pts = [p for p in bud["series"][series] if p["updates"] == updates]
@@ -114,6 +121,7 @@ def load_record(root: Path = ROOT) -> dict:
         "noAux300": float(c2["primary"]["survival"]["mean"]),
         "noAux450": budget("decoder off", 450),
         "l0": float(c1["gates"]["l0"]["mean"]),
+        "raisedReal": float(rev["summary"]["standard"]["survival"]["mean"]),
         "l0_pass": bool(c1["gates"]["l0"]["pass"]),
         "c1_met": bool(c1["primary"]["met"]),
         "bar": float(v["rules"]["bar"]),
@@ -148,6 +156,9 @@ def verify_film_numbers(film: dict, record: dict) -> dict:
          "the arm without the prediction job clears the bar at 300 updates; the end card says it falls below")
     need(not record["l0_pass"] and not record["c1_met"],
          "the end card says the preregistered test is not passed, and the record says it is")
+    need(record["raisedReal"] >= record["bar"],
+         "the end card says brains raised in the real world read the fake too, and the record "
+         "has them under the bar")
     return {k: round(float(record[k]), 4) for k in FILM_KEYS}
 
 

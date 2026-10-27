@@ -8,7 +8,7 @@
 #   two-minds-<sec>.mp4            1920x1080 30fps 12s seamless loop
 #   two-minds-<sec>-vertical.mp4   1080x1920 30fps 12s seamless loop
 #   two-minds-<sec>-loop.gif       560w 10fps (title and end get no gif)
-#   two-minds-tour[-vertical].mp4  65.9s fadeblack stitch: title card + the 5
+#   two-minds-tour[-vertical].mp4  68.9s fadeblack stitch: title card + the 5
 #                                  sections + end card, each trimmed by reading
 #                                  time (see assets/film/README.md)
 #   two-minds-tour-loop.gif        420w 7fps
@@ -143,10 +143,11 @@ foreach ($sec in $capSecs) {
 # event and the payoff keep the full loop. Their fourth caption starts at
 # u 0.57 and holds past the cut, so nothing is orphaned mid-sentence.
 # Trims are also set by reading time: the title card holds 9.5s because two
-# beats at ~4.3s each is what they need to be read, and the end card holds 6s
-# so the repo link is still there after the eye has finished the number.
-#   title 9.5 | overview 12 | senses 9 | process 9 | memory 12 | actions 12 | end 6
-# offset_n = (running length) - n * 0.6  ->  65.9s total (was 68.1).
+# beats at ~4.3s each is what they need to be read, and the end card holds 9s
+# so the repo link is still there after the eye has finished the number and the
+# four notes under it (6s until 2026-10-27, when two notes were added: 1.5s each).
+#   title 9.5 | overview 12 | senses 9 | process 9 | memory 12 | actions 12 | end 9
+# offset_n = (running length) - n * 0.6  ->  68.9s total (65.9 with the 6s end card).
 $tourPlan = @(
   @{ sec = 'title';    trim = '9.5' },
   @{ sec = 'overview'; trim = $null },
@@ -154,7 +155,7 @@ $tourPlan = @(
   @{ sec = 'process';  trim = '9'   },
   @{ sec = 'memory';   trim = $null },
   @{ sec = 'actions';  trim = $null },
-  @{ sec = 'end';      trim = '6'   }
+  @{ sec = 'end';      trim = '9'   }
 )
 $offsets = '8.9', '20.3', '28.7', '37.1', '48.5', '59.9'
 $fc = ($offsets | ForEach-Object -Begin { $i = 0 } -Process {

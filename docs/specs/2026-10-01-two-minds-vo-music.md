@@ -6,6 +6,14 @@ voiced cut would say and sound like. Companion to the existing
 `docs/specs/2026-07-22-outreach-video-vo-music.md`, which covers the other film,
 *Detectable All Along*, and was recorded and released on 2026-08-24.
 
+*(Note 2026-10-27: this script and its timings are for the September picture and are
+not ready to record. The picture was re-rendered on the corrected record on 2026-10-11:
+the memory chapter shows two rows, untrained brains at 52% and brains like this one at
+73%, rather than one meter climbing from 49%, and the end card shows 52%, 73% and 72%
+with its notes. On 2026-10-27 the end card gained two notes and holds 9 s, so the cut
+runs 68.9 s and the end chapter spans 59.9 to 68.9. Rewrite the lines and the music
+timings against `assets/film/README.md` before recording.)*
+
 Same house rule as that spec: **the voice never reads the on-screen captions
 verbatim.** Captions carry the claims, the voice carries the story. Numbers spoken
 must match the displays exactly, which here means 49%, 65%, and 73% only. The 93%
