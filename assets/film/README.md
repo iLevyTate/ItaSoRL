@@ -85,6 +85,12 @@ the beat plays its world clock at 0.7x (`"clock"` in `beats.json`) rather than s
 On 2026-10-27 the end-card headline lost its "only after a life there", which after the
 73% beat reads as a life in the copy: brains raised only in the real world, then shown the
 fake, read 75% too (FINDINGS 17.5.2). It now reads "It showed only in a mind that had lived".
+On 2026-10-31 the headline's last clause, "and never changed what it did", became a sentence
+of its own, "No test showed it changing what it did." The nudge and the erasure found no
+effect above a sham (FINDINGS 23.3), and both are limited tests, so the record says that use
+is not shown, not that there is none. The same day the footer's "two identical real worlds"
+became "two samples of real worlds with the same physics": the L0 gate's two pools share the
+physics and differ in the draw of evaluation worlds, and the 56% is what that draw alone adds.
 `viz/collect.py` checks every number on screen against the committed artifacts,
 and `tests/test_viz_collect.py` runs that check in CI. The silent 4:5 and 9:16
 masters of this cut are local build outputs. A voiced corrected cut needs a new
@@ -108,12 +114,13 @@ with `viz/player/capture/build-two-minds.ps1`; the site links the web encode.
 | `clips/two-minds-<section>-vertical.mp4` (local only) | 9:16 of each section. | Same. |
 | `clips/two-minds-<section>-loop.gif` (local only) | 560 px wide, 10 fps loop GIF of each section. | Same. |
 
-The tracked web encode is the October 2026 cut, rebuilt on 2026-10-27 from the
+The tracked web encode is the October 2026 cut, rebuilt on 2026-10-31 from the
 corrected renderer and the corrected C1 brain (seed 9) by the rebuild at the end
-of this section, with the end card's two added notes (below). It replaced the
-2026-10-11 cut in place, which had replaced the September cut, whose numbers and
-brain data were pre-correction. All 22 build outputs were decode-checked: 14
-section clips at 12.0 s, two tours at 68.9 s (2067 frames), six loop GIFs.
+of this section, with the end card's two notes reworded that day (below). It
+replaced the 2026-10-27 cut in place, which had replaced the 2026-10-11 cut, which
+had replaced the September cut, whose numbers and brain data were pre-correction.
+The 2026-10-31 build decode-checked its 16 outputs: 14 section clips at 12.0 s and
+two tours at 68.9 s (2067 frames). The loop GIFs were not rebuilt.
 
 ### Labels on the published cuts
 
@@ -141,7 +148,7 @@ C1's own between-draw SD of 0.052, the corrected primary reads 0.733 [0.618, 0.8
 bound under the 0.65 bar; the record's propagation with the historical 0.042 stays. The live
 player's end-card footer gives the C1 range since 2026-10-19. The film-one mp4 is unchanged,
 and its caveats sit beside it. The Two Minds mp4 was re-rendered on the corrected record on
-2026-10-11 and again on 2026-10-27, and carries its caveats on its end card.
+2026-10-11, again on 2026-10-27 and again on 2026-10-31, and carries its caveats on its end card.
 
 A voiced cut of Two Minds has not been committed. If one is produced, encode it
 the same way as film one and replace `two-minds-web.mp4` in place so the site
@@ -194,8 +201,9 @@ What changed from the September cut, and why:
   trained brains' own senses. That last reading sits within about 0.01 of 73%, so the
   reading that credited the survival objective is withdrawn (17.6).
 - The card's second-job line now carries its budget: under the bar at 300 updates
-  (61%), 69% at 450 (17.4, 17.10). A new line states the open gate: two identical
-  real worlds read 56%, so the preregistered test is not passed (17.2).
+  (61%), 69% at 450 (17.4, 17.10). A new line states the open gate: two samples
+  of real worlds with the same physics read 56%, so the preregistered test is not
+  passed (17.2).
 - On 2026-10-27 the card gained two notes to match the paper. Brains raised only
   in the real world, then shown the fake, read 75% too (17.5.2, its note of
   2026-10-19), so rearing in the fake is not needed for the reading. And what is
@@ -203,6 +211,12 @@ What changed from the September cut, and why:
   that it ever acts on it (removing the decoded direction while the brain acts
   changes its behavior no more than a sham removal, 23.3). The card holds 9 s
   rather than 6 s, 1.5 s for each added note.
+- On 2026-10-31 two notes were reworded to match the paper. The gate note said
+  "two identical real worlds"; the gate's two pools share the physics and differ
+  in the draw of evaluation worlds, so it now says "two samples of real worlds
+  with the same physics". The 75% note now opens "Brains like this one": the
+  survival arm raised in the real world reads 0.754, while its predictor and
+  untrained arms read 0.572 and 0.523.
 - Labeled builds carry no on-screen narration. Narration renders only with
   `caption=1`, and the voice is recorded over the labeled cut. The labeled panels
   took the freed band: wide panels grew from 624 to 700 px tall, 9:16 panels from
