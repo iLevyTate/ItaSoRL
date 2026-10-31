@@ -34,8 +34,9 @@
  *   no prediction job      0.613  61% at 300 updates, under the bar (17.4), and
  *                          0.685  69% at 450 (17.10). The auxiliary result is
  *                                 bounded by budget, so the card names both.
- *   two identical worlds   0.559  56%, the L0 gate on two authentic world
- *                                 samples. It is not equivalent to 0.5, so the
+ *   two real-world samples 0.559  56%, the L0 gate: two samples of authentic
+ *                                 worlds, same physics, different draws of
+ *                                 evaluation worlds. It is not equivalent to 0.5, so the
  *                                 registered rule is NOT met (17.2); the
  *                                 decodability clauses are.
  * What the picture may not say, and does not: that survival pressure causes the
@@ -1708,12 +1709,17 @@ function drawTitleCard(t) {
 //    reading that credited the survival objective is withdrawn (17.6).
 //  - The line about dropping the second job carries its budget: under the bar at
 //    300 updates (61%, 17.4), 69% at 450 (17.10).
-//  - The open L0 gate is stated: two identical real worlds read 56%, so the
-//    registered rule is not met (17.2).
+//  - The open L0 gate is stated: two samples of real worlds with the same physics
+//    read 56%, so the registered rule is not met (17.2).
 //  - Two lines added on 2026-10-27 to match the paper: brains raised only in the
 //    real world, then shown the fake, read 75% too (the reverse-direction readout on
 //    C1's drift-zero agents), and what is not shown, retention once the input is
 //    identical (17.7) and use (23.3). The tour holds the card 9 s instead of 6 s.
+//  - Two notes reworded on 2026-10-31 to match the paper. The L0 note said "two
+//    identical real worlds", but the gate's two pools share the physics and differ
+//    in the draw of evaluation worlds, and the 56% is what that draw alone adds. The
+//    75% note now says "brains like this one": the survival arm raised in the real
+//    world reads 0.754, its predictor and untrained arms 0.572 and 0.523.
 // Still NOT "trained only to survive" (FINDINGS 10.8): the headline names both
 // jobs, and scripts/audit_stats_recheck.py pins that wording and the
 // second-job line.
@@ -1834,8 +1840,8 @@ function drawEndCard() {
   ctx.fillStyle = "rgba(214,209,232,0.94)";
   [
     `At 300 training updates, drop the second job and the reading falls below the bar (${FILM.noAux300.display}). Train to 450 without it: ${FILM.noAux450.display}.`,
-    `Two identical real worlds read ${FILM.l0.display}, not 50%, so the preregistered test is not passed.`,
-    `Brains raised only in the real world, then shown the fake, read ${FILM.raisedReal.display} too.`,
+    `Two samples of real worlds with the same physics read ${FILM.l0.display}, not 50%, so the preregistered test is not passed.`,
+    `Brains like this one, raised only in the real world, then shown the fake, read ${FILM.raisedReal.display} too.`,
     "Not shown: that it keeps the sign once both worlds look alike, or that it ever acts on it.",
   ].forEach((note, i) => fillBlock(balancedLines(note, L.noteMax), L.notes[i], L.noteLH));
 

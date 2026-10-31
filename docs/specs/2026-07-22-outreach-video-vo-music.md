@@ -45,12 +45,16 @@ the corrected wording; a re-voiced master would use these lines over that pictur
 2026-10-27: the close line and the end card read "only after a life there" until today. Brains
 raised only in the real world, then shown the fake, read 75% too (FINDINGS 17.5.2), so the fake
 does not show only after a life in the copy; both now read "only in a mind that had lived".)
+(Note 2026-10-31: until today the close line ended "and it never changed what the creature
+did". The nudge and the erasure found no effect above a sham (FINDINGS 23.3), and both are
+limited tests, so the record says only that use is not shown. The close line and the end card
+now say that no test showed it.)
 
 | Time | Beat | Line |
 |---|---|---|
 | 0:45-1:00 | nocare | "But here's the strange part. Read the creature's own memory, that violet ring, and ask which world it is in. (pause 1.5s while needle wobbles) Fifty-two percent. A coin flip. Nothing there to read." |
 | 1:00-1:20 | survival | "Now let it grow up in the copy. It forages there day after day, and nobody rewards it for the fake. (let gauge climb) Seventy-three percent. The fake shows up in its memory anyway. A mind trained only to predict what it senses, fed the same senses, reads seventy-two." |
-| 1:20-1:30 | close | "(pause 1s) The fake was detectable all along. It showed only in a mind that had lived... and it never changed what the creature did. (silence to end)" |
+| 1:20-1:30 | close | "(pause 1s) The fake was detectable all along. It showed only in a mind that had lived... and no test showed it changing what the creature did. (silence to end)" |
 
 Delivery notes:
 - "ninety-nine percent" lands AS the gauge hits 99% (~0:40), not before.
