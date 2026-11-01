@@ -1,165 +1,181 @@
-# Two Minds: voiceover script and music, for Hume and Suno
+# Two Minds: voiceover script and music, for ElevenLabs and Suno
 
-Status (2026-10-01): proposed, not recorded. *Two Minds* ships silent today
-(`assets/film/two-minds-web.mp4`, one video stream, no audio). This spec is what a
-voiced cut would say and sound like. Companion to the existing
+Status (2026-11-01): rewritten for the corrected 68.9 s picture, not recorded. *Two Minds*
+ships silent (`assets/film/two-minds-web.mp4`, one video stream, no audio). This spec is
+what a voiced cut would say and sound like. Companion to
 `docs/specs/2026-07-22-outreach-video-vo-music.md`, which covers the other film,
-*Detectable All Along*, and was recorded and released on 2026-08-24.
+*Detectable All Along*. The 2026-10-01 version of this spec, written for Hume and the
+65.9 s September picture, is in git history. Its script no longer matched the record,
+and the section after the script says what changed.
 
-*(Note 2026-10-27: this script and its timings are for the September picture and are
-not ready to record. The picture was re-rendered on the corrected record on 2026-10-11:
-the memory chapter shows two rows, untrained brains at 52% and brains like this one at
-73%, rather than one meter climbing from 49%, and the end card shows 52%, 73% and 72%
-with its notes. On 2026-10-27 the end card gained two notes and holds 9 s, so the cut
-runs 68.9 s and the end chapter spans 59.9 to 68.9. Rewrite the lines and the music
-timings against `assets/film/README.md` before recording.)*
-
-Same house rule as that spec: **the voice never reads the on-screen captions
-verbatim.** Captions carry the claims, the voice carries the story. Numbers spoken
-must match the displays exactly, which here means 49%, 65%, and 73% only. The 93%
-watcher gate is on screen in one chapter but the voice does not touch it, because
-explaining a privileged oracle costs more seconds than this film has.
+Same house rule as film one's spec: **the voice never reads on-screen text verbatim.**
+The labeled cut carries labels and readouts, and the voice carries the story. Numbers
+spoken must match the displays exactly. The voice speaks only the memory chapter's
+three, 52%, 73% and the 65% bar, and leaves the end card's 72%, 61%, 69%, 56% and 75% to
+the card, which holds 9 s so they can be read.
 
 ## The picture you are scoring
 
-`clips/two-minds-tour.mp4`, 65.9 s. Seven chapters joined by 0.6 s fade-to-black.
-Trims sum to 69.5 s and the six crossfades overlap away 3.6 s. The windows below are
-positions in the finished 65.9 s cut, which is what the VO and music are cut against.
+`clips/two-minds-tour.mp4` (local) or the web encode, 68.9 s. Seven chapters joined by
+0.6 s fades to black. The times below are positions in the finished cut, read from the
+renderer (`viz/player/brain/brain.js`: 12 s loops, the missed grab at u 0.32, the rings
+from u 0.40, the untrained row at u 0.08 to 0.20, the trained row at u 0.40 to 0.54,
+three grabs from u 0.26 in the actions chapter, 0.19 apart).
 
-| Chapter | In | Out | Length | On screen |
+| Chapter | In | Out | On screen | Timed events |
 |---|---|---|---|---|
-| title | 0.0 | 8.9 | 8.9 | "Can a brain tell a real world from a fake one?" |
-| overview | 8.9 | 20.3 | 11.4 | Two worlds side by side, the missed reach |
-| senses | 20.3 | 28.7 | 8.4 | Ten labeled sensor groups |
-| process | 28.7 | 37.1 | 8.4 | Encoder rows, no recurrence |
-| memory | 37.1 | 48.5 | 11.4 | The live meter, 49% climbing to 73% |
-| actions | 48.5 | 59.9 | 11.4 | Five motor heads, three prediction heads |
-| end | 59.9 | 65.9 | 6.0 | End card, 73% |
+| title | 0.0 | 8.9 | "Can a brain tell a real world from a fake one?" | none |
+| overview | 8.9 | 20.3 | One brain in the real world and in the copy | missed reach 12.7, rings from 13.7 |
+| senses | 20.3 | 28.7 | Ten labeled sensor groups | none |
+| process | 28.7 | 37.1 | Encoder rows, no recurrence | none |
+| memory | 37.1 | 48.5 | Twelve memory cells by unit number, two readout rows | untrained row fills 38.1 to 39.5 (52%), trained row fills 41.9 to 43.6 (73%) |
+| actions | 48.5 | 59.9 | Five motor heads, three prediction heads | grabs at 51.6, 53.9 and 56.2 |
+| end | 59.9 | 68.9 | End card: 52%, 73% and 72% tiles, four notes | none |
 
 ## Voiceover script
 
-About 53 s of speech inside 65.9 s. Roughly 150 words per minute. The silences are
-load-bearing, especially the one before the end card.
+One take per chapter, each placed at the time shown, as `AGENTS.md` asks (a film's VO
+split into takes at beat boundaries). 119 words at the default speed of 0.9. The pause
+tags are for Eleven v3 and v4. For Multilingual v2 or Flash, write `[pause]` as
+`<break time="0.7s" />`.
 
-| Time | Chapter | Line |
+| Place at | Chapter | Take |
 |---|---|---|
-| 0:02-0:07 | title | "One brain. Two worlds. Only one of them is real." |
-| 0:09-0:20 | overview | "We copied its world and broke one rule: how things move. Watch the reach. In the fake world it falls a hair short. (beat) Nobody told it a fake existed." |
-| 0:21-0:28 | senses | "Everything it knows arrives through ten senses. The flaw comes in as speed, a little wrong at every step." |
-| 0:30-0:36 | process | "Those signals mix into patterns and pass straight through. Nothing here remembers anything." |
-| 0:38-0:48 | memory | "Memory is where it lands. Before the miss: forty-nine percent. A coin flip. (beat) After: seventy-three. We set the bar at sixty-five before we looked." |
-| 0:49-0:59 | actions | "This brain has two jobs. Stay alive, and expect what it will feel next. (beat) Survival alone is not enough. Expecting alone is not enough. It takes both." |
-| 1:02-1:05 | end | "(pause 2s) Nobody asked it to notice. It noticed anyway." |
+| 0:02 | title | "One brain. Two worlds. Only one of them is real." |
+| 0:11 | overview | "Watch its reach. [pause] In the copy, it falls short. One rule of motion is slightly off there." |
+| 0:20.6 | senses | "Everything comes in through ten senses. [pause] The flaw arrives as speed, a little wrong every step." |
+| 0:29.2 | process | "Here the senses blend into patterns. [pause] Nothing here remembers. It passes straight through." |
+| 0:37.5 | memory | "Untrained brains read fifty-two percent, a coin flip. [pause] Brains trained like this one read seventy-three. We fixed the bar at sixty-five beforehand." |
+| 0:48.8 | actions | "Its two jobs: stay alive, and predict what comes next. In the copy, the same move keeps missing, [pause] so what it senses changes too." |
+| 1:00.5 | end | "No reward ever pointed at the fake. [pause] And no test shows it acting on what we read." |
 
-### Why the actions chapter carries the weight
+Landing points:
 
-The line "it takes both" is the reason this spec exists. The end card used to read "a
-brain trained only to survive", which FINDINGS 10.8 contradicts: strip the
-next-observation decoder and the same protocol reads 0.601 on the same machine,
-under the 0.65 bar, against 0.730 with it. Prediction alone reads 0.573. The card has
-been rewritten and the voice should land the same point a beat earlier, on the
-chapter that already shows the three prediction heads.
+- "In the copy, it falls short" just after the missed reach at 0:12.7.
+- "fifty-two" as the untrained row fills, 0:38.1 to 0:39.5.
+- "seventy-three" as the trained row fills, 0:41.9 to 0:43.6.
+- "keeps missing" across the three grabs at 0:51.6, 0:53.9 and 0:56.2.
+- The end take finishes by 1:08.5.
 
-Do not soften "not enough" into "not the whole story". The claim is a threshold claim
-and the film shows the threshold.
+## ElevenLabs
+
+- Voice: the owner's ElevenLabs voice for the series, the same one as film one, so the
+  two films sound like one project. If a voice has to be designed, describe it as a warm,
+  unhurried narrator, mid-range and close-mic'd, with gentle curiosity and no broadcast
+  polish, comfortable with silence.
+- Model and pauses: Eleven v3 and v4 take the bracketed tags above and ignore SSML
+  breaks. Multilingual v2 and Flash take `<break time="0.7s" />`, at most 3 s per break.
+- Speed 0.9. Numbers are written as words, so every take reads them the same way.
+- Generate two or three variants of the memory take and the end take and pick in
+  context, since those two carry the film.
+- Deliver one AAC stereo track matched to the 68.9 s picture, separate from the music.
+
+## What the script leaves out, and why
+
+The 2026-10-01 script was written for the September picture and the record of that
+week. Three of its claims are now withdrawn or unsupported, and none is in the script
+above.
+
+- "Before the miss: forty-nine percent. A coin flip. After: seventy-three." The 49% and
+  the 73% were two different agents, an untrained one and a trained one, each read once
+  after training. The corrected picture shows two rows, 52% and 73%, and the script reads
+  them as two kinds of brain.
+- "Survival alone is not enough. Expecting alone is not enough. It takes both." Without
+  the prediction job the reading is under the bar at 300 updates (0.613, FINDINGS 17.4)
+  and 0.685 at 450 (17.10), and a brain trained only to predict, fed the trained brain's
+  own senses, reads 0.721 (17.6). The script names the two jobs and leaves these numbers
+  to the end card.
+- "Nobody asked it to notice. It noticed anyway." The film makes no awareness claim.
+  Removing the decoded direction while the brain acts changes its behavior no more than
+  a sham removal (23.3). The script ends on what is shown: no reward pointed at the fake,
+  and no test shows the brain acting on what is read.
 
 ### The one line with a shelf life
 
-"Survival alone is not enough" rests on the adjudicated 0.601. On 2026-09-30 a
-model-free arm trained to a longer budget read 0.717, above the bar, but its match
-overshot the frozen window so it carries no mediation verdict (FINDINGS 10.8.1). If
-the 300-to-450 bisection is ever run and the match lands, revisit this line before
-re-recording anything else.
+"And no test shows it acting on what we read." rests on FINDINGS 23.3. The nudge and the
+erasure found no behavioral effect above a sham, and both are limited tests, since the
+erasure is partial. If a later use test shows an effect above a sham, rewrite this line
+and the end card's "Not shown" note before re-recording anything else.
 
-## Hume: voice design and delivery
-
-Octave takes a natural-language voice description plus per-utterance acting
-instructions. Paste the description once, then feed each line with its own
-instruction rather than recording the script as one block, because the beats matter
-more than the continuity.
-
-**Voice description (paste as the voice prompt):**
-
-```
-A warm, unhurried narrator, mid-range, close-mic'd and intimate, as if leaning in to
-show you something strange they found rather than presenting it. Gentle curiosity,
-never authority. Slight natural breath and a touch of rasp on the low notes. No
-broadcast polish, no trailer gravitas, no upward news-reader inflection. Comfortable
-with silence; lets pauses sit without rushing to fill them. Around 150 words per
-minute.
-```
-
-**Per-line acting instructions:**
-
-| Line | Acting instruction |
-|---|---|
-| "One brain. Two worlds..." | Quiet and confiding, like the first sentence of a story told late at night. Full stop between each fragment, no list cadence. |
-| "We copied its world..." | Matter of fact through "how things move", then lift slightly on "Watch the reach" as an invitation. Drop to almost a whisper on "a hair short". |
-| "Nobody told it a fake existed." | Flat, no emphasis anywhere. The flatness is the point; let it sound like an aside. |
-| "Everything it knows arrives..." | Patient and explanatory, a half step warmer. Slight stress on "ten". |
-| "The flaw comes in as speed..." | Slow the last four words. "every step" lands like a drip. |
-| "Those signals mix into patterns..." | Brisk, almost throwaway. This chapter is a corridor, not a room. |
-| "Nothing here remembers anything." | Small pointed pause before "Nothing". |
-| "Memory is where it lands." | Settle. This is the arrival; drop pitch and slow. |
-| "forty-nine percent. A coin flip." | Deadpan. No disappointment, no drama. |
-| "After: seventy-three." | The only genuine lift in the film. Warm, quietly pleased, not triumphant. |
-| "We set the bar at sixty-five before we looked." | Dry, almost legalistic. This is the honesty line and it should sound like one. |
-| "This brain has two jobs." | Fresh and clear, resetting attention. |
-| "Stay alive, and expect what it will feel next." | Two distinct beats, equal weight. Do not throw away the second. |
-| "Survival alone is not enough. Expecting alone is not enough." | Parallel and even, same melody twice. Resist building. |
-| "It takes both." | Land it. Short, certain, then stop. |
-| "Nobody asked it to notice. It noticed anyway." | Nearly to yourself. Slower than everything before it. Let the last three words decay into silence. |
-
-**Mechanical notes.** Render each line as its own take so the gaps are yours to place
-in the edit rather than Hume's to guess. Ask for two or three variants of the
-"seventy-three" line and the closing line and pick in context, since those two carry
-the film. Keep the written numerals as words in the input ("forty-nine", not "49"),
-which is what the other film's recorded script did. Target the same deliverable shape
-as film one: AAC stereo, matched to a 65.9 s picture.
+The September script's line with a shelf life was "Survival alone is not enough", which
+rested on the 0.601 adjudicated in 10.8. The corrected record retired it: the arm without
+the prediction job reaches 0.685 at 450 updates, and the predict-only brain reads 0.721 on
+the same senses.
 
 ## Suno: music
 
 Palette continuity with *Detectable All Along* (felt piano, warm analog pad, soft tape
-hiss, roughly 80 BPM) so the two films sound like one project, but this one is more
-interior. Film one is a reveal; this one is a tour of a small mind. Less arc, more
-patience, one genuine warming around the meter climb.
+hiss, 80 BPM), but this film is a tour of a small mind rather than a reveal: less arc,
+more patience, one warming as the trained row fills.
 
-**Style prompt:**
+Settings, as in `AGENTS.md`: Suno v5.5 Advanced, Instrumental on, Weirdness 50, Style
+Influence Strong, no Style wand, no Voices. Watch the labeled cut once before
+generating. Name the style "Two Minds 80" so later tries keep the same clocks.
+
+**Style:**
 
 ```
-intimate ambient documentary underscore, felt piano, warm analog pad, soft tape hiss,
-slow pulsing arpeggio, 80 BPM, curious and patient, minimal and unhurried, lots of
-space, instrumental
+Intimate instrumental documentary underscore, 80 BPM, 4/4, about 69 seconds, a patient tour of a small mind. Felt piano, warm analog pad, soft tape hiss, a slow piano arpeggio, a low drone. It opens on one sustained pad and a single unresolved felt piano note. A curious three-note motif enters, and a low drone slides underneath on one beat as something goes slightly wrong. A slow, even arpeggio follows, flat and unhurried, one note at a time, never editorializing. Then the only build: the pad swells and the motif returns in a fuller voicing, staying cool at first and warming once, quietly pleased, not triumphant. After it, a steady patient pulse with three soft low piano accents about two seconds apart. The ending strips back to the opening motif, resolved on the tonic, and decays to room tone. Interior, minimal, warm, never epic.
 ```
 
 **Exclude styles:**
 
 ```
-drums, percussion, trailer braams, epic orchestral, cinematic swell, vocals, choir,
-EDM, drop, distorted bass, sidechain pumping
+vocals, choir, humming, trailer hits, braams, epic orchestral, cinematic risers, drum kit, kick drum, snare, EDM drop, distorted bass, sidechain pumping
 ```
 
-**Shape to aim for, against the picture:**
+**Lyrics** (Instrumental on, every line bracketed, cue lines carry musical direction and
+BPM only):
 
-| Window | Chapter | Music |
-|---|---|---|
-| 0.0-8.9 | title | Single sustained pad. One felt-piano note, unresolved. Nearly nothing. |
-| 8.9-20.3 | overview | A three-note motif enters, curious rather than tense. A low drone slides underneath at the missed reach. |
-| 20.3-37.1 | senses, process | Slow arpeggio begins, one note per sensor group feel. Keep it flat and even; these are the explanatory chapters and the music should not editorialise. |
-| 37.1-48.5 | memory | The only build. Pad swells and the piano motif returns in a fuller voicing as the meter climbs, warmth peaking as 73% locks. Warm, not epic, and no percussion arrives. |
-| 48.5-59.9 | actions | Hold the warmth, thin the texture. The motif plays once more, simpler, while the voice does the work. |
-| 59.9-65.9 | end | Strip to the opening motif, now resolved on the tonic it avoided at the start. Decay to room tone by 65.0 so the last second is silent. |
+```
+[Intro]
+[0:00]
+[One sustained warm pad, a single unresolved felt piano note, tape hiss, no percussion, 80 BPM]
 
-**Practical note on length.** Suno returns fixed-length generations rather than a 65.9 s
-cut, so generate two or three takes of the palette, then build the timeline in the
-editor: a bed from the calmest take, the swell from the warmest, and a hand-placed
-decay at the end. Ask for an instrumental generation; there are no lyrics in this
-film and a stray vocal line will fight the VO.
+[Verse]
+[0:09]
+[Curious three-note felt piano motif enters over the pad]
+[0:13]
+[Low drone slides in underneath and stays]
 
-**Mix notes.** Duck the music about 6 dB under the voice. Let it back up in the three
-marked beats (0:19, 0:47, 1:00) so the swell lands on the silences rather than under
-the words. The film has no sound design of its own; if anything is added, a single
-soft click on the missed reach at roughly 0:14 is enough, and nothing else.
+[Verse]
+[0:20]
+[Slow even piano arpeggio, one note at a time, flat and patient]
+[0:29]
+[Arpeggio continues unchanged, pad thins slightly]
+
+[Chorus]
+[0:37]
+[Pad swells, motif returns in a fuller voicing, still cool]
+[0:42]
+[Warmth arrives once on a sustained major chord, quietly, then holds]
+
+[Verse]
+[0:48]
+[Steady patient pulse, three soft low piano accents about two seconds apart from 0:51]
+
+[Outro]
+[1:00]
+[Strip back to the opening motif, resolved on the tonic, slow decay, room tone by 1:08]
+[End]
+```
+
+**Tries**, in the order `AGENTS.md` sets:
+
+1. Create: two takes.
+2. Create again with one Style tweak: "a slow celesta arpeggio" in place of "a slow piano
+   arpeggio".
+3. One slider try on the best so far: Weirdness 40.
+4. Remaster the keeper: Subtle first, Normal if Subtle is too flat.
+
+**Length.** Suno returns generations longer than 68.9 s. Trim to the picture and let the
+take's own decay cover the end card's last seconds. If no take decays cleanly, build the
+ending from the calmest take in the editor.
+
+**Mix notes.** Duck the music about 6 dB under the voice. Let it back up in the voice's
+gaps: 0:06 to 0:11 (the title into the first chapter), around 0:41 (between the two
+readings) and 0:59.9 to 1:00.5 (into the end card). The film has no sound design of its
+own. If anything is added, a single soft click on the missed reach at 0:12.7 is enough.
 
 ## If this gets made
 
