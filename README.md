@@ -55,13 +55,6 @@ and runs `python scripts/run_e2e.py`. The notebook reruns Experiments A and B an
 runs; it does not rerun the L3 runs behind the 73% or the corrected L1 run behind the 55%,
 which retrain on CPU (see "Reproduce a headline number" under How to run).
 
-Two illustrated walkthroughs from July 2026, printed before the October
-corrections. Their numbers come from the original trainer, and a dated cover page
-on each lists what has changed since:
-
-- [**Plain-English series (PDF)**](docs/itasorl-series-plain-english.pdf): the July 2026 pre-correction walkthrough
-- [**Research edition (PDF)**](docs/itasorl-series-research.pdf): the July 2026 pre-correction walkthrough, in research terms
-
 ---
 
 ## The question
@@ -482,8 +475,6 @@ the same data; independent data were not tested. Details:
 |   |-- PREREGISTRATION_C.md    Experiment C pre-registration (ran; verdict uninformative, FINDINGS 13.F)
 |   |-- AUDIT_2026-07.md        research-integrity audit of July 2026 (dated snapshot)
 |   |-- REVISION_AUDIT_2026-10-07.md  hand-off audit of the 2026-10 revision (dated snapshot)
-|   |-- itasorl-series-plain-english.pdf  July 2026 pre-correction walkthrough (plain English)
-|   |-- itasorl-series-research.pdf       July 2026 pre-correction walkthrough (research edition)
 |   `-- figures/                result figures (.png) + provenance README
 |-- artifacts/                  published summaries (committed); each file has one owner in docs/RESULTS_MANIFEST.md
 |   |-- *.json                  verdicts, gate table, contrast intervals, manifest, budget curve, engagement, timing, surrogate diagnostics
@@ -520,8 +511,6 @@ the same data; independent data were not tested. Details:
 
 ### Documents
 
-- [`docs/itasorl-series-plain-english.pdf`](docs/itasorl-series-plain-english.pdf): the July 2026 pre-correction walkthrough, illustrated, in plain English. Its numbers come from the original trainer, and a dated cover page lists what the corrected record changed.
-- [`docs/itasorl-series-research.pdf`](docs/itasorl-series-research.pdf): the July 2026 pre-correction walkthrough in research terms (design, control battery, pre-registered results, open questions), with the same dated cover page.
 - [`docs/ITASORL.md`](docs/ITASORL.md): the research plan, core question, prior work, hypotheses (H1 to H4), experiments (A/B/C), the surrogate ladder, validity audit, statistics, and engineering architecture.
 - [`docs/ITASORL_world_spec.md`](docs/ITASORL_world_spec.md): the world specification, "A Patch of Earth" v0, the 2.5D representation, fields and forcing, dynamics, ecology, the ~146-dim observation, ladder attachment, and confound management.
 - [`docs/FINDINGS.md`](docs/FINDINGS.md): empirical results from the first build-and-test cycle.
