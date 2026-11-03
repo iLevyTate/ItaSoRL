@@ -689,3 +689,132 @@ body[data-layout="vertical"] #end-foot {
   line-height: 1.45;
   text-align: center;
 }
+
+/* ------------------------------------------------------------------ */
+/* 16:9 cut (1920x1080). The 960 world card keeps the square cut's     */
+/* window on the left; caption and meter share the right column. With  */
+/* no meter the caption centres in the column; with one, the meter     */
+/* sits at the foot and the caption centres in the space above it.     */
+/* ------------------------------------------------------------------ */
+body[data-layout="wide"] #stage {
+  width: 1920px;
+  height: 1080px;
+}
+body[data-layout="wide"] #world-card {
+  left: 60px;
+  top: 60px;
+}
+body[data-layout="wide"] #caption {
+  left: 1100px;
+  right: auto;
+  width: 760px;
+  top: 60px;
+  height: 960px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+body[data-layout="wide"] #stage.has-gauge #caption {
+  height: 680px;
+}
+body[data-layout="wide"] #kicker {
+  font-size: 17px;
+  letter-spacing: 0.18em;
+  margin-bottom: 18px;
+}
+body[data-layout="wide"] #headline {
+  font-size: 64px;
+  line-height: 1.06;
+}
+body[data-layout="wide"] #subline {
+  margin-top: 26px;
+  font-size: 28px;
+  line-height: 1.45;
+  max-width: none;
+}
+body[data-layout="wide"] #gauge {
+  left: 1100px;
+  top: auto;
+  bottom: 60px;
+  width: 760px;
+  padding: 26px 34px 24px;
+}
+body[data-layout="wide"] #gauge-head {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+body[data-layout="wide"] #gauge-label {
+  font-size: 17px;
+}
+body[data-layout="wide"] #gauge-source {
+  font-size: 14px;
+}
+body[data-layout="wide"] #gauge-legend {
+  margin-top: 10px;
+  font-size: 15px;
+}
+body[data-layout="wide"] #gauge-row {
+  margin-top: 46px;
+  gap: 26px;
+}
+body[data-layout="wide"] #gauge-track {
+  height: 20px;
+}
+body[data-layout="wide"] #gauge-mid {
+  top: -6px;
+  height: 32px;
+}
+body[data-layout="wide"] #gauge-ref {
+  top: -8px;
+  height: 36px;
+}
+/* Right-aligned on its marker: centred, the label ran past the track end
+   into the readout. */
+body[data-layout="wide"] #gauge-ref-label {
+  top: -32px;
+  font-size: 14px;
+  transform: translateX(-100%);
+  padding-right: 8px;
+}
+body[data-layout="wide"] #gauge-value {
+  font-size: 52px;
+  min-width: 140px;
+}
+body[data-layout="wide"] #gauge-scale {
+  margin-top: 14px;
+  font-size: 14px;
+}
+body[data-layout="wide"] #endcard .glyph {
+  margin-bottom: 30px;
+}
+body[data-layout="wide"] #end-headline {
+  font-size: 56px;
+  max-width: 1500px;
+}
+body[data-layout="wide"] #end-recap {
+  margin-top: 46px;
+  gap: 28px;
+}
+body[data-layout="wide"] .recap-chip {
+  min-width: 250px;
+  padding: 22px 36px;
+  gap: 10px;
+}
+body[data-layout="wide"] .recap-pct {
+  font-size: 60px;
+}
+body[data-layout="wide"] .recap-label {
+  font-size: 16px;
+}
+body[data-layout="wide"] #end-url {
+  margin-top: 38px;
+  font-size: 22px;
+}
+body[data-layout="wide"] #end-foot {
+  left: 160px;
+  right: 160px;
+  bottom: 40px;
+  font-size: 14px;
+  line-height: 1.55;
+}

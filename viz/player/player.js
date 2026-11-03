@@ -8,9 +8,18 @@
 // Stage size. The published 4:5 master is 1080x1350. `?layout=vertical` is the
 // 9:16 Shorts cut: same beats and numbers, chrome redistributed so the extra
 // height holds type, meter, and the world instead of empty bands.
-const LAYOUT = new URLSearchParams(location.search).get("layout") === "vertical"
-  ? "vertical" : "square";
-const STAGE = { w: 1080, h: LAYOUT === "vertical" ? 1920 : 1350 };
+// `?layout=wide` is the 16:9 cut (1920x1080): the same 960 world window on the
+// left, caption and meter in a column on the right.
+const QS = new URLSearchParams(location.search);
+const LAYOUT = QS.get("layout") === "vertical" ? "vertical"
+  : QS.get("layout") === "wide" ? "wide" : "square";
+const STAGE = LAYOUT === "vertical" ? { w: 1080, h: 1920 }
+  : LAYOUT === "wide" ? { w: 1920, h: 1080 } : { w: 1080, h: 1350 };
+// `?res=2` (or 3) paints the world canvas and the baked terrain at that many
+// device pixels per layout pixel, for a capture run at the same
+// deviceScaleFactor (a 4K master of the wide cut). Layout coordinates do not
+// change; at the default of 1 every frame is the same as before.
+const RES = Math.max(1, Math.min(3, Math.round(parseFloat(QS.get("res")) || 1)));
 // World pixel box. Square film keeps the original 960 window. Vertical
 // paints a tall window of the same terrain so the frame is filled with
 // ground, not empty substrate, and CSS does not have to crop a square.
@@ -305,8 +314,9 @@ function makeIsoWorld(scene) {
   const core = { x: cx0 - 20, y: cy0 - 10, w: cx1 - cx0 + 40, h: cy1 - cy0 + 30 };
 
   const cnv = document.createElement("canvas");
-  cnv.width = W; cnv.height = H;
+  cnv.width = W * RES; cnv.height = H * RES;
   const c = cnv.getContext("2d");
+  c.scale(RES, RES);
   const sky = c.createLinearGradient(0, 0, 0, H);
   sky.addColorStop(0, "#E9E4F5"); sky.addColorStop(1, "#CFC6E8");
   c.fillStyle = sky; c.fillRect(0, 0, W, H);
@@ -353,12 +363,14 @@ function makeIsoWorld(scene) {
   // whole-world fits (the scan beat). The padded canvas cannot serve there,
   // because its bounding rectangle is full of pad terrain, not sky.
   const coreCnv = document.createElement("canvas");
-  coreCnv.width = Math.ceil(core.w); coreCnv.height = Math.ceil(core.h);
+  coreCnv.width = Math.ceil(core.w) * RES; coreCnv.height = Math.ceil(core.h) * RES;
   const projCore = (i, j, lvl) => {
     const p = project(i, j, lvl);
     return [p[0] - core.x, p[1] - core.y];
   };
-  bakeTiles(coreCnv.getContext("2d"), projCore, 0, N);
+  const coreCtx = coreCnv.getContext("2d");
+  coreCtx.scale(RES, RES);
+  bakeTiles(coreCtx, projCore, 0, N);
 
   const surfaceAt = (u, v) => {
     const gi = Math.max(0, Math.min(N - 1, Math.round(u * (N - 1))));
@@ -723,8 +735,8 @@ class Player {
     this.scene = scene;
     this.creature = creature;
     this.canvas = $("world");
-    this.canvas.width = VIEW_W;
-    this.canvas.height = VIEW_H;
+    this.canvas.width = VIEW_W * RES;
+    this.canvas.height = VIEW_H * RES;
     this.ctx = this.canvas.getContext("2d");
     const iso = makeIsoWorld(scene);
     this.terrain = iso.terrain;
@@ -741,6 +753,8 @@ class Player {
   paintWorld(t, beat) {
     const ctx = this.ctx;
     this.sprites = [];
+    // Everything below draws in layout pixels; RES maps them to the bitmap.
+    ctx.setTransform(RES, 0, 0, RES, 0, 0);
     ctx.clearRect(0, 0, VIEW_W, VIEW_H);
     const mode = beat.world ? beat.world.mode : "none";
     if (mode === "none") return;
@@ -869,7 +883,7 @@ class Player {
       const dx0 = vx - (VIEW_W - vw) / 2;
       ctx.save();
       ctx.beginPath(); ctx.rect(vx, 0, vw, VIEW_H); ctx.clip();
-      ctx.drawImage(this.terrain, sx, sy, sw, sh, dx0, 0, VIEW_W, VIEW_H);
+      ctx.drawImage(this.terrain, sx * RES, sy * RES, sw * RES, sh * RES, dx0, 0, VIEW_W, VIEW_H);
       const map = (tx, ty) => [dx0 + ((tx - sx) / sw) * VIEW_W, ((ty - sy) / sh) * VIEW_H];
       const view = { pt: (u, v) => map(...this.iso.surfaceAt(u, v)) };
       const worldScale = VIEW_W / sw;
@@ -1125,7 +1139,7 @@ class Player {
         const sy = Math.max(0, Math.min(this.iso.h - sh, cy - sh / 2));
         ctx.save();
         ctx.globalAlpha = 0.88;
-        ctx.drawImage(this.terrain, sx, sy, sw, sh, 0, 0, VIEW_W, VIEW_H);
+        ctx.drawImage(this.terrain, sx * RES, sy * RES, sw * RES, sh * RES, 0, 0, VIEW_W, VIEW_H);
         ctx.restore();
         scanMap = (tx, ty) => [((tx - sx) / sw) * VIEW_W, ((ty - sy) / sh) * VIEW_H];
       } else {
@@ -1229,8 +1243,9 @@ class Player {
     if (cap) {
       // Square: the kicker and the gauge label stack in the same lower third,
       // so the kicker drops while the meter is up. Vertical puts the kicker
-      // in the top band, clear of the meter, so it stays on.
-      $("kicker").textContent = (beat.gauge && LAYOUT !== "vertical") ? "" : (cap.kicker || "");
+      // in the top band and wide in its own column, clear of the meter, so it
+      // stays on.
+      $("kicker").textContent = (beat.gauge && LAYOUT === "square") ? "" : (cap.kicker || "");
       setHeadline($("headline"), cap.headline || "");
       $("subline").textContent = cap.subline || "";
       const el = $("caption");
@@ -1294,12 +1309,12 @@ class Player {
         refEl.style.opacity = "0";
         refLbl.style.opacity = "0";
       }
-      if (LAYOUT !== "vertical") $("caption").style.top = "1214px";
+      if (LAYOUT === "square") $("caption").style.top = "1214px";
     } else {
       $("gauge").style.opacity = "0";
       $("gauge-ref").style.opacity = "0";
       $("gauge-ref-label").style.opacity = "0";
-      if (LAYOUT !== "vertical") $("caption").style.top = "1108px";
+      if (LAYOUT === "square") $("caption").style.top = "1108px";
     }
 
     // Split-panel chips are beat-driven: the question beat shows neutral
