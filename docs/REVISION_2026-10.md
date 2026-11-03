@@ -159,6 +159,8 @@ on the remote until the list is complete.
   (`docs/itasorl-series-plain-english.pdf`, `docs/itasorl-series-research.pdf`), which says
   what the correction changed. The cover was regenerated on 2026-10-10 so that its item 6
   names gate 5 as the gate that decides the Experiment C verdict.
+  Both PDFs were taken off the site and out of the repository on 2026-11-02; the last commit
+  that carries them is `64a5da1`.
 
 Every commit has an outcome. The branch stays on the remote all the same: this section cites
 its five commits, and they live only there. Before `origin/claude/wizardly-euler-e47s59` is
