@@ -657,26 +657,84 @@ function drawMaterialize(ctx, vx, vw, tl) {
 
 // Timed documentary-style callout: a leader line from the element to a small
 // mono label pill, so first-time viewers can read the picture. One at a time.
-function drawCallout(ctx, x, y, text, dir, a) {
+// Callout placement. Each callout first tries the side its caller asks for,
+// then the mirror images, then the same four further out (the 9:16 cut draws
+// the creature large), and takes
+// the first box that stays inside LABEL_AREA (the panel being drawn) and
+// clears every rect in LABEL_AVOID: the creature, the world chips, and any
+// callout already placed this frame. If none fits, the requested box is
+// pushed back inside the area. Both are reset every frame in render().
+let LABEL_AREA = null;
+let LABEL_AVOID = [];
+const rectsMeet = (p, q) =>
+  p.x < q.x + q.w && q.x < p.x + p.w && p.y < q.y + q.h && q.y < p.y + p.h;
+
+// `place(bw, bh)`, when given, fixes the box (top-left) relative to whatever
+// the caller anchors it to, for labels that must not change side while they
+// are up. It is only pushed back inside the area, never moved to a new side.
+function drawCallout(ctx, x, y, text, dir, a, place) {
   if (a <= 0) return;
-  const lx = x + dir[0], ly = y + dir[1];
   ctx.save();
+  ctx.font = "500 16px 'IBM Plex Mono', monospace";
+  const wtx = ctx.measureText(text).width;
+  const pad = 9, bw = wtx + 2 * pad, bh = 30;
+  const area = LABEL_AREA || { x0: 0, y0: 0, x1: VIEW_W, y1: VIEW_H };
+  const boxFor = (d) => {
+    const lx = x + d[0], ly = y + d[1];
+    return { lx, ly, x: d[0] >= 0 ? lx + 5 : lx - 5 - bw, y: ly - 15, w: bw, h: bh };
+  };
+  const inside = (q) => q.x >= area.x0 + 6 && q.x + q.w <= area.x1 - 6 &&
+    q.y >= area.y0 + 6 && q.y + q.h <= area.y1 - 6;
+  const tries = [];
+  for (const k of [1, 1.9, 3, 4.5]) {
+    for (const [sx, sy] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) {
+      tries.push([dir[0] * sx * k, dir[1] * sy * k]);
+    }
+  }
+  // Nearly straight up or down, for narrow split panels.
+  for (const k of [1.9, 3, 4.5]) {
+    for (const [sx, sy] of [[-1, 1], [1, 1], [-1, -1], [1, -1]]) {
+      tries.push([12 * sx * Math.sign(dir[0] || 1), dir[1] * sy * k]);
+    }
+  }
+  let box = null;
+  if (place) {
+    const q = place(bw, bh);
+    box = { x: q.x, y: q.y, w: bw, h: bh };
+    box.x = Math.max(area.x0 + 6, Math.min(area.x1 - 6 - bw, box.x));
+    box.y = Math.max(area.y0 + 6, Math.min(area.y1 - 6 - bh, box.y));
+    box.lx = box.x + bw / 2; box.ly = box.y + bh / 2;
+  }
+  for (const d of (box ? [] : tries)) {
+    const q = boxFor(d);
+    if (inside(q) && !LABEL_AVOID.some((r) => rectsMeet(q, r))) { box = q; break; }
+  }
+  if (!box) {
+    box = boxFor(dir);
+    const dx = Math.max(area.x0 + 6 - box.x, Math.min(0, area.x1 - 6 - (box.x + box.w)));
+    const dy = Math.max(area.y0 + 6 - box.y, Math.min(0, area.y1 - 6 - (box.y + box.h)));
+    box.x += dx; box.lx += dx; box.y += dy; box.ly += dy;
+  }
+  LABEL_AVOID.push({ x: box.x - 4, y: box.y - 4, w: box.w + 8, h: box.h + 8 });
+  // Box record for layout checks (overlap, clipping); drawing ignores it.
+  if (window.__callouts) {
+    window.__callouts.push({ text, x: box.x, y: box.y, w: box.w, h: box.h, ax: x, ay: y, a });
+  }
   ctx.globalAlpha = a;
   ctx.strokeStyle = "rgba(42,37,71,0.6)";
   ctx.lineWidth = 1.6;
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(lx, ly); ctx.stroke();
-  ctx.font = "500 16px 'IBM Plex Mono', monospace";
-  const wtx = ctx.measureText(text).width;
-  const pad = 9;
-  const bx = dir[0] >= 0 ? lx + 5 : lx - 5 - wtx - 2 * pad;
+  // Leader runs to the nearest point of the box edge.
+  const ex = Math.max(box.x, Math.min(box.x + box.w, x));
+  const ey = Math.max(box.y, Math.min(box.y + box.h, y));
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(ex, ey); ctx.stroke();
   ctx.fillStyle = "rgba(251,250,255,0.93)";
-  ctx.beginPath(); ctx.roundRect(bx, ly - 15, wtx + 2 * pad, 30, 9); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(box.x, box.y, box.w, box.h, 9); ctx.fill();
   ctx.strokeStyle = "rgba(42,37,71,0.22)";
   ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.roundRect(bx, ly - 15, wtx + 2 * pad, 30, 9); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(box.x, box.y, box.w, box.h, 9); ctx.stroke();
   ctx.fillStyle = "#2A2547";
   ctx.textBaseline = "middle";
-  ctx.fillText(text, bx + pad, ly + 1);
+  ctx.fillText(text, box.x + pad, box.y + bh / 2 + 1);
   ctx.restore();
 }
 
@@ -751,8 +809,8 @@ class Player {
     // worldT0 lets a beat replay a chosen window of the recorded run (film
     // time keeps flowing; world time starts at worldT0). The recorded creature
     // stops moving for good after about step 194, so the opening beat (steps
-    // 59 to 101) and the survival beat (103 to 188, four of its five eats) both
-    // play the stretch where it is out foraging, without overlapping.
+    // 42 to 84, a steady walk) and the survival beat (85 to 170, its busiest
+    // stretch, with four of its five eats) play back to back without overlap.
     // clock < 1 slows that window: the untrained walk is 47 steps, shorter than
     // its beat, so it plays slower rather than ending in a death on screen.
     const wt = beat.world.worldT0 != null
@@ -855,6 +913,31 @@ class Player {
       return this.scene.trajs[key];
     };
 
+    // Label spot chooser. For a label up from world time w0 to w1, return the
+    // first offset from its anchor whose box clears the avoided creature at
+    // every 100 ms of that window. Paths come in baked coordinates and are
+    // scaled to the beat's final zoom, so every frame of the beat measures
+    // the same geometry and makes the same choice: the label never jumps.
+    const zEnd = beat.world && beat.world.zoom ? beat.world.zoom[1] : 1;
+    const makeClear = (pxPerBaked) => {
+      const k = pxPerBaked * (zEnd / zoom);
+      const csc = Math.max(2, Math.round(4 * k));
+      return (offsets, anchorAt, avoidAt, w0, w1) => (bw, bh) => {
+        for (const o of offsets) {
+          const [ox, oy] = o(bw, bh);
+          let hit = false;
+          for (let w = w0; w <= w1 && !hit; w += 100) {
+            const A = anchorAt(w), C = avoidAt(w);
+            const rx = (C[0] - A[0]) * k, ry = (C[1] - A[1]) * k;
+            hit = rectsMeet({ x: ox, y: oy, w: bw, h: bh },
+              { x: rx - 11 * csc, y: ry - 20 * csc, w: 22 * csc, h: 29 * csc });
+          }
+          if (!hit) return [ox, oy];
+        }
+        return offsets[0](bw, bh);
+      };
+    };
+
     const drawPatch = (vx, vw, key, cam, pos, ghost) => {
       const traj = trajFor(key);
       const idx = pos.idx;
@@ -883,6 +966,7 @@ class Player {
           age: phase / GLITCH_MS,
           phase,
           seed: gi,
+          cu: g0.u, cv: g0.v,      // creature at the glitch's start, for label sides
         };
       };
       const glitch = glitchAt(0, 99, GLITCH_MS);
@@ -898,9 +982,22 @@ class Player {
       drawTrail(ctx, traj, idx, view);
       const cp = map(pos.scr[0], pos.scr[1]);
       this.sprites = this.sprites || [];
-      this.sprites.push({ x: cp[0], y: cp[1], key, vx, vw });
+      this.sprites.push({ x: cp[0], y: cp[1], key, vx, vw, sc });
       if (fanMode) drawFan(ctx, view, cp, pos.u, pos.v, pos.heading, t, worldScale, alert);
       drawCreature(ctx, this.creature, beat.world.stage || 0, cp[0], cp[1], t, sc);
+      // Callouts drawn for this panel stay inside it and clear of the creature
+      // and, in split view, the two world chips at the top.
+      const bandNow = actionBand(beat);   // 9:16: keep labels off the caption plates
+      LABEL_AREA = { x0: vx, y0: bandNow.top, x1: vx + vw, y1: VIEW_H - bandNow.bot };
+      LABEL_AVOID.push({ x: cp[0] - 11 * sc, y: cp[1] - 20 * sc, w: 22 * sc, h: 29 * sc });
+      const clearOff = makeClear(worldScale);
+      const pathOf = (tr) => (w) => posAt(tr, w).scr;
+      const at = (anchor, off) => ({ x: anchor[0] + off[0], y: anchor[1] + off[1] });
+      if (beat.world.mode === "split") {
+        const chipTop = LAYOUT === "vertical" ? 190 : 20;
+        LABEL_AVOID.push({ x: 0, y: chipTop, w: 260, h: 76 });
+        LABEL_AVOID.push({ x: VIEW_W - 260, y: chipTop, w: 260, h: 76 });
+      }
       // Mind-probe: show the mind CATCHING the fake's glitches, not an idle halo.
       // Catch chance = how far the gauge sits above coin-flip, so the flags the
       // viewer sees ARE the number: nocare (50%) barely catches - nothing to
@@ -915,8 +1012,22 @@ class Player {
         drawMindCatch(ctx, gc[0], gc[1], worldScale, glitch.phase, caught);
         if (caught) {
           const ca = Math.min(1, glitch.phase / 130) * (1 - clamp01((glitch.phase - 280) / 320));
-          drawCallout(ctx, gc[0], gc[1] - 20 * worldScale, "CAUGHT",
-            gc[0] < VIEW_W / 2 ? [40, -26] : [-40, -26], ca);
+          // Below the glitch, on the side away from where the creature stood
+          // when it began: fixed for that glitch, so it never swaps sides.
+          const c0 = view.pt(glitch.cu, glitch.cv);
+          const away = gc[0] >= c0[0] ? 1 : -1;
+          const ox = (side, bw) => (side > 0 ? 10 : -10 - bw);
+          const dn = 18 * worldScale, dn2 = dn + 22 * sc;
+          const gb = this.iso.surfaceAt(glitch.u, glitch.v);
+          const g0w = wt - glitch.phase;
+          // Always below the glitch (THE FAKE, GLITCHING is always above), so
+          // the two never meet; nearer spots first, then further out.
+          const pick = clearOff([
+            (bw) => [ox(away, bw), dn], (bw) => [ox(-away, bw), dn],
+            (bw) => [ox(away, bw) + away * 14 * sc, dn], (bw) => [ox(-away, bw) - away * 14 * sc, dn],
+            (bw) => [ox(away, bw), dn2], (bw) => [ox(-away, bw), dn2],
+          ], () => gb, pathOf(traj), g0w, g0w + 620);
+          drawCallout(ctx, gc[0], gc[1], "CAUGHT", [0, 0], ca, (bw, bh) => at(gc, pick(bw, bh)));
         }
       }
       if (beat.world.energy) drawEnergyPill(ctx, cp[0], cp[1], pos.energy, worldScale, t);
@@ -941,8 +1052,15 @@ class Player {
         const du = Math.cos(pos.heading) * r, dv = Math.sin(pos.heading) * r;
         const ax = cp[0] + (du - dv) * ISO.TW * worldScale;
         const ay = cp[1] + (du + dv) * ISO.TH * worldScale;
-        drawCallout(ctx, ax, ay, "ITS SENSES",
-          [ax >= cp[0] ? 46 : -46, ay > cp[1] + 8 ? 34 : -34], calloutAlpha(tl, 2200, 5600));
+        // Box beside the creature, on the side the fan faced when the label
+        // came up (world time at tl 2200), so it never swaps sides mid-read;
+        // it sits above the head if the fan faced down, below if up.
+        const w0s = (beat.world.worldT0 != null ? beat.world.worldT0 : beat.t0) + 2200;
+        const h0 = posAt(traj, w0s).heading;
+        const fx0 = Math.cos(h0) - Math.sin(h0), fy0 = Math.cos(h0) + Math.sin(h0);
+        drawCallout(ctx, ax, ay, "ITS SENSES", [0, 0], calloutAlpha(tl, 2200, 5600), (bw, bh) => ({
+          x: fx0 >= 0 ? cp[0] + 8 * sc : cp[0] - 8 * sc - bw,
+          y: fy0 > 0 ? cp[1] - 22 * sc - bh : cp[1] + 10 * sc }));
         // coin chosen once (nearest at the window's start), so no switching
         const selWt = (beat.world.worldT0 != null ? beat.world.worldT0 : beat.t0) + 6400;
         const selIdx = Math.min(traj.length - 1, Math.floor(selWt / stepMs));
@@ -954,23 +1072,29 @@ class Player {
           if (d < bd) { bd = d; best = q; }
         }
         if (best) {
-          // Box on the side of the pellet away from the creature, so the
-          // leader runs from the box straight to the coin it names.
+          // Box centred above the coin it names, short leader straight down.
           const s = view.pt(best[0], best[1]);
           const fy = s[1] - 18 * worldScale;
-          drawCallout(ctx, s[0], fy, "FOOD",
-            [s[0] >= cp[0] ? 40 : -40, fy > cp[1] ? 30 : -30], calloutAlpha(tl, 6400, 9300));
+          drawCallout(ctx, s[0], fy - 9 * worldScale, "FOOD", [0, 0], calloutAlpha(tl, 6400, 9300),
+            (bw, bh) => ({ x: s[0] - bw / 2, y: fy - 9 * worldScale - 26 - bh }));
         }
       } else if (beat.id === "trick" && vx === 0) {
         // Question beat: establish fairness only. No labels give the answer
         // away - the viewer gets to actually try before the reveal beat.
-        label(cp[0], cp[1] - 60 * worldScale, "SAME START, SAME PLAN",
-          calloutAlpha(tl, 1800, 4600), -1);
+        drawCallout(ctx, cp[0], cp[1] - 18 * sc, "SAME START, SAME PLAN", [0, 0],
+          calloutAlpha(tl, 1800, 4600), (bw, bh) => ({ x: cp[0] - bw / 2, y: cp[1] - 22 * sc - 24 - bh }));
       } else if (beat.id === "reveal" && ghost && ghost.label) {
         // REAL panel: mark where the copy has slid to. Fixed side (-1) so the tag
         // does not flip left/right as the ghost crosses the panel midline.
         const gs2 = map(ghost.scr[0], ghost.scr[1]);
-        label(gs2[0], gs2[1] - 14, ghost.label, calloutAlpha(tl, 900, 4200), -1);
+        const w0 = (beat.world.worldT0 || 0) + 900, w1 = (beat.world.worldT0 || 0) + 4200;
+        const pick = clearOff([
+          (bw, bh) => [-14 - bw, -30 - bh], (bw, bh) => [14, -30 - bh],
+          (bw) => [-14 - bw, 26], () => [14, 26],
+          (bw, bh) => [-bw / 2, -30 - bh - 18 * sc], (bw) => [-bw / 2, 26 + 18 * sc],
+        ], pathOf(trajFor("simCopy")), pathOf(traj), w0, w1);
+        drawCallout(ctx, gs2[0], gs2[1] - 14, ghost.label, [0, 0], calloutAlpha(tl, 900, 4200),
+          (bw, bh) => at([gs2[0], gs2[1] - 14], pick(bw, bh)));
       } else if (beat.id === "reveal" && vx > 0) {
         // COPY panel: name the one changed rule (grip). Stable placement inside the
         // panel so it never clips the divider while the copy slides around below it.
@@ -979,8 +1103,20 @@ class Player {
         const gl = glitchAt(0, 1, 1900);
         if (gl) {
           const s = view.pt(gl.u, gl.v);
-          label(s[0], s[1] - 12, "THE FAKE, GLITCHING",
-            Math.min(1, gl.phase / 300, (1900 - gl.phase) / 400));
+          const c0 = view.pt(gl.cu, gl.cv);
+          const away = s[0] >= c0[0] ? 1 : -1;
+          const ox = (side, bw) => (side > 0 ? 10 : -10 - bw);
+          const up = (bh) => -12 - 30 * worldScale - bh, up2 = (bh) => up(bh) - 22 * sc;
+          const gb = this.iso.surfaceAt(gl.u, gl.v);
+          const g0w = wt - gl.phase;
+          const pick = clearOff([
+            (bw, bh) => [ox(away, bw), up(bh)], (bw, bh) => [ox(-away, bw), up(bh)],
+            (bw, bh) => [ox(away, bw) + away * 14 * sc, up(bh)],
+            (bw, bh) => [ox(-away, bw) - away * 14 * sc, up(bh)],
+            (bw, bh) => [ox(away, bw), up2(bh)], (bw, bh) => [ox(-away, bw), up2(bh)],
+          ], () => gb, pathOf(traj), g0w, g0w + 1900);
+          drawCallout(ctx, s[0], s[1] - 12, "THE FAKE, GLITCHING", [0, 0],
+            Math.min(1, gl.phase / 300, (1900 - gl.phase) / 400), (bw, bh) => at(s, pick(bw, bh)));
         }
         label(cp[0], cp[1] - 66 * worldScale, "NOTHING TO READ",
           calloutAlpha(tl, 8600, 12000), 1);
@@ -1002,6 +1138,7 @@ class Player {
         }
       }
       ctx.restore();
+      LABEL_AREA = null;   // later callouts (diverge, forage) use the whole view
     };
 
     if (mode === "single") {
@@ -1067,13 +1204,25 @@ class Player {
       drawCallout(ctx, rs[0], rs[1] - 66, "REAL: WHAT HAPPENS", realSide,
         calloutAlpha(tl, 2600, 5000));
       if (gap > 34) {
-        drawCallout(ctx, cs[0], cs[1] + 26, "THE COPY'S GUESS",
-          cs[0] < rs[0] ? [-46, 30] : [46, 30], calloutAlpha(tl, 5200, 9600));
+        // Centred below the red ghost, so it never swaps sides as the ghost
+        // crosses the creature's x while the two drift apart.
+        // Offset from the red ghost chosen once for the label's window: the
+        // first whose box clears the real creature all the way through it.
+        const wd0 = (beat.world.worldT0 || 0) + 5200, wd1 = (beat.world.worldT0 || 0) + 9600;
+        const pick = makeClear(VIEW_W / cam.sw)([
+          (bw) => [-bw / 2, 40], (bw, bh) => [-bw / 2, -40 - bh],
+          () => [24, -15], (bw) => [-24 - bw, -15],
+        ], (w) => posAt(trajFor("simCopy"), w).scr, (w) => posAt(trajFor("simReal"), w).scr, wd0, wd1);
+        drawCallout(ctx, cs[0], cs[1], "THE COPY'S GUESS", [0, 0], calloutAlpha(tl, 5200, 9600),
+          (bw, bh) => { const [ox, oy] = pick(bw, bh); return { x: cs[0] + ox, y: cs[1] + oy }; });
       }
       if (gap > 60) {
         const dft = Math.hypot(real.u - copy.u, real.v - copy.v);
-        drawCallout(ctx, (rs[0] + cs[0]) / 2, (rs[1] + cs[1]) / 2 - 30,
-          "DRIFT +" + dft.toFixed(2), [40, -24], calloutAlpha(tl, 5600, 9600));
+        // Centred above the gap between the two, clear of THE COPY'S GUESS.
+        const dsc = Math.max(2, Math.round(4 * (VIEW_W / cam.sw)));   // creature sprite scale
+        const mx = (rs[0] + cs[0]) / 2, my = Math.min(rs[1], cs[1]) - 30;
+        drawCallout(ctx, mx, my, "DRIFT +" + dft.toFixed(2), [0, 0], calloutAlpha(tl, 5600, 9600),
+          (bw, bh) => ({ x: mx - bw / 2, y: Math.min(rs[1], cs[1]) - 22 * dsc - 12 - bh }));
       }
     } else if (mode === "forage") {
       // Active hunt under the copy's floaty momentum: overshoot-and-miss early
@@ -1383,6 +1532,9 @@ class Player {
 
   render(t) {
     t = Math.max(0, Math.min(this.beats.duration_ms - 1, t));
+    window.__callouts = [];
+    LABEL_AREA = null;
+    LABEL_AVOID = [];
     const beat = this.beatAt(t);
     this.paintWorld(t, beat);
     this.chrome(t, beat);

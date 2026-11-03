@@ -818,3 +818,15 @@ body[data-layout="wide"] #end-foot {
   font-size: 14px;
   line-height: 1.55;
 }
+
+/* 4:5 with the meter up: the caption sits below the meter and its last line
+   ended about 10 px from the bottom edge. A slightly smaller headline and
+   subline leave a proper margin. */
+body[data-layout="square"] #stage.has-gauge #headline {
+  font-size: 40px;
+}
+body[data-layout="square"] #stage.has-gauge #subline {
+  margin-top: 8px;
+  font-size: 19.5px;
+  line-height: 1.42;
+}
