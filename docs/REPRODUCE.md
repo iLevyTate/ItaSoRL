@@ -311,6 +311,15 @@ checks that every recorded `run_expB2.py` recipe hashes to the configuration fin
 committed run records, except the GPU headline, whose cells are not committed. Every other run's
 configuration is in `docs/RESULTS_MANIFEST.md`.
 
+The Colab notebook's Extra checks can rerun `PB1` and `PB2` on a Colab GPU as an independent
+replication. Each box trains with the registered command (plus `--resume`) into its own folder,
+`fullruns/pb1_colab_replication/` or `fullruns/pb2_colab_replication/`, runs the spec's matched-gates
+and primary sensory-echo readouts there, and reads the folder with
+`scripts/read_pb_replication.py`. That script applies the frozen promotion code to the folder and
+prints the result beside the committed decision. It refuses the recorded run folders, never writes
+under `artifacts/`, and leaves the recorded decision (FINDINGS 24) as it is. The same test file
+checks that both boxes hash to the recorded `PB1` and `PB2` fingerprints.
+
 Measured cost on a 4-vCPU cloud container (torch 2.14.1+cpu; Linux x86_64, kernel 6.18.44,
 glibc 2.39, as the per-value report below records it), one cell (three arms at one drift and
 seed, 300 survival updates): about 22 CPU-minutes uncontended, of which survival training is
