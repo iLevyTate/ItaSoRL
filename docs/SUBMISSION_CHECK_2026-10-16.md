@@ -296,7 +296,11 @@ CORRECTIONS entry; no recorded number, label, rule or verdict changed.
 - Tag `v1.5.3` pushed 2026-10-20 on `c5d582c`; its release run passed (the tag names the version,
   the package built, `dist` uploaded).
 
-## 2g. Review archive for v1.5.4, 2026-10-21 (the upload candidate)
+## 2g. Review archive for v1.5.4, 2026-10-21 (superseded)
+
+*Superseded 2026-10-21. The sweep after v1.5.4 changed shipped files and moved the version to 1.5.5
+(`docs/CORRECTIONS.md`, 2026-10-21), so this archive is not to be uploaded. The archive built for upload is
+recorded outside this repository, so that the digest of the submitted file is not public.*
 
 `python scripts/reproduce.py supplement --profile review --require-runs --out dist/review-1.5.4/supplement-review.zip`,
 built from the release commit `22b351c` (tag `v1.5.4`, the merge of PR #176) with the key in
@@ -361,6 +365,9 @@ does not show by itself that the shipped pages were current.
 directory, so they must not be run with `python -I`; `reproduce.py` does not need it.
 
 ## 4. Source package
+
+*Superseded after 2026-10-21. The manuscript changed after the entries below, and later source
+packages are recorded with the manuscript, outside this repository.*
 
 *Final, 2026-10-21 (v1.5.4, after the review 5 waves and the prospective confirmation):* paper
 commit `7af8919`, 95 pages with the main text ending on page 35, `docs/paper/dist/source.zip`
