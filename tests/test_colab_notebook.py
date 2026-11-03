@@ -195,6 +195,10 @@ def test_notebook_text_matches_the_record():
     assert "learned-texture rule, which remains unmet" in text
     assert "scripts/reproduce.py retrain C1" in text
     assert "22.6 hours" in text
+    # The PB boxes are an independent replication: own folders, never artifacts/.
+    assert "independent replication" in text
+    assert "cannot change the recorded result (MET on both, FINDINGS 24)" in text
+    assert "never to artifacts/" in text
 
 
 # ---- every flag the notebook passes to a script exists in that script's parser ----
@@ -277,7 +281,8 @@ def test_every_flag_the_notebook_passes_is_a_real_option():
     scripts = {s for s, _ in uses}
     # The run cell, the texture boxes, Experiment C and the agent resolver must all be seen.
     assert {"run_e2e", "run_expB2", "run_expC_milestone3", "fetch_saved_agents",
-            "run_world_sample_sensitivity"} <= scripts, scripts
+            "run_world_sample_sensitivity", "audit_balanced_matched_gates", "audit_sensory_echo",
+            "read_pb_replication"} <= scripts, scripts
     unknown = sorted({(s, f) for s, f in uses if f not in _parser_options(s)})
     assert not unknown, f"flags no parser defines: {unknown}"
 
@@ -363,3 +368,42 @@ def test_read_extras_cell_handles_per_seed_lists_partial_runs_and_every_readout(
 def test_read_extras_cell_with_nothing_to_read(tmp_path):
     (tmp_path / "repo").mkdir()
     assert "No revision-extras output yet" in _run_read_cell(tmp_path / "repo", tmp_path)
+
+
+def test_pb_replication_writes_only_its_own_folders():
+    # Every path the PB box passes stays inside fullruns/pb{1,2}_colab_replication; the recorded
+    # run folders and artifacts/ never appear in the run cell.
+    run_cell = next(_src(c) for c in _code_cells(_load()) if "Run the extras you ticked" in _src(c))
+    pb = run_cell[run_cell.index("_PB_DIRS"):run_cell.index("if not _ran_any")]
+    pb = "\n".join(ln for ln in pb.splitlines() if not ln.lstrip().startswith("#"))
+    assert "artifacts/" not in pb and "prospective_balanced" not in pb
+    assert "promote_prospective_balanced" not in pb
+    assert pb.count("fullruns/pb1_colab_replication") >= 2 and pb.count("fullruns/pb2_colab_replication") >= 2
+    assert "torch.cuda.is_available()" in pb
+
+
+def test_read_extras_cell_shows_a_pb_reading_and_a_partial_pb_run(tmp_path):
+    import importlib.util
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import read_pb_replication as rpr
+    spec = importlib.util.spec_from_file_location(
+        "_ppb_fixture_nb", ROOT / "tests" / "test_promote_prospective_balanced.py")
+    fx = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fx)
+    rd = fx.make_run(tmp_path / "src")
+    reading = rpr.read("PB1", str(rd))
+    repo = tmp_path / "repo"
+    _write_json(repo / "fullruns" / "pb1_colab_replication" / "replication_reading.json", reading)
+    for s in range(3):
+        _write_json(repo / "fullruns" / "pb2_colab_replication" / "cells" / f"cell_d0.00_s{20 + s}.json",
+                    {"cell": {"drift": 0.0, "seed": 20 + s}})
+
+    out = _run_read_cell(repo, tmp_path)
+
+    assert "=== PB1 replication (fullruns/pb1_colab_replication) ===" in out
+    assert "decision under the frozen rule: MET" in out
+    assert "is unchanged by anything read here" in out
+    assert "=== PB2 replication (fullruns/pb2_colab_replication) ===" in out
+    assert "3 of 20 training cells so far" in out
+    assert "No revision-extras output yet" not in out

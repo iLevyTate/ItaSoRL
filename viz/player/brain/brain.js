@@ -74,6 +74,10 @@ const SEC = Q.get("sec") || "memory";
 const LAYOUT = Q.get("layout") || "wide"; // wide 1920x1080 | vertical 1080x1920
 const W = LAYOUT === "vertical" ? 1080 : 1920;
 const H = LAYOUT === "vertical" ? 1920 : 1080;
+// res=2 (or 3) draws the same W x H frame into a bitmap that many times
+// larger, for a capture run at the same deviceScaleFactor (a 4K master of
+// the wide cut). Everything is vector, so detail scales with it.
+const RES = Math.max(1, Math.min(3, Math.round(parseFloat(Q.get("res")) || 1)));
 const SHOW_LABELS = Q.get("text") !== "0"; // text=0: wordless cut for VO
 const SHOW_CAPTION = Q.get("caption") === "1"; // scrolling line + headline off unless asked
 const T = 12000; // ms per loop
@@ -875,7 +879,9 @@ function sideResponse(panel, n, u) {
 
 // ---------------------------------------------------------------- canvas
 const canvas = document.getElementById("stage");
-canvas.width = W; canvas.height = H;
+// At RES > 1 the page's max-width/max-height rule still fits the canvas to the
+// W x H capture viewport, so the frame stays W x H layout pixels.
+canvas.width = W * RES; canvas.height = H * RES;
 const ctx = canvas.getContext("2d");
 
 function bezier(ax, ay, bx, by, s) {
@@ -1985,6 +1991,7 @@ function drawVignette() {
 // ---------------------------------------------------------------- frame
 function render(t) {
   t = ((t % T) + T) % T;
+  ctx.setTransform(RES, 0, 0, RES, 0, 0);
   ctx.save();
   // Gentle breathing camera (one full cycle per loop => seamless).
   const s = 1 + 0.012 * Math.sin(TAU * (t / T));

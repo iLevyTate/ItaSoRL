@@ -8,6 +8,8 @@
 //   CAP_FPS     frames per second (default 30)
 //   CAP_OUT     output video path (default out.mp4)
 //   CAP_MODE    "proof" (a few keyframe PNGs) or "full" (encode video)
+//   CAP_DSF     deviceScaleFactor (default 1); 2 with ?res=2 gives a 2x master
+//   CAP_CRF     x264 CRF (default 18); CAP_PRESET x264 preset (default medium)
 
 const { chromium } = require("playwright");
 const { spawn } = require("child_process");
@@ -17,6 +19,9 @@ const CHROME = process.env.CHROME_EXE;
 const URL = process.env.CAP_URL || "http://127.0.0.1:8765/index.html";
 const FPS = parseInt(process.env.CAP_FPS || "30", 10);
 const OUT = process.env.CAP_OUT || "out.mp4";
+const DSF = parseFloat(process.env.CAP_DSF || "1");
+const CRF = process.env.CAP_CRF || "18";
+const PRESET = process.env.CAP_PRESET || "medium";
 const MODE = process.env.CAP_MODE || "full";
 const FALLBACK_W = 1080;
 const FALLBACK_H = 1350;
@@ -36,7 +41,7 @@ function writeChunk(stream, buf) {
   });
   const page = await browser.newPage({
     viewport: { width: FALLBACK_W, height: FALLBACK_H },
-    deviceScaleFactor: 1,
+    deviceScaleFactor: DSF,
   });
   page.on("console", (m) => {
     const t = m.type();
@@ -99,8 +104,8 @@ function writeChunk(stream, buf) {
       "-framerate", String(FPS),
       "-i", "pipe:0",
       "-c:v", "libx264",
-      "-preset", "medium",
-      "-crf", "18",
+      "-preset", PRESET,
+      "-crf", CRF,
       "-pix_fmt", "yuv420p",
       "-movflags", "+faststart",
       OUT,

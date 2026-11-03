@@ -121,11 +121,16 @@ def test_cloud_step_recipe_with_runbook_flags_does_not_trip_the_guard(flags):
     assert a.hidden == 96 and a.drift_mode == "l3" and a.l3_hidden == 8
 
 
-def test_colab_texture_boxes_do_not_trip_the_guard():
+def _colab_expb2_boxes() -> list[str]:
+    """The run_expB2.py argv lists of the Colab notebook, as source text."""
     nb = json.loads((ROOT / "notebooks" / "colab_gpu.ipynb").read_text(encoding="utf-8"))
     src = "\n".join(c["source"] if isinstance(c["source"], str) else "".join(c["source"])
                     for c in nb["cells"] if c["cell_type"] == "code")
-    boxes = re.findall(r'\["scripts/run_expB2\.py",(.*?)\]', src, flags=re.S)
+    return re.findall(r'\["scripts/run_expB2\.py",(.*?)\]', src, flags=re.S)
+
+
+def test_colab_texture_boxes_do_not_trip_the_guard():
+    boxes = [b for b in _colab_expb2_boxes() if "--l3-family" in b]
     assert len(boxes) == 2
     for box in boxes:
         argv = []
@@ -203,6 +208,26 @@ def test_retrain_recipe_hashes_to_the_committed_fingerprint(run):
     assert fp == committed
     if run in LITERAL:
         assert committed == LITERAL[run]
+
+
+def test_colab_pb_replication_boxes_train_the_recorded_configuration():
+    # The notebook's PB1/PB2 replication boxes add --resume and their own folders to the
+    # registered commands; neither enters the fingerprint, so each box hashes to its run's record.
+    boxes = [b for b in _colab_expb2_boxes() if "--l3-family" not in b]
+    assert len(boxes) == 2
+    seen = {}
+    for box in boxes:
+        argv = []
+        for quoted, star in re.findall(r'"([^"]+)"|(\*_seeds_pb)', box):
+            argv += [str(s) for s in range(20, 30)] if star else [quoted]
+        assert "--hidden" not in argv and "--resume" in argv
+        out = argv[argv.index("--out-dir") + 1]
+        assert out.endswith("_colab_replication") and "prospective_balanced" not in out
+        a = run_expB2.cfg_from_argv(argv)
+        run = "PB2" if a.objective == "touch" else "PB1"
+        seen[run] = run_expB2.config_fingerprint(_main_base(a, "cuda"))
+    assert seen == {"PB1": LITERAL["PB1"], "PB2": LITERAL["PB2"]}
+    assert seen == {r: _committed_fingerprint(r) for r in ("PB1", "PB2")}
 
 
 def test_the_c1_and_c2_recipes_run_the_confirmation_script_and_hash_to_c1():

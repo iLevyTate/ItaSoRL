@@ -4,7 +4,9 @@
 // (window.__sceneSource === "stylized"), so there is no recorded-world claim
 // to protect. Refuses anything else so it can't silently encode the wrong page.
 //
-// Env: CHROME_EXE, CAP_URL, CAP_FPS (30), CAP_OUT (out.mp4), CAP_MODE (full|proof)
+// Env: CHROME_EXE, CAP_URL, CAP_FPS (30), CAP_OUT (out.mp4), CAP_MODE (full|proof),
+// CAP_DSF (deviceScaleFactor, 1; 2 with ?res=2 gives a 2x master), CAP_CRF (17),
+// CAP_PRESET (medium)
 
 const { chromium } = require("playwright");
 const { spawn } = require("child_process");
@@ -14,6 +16,9 @@ const CHROME = process.env.CHROME_EXE;
 const URL = process.env.CAP_URL || "http://127.0.0.1:8766/index.html";
 const FPS = parseInt(process.env.CAP_FPS || "30", 10);
 const OUT = process.env.CAP_OUT || "out.mp4";
+const DSF = parseFloat(process.env.CAP_DSF || "1");
+const CRF = process.env.CAP_CRF || "17";
+const PRESET = process.env.CAP_PRESET || "medium";
 const MODE = process.env.CAP_MODE || "full";
 
 function writeChunk(stream, buf) {
@@ -31,7 +36,7 @@ function writeChunk(stream, buf) {
   });
   const page = await browser.newPage({
     viewport: { width: 1920, height: 1080 },
-    deviceScaleFactor: 1,
+    deviceScaleFactor: DSF,
   });
   page.on("console", (m) => {
     const t = m.type();
@@ -83,8 +88,8 @@ function writeChunk(stream, buf) {
       "-framerate", String(FPS),
       "-i", "pipe:0",
       "-c:v", "libx264",
-      "-preset", "medium",
-      "-crf", "17",
+      "-preset", PRESET,
+      "-crf", CRF,
       "-pix_fmt", "yuv420p",
       "-movflags", "+faststart",
       OUT,

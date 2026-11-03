@@ -14,7 +14,7 @@
       "id": "creature",
       "t0": 0,
       "t1": 10000,
-      "world": { "mode": "single", "zoom": [1.02, 1.0], "follow": 0.4, "stage": 0, "fan": "calm" },
+      "world": { "mode": "single", "zoom": [1.02, 1.0], "follow": 0.4, "stage": 0, "fan": "calm", "worldT0": 9900 },
       "caption": {
         "kicker": "MEET THE CREATURE",
         "headline": "Born knowing ((nothing at all.))",
@@ -99,7 +99,7 @@
       "id": "survival",
       "t0": 60000,
       "t1": 80000,
-      "world": { "mode": "single", "zoom": [1.0, 1.06], "follow": 0.45, "stage": 3, "fan": "calm", "probe": true, "glitch": true, "worldT0": 50000 },
+      "world": { "mode": "single", "zoom": [1.0, 1.06], "follow": 0.6, "stage": 3, "fan": "calm", "probe": true, "glitch": true, "worldT0": 20100 },
       "gauge": {
         "label": "does its memory show it NOW?",
         "unit": "pct",
