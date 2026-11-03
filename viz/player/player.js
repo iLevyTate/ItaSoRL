@@ -373,85 +373,21 @@ function shadowEllipse(ctx, x, y, r) {
   ctx.restore();
 }
 
-// Body language, driven by the recorded walk (see motionAt in paintWorld).
-// Position never changes here; only the pose does, and it stays calm: the
-// travel across the world is what shows it is busy. `mo` carries:
-//   m      0..1, how fast it is actually moving
-//   vx     screen-space x velocity (px/s), for the lean
-//   phase  distance walked / stride, so hops land with real ground covered
-//   chomp  ms since it ate a pellet (recorded), or -1
-//   face   1 or -1, the screen side it last travelled toward
-// Moving: low hops locked to ground covered, a soft landing, a slight lean.
-// Stopped: slow breathing only. Eating: one gentle bite. Pure function of t.
-function drawCreature(ctx, creature, stage, x, y, t, sc, mo) {
+function drawCreature(ctx, creature, stage, x, y, t, sc) {
   const f = creature.byStage[Math.max(0, Math.min(creature.byStage.length - 1, stage))];
   const ax = f.anchor.x - f.x, ay = f.anchor.y - f.y;
-  mo = mo || { m: 0, vx: 0, phase: 0, chomp: -1, face: 1 };
-  const m = clamp01(mo.m), still = 1 - m;
-
-  // Moving.
-  const ph = mo.phase;
-  const arc = Math.abs(Math.sin(Math.PI * ph));            // 0 on the ground, 1 at the top
-  const land = Math.pow(1 - arc, 4);                       // near 1 just as it touches down
-  let lift = arc * 3 * sc * m;
-  let sy = 1 - 0.06 * m * land + 0.03 * m * arc;
-  let sx = 1 + 0.05 * m * land - 0.02 * m * arc;
-  const rot = 0.08 * m * Math.max(-1, Math.min(1, mo.vx / 80));   // slight lean into travel
-
-  // Stopped: slow breathing.
-  const breath = Math.sin((2 * Math.PI * t) / 2200);
-  sy *= 1 + 0.02 * still * breath;
-  sx *= 1 - 0.015 * still * breath;
-
-  // Facing: the sprite looks to its right; mirror it while it travels left.
-  if (mo.face < 0) sx = -sx;
-
-  // Eating: one gentle bite right after a pellet disappears.
-  if (mo.chomp >= 0 && mo.chomp < 450) {
-    const c = mo.chomp / 450;
-    const bite = Math.sin(c * Math.PI) * (1 - 0.5 * c);
-    sy *= 1 - 0.1 * bite;
-    sx *= 1 + 0.07 * bite;
-  }
-
-  shadowEllipse(ctx, x, y, f.w * sc * 0.28 * (1 - 0.35 * clamp01(lift / (5 * sc))));
-
-  // Dust: a faint puff per landing at a real walk.
-  const fp = ph - Math.floor(ph);
-  if (m > 0.6 && fp < 0.4) {
-    const a = (1 - fp / 0.4) * 0.22 * m;
-    const r = (2 + 7 * (fp / 0.4)) * sc * 0.5;
-    ctx.save();
-    ctx.fillStyle = `rgba(214,206,236,${a.toFixed(3)})`;
-    for (const side of [-1, 1]) {
-      ctx.beginPath();
-      ctx.ellipse(x + side * (5 + 10 * fp) * sc * 0.5, y + 2, r, r * 0.55, 0, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  // Scale the sprite up once with hard pixels, then pose that copy with
-  // smoothing on, so turning and squashing do not shred the pixel art.
-  creature.cache = creature.cache || new Map();
-  const key = stage + ":" + sc;
-  let cv = creature.cache.get(key);
-  if (!cv) {
-    cv = document.createElement("canvas");
-    cv.width = f.w * sc; cv.height = f.h * sc;
-    const c2 = cv.getContext("2d");
-    c2.imageSmoothingEnabled = false;
-    c2.drawImage(creature.img, f.x, f.y, f.w, f.h, 0, 0, f.w * sc, f.h * sc);
-    creature.cache.set(key, cv);
-  }
-  const footY = f.h * 0.86;                                // squash and lean pivot on the feet
+  // Lively hop: one bounce ~0.72s that lifts a few px, and the shadow tightens
+  // as it rises - so the creature reads as actively hopping, not sliding. Pure
+  // function of t (safe under non-monotonic capture seeks).
+  const hop = Math.sin(((t % 720) / 720) * Math.PI);   // 0 -> 1 -> 0
+  const bob = -Math.round(hop * 4) * sc;
+  shadowEllipse(ctx, x, y, f.w * sc * 0.28 * (1 - 0.4 * hop));
   ctx.save();
-  ctx.translate(x, y - (ay - footY) * sc - lift);
-  ctx.rotate(rot);
-  ctx.scale(sx, sy);
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(cv, -ax * sc, -footY * sc);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(
+    creature.img, f.x, f.y, f.w, f.h,
+    Math.round(x - ax * sc), Math.round(y - ay * sc) + bob, f.w * sc, f.h * sc
+  );
   ctx.restore();
 }
 
@@ -783,7 +719,6 @@ class Player {
     this.terrain = iso.terrain;
     this.iso = iso;
     this.scanFlags = null;   // lazily built, deterministic (seeded)
-    this.arcCache = new Map();
   }
 
   beatAt(t) {
@@ -908,69 +843,9 @@ class Player {
         heading: traj[k][2] + dh * fr,
         energy: traj[k][3] + (traj[k2][3] - traj[k][3]) * fr,
         idx: k,
-        wt: wtX,
       };
     };
     const posOf = (traj) => posAt(traj, wt);
-    // Distance walked along a trajectory, in baked px, from the raw recorded
-    // (u, v) rather than the tile-snapped screen point, so the stride runs
-    // smoothly with the real walk and never freezes mid-hop between tiles.
-    // Cached per trajectory.
-    const isoLen = (du, dv) =>
-      Math.hypot((du - dv) * ISO.TW * (ISO.N - 1), (du + dv) * ISO.TH * (ISO.N - 1));
-    const arcOf = (traj) => {
-      let a = this.arcCache.get(traj);
-      if (!a) {
-        a = new Float64Array(traj.length);
-        for (let k = 1; k < traj.length; k++) {
-          a[k] = a[k - 1] + isoLen(traj[k][0] - traj[k - 1][0], traj[k][1] - traj[k - 1][1]);
-        }
-        this.arcCache.set(traj, a);
-      }
-      return a;
-    };
-    // Pose inputs for drawCreature, all read off the recorded walk at pos.wt:
-    // speed and direction over a 0.4 s window, stride phase from distance
-    // walked, and time since a pellet vanished from its world (an eat).
-    const motionAt = (traj, pos, mapF, pelletFrames) => {
-      const w0 = pos.wt;
-      const a = posAt(traj, w0 - 200), b = posAt(traj, w0 + 200);
-      const du = b.u - a.u, dv = b.v - a.v;
-      const speed = isoLen(du, dv) / 0.4;                       // baked px/s
-      const o = mapF(0, 0), e = mapF((du - dv) * ISO.TW * (ISO.N - 1), 0);
-      const vx = (e[0] - o[0]) / 0.4;                            // screen px/s
-      const arc = arcOf(traj);
-      const f = w0 / stepMs;
-      const k = Math.max(0, Math.min(traj.length - 1, Math.floor(f)));
-      const k2 = Math.min(traj.length - 1, k + 1);
-      const fr = Math.max(0, Math.min(1, f - k));
-      const phase = (arc[k] + (arc[k2] - arc[k]) * fr) / 12;    // one hop per 12 px walked
-      let chomp = -1;
-      if (pelletFrames) {
-        const hi = Math.min(k, pelletFrames.length - 1);
-        for (let j = Math.max(1, hi - 3); j <= hi; j++) {
-          const prev = pelletFrames[j - 1], cur = pelletFrames[j];
-          if (!prev || !cur) continue;
-          const have = new Set(cur.map((q) => q[0] + "," + q[1]));
-          if (prev.some((q) => !have.has(q[0] + "," + q[1]))) {
-            const age = w0 - j * stepMs;
-            if (age >= 0 && (chomp < 0 || age < chomp)) chomp = age;
-          }
-        }
-      }
-      // Recorded walking runs about 8 to 40 px/s (median 15 for the copy's
-      // creature), so full stride by 14 px/s.
-      // Facing: the side it last travelled toward over a full second, looking
-      // back in time through stops, so it turns only when it keeps going the
-      // other way and never flickers on a wobble of the recorded heading.
-      let face = 1;
-      for (let back = 0; back <= 8000; back += 500) {
-        const p0 = posAt(traj, w0 - back - 1000), p1 = posAt(traj, w0 - back);
-        const dx = (p1.u - p1.v) - (p0.u - p0.v);
-        if (Math.abs(dx) > 0.004) { face = dx < 0 ? -1 : 1; break; }
-      }
-      return { m: clamp01(speed / 14), vx, phase, chomp, face };
-    };
     // Resolve a trajectory key: the teaching sims for the new keys, recorded data
     // for auth/surr/untr (so creature and scan stay byte-identical).
     const trajFor = (key) => {
@@ -1025,8 +900,7 @@ class Player {
       this.sprites = this.sprites || [];
       this.sprites.push({ x: cp[0], y: cp[1], key, vx, vw });
       if (fanMode) drawFan(ctx, view, cp, pos.u, pos.v, pos.heading, t, worldScale, alert);
-      drawCreature(ctx, this.creature, beat.world.stage || 0, cp[0], cp[1], t, sc,
-        motionAt(traj, pos, map, pt));
+      drawCreature(ctx, this.creature, beat.world.stage || 0, cp[0], cp[1], t, sc);
       // Mind-probe: show the mind CATCHING the fake's glitches, not an idle halo.
       // Catch chance = how far the gauge sits above coin-flip, so the flags the
       // viewer sees ARE the number: nocare (50%) barely catches - nothing to
