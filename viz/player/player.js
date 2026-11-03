@@ -932,12 +932,17 @@ class Player {
         drawCallout(ctx, x, y, text, s2 > 0 ? [46, -36] : [-46, -36], a);
       };
       if (beat.id === "creature") {
-        // flat-iso transform of the interpolated heading: smooth every frame
-        const du = Math.cos(pos.heading), dv = Math.sin(pos.heading);
-        const hx = (du - dv) * ISO.TW, hy = (du + dv) * ISO.TH;
-        const hl = Math.hypot(hx, hy) || 1;
-        label(cp[0] + (hx / hl) * 150 * worldScale, cp[1] + (hy / hl) * 150 * worldScale,
-          "ITS SENSES", calloutAlpha(tl, 2200, 5600));
+        // Anchor inside the ray fan: 55% of the way along its centre ray, by
+        // the same flat-iso projection the rays use but unsnapped, so the tag
+        // rides smoothly with the fan. (A fixed 150 px along the heading fell
+        // past the end of the rays, onto bare ground.) The box sits on the
+        // far side of the anchor from the creature, so it never covers it.
+        const r = FAN_REACH * 0.55 * (ISO.N - 1);
+        const du = Math.cos(pos.heading) * r, dv = Math.sin(pos.heading) * r;
+        const ax = cp[0] + (du - dv) * ISO.TW * worldScale;
+        const ay = cp[1] + (du + dv) * ISO.TH * worldScale;
+        drawCallout(ctx, ax, ay, "ITS SENSES",
+          [ax >= cp[0] ? 46 : -46, ay > cp[1] + 8 ? 34 : -34], calloutAlpha(tl, 2200, 5600));
         // coin chosen once (nearest at the window's start), so no switching
         const selWt = (beat.world.worldT0 != null ? beat.world.worldT0 : beat.t0) + 6400;
         const selIdx = Math.min(traj.length - 1, Math.floor(selWt / stepMs));
@@ -949,8 +954,12 @@ class Player {
           if (d < bd) { bd = d; best = q; }
         }
         if (best) {
+          // Box on the side of the pellet away from the creature, so the
+          // leader runs from the box straight to the coin it names.
           const s = view.pt(best[0], best[1]);
-          label(s[0], s[1] - 18 * worldScale, "FOOD", calloutAlpha(tl, 6400, 9300));
+          const fy = s[1] - 18 * worldScale;
+          drawCallout(ctx, s[0], fy, "FOOD",
+            [s[0] >= cp[0] ? 40 : -40, fy > cp[1] ? 30 : -30], calloutAlpha(tl, 6400, 9300));
         }
       } else if (beat.id === "trick" && vx === 0) {
         // Question beat: establish fairness only. No labels give the answer
