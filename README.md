@@ -29,15 +29,15 @@ scoring split used now, 53% as first scored; FINDINGS §22.1). The record of wha
 changed, and what did not get rerun, is in
 [`docs/CORRECTIONS.md`](docs/CORRECTIONS.md).
 
-The 90-second film is the one to watch. Voice and music are in. Nothing clipped
-out. [ilevytate.github.io/ItaSoRL](https://ilevytate.github.io/ItaSoRL/)
+The 90-second film is the one to watch:
+[ilevytate.github.io/ItaSoRL](https://ilevytate.github.io/ItaSoRL/)
 
-Two films play on that page. *Detectable All Along* is the 90-second story,
-released 24 August 2026 with the voice and music track and made on the original
-trainer. Its closing line, that the creature noticed because survival made it
-matter, is withdrawn: a brain trained only to predict, fed the same senses,
-reads the fake within about 0.01 of the survival brain ([FINDINGS §17.6](docs/FINDINGS.md#176-who-drives-the-evaluation-episodes-revision-step-6)).
-The captions-only cut that plays live on the page tells the corrected story.
+Two films play on that page. *Detectable All Along* is the 90-second story, now
+a 16:9 cut on the corrected trainer (November 2026), with the story in captions on
+screen and no audio. It replaces the voiced cut released 24 August 2026 on the
+original trainer, whose closing line, that the creature noticed because survival
+made it matter, is withdrawn: a brain trained only to predict, fed the same
+senses, reads the fake within about 0.01 of the survival brain ([FINDINGS §17.6](docs/FINDINGS.md#176-who-drives-the-evaluation-episodes-revision-step-6)).
 *Two Minds* goes inside the creature's head: one brain, two worlds, one flaw,
 every dot named after a real sensor, unit, or motor head, and the clue cells
 ringed from measured data. It was re-rendered on the corrected record in

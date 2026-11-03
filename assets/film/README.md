@@ -1,14 +1,15 @@
 # Film assets
 
 What the site serves, where each file came from, and how to rebuild it. Two
-films carry the project now. The first is the 90-second story with voice and
-music. The second is Two Minds, the labeled brain film.
+films carry the project now. The first is the 90-second story, in a corrected
+16:9 cut with captions on screen. The second is Two Minds, the labeled brain film.
 
 ## What is in git and what is not
 
-This directory is gitignored by default. Only the six files the site actually
+This directory is gitignored by default. Only the five files the site actually
 serves are allowlisted by name in `.gitignore`: the two 720p web encodes, their
-two poster frames, the captions of the voiced film, and this README. The four
+two poster frames, and this README. (The voiced film's captions,
+`detectable-all-along-web.vtt`, were removed on 2026-11-03 with the voiced cut.) The four
 companion loop mp4s that used to be allowlisted were retired on 2026-10-10 (last
 section). Everything
 else here is a local build output and stays on local disk, including all of
@@ -20,13 +21,23 @@ The picture is byte-reproducible from `viz/` code plus `viz/data/scene.json`, so
 re-render rather than commit. If you ever do need to publish a new file from
 here, add an explicit `!/assets/film/<name>` line; without one it is ignored.
 
-## Film one: Detectable All Along (90 s, voice and music)
+## Film one: Detectable All Along (90 s, captions on screen)
 
 | File | What it is | Source |
 |------|------------|--------|
-| `detectable-all-along-web.mp4` | 1280x720, 24 fps, H.264 CRF 23, AAC 128 kb/s stereo, 89.8 s, 12.5 MB. The cut the site plays. | Web encode of the released master (below). |
-| `detectable-all-along-poster.jpg` | Poster frame at 1.5 s. | Same master. |
-| `detectable-all-along-web.vtt` | WebVTT captions of the voiceover, 27 cues timed to the speech in the web encode (the last ends at 1:20.8). Added 2026-10-19. | The script in `docs/specs/2026-07-22-outreach-video-vo-music.md`, as spoken in the encode's audio (three small wording departures; the VTT NOTE lists them). |
+| `detectable-all-along-web.mp4` | 1280x720, 30 fps, H.264 High CRF 23, no audio track, 90.0 s (2700 frames), 12.1 MB. The cut the site plays since 2026-11-03. | Web encode of the 16:9 capture of `viz/player/?layout=wide` at native 1920x1080 (`capture.js`, CRF 14 master), the corrected record. |
+| `detectable-all-along-poster.jpg` | Poster frame at 1.5 s. | Same encode. |
+
+On 2026-11-03 the site's film-one encode was replaced in place with the corrected
+cut: the `viz/player` film in its new 16:9 layout (world on the left, captions and
+meter on the right), every number from the corrected trainer, the opening and
+survival beats replaying the stretch of the recorded walk where the creature
+forages (steps 42 to 84 and 85 to 170), and callouts placed clear of the creature
+and of each other. `viz/player/capture/layout-check.js` reported no clipping,
+overlap or jumping callout in the 16:9, 4:5 and 9:16 layouts before the capture.
+The voiced August cut and its captions left the site the same day. What follows
+describes that August master, which stays on the owner's Drive as the historical
+record.
 
 The master is `ItasorlOverview.mov`: 1920x1080, 24 fps, H.264 at 21 Mb/s with
 a 320 kb/s AAC track, 239.8 MB, exported from DaVinci Resolve and released on
@@ -105,7 +116,7 @@ with `viz/player/capture/build-two-minds.ps1`; the site links the web encode.
 
 | File | What it is | Source |
 |------|------------|--------|
-| `two-minds-web.mp4` | 1280x720, 30 fps, H.264 CRF 25, no audio track, 68.9 s. The cut the site plays, intro and outro included. | Web encode of `clips/two-minds-tour.mp4`. |
+| `two-minds-web.mp4` | 1280x720, 30 fps, H.264 High CRF 23, no audio track, 68.9 s (2067 frames), 5.7 MB. The cut the site plays, intro and outro included. Re-encoded 2026-11-03. | Web encode of the tour stitched from native 1920x1080 chapter captures of the current renderer (same trims and fades as `build-two-minds.ps1`). |
 | `two-minds-poster.jpg` | Poster frame at 2 s (the title card). | Same. |
 | `clips/two-minds-tour.mp4` (local only) | 1920x1080 tour: intro title card (9.5 s), the five sections (overview 12, senses 9, process 9, memory 12, actions 12), outro end card (9 s), joined with 0.6 s fade-to-black. Trims sum to 72.5 s; the six 0.6 s crossfades overlap away 3.6 s, so the film runs 68.9 s. | `viz/player/capture/build-two-minds.ps1` |
 | `clips/two-minds-tour-vertical.mp4` (local only) | 1080x1920 tour. | Same. |
