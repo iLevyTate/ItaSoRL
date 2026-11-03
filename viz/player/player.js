@@ -303,16 +303,6 @@ function makeIsoWorld(scene) {
   const offX = (W - (maxX - minX)) / 2 - minX, offY = (H - (maxY - minY)) / 2 - minY;
   const project = (i, j, lvl) => { const p = base(i, j, lvl); return [p[0] + offX, p[1] + offY]; };
 
-  // Play-area (unpadded) bbox in baked coordinates, for whole-world fits.
-  let cx0 = 1e9, cx1 = -1e9, cy0 = 1e9, cy1 = -1e9;
-  for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++) {
-    const [x, y] = project(i, j, 0);
-    if (x < cx0) cx0 = x; if (x > cx1) cx1 = x;
-    if (y < cy0) cy0 = y; if (y > cy1) cy1 = y;
-  }
-  cy0 -= ISO.LEVELS * ISO.STEP;   // terraces rise above ground level
-  const core = { x: cx0 - 20, y: cy0 - 10, w: cx1 - cx0 + 40, h: cy1 - cy0 + 30 };
-
   const cnv = document.createElement("canvas");
   cnv.width = W * RES; cnv.height = H * RES;
   const c = cnv.getContext("2d");
@@ -359,25 +349,12 @@ function makeIsoWorld(scene) {
   };
   bakeTiles(c, project, -ISO_PAD, N + ISO_PAD);
 
-  // Second bake: just the play-area diamond on a transparent background, for
-  // whole-world fits (the scan beat). The padded canvas cannot serve there,
-  // because its bounding rectangle is full of pad terrain, not sky.
-  const coreCnv = document.createElement("canvas");
-  coreCnv.width = Math.ceil(core.w) * RES; coreCnv.height = Math.ceil(core.h) * RES;
-  const projCore = (i, j, lvl) => {
-    const p = project(i, j, lvl);
-    return [p[0] - core.x, p[1] - core.y];
-  };
-  const coreCtx = coreCnv.getContext("2d");
-  coreCtx.scale(RES, RES);
-  bakeTiles(coreCtx, projCore, 0, N);
-
   const surfaceAt = (u, v) => {
     const gi = Math.max(0, Math.min(N - 1, Math.round(u * (N - 1))));
     const gj = Math.max(0, Math.min(N - 1, Math.round(v * (N - 1))));
     return project(gi + 0.5, gj + 0.5, levelAt(gi, gj));
   };
-  return { terrain: cnv, surfaceAt, w: W, h: H, core, coreView: coreCnv };
+  return { terrain: cnv, surfaceAt, w: W, h: H };
 }
 
 // --------------------------------------------------------------- glyphs
@@ -396,21 +373,103 @@ function shadowEllipse(ctx, x, y, r) {
   ctx.restore();
 }
 
-function drawCreature(ctx, creature, stage, x, y, t, sc) {
+// Body language, driven by the recorded walk (see motionAt in paintWorld).
+// Position never changes here; only the pose does. `mo` carries:
+//   m      0..1, how fast it is actually moving
+//   vx     screen-space x velocity (px/s), for the lean
+//   phase  distance walked / stride, so hops land with real ground covered
+//   chomp  ms since it ate a pellet (recorded), or -1
+//   face   screen-x share of the recorded heading, -1 (left) to 1 (right)
+// Moving: stride-locked hops with squash on landing, a waddle that alternates
+// each step, a lean into the direction of travel and a puff of dust per
+// landing. Stopped: it breathes, sways as if looking about, and gives a small
+// settling bounce now and then. Eating: two quick bites. Pure function of t.
+function drawCreature(ctx, creature, stage, x, y, t, sc, mo) {
   const f = creature.byStage[Math.max(0, Math.min(creature.byStage.length - 1, stage))];
   const ax = f.anchor.x - f.x, ay = f.anchor.y - f.y;
-  // Lively hop: one bounce ~0.72s that lifts a few px, and the shadow tightens
-  // as it rises - so the creature reads as actively hopping, not sliding. Pure
-  // function of t (safe under non-monotonic capture seeks).
-  const hop = Math.sin(((t % 720) / 720) * Math.PI);   // 0 -> 1 -> 0
-  const bob = -Math.round(hop * 4) * sc;
-  shadowEllipse(ctx, x, y, f.w * sc * 0.28 * (1 - 0.4 * hop));
+  mo = mo || { m: 0, vx: 0, phase: 0, chomp: -1 };
+  const m = clamp01(mo.m), still = 1 - m;
+
+  // Moving.
+  const ph = mo.phase;
+  const arc = Math.abs(Math.sin(Math.PI * ph));            // 0 on the ground, 1 at the top
+  const land = Math.pow(1 - arc, 4);                       // near 1 just as it touches down
+  let lift = arc * 5 * sc * m;
+  let sy = 1 - 0.16 * m * land + 0.07 * m * arc;
+  let sx = 1 + 0.13 * m * land - 0.05 * m * arc;
+  let rot = 0.12 * m * Math.sin(Math.PI * ph)               // waddle, alternating each hop
+    + 0.2 * m * Math.max(-1, Math.min(1, mo.vx / 60));      // lean into travel
+
+  // Stopped: breathing, a slow look to one side and the other, two quick
+  // sniffing dips every 2.3 s, and a small settling bounce every 3.1 s.
+  const breath = Math.sin((2 * Math.PI * t) / 1700);
+  sy *= 1 + 0.035 * still * breath;
+  sx *= 1 - 0.025 * still * breath;
+  rot += 0.16 * still * Math.sin((2 * Math.PI * t) / 2900) * Math.sin((2 * Math.PI * t) / 7300);
+  const sniff = (t % 2300) / 360;
+  if (sniff < 1) {
+    const d = Math.max(0, Math.sin(sniff * Math.PI * 2)) * still;
+    sy *= 1 - 0.07 * d;
+    sx *= 1 + 0.04 * d;
+  }
+  const settle = (t % 3100) / 420;
+  if (settle < 1) lift += 2.6 * sc * still * Math.sin(Math.PI * settle);
+
+  // Facing: the sprite looks to its right, so mirror it when the recorded
+  // heading points left on screen. Near straight up or down it narrows a
+  // little through the turn instead of snapping.
+  if (mo.face != null) {
+    const fx = mo.face;
+    sx *= (fx < 0 ? -1 : 1) * Math.max(0.75, Math.min(1, Math.abs(fx) * 4));
+  }
+
+  // Eating: two bites over ~0.5 s right after a pellet disappears.
+  if (mo.chomp >= 0 && mo.chomp < 520) {
+    const c = mo.chomp / 520;
+    const bite = Math.max(0, Math.sin(c * Math.PI * 4)) * (1 - c);
+    sy *= 1 - 0.2 * bite;
+    sx *= 1 + 0.14 * bite;
+    lift += 2.5 * sc * Math.sin(Math.PI * c) * (1 - c);
+  }
+
+  shadowEllipse(ctx, x, y, f.w * sc * 0.28 * (1 - 0.35 * clamp01(lift / (5 * sc))));
+
+  // Dust: one small puff per landing while it is moving.
+  const fp = ph - Math.floor(ph);
+  if (m > 0.25 && fp < 0.4) {
+    const a = (1 - fp / 0.4) * 0.45 * m;
+    const r = (2 + 7 * (fp / 0.4)) * sc * 0.5;
+    ctx.save();
+    ctx.fillStyle = `rgba(214,206,236,${a.toFixed(3)})`;
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(x + side * (5 + 10 * fp) * sc * 0.5, y + 2, r, r * 0.55, 0, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Scale the sprite up once with hard pixels, then pose that copy with
+  // smoothing on, so turning and squashing do not shred the pixel art.
+  creature.cache = creature.cache || new Map();
+  const key = stage + ":" + sc;
+  let cv = creature.cache.get(key);
+  if (!cv) {
+    cv = document.createElement("canvas");
+    cv.width = f.w * sc; cv.height = f.h * sc;
+    const c2 = cv.getContext("2d");
+    c2.imageSmoothingEnabled = false;
+    c2.drawImage(creature.img, f.x, f.y, f.w, f.h, 0, 0, f.w * sc, f.h * sc);
+    creature.cache.set(key, cv);
+  }
+  const footY = f.h * 0.86;                                // squash and lean pivot on the feet
   ctx.save();
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(
-    creature.img, f.x, f.y, f.w, f.h,
-    Math.round(x - ax * sc), Math.round(y - ay * sc) + bob, f.w * sc, f.h * sc
-  );
+  ctx.translate(x, y - (ay - footY) * sc - lift);
+  ctx.rotate(rot);
+  ctx.scale(sx, sy);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(cv, -ax * sc, -footY * sc);
   ctx.restore();
 }
 
@@ -742,6 +801,7 @@ class Player {
     this.terrain = iso.terrain;
     this.iso = iso;
     this.scanFlags = null;   // lazily built, deterministic (seeded)
+    this.arcCache = new Map();
   }
 
   beatAt(t) {
@@ -864,9 +924,64 @@ class Player {
         heading: traj[k][2] + dh * fr,
         energy: traj[k][3] + (traj[k2][3] - traj[k][3]) * fr,
         idx: k,
+        wt: wtX,
       };
     };
     const posOf = (traj) => posAt(traj, wt);
+    // Distance walked along a trajectory, in baked px, from the raw recorded
+    // (u, v) rather than the tile-snapped screen point, so the stride runs
+    // smoothly with the real walk and never freezes mid-hop between tiles.
+    // Cached per trajectory.
+    const isoLen = (du, dv) =>
+      Math.hypot((du - dv) * ISO.TW * (ISO.N - 1), (du + dv) * ISO.TH * (ISO.N - 1));
+    const arcOf = (traj) => {
+      let a = this.arcCache.get(traj);
+      if (!a) {
+        a = new Float64Array(traj.length);
+        for (let k = 1; k < traj.length; k++) {
+          a[k] = a[k - 1] + isoLen(traj[k][0] - traj[k - 1][0], traj[k][1] - traj[k - 1][1]);
+        }
+        this.arcCache.set(traj, a);
+      }
+      return a;
+    };
+    // Pose inputs for drawCreature, all read off the recorded walk at pos.wt:
+    // speed and direction over a 0.4 s window, stride phase from distance
+    // walked, and time since a pellet vanished from its world (an eat).
+    const motionAt = (traj, pos, mapF, pelletFrames) => {
+      const w0 = pos.wt;
+      const a = posAt(traj, w0 - 200), b = posAt(traj, w0 + 200);
+      const du = b.u - a.u, dv = b.v - a.v;
+      const speed = isoLen(du, dv) / 0.4;                       // baked px/s
+      const o = mapF(0, 0), e = mapF((du - dv) * ISO.TW * (ISO.N - 1), 0);
+      const vx = (e[0] - o[0]) / 0.4;                            // screen px/s
+      const arc = arcOf(traj);
+      const f = w0 / stepMs;
+      const k = Math.max(0, Math.min(traj.length - 1, Math.floor(f)));
+      const k2 = Math.min(traj.length - 1, k + 1);
+      const fr = Math.max(0, Math.min(1, f - k));
+      const phase = (arc[k] + (arc[k2] - arc[k]) * fr) / 7;     // one hop per 7 px walked
+      let chomp = -1;
+      if (pelletFrames) {
+        const hi = Math.min(k, pelletFrames.length - 1);
+        for (let j = Math.max(1, hi - 3); j <= hi; j++) {
+          const prev = pelletFrames[j - 1], cur = pelletFrames[j];
+          if (!prev || !cur) continue;
+          const have = new Set(cur.map((q) => q[0] + "," + q[1]));
+          if (prev.some((q) => !have.has(q[0] + "," + q[1]))) {
+            const age = w0 - j * stepMs;
+            if (age >= 0 && (chomp < 0 || age < chomp)) chomp = age;
+          }
+        }
+      }
+      // Recorded walking runs about 8 to 40 px/s (median 15 for the copy's
+      // creature), so full stride by 14 px/s.
+      // Screen-x share of the recorded heading (flat iso), for facing.
+      const hc = Math.cos(pos.heading), hs = Math.sin(pos.heading);
+      const hx = (hc - hs) * ISO.TW, hy = (hc + hs) * ISO.TH;
+      const face = hx / (Math.hypot(hx, hy) || 1);
+      return { m: clamp01(speed / 14), vx, phase, chomp, face };
+    };
     // Resolve a trajectory key: the teaching sims for the new keys, recorded data
     // for auth/surr/untr (so creature and scan stay byte-identical).
     const trajFor = (key) => {
@@ -921,7 +1036,8 @@ class Player {
       this.sprites = this.sprites || [];
       this.sprites.push({ x: cp[0], y: cp[1], key, vx, vw });
       if (fanMode) drawFan(ctx, view, cp, pos.u, pos.v, pos.heading, t, worldScale, alert);
-      drawCreature(ctx, this.creature, beat.world.stage || 0, cp[0], cp[1], t, sc);
+      drawCreature(ctx, this.creature, beat.world.stage || 0, cp[0], cp[1], t, sc,
+        motionAt(traj, pos, map, pt));
       // Mind-probe: show the mind CATCHING the fake's glitches, not an idle halo.
       // Catch chance = how far the gauge sits above coin-flip, so the flags the
       // viewer sees ARE the number: nocare (50%) barely catches - nothing to
@@ -1108,9 +1224,7 @@ class Player {
       // Faded copy world with a scanner band sweeping it; anomaly flags pop
       // where the band has passed. The band uses the same eased ramp that
       // fills the gauge, so 0.99 lands exactly as the sweep completes.
-      const core = this.iso.core;
-      const inset = 30;
-      let fs, ox, oy, scanMap;
+      let scanMap;
       if (LAYOUT === "vertical") {
         // Tall follow on the replayed path so this beat is ground, not a
         // letterboxed diamond sitting in empty substrate.
@@ -1122,8 +1236,8 @@ class Player {
           if (s[1] < minY) minY = s[1]; if (s[1] > maxY) maxY = s[1];
         }
         const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-        const pad = 140;
-        let sw = Math.max(maxX - minX + pad * 2, VIEW_W / VIEW_ZOOM);
+        const pad = 60;
+        let sw = Math.max(maxX - minX + pad * 2, VIEW_W / 3.2);
         let sh = sw * (VIEW_H / VIEW_W);
         if (sh < maxY - minY + pad * 2) {
           sh = maxY - minY + pad * 2;
@@ -1143,14 +1257,28 @@ class Player {
         ctx.restore();
         scanMap = (tx, ty) => [((tx - sx) / sw) * VIEW_W, ((ty - sy) / sh) * VIEW_H];
       } else {
-        fs = Math.min((VIEW_W - 2 * inset) / core.w, (VIEW_H - 2 * inset) / core.h);
-        ox = (VIEW_W - core.w * fs) / 2;
-        oy = (VIEW_H - core.h * fs) / 2;
+        // Fit the replayed path, not the whole diamond. The path covers about a
+        // sixth of the world, so a whole-world fit bunched every flag into one
+        // small knot. Zoom is capped at 3.2x; the terrain here is a faded
+        // backdrop, so the softer tiles do not compete with the flags.
+        const traj = this.scene.trajs.surr;
+        let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+        for (let k = 0; k < traj.length; k++) {
+          const s = this.iso.surfaceAt(traj[k][0], traj[k][1]);
+          if (s[0] < minX) minX = s[0]; if (s[0] > maxX) maxX = s[0];
+          if (s[1] < minY) minY = s[1]; if (s[1] > maxY) maxY = s[1];
+        }
+        const pad = 40;
+        let sw = Math.max(maxX - minX + 2 * pad, (maxY - minY + 2 * pad) * (VIEW_W / VIEW_H), VIEW_W / 3.2);
+        sw = Math.min(sw, this.iso.w);
+        const sh = sw * (VIEW_H / VIEW_W);
+        const sx = Math.max(0, Math.min(this.iso.w - sw, (minX + maxX) / 2 - sw / 2));
+        const sy = Math.max(0, Math.min(this.iso.h - sh, (minY + maxY) / 2 - sh / 2));
         ctx.save();
-        ctx.globalAlpha = 0.22;
-        ctx.drawImage(this.iso.coreView, ox, oy, core.w * fs, core.h * fs);
+        ctx.globalAlpha = 0.6;
+        ctx.drawImage(this.terrain, sx * RES, sy * RES, sw * RES, sh * RES, 0, 0, VIEW_W, VIEW_H);
         ctx.restore();
-        scanMap = (tx, ty) => [(tx - core.x) * fs + ox, (ty - core.y) * fs + oy];
+        scanMap = (tx, ty) => [((tx - sx) / sw) * VIEW_W, ((ty - sy) / sh) * VIEW_H];
       }
       if (!this.scanFlags) {
         // Flags sit ON the copy creature's recorded path: each marks a moment
@@ -1160,11 +1288,25 @@ class Player {
         const fit = (u, v) => scanMap(...this.iso.surfaceAt(u, v));
         this.scanPath = [];
         for (let k = 0; k < traj.length; k += 2) this.scanPath.push(fit(traj[k][0], traj[k][1]));
+        // Spread along the drawn path by distance, not by time (time stacked
+        // flags wherever the creature lingered), and no two flags closer than
+        // MIN_GAP on screen, since the path doubles back over itself.
         this.scanFlags = [];
-        const nf = 14;
-        for (let i = 0; i < nf; i++) {
-          const k = Math.round(((i + 0.5) / nf) * (traj.length - 1));
-          this.scanFlags.push(fit(traj[k][0], traj[k][1]));
+        const NF = 12, CAND = 96, MIN_GAP = VIEW_W * 0.075;
+        const P = this.scanPath, cum = [0];
+        for (let i = 1; i < P.length; i++) {
+          cum.push(cum[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+        }
+        const total = cum[cum.length - 1] || 1;
+        for (let i = 0, j = 1; i < CAND && this.scanFlags.length < NF; i++) {
+          const d = ((i + 0.5) / CAND) * total;
+          while (j < P.length - 1 && cum[j] < d) j++;
+          const span = cum[j] - cum[j - 1] || 1;
+          const q = (d - cum[j - 1]) / span;
+          const c = [lerp(P[j - 1][0], P[j][0], q), lerp(P[j - 1][1], P[j][1], q)];
+          if (this.scanFlags.every((g) => Math.hypot(g[0] - c[0], g[1] - c[1]) >= MIN_GAP)) {
+            this.scanFlags.push(c);
+          }
         }
       }
       ctx.save();
