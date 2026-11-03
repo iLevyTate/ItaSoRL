@@ -118,8 +118,6 @@ def derive_record_metrics(root: str | Path = ROOT) -> dict[str, str]:
         "qd_untrained_fresh": f"{qd['untrained fresh']['mean']:.3f}",
         "qd_margin_transfer": f"{qd_transfer['mean']:+.3f}",
         "qd_margin_fresh": f"{qd_fresh['mean']:+.3f}",
-        "hist_untrained": f"{_trace_mean(h8, '0.45', 'untrained', 'target'):.3f}",
-        "hist_resid_trace": f"{_trace_mean(h8, '0.45', 'survival', 'resid_trace'):.3f}",
         "hist_l0": f"{_trace_mean(h8, '0.00', 'survival', 'target'):.3f}",
         "hist_behavior_only_approx": f"~{_trace_mean(h8, '0.45', 'survival', 'behavior_only'):.2f}",
         "hist_resid_trace_approx": f"~{_trace_mean(h8, '0.45', 'survival', 'resid_trace'):.2f}",
