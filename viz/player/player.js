@@ -374,70 +374,52 @@ function shadowEllipse(ctx, x, y, r) {
 }
 
 // Body language, driven by the recorded walk (see motionAt in paintWorld).
-// Position never changes here; only the pose does. `mo` carries:
+// Position never changes here; only the pose does, and it stays calm: the
+// travel across the world is what shows it is busy. `mo` carries:
 //   m      0..1, how fast it is actually moving
 //   vx     screen-space x velocity (px/s), for the lean
 //   phase  distance walked / stride, so hops land with real ground covered
 //   chomp  ms since it ate a pellet (recorded), or -1
-//   face   screen-x share of the recorded heading, -1 (left) to 1 (right)
-// Moving: stride-locked hops with squash on landing, a waddle that alternates
-// each step, a lean into the direction of travel and a puff of dust per
-// landing. Stopped: it breathes, sways as if looking about, and gives a small
-// settling bounce now and then. Eating: two quick bites. Pure function of t.
+//   face   1 or -1, the screen side it last travelled toward
+// Moving: low hops locked to ground covered, a soft landing, a slight lean.
+// Stopped: slow breathing only. Eating: one gentle bite. Pure function of t.
 function drawCreature(ctx, creature, stage, x, y, t, sc, mo) {
   const f = creature.byStage[Math.max(0, Math.min(creature.byStage.length - 1, stage))];
   const ax = f.anchor.x - f.x, ay = f.anchor.y - f.y;
-  mo = mo || { m: 0, vx: 0, phase: 0, chomp: -1 };
+  mo = mo || { m: 0, vx: 0, phase: 0, chomp: -1, face: 1 };
   const m = clamp01(mo.m), still = 1 - m;
 
   // Moving.
   const ph = mo.phase;
   const arc = Math.abs(Math.sin(Math.PI * ph));            // 0 on the ground, 1 at the top
   const land = Math.pow(1 - arc, 4);                       // near 1 just as it touches down
-  let lift = arc * 5 * sc * m;
-  let sy = 1 - 0.16 * m * land + 0.07 * m * arc;
-  let sx = 1 + 0.13 * m * land - 0.05 * m * arc;
-  let rot = 0.12 * m * Math.sin(Math.PI * ph)               // waddle, alternating each hop
-    + 0.2 * m * Math.max(-1, Math.min(1, mo.vx / 60));      // lean into travel
+  let lift = arc * 3 * sc * m;
+  let sy = 1 - 0.06 * m * land + 0.03 * m * arc;
+  let sx = 1 + 0.05 * m * land - 0.02 * m * arc;
+  const rot = 0.08 * m * Math.max(-1, Math.min(1, mo.vx / 80));   // slight lean into travel
 
-  // Stopped: breathing, a slow look to one side and the other, two quick
-  // sniffing dips every 2.3 s, and a small settling bounce every 3.1 s.
-  const breath = Math.sin((2 * Math.PI * t) / 1700);
-  sy *= 1 + 0.035 * still * breath;
-  sx *= 1 - 0.025 * still * breath;
-  rot += 0.16 * still * Math.sin((2 * Math.PI * t) / 2900) * Math.sin((2 * Math.PI * t) / 7300);
-  const sniff = (t % 2300) / 360;
-  if (sniff < 1) {
-    const d = Math.max(0, Math.sin(sniff * Math.PI * 2)) * still;
-    sy *= 1 - 0.07 * d;
-    sx *= 1 + 0.04 * d;
-  }
-  const settle = (t % 3100) / 420;
-  if (settle < 1) lift += 2.6 * sc * still * Math.sin(Math.PI * settle);
+  // Stopped: slow breathing.
+  const breath = Math.sin((2 * Math.PI * t) / 2200);
+  sy *= 1 + 0.02 * still * breath;
+  sx *= 1 - 0.015 * still * breath;
 
-  // Facing: the sprite looks to its right, so mirror it when the recorded
-  // heading points left on screen. Near straight up or down it narrows a
-  // little through the turn instead of snapping.
-  if (mo.face != null) {
-    const fx = mo.face;
-    sx *= (fx < 0 ? -1 : 1) * Math.max(0.75, Math.min(1, Math.abs(fx) * 4));
-  }
+  // Facing: the sprite looks to its right; mirror it while it travels left.
+  if (mo.face < 0) sx = -sx;
 
-  // Eating: two bites over ~0.5 s right after a pellet disappears.
-  if (mo.chomp >= 0 && mo.chomp < 520) {
-    const c = mo.chomp / 520;
-    const bite = Math.max(0, Math.sin(c * Math.PI * 4)) * (1 - c);
-    sy *= 1 - 0.2 * bite;
-    sx *= 1 + 0.14 * bite;
-    lift += 2.5 * sc * Math.sin(Math.PI * c) * (1 - c);
+  // Eating: one gentle bite right after a pellet disappears.
+  if (mo.chomp >= 0 && mo.chomp < 450) {
+    const c = mo.chomp / 450;
+    const bite = Math.sin(c * Math.PI) * (1 - 0.5 * c);
+    sy *= 1 - 0.1 * bite;
+    sx *= 1 + 0.07 * bite;
   }
 
   shadowEllipse(ctx, x, y, f.w * sc * 0.28 * (1 - 0.35 * clamp01(lift / (5 * sc))));
 
-  // Dust: one small puff per landing while it is moving.
+  // Dust: a faint puff per landing at a real walk.
   const fp = ph - Math.floor(ph);
-  if (m > 0.25 && fp < 0.4) {
-    const a = (1 - fp / 0.4) * 0.45 * m;
+  if (m > 0.6 && fp < 0.4) {
+    const a = (1 - fp / 0.4) * 0.22 * m;
     const r = (2 + 7 * (fp / 0.4)) * sc * 0.5;
     ctx.save();
     ctx.fillStyle = `rgba(214,206,236,${a.toFixed(3)})`;
@@ -832,8 +814,10 @@ class Player {
 
     const tl = t - beat.t0;
     // worldT0 lets a beat replay a chosen window of the recorded run (film
-    // time keeps flowing; world time starts at worldT0). The survival beat
-    // uses this to show the hunt-and-decline stretch without the death.
+    // time keeps flowing; world time starts at worldT0). The recorded creature
+    // stops moving for good after about step 194, so the opening beat (steps
+    // 59 to 101) and the survival beat (103 to 188, four of its five eats) both
+    // play the stretch where it is out foraging, without overlapping.
     // clock < 1 slows that window: the untrained walk is 47 steps, shorter than
     // its beat, so it plays slower rather than ending in a death on screen.
     const wt = beat.world.worldT0 != null
@@ -960,7 +944,7 @@ class Player {
       const k = Math.max(0, Math.min(traj.length - 1, Math.floor(f)));
       const k2 = Math.min(traj.length - 1, k + 1);
       const fr = Math.max(0, Math.min(1, f - k));
-      const phase = (arc[k] + (arc[k2] - arc[k]) * fr) / 7;     // one hop per 7 px walked
+      const phase = (arc[k] + (arc[k2] - arc[k]) * fr) / 12;    // one hop per 12 px walked
       let chomp = -1;
       if (pelletFrames) {
         const hi = Math.min(k, pelletFrames.length - 1);
@@ -976,10 +960,15 @@ class Player {
       }
       // Recorded walking runs about 8 to 40 px/s (median 15 for the copy's
       // creature), so full stride by 14 px/s.
-      // Screen-x share of the recorded heading (flat iso), for facing.
-      const hc = Math.cos(pos.heading), hs = Math.sin(pos.heading);
-      const hx = (hc - hs) * ISO.TW, hy = (hc + hs) * ISO.TH;
-      const face = hx / (Math.hypot(hx, hy) || 1);
+      // Facing: the side it last travelled toward over a full second, looking
+      // back in time through stops, so it turns only when it keeps going the
+      // other way and never flickers on a wobble of the recorded heading.
+      let face = 1;
+      for (let back = 0; back <= 8000; back += 500) {
+        const p0 = posAt(traj, w0 - back - 1000), p1 = posAt(traj, w0 - back);
+        const dx = (p1.u - p1.v) - (p0.u - p0.v);
+        if (Math.abs(dx) > 0.004) { face = dx < 0 ? -1 : 1; break; }
+      }
       return { m: clamp01(speed / 14), vx, phase, chomp, face };
     };
     // Resolve a trajectory key: the teaching sims for the new keys, recorded data
