@@ -140,6 +140,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `PELLET-DOSE` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `C1-POPULATION-WORLD-GROUPED` | corrected | C | 49 | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `HEAD-OVERLAP` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
+| `DRAW-CROSSED-C1-C2` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 3144b3a (curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers, one torch thread each |
 
 Commits that artifacts record, or that the record cites, and that are not ancestors of main (most reached main through squash merges); each lives only on the branch named, so keep that branch or tag its head:
 
@@ -1759,6 +1760,18 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Dependencies: Python 3.13.2, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3
 - Notes: scripts/run_head_overlap_readout.py (X03, 2026-10-19); docs/specs/2026-10-17-extension-readouts-design.md, X03. Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or verdict.
 - Artifacts: `artifacts/head_overlap/corrected_l3_h8_wm.json`
+
+### `DRAW-CROSSED-C1-C2`: Draw-crossed readout of the saved C1 and C2 agents: every arm on eight fresh draws, with the registered probe and the penalty chosen in fold
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 3144b3a
+- Commit source: curated: the artifacts record 44a1c33 instead
+- Folds: explicit
+- Device: Claude Code cloud CPU container, 4 vCPU, 4 workers, one torch thread each
+- Dependencies: Python 3.13.18, torch 2.14.1+cu130 on CPU, numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1
+- Notes: scripts/run_draw_crossed_readout.py (2026-11-12) on the saved agents of the C1 and C2 reruns (origin branches run/C1-rerun and run/C2-rerun); docs/specs/2026-11-12-draw-crossed-readout-design.md, frozen before any fresh draw was scored. Labels are descriptive and stated in advance; this readout re-adjudicates no stored run and changes no stored value or verdict. FINDINGS 25.
+- Artifacts: `artifacts/draw_crossed/corrected_c1_c2.json`
 
 ## Headline register
 

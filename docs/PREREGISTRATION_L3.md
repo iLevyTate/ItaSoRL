@@ -2040,6 +2040,16 @@ Rigor carried from the B-v3 audit (2026-07-10):
   rule ledger. It trains nothing and re-adjudicates no stored run: `C1`'s registered rule
   stays not met, on its L0 gate, whatever this readout shows.
 
+- **2026-11-12 - THE DRAW-CROSSED READOUT, RESULT (a record; the entries above stay as written
+  and no rule, number or verdict changes).** `docs/specs/2026-11-12-draw-crossed-readout-design.md`
+  ran as frozen, from `3144b3a`, and its integrity gate passed on all 60 agents of each run.
+  Across eight fresh draws, with the penalty chosen in fold, the `C1` survival arm scores 0.776
+  [0.736, 0.816], above the bar, and its authentic-versus-authentic reading scores 0.530 [0.495,
+  0.566], which straddles the band edge, so it is not shown to be at chance across draws. On the
+  survival agent's own stream its lead over the predictor core is +0.028 [+0.013, +0.042],
+  within the margin. `C2` scores 0.653 [0.618, 0.688], which straddles the bar. `C1`'s registered
+  rule stays not met, on its L0 gate, and no other registered outcome changes. FINDINGS 25.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

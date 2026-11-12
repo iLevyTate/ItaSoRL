@@ -14,7 +14,7 @@ import pytest
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
-from itasorl import draw_crossed as dc
+from itasorl import draw_crossed as dc  # noqa: E402
 
 
 def _additive(seed_eff, draw_eff, mean=0.7, noise=None):
@@ -196,3 +196,13 @@ def test_run_script_constants_match_the_frozen_design():
     assert (dc.BAR, dc.MARGIN, dc.BAND, dc.LEVEL) == (0.65, 0.05, (0.45, 0.55), 0.90)
     assert dc.PROBES[0] == "nested"                                # the primary probe
     assert r._clean({"a": float("nan"), "b": [1.0, float("inf")]}) == {"a": None, "b": [1.0, None]}
+
+
+def test_fmt_ci_quotes_as_the_record_does():
+    ci = {"mean": 0.7761, "lo": 0.7364, "hi": 0.8158, "computable": True}
+    assert dc.fmt_ci(ci) == "0.776 [0.736, 0.816]"
+    d = {"mean": -0.0002, "lo": -0.0181, "hi": 0.0171, "computable": True}
+    assert dc.fmt_ci(d, signed=True) == "+0.000 [-0.018, +0.017]"
+    assert dc.fmt_ci({"mean": -0.003, "lo": None, "hi": None, "computable": False},
+                     signed=True) == "-0.003 [not computable]"
+    assert dc.fmt_ci({"mean": None, "computable": False}) == "not computable"

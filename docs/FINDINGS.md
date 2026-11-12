@@ -6889,3 +6889,178 @@ are not re-adjudicated: the raw 2026-10-12 confirmation stays UNINFORMATIVE and 
 rows stay retrospective. What is not shown: independence from every sensory transformation
 (the S2 labels are per control), an untrained floor resolved at chance (S1), persistence, or
 use.
+
+
+## 25. Draw-crossed readout of the saved C1 and C2 agents (2026-11-12)
+
+Spec `docs/specs/2026-11-12-draw-crossed-readout-design.md`, frozen at `3144b3a` (2026-11-12
+02:52 UTC) and announced in `docs/PREREGISTRATION_L3.md` section 12 before any fresh draw was
+scored. The run started from that commit at 02:53 UTC and took 3960 seconds on four CPU workers
+(Python 3.13.18, torch 2.14.1 on CPU, numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1). The
+artifact's `git_commit` reads `44a1c33`, the head when the file was written: that commit added
+this section's audit block, the manifest row and a formatting helper, and the run executed none
+of them. The agents are the saved agents of the `C1` and `C2` reruns, from the origin branches
+`run/C1-rerun` and `run/C2-rerun`, and are not committed here.
+Artifact: `artifacts/draw_crossed/corrected_c1_c2.json`.
+
+**Status.** This readout re-adjudicates no stored run. `C1`'s registered rule stays not met, on
+its L0 gate; `C2`'s rule stays not met; the auxiliary rule stays not met as registered. The
+labels below say where a crossed 90% interval lies against the 0.65 bar, the 0.05 margin or the
+band [0.45, 0.55]. They are descriptions, not verdicts, and add no row to the rule ledger.
+
+**Integrity gate: passed on both runs.** On the registered draw, the registered probe reproduces
+the recorded target of all 60 agents of each run, with a worst deviation of 0.0000005 against
+the tolerance of 0.01.
+
+**What was scored.** Every arm of both runs at drift zero and at drift 0.45, on eight fresh
+pairs of evaluation-world seed bases (6000000 + 100000k with 6050000 + 100000k, k below 8), with
+110 episodes of 24 steps per pool. No pool lost an episode. Each reading uses the penalty chosen
+inside each training fold (the primary probe) and the registered C = 1. Each interval treats
+agent seeds and draws as crossed random factors over the eight fresh draws. The registered draw
+is reported beside them and enters no interval.
+
+**The labels stated in advance.**
+
+- `C1` level, in fold: above the bar
+- `C1` drift zero, in fold: straddles the band edge
+- `C1` level, C = 1: above the bar
+- `C1` drift zero, C = 1: straddles the band edge
+- `C2` level, in fold: straddles the bar
+- `C2` drift zero, in fold: inside the band
+- `C2` level, C = 1: straddles the bar
+- `C2` drift zero, C = 1: inside the band
+
+**What it shows.**
+
+1. **The level of the `C1` reading holds across draws.** The survival arm scores 0.776 [0.736,
+   0.816] across the eight fresh draws with the penalty chosen in fold, and 0.777 [0.737, 0.816]
+   at C = 1. Both lower bounds clear the bar. Every fresh draw's mean is above the registered
+   draw's under both probes (lowest fresh draw at C = 1: 0.743, against 0.733), so the
+   registered draw was not a favorable one. The spread of the per-draw means is 0.022 here,
+   less than half the 0.052 that the eight audit draws gave the same agents
+   (`artifacts/l0_audit/d045_world_samples_corrected_l3_h8_wm.json`); eight draws estimate a
+   spread only loosely.
+2. **Every arm reads higher on the fresh draws.** At C = 1 the predictor arm scores 0.642 and
+   the untrained arm 0.581 on their own walks, against 0.589 and 0.523 on the registered draw.
+3. **On the arms' own walks, the leads hold across draws.** The survival arm leads the predictor
+   arm by +0.136 [+0.093, +0.180] and the untrained arm by +0.185 [+0.140, +0.230], both above
+   the margin.
+4. **At matched input, the lead over a prediction-trained core is within the margin.** On the
+   survival agent's own stream the survival core leads the predictor core by +0.028 [+0.013,
+   +0.042], and by +0.010 [-0.001, +0.021] when both read the stream through the survival
+   agent's normalizer. Both are within the margin. This repeats across draws what the replay
+   protocol found on the registered draw (`artifacts/policy_controls/corrected_l3_h8_wm.json`):
+   the survival arm's lead over the predictor arm is a difference between training regimes, not
+   shown to be one of objective.
+5. **A trained core keeps more than an untrained one from the same stream.** The survival core
+   leads the untrained core on the survival stream by +0.079 [+0.065, +0.093], above the margin.
+   With the survival agent's normalizer the lead is +0.061 [+0.048, +0.074] with the penalty
+   chosen in fold, which straddles the margin, and +0.078 [+0.066, +0.090] at C = 1, above it.
+6. **The authentic-versus-authentic reading of the `C1` survival arm is not shown to be at chance
+   across draws.** It scores 0.530 [0.495, 0.566] in fold and 0.528 [0.499, 0.557] at C = 1, and
+   both intervals straddle the band edge. The first fresh draw reads 0.635 in fold (0.618 at
+   C = 1), higher than the registered draw's 0.559, and the spread of the per-draw means is
+   0.052. The predictor and untrained arms of `C1` are inside the band at drift zero on their
+   own walks.
+7. **`C2`.** The survival arm without the auxiliary scores 0.653 [0.618, 0.688], which straddles
+   the bar, and its drift-zero reading, 0.512 [0.489, 0.535], is inside the band. On its own walk
+   it leads the predictor arm by +0.013 [-0.033, +0.060]. On its own stream the predictor core
+   scores above it: survival minus predictor core is -0.045 [-0.062, -0.028], below the margin.
+   Five of `C2`'s contrasts against the untrained core are not computable, three at drift 0.45
+   and two at drift zero, because the variance estimate is not positive.
+8. **The auxiliary lead holds across draws.** The `C1` survival arm leads the `C2` survival arm
+   by +0.123 [+0.089, +0.157] at drift 0.45, above the margin, and by +0.018 [-0.004, +0.041] at
+   drift zero.
+9. **The two probes agree on every label but four.** At drift 0.45, `C1`'s lead over the untrained
+   core with the survival normalizer straddles the margin in fold and is above it at C = 1, and
+   the same contrast of `C2` is within the margin in fold and not computable at C = 1. At drift
+   zero, `C1`'s untrained core on the survival stream straddles the band edge in fold and is
+   inside the band at C = 1, under either normalizer. The penalty chosen in fold spreads over the
+   whole grid; at drift zero the two ends of the grid are its two most frequent choices.
+
+**What is not shown.** The `predictor-logged` arm, which needs a retraining per seed, is not
+scored. Every reading is conditional on the one surrogate (hidden 8, G seed 0) and on the saved
+agents. Walks are not matched by speed, and nothing here bears on persistence or use.
+
+**Every reading.** Crossed 90% intervals over ten agent seeds and eight fresh draws, with the
+registered draw's mean at C = 1 beside each reading. A label is blank where the spec states
+none.
+
+**`C1`, drift 0.45.**
+
+| Reading | Penalty in fold | Label | C = 1 | Label | Registered draw, C = 1 |
+|---|---|---|---|---|---|
+| survival arm, own walk | 0.776 [0.736, 0.816] | above the bar | 0.777 [0.737, 0.816] | above the bar | 0.733 |
+| predictor arm, own walk | 0.639 [0.607, 0.672] |  | 0.642 [0.613, 0.670] |  | 0.589 |
+| untrained arm, own walk | 0.591 [0.558, 0.623] |  | 0.581 [0.553, 0.608] |  | 0.523 |
+| predictor core on the survival stream | 0.748 [0.702, 0.794] |  | 0.748 [0.703, 0.794] |  | 0.721 |
+| untrained core on the survival stream | 0.697 [0.656, 0.738] |  | 0.684 [0.646, 0.723] |  | 0.636 |
+| predictor core on the survival stream, survival normalizer | 0.766 [0.721, 0.811] |  | 0.763 [0.719, 0.807] |  | 0.723 |
+| untrained core on the survival stream, survival normalizer | 0.715 [0.673, 0.757] |  | 0.699 [0.660, 0.737] |  | 0.640 |
+| survival minus predictor, own walks | +0.136 [+0.093, +0.180] | above the margin | +0.135 [+0.094, +0.176] | above the margin | |
+| survival minus untrained, own walks | +0.185 [+0.140, +0.230] | above the margin | +0.196 [+0.153, +0.239] | above the margin | |
+| survival minus predictor core on the survival stream | +0.028 [+0.013, +0.042] | within the margin | +0.028 [+0.015, +0.041] | within the margin | |
+| survival minus untrained core on the survival stream | +0.079 [+0.065, +0.093] | above the margin | +0.092 [+0.080, +0.105] | above the margin | |
+| survival minus predictor core on the survival stream, survival normalizer | +0.010 [-0.001, +0.021] | within the margin | +0.013 [+0.002, +0.024] | within the margin | |
+| survival minus untrained core on the survival stream, survival normalizer | +0.061 [+0.048, +0.074] | straddles the margin | +0.078 [+0.066, +0.090] | above the margin | |
+
+**`C1`, drift 0.00.**
+
+| Reading | Penalty in fold | Label | C = 1 | Label | Registered draw, C = 1 |
+|---|---|---|---|---|---|
+| survival arm, own walk | 0.530 [0.495, 0.566] | straddles the band edge | 0.528 [0.499, 0.557] | straddles the band edge | 0.559 |
+| predictor arm, own walk | 0.518 [0.488, 0.548] | inside the band | 0.516 [0.497, 0.535] | inside the band | 0.508 |
+| untrained arm, own walk | 0.520 [0.493, 0.548] | inside the band | 0.519 [0.492, 0.545] | inside the band | 0.491 |
+| predictor core on the survival stream | 0.524 [0.492, 0.556] | straddles the band edge | 0.531 [0.508, 0.554] | straddles the band edge | 0.540 |
+| untrained core on the survival stream | 0.524 [0.489, 0.559] | straddles the band edge | 0.519 [0.500, 0.538] | inside the band | 0.516 |
+| predictor core on the survival stream, survival normalizer | 0.531 [0.499, 0.562] | straddles the band edge | 0.537 [0.515, 0.560] | straddles the band edge | 0.549 |
+| untrained core on the survival stream, survival normalizer | 0.528 [0.495, 0.561] | straddles the band edge | 0.521 [0.499, 0.542] | inside the band | 0.515 |
+| survival minus predictor, own walks | +0.012 [-0.013, +0.038] |  | +0.012 [-0.007, +0.031] |  | |
+| survival minus untrained, own walks | +0.010 [-0.019, +0.039] |  | +0.009 [-0.017, +0.036] |  | |
+| survival minus predictor core on the survival stream | +0.006 [-0.011, +0.023] |  | -0.003 [-0.019, +0.012] |  | |
+| survival minus untrained core on the survival stream | +0.006 [-0.013, +0.026] |  | +0.009 [-0.010, +0.027] |  | |
+| survival minus predictor core on the survival stream, survival normalizer | +0.000 [-0.018, +0.017] |  | -0.009 [-0.024, +0.005] |  | |
+| survival minus untrained core on the survival stream, survival normalizer | +0.002 [-0.015, +0.019] |  | +0.007 [-0.012, +0.026] |  | |
+
+**`C2`, drift 0.45.**
+
+| Reading | Penalty in fold | Label | C = 1 | Label | Registered draw, C = 1 |
+|---|---|---|---|---|---|
+| survival arm, own walk | 0.653 [0.618, 0.688] | straddles the bar | 0.652 [0.619, 0.685] | straddles the bar | 0.613 |
+| predictor arm, own walk | 0.639 [0.607, 0.672] |  | 0.642 [0.613, 0.670] |  | 0.589 |
+| untrained arm, own walk | 0.590 [0.557, 0.622] |  | 0.582 [0.553, 0.610] |  | 0.529 |
+| predictor core on the survival stream | 0.698 [0.654, 0.741] |  | 0.705 [0.664, 0.745] |  | 0.672 |
+| untrained core on the survival stream | 0.656 [0.619, 0.692] |  | 0.644 [0.609, 0.679] |  | 0.610 |
+| predictor core on the survival stream, survival normalizer | 0.715 [0.674, 0.756] |  | 0.717 [0.677, 0.756] |  | 0.671 |
+| untrained core on the survival stream, survival normalizer | 0.671 [0.632, 0.710] |  | 0.657 [0.620, 0.695] |  | 0.616 |
+| survival minus predictor, own walks | +0.013 [-0.033, +0.060] | straddles the margin | +0.010 [-0.035, +0.055] | straddles the margin | |
+| survival minus untrained, own walks | +0.063 [+0.024, +0.102] | straddles the margin | +0.070 [+0.036, +0.104] | straddles the margin | |
+| survival minus predictor core on the survival stream | -0.045 [-0.062, -0.028] | below the margin | -0.053 [-0.068, -0.038] | below the margin | |
+| survival minus untrained core on the survival stream | -0.003 [not computable] | not computable | +0.008 [not computable] | not computable | |
+| survival minus predictor core on the survival stream, survival normalizer | -0.062 [-0.076, -0.048] | below the margin | -0.065 [-0.080, -0.051] | below the margin | |
+| survival minus untrained core on the survival stream, survival normalizer | -0.018 [-0.032, -0.004] | within the margin | -0.005 [not computable] | not computable | |
+
+**`C2`, drift 0.00.**
+
+| Reading | Penalty in fold | Label | C = 1 | Label | Registered draw, C = 1 |
+|---|---|---|---|---|---|
+| survival arm, own walk | 0.512 [0.489, 0.535] | inside the band | 0.517 [0.501, 0.532] | inside the band | 0.515 |
+| predictor arm, own walk | 0.518 [0.488, 0.548] | inside the band | 0.516 [0.497, 0.535] | inside the band | 0.508 |
+| untrained arm, own walk | 0.517 [0.491, 0.543] | inside the band | 0.512 [0.488, 0.537] | inside the band | 0.488 |
+| predictor core on the survival stream | 0.514 [0.482, 0.546] | inside the band | 0.515 [0.496, 0.534] | inside the band | 0.519 |
+| untrained core on the survival stream | 0.513 [0.491, 0.534] | inside the band | 0.509 [0.493, 0.524] | inside the band | 0.499 |
+| predictor core on the survival stream, survival normalizer | 0.515 [0.483, 0.547] | inside the band | 0.514 [0.493, 0.535] | inside the band | 0.511 |
+| untrained core on the survival stream, survival normalizer | 0.516 [0.496, 0.536] | inside the band | 0.520 [0.503, 0.538] | inside the band | 0.499 |
+| survival minus predictor, own walks | -0.006 [-0.022, +0.010] |  | +0.001 [-0.021, +0.023] |  | |
+| survival minus untrained, own walks | -0.005 [-0.020, +0.010] |  | +0.004 [-0.017, +0.026] |  | |
+| survival minus predictor core on the survival stream | -0.002 [-0.018, +0.014] |  | +0.002 [-0.012, +0.016] |  | |
+| survival minus untrained core on the survival stream | -0.001 [not computable] |  | +0.008 [-0.010, +0.026] |  | |
+| survival minus predictor core on the survival stream, survival normalizer | -0.003 [-0.020, +0.014] |  | +0.002 [-0.013, +0.018] |  | |
+| survival minus untrained core on the survival stream, survival normalizer | -0.004 [not computable] |  | -0.004 [-0.016, +0.009] |  | |
+
+**`C1` minus `C2`, survival arm on its own walk.**
+
+| Drift | Penalty in fold | Label | C = 1 | Label |
+|---|---|---|---|---|
+| 0.45 | +0.123 [+0.089, +0.157] | above the margin | +0.125 [+0.090, +0.160] | above the margin |
+| 0.00 | +0.018 [-0.004, +0.041] |  | +0.011 [-0.011, +0.034] |  |

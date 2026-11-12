@@ -115,13 +115,17 @@ def label_margin(ci: dict, margin: float = MARGIN) -> str:
 def fmt_ci(ci: dict, signed: bool = False) -> str:
     """A summary as it is quoted in prose: mean and crossed 90% interval to three decimals,
     with a sign on every number of a contrast."""
-    f = "{:+.3f}" if signed else "{:.3f}"
+    def f(x: float) -> str:
+        if not signed:
+            return f"{x:.3f}"
+        s = f"{x:+.3f}"
+        return "+0.000" if s == "-0.000" else s   # a value that rounds to zero prints +0.000
     mean = ci.get("mean")
     if mean is None or not math.isfinite(float(mean)):
         return "not computable"
     if not ci.get("computable"):
-        return f.format(mean) + " [not computable]"
-    return f"{f.format(mean)} [{f.format(ci['lo'])}, {f.format(ci['hi'])}]"
+        return f(mean) + " [not computable]"
+    return f"{f(mean)} [{f(ci['lo'])}, {f(ci['hi'])}]"
 
 
 # The feature sets scored in every (run, drift, seed, draw) cell.

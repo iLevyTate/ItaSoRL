@@ -7155,6 +7155,53 @@
       "surrogate": null,
       "survival_trainer": "inherited: successor_value",
       "title": "Head overlap: the decoded world direction against the actor, critic and decoder weights, C1 agents (X03)"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "draw_crossed/corrected_c1_c2.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "3144b3a",
+      "commit_at_run_source": "curated: the artifacts record 44a1c33 instead",
+      "config": {},
+      "deps": "Python 3.13.18, torch 2.14.1+cu130 on CPU, numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1",
+      "device": "Claude Code cloud CPU container, 4 vCPU, 4 workers, one torch thread each",
+      "eval_seeds": {
+        "fresh_pairs": "6000000 + 100000k / 6050000 + 100000k, k below 8",
+        "registered_pair": "800000 / 850000 (integrity gate; in no crossed interval)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "DRAW-CROSSED-C1-C2",
+      "local_run_dir": null,
+      "notes": "scripts/run_draw_crossed_readout.py (2026-11-12) on the saved agents of the C1 and C2 reruns (origin branches run/C1-rerun and run/C2-rerun); docs/specs/2026-11-12-draw-crossed-readout-design.md, frozen before any fresh draw was scored. Labels are descriptive and stated in advance; this readout re-adjudicates no stored run and changes no stored value or verdict. FINDINGS 25.",
+      "readout_only_on": [
+        "C1",
+        "C2"
+      ],
+      "recorded_provenance": {
+        "draw_crossed/corrected_c1_c2.json": {
+          "generated_by": "scripts/run_draw_crossed_readout.py",
+          "git_commit": "44a1c33",
+          "spec": "docs/specs/2026-11-12-draw-crossed-readout-design.md",
+          "stack": {
+            "cpu_count": 4,
+            "device": "cpu",
+            "numpy": "2.4.6",
+            "python": "3.13.18",
+            "scikit_learn": "1.9.1",
+            "scipy": "1.17.1",
+            "torch": "2.14.1+cu130"
+          }
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Draw-crossed readout of the saved C1 and C2 agents: every arm on eight fresh draws, with the registered probe and the penalty chosen in fold"
     }
   ],
   "train_seed_schedule": {

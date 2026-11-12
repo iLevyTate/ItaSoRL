@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are: 105 pinned of 4159 on 2026-10-21 (PIN_COUNT and CHECK_FLOOR below). The count
+many there are: 105 pinned of 4483 on 2026-11-12 (PIN_COUNT and CHECK_FLOOR below). The count
 is of check() calls; composite check_true gates that also compare a stored reading with a
 literal are not counted. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
@@ -78,8 +78,9 @@ BAR = 0.65
 # (tests/test_audit_selftest.py). A run that records fewer has lost checks without failing one.
 # Change it deliberately when checks are added or removed, from the count the run prints, never
 # by hand; the manuscript sentences that quote it are checked against it by
-# scripts/build_paper_tables.py --manuscript. The count on 2026-10-21 is 4159.
-CHECK_FLOOR = 4159
+# scripts/build_paper_tables.py --manuscript. The count on 2026-11-12 is 4483 (4159 on 2026-10-21,
+# before the draw-crossed readout of FINDINGS 25).
+CHECK_FLOOR = 4483
 # How many of those checks are pins (labels start "pinned:"), as printed in "pins: P of N".
 PIN_COUNT = 105
 
@@ -6124,6 +6125,66 @@ def draw_crossed_checks(findings: str, prereg: str) -> None:
                        f"`{r}` level, {word}: {lvl}" in f25)
             check_true(f"FINDINGS 25 states the {r} drift-zero label ({word}): {l0}",
                        f"`{r}` drift zero, {word}: {l0}" in f25)
+    # --- the numbers FINDINGS 25 quotes outside its tables ---
+    def _sv(run, dk, probe, key, fs="own/survival"):
+        return rec[run][dk][probe]["readings"][fs][key]
+    worst = max(gate[r]["worst_abs_dev"] for r in runs)
+    _cl_quote("25: worst integrity deviation", float(f"{worst:.7f}"), "0.0000005")
+    check_true("FINDINGS 25 quotes the worst integrity deviation 0.0000005", "0.0000005" in f25)
+    check_int("25: wall time, seconds", int(round(art["wall_seconds"])), 3960)
+    check_true("FINDINGS 25 quotes the wall time", "3960 seconds" in f25)
+    for probe in dc.PROBES:
+        reg_mean = rec["C1"]["0.45"][probe]["registered_draw"]["own/survival"]["mean"]
+        check_true(f"25 C1 d0.45 {probe}: every fresh draw's survival mean is above the registered draw's",
+                   min(_sv("C1", "0.45", probe, "draw_means")) > reg_mean)
+    _cl_quote("25 C1 d0.45 C = 1: lowest fresh draw mean", min(_sv("C1", "0.45", "c1", "draw_means")), "0.743")
+    _cl_quote("25 C1 d0.45 C = 1: registered draw mean",
+              rec["C1"]["0.45"]["c1"]["registered_draw"]["own/survival"]["mean"], "0.733")
+    _cl_quote("25 C1 d0.45 in fold: spread of the per-draw means", _sv("C1", "0.45", "nested", "sd_draw_means"), "0.022")
+    with open(os.path.join(ARTROOT, "l0_audit", "d045_world_samples_corrected_l3_h8_wm.json"),
+              encoding="utf-8") as fh:
+        _d045 = json.load(fh)
+    _dm = [float(np.mean([c["rows"][k]["target"] for c in _d045["cells"]]))
+           for k in range(1, len(_d045["bases"]))]
+    _cl_quote("25: spread of the eight audit draws' survival means at drift 0.45", float(np.std(_dm, ddof=1)), "0.052")
+    for fs, reg_c1 in (("own/predictor", "0.589"), ("own/untrained", "0.523")):
+        _cl_quote(f"25 C1 d0.45 C = 1 {fs}: registered draw mean",
+                  rec["C1"]["0.45"]["c1"]["registered_draw"][fs]["mean"], reg_c1)
+    _cl_quote("25 C1 d0.00 in fold: first fresh draw", _sv("C1", "0.00", "nested", "draw_means")[0], "0.635")
+    _cl_quote("25 C1 d0.00 C = 1: first fresh draw", _sv("C1", "0.00", "c1", "draw_means")[0], "0.618")
+    _cl_quote("25 C1 d0.00 C = 1: registered draw mean",
+              rec["C1"]["0.00"]["c1"]["registered_draw"]["own/survival"]["mean"], "0.559")
+    _cl_quote("25 C1 d0.00 in fold: spread of the per-draw means", _sv("C1", "0.00", "nested", "sd_draw_means"), "0.052")
+    for line in ("lowest fresh draw at C = 1: 0.743, against 0.733", "The spread of the per-draw means is 0.022 here",
+                 "the 0.052 that the eight audit draws gave the same agents", "against 0.589 and 0.523 on the registered draw",
+                 "The first fresh draw reads 0.635 in fold (0.618 at C = 1), higher than the registered draw's 0.559",
+                 "the spread of the per-draw means is 0.052"):
+        check_true(f"FINDINGS 25 reads: {line}", line in f25)
+    n_nc = {dk: sum(1 for probe in dc.PROBES for name, _p, _m in dc.CONTRASTS
+                    if "untrained core" in name and not rec["C2"][dk][probe]["contrasts"][name]["computable"])
+            for dk in ("0.45", "0.00")}
+    n_nc_all = sum(1 for dk in ("0.45", "0.00") for probe in dc.PROBES
+                   for c in rec["C2"][dk][probe]["contrasts"].values() if not c["computable"])
+    check_true("25 C2: five contrasts against the untrained core are not computable, three at drift 0.45 and "
+               "two at drift zero, and no other contrast is", n_nc == {"0.45": 3, "0.00": 2} and n_nc_all == 5)
+    n_diff = 0
+    for r in runs:
+        for dk in ("0.45", "0.00"):
+            a_, b_ = rec[r][dk]["nested"], rec[r][dk]["c1"]
+            for fs in dc.FEATURE_SETS:
+                n_diff += a_["readings"][fs]["label"] != b_["readings"][fs]["label"]
+            for name, _p, _m in dc.CONTRASTS:
+                n_diff += a_["contrasts"][name]["label"] != b_["contrasts"][name]["label"]
+    check_int("25: labels on which the two probes differ", n_diff, 4)
+    check_true("FINDINGS 25 says the two probes agree on every label but four",
+               "The two probes agree on every label but four." in f25)
+    from collections import Counter
+    for r in runs:
+        cnt = Counter(cv for c in cells if c["run"] == r and c["drift"] == 0.0 for d in c["draws"]
+                      if d["bases"] != reg for cv in d["readings"]["own/survival"]["chosen_C"])
+        top2 = {cv for cv, _n in cnt.most_common(2)}
+        check_true(f"25 {r} d0.00: the two ends of the grid are the two most frequent in-fold choices",
+                   top2 == {0.001, 10.0})
     check_true("FINDINGS 25 says the registered verdicts stay as recorded",
                "re-adjudicates no stored run" in f25 and "stays not met" in f25)
     check_true("PREREGISTRATION_L3 section 12 announces the spec before the run and records the result",

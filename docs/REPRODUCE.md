@@ -51,9 +51,9 @@ The rebuild writes, from the committed per-seed artifacts under `artifacts/`:
   They stay local like the manuscript: `docs/paper_tables/` and `docs/paper/` are both
   gitignored, nothing in them is committed, and the audit renders the tables in memory.
 
-It then runs `scripts/audit_stats_recheck.py`. The script prints the count (4159 on 2026-10-21,
-after the prospective balanced checks). Inside the extracted archive the count reads one lower (4158
-checks plus one skipped), because one check reads the film VO and music spec, which the archive
+It then runs `scripts/audit_stats_recheck.py`. The script prints the count (4483 on 2026-11-12,
+after the draw-crossed readout checks; 4159 on 2026-10-21). Inside the extracted archive the count
+reads one lower (4482 checks plus one skipped), because one check reads the film VO and music spec, which the archive
 leaves out; the script names that file on a `[skip]` line and prints the count on a `skipped:`
 line. **What the audit checks:** it recomputes each summary statistic it guards from the
 committed per-seed artifacts and compares it with a copy of the quoted value kept as a constant
