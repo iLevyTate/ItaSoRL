@@ -174,6 +174,10 @@ CLOSING_SPEC = "docs/specs/2026-10-17-closing-readouts-design.md"
 PB_SPEC = "docs/specs/2026-10-20-prospective-balanced-confirmation-design.md"
 PB_DEPS = "Python 3.13.2, torch 2.7.0+cu126, numpy 1.26.4 (local build), scikit-learn 1.5.2, scipy 1.15.3"
 EXTENSION_SPEC = "docs/specs/2026-10-17-extension-readouts-design.md"
+DRAW_CROSSED_SPEC = "docs/specs/2026-11-12-draw-crossed-readout-design.md"
+DRAW_CROSSED_COMMIT = "3144b3a"
+DRAW_CROSSED_DEVICE = "Claude Code cloud CPU container, 4 vCPU, 4 workers, one torch thread each"
+DRAW_CROSSED_DEPS = "Python 3.13.18, torch 2.14.1+cu130 on CPU, numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1"
 CLOSING_NOTE = ("Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or "
                 "verdict.")
 
@@ -1652,6 +1656,18 @@ RUNS = [
         commit_at_run=CLOSING_COMMIT, folds="explicit", eval_seeds={"pools": "800000 / 850000"},
         device=closing_cpu(2), deps=CLOSING_DEPS,
         notes=f"scripts/run_head_overlap_readout.py (X03, 2026-10-19); {EXTENSION_SPEC}, X03. " + CLOSING_NOTE),
+    run("DRAW-CROSSED-C1-C2", "Draw-crossed readout of the saved C1 and C2 agents: every arm on "
+        "eight fresh draws, with the registered probe and the penalty chosen in fold",
+        experiment="B-v2 L3", artifacts=["draw_crossed/corrected_c1_c2.json"], trains_survival=False,
+        readout_of=["C1", "C2"], survival_trainer="successor_value", status="corrected",
+        commit_at_run=DRAW_CROSSED_COMMIT, folds="explicit",
+        eval_seeds={"registered_pair": "800000 / 850000 (integrity gate; in no crossed interval)",
+                    "fresh_pairs": "6000000 + 100000k / 6050000 + 100000k, k below 8"},
+        device=DRAW_CROSSED_DEVICE, deps=DRAW_CROSSED_DEPS,
+        notes=f"scripts/run_draw_crossed_readout.py (2026-11-12) on the saved agents of the C1 and C2 "
+              f"reruns (origin branches run/C1-rerun and run/C2-rerun); {DRAW_CROSSED_SPEC}, frozen "
+              "before any fresh draw was scored. Labels are descriptive and stated in advance; this "
+              "readout re-adjudicates no stored run and changes no stored value or verdict. FINDINGS 25."),
 ]
 
 

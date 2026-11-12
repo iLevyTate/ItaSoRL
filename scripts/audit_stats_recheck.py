@@ -3599,6 +3599,7 @@ def main() -> int:
     check_true("FINDINGS 24 says the amendment decides the route", "The amendment decides the route." in _f24)
 
     closing_checks()
+    draw_crossed_checks(_read("docs/FINDINGS.md"), _read("docs/PREREGISTRATION_L3.md"))
 
     print()
     if n_skipped:
@@ -5994,6 +5995,140 @@ def post_review_checks(findings: str, prereg: str) -> None:
                    f"{n['h8s2']['s'][0]:.3f} {_af_iv(n['h8s2']['s'][1])}", f"{inst['speed_min']:.3f}",
                    "off-design", "uninformative", f"{c2['shared']} values"):
         check_true(f"PREREGISTRATION_L3 results entry quotes {needle}", needle in entry)
+
+
+# ---------------------------------------------------------------------------
+# Section 25: the draw-crossed readout of the saved C1 and C2 agents (2026-11-12)
+# ---------------------------------------------------------------------------
+def _dc_same(stored: dict, rec: dict, tol: float = 1e-9) -> bool:
+    """A stored summary block against its recomputation. A value that was not computable is
+    stored as null and recomputed as NaN or None; the two count as equal."""
+    def _eq(a, b):
+        a_none = a is None or (isinstance(a, float) and not math.isfinite(a))
+        b_none = b is None or (isinstance(b, float) and not math.isfinite(b))
+        if a_none or b_none:
+            return a_none and b_none
+        return abs(float(a) - float(b)) <= tol
+    if stored.get("label") != rec.get("label") or bool(stored.get("computable")) != bool(rec.get("computable")):
+        return False
+    if not all(_eq(stored.get(k), rec.get(k)) for k in ("mean", "lo", "hi", "se", "df",
+                                                         "sd_seed_means", "sd_draw_means")):
+        return False
+    for k in ("seed_means", "draw_means"):
+        a, b = stored.get(k) or [], rec.get(k) or []
+        if len(a) != len(b) or not all(_eq(x, y) for x, y in zip(a, b)):
+            return False
+    return True
+
+
+def draw_crossed_checks(findings: str, prereg: str) -> None:
+    """docs/specs/2026-11-12-draw-crossed-readout-design.md: every summary, interval and label
+    of artifacts/draw_crossed/corrected_c1_c2.json recomputed from its per-cell readings, the
+    integrity gate recomputed against artifacts/corrected_verdicts.json, and FINDINGS 25 bound
+    to the recomputed values."""
+    from itasorl import draw_crossed as dc
+
+    print("\n== 25. Draw-crossed readout of the saved C1 and C2 agents ==")
+    with open(os.path.join(ARTROOT, "draw_crossed", "corrected_c1_c2.json"), encoding="utf-8") as fh:
+        art = json.load(fh)
+    with open(os.path.join(ARTROOT, "corrected_verdicts.json"), encoding="utf-8") as fh:
+        verdicts = json.load(fh)
+    cells, fresh, reg = art["cells"], art["fresh_bases"], art["registered_bases"]
+    runs, drifts = art["runs"], art["drifts"]
+    arms = ("survival", "predictor", "untrained")
+
+    # --- the design as frozen ---
+    check_true("25: the artifact names the frozen spec",
+               art["spec"] == "docs/specs/2026-11-12-draw-crossed-readout-design.md")
+    check_true("25: the fresh draws are the eight frozen pairs",
+               fresh == [[6_000_000 + 100_000 * k, 6_050_000 + 100_000 * k] for k in range(8)])
+    check_true("25: the registered pair is 800000 / 850000", reg == [800_000, 850_000])
+    check_true("25: runs, drifts, seeds, pool size and reference values are the frozen ones",
+               runs == ["C1", "C2"] and drifts == [0.0, 0.45] and art["seeds"] == list(range(10))
+               and (art["n_eps"], art["steps"], art["ray_steps"]) == (110, 24, 5)
+               and (art["bar"], art["margin"], art["band"], art["interval_level"]) == (0.65, 0.05, [0.45, 0.55], 0.90)
+               and art["primary_probe"] == "nested" and art["probes"] == ["nested", "c1"])
+    check_int("25: cells (2 runs, 2 drifts, 10 seeds)", len(cells), 40)
+    want_draws = {tuple(reg)} | {tuple(b) for b in fresh}
+    check_true("25: every cell holds the registered draw and the eight fresh draws, each once",
+               all(len(c["draws"]) == 9 and {tuple(d["bases"]) for d in c["draws"]} == want_draws
+                   for c in cells))
+    check_true("25: every draw of every cell holds the seven feature sets with both probes finite",
+               all(set(d["readings"]) == set(dc.FEATURE_SETS)
+                   and all(isinstance(r[p], float) and math.isfinite(r[p])
+                           for r in d["readings"].values() for p in dc.PROBES)
+                   for c in cells for d in c["draws"]))
+    check_true("25: the artifact is marked complete", art["complete"] is True)
+    kept = [n for c in cells for d in c["draws"] for r in d["readings"].values()
+            for n in (r["n_auth"], r["n_surr"])]
+    check_int("25: pools that kept fewer than 110 episodes", sum(1 for n in kept if n != 110), 0)
+    check_true("25: every agent file is hashed, and the C1 and C2 predictor agents are the same files",
+               all(len(c["agent_sha256"].get(a, "")) == 64 for c in cells for a in arms)
+               and all(x["agent_sha256"]["predictor"] == y["agent_sha256"]["predictor"]
+                       for x in cells if x["run"] == "C1" for y in cells
+                       if y["run"] == "C2" and y["drift"] == x["drift"] and y["seed"] == x["seed"]))
+
+    # --- integrity gate, recomputed from the cells against the committed verdict artifact ---
+    reference = {r: {"0.45": {a: verdicts["runs"][r]["primary"][a]["per_seed"] for a in arms},
+                     "0.00": {a: verdicts["runs"][r]["drift_zero"][a]["per_seed"] for a in arms}}
+                 for r in runs}
+    gate = dc.integrity_gate(cells, reference, reg, tol=0.01)
+    for r in runs:
+        g, st = gate[r], art["integrity"][r]
+        check_true(f"25 {r}: the integrity gate passes on all 60 agents (worst deviation "
+                   f"{g['worst_abs_dev']:.2e} against 0.01)" if g["worst_abs_dev"] is not None
+                   else f"25 {r}: the integrity gate passes on all 60 agents",
+                   g["pass"] and g["n_checked"] == 60 and g["n_expected"] == 60)
+        check_true(f"25 {r}: the stored integrity block equals the recomputed one",
+                   st["pass"] == g["pass"] and st["n_checked"] == g["n_checked"]
+                   and st["worst_abs_dev"] is not None and g["worst_abs_dev"] is not None
+                   and abs(st["worst_abs_dev"] - g["worst_abs_dev"]) <= 1e-12)
+
+    # --- every summary and label, recomputed ---
+    rec = dc.summarize(cells, runs, drifts, fresh, reg, gate)
+    between = dc.summarize_between_runs(cells, "C1", "C2", drifts, fresh, gate)
+    f25 = " ".join(findings.split("\n## 25.", 1)[1].split()) if "\n## 25." in findings else ""
+    check_true("FINDINGS has a section 25", bool(f25))
+    for r in runs:
+        for d in drifts:
+            dk = f"{d:.2f}"
+            for probe in dc.PROBES:
+                st, rc = art["summary"][r][dk][probe], rec[r][dk][probe]
+                for fs in dc.FEATURE_SETS:
+                    check_true(f"25 {r} d{dk} {probe} {fs}: stored summary and label equal the recomputed ones",
+                               _dc_same(st["readings"][fs], rc["readings"][fs]))
+                    q = dc.fmt_ci(rc["readings"][fs])
+                    check_true(f"FINDINGS 25 quotes {r} d{dk} {probe} {fs}: {q}", q in f25)
+                    reg_mean = rc["registered_draw"][fs]["mean"]
+                    check_true(f"25 {r} d{dk} {probe} {fs}: stored registered-draw mean equals the recomputed one",
+                               abs(st["registered_draw"][fs]["mean"] - reg_mean) <= 1e-9)
+                for name, _plus, _minus in dc.CONTRASTS:
+                    check_true(f"25 {r} d{dk} {probe} {name}: stored summary and label equal the recomputed ones",
+                               _dc_same(st["contrasts"][name], rc["contrasts"][name]))
+                    q = dc.fmt_ci(rc["contrasts"][name], signed=True)
+                    check_true(f"FINDINGS 25 quotes {r} d{dk} {probe} {name}: {q}", q in f25)
+    for d in drifts:
+        dk = f"{d:.2f}"
+        for probe in dc.PROBES:
+            check_true(f"25 C1 minus C2 d{dk} {probe}: stored summary and label equal the recomputed ones",
+                       _dc_same(art["c1_minus_c2"][dk][probe], between[dk][probe]))
+            q = dc.fmt_ci(between[dk][probe], signed=True)
+            check_true(f"FINDINGS 25 quotes C1 minus C2 d{dk} {probe}: {q}", q in f25)
+
+    # --- the labels FINDINGS states, and what the record says they are not ---
+    for r in runs:
+        for probe, word in (("nested", "in fold"), ("c1", "C = 1")):
+            lvl = rec[r]["0.45"][probe]["readings"]["own/survival"]["label"]
+            l0 = rec[r]["0.00"][probe]["readings"]["own/survival"]["label"]
+            check_true(f"FINDINGS 25 states the {r} level label ({word}): {lvl}",
+                       f"`{r}` level, {word}: {lvl}" in f25)
+            check_true(f"FINDINGS 25 states the {r} drift-zero label ({word}): {l0}",
+                       f"`{r}` drift zero, {word}: {l0}" in f25)
+    check_true("FINDINGS 25 says the registered verdicts stay as recorded",
+               "re-adjudicates no stored run" in f25 and "stays not met" in f25)
+    check_true("PREREGISTRATION_L3 section 12 announces the spec before the run and records the result",
+               prereg.count("docs/specs/2026-11-12-draw-crossed-readout-design.md") >= 2
+               and "ANNOUNCED BEFORE IT RUNS" in prereg)
 
 
 def _find_all(haystack: str, needle: str) -> list[int]:

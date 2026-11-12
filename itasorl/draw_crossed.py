@@ -112,6 +112,18 @@ def label_margin(ci: dict, margin: float = MARGIN) -> str:
     return "straddles the margin"
 
 
+def fmt_ci(ci: dict, signed: bool = False) -> str:
+    """A summary as it is quoted in prose: mean and crossed 90% interval to three decimals,
+    with a sign on every number of a contrast."""
+    f = "{:+.3f}" if signed else "{:.3f}"
+    mean = ci.get("mean")
+    if mean is None or not math.isfinite(float(mean)):
+        return "not computable"
+    if not ci.get("computable"):
+        return f.format(mean) + " [not computable]"
+    return f"{f.format(mean)} [{f.format(ci['lo'])}, {f.format(ci['hi'])}]"
+
+
 # The feature sets scored in every (run, drift, seed, draw) cell.
 OWN = ("own/survival", "own/predictor", "own/untrained")
 REPLAY = ("replay/predictor", "replay/untrained")
