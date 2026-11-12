@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are: 105 pinned of 4159 on 2026-10-21 (PIN_COUNT and CHECK_FLOOR below). The count
+many there are: 105 pinned of 4483 on 2026-11-12 (PIN_COUNT and CHECK_FLOOR below). The count
 is of check() calls; composite check_true gates that also compare a stored reading with a
 literal are not counted. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
@@ -78,8 +78,9 @@ BAR = 0.65
 # (tests/test_audit_selftest.py). A run that records fewer has lost checks without failing one.
 # Change it deliberately when checks are added or removed, from the count the run prints, never
 # by hand; the manuscript sentences that quote it are checked against it by
-# scripts/build_paper_tables.py --manuscript. The count on 2026-10-21 is 4159.
-CHECK_FLOOR = 4159
+# scripts/build_paper_tables.py --manuscript. The count on 2026-11-12 is 4483 (4159 on 2026-10-21,
+# before the draw-crossed readout of FINDINGS 25).
+CHECK_FLOOR = 4483
 # How many of those checks are pins (labels start "pinned:"), as printed in "pins: P of N".
 PIN_COUNT = 105
 
@@ -3599,6 +3600,7 @@ def main() -> int:
     check_true("FINDINGS 24 says the amendment decides the route", "The amendment decides the route." in _f24)
 
     closing_checks()
+    draw_crossed_checks(_read("docs/FINDINGS.md"), _read("docs/PREREGISTRATION_L3.md"))
 
     print()
     if n_skipped:
@@ -5994,6 +5996,200 @@ def post_review_checks(findings: str, prereg: str) -> None:
                    f"{n['h8s2']['s'][0]:.3f} {_af_iv(n['h8s2']['s'][1])}", f"{inst['speed_min']:.3f}",
                    "off-design", "uninformative", f"{c2['shared']} values"):
         check_true(f"PREREGISTRATION_L3 results entry quotes {needle}", needle in entry)
+
+
+# ---------------------------------------------------------------------------
+# Section 25: the draw-crossed readout of the saved C1 and C2 agents (2026-11-12)
+# ---------------------------------------------------------------------------
+def _dc_same(stored: dict, rec: dict, tol: float = 1e-9) -> bool:
+    """A stored summary block against its recomputation. A value that was not computable is
+    stored as null and recomputed as NaN or None; the two count as equal."""
+    def _eq(a, b):
+        a_none = a is None or (isinstance(a, float) and not math.isfinite(a))
+        b_none = b is None or (isinstance(b, float) and not math.isfinite(b))
+        if a_none or b_none:
+            return a_none and b_none
+        return abs(float(a) - float(b)) <= tol
+    if stored.get("label") != rec.get("label") or bool(stored.get("computable")) != bool(rec.get("computable")):
+        return False
+    if not all(_eq(stored.get(k), rec.get(k)) for k in ("mean", "lo", "hi", "se", "df",
+                                                         "sd_seed_means", "sd_draw_means")):
+        return False
+    for k in ("seed_means", "draw_means"):
+        a, b = stored.get(k) or [], rec.get(k) or []
+        if len(a) != len(b) or not all(_eq(x, y) for x, y in zip(a, b)):
+            return False
+    return True
+
+
+def draw_crossed_checks(findings: str, prereg: str) -> None:
+    """docs/specs/2026-11-12-draw-crossed-readout-design.md: every summary, interval and label
+    of artifacts/draw_crossed/corrected_c1_c2.json recomputed from its per-cell readings, the
+    integrity gate recomputed against artifacts/corrected_verdicts.json, and FINDINGS 25 bound
+    to the recomputed values."""
+    from itasorl import draw_crossed as dc
+
+    print("\n== 25. Draw-crossed readout of the saved C1 and C2 agents ==")
+    with open(os.path.join(ARTROOT, "draw_crossed", "corrected_c1_c2.json"), encoding="utf-8") as fh:
+        art = json.load(fh)
+    with open(os.path.join(ARTROOT, "corrected_verdicts.json"), encoding="utf-8") as fh:
+        verdicts = json.load(fh)
+    cells, fresh, reg = art["cells"], art["fresh_bases"], art["registered_bases"]
+    runs, drifts = art["runs"], art["drifts"]
+    arms = ("survival", "predictor", "untrained")
+
+    # --- the design as frozen ---
+    check_true("25: the artifact names the frozen spec",
+               art["spec"] == "docs/specs/2026-11-12-draw-crossed-readout-design.md")
+    check_true("25: the fresh draws are the eight frozen pairs",
+               fresh == [[6_000_000 + 100_000 * k, 6_050_000 + 100_000 * k] for k in range(8)])
+    check_true("25: the registered pair is 800000 / 850000", reg == [800_000, 850_000])
+    check_true("25: runs, drifts, seeds, pool size and reference values are the frozen ones",
+               runs == ["C1", "C2"] and drifts == [0.0, 0.45] and art["seeds"] == list(range(10))
+               and (art["n_eps"], art["steps"], art["ray_steps"]) == (110, 24, 5)
+               and (art["bar"], art["margin"], art["band"], art["interval_level"]) == (0.65, 0.05, [0.45, 0.55], 0.90)
+               and art["primary_probe"] == "nested" and art["probes"] == ["nested", "c1"])
+    check_int("25: cells (2 runs, 2 drifts, 10 seeds)", len(cells), 40)
+    want_draws = {tuple(reg)} | {tuple(b) for b in fresh}
+    check_true("25: every cell holds the registered draw and the eight fresh draws, each once",
+               all(len(c["draws"]) == 9 and {tuple(d["bases"]) for d in c["draws"]} == want_draws
+                   for c in cells))
+    check_true("25: every draw of every cell holds the seven feature sets with both probes finite",
+               all(set(d["readings"]) == set(dc.FEATURE_SETS)
+                   and all(isinstance(r[p], float) and math.isfinite(r[p])
+                           for r in d["readings"].values() for p in dc.PROBES)
+                   for c in cells for d in c["draws"]))
+    check_true("25: the artifact is marked complete", art["complete"] is True)
+    kept = [n for c in cells for d in c["draws"] for r in d["readings"].values()
+            for n in (r["n_auth"], r["n_surr"])]
+    check_int("25: pools that kept fewer than 110 episodes", sum(1 for n in kept if n != 110), 0)
+    check_true("25: every agent file is hashed, and the C1 and C2 predictor agents are the same files",
+               all(len(c["agent_sha256"].get(a, "")) == 64 for c in cells for a in arms)
+               and all(x["agent_sha256"]["predictor"] == y["agent_sha256"]["predictor"]
+                       for x in cells if x["run"] == "C1" for y in cells
+                       if y["run"] == "C2" and y["drift"] == x["drift"] and y["seed"] == x["seed"]))
+
+    # --- integrity gate, recomputed from the cells against the committed verdict artifact ---
+    reference = {r: {"0.45": {a: verdicts["runs"][r]["primary"][a]["per_seed"] for a in arms},
+                     "0.00": {a: verdicts["runs"][r]["drift_zero"][a]["per_seed"] for a in arms}}
+                 for r in runs}
+    gate = dc.integrity_gate(cells, reference, reg, tol=0.01)
+    for r in runs:
+        g, st = gate[r], art["integrity"][r]
+        check_true(f"25 {r}: the integrity gate passes on all 60 agents (worst deviation "
+                   f"{g['worst_abs_dev']:.2e} against 0.01)" if g["worst_abs_dev"] is not None
+                   else f"25 {r}: the integrity gate passes on all 60 agents",
+                   g["pass"] and g["n_checked"] == 60 and g["n_expected"] == 60)
+        check_true(f"25 {r}: the stored integrity block equals the recomputed one",
+                   st["pass"] == g["pass"] and st["n_checked"] == g["n_checked"]
+                   and st["worst_abs_dev"] is not None and g["worst_abs_dev"] is not None
+                   and abs(st["worst_abs_dev"] - g["worst_abs_dev"]) <= 1e-12)
+
+    # --- every summary and label, recomputed ---
+    rec = dc.summarize(cells, runs, drifts, fresh, reg, gate)
+    between = dc.summarize_between_runs(cells, "C1", "C2", drifts, fresh, gate)
+    f25 = " ".join(findings.split("\n## 25.", 1)[1].split()) if "\n## 25." in findings else ""
+    check_true("FINDINGS has a section 25", bool(f25))
+    for r in runs:
+        for d in drifts:
+            dk = f"{d:.2f}"
+            for probe in dc.PROBES:
+                st, rc = art["summary"][r][dk][probe], rec[r][dk][probe]
+                for fs in dc.FEATURE_SETS:
+                    check_true(f"25 {r} d{dk} {probe} {fs}: stored summary and label equal the recomputed ones",
+                               _dc_same(st["readings"][fs], rc["readings"][fs]))
+                    q = dc.fmt_ci(rc["readings"][fs])
+                    check_true(f"FINDINGS 25 quotes {r} d{dk} {probe} {fs}: {q}", q in f25)
+                    reg_mean = rc["registered_draw"][fs]["mean"]
+                    check_true(f"25 {r} d{dk} {probe} {fs}: stored registered-draw mean equals the recomputed one",
+                               abs(st["registered_draw"][fs]["mean"] - reg_mean) <= 1e-9)
+                for name, _plus, _minus in dc.CONTRASTS:
+                    check_true(f"25 {r} d{dk} {probe} {name}: stored summary and label equal the recomputed ones",
+                               _dc_same(st["contrasts"][name], rc["contrasts"][name]))
+                    q = dc.fmt_ci(rc["contrasts"][name], signed=True)
+                    check_true(f"FINDINGS 25 quotes {r} d{dk} {probe} {name}: {q}", q in f25)
+    for d in drifts:
+        dk = f"{d:.2f}"
+        for probe in dc.PROBES:
+            check_true(f"25 C1 minus C2 d{dk} {probe}: stored summary and label equal the recomputed ones",
+                       _dc_same(art["c1_minus_c2"][dk][probe], between[dk][probe]))
+            q = dc.fmt_ci(between[dk][probe], signed=True)
+            check_true(f"FINDINGS 25 quotes C1 minus C2 d{dk} {probe}: {q}", q in f25)
+
+    # --- the labels FINDINGS states, and what the record says they are not ---
+    for r in runs:
+        for probe, word in (("nested", "in fold"), ("c1", "C = 1")):
+            lvl = rec[r]["0.45"][probe]["readings"]["own/survival"]["label"]
+            l0 = rec[r]["0.00"][probe]["readings"]["own/survival"]["label"]
+            check_true(f"FINDINGS 25 states the {r} level label ({word}): {lvl}",
+                       f"`{r}` level, {word}: {lvl}" in f25)
+            check_true(f"FINDINGS 25 states the {r} drift-zero label ({word}): {l0}",
+                       f"`{r}` drift zero, {word}: {l0}" in f25)
+    # --- the numbers FINDINGS 25 quotes outside its tables ---
+    def _sv(run, dk, probe, key, fs="own/survival"):
+        return rec[run][dk][probe]["readings"][fs][key]
+    worst = max(gate[r]["worst_abs_dev"] for r in runs)
+    _cl_quote("25: worst integrity deviation", float(f"{worst:.7f}"), "0.0000005")
+    check_true("FINDINGS 25 quotes the worst integrity deviation 0.0000005", "0.0000005" in f25)
+    check_int("25: wall time, seconds", int(round(art["wall_seconds"])), 3960)
+    check_true("FINDINGS 25 quotes the wall time", "3960 seconds" in f25)
+    for probe in dc.PROBES:
+        reg_mean = rec["C1"]["0.45"][probe]["registered_draw"]["own/survival"]["mean"]
+        check_true(f"25 C1 d0.45 {probe}: every fresh draw's survival mean is above the registered draw's",
+                   min(_sv("C1", "0.45", probe, "draw_means")) > reg_mean)
+    _cl_quote("25 C1 d0.45 C = 1: lowest fresh draw mean", min(_sv("C1", "0.45", "c1", "draw_means")), "0.743")
+    _cl_quote("25 C1 d0.45 C = 1: registered draw mean",
+              rec["C1"]["0.45"]["c1"]["registered_draw"]["own/survival"]["mean"], "0.733")
+    _cl_quote("25 C1 d0.45 in fold: spread of the per-draw means", _sv("C1", "0.45", "nested", "sd_draw_means"), "0.022")
+    with open(os.path.join(ARTROOT, "l0_audit", "d045_world_samples_corrected_l3_h8_wm.json"),
+              encoding="utf-8") as fh:
+        _d045 = json.load(fh)
+    _dm = [float(np.mean([c["rows"][k]["target"] for c in _d045["cells"]]))
+           for k in range(1, len(_d045["bases"]))]
+    _cl_quote("25: spread of the eight audit draws' survival means at drift 0.45", float(np.std(_dm, ddof=1)), "0.052")
+    for fs, reg_c1 in (("own/predictor", "0.589"), ("own/untrained", "0.523")):
+        _cl_quote(f"25 C1 d0.45 C = 1 {fs}: registered draw mean",
+                  rec["C1"]["0.45"]["c1"]["registered_draw"][fs]["mean"], reg_c1)
+    _cl_quote("25 C1 d0.00 in fold: first fresh draw", _sv("C1", "0.00", "nested", "draw_means")[0], "0.635")
+    _cl_quote("25 C1 d0.00 C = 1: first fresh draw", _sv("C1", "0.00", "c1", "draw_means")[0], "0.618")
+    _cl_quote("25 C1 d0.00 C = 1: registered draw mean",
+              rec["C1"]["0.00"]["c1"]["registered_draw"]["own/survival"]["mean"], "0.559")
+    _cl_quote("25 C1 d0.00 in fold: spread of the per-draw means", _sv("C1", "0.00", "nested", "sd_draw_means"), "0.052")
+    for line in ("lowest fresh draw at C = 1: 0.743, against 0.733", "The spread of the per-draw means is 0.022 here",
+                 "the 0.052 that the eight audit draws gave the same agents", "against 0.589 and 0.523 on the registered draw",
+                 "The first fresh draw reads 0.635 in fold (0.618 at C = 1), higher than the registered draw's 0.559",
+                 "the spread of the per-draw means is 0.052"):
+        check_true(f"FINDINGS 25 reads: {line}", line in f25)
+    n_nc = {dk: sum(1 for probe in dc.PROBES for name, _p, _m in dc.CONTRASTS
+                    if "untrained core" in name and not rec["C2"][dk][probe]["contrasts"][name]["computable"])
+            for dk in ("0.45", "0.00")}
+    n_nc_all = sum(1 for dk in ("0.45", "0.00") for probe in dc.PROBES
+                   for c in rec["C2"][dk][probe]["contrasts"].values() if not c["computable"])
+    check_true("25 C2: five contrasts against the untrained core are not computable, three at drift 0.45 and "
+               "two at drift zero, and no other contrast is", n_nc == {"0.45": 3, "0.00": 2} and n_nc_all == 5)
+    n_diff = 0
+    for r in runs:
+        for dk in ("0.45", "0.00"):
+            a_, b_ = rec[r][dk]["nested"], rec[r][dk]["c1"]
+            for fs in dc.FEATURE_SETS:
+                n_diff += a_["readings"][fs]["label"] != b_["readings"][fs]["label"]
+            for name, _p, _m in dc.CONTRASTS:
+                n_diff += a_["contrasts"][name]["label"] != b_["contrasts"][name]["label"]
+    check_int("25: labels on which the two probes differ", n_diff, 4)
+    check_true("FINDINGS 25 says the two probes agree on every label but four",
+               "The two probes agree on every label but four." in f25)
+    from collections import Counter
+    for r in runs:
+        cnt = Counter(cv for c in cells if c["run"] == r and c["drift"] == 0.0 for d in c["draws"]
+                      if d["bases"] != reg for cv in d["readings"]["own/survival"]["chosen_C"])
+        top2 = {cv for cv, _n in cnt.most_common(2)}
+        check_true(f"25 {r} d0.00: the two ends of the grid are the two most frequent in-fold choices",
+                   top2 == {0.001, 10.0})
+    check_true("FINDINGS 25 says the registered verdicts stay as recorded",
+               "re-adjudicates no stored run" in f25 and "stays not met" in f25)
+    check_true("PREREGISTRATION_L3 section 12 announces the spec before the run and records the result",
+               prereg.count("docs/specs/2026-11-12-draw-crossed-readout-design.md") >= 2
+               and "ANNOUNCED BEFORE IT RUNS" in prereg)
 
 
 def _find_all(haystack: str, needle: str) -> list[int]:
