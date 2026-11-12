@@ -2023,6 +2023,23 @@ Rigor carried from the B-v3 audit (2026-07-10):
   met, and nonlinear and longer-history variants of the control leave 0.644 to 0.725. The `B1`
   and `B2` routes of 2026-10-12 and 2026-10-13 stay as recorded. FINDINGS 24.
 
+- **2026-11-12 - A DRAW-CROSSED READOUT OF THE SAVED C1 AND C2 AGENTS, ANNOUNCED BEFORE IT RUNS
+  (a record; the entries above stay as written and no rule, number or verdict changes).** Every
+  interval on a pooled target in this record is conditional on the one registered draw of
+  evaluation-world pools, and the baseline arms have never been scored on a second draw.
+  `docs/specs/2026-11-12-draw-crossed-readout-design.md`, frozen before any fresh draw is
+  scored, scores every arm of the saved `C1` and `C2` agents at drift zero and at drift 0.45 on
+  eight fresh pairs of evaluation-world seed bases (6000000 + 100000k with 6050000 + 100000k,
+  k below 8), on each arm's own walk and with the survival agent's stream replayed through the
+  other two core networks. Each reading is scored with the registered probe (C = 1) and with
+  the penalty chosen inside each training fold, which is the primary probe, and summarized over
+  agent seeds and draws as crossed factors. The registered pair is rescored as an integrity
+  gate against `artifacts/corrected_verdicts.json` (0.01 on all 60 agents of a run, or the run
+  is void). The labels it states in advance describe where an interval lies against the 0.65
+  bar, the 0.05 margin and the band [0.45, 0.55]. They are not verdicts and add no row to the
+  rule ledger. It trains nothing and re-adjudicates no stored run: `C1`'s registered rule
+  stays not met, on its L0 gate, whatever this readout shows.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
