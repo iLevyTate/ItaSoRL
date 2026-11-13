@@ -123,6 +123,72 @@ def test_one_header_per_commit_in_utc_without_offsets_index_lines_or_prefixes(hi
     assert NAME in patch and profile in patch           # the text itself; the scrub runs later
 
 
+def _headers(patch):
+    return [ln.split()[1] for ln in patch.splitlines() if ln.startswith("commit ")]
+
+
+def test_the_history_lists_the_commits_provenance_lists_and_no_other_merge(history, monkeypatch):
+    """`git log --follow --cc` prints the header of every merge it walks, with nothing under it
+    when the merge did not change the document. The history keeps the commits PROVENANCE.md
+    lists and drops the rest, so a merge that never touched the document is not an entry."""
+    d, _ = history
+    other = "notes" + ".txt"
+    (d / other).write_text("one\n", encoding="utf-8")
+    _git(d, "add", other)
+    _git(d, "commit", "-q", "-m", "other " + SUBJECT, when="2026-01-01T02:20:00+02:00")
+    _git(d, "checkout", "-q", "-b", BRANCH + "-b")
+    (d / other).write_text("one\ntwo\n", encoding="utf-8")
+    _git(d, "add", other)
+    _git(d, "commit", "-q", "-m", "side " + SUBJECT, when="2026-01-01T02:21:00+02:00")
+    _git(d, "checkout", "-q", "main")
+    _git(d, "merge", "-q", "--no-ff", "--no-edit", BRANCH + "-b", when="2026-01-01T02:22:00+02:00")
+    unrelated = _git(d, "log", "-1", "--format=%h")
+    assert len(_git(d, "log", "-1", "--format=%p").split()) == 2          # it is a merge
+    monkeypatch.setattr(reproduce, "ROOT", str(d))
+    patch = reproduce.prereg_history(DOC)
+    (_, commits, _), = reproduce.provenance_rows([DOC])[0]
+    assert unrelated not in _headers(patch)
+    assert _headers(patch) == [h for _, h, _ in commits]
+    # no entry is a bare header: each has a diff or the line that says what the merge did
+    entries = [e for e in ("\n" + patch).split("\ncommit ")[1:]]
+    assert entries and all(len([ln for ln in e.splitlines()[1:] if ln.strip()]) >= 1 for e in entries)
+
+
+def test_a_merge_that_joins_two_edits_keeps_its_header_with_a_note(tmp_path, monkeypatch):
+    """A merge whose version of the document differs from every parent is in PROVENANCE.md.
+    When each of its hunks comes from one parent, `--cc` has nothing to print for it, and the
+    history says so in a comment line under its header."""
+    if shutil.which("git") is None:
+        pytest.skip("git is not installed")
+    d = tmp_path / "repo"
+    d.mkdir()
+    body = ["# Plan", ""] + [f"line {chr(97 + i)}" for i in range(20)]
+
+    def commit(text, minute):
+        p = d / DOC
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(("\n".join(text) + "\n").encode("utf-8"))
+        _git(d, "add", DOC)
+        _git(d, "commit", "-q", "-m", SUBJECT, when=f"2026-01-01T02:{minute:02d}:00+02:00")
+
+    _git(d, "init", "-q")
+    _git(d, "symbolic-ref", "HEAD", "refs/heads/main")
+    commit(body, 1)
+    _git(d, "checkout", "-q", "-b", BRANCH)
+    commit(body[:3] + ["top edit"] + body[3:], 2)
+    _git(d, "checkout", "-q", "main")
+    commit(body + ["bottom edit"], 3)
+    _git(d, "merge", "-q", "--no-ff", "--no-edit", BRANCH, when="2026-01-01T02:04:00+02:00")
+    merge = _git(d, "log", "-1", "--format=%h")
+    monkeypatch.setattr(reproduce, "ROOT", str(d))
+    patch = reproduce.prereg_history(DOC)
+    (_, commits, _), = reproduce.provenance_rows([DOC])[0]
+    assert (merge, "merge") in [(h, note) for _, h, note in commits]
+    assert _headers(patch) == [h for _, h, _ in commits]
+    last = patch.split(f"commit {merge} ")[1].splitlines()
+    assert last[1] == reproduce.MERGE_JOIN_NOTE and not any(ln.startswith("diff ") for ln in last)
+
+
 def test_no_history_outside_a_checkout_or_in_a_shallow_clone(history, monkeypatch, tmp_path):
     d, _ = history
     shallow = tmp_path / "shallow"

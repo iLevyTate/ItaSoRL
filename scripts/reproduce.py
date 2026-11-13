@@ -1313,7 +1313,8 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
     if histories:
         L.append(f"- `{PREREG_HISTORY_DIR}/` holds one patch file per preregistration and spec "
                  f"({histories} files): every committed change to it, oldest first, as `git log "
-                 "-p --follow` printed it when the archive was built. Each commit's header gives "
+                 "-p --follow` printed it when the archive was built, for the commits "
+                 f"`{PROVENANCE_NAME}` lists. Each commit's header gives "
                  f"its {'pseudonymized ' if commits_hidden else ''}short hash, as in "
                  f"`{PROVENANCE_NAME}`, and its committer time in UTC. Blob IDs, path prefixes, "
                  "names, e-mail addresses and commit messages are left out, and the text is "
@@ -1938,14 +1939,27 @@ def _git_bytes_text(args: list[str]) -> str | None:
     return res.stdout.decode("utf-8", errors="replace")
 
 
-def prereg_history(rel: str) -> str | None:
+# Under the header of a merge that PROVENANCE.md lists and `git log --cc` prints no diff for.
+MERGE_JOIN_NOTE = ("# A merge that joined edits made on two branches. Each edit is listed under "
+                   "its own commit, and the merge added no text of its own.")
+
+
+def prereg_history(rel: str, listed: set[str] | None = None) -> str | None:
     """The full text history of the frozen document `rel` as one patch file, oldest commit
     first, or None outside a git checkout or in a shallow clone (as provenance_rows). From
     `git log -p --follow --cc --format=%x00%h %ct`: each commit's header becomes
     "commit <short hash> <YYYY-MM-DD HH:MM> UTC", the committer time in UTC, so no time-zone
     offset ships; the diffs have no a/ and b/ path prefixes, and the `index` lines, which name
     blob IDs, are dropped. Names, e-mail addresses and commit messages are not read. The caller
-    scrubs the text like any other shipped file before it ships."""
+    scrubs the text like any other shipped file before it ships.
+
+    The entries are the commits PROVENANCE.md lists for the document (`listed`, their short
+    hashes; read from provenance_rows when not given). `--cc` prints the header of every merge
+    it walks, with nothing under it unless the merge changed the document against all its
+    parents in one place, so a merge that never touched the document, older ones included, came
+    out as an empty entry. Such an entry is dropped unless the merge is listed, i.e. its version
+    differs from every parent because it joins edits of two branches; that one keeps its header
+    with MERGE_JOIN_NOTE under it. An entry that carries a diff is always kept."""
     top = (_git(["rev-parse", "--show-toplevel"]) or "").strip()
     if not top or os.path.normcase(os.path.realpath(top)) != os.path.normcase(os.path.realpath(ROOT)):
         return None
@@ -1956,6 +1970,9 @@ def prereg_history(rel: str) -> str | None:
                            "--format=%x00%h %ct", "--", rel])
     if out is None:
         return None
+    if listed is None:
+        rows, _ = provenance_rows([rel])
+        listed = {h for _, h, _ in rows[0][1]} if rows else set()
     chunks = []
     for chunk in out.split("\0")[1:]:
         lines = chunk.split("\n")
@@ -1963,6 +1980,10 @@ def prereg_history(rel: str) -> str | None:
         when = datetime.datetime.fromtimestamp(int(ts), tz=datetime.timezone.utc).strftime(
             "%Y-%m-%d %H:%M")
         body = [ln for ln in lines[1:] if not ln.startswith("index ")]
+        if not any(ln.strip() for ln in body):
+            if h not in listed:
+                continue
+            body = [MERGE_JOIN_NOTE]
         chunks.append("\n".join([f"commit {h} {when} UTC", *body]).rstrip("\n") + "\n")
     if not chunks:
         return None
@@ -2219,8 +2240,8 @@ def supplement(out: str, runs_root: str | None = None,
     # Neither is read in a shallow clone or outside a checkout (provenance_rows says why).
     rows, no_prov = provenance_rows([rel for rel, _ in pairs if _is_frozen_doc(rel)])
     histories = {}
-    for rel, _, _ in rows or ():
-        patch = prereg_history(rel)
+    for rel, commits_of, _ in rows or ():
+        patch = prereg_history(rel, {h for _, h, _ in commits_of})
         if patch:
             histories[rel] = patch
             if anon_name and not in_archive:
