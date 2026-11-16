@@ -141,6 +141,7 @@ A commit marked (curated) is the registry's value with no matching run commit in
 | `C1-POPULATION-WORLD-GROUPED` | corrected | C | 49 | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 1 worker; torch 2.7.0+cu126 on CPU |
 | `HEAD-OVERLAP` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 75ce098 | explicit | owner's workstation CPU, 2 workers; torch 2.7.0+cu126 on CPU |
 | `DRAW-CROSSED-C1-C2` | corrected | B-v2 L3 | - | inherited: successor_value | C1, C2 | 3144b3a (curated) | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers, one torch thread each |
+| `DRAW-CROSSED-C1-EXT` | corrected | B-v2 L3 | - | inherited: successor_value | C1 | 89cc7b0 | explicit | Claude Code cloud CPU container, 4 vCPU, 4 workers, one torch thread each |
 
 Commits that artifacts record, or that the record cites, and that are not ancestors of main (most reached main through squash merges); each lives only on the branch named, so keep that branch or tag its head:
 
@@ -1772,6 +1773,18 @@ Training seeds: survival 100000 + 10000*seed + 16*update + i (16 parallel episod
 - Dependencies: Python 3.13.18, torch 2.14.1+cu130 on CPU, numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1
 - Notes: scripts/run_draw_crossed_readout.py (2026-11-12) on the saved agents of the C1 and C2 reruns (origin branches run/C1-rerun and run/C2-rerun); docs/specs/2026-11-12-draw-crossed-readout-design.md, frozen before any fresh draw was scored. Labels are descriptive and stated in advance; this readout re-adjudicates no stored run and changes no stored value or verdict. FINDINGS 25.
 - Artifacts: `artifacts/draw_crossed/corrected_c1_c2.json`
+
+### `DRAW-CROSSED-C1-EXT`: Extension of the draw-crossed readout: the three arms of the saved C1 agents on fifty-six further draws, and each arm's reading net of its control
+
+- Status: corrected
+- Trainer: inherited: successor_value
+- Commit at run: 89cc7b0
+- Commit source: recorded
+- Folds: explicit
+- Device: Claude Code cloud CPU container, 4 vCPU, 4 workers, one torch thread each
+- Dependencies: Python 3.13.18, torch 2.14.1+cu130 on CPU, numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1
+- Notes: scripts/run_draw_crossed_extension.py (2026-11-16) on the saved agents of the C1 rerun (origin branch run/C1-rerun); docs/specs/2026-11-16-draw-crossed-extension-design.md, frozen before any further draw was scored. Labels are descriptive, stated in advance and read on the fifty-six further draws alone; this readout re-adjudicates no stored run and changes no stored value or verdict. FINDINGS 26.
+- Artifacts: `artifacts/draw_crossed/c1_extension.json`
 
 ## Headline register
 
