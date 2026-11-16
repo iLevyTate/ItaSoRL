@@ -2050,6 +2050,27 @@ Rigor carried from the B-v3 audit (2026-07-10):
   within the margin. `C2` scores 0.653 [0.618, 0.688], which straddles the bar. `C1`'s registered
   rule stays not met, on its L0 gate, and no other registered outcome changes. FINDINGS 25.
 
+- **2026-11-16 - AN EXTENSION OF THE DRAW-CROSSED READOUT TO FIFTY-SIX FURTHER DRAWS, ANNOUNCED
+  BEFORE IT RUNS (a record; the entries above stay as written and no rule, number or verdict
+  changes).** FINDINGS 25 left the `C1` survival arm's authentic-versus-authentic reading
+  straddling the band edge, 0.530 [0.495, 0.566] across eight draws, with a spread between
+  draw means (0.052) more than twice that between seed means (0.022), so the number of draws
+  sets the width of that interval. It also reported the reading at drift 0.45 and its control
+  side by side and never their paired difference.
+  `docs/specs/2026-11-16-draw-crossed-extension-design.md`, frozen before any further draw is
+  scored, scores the three arms of the saved `C1` agents, each on its own walk, at drift zero
+  and at drift 0.45 on fifty-six further pairs of evaluation-world seed bases (6000000 +
+  100000k with 6050000 + 100000k, k from 8 to 63), with the two probes of the first readout.
+  Fifty-six is the smallest number of draws for which the draw component of the standard error
+  at drift zero is no larger than the seed component of ten seeds, on FINDINGS 25's values. It
+  adds one contrast, an arm's reading at drift 0.45 minus the same arm's reading at drift
+  zero, paired by agent seed and by draw, and states its label in advance. Every label is read
+  on the fifty-six further draws alone; that contrast on the eight earlier draws is post hoc
+  and carries no label. The registered pair is rescored as the integrity gate against
+  `artifacts/corrected_verdicts.json` (0.01 on all 60 agents, or the readout is void). It
+  trains nothing and re-adjudicates no stored run: `C1`'s registered rule stays not met, on its
+  L0 gate, which is a test on the registered draw, whatever this readout shows.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;
