@@ -2071,6 +2071,19 @@ Rigor carried from the B-v3 audit (2026-07-10):
   trains nothing and re-adjudicates no stored run: `C1`'s registered rule stays not met, on its
   L0 gate, which is a test on the registered draw, whatever this readout shows.
 
+- **2026-11-16 - THE EXTENSION OF THE DRAW-CROSSED READOUT, RESULT (a record; the entries above
+  stay as written and no rule, number or verdict changes).**
+  `docs/specs/2026-11-16-draw-crossed-extension-design.md` ran as frozen, from `89cc7b0`, and its
+  integrity gate passed on all 60 agents. Across fifty-six further draws, with the penalty chosen
+  in fold, the `C1` survival arm's authentic-versus-authentic reading scores 0.500 [0.491, 0.509],
+  inside the band, and its interval includes 0.5. At drift 0.45 the arm scores 0.749 [0.705,
+  0.793], above the bar. Net of its control it reads +0.249 [+0.203, +0.294], at least the bar's
+  distance from chance. Its leads over the predictor and untrained arms are +0.122 [+0.077,
+  +0.167] and +0.165 [+0.118, +0.212], both above the margin. The registered probe gives the same
+  labels. On the eight earlier draws the reading net of its control is +0.246 [+0.197, +0.295],
+  post hoc and without a label. `C1`'s registered rule stays not met, on its L0 gate, which is a
+  test on the registered draw, and no other registered outcome changes. FINDINGS 26.
+
 ## 13. How to run (milestones, in order)
 
 1. **Build + calibrate the surrogate.** Train `G` on authentic rollouts; wrap as a World;

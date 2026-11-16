@@ -7,7 +7,7 @@ documents quote, which this script mirrors as a constant. Where an artifact stor
 per-seed values (the Experiment A and B summaries, gate-0 oracle AUROCs, configuration
 values, recorded integrity results and a few stored gate readings), the stored value itself
 is compared with the constant. Those checks are labeled "pinned:" and the run prints how
-many there are: 105 pinned of 4483 on 2026-11-12 (PIN_COUNT and CHECK_FLOOR below). The count
+many there are: 105 pinned of 4659 on 2026-11-16 (PIN_COUNT and CHECK_FLOOR below). The count
 is of check() calls; composite check_true gates that also compare a stored reading with a
 literal are not counted. A stored L0 gate (mean, TOST
 p and verdict) whose artifact keeps the drift-0 per-seed values must equal its recomputation
@@ -78,9 +78,10 @@ BAR = 0.65
 # (tests/test_audit_selftest.py). A run that records fewer has lost checks without failing one.
 # Change it deliberately when checks are added or removed, from the count the run prints, never
 # by hand; the manuscript sentences that quote it are checked against it by
-# scripts/build_paper_tables.py --manuscript. The count on 2026-11-12 is 4483 (4159 on 2026-10-21,
-# before the draw-crossed readout of FINDINGS 25).
-CHECK_FLOOR = 4483
+# scripts/build_paper_tables.py --manuscript. The count on 2026-11-16 is 4659 (4483 on 2026-11-12,
+# before the extension of the draw-crossed readout of FINDINGS 26; 4159 on 2026-10-21, before the
+# draw-crossed readout of FINDINGS 25).
+CHECK_FLOOR = 4659
 # How many of those checks are pins (labels start "pinned:"), as printed in "pins: P of N".
 PIN_COUNT = 105
 
@@ -3601,6 +3602,7 @@ def main() -> int:
 
     closing_checks()
     draw_crossed_checks(_read("docs/FINDINGS.md"), _read("docs/PREREGISTRATION_L3.md"))
+    draw_crossed_extension_checks(_read("docs/FINDINGS.md"), _read("docs/PREREGISTRATION_L3.md"))
 
     print()
     if n_skipped:
@@ -6088,7 +6090,8 @@ def draw_crossed_checks(findings: str, prereg: str) -> None:
     # --- every summary and label, recomputed ---
     rec = dc.summarize(cells, runs, drifts, fresh, reg, gate)
     between = dc.summarize_between_runs(cells, "C1", "C2", drifts, fresh, gate)
-    f25 = " ".join(findings.split("\n## 25.", 1)[1].split()) if "\n## 25." in findings else ""
+    f25 = (" ".join(findings.split("\n## 25.", 1)[1].split("\n## 26.", 1)[0].split())
+           if "\n## 25." in findings else "")
     check_true("FINDINGS has a section 25", bool(f25))
     for r in runs:
         for d in drifts:
@@ -6190,6 +6193,284 @@ def draw_crossed_checks(findings: str, prereg: str) -> None:
     check_true("PREREGISTRATION_L3 section 12 announces the spec before the run and records the result",
                prereg.count("docs/specs/2026-11-12-draw-crossed-readout-design.md") >= 2
                and "ANNOUNCED BEFORE IT RUNS" in prereg)
+
+# ---------------------------------------------------------------------------
+# Section 26: the extension of the draw-crossed readout (2026-11-16)
+# ---------------------------------------------------------------------------
+def draw_crossed_extension_checks(findings: str, prereg: str) -> None:
+    """docs/specs/2026-11-16-draw-crossed-extension-design.md: every summary, interval and label
+    of artifacts/draw_crossed/c1_extension.json recomputed from its per-cell readings and from
+    the first readout's artifact, the integrity gate recomputed against
+    artifacts/corrected_verdicts.json, and FINDINGS 26 bound to the recomputed values."""
+    import hashlib
+
+    from itasorl import draw_crossed as dc
+    from itasorl import draw_crossed_ext as ext
+
+    print("\n== 26. Extension of the draw-crossed readout: C1 on fifty-six further draws ==")
+    first_path = os.path.join(ARTROOT, "draw_crossed", "corrected_c1_c2.json")
+    with open(os.path.join(ARTROOT, "draw_crossed", "c1_extension.json"), encoding="utf-8") as fh:
+        art = json.load(fh)
+    with open(first_path, encoding="utf-8") as fh:
+        first_art = json.load(fh)
+    with open(os.path.join(ARTROOT, "corrected_verdicts.json"), encoding="utf-8") as fh:
+        verdicts = json.load(fh)
+    cells, reg = art["cells"], art["registered_bases"]
+    further, eight = art["further_bases"], art["first_bases"]
+    arms = list(ext.ARMS)
+
+    # --- the design as frozen ---
+    check_true("26: the artifact names the frozen spec",
+               art["spec"] == "docs/specs/2026-11-16-draw-crossed-extension-design.md")
+    check_true("26: the further draws are the fifty-six frozen pairs, k from 8 to 63",
+               further == [[6_000_000 + 100_000 * k, 6_050_000 + 100_000 * k] for k in range(8, 64)])
+    check_true("26: the first draws are the eight pairs of FINDINGS 25, and the registered pair is 800000 / 850000",
+               eight == first_art["fresh_bases"] and reg == [800_000, 850_000]
+               and not {tuple(b) for b in further} & ({tuple(b) for b in eight} | {tuple(reg)}))
+    check_true("26: run, drifts, seeds, arms, pool size and reference values are the frozen ones",
+               art["run"] == "C1" and art["drifts"] == [0.0, 0.45] and art["seeds"] == list(range(10))
+               and art["arms"] == arms and art["feature_sets"] == list(ext.FEATURE_SETS)
+               and (art["n_eps"], art["steps"], art["ray_steps"]) == (110, 24, 5)
+               and (art["bar"], art["margin"], art["band"], art["interval_level"]) == (0.65, 0.05, [0.45, 0.55], 0.90)
+               and art["net_floor"] == 0.15 and art["primary_probe"] == "nested"
+               and art["probes"] == ["nested", "c1"])
+    sd_draw = first_art["summary"]["C1"]["0.00"]["nested"]["readings"]["own/survival"]["sd_draw_means"]
+    sd_seed = first_art["summary"]["C1"]["0.00"]["nested"]["readings"]["own/survival"]["sd_seed_means"]
+    smallest = next(d for d in range(2, 1000)
+                    if round(sd_draw, 4) / math.sqrt(d) <= round(sd_seed, 4) / math.sqrt(10))
+    check_int("26: the number of further draws the first readout's spreads fix", smallest, 56)
+    check_int("26: cells (2 drifts, 10 seeds)", len(cells), 20)
+    want_draws = {tuple(reg)} | {tuple(b) for b in further}
+    check_true("26: every cell holds the registered draw and the fifty-six further draws, each once",
+               all(len(c["draws"]) == 57 and {tuple(d["bases"]) for d in c["draws"]} == want_draws
+                   for c in cells))
+    check_true("26: every draw of every cell holds the three own-walk feature sets with both probes finite",
+               all(set(d["readings"]) == set(ext.FEATURE_SETS)
+                   and all(isinstance(r[p], float) and math.isfinite(r[p])
+                           for r in d["readings"].values() for p in ext.PROBES)
+                   for c in cells for d in c["draws"]))
+    check_true("26: the artifact is marked complete", art["complete"] is True)
+    kept = [n for c in cells for d in c["draws"] for r in d["readings"].values()
+            for n in (r["n_auth"], r["n_surr"])]
+    check_int("26: pools that kept fewer than 110 episodes", sum(1 for n in kept if n != 110), 0)
+    first_c1 = {(c["drift"], c["seed"]): c for c in first_art["cells"] if c["run"] == "C1"}
+    check_true("26: the agent files are the ones the first readout scored (same sha256, all 60)",
+               all(len(c["agent_sha256"].get(a, "")) == 64
+                   and c["agent_sha256"][a] == first_c1[(c["drift"], c["seed"])]["agent_sha256"][a]
+                   for c in cells for a in arms))
+    with open(first_path, "rb") as fh:
+        first_sha = hashlib.sha256(fh.read()).hexdigest()
+    check_true("26: the first readout's artifact is the committed file (path and sha256)",
+               art["first_artifact"] == {"path": "artifacts/draw_crossed/corrected_c1_c2.json",
+                                         "sha256": first_sha})
+
+    # --- integrity gate, recomputed from the cells against the committed verdict artifact ---
+    reference = {"C1": {"0.45": {a: verdicts["runs"]["C1"]["primary"][a]["per_seed"] for a in arms},
+                        "0.00": {a: verdicts["runs"]["C1"]["drift_zero"][a]["per_seed"] for a in arms}}}
+    gate = dc.integrity_gate(cells, reference, reg, tol=0.01)["C1"]
+    st = art["integrity"]["C1"]
+    check_true(f"26: the integrity gate passes on all 60 agents (worst deviation "
+               f"{gate['worst_abs_dev']:.2e} against 0.01)" if gate["worst_abs_dev"] is not None
+               else "26: the integrity gate passes on all 60 agents",
+               gate["pass"] and gate["n_checked"] == 60 and gate["n_expected"] == 60)
+    check_true("26: the stored integrity block equals the recomputed one",
+               st["pass"] == gate["pass"] and st["n_checked"] == gate["n_checked"]
+               and st["worst_abs_dev"] is not None and gate["worst_abs_dev"] is not None
+               and abs(st["worst_abs_dev"] - gate["worst_abs_dev"]) <= 1e-12)
+    n_same = 0
+    for c in cells:
+        mine = next(d for d in c["draws"] if d["bases"] == reg)["readings"]
+        theirs = next(d for d in first_c1[(c["drift"], c["seed"])]["draws"] if d["bases"] == reg)["readings"]
+        n_same += sum(1 for fs in ext.FEATURE_SETS for p in ext.PROBES if mine[fs][p] == theirs[fs][p])
+    check_int("26: registered-draw readings equal to the first readout's to the bit (20 cells, 3 arms, 2 probes)",
+              n_same, 120)
+
+    # --- every summary and label of the three sets of draws, recomputed ---
+    rec = ext.summarize_all(cells, ext.first_cells(first_art), further, eight, reg, bool(gate["pass"]))
+    f26 = " ".join(findings.split("\n## 26.", 1)[1].split()) if "\n## 26." in findings else ""
+    check_true("FINDINGS has a section 26", bool(f26))
+    set_word = {"further": "56 further draws", "first_eight": "first 8 draws", "all_fresh": "all 64 draws"}
+    for name in ("further", "first_eight", "all_fresh"):
+        for probe in ext.PROBES:
+            sto, rc = art["summary"][name][probe], rec[name][probe]
+            check_true(f"26 {set_word[name]} {probe}: the stored block holds the summaries the design names",
+                       set(sto) == set(rc) and all(set(sto[k]) == set(rc[k]) for k in rc))
+            for dk, by_fs in rc.get("readings", {}).items():
+                for fs, r in by_fs.items():
+                    check_true(f"26 {set_word[name]} d{dk} {probe} {fs}: stored summary and label equal the recomputed ones",
+                               _dc_same(sto["readings"][dk][fs], r))
+            for dk, by_fs in rc.get("registered_draw", {}).items():
+                for fs, r in by_fs.items():
+                    check_true(f"26 d{dk} {probe} {fs}: stored registered-draw mean equals the recomputed one",
+                               abs(sto["registered_draw"][dk][fs]["mean"] - r["mean"]) <= 1e-9)
+            for block in ("leads", "net_of_control"):
+                for cname, r in rc.get(block, {}).items():
+                    check_true(f"26 {set_word[name]} {probe} {cname}: stored summary and label equal the recomputed ones",
+                               _dc_same(sto[block][cname], r))
+    for title, rows in _dc26_tables(rec).items():
+        check_true(f"FINDINGS 26 has the table: {title}", title in f26)
+        for row in rows:
+            check_true(f"FINDINGS 26 table row: {row}", " ".join(row.split()) in f26)
+    check_true("26: only the fifty-six further draws carry labels",
+               all(r["label"] is None for name in ("first_eight", "all_fresh") for probe in ext.PROBES
+                   for blk in rec[name][probe].values() for r in _dc26_leaves(blk)))
+
+    # --- the labels FINDINGS states ---
+    net = ext.net_name("survival")
+    for probe, word in (("nested", "in fold"), ("c1", "C = 1")):
+        blk = rec["further"][probe]
+        for what, label in (("level", blk["readings"]["0.45"]["own/survival"]["label"]),
+                            ("drift zero", blk["readings"]["0.00"]["own/survival"]["label"]),
+                            ("net of its control", blk["net_of_control"][net]["label"]),
+                            ("lead over the predictor arm", blk["leads"]["survival minus predictor, own walks"]["label"]),
+                            ("lead over the untrained arm", blk["leads"]["survival minus untrained, own walks"]["label"])):
+            check_true(f"FINDINGS 26 states the {what} label ({word}): {label}",
+                       f"`C1` {what}, {word}: {label}" in f26)
+    check_true("FINDINGS 26 says the registered verdicts stay as recorded",
+               "re-adjudicates no stored run" in f26 and "stays not met" in f26)
+    check_true("PREREGISTRATION_L3 section 12 announces the extension before the run and records the result",
+               prereg.count("docs/specs/2026-11-16-draw-crossed-extension-design.md") >= 2
+               and "FIFTY-SIX FURTHER DRAWS, ANNOUNCED BEFORE IT RUNS" in " ".join(prereg.split())
+               and "THE EXTENSION OF THE DRAW-CROSSED READOUT, RESULT" in " ".join(prereg.split()))
+    # --- the numbers FINDINGS 26 quotes outside its tables ---
+    fu = rec["further"]
+    first_c1_sum = first_art["summary"]["C1"]
+
+    def _fv(probe, dk, arm, key):
+        return fu[probe]["readings"][dk][f"own/{arm}"][key]
+
+    _cl_quote("26: worst integrity deviation", float(f"{gate['worst_abs_dev']:.7f}"), "0.0000005")
+    check_true("FINDINGS 26 quotes the worst integrity deviation 0.0000005", "0.0000005" in f26)
+    check_int("26: wall time, seconds", int(round(art["wall_seconds"])), 10566)
+    check_true("FINDINGS 26 quotes the wall time", "10566 seconds" in f26)
+    check_true("26: the artifact was written at the frozen commit, and FINDINGS says so",
+               art["git_commit"] == "89cc7b0" and "`git_commit` reads `89cc7b0`" in f26)
+    check_true("26: the drift-zero intervals of the three arms include 0.5 under both probes",
+               all(_fv(p, "0.00", a, "lo") <= 0.5 <= _fv(p, "0.00", a, "hi") for p in ext.PROBES for a in arms))
+    q25 = dc.fmt_ci(first_c1_sum["0.00"]["nested"]["readings"]["own/survival"])
+    check_true(f"FINDINGS 26 quotes the eight-draw control of FINDINGS 25: {q25}",
+               f"on eight draws, at {q25}" in f26)
+    _cl_quote("26 d0.00 in fold: predictor and untrained arms",
+              [_fv("nested", "0.00", "predictor", "mean"), _fv("nested", "0.00", "untrained", "mean")], "0.502 and 0.504")
+    _cl_quote("26 d0.00 in fold: spread of the per-draw means and of the seed means",
+              [_fv("nested", "0.00", "survival", "sd_draw_means"), _fv("nested", "0.00", "survival", "sd_seed_means")],
+              "0.042 in fold, against 0.005")
+    dz = {p: _fv(p, "0.00", "survival", "draw_means") for p in ext.PROBES}
+    _cl_quote("26 d0.00 in fold: lowest and highest draw mean", [min(dz["nested"]), max(dz["nested"])], "0.389 to 0.605")
+    for p, hi_n, lo_n in (("nested", 4, 4), ("c1", 5, 7)):
+        check_int(f"26 d0.00 {p}: draw means above 0.55", sum(1 for x in dz[p] if x > 0.55), hi_n)
+        check_int(f"26 d0.00 {p}: draw means below 0.45", sum(1 for x in dz[p] if x < 0.45), lo_n)
+    reg0 = fu["c1"]["registered_draw"]["0.00"]["own/survival"]["mean"]
+    _cl_quote("26 d0.00 C = 1: registered draw mean", reg0, "0.559")
+    check_int("26 d0.00 C = 1: further draw means at or above the registered draw's", sum(1 for x in dz["c1"] if x >= reg0), 2)
+    m8 = first_c1_sum["0.00"]["nested"]["readings"]["own/survival"]["mean"]
+    se8 = _fv("nested", "0.00", "survival", "sd_draw_means") / math.sqrt(len(eight))
+    _cl_quote("26: standard error of a mean of eight draws at the further draws' spread", se8, "0.015")
+    check_true("26: the eight earlier draws' mean lies two such errors above the further draws' mean",
+               1.5 <= (m8 - _fv("nested", "0.00", "survival", "mean")) / se8 <= 2.5)
+    for line in ("8 of the 56 lie outside the band, 4 above 0.55 and 4 below 0.45",
+                 "At C = 1, 12 lie outside it, 5 above and 7 below",
+                 "2 of the 56 are at or above the registered draw's 0.559",
+                 "a standard error of about 0.015, so 0.530 lies two such errors above 0.500"):
+        check_true(f"FINDINGS 26 reads: {line}", line in f26)
+    ds = {p: _fv(p, "0.45", "survival", "draw_means") for p in ext.PROBES}
+    check_int("26 d0.45: further draw means below the bar, either probe", sum(1 for p in ext.PROBES for x in ds[p] if x < 0.65), 0)
+    _cl_quote("26 d0.45: lowest draw mean, in fold and at C = 1", [min(ds["nested"]), min(ds["c1"])], "0.677 0.677")
+    reg45 = fu["c1"]["registered_draw"]["0.45"]["own/survival"]["mean"]
+    _cl_quote("26 d0.45 C = 1: registered draw mean", reg45, "0.733")
+    check_int("26 d0.45 C = 1: further draw means below the registered draw's", sum(1 for x in ds["c1"] if x < reg45), 12)
+    _cl_quote("26: the eight earlier draws' level", first_c1_sum["0.45"]["nested"]["readings"]["own/survival"]["mean"], "0.776")
+    for line in ("every one of the 56 draw means is at or above 0.65 under both probes (lowest 0.677)",
+                 "At C = 1, 12 of the 56 draw means lie below the registered draw's 0.733",
+                 "lower than on the eight earlier draws (0.776)"):
+        check_true(f"FINDINGS 26 reads: {line}", line in f26)
+    nets = {p: fu[p]["net_of_control"][net] for p in ext.PROBES}
+    check_int("26: draw means of the survival arm's net reading at or below 0.15, either probe",
+              sum(1 for p in ext.PROBES for x in nets[p]["draw_means"] if x <= 0.15), 0)
+    _cl_quote("26: lowest draw mean of the net reading, in fold and at C = 1",
+              [min(nets["nested"]["draw_means"]), min(nets["c1"]["draw_means"])], "+0.152 in fold, +0.163")
+    _cl_quote("26: spread of the net reading between seed means and between draw means",
+              [nets["nested"]["sd_seed_means"], nets["nested"]["sd_draw_means"]], "0.077, against 0.040")
+    n_fu, n_all = nets["nested"], rec["all_fresh"]["nested"]["net_of_control"][net]
+    check_true("26: the net reading on the further draws and on all sixty-four prints alike and differs in the fourth decimal",
+               dc.fmt_ci(n_fu, signed=True) == dc.fmt_ci(n_all, signed=True)
+               and f"{n_fu['mean']:.4f}" != f"{n_all['mean']:.4f}")
+    for line in ("Every one of the 56 draw means of the contrast is above 0.15 (lowest +0.152 in fold, +0.163 at C = 1)",
+                 "print alike to three decimals and differ in the fourth",
+                 "the spread between seed means is 0.077, against 0.040 between draw means"):
+        check_true(f"FINDINGS 26 reads: {line}", line in f26)
+    check_true("26: the net readings of the predictor and untrained arms exclude zero under both probes",
+               all(fu[p]["net_of_control"][ext.net_name(a)]["lo"] > 0 for p in ext.PROBES for a in ("predictor", "untrained")))
+    c25 = first_c1_sum["0.45"]["nested"]["contrasts"]
+    _cl_quote("26: the leads FINDINGS 25 gave on eight draws",
+              [c25["survival minus predictor, own walks"]["mean"], c25["survival minus untrained, own walks"]["mean"]],
+              "+0.136 and +0.185")
+    check_true("FINDINGS 26 quotes the eight-draw leads", "FINDINGS 25 gave +0.136 and +0.185 on eight draws" in f26)
+    n_diff = sum(1 for blk in ("readings", "leads", "net_of_control")
+                 for a_, b_ in zip(_dc26_leaves(fu["nested"][blk]), _dc26_leaves(fu["c1"][blk]))
+                 if a_["label"] != b_["label"])
+    check_int("26: labels on which the two probes differ", n_diff, 0)
+    check_true("FINDINGS 26 says the two probes agree on every label", "The two probes agree on every label." in f26)
+    from collections import Counter
+    cnt = Counter(cv for c in cells if c["drift"] == 0.0 for d in c["draws"]
+                  if d["bases"] != reg for cv in d["readings"]["own/survival"]["chosen_C"])
+    check_true("26 d0.00: the two ends of the grid are the two most frequent in-fold choices",
+               {cv for cv, _n in cnt.most_common(2)} == {0.001, 10.0})
+    n_read = sum(1 for c in cells for d in c["draws"] for _r in d["readings"].values())
+    n_warn = sum(r.get("convergence_warnings", 0) for c in cells for d in c["draws"] for r in d["readings"].values())
+    check_int("26: readings in the artifact (20 cells, 57 draws, 3 arms)", n_read, 3420)
+    check_int("26: convergence warnings recorded across the readings", n_warn, 1)
+    check_true("FINDINGS 26 quotes the convergence warning",
+               "One of the 3420 readings had a fit that raised a convergence warning." in f26)
+
+
+def _dc26_tables(rec: dict) -> dict:
+    """The tables of FINDINGS 26, row by row, from the recomputed summaries: title -> rows."""
+    from itasorl import draw_crossed as dc
+    from itasorl import draw_crossed_ext as ext
+
+    def lab(r):
+        return r["label"] or ""
+
+    fu, ei, al = rec["further"], rec["first_eight"], rec["all_fresh"]
+    out = {}
+    for dk in ("0.45", "0.00"):
+        rows = ["| Reading | Penalty in fold | Label | C = 1 | Label | Registered draw, C = 1 |"]
+        for arm in ext.ARMS:
+            n, c = fu["nested"]["readings"][dk][f"own/{arm}"], fu["c1"]["readings"][dk][f"own/{arm}"]
+            reg_mean = fu["c1"]["registered_draw"][dk][f"own/{arm}"]["mean"]
+            rows.append(f"| {arm} arm, own walk | {dc.fmt_ci(n)} | {lab(n)} | {dc.fmt_ci(c)} | {lab(c)} | {reg_mean:.3f} |")
+        if dk == "0.45":
+            for name, _plus, _minus in ext.LEADS:
+                n, c = fu["nested"]["leads"][name], fu["c1"]["leads"][name]
+                rows.append(f"| {name} | {dc.fmt_ci(n, signed=True)} | {lab(n)} | {dc.fmt_ci(c, signed=True)} | {lab(c)} | |")
+        out[f"**The fifty-six further draws, drift {dk}.**"] = rows
+    rows = ["| Reading | Draws | Penalty in fold | Label | C = 1 | Label |"]
+    for arm in ext.ARMS:
+        name = ext.net_name(arm)
+        for word, blk in (("56 further", fu), ("first 8, post hoc", ei), ("all 64, descriptive", al)):
+            n, c = blk["nested"]["net_of_control"][name], blk["c1"]["net_of_control"][name]
+            rows.append(f"| {name} | {word} | {dc.fmt_ci(n, signed=True)} | {lab(n)} | {dc.fmt_ci(c, signed=True)} | {lab(c)} |")
+    out["**The reading net of its control.**"] = rows
+    rows = ["| Reading | Penalty in fold | C = 1 |"]
+    for dk in ("0.45", "0.00"):
+        for arm in ext.ARMS:
+            n, c = al["nested"]["readings"][dk][f"own/{arm}"], al["c1"]["readings"][dk][f"own/{arm}"]
+            rows.append(f"| {arm} arm, own walk, drift {dk} | {dc.fmt_ci(n)} | {dc.fmt_ci(c)} |")
+    for name, _plus, _minus in ext.LEADS:
+        n, c = al["nested"]["leads"][name], al["c1"]["leads"][name]
+        rows.append(f"| {name}, drift 0.45 | {dc.fmt_ci(n, signed=True)} | {dc.fmt_ci(c, signed=True)} |")
+    out["**All sixty-four fresh draws together.**"] = rows
+    return out
+
+
+def _dc26_leaves(block: dict):
+    """The summary dicts of one stored block (readings are nested by drift, the others are flat)."""
+    for v in block.values():
+        if isinstance(v, dict) and "mean" in v:
+            yield v
+        elif isinstance(v, dict):
+            yield from _dc26_leaves(v)
 
 
 def _find_all(haystack: str, needle: str) -> list[int]:

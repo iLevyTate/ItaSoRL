@@ -7202,6 +7202,53 @@
       "surrogate": null,
       "survival_trainer": "inherited: successor_value",
       "title": "Draw-crossed readout of the saved C1 and C2 agents: every arm on eight fresh draws, with the registered probe and the penalty chosen in fold"
+    },
+    {
+      "affected_by_gae_correction": true,
+      "agent_seeds": null,
+      "artifacts": [
+        "draw_crossed/c1_extension.json"
+      ],
+      "budget": null,
+      "claims": [],
+      "commit_at_run": "89cc7b0",
+      "commit_at_run_source": "recorded",
+      "config": {},
+      "deps": "Python 3.13.18, torch 2.14.1+cu130 on CPU, numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1",
+      "device": "Claude Code cloud CPU container, 4 vCPU, 4 workers, one torch thread each",
+      "eval_seeds": {
+        "first_pairs": "k below 8, read from draw_crossed/corrected_c1_c2.json and not rescored",
+        "further_pairs": "6000000 + 100000k / 6050000 + 100000k, k from 8 to 63",
+        "registered_pair": "800000 / 850000 (integrity gate; in no crossed interval)"
+      },
+      "experiment": "B-v2 L3",
+      "folds": "explicit",
+      "id": "DRAW-CROSSED-C1-EXT",
+      "local_run_dir": null,
+      "notes": "scripts/run_draw_crossed_extension.py (2026-11-16) on the saved agents of the C1 rerun (origin branch run/C1-rerun); docs/specs/2026-11-16-draw-crossed-extension-design.md, frozen before any further draw was scored. Labels are descriptive, stated in advance and read on the fifty-six further draws alone; this readout re-adjudicates no stored run and changes no stored value or verdict. FINDINGS 26.",
+      "readout_only_on": [
+        "C1"
+      ],
+      "recorded_provenance": {
+        "draw_crossed/c1_extension.json": {
+          "generated_by": "scripts/run_draw_crossed_extension.py",
+          "git_commit": "89cc7b0",
+          "spec": "docs/specs/2026-11-16-draw-crossed-extension-design.md",
+          "stack": {
+            "cpu_count": 4,
+            "device": "cpu",
+            "numpy": "2.4.6",
+            "python": "3.13.18",
+            "scikit_learn": "1.9.1",
+            "scipy": "1.17.1",
+            "torch": "2.14.1+cu130"
+          }
+        }
+      },
+      "status": "corrected",
+      "surrogate": null,
+      "survival_trainer": "inherited: successor_value",
+      "title": "Extension of the draw-crossed readout: the three arms of the saved C1 agents on fifty-six further draws, and each arm's reading net of its control"
     }
   ],
   "train_seed_schedule": {

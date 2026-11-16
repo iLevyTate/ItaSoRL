@@ -178,6 +178,8 @@ DRAW_CROSSED_SPEC = "docs/specs/2026-11-12-draw-crossed-readout-design.md"
 DRAW_CROSSED_COMMIT = "3144b3a"
 DRAW_CROSSED_DEVICE = "Claude Code cloud CPU container, 4 vCPU, 4 workers, one torch thread each"
 DRAW_CROSSED_DEPS = "Python 3.13.18, torch 2.14.1+cu130 on CPU, numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1"
+DRAW_CROSSED_EXT_SPEC = "docs/specs/2026-11-16-draw-crossed-extension-design.md"
+DRAW_CROSSED_EXT_COMMIT = "89cc7b0"
 CLOSING_NOTE = ("Closing pass 2026-10; descriptive, and this readout re-adjudicates no stored run or "
                 "verdict.")
 
@@ -1668,6 +1670,20 @@ RUNS = [
               f"reruns (origin branches run/C1-rerun and run/C2-rerun); {DRAW_CROSSED_SPEC}, frozen "
               "before any fresh draw was scored. Labels are descriptive and stated in advance; this "
               "readout re-adjudicates no stored run and changes no stored value or verdict. FINDINGS 25."),
+    run("DRAW-CROSSED-C1-EXT", "Extension of the draw-crossed readout: the three arms of the saved C1 "
+        "agents on fifty-six further draws, and each arm's reading net of its control",
+        experiment="B-v2 L3", artifacts=["draw_crossed/c1_extension.json"], trains_survival=False,
+        readout_of=["C1"], survival_trainer="successor_value", status="corrected",
+        commit_at_run=DRAW_CROSSED_EXT_COMMIT, folds="explicit",
+        eval_seeds={"registered_pair": "800000 / 850000 (integrity gate; in no crossed interval)",
+                    "further_pairs": "6000000 + 100000k / 6050000 + 100000k, k from 8 to 63",
+                    "first_pairs": "k below 8, read from draw_crossed/corrected_c1_c2.json and not rescored"},
+        device=DRAW_CROSSED_DEVICE, deps=DRAW_CROSSED_DEPS,
+        notes=f"scripts/run_draw_crossed_extension.py (2026-11-16) on the saved agents of the C1 rerun "
+              f"(origin branch run/C1-rerun); {DRAW_CROSSED_EXT_SPEC}, frozen before any further draw "
+              "was scored. Labels are descriptive, stated in advance and read on the fifty-six further "
+              "draws alone; this readout re-adjudicates no stored run and changes no stored value or "
+              "verdict. FINDINGS 26."),
 ]
 
 

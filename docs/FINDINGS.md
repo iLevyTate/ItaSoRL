@@ -7064,3 +7064,151 @@ none.
 |---|---|---|---|---|
 | 0.45 | +0.123 [+0.089, +0.157] | above the margin | +0.125 [+0.090, +0.160] | above the margin |
 | 0.00 | +0.018 [-0.004, +0.041] |  | +0.011 [-0.011, +0.034] |  |
+
+## 26. Extension of the draw-crossed readout: the `C1` arms on fifty-six further draws, and the reading net of its control (2026-11-16)
+
+Spec `docs/specs/2026-11-16-draw-crossed-extension-design.md`, frozen at `89cc7b0` (2026-11-16
+03:08 UTC) and announced in `docs/PREREGISTRATION_L3.md` section 12 before any further draw was
+scored. The run started from that commit at 03:08 UTC and took 10566 seconds on four CPU workers
+(Python 3.13.18, torch 2.14.1 on CPU, numpy 2.4.6, scipy 1.17.1, scikit-learn 1.9.1). The
+artifact's `git_commit` reads `89cc7b0`: nothing was committed between the freeze and the end of
+the run. The agents are the saved agents of the `C1` rerun, from the origin branch
+`run/C1-rerun`. They are the files FINDINGS 25 scored (same sha256, all 60) and are not
+committed here. Artifact: `artifacts/draw_crossed/c1_extension.json`.
+
+**Status.** This readout re-adjudicates no stored run. `C1`'s registered rule stays not met, on
+its L0 gate, which is a test on the registered draw. Every value of FINDINGS 25 stays as
+recorded. The labels below say where a crossed 90% interval lies against the 0.65 bar, the 0.05
+margin, the band [0.45, 0.55] or, for the reading net of its control, zero and 0.15. They are
+descriptions, not verdicts, and add no row to the rule ledger.
+
+**Integrity gate: passed.** On the registered draw, the registered probe reproduces the recorded
+target of all 60 agents, with a worst deviation of 0.0000005 against the tolerance of 0.01. All
+120 readings on that draw, three arms in 20 cells under two probes, equal those of FINDINGS 25 to
+the bit.
+
+**What was scored.** The three arms of `C1`, each on its own walk, at drift zero and at drift
+0.45, on fifty-six further pairs of evaluation-world seed bases (6000000 + 100000k with
+6050000 + 100000k, k from 8 to 63), with 110 episodes of 24 steps per pool. No pool lost an
+episode. Each reading uses the penalty chosen inside each training fold (the primary probe) and
+the registered C = 1. Each interval treats agent seeds and draws as crossed random factors. The
+design adds one contrast, the reading net of its control: an arm's reading at drift 0.45 minus
+the same arm's reading at drift zero, paired by agent seed index and by draw. The two readings
+come from two agents, one raised in the surrogate and one raised in the authentic world, which
+share a seed index and were trained apart. `C2` and the replayed streams are not scored.
+
+**Three sets of draws.** Every label is read on the fifty-six further draws, where no reading
+existed when the design was frozen. On the eight draws of FINDINGS 25 only the reading net of its
+control is new. It is post hoc there, because both of its terms had been read, and it carries no
+label. The sixty-four draws together are descriptive and carry no label.
+
+**The labels stated in advance.**
+
+- `C1` level, in fold: above the bar
+- `C1` drift zero, in fold: inside the band
+- `C1` net of its control, in fold: at least the bar's distance from chance
+- `C1` lead over the predictor arm, in fold: above the margin
+- `C1` lead over the untrained arm, in fold: above the margin
+- `C1` level, C = 1: above the bar
+- `C1` drift zero, C = 1: inside the band
+- `C1` net of its control, C = 1: at least the bar's distance from chance
+- `C1` lead over the predictor arm, C = 1: above the margin
+- `C1` lead over the untrained arm, C = 1: above the margin
+
+**What it shows.**
+
+1. **Across fifty-six further draws the authentic-versus-authentic reading of the `C1` survival
+   arm lies within the registered band, and its interval includes 0.5.** It scores 0.500 [0.491,
+   0.509] with the penalty chosen in fold and 0.500 [0.492, 0.509] at C = 1. FINDINGS 25 left
+   this reading straddling the band edge on eight draws, at 0.530 [0.495, 0.566]. The predictor
+   and untrained arms read 0.502 and 0.504 in fold, inside the band, and their intervals include
+   0.5 as well.
+2. **One draw is a noisy reading of that control.** The spread of the per-draw means at drift
+   zero is 0.042 in fold, against 0.005 between seed means. In fold the draw means run from 0.389
+   to 0.605, and 8 of the 56 lie outside the band, 4 above 0.55 and 4 below 0.45. At C = 1, 12 lie
+   outside it, 5 above and 7 below, and 2 of the 56 are at or above the registered draw's 0.559.
+   So the registered draw was a high one for this reading. The eight earlier draws also read
+   higher (0.530) than the further ones. With a spread of 0.042 a mean of eight draws has a
+   standard error of about 0.015, so 0.530 lies two such errors above 0.500.
+3. **The level of the `C1` reading holds.** The survival arm scores 0.749 [0.705, 0.793] in fold
+   and 0.754 [0.712, 0.796] at C = 1. Both lower bounds clear the bar, and every one of the 56
+   draw means is at or above 0.65 under both probes (lowest 0.677). At C = 1, 12 of the 56 draw
+   means lie below the registered draw's 0.733, so the registered draw was not a favorable one
+   for the level. The reading is lower than on the eight earlier draws (0.776).
+4. **Net of its control the survival arm reads +0.249 [+0.203, +0.294] in fold, at least the
+   bar's distance from chance, and +0.253 [+0.211, +0.295] at C = 1.** Every one of the 56 draw
+   means of the contrast is above 0.15 (lowest +0.152 in fold, +0.163 at C = 1). On the eight
+   earlier draws the contrast is +0.246 [+0.197, +0.295] in fold, post hoc, and on all sixty-four
+   draws it is +0.249 [+0.203, +0.294]. The summaries on the further draws and on all sixty-four
+   print alike to three decimals and differ in the fourth. The width of the interval is set by
+   the ten agent seeds: the spread between seed means is 0.077, against 0.040 between draw means,
+   so further draws would not narrow it.
+5. **The baseline arms also read above their own controls, by less.** The same contrast is
+   +0.125 [+0.105, +0.145] for the predictor arm and +0.080 [+0.073, +0.087] for the untrained
+   arm in fold. Neither carries a label. Both intervals exclude zero, so a recurrent network
+   that was never trained to survive, and one that was never trained at all, also separate the
+   surrogate from the authentic world on their own walks.
+6. **The leads over the baseline arms hold.** On the arms' own walks at drift 0.45 the survival
+   arm leads the predictor arm by +0.122 [+0.077, +0.167] and the untrained arm by +0.165
+   [+0.118, +0.212], both above the margin. FINDINGS 25 gave +0.136 and +0.185 on eight draws.
+7. **The two probes agree on every label.** The penalty chosen in fold spreads over the whole
+   grid, and at drift zero the two ends of the grid are its two most frequent choices, as in
+   FINDINGS 25. One of the 3420 readings had a fit that raised a convergence warning.
+
+**What is not shown.** `C2` and the replayed streams are not scored, so this readout says nothing
+new about the auxiliary or about matched input: FINDINGS 25 item 4 stands, and the survival
+arm's lead over the predictor arm is still not shown to be one of objective. Every reading is
+conditional on the one surrogate (hidden 8, G seed 0) and on the saved agents. The readout adds
+draws, not agent seeds, and the seed component of every interval is that of ten seeds. Walks are
+not matched by speed, and nothing here bears on persistence or use. The registered L0 gate is a
+test on the registered draw. A reading inside the band on other draws does not pass it, and this
+readout does not reopen it.
+
+**Every reading.** Crossed 90% intervals over ten agent seeds and the named set of draws. A label
+is blank where the spec states none. The registered draw's mean at C = 1 stands beside each
+reading of the fifty-six further draws and enters no interval.
+
+**The fifty-six further draws, drift 0.45.**
+
+| Reading | Penalty in fold | Label | C = 1 | Label | Registered draw, C = 1 |
+|---|---|---|---|---|---|
+| survival arm, own walk | 0.749 [0.705, 0.793] | above the bar | 0.754 [0.712, 0.796] | above the bar | 0.733 |
+| predictor arm, own walk | 0.627 [0.609, 0.645] |  | 0.633 [0.615, 0.651] |  | 0.589 |
+| untrained arm, own walk | 0.584 [0.574, 0.593] |  | 0.573 [0.564, 0.582] |  | 0.523 |
+| survival minus predictor, own walks | +0.122 [+0.077, +0.167] | above the margin | +0.121 [+0.078, +0.164] | above the margin | |
+| survival minus untrained, own walks | +0.165 [+0.118, +0.212] | above the margin | +0.181 [+0.134, +0.227] | above the margin | |
+
+**The fifty-six further draws, drift 0.00.**
+
+| Reading | Penalty in fold | Label | C = 1 | Label | Registered draw, C = 1 |
+|---|---|---|---|---|---|
+| survival arm, own walk | 0.500 [0.491, 0.509] | inside the band | 0.500 [0.492, 0.509] | inside the band | 0.559 |
+| predictor arm, own walk | 0.502 [0.494, 0.510] | inside the band | 0.501 [0.494, 0.508] | inside the band | 0.508 |
+| untrained arm, own walk | 0.504 [0.496, 0.511] | inside the band | 0.503 [0.496, 0.510] | inside the band | 0.491 |
+
+**The reading net of its control.**
+
+| Reading | Draws | Penalty in fold | Label | C = 1 | Label |
+|---|---|---|---|---|---|
+| survival arm net of its control, own walk | 56 further | +0.249 [+0.203, +0.294] | at least the bar's distance from chance | +0.253 [+0.211, +0.295] | at least the bar's distance from chance |
+| survival arm net of its control, own walk | first 8, post hoc | +0.246 [+0.197, +0.295] |  | +0.249 [+0.203, +0.294] |  |
+| survival arm net of its control, own walk | all 64, descriptive | +0.249 [+0.203, +0.294] |  | +0.253 [+0.211, +0.295] |  |
+| predictor arm net of its control, own walk | 56 further | +0.125 [+0.105, +0.145] |  | +0.132 [+0.115, +0.149] |  |
+| predictor arm net of its control, own walk | first 8, post hoc | +0.122 [+0.101, +0.142] |  | +0.126 [+0.101, +0.150] |  |
+| predictor arm net of its control, own walk | all 64, descriptive | +0.125 [+0.105, +0.144] |  | +0.131 [+0.114, +0.148] |  |
+| untrained arm net of its control, own walk | 56 further | +0.080 [+0.073, +0.087] |  | +0.070 [+0.064, +0.077] |  |
+| untrained arm net of its control, own walk | first 8, post hoc | +0.070 [+0.056, +0.084] |  | +0.062 [+0.046, +0.078] |  |
+| untrained arm net of its control, own walk | all 64, descriptive | +0.079 [+0.072, +0.086] |  | +0.069 [+0.063, +0.075] |  |
+
+**All sixty-four fresh draws together.**
+
+| Reading | Penalty in fold | C = 1 |
+|---|---|---|
+| survival arm, own walk, drift 0.45 | 0.752 [0.709, 0.795] | 0.757 [0.715, 0.798] |
+| predictor arm, own walk, drift 0.45 | 0.628 [0.611, 0.646] | 0.634 [0.616, 0.652] |
+| untrained arm, own walk, drift 0.45 | 0.585 [0.575, 0.594] | 0.574 [0.565, 0.583] |
+| survival arm, own walk, drift 0.00 | 0.504 [0.494, 0.513] | 0.504 [0.496, 0.512] |
+| predictor arm, own walk, drift 0.00 | 0.504 [0.497, 0.511] | 0.503 [0.497, 0.509] |
+| untrained arm, own walk, drift 0.00 | 0.506 [0.498, 0.513] | 0.505 [0.497, 0.512] |
+| survival minus predictor, own walks, drift 0.45 | +0.124 [+0.079, +0.168] | +0.123 [+0.080, +0.165] |
+| survival minus untrained, own walks, drift 0.45 | +0.168 [+0.121, +0.214] | +0.183 [+0.137, +0.228] |
