@@ -6260,9 +6260,17 @@ def draw_crossed_extension_checks(findings: str, prereg: str) -> None:
                    for c in cells for a in arms))
     with open(first_path, "rb") as fh:
         first_sha = hashlib.sha256(fh.read()).hexdigest()
-    check_true("26: the first readout's artifact is the committed file (path and sha256)",
-               art["first_artifact"] == {"path": "artifacts/draw_crossed/corrected_c1_c2.json",
-                                         "sha256": first_sha})
+    # Inside the anonymized archive (README_SUPPLEMENT.md at the root) the first artifact is a
+    # scrubbed text file: its commit IDs and digests are pseudonyms, so its bytes do not hash to
+    # the recorded digest, which is a pseudonym there as well. The digest is compared in a
+    # checkout. In the archive this check keeps the path and the form of the digest, and the
+    # recomputed summaries of the eight earlier draws below bind the readings themselves.
+    in_archive = os.path.exists(os.path.join(ARTROOT, "..", "README_SUPPLEMENT.md"))
+    stored_sha = str(art["first_artifact"].get("sha256", ""))
+    check_true("26: the first readout's artifact is the committed file (path, and sha256 where the file is not scrubbed)",
+               art["first_artifact"].get("path") == "artifacts/draw_crossed/corrected_c1_c2.json"
+               and re.fullmatch(r"[0-9a-f]{64}", stored_sha) is not None
+               and (in_archive or stored_sha == first_sha))
 
     # --- integrity gate, recomputed from the cells against the committed verdict artifact ---
     reference = {"C1": {"0.45": {a: verdicts["runs"]["C1"]["primary"][a]["per_seed"] for a in arms},
