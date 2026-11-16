@@ -57,10 +57,12 @@ def test_scrub_removes_identity_words_without_touching_ordinary_words():
     import reproduce
     rules = [(p, r) for p, r in reproduce.GENERIC_SCRUB]
     import re
-    # The fixture names are assembled at runtime so the supplement's own scrubber cannot
-    # rewrite this test when it is packaged (the archive must pass its own test suite).
-    family, given = "T" + "ate", "L" + "evy"
-    handle = "i" + given + family
+    # The fixture names are made up. They stand for a family name, a given name and a handle,
+    # and the family name is a substring of an ordinary word in the sentence below
+    # ("estimate"), which the scrubber must leave alone. No real identity term is spelled
+    # here, whole or in pieces, so the archive ships this test as written and still passes it.
+    family, given = "Tima", "Rona"
+    handle = "x" + given + family
     for t in (family, given, handle):
         rules.append((re.compile(r"(?<![A-Za-z0-9])" + re.escape(t) + r"(?![a-z0-9])"), "<author>"))
     # Likewise the path and e-mail fixtures: written literally they would be scrubbed too.

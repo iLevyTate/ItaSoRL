@@ -1182,6 +1182,12 @@ def _readme(status, anon_name: str | None, *, dropped=(), films: int = 0,
          "ship only as inputs to the scalar audit and the site tests. They do not render here, "
          "and their links to the repository and to files outside the archive do not resolve.",
          "",
+         "The specifications, log entries and correction notes are dated, and each is kept as "
+         "written. Where one of them names a section, appendix, table or figure of the "
+         "manuscript by its number, the number is that of the manuscript on the note's date; "
+         "the submitted paper and its supplementary appendices may number the same place "
+         "differently.",
+         "",
          "## Install and run", "",
          "- Python 3.10 to 3.13. Create a virtual environment first (`python3 -m venv .venv && "
          ". .venv/bin/activate`; on Windows `py -m venv .venv`, then `.venv\\Scripts\\activate`), "
