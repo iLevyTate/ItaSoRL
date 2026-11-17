@@ -15,8 +15,8 @@ sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 import build_paper_tables as bpt  # noqa: E402
 
-# What each needle renders to on the committed artifacts, as the abstract and the body quote them
-# in the manuscript revisions of 2026-10-25 (the abstract keeps the five C1 numbers). A refit that moves one of these must move the manuscript too.
+# What each needle renders to on the committed artifacts, as the manuscript quotes them (since
+# 2026-11-17 the abstract quotes no number, and the five C1 numbers are body needles). A refit that moves one of these must move the manuscript too.
 EXPECTED = {
     "L1 oracle": "0.873", "L1 stream reader": "0.788", "corrected L1 survival": "0.551",
     "corrected L1 survival interval": r"\ci{0.531}{0.570}", "C1 survival": "0.733",
@@ -98,9 +98,20 @@ def test_a_body_needle_missing_from_the_whole_file_is_reported():
     assert len(issues) == sum(1 for b, *_ in bpt.headline_needles() if b == "body")
 
 
-def test_check_manuscript_reports_the_moved_abstract_number(tmp_path, capsys):
+def test_check_manuscript_reports_the_moved_headline_number(tmp_path, capsys):
     (tmp_path / "main.tex").write_text(_fixture(bpt.headline_needles(), ("$0.733$", "$0.731$")),
                                        encoding="utf-8")
     bpt.check_manuscript(str(tmp_path))
     out = capsys.readouterr().out
-    assert "the abstract does not quote 0.733 (C1 survival; artifacts/corrected_verdicts.json" in out
+    assert "the body does not quote 0.733 (C1 survival; artifacts/corrected_verdicts.json" in out
+
+
+def test_the_c1_headline_numbers_are_body_needles():
+    c1 = {"C1 survival", "C1 survival interval", "C1 predictor", "C1 untrained", "C1 L0 mean"}
+    assert {label: block for block, label, *_ in bpt.headline_needles() if label in c1} == dict.fromkeys(c1, "body")
+
+
+def test_an_abstract_without_numbers_passes_when_the_body_quotes_them():
+    text = ("\\begin{abstract}\nNo numbers here.\n\\end{abstract}\n\n\\section{Results}\n"
+            + " ".join(f"${t}$" for *_, t in bpt.headline_needles()) + "\n")
+    assert bpt._headline_block_issues("main.tex", text) == []
