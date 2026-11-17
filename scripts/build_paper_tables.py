@@ -1345,10 +1345,11 @@ def _qd(arm: str) -> float:
     return float(_art("artifacts/texture/corrected_l3_h8_wm_qd.json")["aggregate"][f"{arm} fresh"]["mean"])
 
 
-# The numbers the abstract and the body quote, each with the artifact and key it comes from. The
-# abstract needles are the C1 headline numbers; the L1 oracle, the corrected L1 survival and the PB
-# sensory-echo scores are body needles since the second manuscript revision of 2026-10-25, and the
-# Contributions list carries no pinned number since the first. A needle is (block, label, artifact
+# The numbers the manuscript quotes, each with the artifact and key it comes from. The L1 oracle, the
+# corrected L1 survival and the PB sensory-echo scores are body needles since the second manuscript
+# revision of 2026-10-25, and the Contributions list carries no pinned number since the first. The
+# five C1 headline numbers are body needles too since 2026-11-17, when the owner asked for an
+# abstract without numbers; they must still be quoted, anywhere in the file that has the abstract. A needle is (block, label, artifact
 # path, key, text). The text is what the block must contain: a three-decimal value, a signed one,
 # or an interval as \ci{lo}{hi}.
 def headline_needles() -> list[tuple[str, str, str, str, str]]:
@@ -1370,10 +1371,10 @@ def headline_needles() -> list[tuple[str, str, str, str, str]]:
          _num(l1["survival"])),
         ("body", "corrected L1 survival interval", "artifacts/expB2/corrected_L1-corrected.json",
          "decision.survival_t90", _ivs(l1["survival_t90"])),
-        ("abstract", "C1 survival", cv, "runs.C1.primary.survival.mean", _num(v["primary"]["survival"]["mean"])),
-        ("abstract", "C1 survival interval", cv, "runs.C1.primary.survival.t90", _ivs(v["primary"]["survival"]["t90"])),
-        ("abstract", "C1 predictor", cv, "runs.C1.primary.predictor.mean", _num(v["primary"]["predictor"]["mean"])),
-        ("abstract", "C1 untrained", cv, "runs.C1.primary.untrained.mean", _num(v["primary"]["untrained"]["mean"])),
+        ("body", "C1 survival", cv, "runs.C1.primary.survival.mean", _num(v["primary"]["survival"]["mean"])),
+        ("body", "C1 survival interval", cv, "runs.C1.primary.survival.t90", _ivs(v["primary"]["survival"]["t90"])),
+        ("body", "C1 predictor", cv, "runs.C1.primary.predictor.mean", _num(v["primary"]["predictor"]["mean"])),
+        ("body", "C1 untrained", cv, "runs.C1.primary.untrained.mean", _num(v["primary"]["untrained"]["mean"])),
         ("body", "drag fresh probe", "artifacts/texture/corrected_l3_h8_wm_qd.json",
          'aggregate["survival fresh"].mean', _num(_qd("survival"))),
         ("body", "drag margin over the untrained arm", "artifacts/texture/corrected_l3_h8_wm_qd.json",
@@ -1386,7 +1387,7 @@ def headline_needles() -> list[tuple[str, str, str, str, str]]:
          'contrast["follow-up: M(0.99, matched) - M(0, stored)"].mean', _num(fu["mean"], True)),
         ("body", "sweep C follow-up interval", "artifacts/texture/ar_sweep_c_followup/summary.json",
          'contrast["follow-up: M(0.99, matched) - M(0, stored)"].t90', _ivs(fu["t90"], True)),
-        ("abstract", "C1 L0 mean", cv, "runs.C1.gates.l0.mean", _num(v["gates"]["l0"]["mean"])),
+        ("body", "C1 L0 mean", cv, "runs.C1.gates.l0.mean", _num(v["gates"]["l0"]["mean"])),
         ("body", "T-touch survival", "artifacts/expB2/goal_stakes_T-touch.json", "decision.survival",
          _num(_art("artifacts/expB2/goal_stakes_T-touch.json")["decision"]["survival"])),
         *[("body", f"{run} sensory-echo trained", f"artifacts/prospective_balanced/{run.lower()}.json",
@@ -1414,8 +1415,9 @@ def _flat_tex(s: str) -> str:
 
 def _headline_block_issues(rel: str, text: str, needles=None) -> list[str]:
     """Every abstract and body number must be the artifact's value. Only a file that has an
-    abstract is read; the abstract needles are the C1 headline numbers, and the body needles are
-    the other headline and secondary readings and may sit anywhere in that file. The Contributions list is not a
+    abstract is read. Since 2026-11-17 every needle is a body needle (the C1 headline numbers
+    with the other headline and secondary readings), and each may sit anywhere in that file; an
+    abstract block is still read if a needle names one. The Contributions list is not a
     block of its own since the manuscript revision of 2026-10-25, which keeps its numbers in the
     Results."""
     a = _ABSTRACT.search(text)
