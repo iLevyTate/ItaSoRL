@@ -15,7 +15,7 @@
 # Python 3.13 finds no wheel. Do not replace this NumPy and keep a bit-exact
 # claim against the recorded GPU cells. The pin below is the version that
 # ran, not a supported official wheel.
-numpy==1.26.4
+numpy==2.2.6
 scipy==1.15.3
 scikit-learn==1.5.2
 torch==2.7.0

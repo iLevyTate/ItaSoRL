@@ -2,7 +2,7 @@
 # Python 3.11.17. torch is 2.14.1+cpu:
 #   pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
 #   pip install -r requirements.txt -c constraints-cpu-corrected.txt
-numpy==2.4.6
+numpy==2.2.6
 scipy==1.17.1
 scikit-learn==1.9.1
 torch==2.14.1
