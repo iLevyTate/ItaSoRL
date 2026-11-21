@@ -5,6 +5,6 @@
   "description": "Headless frame capture for the ITASORL outreach film player",
   "type": "commonjs",
   "dependencies": {
-    "playwright": "^1.61.1"
+    "playwright": "^1.65.1"
   }
 }
