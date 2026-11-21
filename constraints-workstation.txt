@@ -1,7 +1,7 @@
 # Workstation stack for the GPU runs and the 2026-10-12 confirmation.
 # Python 3.13.2 at C:\Python313\python.exe. torch is 2.7.0+cu126 from the
 # CUDA 12.6 index, which a constraints file cannot select by itself:
-#   pip install torch==2.7.0 --index-url https://download.pytorch.org/whl/cu126
+#   pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cu126
 #   pip install -r requirements.txt -c constraints-workstation.txt
 #
 # Erratum 2026-10-14. NumPy 1.26.4's release notes support Python 3.9-3.12.
@@ -18,4 +18,4 @@
 numpy==1.26.4
 scipy==1.15.3
 scikit-learn==1.5.2
-torch==2.7.0
+torch==2.14.1
