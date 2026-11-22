@@ -8,6 +8,11 @@ updates:
 
   - package-ecosystem: "pip"
     directory: "/"
+    # These two files record the environments used for published runs.
+    # Keep routine version updates on the active requirements.
+    exclude-paths:
+      - "constraints-cpu-corrected.txt"
+      - "constraints-workstation.txt"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
