@@ -41,7 +41,7 @@ dependencies = [
 [project.optional-dependencies]
 # Mirrors requirements-dev.txt: ruff is pinned there because a newer release flags new
 # errors on untouched code, so the extra pins it too. pyarrow backs tests/test_logschema.py.
-dev = ["pytest>=7.0", "ruff==0.15.20", "pyarrow>=14"]
+dev = ["pytest>=7.0", "ruff==0.17.6", "pyarrow>=14"]
 
 [project.urls]
 Repository = "https://github.com/iLevyTate/ItaSoRL"
