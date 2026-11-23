@@ -39,8 +39,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Mirrors requirements-dev.txt: ruff is pinned there because a newer release flags new
-# errors on untouched code, so the extra pins it too. pyarrow backs tests/test_logschema.py.
+# Mirrors requirements-dev.txt. Ruff's rule selection is in ruff.toml.
+# pyarrow backs tests/test_logschema.py.
 dev = ["pytest>=7.0", "ruff==0.17.6", "pyarrow>=14"]
 
 [project.urls]
